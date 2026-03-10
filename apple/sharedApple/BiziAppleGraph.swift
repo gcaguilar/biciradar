@@ -101,7 +101,7 @@ actor BiziAppleGraph {
     }
 
     private func bootstrapFavorites() async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             graph.favoritesRepository.bootstrap { error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -113,7 +113,7 @@ actor BiziAppleGraph {
     }
 
     private func refreshStations() async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             graph.stationsRepository.refresh { error in
                 if let error {
                     continuation.resume(throwing: error)

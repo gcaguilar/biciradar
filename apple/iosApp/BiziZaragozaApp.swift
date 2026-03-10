@@ -1,3 +1,4 @@
+import BiziMobileUi
 import SwiftUI
 
 @main
@@ -15,7 +16,7 @@ struct BiziZaragozaApp: App {
             ComposeRootView(launchRequest: launchRequest)
                 .id(launchToken)
                 .onAppear(perform: applyPendingLaunchRequest)
-                .onChange(of: scenePhase) { _, newPhase in
+                .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         applyPendingLaunchRequest()
                     }
