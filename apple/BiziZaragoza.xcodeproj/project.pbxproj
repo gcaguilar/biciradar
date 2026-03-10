@@ -1,0 +1,565 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
+		2A1A7D6DBA2D3260023131AE /* BiziZaragozaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
+		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
+		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
+		726E125E0EA16476AD9EA0D5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
+		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
+		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
+		9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */; };
+		D3D00AA0A6D7A8ABAE420276 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
+		E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EBBE6E7925DE355AC4C91729 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15306C0763EF355DF69384A7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9AAEF234E6136587F6B6531E;
+			remoteInfo = BiziZaragozaWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8220DDEBAF8D564B8965E948 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				2A1A7D6DBA2D3260023131AE /* BiziZaragozaWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BiziZaragoza.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridge.swift; sourceTree = "<group>"; };
+		5CC824927869DECDC66A1B8A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchShortcuts.swift; sourceTree = "<group>"; };
+		6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
+		A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiziZaragozaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaWatchApp.swift; sourceTree = "<group>"; };
+		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
+		EAD93BA8276E4323A19B32F8 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		EC58133CDF714873B84A2060 /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4DD8561DC5C807EBF3443CF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */,
+				5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD98020F9182FBE8F0226628 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				726E125E0EA16476AD9EA0D5 /* SwiftUI.framework in Frameworks */,
+				D3D00AA0A6D7A8ABAE420276 /* WatchConnectivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		534F5641E71B302FF1DFF77B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5CC824927869DECDC66A1B8A /* SwiftUI.framework */,
+				EAD93BA8276E4323A19B32F8 /* UIKit.framework */,
+				2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		612BC18A0C68575F17520BE7 /* watchApp */ = {
+			isa = PBXGroup;
+			children = (
+				5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */,
+				AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */,
+				4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */,
+			);
+			path = watchApp;
+			sourceTree = "<group>";
+		};
+		614B01FEFF803CF83B3894E8 = {
+			isa = PBXGroup;
+			children = (
+				DFA0C477AFBFA2BCB90BAA6C /* iosApp */,
+				612BC18A0C68575F17520BE7 /* watchApp */,
+				534F5641E71B302FF1DFF77B /* Frameworks */,
+				7011A7278025024B568B85E9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7011A7278025024B568B85E9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */,
+				A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DFA0C477AFBFA2BCB90BAA6C /* iosApp */ = {
+			isa = PBXGroup;
+			children = (
+				EC58133CDF714873B84A2060 /* BiziShortcuts.swift */,
+				BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */,
+				6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */,
+			);
+			path = iosApp;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BFC3BD049FCD87DCC536D0A /* Build configuration list for PBXNativeTarget "BiziZaragozaWatch" */;
+			buildPhases = (
+				FF13FF5755CC341F984068A6 /* Build KMP watchOS framework */,
+				859DEA061CC0DB756817BB9D /* Sources */,
+				FD98020F9182FBE8F0226628 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BiziZaragozaWatch;
+			packageProductDependencies = (
+			);
+			productName = BiziZaragozaWatch;
+			productReference = A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */;
+			productType = "com.apple.product-type.application.watchapp2";
+		};
+		C8B48EA109F99ADE7F104A93 /* BiziZaragoza */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7F7F225AB5780CC63C024369 /* Build configuration list for PBXNativeTarget "BiziZaragoza" */;
+			buildPhases = (
+				7D5DAF4D660D5178300C157A /* Build KMP iOS frameworks */,
+				006161D7045D48D5E38F0126 /* Sources */,
+				4DD8561DC5C807EBF3443CF6 /* Frameworks */,
+				8220DDEBAF8D564B8965E948 /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5EE57B837BB002C986506D16 /* PBXTargetDependency */,
+			);
+			name = BiziZaragoza;
+			packageProductDependencies = (
+			);
+			productName = BiziZaragoza;
+			productReference = 3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		15306C0763EF355DF69384A7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					9AAEF234E6136587F6B6531E = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					C8B48EA109F99ADE7F104A93 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = F26943683B39FE76F2FE42E4 /* Build configuration list for PBXProject "BiziZaragoza" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 614B01FEFF803CF83B3894E8;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7011A7278025024B568B85E9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C8B48EA109F99ADE7F104A93 /* BiziZaragoza */,
+				9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		7D5DAF4D660D5178300C157A /* Build KMP iOS frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP iOS frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64 \\\n    :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkIosArm64 \\\n    :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+		};
+		FF13FF5755CC341F984068A6 /* Build KMP watchOS framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP watchOS framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		006161D7045D48D5E38F0126 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */,
+				425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */,
+				909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		859DEA061CC0DB756817BB9D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */,
+				E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */,
+				1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5EE57B837BB002C986506D16 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */;
+			targetProxy = EBBE6E7925DE355AC4C91729 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0095B746F18448F7B51B34FC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -framework BiziMobileUi";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
+				PRODUCT_NAME = "Bizi Zaragoza";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		11DD6291E56B7E10FFEF6AD1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -framework BiziMobileUi";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
+				PRODUCT_NAME = "Bizi Zaragoza";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		161F732AB562871D7F2E3C8F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza Watch";
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.bizizaragoza.ios;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.watch;
+				PRODUCT_NAME = "Bizi Zaragoza Watch";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+		225E269769199DCD7187028A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza Watch";
+				INFOPLIST_KEY_WKApplication = YES;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.bizizaragoza.ios;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.watch;
+				PRODUCT_NAME = "Bizi Zaragoza Watch";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		36F3D03D251DE6F2DE416C20 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.10;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		4719AD48FD9612F268C76DBB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.10;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7F7F225AB5780CC63C024369 /* Build configuration list for PBXNativeTarget "BiziZaragoza" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0095B746F18448F7B51B34FC /* Debug */,
+				11DD6291E56B7E10FFEF6AD1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9BFC3BD049FCD87DCC536D0A /* Build configuration list for PBXNativeTarget "BiziZaragozaWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				161F732AB562871D7F2E3C8F /* Debug */,
+				225E269769199DCD7187028A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F26943683B39FE76F2FE42E4 /* Build configuration list for PBXProject "BiziZaragoza" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4719AD48FD9612F268C76DBB /* Debug */,
+				36F3D03D251DE6F2DE416C20 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 15306C0763EF355DF69384A7 /* Project object */;
+}

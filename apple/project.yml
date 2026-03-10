@@ -1,0 +1,131 @@
+name: BiziZaragoza
+
+configs:
+  Debug: debug
+  Release: release
+
+options:
+  bundleIdPrefix: com.gcaguilar.bizizaragoza
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "16.0"
+    watchOS: "9.0"
+
+settings:
+  base:
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+    SWIFT_VERSION: "5.10"
+
+targets:
+  BiziZaragoza:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: iosApp
+    dependencies:
+      - target: BiziZaragozaWatch
+        embed: true
+      - sdk: SwiftUI.framework
+      - sdk: UIKit.framework
+    preBuildScripts:
+      - name: Build KMP iOS frameworks
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KMP_CONFIGURATION="Release"
+          else
+            KMP_CONFIGURATION="Debug"
+          fi
+          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
+            ./gradlew \
+              :shared:core:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64 \
+              :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
+          else
+            ./gradlew \
+              :shared:core:link${KMP_CONFIGURATION}FrameworkIosArm64 \
+              :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
+          fi
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework
+          - $(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -framework BiziMobileUi
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
+        PRODUCT_NAME: Bizi Zaragoza
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  BiziZaragozaWatch:
+    type: application.watchapp2
+    platform: watchOS
+    deploymentTarget: "9.0"
+    sources:
+      - path: watchApp
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: WatchConnectivity.framework
+    preBuildScripts:
+      - name: Build KMP watchOS framework
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KMP_CONFIGURATION="Release"
+          else
+            KMP_CONFIGURATION="Debug"
+          fi
+          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
+            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+          else
+            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
+          fi
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza Watch
+        INFOPLIST_KEY_WKApplication: YES
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.bizizaragoza.ios
+        INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.watch
+        PRODUCT_NAME: Bizi Zaragoza Watch
+
+schemes:
+  BiziZaragoza:
+    build:
+      targets:
+        BiziZaragoza: all
+        BiziZaragozaWatch: all
+    run:
+      config: Debug
+  BiziZaragozaWatch:
+    build:
+      targets:
+        BiziZaragozaWatch: all
+    run:
+      config: Debug

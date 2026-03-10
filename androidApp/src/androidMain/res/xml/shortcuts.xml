@@ -1,0 +1,92 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <parameter
+                android:key="feature"
+                android:name="feature" />
+        </intent>
+    </capability>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_mylocation"
+        android:shortcutId="nearest_station"
+        android:shortcutLongLabel="@string/shortcut_nearest_station"
+        android:shortcutShortLabel="@string/shortcut_nearest_station">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="nearest_station" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@string/shortcut_nearest_station" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_agenda"
+        android:shortcutId="favorite_stations"
+        android:shortcutLongLabel="@string/shortcut_favorites"
+        android:shortcutShortLabel="@string/shortcut_favorites">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="favorite_stations" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@string/shortcut_favorites" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:shortcutId="station_status"
+        android:shortcutLongLabel="@string/shortcut_station_status"
+        android:shortcutShortLabel="@string/shortcut_station_status">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="station_status" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@string/shortcut_station_status" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:shortcutId="route_to_station"
+        android:shortcutLongLabel="@string/shortcut_route"
+        android:shortcutShortLabel="@string/shortcut_route">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="route_to_station" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@string/shortcut_route" />
+        </capability-binding>
+    </shortcut>
+</shortcuts>
