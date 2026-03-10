@@ -4,6 +4,11 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.gcaguilar.bizizaragoza.core.platform.IOSPlatformBindings
 import platform.UIKit.UIViewController
 
-fun MainViewController(): UIViewController = ComposeUIViewController {
-  BiziMobileApp(platformBindings = IOSPlatformBindings())
+fun MainViewController(
+  launchRequest: MobileLaunchRequest? = null,
+): UIViewController = ComposeUIViewController {
+  BiziMobileApp(
+    platformBindings = IOSPlatformBindings(),
+    launchRequest = launchRequest,
+  )
 }

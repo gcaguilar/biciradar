@@ -24,6 +24,7 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: iosApp
+      - path: sharedApple
     dependencies:
       - target: BiziZaragozaWatch
         embed: true
@@ -100,6 +101,7 @@ targets:
       base:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework

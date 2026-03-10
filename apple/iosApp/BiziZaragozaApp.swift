@@ -2,27 +2,31 @@ import SwiftUI
 
 @main
 struct BiziZaragozaApp: App {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var launchRequest: (any MobileLaunchRequest)?
+    @State private var launchToken: Int = 0
+
+    init() {
+        FavoritesSyncBridge.shared.activate()
+    }
+
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Bizi Zaragoza")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(.red)
-
-                    Text("Shell SwiftUI para integrar la UI Compose compartida desde `BiziMobileUi.MainViewController()` y coordinar Siri, rutas y sync con Apple Watch.")
-                        .foregroundStyle(.secondary)
-
-                    NavigationLink("Abrir App Intents") {
-                        IOSAssistantShortcutsView()
+            ComposeRootView(launchRequest: launchRequest)
+                .id(launchToken)
+                .onAppear(perform: applyPendingLaunchRequest)
+                .onChange(of: scenePhase) { _, newPhase in
+                    if newPhase == .active {
+                        applyPendingLaunchRequest()
                     }
-                    .buttonStyle(.borderedProminent)
-
-                    Spacer()
                 }
-                .padding(24)
-            }
         }
+    }
+
+    private func applyPendingLaunchRequest() {
+        guard let request = AppleLaunchRequestStore.shared.takePendingRequest() else { return }
+        launchRequest = request
+        launchToken += 1
     }
 }
 
