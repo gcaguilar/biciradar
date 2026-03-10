@@ -51,9 +51,8 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <RemoteRunnable
-         runnableDebuggingMode = "2"
-         BundleIdentifier = "com.apple.Carousel">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9AAEF234E6136587F6B6531E"
@@ -61,7 +60,7 @@
             BlueprintName = "BiziZaragozaWatch"
             ReferencedContainer = "container:BiziZaragoza.xcodeproj">
          </BuildableReference>
-      </RemoteRunnable>
+      </BuildableProductRunnable>
       <CommandLineArguments>
       </CommandLineArguments>
    </LaunchAction>

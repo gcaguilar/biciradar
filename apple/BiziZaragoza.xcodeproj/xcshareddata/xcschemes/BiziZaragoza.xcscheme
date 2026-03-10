@@ -21,20 +21,6 @@
                ReferencedContainer = "container:BiziZaragoza.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9AAEF234E6136587F6B6531E"
-               BuildableName = "BiziZaragozaWatch.app"
-               BlueprintName = "BiziZaragozaWatch"
-               ReferencedContainer = "container:BiziZaragoza.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

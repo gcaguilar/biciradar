@@ -5,6 +5,7 @@ configs:
   Release: release
 
 options:
+  autoCreateSchemes: false
   bundleIdPrefix: com.gcaguilar.bizizaragoza
   createIntermediateGroups: true
   deploymentTarget:
@@ -26,8 +27,6 @@ targets:
       - path: iosApp
       - path: sharedApple
     dependencies:
-      - target: BiziZaragozaWatch
-        embed: true
       - sdk: SwiftUI.framework
       - sdk: UIKit.framework
     preBuildScripts:
@@ -54,6 +53,7 @@ targets:
       base:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework
@@ -73,7 +73,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1,2"
 
   BiziZaragozaWatch:
-    type: application.watchapp2
+    type: application
     platform: watchOS
     deploymentTarget: "9.0"
     sources:
@@ -122,7 +122,6 @@ schemes:
     build:
       targets:
         BiziZaragoza: all
-        BiziZaragozaWatch: all
     run:
       config: Debug
   BiziZaragozaWatch:

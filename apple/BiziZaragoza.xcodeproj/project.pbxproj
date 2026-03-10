@@ -9,11 +9,11 @@
 /* Begin PBXBuildFile section */
 		1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
-		2A1A7D6DBA2D3260023131AE /* BiziZaragozaWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
 		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
 		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
 		726E125E0EA16476AD9EA0D5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
+		8709497EC6DA8DD925701061 /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */; };
 		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
 		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
 		9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */; };
@@ -22,30 +22,6 @@
 		E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */; };
 		F3275F32B2CC0EA730AA2ECE /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		EBBE6E7925DE355AC4C91729 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 15306C0763EF355DF69384A7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9AAEF234E6136587F6B6531E;
-			remoteInfo = BiziZaragozaWatch;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		8220DDEBAF8D564B8965E948 /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				2A1A7D6DBA2D3260023131AE /* BiziZaragozaWatch.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
@@ -60,6 +36,7 @@
 		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
 		C89ACDE081F371C07894C925 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
+		DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchGraph.swift; sourceTree = "<group>"; };
 		EAD93BA8276E4323A19B32F8 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		EC58133CDF714873B84A2060 /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -99,6 +76,7 @@
 		612BC18A0C68575F17520BE7 /* watchApp */ = {
 			isa = PBXGroup;
 			children = (
+				DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */,
 				5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */,
 				AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */,
 				4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */,
@@ -166,7 +144,7 @@
 			);
 			productName = BiziZaragozaWatch;
 			productReference = A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */;
-			productType = "com.apple.product-type.application.watchapp2";
+			productType = "com.apple.product-type.application";
 		};
 		C8B48EA109F99ADE7F104A93 /* BiziZaragoza */ = {
 			isa = PBXNativeTarget;
@@ -175,12 +153,10 @@
 				7D5DAF4D660D5178300C157A /* Build KMP iOS frameworks */,
 				006161D7045D48D5E38F0126 /* Sources */,
 				4DD8561DC5C807EBF3443CF6 /* Frameworks */,
-				8220DDEBAF8D564B8965E948 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5EE57B837BB002C986506D16 /* PBXTargetDependency */,
 			);
 			name = BiziZaragoza;
 			packageProductDependencies = (
@@ -287,6 +263,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8709497EC6DA8DD925701061 /* BiziWatchGraph.swift in Sources */,
 				9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */,
 				E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */,
 				1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */,
@@ -294,14 +271,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		5EE57B837BB002C986506D16 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */;
-			targetProxy = EBBE6E7925DE355AC4C91729 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0095B746F18448F7B51B34FC /* Debug */ = {
@@ -311,6 +280,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
@@ -345,6 +315,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
@@ -375,6 +346,7 @@
 		161F732AB562871D7F2E3C8F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
@@ -403,6 +375,7 @@
 		225E269769199DCD7187028A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
