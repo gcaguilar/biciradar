@@ -3,41 +3,52 @@ import BiziMobileUi
 
 struct NearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Estación más cercana"
-    static var openAppWhenRun: Bool = false
+    static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
+        await MainActor.run {
+            AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStation.shared)
+        }
         do {
             guard let station = try await BiziAppleGraph.shared.nearestStation() else {
-                return .result(dialog: "No he encontrado estaciones de Bizi ahora mismo.")
+                return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana.")
+            }
+            await MainActor.run {
+                AppleLaunchRequestStore.shared.save(
+                    MobileLaunchRequestShowStation(stationId: station.id)
+                )
             }
             return .result(
-                dialog: "La estación más cercana es \(station.name), a \(station.distanceMeters) metros, con \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
+                dialog: "Abriendo \(station.name), a \(station.distanceMeters) metros, con \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
             )
         } catch {
-            return .result(dialog: "No he podido consultar Bizi Zaragoza ahora mismo.")
+            return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana.")
         }
     }
 }
 
 struct FavoriteStationsIntent: AppIntent {
     static var title: LocalizedStringResource = "Mis favoritas"
-    static var openAppWhenRun: Bool = false
+    static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
+        await MainActor.run {
+            AppleLaunchRequestStore.shared.save(MobileLaunchRequestFavorites.shared)
+        }
         do {
             let favorites = try await BiziAppleGraph.shared.favoriteStations()
             guard !favorites.isEmpty else {
-                return .result(dialog: "Todavía no tienes estaciones favoritas guardadas.")
+                return .result(dialog: "Abriendo Bizi Zaragoza. Todavía no tienes estaciones favoritas guardadas.")
             }
             let summary = favorites
                 .prefix(3)
                 .map(\.name)
                 .joined(separator: ", ")
             return .result(
-                dialog: "Tus favoritas son \(summary). Tienes \(favorites.count) en total."
+                dialog: "Abriendo tus favoritas. Tienes \(favorites.count) en total: \(summary)."
             )
         } catch {
-            return .result(dialog: "No he podido leer tus favoritas ahora mismo.")
+            return .result(dialog: "Abriendo Bizi Zaragoza para mostrar tus favoritas.")
         }
     }
 }

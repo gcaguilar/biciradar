@@ -50,4 +50,12 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertEqual(request?.stationId, "station-42")
         XCTAssertNil(store.takePendingRequest())
     }
+
+    func testShowStationRequestPreservesStationIdentifier() {
+        store.save(MobileLaunchRequestShowStation(stationId: "station-9"))
+
+        let request = store.takePendingRequest() as? MobileLaunchRequestShowStation
+        XCTAssertEqual(request?.stationId, "station-9")
+        XCTAssertNil(store.takePendingRequest())
+    }
 }
