@@ -16,3 +16,5 @@ fun MainViewController(
     launchRequest = launchRequest,
   )
 }
+
+fun RootViewController(): UIViewController = MainViewController(launchRequest = null)
