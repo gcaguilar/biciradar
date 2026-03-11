@@ -10,17 +10,21 @@ struct NearestStationIntent: AppIntent {
             AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStation.shared)
         }
         do {
-            guard let station = try await BiziAppleGraph.shared.nearestStation() else {
+            let resolution = try await BiziAppleGraph.shared.assistantResponse(
+                for: AssistantActionNearestStation.shared
+            )
+            guard let stationId = resolution.highlightedStationId else {
                 return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana.")
+            }
+            guard let station = try await BiziAppleGraph.shared.station(stationId: stationId) else {
+                return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
             }
             await MainActor.run {
                 AppleLaunchRequestStore.shared.save(
                     MobileLaunchRequestShowStation(stationId: station.id)
                 )
             }
-            return .result(
-                dialog: "Abriendo \(station.name), a \(station.distanceMeters) metros, con \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana.")
         }
@@ -36,17 +40,21 @@ struct NearestStationWithBikesIntent: AppIntent {
             AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStationWithBikes.shared)
         }
         do {
-            guard let station = try await BiziAppleGraph.shared.nearestStationWithBikes() else {
+            let resolution = try await BiziAppleGraph.shared.assistantResponse(
+                for: AssistantActionNearestStationWithBikes.shared
+            )
+            guard let stationId = resolution.highlightedStationId else {
                 return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con bicis disponibles.")
+            }
+            guard let station = try await BiziAppleGraph.shared.station(stationId: stationId) else {
+                return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
             }
             await MainActor.run {
                 AppleLaunchRequestStore.shared.save(
                     MobileLaunchRequestShowStation(stationId: station.id)
                 )
             }
-            return .result(
-                dialog: "Abriendo \(station.name), la estación más cercana con bicis disponibles. Tiene \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con bicis disponibles.")
         }
@@ -62,17 +70,21 @@ struct NearestStationWithSlotsIntent: AppIntent {
             AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStationWithSlots.shared)
         }
         do {
-            guard let station = try await BiziAppleGraph.shared.nearestStationWithSlots() else {
+            let resolution = try await BiziAppleGraph.shared.assistantResponse(
+                for: AssistantActionNearestStationWithSlots.shared
+            )
+            guard let stationId = resolution.highlightedStationId else {
                 return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con huecos libres.")
+            }
+            guard let station = try await BiziAppleGraph.shared.station(stationId: stationId) else {
+                return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
             }
             await MainActor.run {
                 AppleLaunchRequestStore.shared.save(
                     MobileLaunchRequestShowStation(stationId: station.id)
                 )
             }
-            return .result(
-                dialog: "Abriendo \(station.name), la estación más cercana con huecos libres. Tiene \(station.slotsFree) huecos y \(station.bikesAvailable) bicis."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con huecos libres.")
         }

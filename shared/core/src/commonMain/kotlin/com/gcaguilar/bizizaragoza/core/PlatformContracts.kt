@@ -25,6 +25,7 @@ interface AssistantIntentResolver {
     action: AssistantAction,
     stationsState: StationsState,
     favoriteIds: Set<String>,
+    searchRadiusMeters: Int,
   ): AssistantResolution
 }
 

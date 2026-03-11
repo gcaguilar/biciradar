@@ -12,6 +12,7 @@ interface SharedGraph {
   val favoritesRepository: FavoritesRepository
   val geminiPromptService: GeminiPromptService
   val routeLauncher: RouteLauncher
+  val settingsRepository: SettingsRepository
   val stationsRepository: StationsRepository
   val watchSyncBridge: WatchSyncBridge
 
@@ -42,6 +43,11 @@ interface SharedGraph {
   fun provideFavoritesRepository(
     implementation: FavoritesRepositoryImpl,
   ): FavoritesRepository = implementation
+
+  @Provides
+  fun provideSettingsRepository(
+    implementation: SettingsRepositoryImpl,
+  ): SettingsRepository = implementation
 
   @Provides
   fun provideGeminiPromptService(

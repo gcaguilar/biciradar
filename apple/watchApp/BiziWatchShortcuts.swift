@@ -1,4 +1,5 @@
 import AppIntents
+import BiziSharedCore
 
 struct WatchNearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Estación cercana en reloj"
@@ -6,12 +7,13 @@ struct WatchNearestStationIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         do {
-            guard let station = try await BiziWatchGraph.shared.nearestStation() else {
+            let resolution = try await BiziWatchGraph.shared.assistantResponse(
+                for: AssistantActionNearestStation.shared
+            )
+            guard resolution.highlightedStationId != nil else {
                 return .result(dialog: "No he encontrado estaciones de Bizi cerca de ti ahora mismo.")
             }
-            return .result(
-                dialog: "\(station.name) está a \(station.distanceMeters) metros, con \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "No he podido consultar Bizi Zaragoza en el reloj.")
         }
@@ -24,12 +26,13 @@ struct WatchNearestStationWithBikesIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         do {
-            guard let station = try await BiziWatchGraph.shared.nearestStationWithBikes() else {
+            let resolution = try await BiziWatchGraph.shared.assistantResponse(
+                for: AssistantActionNearestStationWithBikes.shared
+            )
+            guard resolution.highlightedStationId != nil else {
                 return .result(dialog: "No he encontrado estaciones cercanas con bicis disponibles ahora mismo.")
             }
-            return .result(
-                dialog: "\(station.name) es la estación más cercana con bicis disponibles. Tiene \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "No he podido consultar estaciones con bicis disponibles en el reloj.")
         }
@@ -42,12 +45,13 @@ struct WatchNearestStationWithSlotsIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         do {
-            guard let station = try await BiziWatchGraph.shared.nearestStationWithSlots() else {
+            let resolution = try await BiziWatchGraph.shared.assistantResponse(
+                for: AssistantActionNearestStationWithSlots.shared
+            )
+            guard resolution.highlightedStationId != nil else {
                 return .result(dialog: "No he encontrado estaciones cercanas con huecos libres ahora mismo.")
             }
-            return .result(
-                dialog: "\(station.name) es la estación más cercana con huecos libres. Tiene \(station.slotsFree) huecos y \(station.bikesAvailable) bicis."
-            )
+            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
         } catch {
             return .result(dialog: "No he podido consultar estaciones con huecos libres en el reloj.")
         }

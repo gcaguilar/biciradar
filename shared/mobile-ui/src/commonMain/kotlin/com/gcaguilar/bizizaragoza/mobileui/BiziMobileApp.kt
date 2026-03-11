@@ -51,8 +51,10 @@ import com.gcaguilar.bizizaragoza.core.AssistantAction
 import com.gcaguilar.bizizaragoza.core.GeminiPromptRequest
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
+import com.gcaguilar.bizizaragoza.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
+import com.gcaguilar.bizizaragoza.core.selectNearbyStation
 import dev.zacsweers.metro.createGraphFactory
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -91,6 +93,7 @@ fun BiziMobileApp(
   val scope = rememberCoroutineScope()
   val stationsState by graph.stationsRepository.state.collectAsState()
   val favoriteIds by graph.favoritesRepository.favoriteIds.collectAsState()
+  val searchRadiusMeters by graph.settingsRepository.searchRadiusMeters.collectAsState()
   var currentTab by rememberSaveable { mutableStateOf(MobileTab.Mapa) }
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var assistantOpen by rememberSaveable { mutableStateOf(false) }
@@ -99,36 +102,45 @@ fun BiziMobileApp(
   var pendingLaunchRequest by remember { mutableStateOf<MobileLaunchRequest?>(null) }
 
   LaunchedEffect(graph, refreshKey) {
+    graph.settingsRepository.bootstrap()
     graph.favoritesRepository.bootstrap()
     graph.stationsRepository.refresh()
+  }
+
+  val nearestSelection = remember(stationsState.stations, searchRadiusMeters) {
+    selectNearbyStation(stationsState.stations, searchRadiusMeters)
   }
 
   LaunchedEffect(launchRequest) {
     pendingLaunchRequest = launchRequest
   }
 
-  LaunchedEffect(pendingLaunchRequest, stationsState.stations) {
+  LaunchedEffect(pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
     when (val request = pendingLaunchRequest ?: return@LaunchedEffect) {
       MobileLaunchRequest.Favorites -> {
         currentTab = MobileTab.Favoritos
         pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStation -> {
-        val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
+        val station = nearestSelection.highlightedStation ?: return@LaunchedEffect
         selectedStationId = station.id
         currentTab = MobileTab.Mapa
         pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithBikes -> {
-        val station = stationsState.stations.firstOrNull { station -> station.bikesAvailable > 0 }
-          ?: return@LaunchedEffect
+        val station = selectNearbyStation(
+          stationsState.stations,
+          searchRadiusMeters,
+        ) { station -> station.bikesAvailable > 0 }.highlightedStation ?: return@LaunchedEffect
         selectedStationId = station.id
         currentTab = MobileTab.Mapa
         pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithSlots -> {
-        val station = stationsState.stations.firstOrNull { station -> station.slotsFree > 0 }
-          ?: return@LaunchedEffect
+        val station = selectNearbyStation(
+          stationsState.stations,
+          searchRadiusMeters,
+        ) { station -> station.slotsFree > 0 }.highlightedStation ?: return@LaunchedEffect
         selectedStationId = station.id
         currentTab = MobileTab.Mapa
         pendingLaunchRequest = null
@@ -176,6 +188,7 @@ fun BiziMobileApp(
         assistantOpen -> AssistantScreen(
           graph = graph,
           favoriteIds = favoriteIds,
+          searchRadiusMeters = searchRadiusMeters,
           stations = stationsState.stations,
           initialAction = pendingAssistantAction,
           onInitialActionConsumed = { pendingAssistantAction = null },
@@ -226,7 +239,9 @@ fun BiziMobileApp(
               favoriteIds = favoriteIds,
               loading = stationsState.isLoading,
               errorMessage = stationsState.errorMessage,
+              nearestSelection = nearestSelection,
               searchQuery = searchQuery,
+              searchRadiusMeters = searchRadiusMeters,
               userLocation = stationsState.userLocation,
               onSearchQueryChange = { searchQuery = it },
               onStationSelected = { selectedStationId = it.id },
@@ -244,7 +259,11 @@ fun BiziMobileApp(
             )
             MobileTab.Perfil -> ProfileScreen(
               paddingValues = innerPadding,
+              searchRadiusMeters = searchRadiusMeters,
               userLocation = stationsState.userLocation,
+              onSearchRadiusSelected = { radiusMeters ->
+                scope.launch { graph.settingsRepository.setSearchRadiusMeters(radiusMeters) }
+              },
             )
           }
         }
@@ -273,14 +292,16 @@ private fun DashboardScreen(
   favoriteIds: Set<String>,
   loading: Boolean,
   errorMessage: String?,
+  nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
   searchQuery: String,
+  searchRadiusMeters: Int,
   userLocation: GeoPoint?,
   onSearchQueryChange: (String) -> Unit,
   onStationSelected: (Station) -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
-  val nearestStation = stations.firstOrNull()
+  val nearestStation = nearestSelection.highlightedStation
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
@@ -301,12 +322,18 @@ private fun DashboardScreen(
         text = "Estaciones cercanas, favoritos y rutas rápidas desde una sola vista.",
         style = MaterialTheme.typography.bodyMedium,
       )
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = "Radio cercano activo: ${searchRadiusMeters} m",
+        style = MaterialTheme.typography.bodySmall,
+        color = Color(0xFF64748B),
+      )
     }
     item {
       MapHeroCard(
         stations = stations,
         userLocation = userLocation,
-        nearestStation = nearestStation,
+        nearestSelection = nearestSelection,
         onStationSelected = onStationSelected,
       )
     }
@@ -344,9 +371,10 @@ private fun DashboardScreen(
 private fun MapHeroCard(
   stations: List<Station>,
   userLocation: GeoPoint?,
-  nearestStation: Station?,
+  nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
   onStationSelected: (Station) -> Unit,
 ) {
+  val nearestStation = nearestSelection.highlightedStation
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(28.dp),
@@ -368,7 +396,14 @@ private fun MapHeroCard(
           colors = CardDefaults.cardColors(containerColor = BiziRed),
         ) {
           Column(Modifier.padding(16.dp)) {
-            Text("Estación más cercana", color = Color.White.copy(alpha = 0.72f))
+            Text(
+              if (nearestSelection.usesFallback) {
+                "No hay dentro de ${nearestSelection.radiusMeters} m"
+              } else {
+                "Estación más cercana"
+              },
+              color = Color.White.copy(alpha = 0.72f),
+            )
             Text(
               text = station.name,
               style = MaterialTheme.typography.headlineSmall,
@@ -376,7 +411,11 @@ private fun MapHeroCard(
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres",
+              text = if (nearestSelection.usesFallback) {
+                "La más cercana está a ${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+              } else {
+                "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+              },
               color = Color.White,
             )
           }
@@ -441,7 +480,9 @@ private fun FavoritesScreen(
 @Composable
 private fun ProfileScreen(
   paddingValues: PaddingValues,
+  searchRadiusMeters: Int,
   userLocation: GeoPoint?,
+  onSearchRadiusSelected: (Int) -> Unit,
 ) {
   Column(
     modifier = Modifier
@@ -456,6 +497,7 @@ private fun ProfileScreen(
         Text("Idioma inicial: Español")
         Text("Rutas: delegadas a Google Maps y Apple Maps")
         Text("Atajos: App Actions, App Shortcuts y Siri/App Intents")
+        Text("Radio cercano: ${searchRadiusMeters} m en línea recta")
         Text(
           if (userLocation != null) {
             "Ubicación activa: ${userLocation.latitude.formatCoordinate()}, ${userLocation.longitude.formatCoordinate()}"
@@ -463,6 +505,34 @@ private fun ProfileScreen(
             "Ubicación pendiente. Se usa el centro de Zaragoza como fallback."
           },
         )
+      }
+    }
+    Card {
+      Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Radio para estación cercana", fontWeight = FontWeight.SemiBold)
+        Text(
+          "Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia.",
+          style = MaterialTheme.typography.bodySmall,
+          color = Color(0xFF64748B),
+        )
+        SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
+          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            rowOptions.forEach { radiusMeters ->
+              OutlinedButton(
+                modifier = Modifier.weight(1f),
+                onClick = { onSearchRadiusSelected(radiusMeters) },
+              ) {
+                Text(
+                  if (radiusMeters == searchRadiusMeters) "${radiusMeters} m activo" else "${radiusMeters} m",
+                  color = if (radiusMeters == searchRadiusMeters) BiziRed else Color.Unspecified,
+                )
+              }
+            }
+            if (rowOptions.size == 1) {
+              Spacer(Modifier.weight(1f))
+            }
+          }
+        }
       }
     }
   }
@@ -532,6 +602,7 @@ private fun StationDetailScreen(
 private fun AssistantScreen(
   graph: SharedGraph,
   favoriteIds: Set<String>,
+  searchRadiusMeters: Int,
   stations: List<Station>,
   initialAction: AssistantAction?,
   onInitialActionConsumed: () -> Unit,
@@ -554,6 +625,7 @@ private fun AssistantScreen(
       action = action,
       stationsState = graph.stationsRepository.state.value,
       favoriteIds = favoriteIds,
+      searchRadiusMeters = searchRadiusMeters,
     )
     latestAnswer = resolution.spokenResponse
     onInitialActionConsumed()
@@ -596,6 +668,7 @@ private fun AssistantScreen(
               action = action,
               stationsState = graph.stationsRepository.state.value,
               favoriteIds = favoriteIds,
+              searchRadiusMeters = searchRadiusMeters,
             )
             latestAnswer = resolution.spokenResponse
           }

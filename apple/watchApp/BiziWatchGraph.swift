@@ -33,21 +33,25 @@ actor BiziWatchGraph {
     }
 
     func nearestStation() async throws -> WatchStationSnapshot? {
-        return try await nearbyStations(limit: 1).first
+        try await refreshData()
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters())
     }
 
     func nearestStationWithBikes() async throws -> WatchStationSnapshot? {
         try await refreshData()
-        return stationsState().stations
-            .first(where: { $0.bikesAvailable > 0 })
-            .map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
+            station.bikesAvailable > 0
+        }
     }
 
     func nearestStationWithSlots() async throws -> WatchStationSnapshot? {
         try await refreshData()
-        return stationsState().stations
-            .first(where: { $0.slotsFree > 0 })
-            .map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
+            station.slotsFree > 0
+        }
     }
 
     func favoriteStations(favoriteIds: Set<String>) async throws -> [WatchStationSnapshot] {
@@ -75,6 +79,32 @@ actor BiziWatchGraph {
         })
     }
 
+    func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
+        try await refreshData()
+        let state = stationsState()
+        let favoriteIds = Set(
+            state.stations
+                .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
+                .map(\.id)
+        )
+        return try await withCheckedThrowingContinuation { continuation in
+            graph.assistantIntentResolver.resolve(
+                action: action,
+                stationsState: state,
+                favoriteIds: favoriteIds,
+                searchRadiusMeters: Int32(currentSearchRadiusMeters())
+            ) { resolution, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let resolution {
+                    continuation.resume(returning: resolution)
+                } else {
+                    continuation.resume(throwing: WatchGraphError.emptyAssistantResponse)
+                }
+            }
+        }
+    }
+
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
         try await refreshData()
         guard let station = graph.stationsRepository.stationById(stationId: stationId) else {
@@ -86,10 +116,23 @@ actor BiziWatchGraph {
 
     private func refreshData() async throws {
         if !hasBootstrapped {
+            try await bootstrapSettings()
             try await bootstrapFavorites()
             hasBootstrapped = true
         }
         try await refreshStations()
+    }
+
+    private func bootstrapSettings() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.settingsRepository.bootstrap { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
     }
 
     private func bootstrapFavorites() async throws {
@@ -133,6 +176,10 @@ actor BiziWatchGraph {
             distanceMeters: Int(station.distanceMeters)
         )
     }
+
+    private func currentSearchRadiusMeters() -> Int {
+        Int(graph.settingsRepository.currentSearchRadiusMeters())
+    }
 }
 
 private func normalizeWatchStationQuery(_ value: String) -> String {
@@ -152,5 +199,25 @@ private extension WatchStationSnapshot {
             normalizedId == normalizedQuery ||
             normalizedId.contains(normalizedQuery) ||
             (!numericQuery.isEmpty && stationNumericId == numericQuery)
+    }
+}
+
+private func selectNearestWatchSnapshot(
+    from snapshots: [WatchStationSnapshot],
+    radiusMeters: Int,
+    predicate: (WatchStationSnapshot) -> Bool = { _ in true }
+) -> WatchStationSnapshot? {
+    snapshots.first(where: { $0.distanceMeters <= radiusMeters && predicate($0) }) ??
+        snapshots.first(where: predicate)
+}
+
+enum WatchGraphError: LocalizedError {
+    case emptyAssistantResponse
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyAssistantResponse:
+            return "No se recibió respuesta del asistente del reloj."
+        }
     }
 }

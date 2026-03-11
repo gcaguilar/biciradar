@@ -29,6 +29,7 @@ actor BiziAppleGraph {
 
     func refreshData() async throws {
         if !hasBootstrapped {
+            try await bootstrapSettings()
             try await bootstrapFavorites()
             hasBootstrapped = true
         }
@@ -37,21 +38,24 @@ actor BiziAppleGraph {
 
     func nearestStation() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        return stationsState().stations.first.map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters())
     }
 
     func nearestStationWithBikes() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        return stationsState().stations
-            .first(where: { $0.bikesAvailable > 0 })
-            .map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
+            station.bikesAvailable > 0
+        }
     }
 
     func nearestStationWithSlots() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        return stationsState().stations
-            .first(where: { $0.slotsFree > 0 })
-            .map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
+            station.slotsFree > 0
+        }
     }
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
@@ -74,6 +78,11 @@ actor BiziAppleGraph {
         })
     }
 
+    func station(stationId: String) async throws -> BiziStationSnapshot? {
+        try await refreshData()
+        return graph.stationsRepository.stationById(stationId: stationId).map(snapshot(from:))
+    }
+
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         try await refreshData()
         let state = stationsState()
@@ -86,7 +95,8 @@ actor BiziAppleGraph {
             graph.assistantIntentResolver.resolve(
                 action: action,
                 stationsState: state,
-                favoriteIds: favoriteIds
+                favoriteIds: favoriteIds,
+                searchRadiusMeters: Int32(currentSearchRadiusMeters())
             ) { resolution, error in
                 if let error {
                     continuation.resume(throwing: error)
@@ -113,6 +123,18 @@ actor BiziAppleGraph {
     private func bootstrapFavorites() async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             graph.favoritesRepository.bootstrap { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    private func bootstrapSettings() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.settingsRepository.bootstrap { error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {
@@ -151,6 +173,10 @@ actor BiziAppleGraph {
             distanceMeters: Int(station.distanceMeters)
         )
     }
+
+    private func currentSearchRadiusMeters() -> Int {
+        Int(graph.settingsRepository.currentSearchRadiusMeters())
+    }
 }
 
 private func normalizeStationQuery(_ value: String) -> String {
@@ -171,6 +197,15 @@ private extension BiziStationSnapshot {
             normalizedId.contains(normalizedQuery) ||
             (!numericQuery.isEmpty && stationNumericId == numericQuery)
     }
+}
+
+private func selectNearestSnapshot(
+    from snapshots: [BiziStationSnapshot],
+    radiusMeters: Int,
+    predicate: (BiziStationSnapshot) -> Bool = { _ in true }
+) -> BiziStationSnapshot? {
+    snapshots.first(where: { $0.distanceMeters <= radiusMeters && predicate($0) }) ??
+        snapshots.first(where: predicate)
 }
 
 enum AppleGraphError: LocalizedError {

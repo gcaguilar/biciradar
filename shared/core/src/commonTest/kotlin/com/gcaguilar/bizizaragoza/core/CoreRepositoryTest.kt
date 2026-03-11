@@ -7,8 +7,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.FileSystem
 
 class CoreRepositoryTest {
   @Test
@@ -41,6 +41,24 @@ class CoreRepositoryTest {
 
     assertEquals(setOf("station-1"), repository.favoriteIds.value)
     assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/favorites.json".toPath()))
+  }
+
+  @Test
+  fun `settings repository persists search radius`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-settings-${Random.nextInt()}"
+    val repository = SettingsRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+    )
+
+    repository.bootstrap()
+    repository.setSearchRadiusMeters(750)
+
+    assertEquals(750, repository.currentSearchRadiusMeters())
+    assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/settings.json".toPath()))
   }
 
   @Test
@@ -182,21 +200,25 @@ class CoreRepositoryTest {
       action = AssistantAction.NearestStation,
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
     val nearestWithBikes = resolver.resolve(
       action = AssistantAction.NearestStationWithBikes,
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
     val nearestWithSlots = resolver.resolve(
       action = AssistantAction.NearestStationWithSlots,
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
     val favorites = resolver.resolve(
       action = AssistantAction.FavoriteStations,
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
 
     assertEquals("station-2", nearest.highlightedStationId)
@@ -214,6 +236,7 @@ class CoreRepositoryTest {
       action = AssistantAction.StationStatus("missing"),
       stationsState = StationsState(stations = emptyList(), isLoading = false),
       favoriteIds = emptySet(),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
 
     assertNull(resolution.highlightedStationId)
@@ -238,17 +261,45 @@ class CoreRepositoryTest {
       action = AssistantAction.StationBikeCount("station-42"),
       stationsState = state,
       favoriteIds = emptySet(),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
     val slots = resolver.resolve(
       action = AssistantAction.StationSlotCount("station-42"),
       stationsState = state,
       favoriteIds = emptySet(),
+      searchRadiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     )
 
     assertEquals("station-42", bikes.highlightedStationId)
     assertEquals("station-42", slots.highlightedStationId)
     assertTrue(bikes.spokenResponse.contains("6 bicis"))
     assertTrue(slots.spokenResponse.contains("8 huecos"))
+  }
+
+  @Test
+  fun `assistant resolver falls back to nearest outside configured radius`() = runTest {
+    val stations = listOf(
+      Station(
+        id = "station-7",
+        name = "Plaza Aragón",
+        address = "Centro",
+        location = GeoPoint(41.6495, -0.8881),
+        bikesAvailable = 3,
+        slotsFree = 5,
+        distanceMeters = 720,
+      ),
+    )
+
+    val resolution = DefaultAssistantIntentResolver().resolve(
+      action = AssistantAction.NearestStationWithBikes,
+      stationsState = StationsState(stations = stations, isLoading = false),
+      favoriteIds = emptySet(),
+      searchRadiusMeters = 500,
+    )
+
+    assertEquals("station-7", resolution.highlightedStationId)
+    assertTrue(resolution.spokenResponse.contains("dentro de 500 m"))
+    assertTrue(resolution.spokenResponse.contains("720 m"))
   }
 }
 
