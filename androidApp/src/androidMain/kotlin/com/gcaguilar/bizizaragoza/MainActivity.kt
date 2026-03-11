@@ -37,6 +37,8 @@ class MainActivity : ComponentActivity() {
       ),
     )
     launchRequest = intent.toLaunchRequest()
+    AndroidAssistantShortcuts.publish(this)
+    AndroidAssistantShortcuts.reportUsed(this, launchRequest)
 
     setContent {
       BiziMobileApp(
@@ -53,6 +55,7 @@ class MainActivity : ComponentActivity() {
     super.onNewIntent(intent)
     setIntent(intent)
     launchRequest = intent.toLaunchRequest()
+    AndroidAssistantShortcuts.reportUsed(this, launchRequest)
   }
 
   private fun ensureLocationPermissions() {
