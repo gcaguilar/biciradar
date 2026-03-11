@@ -31,6 +31,24 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
           "La estación más cercana con huecos libres es ${station.name} con ${station.slotsFree} huecos y ${station.bikesAvailable} bicis."
         },
       )
+      is AssistantAction.StationBikeCount -> {
+        val station = stationsState.stations.firstOrNull { it.id == action.stationId }
+        AssistantResolution(
+          spokenResponse = station?.let {
+            "${it.name} tiene ${it.bikesAvailable} bicis disponibles."
+          } ?: "No he encontrado esa estación.",
+          highlightedStationId = station?.id,
+        )
+      }
+      is AssistantAction.StationSlotCount -> {
+        val station = stationsState.stations.firstOrNull { it.id == action.stationId }
+        AssistantResolution(
+          spokenResponse = station?.let {
+            "${it.name} tiene ${it.slotsFree} huecos libres."
+          } ?: "No he encontrado esa estación.",
+          highlightedStationId = station?.id,
+        )
+      }
       is AssistantAction.RouteToStation -> AssistantResolution(
         spokenResponse = "Abriendo la ruta a la estación seleccionada.",
         highlightedStationId = action.stationId,

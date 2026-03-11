@@ -219,6 +219,37 @@ class CoreRepositoryTest {
     assertNull(resolution.highlightedStationId)
     assertEquals("No he encontrado esa estación.", resolution.spokenResponse)
   }
+
+  @Test
+  fun `assistant resolver returns bike and slot counts for known station`() = runTest {
+    val station = Station(
+      id = "station-42",
+      name = "Plaza Espana",
+      address = "Centro",
+      location = GeoPoint(41.6488, -0.8891),
+      bikesAvailable = 6,
+      slotsFree = 8,
+      distanceMeters = 100,
+    )
+    val state = StationsState(stations = listOf(station), isLoading = false)
+    val resolver = DefaultAssistantIntentResolver()
+
+    val bikes = resolver.resolve(
+      action = AssistantAction.StationBikeCount("station-42"),
+      stationsState = state,
+      favoriteIds = emptySet(),
+    )
+    val slots = resolver.resolve(
+      action = AssistantAction.StationSlotCount("station-42"),
+      stationsState = state,
+      favoriteIds = emptySet(),
+    )
+
+    assertEquals("station-42", bikes.highlightedStationId)
+    assertEquals("station-42", slots.highlightedStationId)
+    assertTrue(bikes.spokenResponse.contains("6 bicis"))
+    assertTrue(slots.spokenResponse.contains("8 huecos"))
+  }
 }
 
 private class RecordingWatchSyncBridge(

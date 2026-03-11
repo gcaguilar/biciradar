@@ -676,6 +676,8 @@ private fun AssistantAction.label(): String = when (this) {
   AssistantAction.NearestStation -> "Estación más cercana"
   AssistantAction.NearestStationWithBikes -> "Cercana con bicis"
   AssistantAction.NearestStationWithSlots -> "Cercana con huecos"
+  is AssistantAction.StationBikeCount -> "Bicis en estación"
+  is AssistantAction.StationSlotCount -> "Huecos en estación"
   is AssistantAction.RouteToStation -> "Ruta a estación"
   is AssistantAction.StationStatus -> "Estado de estación"
 }

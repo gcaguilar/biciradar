@@ -56,6 +56,14 @@ sealed interface AssistantAction {
   data object NearestStationWithSlots : AssistantAction
 
   @Serializable
+  @SerialName("station_bike_count")
+  data class StationBikeCount(val stationId: String) : AssistantAction
+
+  @Serializable
+  @SerialName("station_slot_count")
+  data class StationSlotCount(val stationId: String) : AssistantAction
+
+  @Serializable
   @SerialName("station_status")
   data class StationStatus(val stationId: String) : AssistantAction
 

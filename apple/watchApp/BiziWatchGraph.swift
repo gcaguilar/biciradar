@@ -65,18 +65,14 @@ actor BiziWatchGraph {
 
     func station(matching query: String?) async throws -> WatchStationSnapshot? {
         try await refreshData()
-        let trimmedQuery = query?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let state = stationsState()
-        if let trimmedQuery, !trimmedQuery.isEmpty {
-            let normalized = trimmedQuery.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-            return state.stations
-                .map(snapshot(from:))
-                .first(where: { station in
-                    station.name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current).contains(normalized) ||
-                    station.address.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current).contains(normalized)
-                })
-        }
-        return state.stations.first.map(snapshot(from:))
+        let snapshots = stationsState().stations.map(snapshot(from:))
+        guard let query else { return snapshots.first }
+        let normalizedQuery = normalizeWatchStationQuery(query)
+        guard !normalizedQuery.isEmpty else { return snapshots.first }
+        let numericQuery = query.filter(\.isNumber)
+        return snapshots.first(where: { station in
+            station.matches(normalizedQuery: normalizedQuery, numericQuery: numericQuery)
+        })
     }
 
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
@@ -136,5 +132,25 @@ actor BiziWatchGraph {
             slotsFree: Int(station.slotsFree),
             distanceMeters: Int(station.distanceMeters)
         )
+    }
+}
+
+private func normalizeWatchStationQuery(_ value: String) -> String {
+    value
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+}
+
+private extension WatchStationSnapshot {
+    func matches(normalizedQuery: String, numericQuery: String) -> Bool {
+        let normalizedName = name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        let normalizedAddress = address.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        let normalizedId = id.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        let stationNumericId = id.filter(\.isNumber)
+        return normalizedName.contains(normalizedQuery) ||
+            normalizedAddress.contains(normalizedQuery) ||
+            normalizedId == normalizedQuery ||
+            normalizedId.contains(normalizedQuery) ||
+            (!numericQuery.isEmpty && stationNumericId == numericQuery)
     }
 }

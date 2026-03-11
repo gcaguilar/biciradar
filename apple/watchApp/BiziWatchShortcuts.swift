@@ -101,6 +101,44 @@ struct WatchRouteToStationIntent: AppIntent {
     }
 }
 
+struct WatchStationBikeCountIntent: AppIntent {
+    static var title: LocalizedStringResource = "Bicis en estación en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Nombre o número de estación")
+    var stationName: String
+
+    func perform() async throws -> some IntentResult {
+        do {
+            guard let station = try await BiziWatchGraph.shared.station(matching: stationName) else {
+                return .result(dialog: "No he encontrado esa estación en el reloj.")
+            }
+            return .result(dialog: "\(station.name) tiene \(station.bikesAvailable) bicis disponibles.")
+        } catch {
+            return .result(dialog: "No he podido consultar las bicis de esa estación en el reloj.")
+        }
+    }
+}
+
+struct WatchStationSlotCountIntent: AppIntent {
+    static var title: LocalizedStringResource = "Huecos en estación en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Nombre o número de estación")
+    var stationName: String
+
+    func perform() async throws -> some IntentResult {
+        do {
+            guard let station = try await BiziWatchGraph.shared.station(matching: stationName) else {
+                return .result(dialog: "No he encontrado esa estación en el reloj.")
+            }
+            return .result(dialog: "\(station.name) tiene \(station.slotsFree) huecos libres.")
+        } catch {
+            return .result(dialog: "No he podido consultar los huecos de esa estación en el reloj.")
+        }
+    }
+}
+
 struct WatchBiziAppShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
@@ -134,6 +172,22 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Favoritas",
             systemImageName: "heart.circle"
+        )
+        AppShortcut(
+            intent: WatchStationBikeCountIntent(),
+            phrases: [
+                "Enséñame cuántas bicis tiene una estación en el reloj con \(.applicationName)"
+            ],
+            shortTitle: "Bicis",
+            systemImageName: "bicycle.circle"
+        )
+        AppShortcut(
+            intent: WatchStationSlotCountIntent(),
+            phrases: [
+                "Enséñame cuántos huecos tiene una estación en el reloj con \(.applicationName)"
+            ],
+            shortTitle: "Huecos",
+            systemImageName: "parkingsign.circle"
         )
         AppShortcut(
             intent: WatchRouteToStationIntent(),
