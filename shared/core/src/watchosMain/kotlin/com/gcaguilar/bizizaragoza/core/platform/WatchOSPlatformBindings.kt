@@ -25,8 +25,10 @@ import okio.FileSystem
 import platform.CoreLocation.CLLocationManager
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSUserDefaults
+import platform.Foundation.NSURL
 import platform.WatchConnectivity.WCSession
 import platform.WatchConnectivity.WCSessionActivationStateActivated
+import platform.WatchKit.WKExtension
 
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -66,7 +68,12 @@ private class WatchOSLocationProvider : LocationProvider {
 }
 
 private class WatchOSRouteLauncher : RouteLauncher {
-  override fun launch(station: Station) = Unit
+  override fun launch(station: Station) {
+    val routeUrl = NSURL.URLWithString(
+      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}",
+    ) ?: return
+    WKExtension.sharedExtension().openSystemURL(routeUrl)
+  }
 }
 
 private class WatchOSSyncBridge : WatchSyncBridge {

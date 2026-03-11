@@ -65,6 +65,15 @@ actor BiziWatchGraph {
         return state.stations.first.map(snapshot(from:))
     }
 
+    func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
+        try await refreshData()
+        guard let station = graph.stationsRepository.stationById(stationId: stationId) else {
+            return nil
+        }
+        graph.routeLauncher.launch(station: station)
+        return snapshot(from: station)
+    }
+
     private func refreshData() async throws {
         if !hasBootstrapped {
             try await bootstrapFavorites()

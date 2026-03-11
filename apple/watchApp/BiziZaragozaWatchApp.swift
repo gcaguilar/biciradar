@@ -118,6 +118,7 @@ private struct StationRow: View {
 private struct WatchStationDetailView: View {
     let station: WatchStationSnapshot
     @State private var routeStatus: String?
+    @State private var localRouteStatus: String?
 
     var body: some View {
         ScrollView {
@@ -130,6 +131,19 @@ private struct WatchStationDetailView: View {
                 Label("\(station.distanceMeters) metros", systemImage: "location")
                 Label("\(station.bikesAvailable) bicis", systemImage: "bicycle")
                 Label("\(station.slotsFree) huecos", systemImage: "dock.rectangle")
+                Button("Abrir en Maps") {
+                    Task {
+                        do {
+                            let launchedStation = try await BiziWatchGraph.shared.openRoute(to: station.id)
+                            localRouteStatus = launchedStation == nil
+                                ? "No he encontrado esa estación para abrir Maps."
+                                : "Abriendo la ruta en el reloj."
+                        } catch {
+                            localRouteStatus = "No he podido abrir Maps ahora mismo."
+                        }
+                    }
+                }
+                .buttonStyle(.bordered)
                 Button("Abrir ruta en el iPhone") {
                     let requested = WatchFavoritesSyncBridge.shared.requestRoute(to: station.id)
                     routeStatus = requested
@@ -137,6 +151,11 @@ private struct WatchStationDetailView: View {
                         : "No he podido contactar con el iPhone."
                 }
                 .buttonStyle(.borderedProminent)
+                if let localRouteStatus {
+                    Text(localRouteStatus)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
                 if let routeStatus {
                     Text(routeStatus)
                         .font(.footnote)
