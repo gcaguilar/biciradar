@@ -1,31 +1,31 @@
 # Release Checklist
 
-## Android y Wear OS
+## Android and Wear OS
 
-- Definir `GOOGLE_MAPS_API_KEY` si quieres mapa Android con tiles reales.
-- Configurar firma release en `androidApp` y `wearApp`.
-- Generar builds:
+- Define `GOOGLE_MAPS_API_KEY` if you want real Android map tiles.
+- Configure release signing in `androidApp` and `wearApp`.
+- Generate builds:
 
 ```bash
 ./gradlew :androidApp:assembleRelease :wearApp:assembleRelease
 ```
 
-## iOS y watchOS
+## iOS and watchOS
 
-- Abrir [apple/BiziZaragoza.xcodeproj](/Users/guillermo.castella/bizi/apple/BiziZaragoza.xcodeproj).
-- Configurar `Team`, firma y provisioning de `BiziZaragoza`, `BiziZaragozaWatch` y sus tests.
-- Generar archivo:
+- Open [apple/BiziZaragoza.xcodeproj](/Users/guillermo.castella/bizi/apple/BiziZaragoza.xcodeproj).
+- Configure `Team`, signing, and provisioning for `BiziZaragoza`, `BiziZaragozaWatch`, and their tests.
+- Generate archives:
 
 ```bash
 xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragoza -configuration Release archive
 xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragozaWatch -configuration Release archive
 ```
 
-## QA mínima
+## Minimum QA
 
-- Ubicación real en Android, iPhone, Wear OS y Apple Watch.
-- Favoritos sincronizados entre móvil y reloj.
-- Siri/App Shortcuts en Apple.
-- Android shortcuts y búsqueda de estación por nombre o número.
-- Ruta nativa a una estación.
-- Validar fallback del radio configurable cuando no haya estaciones dentro del umbral.
+- Real location on Android, iPhone, Wear OS, and Apple Watch.
+- Favorites synced between mobile and watch.
+- Siri/App Shortcuts on Apple platforms.
+- Android shortcuts and station lookup by name or number.
+- Native routing to a station.
+- Validate the configurable-radius fallback when there are no stations within the threshold.

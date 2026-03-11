@@ -1,26 +1,26 @@
 # Bizi Zaragoza
 
-Scaffold greenfield para `com.gcaguilar.bizizaragoza` con:
+Greenfield scaffold for `com.gcaguilar.bizizaragoza` with:
 
-- Kotlin Multiplatform para dominio, datos y contratos shared.
-- Compose Multiplatform para móvil Android + iOS.
-- Compose for Wear OS para Wear.
-- SwiftUI + App Intents shell para iPhone/Apple Watch.
-- Metro DI como contenedor compile-time.
-- Ubicación real en Android, iOS y watchOS con fallback a Zaragoza centro si no hay permiso o no hay fix.
-- Sync de favoritos entre Android móvil y Wear OS con Data Layer.
-- Mapa embebido en Compose móvil con wrapper multiplataforma.
-- Feed oficial del Ayuntamiento de Zaragoza con fallback a CityBikes.
+- Kotlin Multiplatform for domain, data, and shared contracts.
+- Compose Multiplatform for Android + iOS mobile.
+- Compose for Wear OS for Wear.
+- SwiftUI + App Intents shell for iPhone and Apple Watch.
+- Metro DI as the compile-time container.
+- Real location on Android, iOS, and watchOS, with Zaragoza city center as a fallback when permission is denied or no fix is available.
+- Favorites sync between Android mobile and Wear OS through Data Layer.
+- Embedded map in mobile Compose with a multiplatform wrapper.
+- Official Zaragoza City Council feed with fallback to CityBikes.
 
-## Módulos
+## Modules
 
-- `shared/core`: modelos, repositorios, contratos de plataforma, Metro graph y cliente Bizi.
-- `shared/mobile-ui`: UI Compose compartida para móvil.
-- `androidApp`: app Android principal.
-- `wearApp`: app Wear OS.
-- `apple/`: fuentes SwiftUI/App Intents base para iOS/watchOS.
+- `shared/core`: models, repositories, platform contracts, Metro graph, and Bizi client.
+- `shared/mobile-ui`: shared Compose UI for mobile.
+- `androidApp`: main Android app.
+- `wearApp`: Wear OS app.
+- `apple/`: base SwiftUI/App Intents sources for iOS/watchOS.
 
-## Comandos
+## Commands
 
 ```bash
 ./gradlew :shared:core:jvmTest
@@ -28,19 +28,19 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 ./gradlew build
 ```
 
-## Configuración
+## Configuration
 
-- `GOOGLE_MAPS_API_KEY` es opcional para habilitar tiles reales en Android.
+- `GOOGLE_MAPS_API_KEY` is optional and enables real map tiles on Android.
 
 ## Release
 
-El checklist de build y publicación está en `RELEASE.md`.
+The build and release checklist is available in `RELEASE.md`.
 
-## Atajos y voz
+## Shortcuts and Voice
 
-### iPhone con Siri y Atajos
+### iPhone with Siri and Shortcuts
 
-Atajos publicados en [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castella/bizi/apple/iosApp/BiziShortcuts.swift):
+Shortcuts published in [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castella/bizi/apple/iosApp/BiziShortcuts.swift):
 
 - `Muéstrame la estación más cercana en Bizi Zaragoza`
 - `Muéstrame la estación más cercana con bicis en Bizi Zaragoza`
@@ -51,25 +51,25 @@ Atajos publicados en [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castell
 - `Enséñame cuántos huecos tiene una estación en Bizi Zaragoza`
 - `Llévame a una estación con Bizi Zaragoza`
 
-Consultas soportadas:
+Supported queries:
 
-- estación más cercana
-- estación más cercana con bicis disponibles
-- estación más cercana con huecos libres
-- favoritas guardadas
-- bicis disponibles en una estación por nombre o número
-- huecos libres en una estación por nombre o número
-- estado completo de una estación por nombre
-- ruta a una estación por nombre
+- nearest station
+- nearest station with available bikes
+- nearest station with free docks
+- saved favorites
+- available bikes at a station by name or station number
+- free docks at a station by name or station number
+- full station status by name
+- route to a station by name
 
-Comportamiento actual:
+Current behavior:
 
-- `estación más cercana`, `con bicis`, `con huecos`, `favoritas` y `ruta` abren la app en el estado correspondiente.
-- `estado`, `bicis en estación` y `huecos en estación` responden directamente en Siri/Atajos sin abrir la app.
+- `nearest station`, `with bikes`, `with free docks`, `favorites`, and `route` open the app in the corresponding state.
+- `status`, `bikes at station`, and `free docks at station` respond directly in Siri/Shortcuts without opening the app.
 
-### Apple Watch con Siri y Atajos
+### Apple Watch with Siri and Shortcuts
 
-Atajos publicados en [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.castella/bizi/apple/watchApp/BiziWatchShortcuts.swift):
+Shortcuts published in [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.castella/bizi/apple/watchApp/BiziWatchShortcuts.swift):
 
 - `Muéstrame la estación más cercana en el reloj con Bizi Zaragoza`
 - `Muéstrame la estación más cercana con bicis en el reloj con Bizi Zaragoza`
@@ -79,16 +79,16 @@ Atajos publicados en [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.
 - `Enséñame cuántos huecos tiene una estación en el reloj con Bizi Zaragoza`
 - `Abre una ruta en mi iPhone con Bizi Zaragoza`
 
-Comportamiento actual:
+Current behavior:
 
-- el reloj responde por voz y no necesita abrir la app para las consultas de cercanía, bicis, huecos o favoritas.
-- la acción de ruta pide al iPhone emparejado que abra la navegación hacia la estación pedida.
+- the watch responds by voice and does not need to open the app for nearest-station, bikes, docks, or favorites queries.
+- the route action asks the paired iPhone to open navigation to the requested station.
 
-### Android con Google Assistant
+### Android with Google Assistant
 
-Android expone acciones y shortcuts en [androidApp/src/androidMain/res/xml/shortcuts.xml](/Users/guillermo.castella/bizi/androidApp/src/androidMain/res/xml/shortcuts.xml) y parsea los lanzamientos en [androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/bizi/androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt).
+Android exposes actions and shortcuts in [androidApp/src/androidMain/res/xml/shortcuts.xml](/Users/guillermo.castella/bizi/androidApp/src/androidMain/res/xml/shortcuts.xml) and parses launches in [androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/bizi/androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt).
 
-Acciones soportadas:
+Supported actions:
 
 - `nearest_station`
 - `nearest_station_with_bikes`
@@ -100,7 +100,7 @@ Acciones soportadas:
 - `route_to_station`
 - `show_station`
 
-Ejemplos de frases objetivo para Assistant:
+Example target phrases for Assistant:
 
 - `abre Bizi Zaragoza y muéstrame la estación más cercana`
 - `abre Bizi Zaragoza y muéstrame la estación más cercana con bicis`
@@ -111,12 +111,12 @@ Ejemplos de frases objetivo para Assistant:
 - `abre Bizi Zaragoza y enséñame cuántos huecos tiene una estación`
 - `abre Bizi Zaragoza y llévame a una estación`
 
-Matiz importante:
+Important note:
 
-- en Android, la forma más fiable de probarlo en emulador es lanzar el intent directamente.
-- la captura natural de frases con nombre de estación depende del matching real de Google Assistant en el dispositivo.
+- on Android, the most reliable way to test this in the emulator is to launch the intent directly.
+- natural phrase capture for station names still depends on Google Assistant matching on the device.
 
-Comandos de prueba con `adb`:
+`adb` test commands:
 
 ```bash
 adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=nearest_station' com.gcaguilar.bizizaragoza
@@ -132,8 +132,8 @@ adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://ass
 
 ## Apple
 
-El proyecto Xcode generado está en `apple/BiziZaragoza.xcodeproj`. La base SwiftUI/App Intents está en `apple/` y los frameworks KMP consumidos son:
+The generated Xcode project lives at `apple/BiziZaragoza.xcodeproj`. The SwiftUI/App Intents base is in `apple/`, and the KMP frameworks consumed there are:
 
 - `BiziSharedCore`
 - `BiziMobileUi`
-- `BiziMobileUi` exporta `MainViewController()` para integrarlo desde SwiftUI/UIKit
+- `BiziMobileUi` exports `MainViewController()` so it can be integrated from SwiftUI/UIKit

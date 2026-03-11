@@ -1,45 +1,45 @@
 # Bizi Zaragoza Plan
 
-## Resumen
-- Proyecto greenfield con `package` base `com.gcaguilar.bizizaragoza`.
-- `stitch` se usa solo como inspiración visual inicial.
-- Alcance v1: estaciones cercanas, disponibilidad, detalle de estación, favoritos, mapa, rutas delegadas a mapas nativos, shortcuts/App Actions en Android y App Intents/App Shortcuts en iOS/watchOS.
-- Targets: Android móvil con Compose Multiplatform, iOS móvil con Compose Multiplatform, Wear OS con Compose for Wear OS y Apple Watch con SwiftUI + lógica compartida KMP.
+## Summary
+- Greenfield project with base `package` `com.gcaguilar.bizizaragoza`.
+- `stitch` is used only as the initial visual inspiration.
+- v1 scope: nearby stations, availability, station detail, favorites, map, routes delegated to native maps, Android shortcuts/App Actions, and iOS/watchOS App Intents/App Shortcuts.
+- Targets: Android mobile with Compose Multiplatform, iOS mobile with Compose Multiplatform, Wear OS with Compose for Wear OS, and Apple Watch with SwiftUI plus shared KMP logic.
 - Baseline: Android 26+, Wear OS 3+, iOS 16+, watchOS 9+.
-- Fuera del alcance actual: búsqueda por voz del sistema.
+- Out of current scope: system voice search.
 
-## Cambios de implementación
-- Crear módulos KMP para dominio, red, almacenamiento local, favoritos, assistant/intents, sincronización móvil-reloj y utilidades de plataforma.
-- Consumir datos públicos de Bizi Zaragoza directamente desde shared con Ktor y normalizarlos a modelos internos de estaciones, disponibilidad, favoritos y consultas cercanas. El origen primario es el feed oficial del Ayuntamiento de Zaragoza con fallback a CityBikes.
-- Persistir favoritos localmente y sincronizarlos entre móvil y reloj por emparejado.
-- Resolver rutas con deep links/intents a Google Maps y Apple Maps.
-- Implementar Metro DI como contenedor principal con bindings compartidos y adaptadores nativos.
-- Construir una UI nativa por plataforma inspirada en `stitch`, sin replicar layouts de forma literal.
+## Implementation Changes
+- Create KMP modules for domain, networking, local storage, favorites, assistant/intents, mobile-watch sync, and platform utilities.
+- Consume public Bizi Zaragoza data directly from shared code with Ktor and normalize it into internal models for stations, availability, favorites, and nearby queries. The primary source is the official Zaragoza City Council feed, with CityBikes as fallback.
+- Persist favorites locally and sync them between mobile and watch through pairing.
+- Resolve routes with deep links/intents to Google Maps and Apple Maps.
+- Implement Metro DI as the main container with shared bindings and native adapters.
+- Build a native UI per platform inspired by `stitch`, without reproducing layouts literally.
 
-## APIs e interfaces públicas
+## Public APIs and Interfaces
 - `StationsRepository`
 - `FavoritesRepository`
 - `RouteLauncher`
 - `AssistantIntentResolver`
 - `WatchSyncBridge`
 
-## Intents y acciones cross-platform
+## Cross-Platform Intents and Actions
 - `nearest_station`
 - `station_status`
 - `favorite_stations`
 - `route_to_station`
 
-## Plan de pruebas
-- Unit tests KMP para parsing del feed, cálculo de cercanía, caché, favoritos y resolución de intents.
-- Integration tests para cliente Ktor y consumo del feed público.
-- Tests de plataforma para App Actions/App Shortcuts en Android.
-- Tests de plataforma para App Intents/App Shortcuts en iOS/watchOS.
-- Tests de sync de favoritos entre móvil y reloj.
-- Tests de lanzamiento de rutas a mapas nativos.
-- QA visual basada en consistencia del sistema visual, no en pixel parity con `stitch`.
+## Test Plan
+- KMP unit tests for feed parsing, nearby calculation, cache, favorites, and intent resolution.
+- Integration tests for the Ktor client and public feed consumption.
+- Platform tests for App Actions/App Shortcuts on Android.
+- Platform tests for App Intents/App Shortcuts on iOS/watchOS.
+- Favorite sync tests between mobile and watch.
+- Native maps route launch tests.
+- Visual QA based on design-system consistency, not pixel parity with `stitch`.
 
-## Suposiciones y defaults
-- `stitch` solo inspira diseño; no define funcionalidad.
-- Se asume disponibilidad de un feed/API pública suficiente para estaciones y disponibilidad.
-- Idioma inicial: español, dejando la base preparada para inglés.
-- Versiones fijadas en `libs.versions.toml` con últimas estables compatibles del stack KMP/Compose/Gradle.
+## Assumptions and Defaults
+- `stitch` only inspires the design; it does not define functionality.
+- A public feed/API with enough station and availability data is assumed to be available.
+- Initial language: Spanish, while keeping the base ready for English later.
+- Versions are pinned in `libs.versions.toml` using the latest stable versions compatible with the KMP/Compose/Gradle stack.
