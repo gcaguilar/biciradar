@@ -52,10 +52,12 @@ internal actual fun PlatformStationMap(
 @OptIn(ExperimentalForeignApi::class)
 private class IOSStationMapCoordinator {
   var selectionHandler: (Station) -> Unit = {}
+  var highlightedStationId: String? = null
 
   private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
   private val delegate = StationMapDelegate(
     stationForAnnotation = { annotation -> stationAnnotations[annotation] },
+    highlightedStationId = { highlightedStationId },
     onStationSelected = { station -> selectionHandler(station) },
   )
 
@@ -71,6 +73,7 @@ private class IOSStationMapCoordinator {
     userLocation: GeoPoint?,
     highlightedStationId: String?,
   ) {
+    this.highlightedStationId = highlightedStationId
     stationAnnotations.clear()
     mapView.removeAnnotations(mapView.annotations)
 
@@ -95,7 +98,6 @@ private class IOSStationMapCoordinator {
       )
     }
 
-    var highlightedAnnotation: MKPointAnnotation? = null
     stations.forEach { station ->
       val annotation = MKPointAnnotation().apply {
         setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
@@ -103,19 +105,15 @@ private class IOSStationMapCoordinator {
         setSubtitle("${station.bikesAvailable} bicis · ${station.slotsFree} libres")
       }
       stationAnnotations[annotation] = station
-      if (station.id == highlightedStationId) {
-        highlightedAnnotation = annotation
-      }
       mapView.addAnnotation(annotation)
     }
-
-    highlightedAnnotation?.let { mapView.selectAnnotation(it, animated = false) }
   }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private class StationMapDelegate(
   private val stationForAnnotation: (MKPointAnnotation) -> Station?,
+  private val highlightedStationId: () -> String?,
   private val onStationSelected: (Station) -> Unit,
 ) : NSObject(), MKMapViewDelegateProtocol {
   @ObjCSignatureOverride
@@ -124,15 +122,20 @@ private class StationMapDelegate(
     val station = stationForAnnotation(pointAnnotation)
     return MKMarkerAnnotationView(annotation = pointAnnotation, reuseIdentifier = "bizi.station").apply {
       canShowCallout = false
-      markerTintColor = if (station != null) {
-        UIColor.colorWithRed(
+      markerTintColor = when {
+        station == null -> UIColor.blueColor
+        station.id == highlightedStationId() -> UIColor.colorWithRed(
+          red = 0.66,
+          green = 0.08,
+          blue = 0.10,
+          alpha = 1.0,
+        )
+        else -> UIColor.colorWithRed(
           red = 0.84,
           green = 0.10,
           blue = 0.12,
           alpha = 1.0,
         )
-      } else {
-        UIColor.blueColor
       }
     }
   }
