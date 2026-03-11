@@ -5,6 +5,7 @@ import WatchConnectivity
 @MainActor
 final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCSessionDelegate {
     static let shared = FavoritesSyncBridge()
+    static let favoritesCacheKey = "bizizaragoza.watch.favorite_ids"
 
     @Published private(set) var favoriteIds: Set<String> = []
     private let defaults = UserDefaults.standard
@@ -24,6 +25,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
 
     func pushFavorites(_ favoriteIds: Set<String>) {
         self.favoriteIds = favoriteIds
+        defaults.set(Array(favoriteIds), forKey: Self.favoritesCacheKey)
         guard WCSession.default.activationState == .activated else { return }
         var context = WCSession.default.receivedApplicationContext
         context["favorite_ids"] = Array(favoriteIds)
@@ -56,6 +58,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     private func apply(context: [String: Any]) {
         let ids = (context["favorite_ids"] as? [String]) ?? []
         favoriteIds = Set(ids)
+        defaults.set(ids, forKey: Self.favoritesCacheKey)
         let routeRequestedAt = (context["route_requested_at"] as? Double) ?? 0
         if let routeStationId = context["route_station_id"] as? String,
            !routeStationId.isEmpty,

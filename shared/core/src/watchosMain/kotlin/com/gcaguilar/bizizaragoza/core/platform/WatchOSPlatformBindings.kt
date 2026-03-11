@@ -15,11 +15,18 @@ import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.useContents
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import platform.CoreLocation.CLLocationManager
 import platform.Foundation.NSHomeDirectory
+import platform.Foundation.NSUserDefaults
+import platform.WatchConnectivity.WCSession
+import platform.WatchConnectivity.WCSessionActivationStateActivated
 
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -63,7 +70,32 @@ private class WatchOSRouteLauncher : RouteLauncher {
 }
 
 private class WatchOSSyncBridge : WatchSyncBridge {
-  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+  @OptIn(ExperimentalForeignApi::class)
+  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
+    WatchOSFavoritesCache.persist(favoriteIds)
+    val session = WCSession.defaultSession
+    if (session.activationState != WCSessionActivationStateActivated) return
+    memScoped {
+      session.updateApplicationContext(
+        mapOf(WatchOSFavoritesCache.contextKey to favoriteIds.toList()),
+        error = alloc<ObjCObjectVar<platform.Foundation.NSError?>>().ptr,
+      )
+    }
+  }
 
-  override suspend fun latestFavoriteIds(): Set<String>? = null
+  override suspend fun latestFavoriteIds(): Set<String>? = WatchOSFavoritesCache.read().takeIf { it.isNotEmpty() }
+}
+
+private object WatchOSFavoritesCache {
+  const val cacheKey = "bizizaragoza.watch.favorite_ids"
+  const val contextKey = "favorite_ids"
+
+  fun read(): Set<String> = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
+    .orEmpty()
+    .filterIsInstance<String>()
+    .toSet()
+
+  fun persist(favoriteIds: Set<String>) {
+    NSUserDefaults.standardUserDefaults.setObject(favoriteIds.toList(), forKey = cacheKey)
+  }
 }

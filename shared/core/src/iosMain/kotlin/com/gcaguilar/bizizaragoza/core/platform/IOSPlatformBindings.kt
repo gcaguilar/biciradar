@@ -15,18 +15,25 @@ import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.useContents
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.Foundation.NSHomeDirectory
+import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.MapKit.MKLaunchOptionsDirectionsModeDriving
 import platform.MapKit.MKLaunchOptionsDirectionsModeKey
 import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
 import platform.UIKit.UIApplication
+import platform.WatchConnectivity.WCSession
+import platform.WatchConnectivity.WCSessionActivationStateActivated
 
 class IOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -93,10 +100,35 @@ private class IOSRouteLauncher : RouteLauncher {
 }
 
 private class IOSWatchSyncBridge : WatchSyncBridge {
-  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+  @OptIn(ExperimentalForeignApi::class)
+  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
+    IOSFavoritesCache.persist(favoriteIds)
+    val session = WCSession.defaultSession
+    if (session.activationState != WCSessionActivationStateActivated) return
+    memScoped {
+      session.updateApplicationContext(
+        mapOf(IOSFavoritesCache.contextKey to favoriteIds.toList()),
+        error = alloc<ObjCObjectVar<platform.Foundation.NSError?>>().ptr,
+      )
+    }
+  }
 
-  override suspend fun latestFavoriteIds(): Set<String>? = null
+  override suspend fun latestFavoriteIds(): Set<String>? = IOSFavoritesCache.read().takeIf { it.isNotEmpty() }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private fun GeoPoint.toCoordinate() = CLLocationCoordinate2DMake(latitude, longitude)
+
+private object IOSFavoritesCache {
+  const val cacheKey = "bizizaragoza.watch.favorite_ids"
+  const val contextKey = "favorite_ids"
+
+  fun read(): Set<String> = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
+    .orEmpty()
+    .filterIsInstance<String>()
+    .toSet()
+
+  fun persist(favoriteIds: Set<String>) {
+    NSUserDefaults.standardUserDefaults.setObject(favoriteIds.toList(), forKey = cacheKey)
+  }
+}

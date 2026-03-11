@@ -4,8 +4,10 @@ import WatchConnectivity
 @MainActor
 final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCSessionDelegate {
     static let shared = WatchFavoritesSyncBridge()
+    static let favoritesCacheKey = "bizizaragoza.watch.favorite_ids"
 
     @Published private(set) var favoriteIds: Set<String> = []
+    private let defaults = UserDefaults.standard
 
     private override init() {
         super.init()
@@ -48,5 +50,6 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
     private func apply(context: [String: Any]) {
         let ids = (context["favorite_ids"] as? [String]) ?? []
         favoriteIds = Set(ids)
+        defaults.set(ids, forKey: Self.favoritesCacheKey)
     }
 }

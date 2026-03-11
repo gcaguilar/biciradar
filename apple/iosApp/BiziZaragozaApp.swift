@@ -15,14 +15,10 @@ struct BiziZaragozaApp: App {
         WindowGroup {
             ComposeRootView(launchRequest: launchRequest)
                 .id(launchToken)
-                .onAppear {
-                    applyPendingLaunchRequest()
-                    syncFavoritesToWatch()
-                }
+                .onAppear(perform: applyPendingLaunchRequest)
                 .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         applyPendingLaunchRequest()
-                        syncFavoritesToWatch()
                     }
                 }
         }
@@ -32,15 +28,6 @@ struct BiziZaragozaApp: App {
         guard let request = AppleLaunchRequestStore.shared.takePendingRequest() else { return }
         launchRequest = request
         launchToken += 1
-    }
-
-    private func syncFavoritesToWatch() {
-        Task {
-            guard let favorites = try? await BiziAppleGraph.shared.favoriteStations() else { return }
-            await MainActor.run {
-                FavoritesSyncBridge.shared.pushFavorites(Set(favorites.map(\.id)))
-            }
-        }
     }
 }
 
