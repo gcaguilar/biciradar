@@ -56,4 +56,17 @@ final class FavoritesSyncBridgeTests: XCTestCase {
 
         XCTAssertNil(routeStore.takePendingRequest())
     }
+
+    func testApplyWithoutFavoriteIdsPreservesCachedFavorites() {
+        defaults.set(["101", "202"], forKey: FavoritesSyncBridge.favoritesCacheKey)
+        bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)
+
+        bridge.apply(context: [:])
+
+        XCTAssertEqual(bridge.favoriteIds, Set(["101", "202"]))
+        XCTAssertEqual(
+            Set(defaults.stringArray(forKey: FavoritesSyncBridge.favoritesCacheKey) ?? []),
+            Set(["101", "202"])
+        )
+    }
 }

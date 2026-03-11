@@ -136,6 +136,25 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.watch
         PRODUCT_NAME: Bizi Zaragoza Watch
 
+  BiziZaragozaWatchTests:
+    type: bundle.unit-test
+    platform: watchOS
+    deploymentTarget: "9.0"
+    sources:
+      - path: watchAppTests
+      - path: watchApp/WatchFavoritesSyncBridge.swift
+    dependencies:
+      - sdk: XCTest.framework
+      - sdk: WatchConnectivity.framework
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.watch.tests
+        PRODUCT_NAME: Bizi Zaragoza Watch Tests
+
 schemes:
   BiziZaragoza:
     build:
@@ -152,5 +171,10 @@ schemes:
     build:
       targets:
         BiziZaragozaWatch: all
+        BiziZaragozaWatchTests: [testing]
+    test:
+      config: Debug
+      targets:
+        - BiziZaragozaWatchTests
     run:
       config: Debug

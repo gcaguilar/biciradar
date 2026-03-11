@@ -7,9 +7,11 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
     static let favoritesCacheKey = "bizizaragoza.watch.favorite_ids"
 
     @Published private(set) var favoriteIds: Set<String> = []
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
 
-    private override init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.favoriteIds = Set(defaults.stringArray(forKey: Self.favoritesCacheKey) ?? [])
         super.init()
     }
 
@@ -47,9 +49,10 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         apply(context: applicationContext)
     }
 
-    private func apply(context: [String: Any]) {
-        let ids = (context["favorite_ids"] as? [String]) ?? []
-        favoriteIds = Set(ids)
-        defaults.set(ids, forKey: Self.favoritesCacheKey)
+    func apply(context: [String: Any]) {
+        if let ids = context["favorite_ids"] as? [String] {
+            favoriteIds = Set(ids)
+            defaults.set(ids, forKey: Self.favoritesCacheKey)
+        }
     }
 }

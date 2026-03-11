@@ -9,18 +9,22 @@
 /* Begin PBXBuildFile section */
 		01E62CDC7B11EEFA5F2F47CD /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
 		12F2139A9050266D04982B56 /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */; };
+		16434C5475C6CB106470BC71 /* WatchFavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B840181B8183228EA6B8DD /* WatchFavoritesSyncBridgeTests.swift */; };
 		1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
 		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
 		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
 		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
+		63A000A2270F005B5BED7D82 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
 		726E125E0EA16476AD9EA0D5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
 		735FFF9251C00F9E3FBBDD54 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD5333C6EA05B9D70A461E9 /* XCTest.framework */; };
 		8709497EC6DA8DD925701061 /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */; };
 		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
+		94F10365EE3C8C6CF5BCEF5B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD5333C6EA05B9D70A461E9 /* XCTest.framework */; };
 		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
 		9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */; };
 		B0BBCE96C9C319747545B866 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
+		C6B00F91BC4A429B97879167 /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		C8EE260891FF1B9576C085FC /* ComposeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89ACDE081F371C07894C925 /* ComposeRootView.swift */; };
 		D3D00AA0A6D7A8ABAE420276 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
 		E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */; };
@@ -38,6 +42,7 @@
 		5CC824927869DECDC66A1B8A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchShortcuts.swift; sourceTree = "<group>"; };
 		6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
+		83B840181B8183228EA6B8DD /* WatchFavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
 		A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiziZaragozaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaWatchApp.swift; sourceTree = "<group>"; };
 		ADD5333C6EA05B9D70A461E9 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
@@ -45,12 +50,22 @@
 		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
 		C89ACDE081F371C07894C925 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
+		DB393298A5B347FE9CF35ED3 /* BiziZaragozaWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BiziZaragozaWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchGraph.swift; sourceTree = "<group>"; };
 		EAD93BA8276E4323A19B32F8 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		EC58133CDF714873B84A2060 /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		072F124919B44F2B93F2A9CF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				94F10365EE3C8C6CF5BCEF5B /* XCTest.framework in Frameworks */,
+				63A000A2270F005B5BED7D82 /* WatchConnectivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4DD8561DC5C807EBF3443CF6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -118,6 +133,7 @@
 				269AF0E69523BBBA8046180F /* iosAppTests */,
 				6B3F9A30316740EA347C4DAE /* sharedApple */,
 				612BC18A0C68575F17520BE7 /* watchApp */,
+				C8ACC78E152AE218C156BC0D /* watchAppTests */,
 				534F5641E71B302FF1DFF77B /* Frameworks */,
 				7011A7278025024B568B85E9 /* Products */,
 			);
@@ -137,8 +153,17 @@
 				3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */,
 				0095BAA0F0C3878CBD7DAA51 /* BiziZaragozaTests.xctest */,
 				A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */,
+				DB393298A5B347FE9CF35ED3 /* BiziZaragozaWatchTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C8ACC78E152AE218C156BC0D /* watchAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				83B840181B8183228EA6B8DD /* WatchFavoritesSyncBridgeTests.swift */,
+			);
+			path = watchAppTests;
 			sourceTree = "<group>";
 		};
 		DFA0C477AFBFA2BCB90BAA6C /* iosApp */ = {
@@ -156,6 +181,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		6C7E535E4B9255F528DAA0AB /* BiziZaragozaWatchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 57F5B8115010808D064B3166 /* Build configuration list for PBXNativeTarget "BiziZaragozaWatchTests" */;
+			buildPhases = (
+				29015306360DADD0CFDA80B4 /* Sources */,
+				072F124919B44F2B93F2A9CF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BiziZaragozaWatchTests;
+			packageProductDependencies = (
+			);
+			productName = BiziZaragozaWatchTests;
+			productReference = DB393298A5B347FE9CF35ED3 /* BiziZaragozaWatchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BFC3BD049FCD87DCC536D0A /* Build configuration list for PBXNativeTarget "BiziZaragozaWatch" */;
@@ -221,6 +264,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					6C7E535E4B9255F528DAA0AB = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 					9AAEF234E6136587F6B6531E = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -252,6 +299,7 @@
 				C8B48EA109F99ADE7F104A93 /* BiziZaragoza */,
 				AB967055601359120F04BFD2 /* BiziZaragozaTests */,
 				9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */,
+				6C7E535E4B9255F528DAA0AB /* BiziZaragozaWatchTests */,
 			);
 		};
 /* End PBXProject section */
@@ -308,6 +356,15 @@
 				425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */,
 				C8EE260891FF1B9576C085FC /* ComposeRootView.swift in Sources */,
 				909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		29015306360DADD0CFDA80B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6B00F91BC4A429B97879167 /* WatchFavoritesSyncBridge.swift in Sources */,
+				16434C5475C6CB106470BC71 /* WatchFavoritesSyncBridgeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -639,9 +696,62 @@
 			};
 			name = Release;
 		};
+		52DBBC0E2CD4D8C8A60279EF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.watch.tests;
+				PRODUCT_NAME = "Bizi Zaragoza Watch Tests";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Release;
+		};
+		670FED6BBC551CA949F9928B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.watch.tests;
+				PRODUCT_NAME = "Bizi Zaragoza Watch Tests";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		57F5B8115010808D064B3166 /* Build configuration list for PBXNativeTarget "BiziZaragozaWatchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				670FED6BBC551CA949F9928B /* Debug */,
+				52DBBC0E2CD4D8C8A60279EF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		7F7F225AB5780CC63C024369 /* Build configuration list for PBXNativeTarget "BiziZaragoza" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -14,10 +14,11 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
 
     init(
         defaults: UserDefaults = .standard,
-        routeRequestStore: AppleLaunchRequestStore = .shared
+        routeRequestStore: AppleLaunchRequestStore? = nil
     ) {
         self.defaults = defaults
-        self.routeRequestStore = routeRequestStore
+        self.routeRequestStore = routeRequestStore ?? .shared
+        self.favoriteIds = Set(defaults.stringArray(forKey: Self.favoritesCacheKey) ?? [])
         super.init()
     }
 
@@ -62,9 +63,10 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     }
 
     func apply(context: [String: Any]) {
-        let ids = (context["favorite_ids"] as? [String]) ?? []
-        favoriteIds = Set(ids)
-        defaults.set(ids, forKey: Self.favoritesCacheKey)
+        if let ids = context["favorite_ids"] as? [String] {
+            favoriteIds = Set(ids)
+            defaults.set(ids, forKey: Self.favoritesCacheKey)
+        }
         let routeRequestedAt = (context["route_requested_at"] as? Double) ?? 0
         if let routeStationId = context["route_station_id"] as? String,
            !routeStationId.isEmpty,
