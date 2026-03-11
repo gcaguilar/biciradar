@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import com.gcaguilar.bizizaragoza.mobileui.AssistantLaunchRequest
 import com.gcaguilar.bizizaragoza.mobileui.MobileLaunchRequest
 
 internal object AndroidAssistantShortcuts {
@@ -50,6 +51,20 @@ internal object AndroidAssistantShortcuts {
         ),
         shortcut(
           context = context,
+          shortcutId = STATION_BIKE_COUNT_ACTION,
+          shortLabel = R.string.shortcut_station_bikes,
+          iconRes = android.R.drawable.ic_menu_info_details,
+          action = STATION_BIKE_COUNT_ACTION,
+        ),
+        shortcut(
+          context = context,
+          shortcutId = STATION_SLOT_COUNT_ACTION,
+          shortLabel = R.string.shortcut_station_slots,
+          iconRes = android.R.drawable.ic_menu_sort_by_size,
+          action = STATION_SLOT_COUNT_ACTION,
+        ),
+        shortcut(
+          context = context,
           shortcutId = ROUTE_TO_STATION_ACTION,
           shortLabel = R.string.shortcut_route,
           iconRes = android.R.drawable.ic_dialog_map,
@@ -59,8 +74,18 @@ internal object AndroidAssistantShortcuts {
     )
   }
 
-  fun reportUsed(context: Context, launchRequest: MobileLaunchRequest?) {
-    val shortcutId = when (launchRequest) {
+  fun reportUsed(
+    context: Context,
+    launchRequest: MobileLaunchRequest?,
+    assistantLaunchRequest: AssistantLaunchRequest?,
+  ) {
+    val shortcutId = when {
+      assistantLaunchRequest is AssistantLaunchRequest.StationStatus -> STATION_STATUS_ACTION
+      assistantLaunchRequest is AssistantLaunchRequest.StationBikeCount -> STATION_BIKE_COUNT_ACTION
+      assistantLaunchRequest is AssistantLaunchRequest.StationSlotCount -> STATION_SLOT_COUNT_ACTION
+      assistantLaunchRequest is AssistantLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
+      assistantLaunchRequest is AssistantLaunchRequest.SearchStation -> SHOW_STATION_ACTION
+      else -> when (launchRequest) {
       MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
       MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
       MobileLaunchRequest.NearestStationWithBikes -> NEAREST_STATION_WITH_BIKES_ACTION
@@ -70,6 +95,7 @@ internal object AndroidAssistantShortcuts {
       is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
       is MobileLaunchRequest.ShowStation -> SHOW_STATION_ACTION
       else -> return
+      }
     }
     ShortcutManagerCompat.reportShortcutUsed(context, shortcutId)
   }

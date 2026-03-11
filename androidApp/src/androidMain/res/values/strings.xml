@@ -6,4 +6,6 @@
     <string name="shortcut_favorites">Mis favoritas</string>
     <string name="shortcut_route">Ruta a estación</string>
     <string name="shortcut_station_status">Estado estación</string>
+    <string name="shortcut_station_bikes">Bicis en estación</string>
+    <string name="shortcut_station_slots">Huecos en estación</string>
 </resources>

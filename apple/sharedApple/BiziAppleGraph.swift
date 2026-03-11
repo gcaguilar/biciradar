@@ -15,8 +15,9 @@ actor BiziAppleGraph {
 
     private let bindings = IOSPlatformBindings(
         appConfiguration: AppConfiguration(
-            cityBikesNetworkUrl: "https://api.citybik.es/v2/networks/bizi-zaragoza",
-            geminiProxyBaseUrl: "http://127.0.0.1:8080",
+            stationsApiUrl: "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json?rows=300",
+            stationsFallbackApiUrl: "https://api.citybik.es/v2/networks/bizi-zaragoza",
+            geminiProxyBaseUrl: "",
             defaultLatitude: 41.6488,
             defaultLongitude: -0.8891
         )

@@ -301,6 +301,34 @@ class CoreRepositoryTest {
     assertTrue(resolution.spokenResponse.contains("dentro de 500 m"))
     assertTrue(resolution.spokenResponse.contains("720 m"))
   }
+
+  @Test
+  fun `findStationMatchingQuery resolves by name accent and numeric id`() {
+    val stations = listOf(
+      Station(
+        id = "station-42",
+        name = "42- Plaza España",
+        address = "Centro",
+        location = GeoPoint(41.6488, -0.8891),
+        bikesAvailable = 6,
+        slotsFree = 8,
+        distanceMeters = 100,
+      ),
+      Station(
+        id = "station-99",
+        name = "Universidad",
+        address = "Campus",
+        location = GeoPoint(41.65, -0.88),
+        bikesAvailable = 3,
+        slotsFree = 5,
+        distanceMeters = 200,
+      ),
+    )
+
+    assertEquals("station-42", findStationMatchingQuery(stations, "Plaza Espana")?.id)
+    assertEquals("station-42", findStationMatchingQuery(stations, "42")?.id)
+    assertEquals("station-99", findStationMatchingQuery(stations, "universidad")?.id)
+  }
 }
 
 private class RecordingWatchSyncBridge(

@@ -9,6 +9,16 @@
                 android:name="feature" />
         </intent>
     </capability>
+    <capability android:name="actions.intent.GET_THING">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <parameter
+                android:key="thing.name"
+                android:name="station_query" />
+        </intent>
+    </capability>
     <shortcut
         android:enabled="true"
         android:icon="@android:drawable/ic_menu_mylocation"
@@ -122,6 +132,52 @@
             <parameter-binding
                 android:key="feature"
                 android:value="station_status" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:shortcutId="station_bike_count"
+        android:shortcutLongLabel="@string/shortcut_station_bikes"
+        android:shortcutShortLabel="@string/shortcut_station_bikes">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="station_bike_count" />
+            <extra
+                android:name="feature"
+                android:value="station_bike_count" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="station_bike_count" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:shortcutId="station_slot_count"
+        android:shortcutLongLabel="@string/shortcut_station_slots"
+        android:shortcutShortLabel="@string/shortcut_station_slots">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="station_slot_count" />
+            <extra
+                android:name="feature"
+                android:value="station_slot_count" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="station_slot_count" />
         </capability-binding>
     </shortcut>
     <shortcut

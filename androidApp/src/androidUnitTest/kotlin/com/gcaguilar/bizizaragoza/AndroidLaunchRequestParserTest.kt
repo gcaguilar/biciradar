@@ -1,6 +1,7 @@
 package com.gcaguilar.bizizaragoza
 
 import com.gcaguilar.bizizaragoza.mobileui.MobileLaunchRequest
+import com.gcaguilar.bizizaragoza.mobileui.AssistantLaunchRequest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -33,6 +34,8 @@ class AndroidLaunchRequestParserTest {
       MobileLaunchRequest.StationStatus,
       parseLaunchRequest(feature = STATION_STATUS_ACTION),
     )
+    assertNull(parseLaunchRequest(feature = STATION_BIKE_COUNT_ACTION))
+    assertNull(parseLaunchRequest(feature = STATION_SLOT_COUNT_ACTION))
   }
 
   @Test
@@ -89,5 +92,65 @@ class AndroidLaunchRequestParserTest {
   @Test
   fun `parseLaunchRequest ignores unknown actions`() {
     assertNull(parseLaunchRequest(assistantAction = "unknown_action"))
+  }
+
+  @Test
+  fun `parseLaunchPayload resolves station queries for search and assistant actions`() {
+    val searchPayload = parseLaunchPayload(stationQuery = "Plaza España")
+    val statusPayload = parseLaunchPayload(
+      assistantAction = STATION_STATUS_ACTION,
+      stationQuery = "42",
+    )
+    val bikeCountPayload = parseLaunchPayload(
+      assistantAction = STATION_BIKE_COUNT_ACTION,
+      stationQuery = "Universidad",
+    )
+    val routePayload = parseLaunchPayload(
+      assistantAction = ROUTE_TO_STATION_ACTION,
+      stationQuery = "Plaza Aragón",
+    )
+
+    assertEquals(
+      AssistantLaunchRequest.SearchStation("Plaza España"),
+      searchPayload?.assistantLaunchRequest,
+    )
+    assertEquals(
+      AssistantLaunchRequest.StationStatus(stationQuery = "42"),
+      statusPayload?.assistantLaunchRequest,
+    )
+    assertEquals(
+      AssistantLaunchRequest.StationBikeCount(stationQuery = "Universidad"),
+      bikeCountPayload?.assistantLaunchRequest,
+    )
+    assertEquals(
+      AssistantLaunchRequest.RouteToStation(stationQuery = "Plaza Aragón"),
+      routePayload?.assistantLaunchRequest,
+    )
+  }
+
+  @Test
+  fun `parseLaunchPayload keeps route station id and supports bike slot count station ids`() {
+    val routePayload = parseLaunchPayload(
+      assistantAction = ROUTE_TO_STATION_ACTION,
+      stationId = "station-42",
+    )
+    val bikeCountPayload = parseLaunchPayload(
+      assistantAction = STATION_BIKE_COUNT_ACTION,
+      stationId = "station-7",
+    )
+    val slotCountPayload = parseLaunchPayload(
+      assistantAction = STATION_SLOT_COUNT_ACTION,
+      stationId = "station-9",
+    )
+
+    assertEquals(MobileLaunchRequest.RouteToStation("station-42"), routePayload?.launchRequest)
+    assertEquals(
+      AssistantLaunchRequest.StationBikeCount(stationId = "station-7"),
+      bikeCountPayload?.assistantLaunchRequest,
+    )
+    assertEquals(
+      AssistantLaunchRequest.StationSlotCount(stationId = "station-9"),
+      slotCountPayload?.assistantLaunchRequest,
+    )
   }
 }

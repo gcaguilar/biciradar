@@ -132,6 +132,11 @@ class GeminiPromptServiceImpl(
   private val httpClient: HttpClient,
 ) : GeminiPromptService {
   override suspend fun prompt(request: GeminiPromptRequest): GeminiPromptResponse {
+    if (!appConfiguration.isGeminiEnabled()) {
+      return GeminiPromptResponse(
+        answer = "Gemini es opcional y no está configurado en esta instalación.",
+      )
+    }
     return httpClient.post("${appConfiguration.geminiProxyBaseUrl}/api/v1/gemini/prompt") {
       contentType(ContentType.Application.Json)
       setBody(request)

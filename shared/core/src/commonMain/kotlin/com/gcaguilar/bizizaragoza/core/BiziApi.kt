@@ -22,16 +22,54 @@ class CityBikesBiziApi(
   private val configuration: AppConfiguration,
 ) : BiziApi {
   override suspend fun fetchStations(origin: GeoPoint): List<Station> {
-    val response = httpClient.get(configuration.cityBikesNetworkUrl).body<CityBikesNetworkEnvelope>()
+    return runCatching {
+      fetchOfficialStations(origin)
+    }.getOrElse {
+      fetchFallbackStations(origin)
+    }
+  }
+
+  private suspend fun fetchOfficialStations(origin: GeoPoint): List<Station> {
+    val response = httpClient.get(configuration.stationsApiUrl).body<ZaragozaStationsEnvelope>()
+    return response.result
+      .asSequence()
+      .filter { station ->
+        station.geometry.coordinates.size >= 2 && station.status.equals("IN_SERVICE", ignoreCase = true)
+      }
+      .map { station ->
+        val latitude = station.geometry.coordinates[1]
+        val longitude = station.geometry.coordinates[0]
+        val location = GeoPoint(latitude, longitude)
+        Station(
+          id = station.id,
+          name = station.title,
+          address = station.address.ifBlank { station.title },
+          location = location,
+          bikesAvailable = station.bikesAvailable,
+          slotsFree = station.slotsFree,
+          distanceMeters = distanceBetween(origin, location),
+          sourceLabel = "Ayuntamiento de Zaragoza",
+        )
+      }
+      .sortedBy(Station::distanceMeters)
+      .toList()
+      .takeIf { it.isNotEmpty() }
+      ?: error("Official Zaragoza Bizi feed returned no stations.")
+  }
+
+  private suspend fun fetchFallbackStations(origin: GeoPoint): List<Station> {
+    val response = httpClient.get(configuration.stationsFallbackApiUrl).body<CityBikesNetworkEnvelope>()
     return response.network.stations.map { station ->
+      val location = GeoPoint(station.latitude, station.longitude)
       Station(
         id = station.id ?: station.name,
         name = station.name,
         address = station.extra?.address.orEmpty().ifBlank { station.name },
-        location = GeoPoint(station.latitude, station.longitude),
+        location = location,
         bikesAvailable = station.freeBikes ?: 0,
         slotsFree = station.emptySlots ?: 0,
-        distanceMeters = distanceBetween(origin, GeoPoint(station.latitude, station.longitude)),
+        distanceMeters = distanceBetween(origin, location),
+        sourceLabel = "CityBikes",
       )
     }
   }
@@ -74,4 +112,25 @@ private data class CityBikesStation(
 @Serializable
 private data class CityBikesExtra(
   val address: String? = null,
+)
+
+@Serializable
+private data class ZaragozaStationsEnvelope(
+  val result: List<ZaragozaStation> = emptyList(),
+)
+
+@Serializable
+private data class ZaragozaStation(
+  val id: String,
+  val title: String,
+  val address: String,
+  @SerialName("estado") val status: String,
+  @SerialName("bicisDisponibles") val bikesAvailable: Int = 0,
+  @SerialName("anclajesDisponibles") val slotsFree: Int = 0,
+  val geometry: ZaragozaGeometry,
+)
+
+@Serializable
+private data class ZaragozaGeometry(
+  val coordinates: List<Double> = emptyList(),
 )

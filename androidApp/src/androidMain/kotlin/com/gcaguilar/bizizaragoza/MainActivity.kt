@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.platform.AndroidPlatformBindings
+import com.gcaguilar.bizizaragoza.mobileui.AssistantLaunchRequest
 import com.gcaguilar.bizizaragoza.mobileui.BiziMobileApp
 import com.gcaguilar.bizizaragoza.mobileui.MobileLaunchRequest
 
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
   }
 
   private var launchRequest by mutableStateOf<MobileLaunchRequest?>(null)
+  private var assistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
   private var refreshNonce by mutableIntStateOf(0)
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,15 +38,16 @@ class MainActivity : ComponentActivity() {
         geminiProxyBaseUrl = BuildConfig.GEMINI_PROXY_BASE_URL,
       ),
     )
-    launchRequest = intent.toLaunchRequest()
+    applyLaunchPayload(intent)
     AndroidAssistantShortcuts.publish(this)
-    AndroidAssistantShortcuts.reportUsed(this, launchRequest)
+    AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
 
     setContent {
       BiziMobileApp(
         platformBindings = platformBindings,
         refreshKey = refreshNonce,
         launchRequest = launchRequest,
+        assistantLaunchRequest = assistantLaunchRequest,
       )
     }
 
@@ -54,8 +57,8 @@ class MainActivity : ComponentActivity() {
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     setIntent(intent)
-    launchRequest = intent.toLaunchRequest()
-    AndroidAssistantShortcuts.reportUsed(this, launchRequest)
+    applyLaunchPayload(intent)
+    AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
   }
 
   private fun ensureLocationPermissions() {
@@ -77,5 +80,11 @@ class MainActivity : ComponentActivity() {
         this,
         Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
+  }
+
+  private fun applyLaunchPayload(intent: Intent) {
+    val payload = intent.toLaunchPayload()
+    launchRequest = payload?.launchRequest
+    assistantLaunchRequest = payload?.assistantLaunchRequest
   }
 }

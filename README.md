@@ -7,10 +7,11 @@ Scaffold greenfield para `com.gcaguilar.bizizaragoza` con:
 - Compose for Wear OS para Wear.
 - SwiftUI + App Intents shell para iPhone/Apple Watch.
 - Metro DI como contenedor compile-time.
-- Proxy Gemini con Ktor.
+- Proxy Gemini opcional con Ktor.
 - Ubicación real en Android, iOS y watchOS con fallback a Zaragoza centro si no hay permiso o no hay fix.
 - Sync de favoritos entre Android móvil y Wear OS con Data Layer.
 - Mapa embebido en Compose móvil con wrapper multiplataforma.
+- Feed oficial del Ayuntamiento de Zaragoza con fallback a CityBikes.
 
 ## Módulos
 
@@ -30,16 +31,22 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 ./gradlew build
 ```
 
-## Gemini
+## Gemini opcional
 
 El proxy usa:
 
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL` opcional, por defecto `gemini-2.5-flash`
-- `BIZI_GEMINI_PROXY_BASE_URL` opcional para Android/Wear, por defecto `http://10.0.2.2:8080`
+- `BIZI_GEMINI_PROXY_BASE_URL` opcional para Android/Wear
 - `GOOGLE_MAPS_API_KEY` opcional para habilitar tiles reales en Android
 
 El endpoint expuesto es `POST /api/v1/gemini/prompt`.
+
+Si no defines `BIZI_GEMINI_PROXY_BASE_URL`, la app sigue funcionando sin Gemini y muestra solo asistentes/atajos directos.
+
+## Release
+
+El checklist de build y publicación está en `RELEASE.md`.
 
 ## Apple
 

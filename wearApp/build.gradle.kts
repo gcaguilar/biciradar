@@ -7,7 +7,7 @@ plugins {
 }
 
 val geminiProxyBaseUrl = providers.environmentVariable("BIZI_GEMINI_PROXY_BASE_URL")
-  .orElse("http://10.0.2.2:8080")
+  .orElse("")
 
 kotlin {
   androidTarget {

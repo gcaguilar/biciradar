@@ -54,6 +54,9 @@ import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
+import com.gcaguilar.bizizaragoza.core.filterStationsByQuery
+import com.gcaguilar.bizizaragoza.core.findStationMatchingQuery
+import com.gcaguilar.bizizaragoza.core.isGeminiEnabled
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
 import dev.zacsweers.metro.createGraphFactory
 import kotlinx.coroutines.launch
@@ -80,12 +83,39 @@ sealed interface MobileLaunchRequest {
   data class ShowStation(val stationId: String) : MobileLaunchRequest
 }
 
+sealed interface AssistantLaunchRequest {
+  data class SearchStation(
+    val stationQuery: String,
+  ) : AssistantLaunchRequest
+
+  data class StationStatus(
+    val stationId: String? = null,
+    val stationQuery: String? = null,
+  ) : AssistantLaunchRequest
+
+  data class StationBikeCount(
+    val stationId: String? = null,
+    val stationQuery: String? = null,
+  ) : AssistantLaunchRequest
+
+  data class StationSlotCount(
+    val stationId: String? = null,
+    val stationQuery: String? = null,
+  ) : AssistantLaunchRequest
+
+  data class RouteToStation(
+    val stationId: String? = null,
+    val stationQuery: String? = null,
+  ) : AssistantLaunchRequest
+}
+
 @Composable
 fun BiziMobileApp(
   platformBindings: PlatformBindings,
   modifier: Modifier = Modifier,
   refreshKey: Any? = Unit,
   launchRequest: MobileLaunchRequest? = null,
+  assistantLaunchRequest: AssistantLaunchRequest? = null,
 ) {
   val graph = remember(platformBindings) {
     createGraphFactory<SharedGraph.Factory>().create(platformBindings)
@@ -100,6 +130,10 @@ fun BiziMobileApp(
   var searchQuery by rememberSaveable { mutableStateOf("") }
   var pendingAssistantAction by remember { mutableStateOf<AssistantAction?>(null) }
   var pendingLaunchRequest by remember { mutableStateOf<MobileLaunchRequest?>(null) }
+  var pendingAssistantLaunchRequest by remember { mutableStateOf<AssistantLaunchRequest?>(null) }
+  val geminiEnabled = remember(platformBindings) {
+    platformBindings.appConfiguration.isGeminiEnabled()
+  }
 
   LaunchedEffect(graph, refreshKey) {
     graph.settingsRepository.bootstrap()
@@ -113,6 +147,10 @@ fun BiziMobileApp(
 
   LaunchedEffect(launchRequest) {
     pendingLaunchRequest = launchRequest
+  }
+
+  LaunchedEffect(assistantLaunchRequest) {
+    pendingAssistantLaunchRequest = assistantLaunchRequest
   }
 
   LaunchedEffect(pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
@@ -172,6 +210,74 @@ fun BiziMobileApp(
     }
   }
 
+  LaunchedEffect(pendingAssistantLaunchRequest, stationsState.stations) {
+    val request = pendingAssistantLaunchRequest ?: return@LaunchedEffect
+    val station = resolveLaunchStation(
+      stations = stationsState.stations,
+      graph = graph,
+      stationId = when (request) {
+        is AssistantLaunchRequest.RouteToStation -> request.stationId
+        is AssistantLaunchRequest.SearchStation -> null
+        is AssistantLaunchRequest.StationBikeCount -> request.stationId
+        is AssistantLaunchRequest.StationSlotCount -> request.stationId
+        is AssistantLaunchRequest.StationStatus -> request.stationId
+      },
+      stationQuery = when (request) {
+        is AssistantLaunchRequest.RouteToStation -> request.stationQuery
+        is AssistantLaunchRequest.SearchStation -> request.stationQuery
+        is AssistantLaunchRequest.StationBikeCount -> request.stationQuery
+        is AssistantLaunchRequest.StationSlotCount -> request.stationQuery
+        is AssistantLaunchRequest.StationStatus -> request.stationQuery
+      },
+    )
+
+    when (request) {
+      is AssistantLaunchRequest.SearchStation -> {
+        searchQuery = request.stationQuery
+        currentTab = MobileTab.Mapa
+        station?.let { selectedStationId = it.id }
+      }
+      is AssistantLaunchRequest.StationStatus -> {
+        if (station != null) {
+          pendingAssistantAction = AssistantAction.StationStatus(station.id)
+          assistantOpen = true
+        } else {
+          searchQuery = request.stationQuery.orEmpty()
+          currentTab = MobileTab.Mapa
+        }
+      }
+      is AssistantLaunchRequest.StationBikeCount -> {
+        if (station != null) {
+          pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
+          assistantOpen = true
+        } else {
+          searchQuery = request.stationQuery.orEmpty()
+          currentTab = MobileTab.Mapa
+        }
+      }
+      is AssistantLaunchRequest.StationSlotCount -> {
+        if (station != null) {
+          pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
+          assistantOpen = true
+        } else {
+          searchQuery = request.stationQuery.orEmpty()
+          currentTab = MobileTab.Mapa
+        }
+      }
+      is AssistantLaunchRequest.RouteToStation -> {
+        if (station != null) {
+          selectedStationId = station.id
+          graph.routeLauncher.launch(station)
+        } else {
+          searchQuery = request.stationQuery.orEmpty()
+          currentTab = MobileTab.Mapa
+        }
+      }
+    }
+
+    pendingAssistantLaunchRequest = null
+  }
+
   val filteredStations = remember(stationsState.stations, searchQuery) {
     filterStations(stationsState.stations, searchQuery)
   }
@@ -188,6 +294,7 @@ fun BiziMobileApp(
         assistantOpen -> AssistantScreen(
           graph = graph,
           favoriteIds = favoriteIds,
+          geminiEnabled = geminiEnabled,
           searchRadiusMeters = searchRadiusMeters,
           stations = stationsState.stations,
           initialAction = pendingAssistantAction,
@@ -211,7 +318,7 @@ fun BiziMobileApp(
               contentColor = Color.White,
               onClick = { assistantOpen = true },
             ) {
-              Text("IA")
+              Text("Asist.")
             }
           },
           bottomBar = {
@@ -602,6 +709,7 @@ private fun StationDetailScreen(
 private fun AssistantScreen(
   graph: SharedGraph,
   favoriteIds: Set<String>,
+  geminiEnabled: Boolean,
   searchRadiusMeters: Int,
   stations: List<Station>,
   initialAction: AssistantAction?,
@@ -638,22 +746,31 @@ private fun AssistantScreen(
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     TextButton(onClick = onBack) { Text("Cerrar") }
-    Text("Gemini y asistentes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    OutlinedTextField(
-      modifier = Modifier.fillMaxWidth(),
-      value = prompt,
-      onValueChange = { prompt = it },
-      label = { Text("Consulta") },
-    )
-    Button(
-      modifier = Modifier.fillMaxWidth(),
-      onClick = {
-        scope.launch {
-          latestAnswer = graph.geminiPromptService.prompt(GeminiPromptRequest(prompt = prompt)).answer
-        }
-      },
-    ) {
-      Text("Consultar Gemini")
+    Text("Asistente y atajos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+    if (geminiEnabled) {
+      OutlinedTextField(
+        modifier = Modifier.fillMaxWidth(),
+        value = prompt,
+        onValueChange = { prompt = it },
+        label = { Text("Consulta libre") },
+      )
+      Button(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+          scope.launch {
+            latestAnswer = graph.geminiPromptService.prompt(GeminiPromptRequest(prompt = prompt)).answer
+          }
+        },
+      ) {
+        Text("Consultar Gemini")
+      }
+    } else {
+      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Text(
+          "Gemini es opcional. Esta instalación usa asistentes y atajos directos sin backend generativo.",
+          modifier = Modifier.padding(16.dp),
+        )
+      }
     }
     Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
       Text(latestAnswer, modifier = Modifier.padding(16.dp))
@@ -758,13 +875,16 @@ private fun AssistantAction.label(): String = when (this) {
 private fun filterStations(
   stations: List<Station>,
   searchQuery: String,
-): List<Station> {
-  if (searchQuery.isBlank()) return stations
-  val normalizedQuery = searchQuery.trim().lowercase()
-  return stations.filter { station ->
-    station.name.lowercase().contains(normalizedQuery) ||
-      station.address.lowercase().contains(normalizedQuery)
-  }
-}
+): List<Station> = filterStationsByQuery(stations, searchQuery)
+
+private fun resolveLaunchStation(
+  stations: List<Station>,
+  graph: SharedGraph,
+  stationId: String?,
+  stationQuery: String?,
+): Station? = stationId?.let(graph.stationsRepository::stationById) ?: findStationMatchingQuery(
+  stations = stations,
+  query = stationQuery,
+)
 
 private fun Double.formatCoordinate(): String = ((this * 10_000).roundToInt() / 10_000.0).toString()
