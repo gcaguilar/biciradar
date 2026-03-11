@@ -1,5 +1,6 @@
 import BiziMobileUi
 import SwiftUI
+import UIKit
 
 @main
 struct BiziZaragozaApp: App {
@@ -14,6 +15,9 @@ struct BiziZaragozaApp: App {
     var body: some Scene {
         WindowGroup {
             ComposeRootView(launchRequest: launchRequest)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(uiColor: .systemBackground))
+                .ignoresSafeArea()
                 .id(launchToken)
                 .onAppear(perform: applyPendingLaunchRequest)
                 .onChange(of: scenePhase) { newPhase in

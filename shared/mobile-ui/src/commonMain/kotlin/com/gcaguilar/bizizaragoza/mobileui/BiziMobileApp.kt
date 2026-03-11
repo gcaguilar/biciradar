@@ -58,7 +58,6 @@ import com.gcaguilar.bizizaragoza.core.filterStationsByQuery
 import com.gcaguilar.bizizaragoza.core.findStationMatchingQuery
 import com.gcaguilar.bizizaragoza.core.isGeminiEnabled
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
-import dev.zacsweers.metro.createGraphFactory
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -71,6 +70,12 @@ private enum class MobileTab(val label: String) {
   Favoritos("Favoritos"),
   Perfil("Perfil"),
 }
+
+private val MobileTabs = listOf(
+  MobileTab.Mapa,
+  MobileTab.Favoritos,
+  MobileTab.Perfil,
+)
 
 sealed interface MobileLaunchRequest {
   data object Favorites : MobileLaunchRequest
@@ -118,7 +123,7 @@ fun BiziMobileApp(
   assistantLaunchRequest: AssistantLaunchRequest? = null,
 ) {
   val graph = remember(platformBindings) {
-    createGraphFactory<SharedGraph.Factory>().create(platformBindings)
+    SharedGraph.Companion.create(platformBindings)
   }
   val scope = rememberCoroutineScope()
   val stationsState by graph.stationsRepository.state.collectAsState()
@@ -323,7 +328,7 @@ fun BiziMobileApp(
           },
           bottomBar = {
             NavigationBar(containerColor = Color.White) {
-              MobileTab.entries.forEach { tab ->
+              MobileTabs.forEach { tab ->
                 NavigationBarItem(
                   selected = currentTab == tab,
                   onClick = { currentTab = tab },
