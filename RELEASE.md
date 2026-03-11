@@ -3,7 +3,6 @@
 ## Android y Wear OS
 
 - Definir `GOOGLE_MAPS_API_KEY` si quieres mapa Android con tiles reales.
-- Definir `BIZI_GEMINI_PROXY_BASE_URL` solo si vas a publicar también el proxy opcional de Gemini.
 - Configurar firma release en `androidApp` y `wearApp`.
 - Generar builds:
 
@@ -15,19 +14,12 @@
 
 - Abrir [apple/BiziZaragoza.xcodeproj](/Users/guillermo.castella/bizi/apple/BiziZaragoza.xcodeproj).
 - Configurar `Team`, firma y provisioning de `BiziZaragoza`, `BiziZaragozaWatch` y sus tests.
-- Si quieres Gemini en Apple, sobreescribir `geminiProxyBaseUrl` en los bridges Swift/KMP antes de archivar.
 - Generar archivo:
 
 ```bash
 xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragoza -configuration Release archive
 xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragozaWatch -configuration Release archive
 ```
-
-## Backend opcional
-
-- Exportar `GEMINI_API_KEY`.
-- Arrancar o desplegar `backend/gemini-proxy`.
-- Verificar `GET /health`.
 
 ## QA mínima
 
