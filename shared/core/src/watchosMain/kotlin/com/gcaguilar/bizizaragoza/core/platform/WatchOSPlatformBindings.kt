@@ -27,7 +27,6 @@ import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.WatchConnectivity.WCSession
-import platform.WatchConnectivity.WCSessionActivationStateActivated
 import platform.WatchKit.WKExtension
 
 class WatchOSPlatformBindings(
@@ -81,7 +80,6 @@ private class WatchOSSyncBridge : WatchSyncBridge {
   override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
     WatchOSFavoritesCache.persist(favoriteIds)
     val session = WCSession.defaultSession
-    if (session.activationState != WCSessionActivationStateActivated) return
     memScoped {
       session.updateApplicationContext(
         mapOf(WatchOSFavoritesCache.contextKey to favoriteIds.toList()),
