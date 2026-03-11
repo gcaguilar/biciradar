@@ -1,15 +1,22 @@
 package com.gcaguilar.bizizaragoza.mobileui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.Station
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCSignatureOverride
 import platform.CoreLocation.CLLocationCoordinate2DMake
+import platform.MapKit.MKAnnotationProtocol
 import platform.MapKit.MKCoordinateRegionMakeWithDistance
+import platform.MapKit.MKMapViewDelegateProtocol
 import platform.MapKit.MKMapView
+import platform.MapKit.MKMarkerAnnotationView
 import platform.MapKit.MKPointAnnotation
+import platform.UIKit.UIColor
+import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
@@ -20,44 +27,117 @@ internal actual fun PlatformStationMap(
   highlightedStationId: String?,
   onStationSelected: (Station) -> Unit,
 ) {
+  val coordinator = remember { IOSStationMapCoordinator() }.apply {
+    selectionHandler = onStationSelected
+  }
+
   UIKitView(
     modifier = modifier,
     factory = {
-      MKMapView().apply {
-        rotateEnabled = false
-        pitchEnabled = false
-      }
+      coordinator.mapView
     },
     update = { mapView ->
-      mapView.removeAnnotations(mapView.annotations)
-      val focusPoint = userLocation ?: stations.firstOrNull()?.location
-      if (focusPoint != null) {
-        mapView.setRegion(
-          MKCoordinateRegionMakeWithDistance(
-            CLLocationCoordinate2DMake(focusPoint.latitude, focusPoint.longitude),
-            1_500.0,
-            1_500.0,
-          ),
-          animated = false,
-        )
-      }
-      userLocation?.let { location ->
-        mapView.addAnnotation(
-          MKPointAnnotation().apply {
-            setCoordinate(CLLocationCoordinate2DMake(location.latitude, location.longitude))
-            setTitle("Tu ubicación")
-          },
-        )
-      }
-      stations.forEach { station ->
-        mapView.addAnnotation(
-          MKPointAnnotation().apply {
-            setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
-            setTitle(station.name)
-            setSubtitle("${station.bikesAvailable} bicis · ${station.slotsFree} libres")
-          },
-        )
-      }
+      coordinator.update(
+        mapView = mapView,
+        stations = stations,
+        userLocation = userLocation,
+        highlightedStationId = highlightedStationId,
+      )
     },
   )
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class IOSStationMapCoordinator {
+  var selectionHandler: (Station) -> Unit = {}
+
+  private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
+  private val delegate = StationMapDelegate(
+    stationForAnnotation = { annotation -> stationAnnotations[annotation] },
+    onStationSelected = { station -> selectionHandler(station) },
+  )
+
+  val mapView = MKMapView().apply {
+    rotateEnabled = false
+    pitchEnabled = false
+    delegate = this@IOSStationMapCoordinator.delegate
+  }
+
+  fun update(
+    mapView: MKMapView,
+    stations: List<Station>,
+    userLocation: GeoPoint?,
+    highlightedStationId: String?,
+  ) {
+    stationAnnotations.clear()
+    mapView.removeAnnotations(mapView.annotations)
+
+    val focusPoint = userLocation ?: stations.firstOrNull()?.location
+    if (focusPoint != null) {
+      mapView.setRegion(
+        MKCoordinateRegionMakeWithDistance(
+          CLLocationCoordinate2DMake(focusPoint.latitude, focusPoint.longitude),
+          1_500.0,
+          1_500.0,
+        ),
+        animated = false,
+      )
+    }
+
+    userLocation?.let { location ->
+      mapView.addAnnotation(
+        MKPointAnnotation().apply {
+          setCoordinate(CLLocationCoordinate2DMake(location.latitude, location.longitude))
+          setTitle("Tu ubicación")
+        },
+      )
+    }
+
+    var highlightedAnnotation: MKPointAnnotation? = null
+    stations.forEach { station ->
+      val annotation = MKPointAnnotation().apply {
+        setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
+        setTitle(station.name)
+        setSubtitle("${station.bikesAvailable} bicis · ${station.slotsFree} libres")
+      }
+      stationAnnotations[annotation] = station
+      if (station.id == highlightedStationId) {
+        highlightedAnnotation = annotation
+      }
+      mapView.addAnnotation(annotation)
+    }
+
+    highlightedAnnotation?.let { mapView.selectAnnotation(it, animated = false) }
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class StationMapDelegate(
+  private val stationForAnnotation: (MKPointAnnotation) -> Station?,
+  private val onStationSelected: (Station) -> Unit,
+) : NSObject(), MKMapViewDelegateProtocol {
+  @ObjCSignatureOverride
+  override fun mapView(mapView: MKMapView, viewForAnnotation: MKAnnotationProtocol): platform.MapKit.MKAnnotationView? {
+    val pointAnnotation = viewForAnnotation as? MKPointAnnotation ?: return null
+    val station = stationForAnnotation(pointAnnotation)
+    return MKMarkerAnnotationView(annotation = pointAnnotation, reuseIdentifier = "bizi.station").apply {
+      canShowCallout = false
+      markerTintColor = if (station != null) {
+        UIColor.colorWithRed(
+          red = 0.84,
+          green = 0.10,
+          blue = 0.12,
+          alpha = 1.0,
+        )
+      } else {
+        UIColor.blueColor
+      }
+    }
+  }
+
+  @ObjCSignatureOverride
+  override fun mapView(mapView: MKMapView, didSelectAnnotation: MKAnnotationProtocol) {
+    val pointAnnotation = didSelectAnnotation as? MKPointAnnotation ?: return
+    stationForAnnotation(pointAnnotation)?.let(onStationSelected)
+  }
 }
