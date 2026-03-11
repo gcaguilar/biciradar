@@ -22,11 +22,14 @@
             <extra
                 android:name="assistant_action"
                 android:value="nearest_station" />
+            <extra
+                android:name="feature"
+                android:value="nearest_station" />
         </intent>
         <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
             <parameter-binding
                 android:key="feature"
-                android:value="@string/shortcut_nearest_station" />
+                android:value="nearest_station" />
         </capability-binding>
     </shortcut>
     <shortcut
@@ -42,11 +45,14 @@
             <extra
                 android:name="assistant_action"
                 android:value="favorite_stations" />
+            <extra
+                android:name="feature"
+                android:value="favorite_stations" />
         </intent>
         <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
             <parameter-binding
                 android:key="feature"
-                android:value="@string/shortcut_favorites" />
+                android:value="favorite_stations" />
         </capability-binding>
     </shortcut>
     <shortcut
@@ -62,11 +68,14 @@
             <extra
                 android:name="assistant_action"
                 android:value="station_status" />
+            <extra
+                android:name="feature"
+                android:value="station_status" />
         </intent>
         <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
             <parameter-binding
                 android:key="feature"
-                android:value="@string/shortcut_station_status" />
+                android:value="station_status" />
         </capability-binding>
     </shortcut>
     <shortcut
@@ -82,11 +91,14 @@
             <extra
                 android:name="assistant_action"
                 android:value="route_to_station" />
+            <extra
+                android:name="feature"
+                android:value="route_to_station" />
         </intent>
         <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
             <parameter-binding
                 android:key="feature"
-                android:value="@string/shortcut_route" />
+                android:value="route_to_station" />
         </capability-binding>
     </shortcut>
 </shortcuts>

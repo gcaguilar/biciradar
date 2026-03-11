@@ -15,31 +15,31 @@ internal object AndroidAssistantShortcuts {
       listOf(
         shortcut(
           context = context,
-          shortcutId = NEAREST_STATION_ID,
+          shortcutId = NEAREST_STATION_ACTION,
           shortLabel = R.string.shortcut_nearest_station,
           iconRes = android.R.drawable.ic_menu_mylocation,
-          action = "nearest_station",
+          action = NEAREST_STATION_ACTION,
         ),
         shortcut(
           context = context,
-          shortcutId = FAVORITES_ID,
+          shortcutId = FAVORITE_STATIONS_ACTION,
           shortLabel = R.string.shortcut_favorites,
           iconRes = android.R.drawable.ic_menu_agenda,
-          action = "favorite_stations",
+          action = FAVORITE_STATIONS_ACTION,
         ),
         shortcut(
           context = context,
-          shortcutId = STATION_STATUS_ID,
+          shortcutId = STATION_STATUS_ACTION,
           shortLabel = R.string.shortcut_station_status,
           iconRes = android.R.drawable.ic_dialog_info,
-          action = "station_status",
+          action = STATION_STATUS_ACTION,
         ),
         shortcut(
           context = context,
-          shortcutId = ROUTE_ID,
+          shortcutId = ROUTE_TO_STATION_ACTION,
           shortLabel = R.string.shortcut_route,
           iconRes = android.R.drawable.ic_dialog_map,
-          action = "route_to_station",
+          action = ROUTE_TO_STATION_ACTION,
         ),
       ),
     )
@@ -47,10 +47,12 @@ internal object AndroidAssistantShortcuts {
 
   fun reportUsed(context: Context, launchRequest: MobileLaunchRequest?) {
     val shortcutId = when (launchRequest) {
-      MobileLaunchRequest.Favorites -> FAVORITES_ID
-      MobileLaunchRequest.NearestStation -> NEAREST_STATION_ID
-      MobileLaunchRequest.StationStatus -> STATION_STATUS_ID
-      is MobileLaunchRequest.RouteToStation -> ROUTE_ID
+      MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
+      MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
+      MobileLaunchRequest.OpenAssistant -> OPEN_ASSISTANT_ACTION
+      MobileLaunchRequest.StationStatus -> STATION_STATUS_ACTION
+      is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
+      is MobileLaunchRequest.ShowStation -> SHOW_STATION_ACTION
       else -> return
     }
     ShortcutManagerCompat.reportShortcutUsed(context, shortcutId)
@@ -69,15 +71,11 @@ internal object AndroidAssistantShortcuts {
     .setIntent(
       Intent(Intent.ACTION_VIEW).apply {
         setClass(context, MainActivity::class.java)
-        data = Uri.parse("bizi://assistant?action=$action")
-        putExtra("assistant_action", action)
+        data = Uri.parse("bizi://assistant?action=$action&feature=$action")
+        putExtra(ASSISTANT_ACTION_EXTRA, action)
+        putExtra(FEATURE_EXTRA, action)
       },
     )
     .setLongLived(true)
     .build()
-
-  private const val NEAREST_STATION_ID = "nearest_station"
-  private const val FAVORITES_ID = "favorite_stations"
-  private const val STATION_STATUS_ID = "station_status"
-  private const val ROUTE_ID = "route_to_station"
 }

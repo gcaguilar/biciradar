@@ -79,15 +79,3 @@ class MainActivity : ComponentActivity() {
       ) == PackageManager.PERMISSION_GRANTED
   }
 }
-
-private fun Intent.toLaunchRequest(): MobileLaunchRequest? {
-  val action = getStringExtra("assistant_action") ?: data?.getQueryParameter("action") ?: return null
-  val stationId = getStringExtra("station_id") ?: data?.getQueryParameter("stationId")
-  return when (action) {
-    "favorite_stations" -> MobileLaunchRequest.Favorites
-    "nearest_station" -> MobileLaunchRequest.NearestStation
-    "route_to_station" -> MobileLaunchRequest.RouteToStation(stationId)
-    "station_status" -> MobileLaunchRequest.StationStatus
-    else -> null
-  }
-}

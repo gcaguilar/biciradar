@@ -17,6 +17,12 @@ kotlin {
       jvmTarget.set(JvmTarget.JVM_17)
     }
   }
+
+  sourceSets {
+    androidUnitTest.dependencies {
+      implementation(libs.junit)
+    }
+  }
 }
 
 android {
