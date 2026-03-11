@@ -6,7 +6,11 @@ import platform.UIKit.UIViewController
 
 fun MainViewController(
   launchRequest: MobileLaunchRequest? = null,
-): UIViewController = ComposeUIViewController {
+): UIViewController = ComposeUIViewController(
+  configure = {
+    enforceStrictPlistSanityCheck = false
+  },
+) {
   BiziMobileApp(
     platformBindings = IOSPlatformBindings(),
     launchRequest = launchRequest,

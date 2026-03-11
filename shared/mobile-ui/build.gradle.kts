@@ -22,12 +22,13 @@ kotlin {
     target.binaries.framework {
       baseName = "BiziMobileUi"
       isStatic = true
+      export(project(":shared:core"))
     }
   }
 
   sourceSets {
     commonMain.dependencies {
-      implementation(project(":shared:core"))
+      api(project(":shared:core"))
       implementation(compose.foundation)
       implementation(compose.material3)
       implementation(compose.runtime)

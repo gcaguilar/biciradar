@@ -8,10 +8,16 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     static let favoritesCacheKey = "bizizaragoza.watch.favorite_ids"
 
     @Published private(set) var favoriteIds: Set<String> = []
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
+    private let routeRequestStore: AppleLaunchRequestStore
     private let lastRouteRequestAtKey = "bizizaragoza.lastRouteRequestAt"
 
-    private override init() {
+    init(
+        defaults: UserDefaults = .standard,
+        routeRequestStore: AppleLaunchRequestStore = .shared
+    ) {
+        self.defaults = defaults
+        self.routeRequestStore = routeRequestStore
         super.init()
     }
 
@@ -55,7 +61,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         apply(context: applicationContext)
     }
 
-    private func apply(context: [String: Any]) {
+    func apply(context: [String: Any]) {
         let ids = (context["favorite_ids"] as? [String]) ?? []
         favoriteIds = Set(ids)
         defaults.set(ids, forKey: Self.favoritesCacheKey)
@@ -64,7 +70,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
            !routeStationId.isEmpty,
            routeRequestedAt > defaults.double(forKey: lastRouteRequestAtKey) {
             defaults.set(routeRequestedAt, forKey: lastRouteRequestAtKey)
-            AppleLaunchRequestStore.shared.save(
+            routeRequestStore.save(
                 MobileLaunchRequestRouteToStation(stationId: routeStationId)
             )
         }

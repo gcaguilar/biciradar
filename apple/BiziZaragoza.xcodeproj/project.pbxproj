@@ -7,23 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01E62CDC7B11EEFA5F2F47CD /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
+		12F2139A9050266D04982B56 /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */; };
 		1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
 		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
 		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
 		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
 		726E125E0EA16476AD9EA0D5 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
+		735FFF9251C00F9E3FBBDD54 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD5333C6EA05B9D70A461E9 /* XCTest.framework */; };
 		8709497EC6DA8DD925701061 /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */; };
 		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
 		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
 		9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */; };
+		B0BBCE96C9C319747545B866 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
 		C8EE260891FF1B9576C085FC /* ComposeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89ACDE081F371C07894C925 /* ComposeRootView.swift */; };
 		D3D00AA0A6D7A8ABAE420276 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
 		E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */; };
+		F1802D680CAB4E94C22B5D57 /* FavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */; };
 		F3275F32B2CC0EA730AA2ECE /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0095BAA0F0C3878CBD7DAA51 /* BiziZaragozaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiziZaragozaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStoreTests.swift; sourceTree = "<group>"; };
 		2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
 		3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BiziZaragoza.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -33,6 +40,8 @@
 		6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiziZaragozaWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaWatchApp.swift; sourceTree = "<group>"; };
+		ADD5333C6EA05B9D70A461E9 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
 		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
 		C89ACDE081F371C07894C925 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
@@ -51,6 +60,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		95FE5D4B21CDB7A5B0C4F103 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				735FFF9251C00F9E3FBBDD54 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FD98020F9182FBE8F0226628 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -63,12 +80,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		269AF0E69523BBBA8046180F /* iosAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */,
+				AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */,
+			);
+			path = iosAppTests;
+			sourceTree = "<group>";
+		};
 		534F5641E71B302FF1DFF77B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				5CC824927869DECDC66A1B8A /* SwiftUI.framework */,
 				EAD93BA8276E4323A19B32F8 /* UIKit.framework */,
 				2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */,
+				ADD5333C6EA05B9D70A461E9 /* XCTest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -88,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				DFA0C477AFBFA2BCB90BAA6C /* iosApp */,
+				269AF0E69523BBBA8046180F /* iosAppTests */,
 				6B3F9A30316740EA347C4DAE /* sharedApple */,
 				612BC18A0C68575F17520BE7 /* watchApp */,
 				534F5641E71B302FF1DFF77B /* Frameworks */,
@@ -107,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */,
+				0095BAA0F0C3878CBD7DAA51 /* BiziZaragozaTests.xctest */,
 				A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */,
 			);
 			name = Products;
@@ -146,6 +175,24 @@
 			productReference = A987E73CEA324E9242B6829B /* BiziZaragozaWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		AB967055601359120F04BFD2 /* BiziZaragozaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DBD0BF5764C9073B5FCC1866 /* Build configuration list for PBXNativeTarget "BiziZaragozaTests" */;
+			buildPhases = (
+				FACACB5DEF97BFAEEAF25A43 /* Sources */,
+				95FE5D4B21CDB7A5B0C4F103 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BiziZaragozaTests;
+			packageProductDependencies = (
+			);
+			productName = BiziZaragozaTests;
+			productReference = 0095BAA0F0C3878CBD7DAA51 /* BiziZaragozaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		C8B48EA109F99ADE7F104A93 /* BiziZaragoza */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7F7F225AB5780CC63C024369 /* Build configuration list for PBXNativeTarget "BiziZaragoza" */;
@@ -178,6 +225,10 @@
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
+					AB967055601359120F04BFD2 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
 					C8B48EA109F99ADE7F104A93 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
@@ -199,6 +250,7 @@
 			projectRoot = "";
 			targets = (
 				C8B48EA109F99ADE7F104A93 /* BiziZaragoza */,
+				AB967055601359120F04BFD2 /* BiziZaragozaTests */,
 				9AAEF234E6136587F6B6531E /* BiziZaragozaWatch */,
 			);
 		};
@@ -222,7 +274,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64 \\\n    :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkIosArm64 \\\n    :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
 		};
 		FF13FF5755CC341F984068A6 /* Build KMP watchOS framework */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -270,6 +322,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FACACB5DEF97BFAEEAF25A43 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0BBCE96C9C319747545B866 /* AppleLaunchRequestStore.swift in Sources */,
+				12F2139A9050266D04982B56 /* AppleLaunchRequestStoreTests.swift in Sources */,
+				01E62CDC7B11EEFA5F2F47CD /* FavoritesSyncBridge.swift in Sources */,
+				F1802D680CAB4E94C22B5D57 /* FavoritesSyncBridgeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -283,16 +346,13 @@
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -300,7 +360,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
 				PRODUCT_NAME = "Bizi Zaragoza";
 				SDKROOT = iphoneos;
@@ -318,16 +378,13 @@
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -335,7 +392,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
 				PRODUCT_NAME = "Bizi Zaragoza";
 				SDKROOT = iphoneos;
@@ -459,6 +516,35 @@
 			};
 			name = Release;
 		};
+		424035FE017474B11DC1A65D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.tests;
+				PRODUCT_NAME = "Bizi Zaragoza Tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		4719AD48FD9612F268C76DBB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -524,6 +610,35 @@
 			};
 			name = Debug;
 		};
+		48B0BAF1213AE4DC16AD6D95 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
+					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios.tests;
+				PRODUCT_NAME = "Bizi Zaragoza Tests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -541,6 +656,15 @@
 			buildConfigurations = (
 				161F732AB562871D7F2E3C8F /* Debug */,
 				225E269769199DCD7187028A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DBD0BF5764C9073B5FCC1866 /* Build configuration list for PBXNativeTarget "BiziZaragozaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				424035FE017474B11DC1A65D /* Debug */,
+				48B0BAF1213AE4DC16AD6D95 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

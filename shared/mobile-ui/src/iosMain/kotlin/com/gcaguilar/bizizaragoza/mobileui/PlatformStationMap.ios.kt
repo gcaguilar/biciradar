@@ -3,7 +3,8 @@ package com.gcaguilar.bizizaragoza.mobileui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.interop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitView
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.Station
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -36,6 +37,7 @@ internal actual fun PlatformStationMap(
     factory = {
       coordinator.mapView
     },
+    properties = UIKitInteropProperties(),
     update = { mapView ->
       coordinator.update(
         mapView = mapView,

@@ -5,9 +5,13 @@ import Foundation
 final class AppleLaunchRequestStore: ObservableObject {
     static let shared = AppleLaunchRequestStore()
 
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
     private let actionKey = "bizizaragoza.pendingAction"
     private let stationIdKey = "bizizaragoza.pendingStationId"
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
 
     func save(_ request: any MobileLaunchRequest) {
         switch request {
@@ -54,6 +58,7 @@ final class AppleLaunchRequestStore: ObservableObject {
         case "station_status":
             return MobileLaunchRequestStationStatus.shared
         case "route_to_station":
+            guard let stationId else { return nil }
             return MobileLaunchRequestRouteToStation(stationId: stationId)
         case "show_station":
             guard let stationId else { return nil }

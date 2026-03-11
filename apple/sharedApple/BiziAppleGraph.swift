@@ -1,4 +1,4 @@
-import BiziSharedCore
+import BiziMobileUi
 import Foundation
 
 struct BiziStationSnapshot: Identifiable, Hashable {

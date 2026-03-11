@@ -41,13 +41,9 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64 \
-              :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
+            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
           else
-            ./gradlew \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkIosArm64 \
-              :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
+            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
           fi
     settings:
       base:
@@ -56,21 +52,44 @@ targets:
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/iosSimulatorArm64/releaseFramework
-          - $(SRCROOT)/../shared/core/build/bin/iosArm64/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/iosArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -framework BiziMobileUi
+        OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
         PRODUCT_NAME: Bizi Zaragoza
         TARGETED_DEVICE_FAMILY: "1,2"
+
+  BiziZaragozaTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: iosAppTests
+      - path: iosApp/AppleLaunchRequestStore.swift
+      - path: iosApp/FavoritesSyncBridge.swift
+    dependencies:
+      - sdk: XCTest.framework
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
+        GENERATE_INFOPLIST_FILE: YES
+        OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.tests
+        PRODUCT_NAME: Bizi Zaragoza Tests
 
   BiziZaragozaWatch:
     type: application
@@ -122,6 +141,11 @@ schemes:
     build:
       targets:
         BiziZaragoza: all
+        BiziZaragozaTests: [testing]
+    test:
+      config: Debug
+      targets:
+        - BiziZaragozaTests
     run:
       config: Debug
   BiziZaragozaWatch:
