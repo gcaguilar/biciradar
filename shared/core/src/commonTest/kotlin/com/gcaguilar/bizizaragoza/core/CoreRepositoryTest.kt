@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -71,6 +72,57 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `favorites repository pushes merged ids back to wearable on bootstrap`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-bootstrap-${Random.nextInt()}"
+    val fileSystem = FileSystem.SYSTEM
+    val rootPath = "$temporaryRoot/favorites.json".toPath()
+    fileSystem.createDirectories(rootPath.parent!!)
+    fileSystem.write(rootPath) {
+      writeUtf8("""{"favoriteIds":["station-local"]}""")
+    }
+    val watchBridge = RecordingWatchSyncBridge(remoteFavoriteIds = setOf("station-watch"))
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = fileSystem,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = watchBridge,
+    )
+
+    repository.bootstrap()
+
+    assertEquals(
+      listOf(setOf("station-local", "station-watch")),
+      watchBridge.pushedFavoriteIds,
+    )
+  }
+
+  @Test
+  fun `favorites repository pushes updated ids on toggle`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-toggle-${Random.nextInt()}"
+    val watchBridge = RecordingWatchSyncBridge()
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = watchBridge,
+    )
+
+    repository.bootstrap()
+    repository.toggle("station-1")
+    repository.toggle("station-2")
+    repository.toggle("station-1")
+
+    assertEquals(
+      listOf(setOf("station-1"), setOf("station-1", "station-2"), setOf("station-2")),
+      watchBridge.pushedFavoriteIds,
+    )
+  }
+
+  @Test
   fun `stations repository refresh uses current user location when available`() = runTest {
     var requestedOrigin: GeoPoint? = null
     val repository = StationsRepositoryImpl(
@@ -101,4 +153,59 @@ class CoreRepositoryTest {
     assertEquals(GeoPoint(41.65, -0.88), requestedOrigin)
     assertEquals(GeoPoint(41.65, -0.88), repository.state.value.userLocation)
   }
+
+  @Test
+  fun `assistant resolver highlights nearest station and favorite count`() = runTest {
+    val resolver = DefaultAssistantIntentResolver()
+    val stations = listOf(
+      Station(
+        id = "station-1",
+        name = "Plaza Espana",
+        address = "Centro",
+        location = GeoPoint(41.6488, -0.8891),
+        bikesAvailable = 7,
+        slotsFree = 4,
+        distanceMeters = 120,
+      ),
+    )
+
+    val nearest = resolver.resolve(
+      action = AssistantAction.NearestStation,
+      stationsState = StationsState(stations = stations, isLoading = false),
+      favoriteIds = setOf("station-1", "station-2"),
+    )
+    val favorites = resolver.resolve(
+      action = AssistantAction.FavoriteStations,
+      stationsState = StationsState(stations = stations, isLoading = false),
+      favoriteIds = setOf("station-1", "station-2"),
+    )
+
+    assertEquals("station-1", nearest.highlightedStationId)
+    assertTrue(nearest.spokenResponse.contains("Plaza Espana"))
+    assertTrue(favorites.spokenResponse.contains("2 estaciones"))
+  }
+
+  @Test
+  fun `assistant resolver returns missing status when station is unknown`() = runTest {
+    val resolution = DefaultAssistantIntentResolver().resolve(
+      action = AssistantAction.StationStatus("missing"),
+      stationsState = StationsState(stations = emptyList(), isLoading = false),
+      favoriteIds = emptySet(),
+    )
+
+    assertNull(resolution.highlightedStationId)
+    assertEquals("No he encontrado esa estación.", resolution.spokenResponse)
+  }
+}
+
+private class RecordingWatchSyncBridge(
+  private val remoteFavoriteIds: Set<String>? = null,
+) : WatchSyncBridge {
+  val pushedFavoriteIds = mutableListOf<Set<String>>()
+
+  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
+    pushedFavoriteIds += favoriteIds
+  }
+
+  override suspend fun latestFavoriteIds(): Set<String>? = remoteFavoriteIds
 }
