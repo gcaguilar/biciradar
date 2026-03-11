@@ -26,8 +26,15 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
     func testFavoritesRequestRoundTripsAndClears() {
         store.save(MobileLaunchRequestFavorites.shared)
 
+        XCTAssertEqual(defaults.string(forKey: "bizizaragoza.pendingAction"), "favorite_stations")
         XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
         XCTAssertNil(store.takePendingRequest())
+    }
+
+    func testLegacyFavoritesActionStillLoads() {
+        defaults.set("favorites", forKey: "bizizaragoza.pendingAction")
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
     }
 
     func testRouteRequestRequiresStationIdentifier() {
