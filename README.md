@@ -8,7 +8,7 @@ Scaffold greenfield para `com.gcaguilar.bizizaragoza` con:
 - SwiftUI + App Intents shell para iPhone/Apple Watch.
 - Metro DI como contenedor compile-time.
 - Proxy Gemini con Ktor.
-- Ubicación real en Android con fallback a Zaragoza centro si no hay permiso.
+- Ubicación real en Android, iOS y watchOS con fallback a Zaragoza centro si no hay permiso o no hay fix.
 - Sync de favoritos entre Android móvil y Wear OS con Data Layer.
 - Mapa embebido en Compose móvil con wrapper multiplataforma.
 
@@ -43,7 +43,7 @@ El endpoint expuesto es `POST /api/v1/gemini/prompt`.
 
 ## Apple
 
-No se ha generado un `.xcodeproj` en esta pasada. La base SwiftUI/App Intents está en `apple/` y los frameworks KMP que deben consumirse son:
+El proyecto Xcode generado está en `apple/BiziZaragoza.xcodeproj`. La base SwiftUI/App Intents está en `apple/` y los frameworks KMP consumidos son:
 
 - `BiziSharedCore`
 - `BiziMobileUi`

@@ -59,6 +59,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
@@ -129,6 +130,7 @@ targets:
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza Watch
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas en el reloj.
         INFOPLIST_KEY_WKApplication: YES
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.bizizaragoza.ios
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES

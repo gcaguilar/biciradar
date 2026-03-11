@@ -411,6 +411,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -443,6 +444,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -473,6 +475,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza Watch";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas en el reloj.";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.bizizaragoza.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
@@ -502,6 +505,7 @@
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza Watch";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas en el reloj.";
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.bizizaragoza.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;

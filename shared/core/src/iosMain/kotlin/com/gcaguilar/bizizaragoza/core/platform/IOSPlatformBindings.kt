@@ -19,11 +19,8 @@ import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.useContents
 import kotlinx.serialization.json.Json
 import okio.FileSystem
-import platform.CoreLocation.CLLocationManager
-import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
@@ -60,16 +57,10 @@ private class IOSStorageDirectoryProvider : StorageDirectoryProvider {
   override val rootPath: String = "${NSHomeDirectory()}/Documents/bizi"
 }
 
-@OptIn(ExperimentalForeignApi::class)
 private class IOSLocationProvider : LocationProvider {
-  private val locationManager = CLLocationManager()
+  private val delegate = AppleLocationProvider()
 
-  override suspend fun currentLocation(): GeoPoint? {
-    locationManager.requestWhenInUseAuthorization()
-    return locationManager.location?.coordinate?.useContents {
-      GeoPoint(latitude = latitude, longitude = longitude)
-    }
-  }
+  override suspend fun currentLocation(): GeoPoint? = delegate.currentLocation()
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -115,9 +106,6 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
 
   override suspend fun latestFavoriteIds(): Set<String>? = IOSFavoritesCache.read().takeIf { it.isNotEmpty() }
 }
-
-@OptIn(ExperimentalForeignApi::class)
-private fun GeoPoint.toCoordinate() = CLLocationCoordinate2DMake(latitude, longitude)
 
 private object IOSFavoritesCache {
   const val cacheKey = "bizizaragoza.watch.favorite_ids"
