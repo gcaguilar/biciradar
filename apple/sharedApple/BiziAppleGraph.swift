@@ -17,7 +17,6 @@ actor BiziAppleGraph {
         appConfiguration: AppConfiguration(
             stationsApiUrl: "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json?rows=300",
             stationsFallbackApiUrl: "https://api.citybik.es/v2/networks/bizi-zaragoza",
-            geminiProxyBaseUrl: "",
             defaultLatitude: 41.6488,
             defaultLongitude: -0.8891
         )
@@ -147,7 +146,7 @@ actor BiziAppleGraph {
 
     private func refreshStations() async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.stationsRepository.refresh { error in
+            graph.stationsRepository.loadIfNeeded { error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {

@@ -30,18 +30,6 @@ data class StationsState(
 )
 
 @Serializable
-data class GeminiPromptRequest(
-  val prompt: String,
-  val selectedStationId: String? = null,
-)
-
-@Serializable
-data class GeminiPromptResponse(
-  val answer: String,
-  val recommendedStationId: String? = null,
-)
-
-@Serializable
 sealed interface AssistantAction {
   @Serializable
   @SerialName("nearest_station")

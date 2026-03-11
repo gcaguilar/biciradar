@@ -1,11 +1,14 @@
 package com.gcaguilar.bizizaragoza.core
 
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import okio.Path.Companion.toPath
 import okio.FileSystem
@@ -141,6 +144,30 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `favorites bootstrap does not block when wearable sync is slow`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-slow-sync-${Random.nextInt()}"
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = object : WatchSyncBridge {
+        override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+
+        override suspend fun latestFavoriteIds(): Set<String>? {
+          delay(10_000)
+          return setOf("station-watch")
+        }
+      },
+    )
+
+    repository.bootstrap()
+
+    assertTrue(repository.favoriteIds.value.isEmpty())
+  }
+
+  @Test
   fun `stations repository refresh uses current user location when available`() = runTest {
     var requestedOrigin: GeoPoint? = null
     val repository = StationsRepositoryImpl(
@@ -159,6 +186,7 @@ class CoreRepositoryTest {
             ),
           )
         }
+        override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> = emptyMap()
       },
       appConfiguration = AppConfiguration(),
       locationProvider = object : LocationProvider {
@@ -166,10 +194,81 @@ class CoreRepositoryTest {
       },
     )
 
-    repository.refresh()
+    repository.loadIfNeeded()
 
     assertEquals(GeoPoint(41.65, -0.88), requestedOrigin)
     assertEquals(GeoPoint(41.65, -0.88), repository.state.value.userLocation)
+  }
+
+  @Test
+  fun `stations repository falls back to default location when current location times out`() = runTest {
+    var requestedOrigin: GeoPoint? = null
+    val defaultLocation = GeoPoint(41.6488, -0.8891)
+    val repository = StationsRepositoryImpl(
+      biziApi = object : BiziApi {
+        override suspend fun fetchStations(origin: GeoPoint): List<Station> {
+          requestedOrigin = origin
+          return listOf(
+            Station(
+              id = "station-1",
+              name = "Plaza Espana",
+              address = "Centro",
+              location = origin,
+              bikesAvailable = 10,
+              slotsFree = 5,
+              distanceMeters = 0,
+            ),
+          )
+        }
+
+        override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> = emptyMap()
+      },
+      appConfiguration = AppConfiguration(),
+      locationProvider = object : LocationProvider {
+        override suspend fun currentLocation(): GeoPoint? {
+          delay(10_000)
+          return GeoPoint(41.65, -0.88)
+        }
+      },
+    )
+
+    repository.loadIfNeeded()
+
+    assertEquals(defaultLocation, requestedOrigin)
+    assertNull(repository.state.value.userLocation)
+    assertEquals(1, repository.state.value.stations.size)
+  }
+
+  @Test
+  fun `shared graph memoizes stateful repositories`() {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-graph-${Random.nextInt()}"
+    val graph = SharedGraph.Companion.create(
+      object : PlatformBindings {
+        override val appConfiguration: AppConfiguration = AppConfiguration()
+        override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
+        override val fileSystem: FileSystem = FileSystem.SYSTEM
+        override val httpClientFactory: BiziHttpClientFactory = object : BiziHttpClientFactory {
+          override fun create(json: Json): HttpClient = HttpClient()
+        }
+        override val locationProvider: LocationProvider = object : LocationProvider {
+          override suspend fun currentLocation(): GeoPoint? = null
+        }
+        override val routeLauncher: RouteLauncher = object : RouteLauncher {
+          override fun launch(station: Station) = Unit
+        }
+        override val storageDirectoryProvider: StorageDirectoryProvider = object : StorageDirectoryProvider {
+          override val rootPath: String = temporaryRoot
+        }
+        override val watchSyncBridge: WatchSyncBridge = object : WatchSyncBridge {
+          override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+          override suspend fun latestFavoriteIds(): Set<String>? = null
+        }
+      },
+    )
+
+    assertSame(graph.stationsRepository, graph.stationsRepository)
+    assertSame(graph.favoritesRepository, graph.favoritesRepository)
+    assertSame(graph.settingsRepository, graph.settingsRepository)
   }
 
   @Test

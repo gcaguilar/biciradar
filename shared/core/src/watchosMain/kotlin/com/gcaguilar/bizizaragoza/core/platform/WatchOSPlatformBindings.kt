@@ -12,6 +12,7 @@ import com.gcaguilar.bizizaragoza.core.StorageDirectoryProvider
 import com.gcaguilar.bizizaragoza.core.WatchSyncBridge
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -26,6 +27,9 @@ import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.WatchConnectivity.WCSession
 import platform.WatchKit.WKExtension
+
+private const val REQUEST_TIMEOUT_MILLIS = 15_000L
+private const val CONNECT_TIMEOUT_MILLIS = 10_000L
 
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -42,6 +46,11 @@ class WatchOSPlatformBindings(
 private class WatchOSHttpClientFactory : BiziHttpClientFactory {
   override fun create(json: Json): HttpClient = HttpClient(Darwin) {
     expectSuccess = true
+    install(HttpTimeout) {
+      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+    }
     install(ContentNegotiation) {
       json(json)
     }

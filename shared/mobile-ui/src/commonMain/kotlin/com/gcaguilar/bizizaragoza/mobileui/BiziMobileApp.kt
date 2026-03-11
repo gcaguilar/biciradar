@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.bizizaragoza.core.AssistantAction
-import com.gcaguilar.bizizaragoza.core.GeminiPromptRequest
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.SEARCH_RADIUS_OPTIONS_METERS
@@ -56,7 +55,6 @@ import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.filterStationsByQuery
 import com.gcaguilar.bizizaragoza.core.findStationMatchingQuery
-import com.gcaguilar.bizizaragoza.core.isGeminiEnabled
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -125,10 +123,13 @@ fun BiziMobileApp(
   val graph = remember(platformBindings) {
     SharedGraph.Companion.create(platformBindings)
   }
+  val stationsRepository = remember(graph) { graph.stationsRepository }
+  val favoritesRepository = remember(graph) { graph.favoritesRepository }
+  val settingsRepository = remember(graph) { graph.settingsRepository }
   val scope = rememberCoroutineScope()
-  val stationsState by graph.stationsRepository.state.collectAsState()
-  val favoriteIds by graph.favoritesRepository.favoriteIds.collectAsState()
-  val searchRadiusMeters by graph.settingsRepository.searchRadiusMeters.collectAsState()
+  val stationsState by stationsRepository.state.collectAsState()
+  val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
+  val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   var currentTab by rememberSaveable { mutableStateOf(MobileTab.Mapa) }
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var assistantOpen by rememberSaveable { mutableStateOf(false) }
@@ -136,14 +137,35 @@ fun BiziMobileApp(
   var pendingAssistantAction by remember { mutableStateOf<AssistantAction?>(null) }
   var pendingLaunchRequest by remember { mutableStateOf<MobileLaunchRequest?>(null) }
   var pendingAssistantLaunchRequest by remember { mutableStateOf<AssistantLaunchRequest?>(null) }
-  val geminiEnabled = remember(platformBindings) {
-    platformBindings.appConfiguration.isGeminiEnabled()
-  }
 
   LaunchedEffect(graph, refreshKey) {
-    graph.settingsRepository.bootstrap()
-    graph.favoritesRepository.bootstrap()
-    graph.stationsRepository.refresh()
+    launch { settingsRepository.bootstrap() }
+    launch { favoritesRepository.bootstrap() }
+    stationsRepository.loadIfNeeded()
+  }
+
+  LaunchedEffect(graph) {
+    while (true) {
+      kotlinx.coroutines.delay(30_000)
+      val ids = stationsRepository.state.value.stations.take(20).map { it.id }
+      stationsRepository.refreshAvailability(ids)
+    }
+  }
+
+  LaunchedEffect(
+    graph,
+    stationsState.stations,
+    stationsState.isLoading,
+    stationsState.errorMessage,
+  ) {
+    if (stationsState.isLoading || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) {
+      return@LaunchedEffect
+    }
+    kotlinx.coroutines.delay(5_000)
+    val latestState = stationsRepository.state.value
+    if (!latestState.isLoading && latestState.stations.isEmpty() && latestState.errorMessage == null) {
+      stationsRepository.loadIfNeeded()
+    }
   }
 
   val nearestSelection = remember(stationsState.stations, searchRadiusMeters) {
@@ -199,7 +221,7 @@ fun BiziMobileApp(
         pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
-        val station = request.stationId?.let(graph.stationsRepository::stationById)
+        val station = request.stationId?.let(stationsRepository::stationById)
           ?: stationsState.stations.firstOrNull()
           ?: return@LaunchedEffect
         selectedStationId = station.id
@@ -207,7 +229,7 @@ fun BiziMobileApp(
         pendingLaunchRequest = null
       }
       is MobileLaunchRequest.ShowStation -> {
-        if (graph.stationsRepository.stationById(request.stationId) == null) return@LaunchedEffect
+        if (stationsRepository.stationById(request.stationId) == null) return@LaunchedEffect
         selectedStationId = request.stationId
         currentTab = MobileTab.Mapa
         pendingLaunchRequest = null
@@ -289,8 +311,8 @@ fun BiziMobileApp(
   val favoriteStations = remember(filteredStations, favoriteIds) {
     filteredStations.filter { station -> station.id in favoriteIds }
   }
-  val selectedStation = remember(selectedStationId, stationsState.stations) {
-    selectedStationId?.let(graph.stationsRepository::stationById)
+  val selectedStation = remember(selectedStationId, stationsState.stations, stationsRepository) {
+    selectedStationId?.let(stationsRepository::stationById)
   }
 
   BiziTheme {
@@ -298,8 +320,8 @@ fun BiziMobileApp(
       when {
         assistantOpen -> AssistantScreen(
           graph = graph,
+          stationsRepository = stationsRepository,
           favoriteIds = favoriteIds,
-          geminiEnabled = geminiEnabled,
           searchRadiusMeters = searchRadiusMeters,
           stations = stationsState.stations,
           initialAction = pendingAssistantAction,
@@ -312,7 +334,7 @@ fun BiziMobileApp(
           userLocation = stationsState.userLocation,
           onBack = { selectedStationId = null },
           onToggleFavorite = {
-            scope.launch { graph.favoritesRepository.toggle(selectedStation.id) }
+            scope.launch { favoritesRepository.toggle(selectedStation.id) }
           },
           onRoute = { graph.routeLauncher.launch(selectedStation) },
         )
@@ -357,8 +379,9 @@ fun BiziMobileApp(
               userLocation = stationsState.userLocation,
               onSearchQueryChange = { searchQuery = it },
               onStationSelected = { selectedStationId = it.id },
+              onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
               onFavoriteToggle = { station ->
-                scope.launch { graph.favoritesRepository.toggle(station.id) }
+                scope.launch { favoritesRepository.toggle(station.id) }
               },
               paddingValues = innerPadding,
             )
@@ -374,7 +397,7 @@ fun BiziMobileApp(
               searchRadiusMeters = searchRadiusMeters,
               userLocation = stationsState.userLocation,
               onSearchRadiusSelected = { radiusMeters ->
-                scope.launch { graph.settingsRepository.setSearchRadiusMeters(radiusMeters) }
+                scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) }
               },
             )
           }
@@ -410,6 +433,7 @@ private fun DashboardScreen(
   userLocation: GeoPoint?,
   onSearchQueryChange: (String) -> Unit,
   onStationSelected: (Station) -> Unit,
+  onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
@@ -466,6 +490,32 @@ private fun DashboardScreen(
       if (errorMessage != null) {
         Spacer(Modifier.height(8.dp))
         Text(errorMessage, color = BiziRed)
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = onRetry) {
+          Text("Reintentar")
+        }
+      }
+    }
+    if (!loading && stations.isEmpty()) {
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = Color.White),
+        ) {
+          Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            Text("No se han cargado estaciones todavía.", fontWeight = FontWeight.SemiBold)
+            Text(
+              "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.",
+              style = MaterialTheme.typography.bodySmall,
+              color = Color(0xFF64748B),
+            )
+            OutlinedButton(onClick = onRetry) {
+              Text("Cargar estaciones")
+            }
+          }
+        }
       }
     }
     items(stations.take(10), key = { it.id }) { station ->
@@ -713,8 +763,8 @@ private fun StationDetailScreen(
 @Composable
 private fun AssistantScreen(
   graph: SharedGraph,
+  stationsRepository: com.gcaguilar.bizizaragoza.core.StationsRepository,
   favoriteIds: Set<String>,
-  geminiEnabled: Boolean,
   searchRadiusMeters: Int,
   stations: List<Station>,
   initialAction: AssistantAction?,
@@ -722,7 +772,6 @@ private fun AssistantScreen(
   onBack: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
-  var prompt by rememberSaveable { mutableStateOf("¿Qué estación tiene más bicis cerca?") }
   var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritos o rutas.") }
   val suggestions = listOf(
     AssistantAction.NearestStation,
@@ -736,7 +785,7 @@ private fun AssistantScreen(
     val action = initialAction ?: return@LaunchedEffect
     val resolution = graph.assistantIntentResolver.resolve(
       action = action,
-      stationsState = graph.stationsRepository.state.value,
+      stationsState = stationsRepository.state.value,
       favoriteIds = favoriteIds,
       searchRadiusMeters = searchRadiusMeters,
     )
@@ -752,30 +801,11 @@ private fun AssistantScreen(
   ) {
     TextButton(onClick = onBack) { Text("Cerrar") }
     Text("Asistente y atajos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    if (geminiEnabled) {
-      OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
-        value = prompt,
-        onValueChange = { prompt = it },
-        label = { Text("Consulta libre") },
+    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+      Text(
+        "Esta instalación usa asistentes y atajos directos del sistema para resolver consultas de estaciones.",
+        modifier = Modifier.padding(16.dp),
       )
-      Button(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = {
-          scope.launch {
-            latestAnswer = graph.geminiPromptService.prompt(GeminiPromptRequest(prompt = prompt)).answer
-          }
-        },
-      ) {
-        Text("Consultar Gemini")
-      }
-    } else {
-      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
-        Text(
-          "Gemini es opcional. Esta instalación usa asistentes y atajos directos sin backend generativo.",
-          modifier = Modifier.padding(16.dp),
-        )
-      }
     }
     Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
       Text(latestAnswer, modifier = Modifier.padding(16.dp))
@@ -788,7 +818,7 @@ private fun AssistantScreen(
           scope.launch {
             val resolution = graph.assistantIntentResolver.resolve(
               action = action,
-              stationsState = graph.stationsRepository.state.value,
+              stationsState = stationsRepository.state.value,
               favoriteIds = favoriteIds,
               searchRadiusMeters = searchRadiusMeters,
             )
@@ -887,9 +917,12 @@ private fun resolveLaunchStation(
   graph: SharedGraph,
   stationId: String?,
   stationQuery: String?,
-): Station? = stationId?.let(graph.stationsRepository::stationById) ?: findStationMatchingQuery(
-  stations = stations,
-  query = stationQuery,
-)
+): Station? {
+  val stationsRepository = graph.stationsRepository
+  return stationId?.let(stationsRepository::stationById) ?: findStationMatchingQuery(
+    stations = stations,
+    query = stationQuery,
+  )
+}
 
 private fun Double.formatCoordinate(): String = ((this * 10_000).roundToInt() / 10_000.0).toString()

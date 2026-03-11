@@ -6,9 +6,6 @@ plugins {
   alias(libs.plugins.compose.compiler)
 }
 
-val geminiProxyBaseUrl = providers.environmentVariable("BIZI_GEMINI_PROXY_BASE_URL")
-  .orElse("")
-
 kotlin {
   androidTarget {
     compilerOptions {
@@ -27,7 +24,6 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "0.1.0"
-    buildConfigField("String", "GEMINI_PROXY_BASE_URL", "\"${geminiProxyBaseUrl.get()}\"")
   }
 
   buildFeatures {
@@ -44,6 +40,14 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+  }
+
+  sourceSets {
+    getByName("main") {
+      manifest.srcFile("src/androidMain/AndroidManifest.xml")
+      kotlin.srcDirs("src/androidMain/kotlin")
+      res.srcDirs("src/androidMain/res")
+    }
   }
 
   dependencies {

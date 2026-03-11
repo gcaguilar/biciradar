@@ -34,12 +34,9 @@ class MainActivity : ComponentActivity() {
 
     val platformBindings = AndroidPlatformBindings(
       context = applicationContext,
-      appConfiguration = AppConfiguration(
-        geminiProxyBaseUrl = BuildConfig.GEMINI_PROXY_BASE_URL,
-      ),
+      appConfiguration = AppConfiguration(),
     )
     applyLaunchPayload(intent)
-    AndroidAssistantShortcuts.publish(this)
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
 
     setContent {

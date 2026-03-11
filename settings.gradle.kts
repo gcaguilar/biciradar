@@ -20,5 +20,3 @@ include(":shared:core")
 include(":shared:mobile-ui")
 include(":androidApp")
 include(":wearApp")
-include(":backend:gemini-proxy")
-

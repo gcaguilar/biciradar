@@ -1,25 +1,24 @@
 package com.gcaguilar.bizizaragoza.core
 
 import dev.zacsweers.metro.Inject
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
+private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
+private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
+
 interface StationsRepository {
   val state: StateFlow<StationsState>
-  suspend fun refresh()
+  suspend fun loadIfNeeded()
+  suspend fun refreshAvailability(stationIds: List<String>)
   fun stationById(stationId: String): Station?
 }
 
@@ -30,33 +29,35 @@ interface FavoritesRepository {
   fun isFavorite(stationId: String): Boolean
 }
 
-interface GeminiPromptService {
-  suspend fun prompt(request: GeminiPromptRequest): GeminiPromptResponse
-}
-
 @Inject
 class StationsRepositoryImpl(
   private val biziApi: BiziApi,
   private val appConfiguration: AppConfiguration,
   private val locationProvider: LocationProvider,
 ) : StationsRepository {
-  private val mutableState = MutableStateFlow(StationsState(isLoading = true))
+  private val mutableState = MutableStateFlow(StationsState(isLoading = false))
+  private var loaded = false
 
   override val state: StateFlow<StationsState> = mutableState.asStateFlow()
 
-  override suspend fun refresh() {
+  override suspend fun loadIfNeeded() {
+    if (loaded) return
     mutableState.update { it.copy(isLoading = true, errorMessage = null) }
-    val currentLocation = locationProvider.currentLocation()
+    val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
+      runCatching { locationProvider.currentLocation() }.getOrNull()
+    }
     val origin = currentLocation ?: appConfiguration.defaultLocation()
-    runCatching { biziApi.fetchStations(origin).sortedBy { station -> station.distanceMeters } }
+    runCatching { biziApi.fetchStations(origin) }
       .onSuccess { stations ->
         mutableState.value = StationsState(
           stations = stations,
           isLoading = false,
           userLocation = currentLocation,
         )
+        loaded = true
       }
       .onFailure { error ->
+        // No marcar loaded=true para permitir reintentos
         mutableState.update {
           it.copy(
             isLoading = false,
@@ -67,9 +68,22 @@ class StationsRepositoryImpl(
       }
   }
 
-  override fun stationById(stationId: String): Station? = mutableState.value.stations.firstOrNull {
-    it.id == stationId
+  override suspend fun refreshAvailability(stationIds: List<String>) {
+    if (stationIds.isEmpty()) return
+    val availability = runCatching { biziApi.fetchAvailability(stationIds) }.getOrNull() ?: return
+    if (availability.isEmpty()) return
+    mutableState.update { current ->
+      current.copy(
+        stations = current.stations.map { station ->
+          val update = availability[station.id] ?: return@map station
+          station.copy(bikesAvailable = update.bikesAvailable, slotsFree = update.slotsFree)
+        },
+      )
+    }
   }
+
+  override fun stationById(stationId: String): Station? =
+    mutableState.value.stations.firstOrNull { it.id == stationId }
 }
 
 @Inject
@@ -93,12 +107,16 @@ class FavoritesRepositoryImpl(
     } else {
       emptySet()
     }
-    val remoteFavoriteIds = watchSyncBridge.latestFavoriteIds().orEmpty()
+    val remoteFavoriteIds = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.latestFavoriteIds()
+    }.orEmpty()
     val mergedFavoriteIds = localFavoriteIds + remoteFavoriteIds
     mutableFavoriteIds.value = mergedFavoriteIds
     if (mergedFavoriteIds.isNotEmpty()) {
       persist(mergedFavoriteIds)
-      watchSyncBridge.pushFavoriteIds(mergedFavoriteIds)
+      withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+        watchSyncBridge.pushFavoriteIds(mergedFavoriteIds)
+      }
     }
     bootstrapped = true
   }
@@ -110,7 +128,9 @@ class FavoritesRepositoryImpl(
     }.toSet()
     mutableFavoriteIds.value = updated
     persist(updated)
-    watchSyncBridge.pushFavoriteIds(updated)
+    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.pushFavoriteIds(updated)
+    }
   }
 
   override fun isFavorite(stationId: String): Boolean = mutableFavoriteIds.value.contains(stationId)
@@ -123,24 +143,6 @@ class FavoritesRepositoryImpl(
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(FavoritesSnapshot(favoriteIds)))
     }
-  }
-}
-
-@Inject
-class GeminiPromptServiceImpl(
-  private val appConfiguration: AppConfiguration,
-  private val httpClient: HttpClient,
-) : GeminiPromptService {
-  override suspend fun prompt(request: GeminiPromptRequest): GeminiPromptResponse {
-    if (!appConfiguration.isGeminiEnabled()) {
-      return GeminiPromptResponse(
-        answer = "Gemini es opcional y no está configurado en esta instalación.",
-      )
-    }
-    return httpClient.post("${appConfiguration.geminiProxyBaseUrl}/api/v1/gemini/prompt") {
-      contentType(ContentType.Application.Json)
-      setBody(request)
-    }.body()
   }
 }
 

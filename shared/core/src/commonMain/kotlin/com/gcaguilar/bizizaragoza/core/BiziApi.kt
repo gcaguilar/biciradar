@@ -15,7 +15,13 @@ import kotlin.math.sqrt
 
 interface BiziApi {
   suspend fun fetchStations(origin: GeoPoint): List<Station>
+  suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability>
 }
+
+data class StationAvailability(
+  val bikesAvailable: Int,
+  val slotsFree: Int,
+)
 
 class CityBikesBiziApi(
   private val httpClient: HttpClient,
@@ -29,9 +35,36 @@ class CityBikesBiziApi(
     }
   }
 
+  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
+    return stationIds.mapNotNull { id ->
+      runCatching {
+        val station = httpClient.get(configuration.stationAvailabilityUrl(id))
+          .body<ZaragozaStation>()
+        id to StationAvailability(
+          bikesAvailable = station.bikesAvailable,
+          slotsFree = station.slotsFree,
+        )
+      }.getOrNull()
+    }.toMap()
+  }
+
   private suspend fun fetchOfficialStations(origin: GeoPoint): List<Station> {
-    val response = httpClient.get(configuration.stationsApiUrl).body<ZaragozaStationsEnvelope>()
-    return response.result
+    val pageSize = 100
+    val firstPage = httpClient.get(configuration.stationsApiUrl(start = 0, rows = pageSize))
+      .body<ZaragozaStationsEnvelope>()
+    val totalCount = firstPage.totalCount ?: firstPage.result.size
+    val allRawStations = firstPage.result.toMutableList()
+
+    var start = pageSize
+    while (allRawStations.size < totalCount) {
+      val page = httpClient.get(configuration.stationsApiUrl(start = start, rows = pageSize))
+        .body<ZaragozaStationsEnvelope>()
+      if (page.result.isEmpty()) break
+      allRawStations += page.result
+      start += pageSize
+    }
+
+    return allRawStations
       .asSequence()
       .filter { station ->
         station.geometry.coordinates.size >= 2 && station.status.equals("IN_SERVICE", ignoreCase = true)
@@ -117,6 +150,7 @@ private data class CityBikesExtra(
 @Serializable
 private data class ZaragozaStationsEnvelope(
   val result: List<ZaragozaStation> = emptyList(),
+  val totalCount: Int? = null,
 )
 
 @Serializable

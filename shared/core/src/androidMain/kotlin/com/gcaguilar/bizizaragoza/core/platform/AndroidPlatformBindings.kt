@@ -26,11 +26,15 @@ import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+
+private const val REQUEST_TIMEOUT_MILLIS = 15_000L
+private const val CONNECT_TIMEOUT_MILLIS = 10_000L
 
 class AndroidPlatformBindings(
   private val context: Context,
@@ -48,6 +52,11 @@ class AndroidPlatformBindings(
 private class AndroidHttpClientFactory : BiziHttpClientFactory {
   override fun create(json: Json): HttpClient = HttpClient(OkHttp) {
     expectSuccess = true
+    install(HttpTimeout) {
+      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+    }
     install(ContentNegotiation) {
       json(json)
     }
@@ -122,28 +131,34 @@ private class AndroidLocationProvider(
 private class AndroidWatchSyncBridge(
   context: Context,
 ) : WatchSyncBridge {
-  private val dataClient = Wearable.getDataClient(context)
+  private val dataClient = runCatching { Wearable.getDataClient(context) }.getOrNull()
 
   override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
-    val request = PutDataMapRequest.create(FAVORITES_PATH).apply {
-      dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(favoriteIds))
-      dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
-    }.asPutDataRequest().setUrgent()
-    dataClient.putDataItem(request).await()
+    val client = dataClient ?: return
+    runCatching {
+      val request = PutDataMapRequest.create(FAVORITES_PATH).apply {
+        dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(favoriteIds))
+        dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
+      }.asPutDataRequest().setUrgent()
+      client.putDataItem(request).await()
+    }
   }
 
   override suspend fun latestFavoriteIds(): Set<String>? {
-    val dataItems = dataClient.getDataItems(buildFavoritesUri()).await()
-    try {
-      if (dataItems.count == 0) return null
-      val dataItem = dataItems.get(0)
-      return DataMapItem.fromDataItem(dataItem)
-        .dataMap
-        .getStringArrayList(FAVORITES_KEY)
-        ?.toSet()
-    } finally {
-      dataItems.release()
-    }
+    val client = dataClient ?: return null
+    return runCatching {
+      val dataItems = client.getDataItems(buildFavoritesUri()).await()
+      try {
+        if (dataItems.count == 0) return@runCatching null
+        val dataItem = dataItems.get(0)
+        DataMapItem.fromDataItem(dataItem)
+          .dataMap
+          .getStringArrayList(FAVORITES_KEY)
+          ?.toSet()
+      } finally {
+        dataItems.release()
+      }
+    }.getOrNull()
   }
 
   private fun buildFavoritesUri(): Uri = Uri.Builder()
