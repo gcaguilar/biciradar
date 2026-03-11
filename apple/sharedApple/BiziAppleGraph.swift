@@ -40,6 +40,20 @@ actor BiziAppleGraph {
         return stationsState().stations.first.map(snapshot(from:))
     }
 
+    func nearestStationWithBikes() async throws -> BiziStationSnapshot? {
+        try await refreshData()
+        return stationsState().stations
+            .first(where: { $0.bikesAvailable > 0 })
+            .map(snapshot(from:))
+    }
+
+    func nearestStationWithSlots() async throws -> BiziStationSnapshot? {
+        try await refreshData()
+        return stationsState().stations
+            .first(where: { $0.slotsFree > 0 })
+            .map(snapshot(from:))
+    }
+
     func favoriteStations() async throws -> [BiziStationSnapshot] {
         try await refreshData()
         let state = stationsState()

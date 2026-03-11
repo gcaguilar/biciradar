@@ -10,15 +10,27 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
       AssistantAction.FavoriteStations -> AssistantResolution(
         spokenResponse = "Tienes ${favoriteIds.size} estaciones guardadas en Zaragoza Bizi.",
       )
-      AssistantAction.NearestStation -> {
-        val station = stationsState.stations.firstOrNull()
-        AssistantResolution(
-          spokenResponse = station?.let {
-            "La estación más cercana es ${it.name} con ${it.bikesAvailable} bicis y ${it.slotsFree} anclajes."
-          } ?: "No tengo datos de estaciones cercanas ahora mismo.",
-          highlightedStationId = station?.id,
-        )
-      }
+      AssistantAction.NearestStation -> nearestStationResolution(
+        station = stationsState.stations.firstOrNull(),
+        emptyMessage = "No tengo datos de estaciones cercanas ahora mismo.",
+        formatter = { station ->
+          "La estación más cercana es ${station.name} con ${station.bikesAvailable} bicis y ${station.slotsFree} anclajes."
+        },
+      )
+      AssistantAction.NearestStationWithBikes -> nearestStationResolution(
+        station = stationsState.stations.firstOrNull { station -> station.bikesAvailable > 0 },
+        emptyMessage = "No he encontrado estaciones cercanas con bicis disponibles ahora mismo.",
+        formatter = { station ->
+          "La estación más cercana con bicis disponibles es ${station.name} con ${station.bikesAvailable} bicis y ${station.slotsFree} anclajes."
+        },
+      )
+      AssistantAction.NearestStationWithSlots -> nearestStationResolution(
+        station = stationsState.stations.firstOrNull { station -> station.slotsFree > 0 },
+        emptyMessage = "No he encontrado estaciones cercanas con huecos libres ahora mismo.",
+        formatter = { station ->
+          "La estación más cercana con huecos libres es ${station.name} con ${station.slotsFree} huecos y ${station.bikesAvailable} bicis."
+        },
+      )
       is AssistantAction.RouteToStation -> AssistantResolution(
         spokenResponse = "Abriendo la ruta a la estación seleccionada.",
         highlightedStationId = action.stationId,
@@ -34,4 +46,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
       }
     }
   }
+
+  private fun nearestStationResolution(
+    station: Station?,
+    emptyMessage: String,
+    formatter: (Station) -> String,
+  ): AssistantResolution = AssistantResolution(
+    spokenResponse = station?.let(formatter) ?: emptyMessage,
+    highlightedStationId = station?.id,
+  )
 }

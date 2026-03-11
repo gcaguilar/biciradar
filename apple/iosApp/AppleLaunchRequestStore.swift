@@ -9,6 +9,8 @@ final class AppleLaunchRequestStore: ObservableObject {
         static let favoriteStations = "favorite_stations"
         static let legacyFavorites = "favorites"
         static let nearestStation = "nearest_station"
+        static let nearestStationWithBikes = "nearest_station_with_bikes"
+        static let nearestStationWithSlots = "nearest_station_with_slots"
         static let openAssistant = "open_assistant"
         static let stationStatus = "station_status"
         static let routeToStation = "route_to_station"
@@ -30,6 +32,12 @@ final class AppleLaunchRequestStore: ObservableObject {
             defaults.removeObject(forKey: stationIdKey)
         case is MobileLaunchRequestNearestStation:
             defaults.set(LaunchAction.nearestStation, forKey: actionKey)
+            defaults.removeObject(forKey: stationIdKey)
+        case is MobileLaunchRequestNearestStationWithBikes:
+            defaults.set(LaunchAction.nearestStationWithBikes, forKey: actionKey)
+            defaults.removeObject(forKey: stationIdKey)
+        case is MobileLaunchRequestNearestStationWithSlots:
+            defaults.set(LaunchAction.nearestStationWithSlots, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
         case is MobileLaunchRequestOpenAssistant:
             defaults.set(LaunchAction.openAssistant, forKey: actionKey)
@@ -63,6 +71,10 @@ final class AppleLaunchRequestStore: ObservableObject {
             return MobileLaunchRequestFavorites.shared
         case LaunchAction.nearestStation:
             return MobileLaunchRequestNearestStation.shared
+        case LaunchAction.nearestStationWithBikes:
+            return MobileLaunchRequestNearestStationWithBikes.shared
+        case LaunchAction.nearestStationWithSlots:
+            return MobileLaunchRequestNearestStationWithSlots.shared
         case LaunchAction.openAssistant:
             return MobileLaunchRequestOpenAssistant.shared
         case LaunchAction.stationStatus:

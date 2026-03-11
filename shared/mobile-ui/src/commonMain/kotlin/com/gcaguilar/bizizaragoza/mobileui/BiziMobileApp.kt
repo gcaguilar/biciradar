@@ -70,6 +70,8 @@ private enum class MobileTab(val label: String) {
 sealed interface MobileLaunchRequest {
   data object Favorites : MobileLaunchRequest
   data object NearestStation : MobileLaunchRequest
+  data object NearestStationWithBikes : MobileLaunchRequest
+  data object NearestStationWithSlots : MobileLaunchRequest
   data object OpenAssistant : MobileLaunchRequest
   data object StationStatus : MobileLaunchRequest
   data class RouteToStation(val stationId: String? = null) : MobileLaunchRequest
@@ -113,6 +115,20 @@ fun BiziMobileApp(
       }
       MobileLaunchRequest.NearestStation -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
+        selectedStationId = station.id
+        currentTab = MobileTab.Mapa
+        pendingLaunchRequest = null
+      }
+      MobileLaunchRequest.NearestStationWithBikes -> {
+        val station = stationsState.stations.firstOrNull { station -> station.bikesAvailable > 0 }
+          ?: return@LaunchedEffect
+        selectedStationId = station.id
+        currentTab = MobileTab.Mapa
+        pendingLaunchRequest = null
+      }
+      MobileLaunchRequest.NearestStationWithSlots -> {
+        val station = stationsState.stations.firstOrNull { station -> station.slotsFree > 0 }
+          ?: return@LaunchedEffect
         selectedStationId = station.id
         currentTab = MobileTab.Mapa
         pendingLaunchRequest = null
@@ -526,6 +542,8 @@ private fun AssistantScreen(
   var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritos o rutas.") }
   val suggestions = listOf(
     AssistantAction.NearestStation,
+    AssistantAction.NearestStationWithBikes,
+    AssistantAction.NearestStationWithSlots,
     AssistantAction.FavoriteStations,
     stations.firstOrNull()?.let { AssistantAction.RouteToStation(it.id) },
   ).filterNotNull()
@@ -656,6 +674,8 @@ private fun StationRow(
 private fun AssistantAction.label(): String = when (this) {
   AssistantAction.FavoriteStations -> "Mis favoritas"
   AssistantAction.NearestStation -> "Estación más cercana"
+  AssistantAction.NearestStationWithBikes -> "Cercana con bicis"
+  AssistantAction.NearestStationWithSlots -> "Cercana con huecos"
   is AssistantAction.RouteToStation -> "Ruta a estación"
   is AssistantAction.StationStatus -> "Estado de estación"
 }

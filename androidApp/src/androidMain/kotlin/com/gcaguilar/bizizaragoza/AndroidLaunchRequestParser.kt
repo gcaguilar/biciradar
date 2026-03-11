@@ -7,6 +7,8 @@ import java.util.Locale
 
 internal const val FAVORITE_STATIONS_ACTION = "favorite_stations"
 internal const val NEAREST_STATION_ACTION = "nearest_station"
+internal const val NEAREST_STATION_WITH_BIKES_ACTION = "nearest_station_with_bikes"
+internal const val NEAREST_STATION_WITH_SLOTS_ACTION = "nearest_station_with_slots"
 internal const val OPEN_ASSISTANT_ACTION = "open_assistant"
 internal const val STATION_STATUS_ACTION = "station_status"
 internal const val ROUTE_TO_STATION_ACTION = "route_to_station"
@@ -29,6 +31,8 @@ internal fun parseLaunchRequest(
   return when (action) {
     FAVORITE_STATIONS_ACTION -> MobileLaunchRequest.Favorites
     NEAREST_STATION_ACTION -> MobileLaunchRequest.NearestStation
+    NEAREST_STATION_WITH_BIKES_ACTION -> MobileLaunchRequest.NearestStationWithBikes
+    NEAREST_STATION_WITH_SLOTS_ACTION -> MobileLaunchRequest.NearestStationWithSlots
     OPEN_ASSISTANT_ACTION -> MobileLaunchRequest.OpenAssistant
     STATION_STATUS_ACTION -> MobileLaunchRequest.StationStatus
     ROUTE_TO_STATION_ACTION -> MobileLaunchRequest.RouteToStation(normalizedStationId)
@@ -53,6 +57,12 @@ private fun canonicalAction(rawValue: String?): String? {
     "mis favoritas" -> FAVORITE_STATIONS_ACTION
     NEAREST_STATION_ACTION,
     "estacion cercana" -> NEAREST_STATION_ACTION
+    NEAREST_STATION_WITH_BIKES_ACTION,
+    "estacion cercana con bicis",
+    "estacion con bicis cerca" -> NEAREST_STATION_WITH_BIKES_ACTION
+    NEAREST_STATION_WITH_SLOTS_ACTION,
+    "estacion cercana con huecos",
+    "estacion con huecos cerca" -> NEAREST_STATION_WITH_SLOTS_ACTION
     OPEN_ASSISTANT_ACTION -> OPEN_ASSISTANT_ACTION
     STATION_STATUS_ACTION,
     "estado estacion" -> STATION_STATUS_ACTION

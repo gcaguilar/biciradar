@@ -76,6 +76,22 @@ targets:
       - path: iosApp/FavoritesSyncBridge.swift
     dependencies:
       - sdk: XCTest.framework
+    preBuildScripts:
+      - name: Build KMP iOS test frameworks
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KMP_CONFIGURATION="Release"
+          else
+            KMP_CONFIGURATION="Debug"
+          fi
+          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
+            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
+          else
+            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
+          fi
     settings:
       base:
         CODE_SIGN_STYLE: Automatic
@@ -148,6 +164,22 @@ targets:
     dependencies:
       - sdk: XCTest.framework
       - sdk: WatchConnectivity.framework
+    preBuildScripts:
+      - name: Build KMP watchOS test framework
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          if [ "$CONFIGURATION" = "Release" ]; then
+            KMP_CONFIGURATION="Release"
+          else
+            KMP_CONFIGURATION="Debug"
+          fi
+          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
+            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+          else
+            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
+          fi
     settings:
       base:
         CODE_SIGN_STYLE: Automatic

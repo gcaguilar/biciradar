@@ -27,6 +27,58 @@ struct NearestStationIntent: AppIntent {
     }
 }
 
+struct NearestStationWithBikesIntent: AppIntent {
+    static var title: LocalizedStringResource = "Estación cercana con bicis"
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        await MainActor.run {
+            AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStationWithBikes.shared)
+        }
+        do {
+            guard let station = try await BiziAppleGraph.shared.nearestStationWithBikes() else {
+                return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con bicis disponibles.")
+            }
+            await MainActor.run {
+                AppleLaunchRequestStore.shared.save(
+                    MobileLaunchRequestShowStation(stationId: station.id)
+                )
+            }
+            return .result(
+                dialog: "Abriendo \(station.name), la estación más cercana con bicis disponibles. Tiene \(station.bikesAvailable) bicis y \(station.slotsFree) huecos."
+            )
+        } catch {
+            return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con bicis disponibles.")
+        }
+    }
+}
+
+struct NearestStationWithSlotsIntent: AppIntent {
+    static var title: LocalizedStringResource = "Estación cercana con huecos"
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        await MainActor.run {
+            AppleLaunchRequestStore.shared.save(MobileLaunchRequestNearestStationWithSlots.shared)
+        }
+        do {
+            guard let station = try await BiziAppleGraph.shared.nearestStationWithSlots() else {
+                return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con huecos libres.")
+            }
+            await MainActor.run {
+                AppleLaunchRequestStore.shared.save(
+                    MobileLaunchRequestShowStation(stationId: station.id)
+                )
+            }
+            return .result(
+                dialog: "Abriendo \(station.name), la estación más cercana con huecos libres. Tiene \(station.slotsFree) huecos y \(station.bikesAvailable) bicis."
+            )
+        } catch {
+            return .result(dialog: "Abriendo Bizi Zaragoza para buscar una estación cercana con huecos libres.")
+        }
+    }
+}
+
 struct FavoriteStationsIntent: AppIntent {
     static var title: LocalizedStringResource = "Mis favoritas"
     static var openAppWhenRun: Bool = true
@@ -107,6 +159,22 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Estación cercana",
             systemImageName: "location.circle"
+        )
+        AppShortcut(
+            intent: NearestStationWithBikesIntent(),
+            phrases: [
+                "Muéstrame la estación más cercana con bicis en \(.applicationName)"
+            ],
+            shortTitle: "Con bicis",
+            systemImageName: "bicycle.circle"
+        )
+        AppShortcut(
+            intent: NearestStationWithSlotsIntent(),
+            phrases: [
+                "Muéstrame la estación más cercana con huecos en \(.applicationName)"
+            ],
+            shortTitle: "Con huecos",
+            systemImageName: "parkingsign.circle"
         )
         AppShortcut(
             intent: FavoriteStationsIntent(),

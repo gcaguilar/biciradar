@@ -185,6 +185,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 57F5B8115010808D064B3166 /* Build configuration list for PBXNativeTarget "BiziZaragozaWatchTests" */;
 			buildPhases = (
+				E829EB521952CD556E9C46B5 /* Build KMP watchOS test framework */,
 				29015306360DADD0CFDA80B4 /* Sources */,
 				072F124919B44F2B93F2A9CF /* Frameworks */,
 			);
@@ -222,6 +223,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DBD0BF5764C9073B5FCC1866 /* Build configuration list for PBXNativeTarget "BiziZaragozaTests" */;
 			buildPhases = (
+				503A94334B2DD0FF86FF3D71 /* Build KMP iOS test frameworks */,
 				FACACB5DEF97BFAEEAF25A43 /* Sources */,
 				95FE5D4B21CDB7A5B0C4F103 /* Frameworks */,
 			);
@@ -305,6 +307,25 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		503A94334B2DD0FF86FF3D71 /* Build KMP iOS test frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP iOS test frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+		};
 		7D5DAF4D660D5178300C157A /* Build KMP iOS frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -323,6 +344,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+		};
+		E829EB521952CD556E9C46B5 /* Build KMP watchOS test framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build KMP watchOS test framework";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nfi\n";
 		};
 		FF13FF5755CC341F984068A6 /* Build KMP watchOS framework */ = {
 			isa = PBXShellScriptBuildPhase;

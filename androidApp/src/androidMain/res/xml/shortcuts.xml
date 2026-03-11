@@ -34,6 +34,52 @@
     </shortcut>
     <shortcut
         android:enabled="true"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:shortcutId="nearest_station_with_bikes"
+        android:shortcutLongLabel="@string/shortcut_nearest_station_with_bikes"
+        android:shortcutShortLabel="@string/shortcut_nearest_station_with_bikes">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="nearest_station_with_bikes" />
+            <extra
+                android:name="feature"
+                android:value="nearest_station_with_bikes" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="nearest_station_with_bikes" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_directions"
+        android:shortcutId="nearest_station_with_slots"
+        android:shortcutLongLabel="@string/shortcut_nearest_station_with_slots"
+        android:shortcutShortLabel="@string/shortcut_nearest_station_with_slots">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="nearest_station_with_slots" />
+            <extra
+                android:name="feature"
+                android:value="nearest_station_with_slots" />
+        </intent>
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="nearest_station_with_slots" />
+        </capability-binding>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
         android:icon="@android:drawable/ic_menu_agenda"
         android:shortcutId="favorite_stations"
         android:shortcutLongLabel="@string/shortcut_favorites"

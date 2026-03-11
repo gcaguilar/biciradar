@@ -36,6 +36,20 @@ actor BiziWatchGraph {
         return try await nearbyStations(limit: 1).first
     }
 
+    func nearestStationWithBikes() async throws -> WatchStationSnapshot? {
+        try await refreshData()
+        return stationsState().stations
+            .first(where: { $0.bikesAvailable > 0 })
+            .map(snapshot(from:))
+    }
+
+    func nearestStationWithSlots() async throws -> WatchStationSnapshot? {
+        try await refreshData()
+        return stationsState().stations
+            .first(where: { $0.slotsFree > 0 })
+            .map(snapshot(from:))
+    }
+
     func favoriteStations(favoriteIds: Set<String>) async throws -> [WatchStationSnapshot] {
         try await refreshData()
         guard !favoriteIds.isEmpty else { return [] }

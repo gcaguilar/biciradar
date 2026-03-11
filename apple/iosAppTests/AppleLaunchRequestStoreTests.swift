@@ -37,6 +37,18 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
     }
 
+    func testNearestStationWithBikesRequestRoundTrips() {
+        store.save(MobileLaunchRequestNearestStationWithBikes.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStationWithBikes)
+    }
+
+    func testNearestStationWithSlotsRequestRoundTrips() {
+        store.save(MobileLaunchRequestNearestStationWithSlots.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStationWithSlots)
+    }
+
     func testRouteRequestRequiresStationIdentifier() {
         defaults.set("route_to_station", forKey: "bizizaragoza.pendingAction")
 

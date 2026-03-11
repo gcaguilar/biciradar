@@ -22,6 +22,20 @@ internal object AndroidAssistantShortcuts {
         ),
         shortcut(
           context = context,
+          shortcutId = NEAREST_STATION_WITH_BIKES_ACTION,
+          shortLabel = R.string.shortcut_nearest_station_with_bikes,
+          iconRes = android.R.drawable.ic_menu_compass,
+          action = NEAREST_STATION_WITH_BIKES_ACTION,
+        ),
+        shortcut(
+          context = context,
+          shortcutId = NEAREST_STATION_WITH_SLOTS_ACTION,
+          shortLabel = R.string.shortcut_nearest_station_with_slots,
+          iconRes = android.R.drawable.ic_menu_directions,
+          action = NEAREST_STATION_WITH_SLOTS_ACTION,
+        ),
+        shortcut(
+          context = context,
           shortcutId = FAVORITE_STATIONS_ACTION,
           shortLabel = R.string.shortcut_favorites,
           iconRes = android.R.drawable.ic_menu_agenda,
@@ -49,6 +63,8 @@ internal object AndroidAssistantShortcuts {
     val shortcutId = when (launchRequest) {
       MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
       MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
+      MobileLaunchRequest.NearestStationWithBikes -> NEAREST_STATION_WITH_BIKES_ACTION
+      MobileLaunchRequest.NearestStationWithSlots -> NEAREST_STATION_WITH_SLOTS_ACTION
       MobileLaunchRequest.OpenAssistant -> OPEN_ASSISTANT_ACTION
       MobileLaunchRequest.StationStatus -> STATION_STATUS_ACTION
       is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION

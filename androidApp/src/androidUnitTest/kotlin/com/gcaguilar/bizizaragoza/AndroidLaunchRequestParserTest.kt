@@ -18,6 +18,14 @@ class AndroidLaunchRequestParserTest {
       parseLaunchRequest(feature = NEAREST_STATION_ACTION),
     )
     assertEquals(
+      MobileLaunchRequest.NearestStationWithBikes,
+      parseLaunchRequest(assistantAction = NEAREST_STATION_WITH_BIKES_ACTION),
+    )
+    assertEquals(
+      MobileLaunchRequest.NearestStationWithSlots,
+      parseLaunchRequest(feature = NEAREST_STATION_WITH_SLOTS_ACTION),
+    )
+    assertEquals(
       MobileLaunchRequest.OpenAssistant,
       parseLaunchRequest(assistantAction = OPEN_ASSISTANT_ACTION),
     )
@@ -51,6 +59,14 @@ class AndroidLaunchRequestParserTest {
     assertEquals(
       MobileLaunchRequest.RouteToStation(),
       parseLaunchRequest(feature = "Ruta a estación"),
+    )
+    assertEquals(
+      MobileLaunchRequest.NearestStationWithBikes,
+      parseLaunchRequest(feature = "Estación cercana con bicis"),
+    )
+    assertEquals(
+      MobileLaunchRequest.NearestStationWithSlots,
+      parseLaunchRequest(feature = "Estación cercana con huecos"),
     )
     assertEquals(
       MobileLaunchRequest.StationStatus,

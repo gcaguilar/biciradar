@@ -1,8 +1,9 @@
 <resources>
     <string name="app_name">Bizi Zaragoza</string>
     <string name="shortcut_nearest_station">Estación cercana</string>
+    <string name="shortcut_nearest_station_with_bikes">Cercana con bicis</string>
+    <string name="shortcut_nearest_station_with_slots">Cercana con huecos</string>
     <string name="shortcut_favorites">Mis favoritas</string>
     <string name="shortcut_route">Ruta a estación</string>
     <string name="shortcut_station_status">Estado estación</string>
 </resources>
-

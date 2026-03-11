@@ -159,6 +159,15 @@ class CoreRepositoryTest {
     val resolver = DefaultAssistantIntentResolver()
     val stations = listOf(
       Station(
+        id = "station-2",
+        name = "Plaza Aragón",
+        address = "Centro",
+        location = GeoPoint(41.6495, -0.8881),
+        bikesAvailable = 0,
+        slotsFree = 9,
+        distanceMeters = 80,
+      ),
+      Station(
         id = "station-1",
         name = "Plaza Espana",
         address = "Centro",
@@ -174,14 +183,28 @@ class CoreRepositoryTest {
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
     )
+    val nearestWithBikes = resolver.resolve(
+      action = AssistantAction.NearestStationWithBikes,
+      stationsState = StationsState(stations = stations, isLoading = false),
+      favoriteIds = setOf("station-1", "station-2"),
+    )
+    val nearestWithSlots = resolver.resolve(
+      action = AssistantAction.NearestStationWithSlots,
+      stationsState = StationsState(stations = stations, isLoading = false),
+      favoriteIds = setOf("station-1", "station-2"),
+    )
     val favorites = resolver.resolve(
       action = AssistantAction.FavoriteStations,
       stationsState = StationsState(stations = stations, isLoading = false),
       favoriteIds = setOf("station-1", "station-2"),
     )
 
-    assertEquals("station-1", nearest.highlightedStationId)
-    assertTrue(nearest.spokenResponse.contains("Plaza Espana"))
+    assertEquals("station-2", nearest.highlightedStationId)
+    assertEquals("station-1", nearestWithBikes.highlightedStationId)
+    assertEquals("station-2", nearestWithSlots.highlightedStationId)
+    assertTrue(nearest.spokenResponse.contains("Plaza Aragón"))
+    assertTrue(nearestWithBikes.spokenResponse.contains("bicis disponibles"))
+    assertTrue(nearestWithSlots.spokenResponse.contains("huecos libres"))
     assertTrue(favorites.spokenResponse.contains("2 estaciones"))
   }
 
