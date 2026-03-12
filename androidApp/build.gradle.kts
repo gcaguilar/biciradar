@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.android.application)
+  alias(libs.plugins.android.builtin.kotlin)
   alias(libs.plugins.compose.compiler)
 }
 
@@ -10,16 +10,8 @@ val googleMapsApiKey = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
   .orElse("")
 
 kotlin {
-  androidTarget {
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_17)
-    }
-  }
-
-  sourceSets {
-    androidUnitTest.dependencies {
-      implementation(libs.junit)
-    }
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_17)
   }
 }
 
@@ -58,6 +50,9 @@ android {
       kotlin.srcDirs("src/androidMain/kotlin")
       res.srcDirs("src/androidMain/res")
     }
+    getByName("test") {
+      kotlin.srcDirs("src/androidUnitTest/kotlin")
+    }
   }
 
   dependencies {
@@ -66,5 +61,6 @@ android {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    testImplementation(libs.junit)
   }
 }
