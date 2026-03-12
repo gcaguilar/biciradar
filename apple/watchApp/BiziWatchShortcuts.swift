@@ -6,17 +6,8 @@ struct WatchNearestStationIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
-        do {
-            let resolution = try await BiziWatchGraph.shared.assistantResponse(
-                for: AssistantActionNearestStation.shared
-            )
-            guard resolution.highlightedStationId != nil else {
-                return .result(dialog: "No he encontrado estaciones de Bizi cerca de ti ahora mismo.")
-            }
-            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
-        } catch {
-            return .result(dialog: "No he podido consultar Bizi Zaragoza en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().nearestStationDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -25,17 +16,8 @@ struct WatchNearestStationWithBikesIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
-        do {
-            let resolution = try await BiziWatchGraph.shared.assistantResponse(
-                for: AssistantActionNearestStationWithBikes.shared
-            )
-            guard resolution.highlightedStationId != nil else {
-                return .result(dialog: "No he encontrado estaciones cercanas con bicis disponibles ahora mismo.")
-            }
-            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
-        } catch {
-            return .result(dialog: "No he podido consultar estaciones con bicis disponibles en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().nearestStationWithBikesDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -44,17 +26,8 @@ struct WatchNearestStationWithSlotsIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
-        do {
-            let resolution = try await BiziWatchGraph.shared.assistantResponse(
-                for: AssistantActionNearestStationWithSlots.shared
-            )
-            guard resolution.highlightedStationId != nil else {
-                return .result(dialog: "No he encontrado estaciones cercanas con huecos libres ahora mismo.")
-            }
-            return .result(dialog: IntentDialog(stringLiteral: resolution.spokenResponse))
-        } catch {
-            return .result(dialog: "No he podido consultar estaciones con huecos libres en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().nearestStationWithSlotsDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -63,20 +36,8 @@ struct WatchFavoriteStationsIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some IntentResult {
-        let favoriteIds = await MainActor.run { WatchFavoritesSyncBridge.shared.favoriteIds }
-        do {
-            let favorites = try await BiziWatchGraph.shared.favoriteStations(favoriteIds: favoriteIds)
-            guard !favorites.isEmpty else {
-                return .result(dialog: "Todavía no tengo favoritas sincronizadas desde el iPhone.")
-            }
-            let summary = favorites
-                .prefix(3)
-                .map(\.name)
-                .joined(separator: ", ")
-            return .result(dialog: "Tus favoritas en el reloj son \(summary).")
-        } catch {
-            return .result(dialog: "No he podido consultar tus favoritas en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().favoriteStationsDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -88,20 +49,8 @@ struct WatchRouteToStationIntent: AppIntent {
     var stationName: String
 
     func perform() async throws -> some IntentResult {
-        do {
-            guard let station = try await BiziWatchGraph.shared.station(matching: stationName) else {
-                return .result(dialog: "No he encontrado esa estación para enviar la ruta al iPhone.")
-            }
-            let requested = await MainActor.run {
-                WatchFavoritesSyncBridge.shared.requestRoute(to: station.id)
-            }
-            if requested {
-                return .result(dialog: "He pedido al iPhone que abra la ruta a \(station.name).")
-            }
-            return .result(dialog: "No he podido contactar con el iPhone ahora mismo.")
-        } catch {
-            return .result(dialog: "No he podido preparar esa ruta desde el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().routeToStationDialog(stationName: stationName)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -113,14 +62,8 @@ struct WatchStationBikeCountIntent: AppIntent {
     var stationName: String
 
     func perform() async throws -> some IntentResult {
-        do {
-            guard let station = try await BiziWatchGraph.shared.station(matching: stationName) else {
-                return .result(dialog: "No he encontrado esa estación en el reloj.")
-            }
-            return .result(dialog: "\(station.name) tiene \(station.bikesAvailable) bicis disponibles.")
-        } catch {
-            return .result(dialog: "No he podido consultar las bicis de esa estación en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().stationBikeCountDialog(stationName: stationName)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 
@@ -132,14 +75,8 @@ struct WatchStationSlotCountIntent: AppIntent {
     var stationName: String
 
     func perform() async throws -> some IntentResult {
-        do {
-            guard let station = try await BiziWatchGraph.shared.station(matching: stationName) else {
-                return .result(dialog: "No he encontrado esa estación en el reloj.")
-            }
-            return .result(dialog: "\(station.name) tiene \(station.slotsFree) huecos libres.")
-        } catch {
-            return .result(dialog: "No he podido consultar los huecos de esa estación en el reloj.")
-        }
+        let dialog = await WatchShortcutRunner().stationSlotCountDialog(stationName: stationName)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
 

@@ -13,26 +13,6 @@ struct BiziZaragozaWatchApp: App {
     }
 }
 
-@MainActor
-final class WatchDashboardModel: ObservableObject {
-    @Published private(set) var nearbyStations: [WatchStationSnapshot] = []
-    @Published private(set) var favoriteStations: [WatchStationSnapshot] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var errorMessage: String?
-
-    func refresh(favoriteIds: Set<String>) async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            nearbyStations = try await BiziWatchGraph.shared.nearbyStations()
-            favoriteStations = try await BiziWatchGraph.shared.favoriteStations(favoriteIds: favoriteIds)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isLoading = false
-    }
-}
-
 struct WatchDashboardView: View {
     @StateObject private var model = WatchDashboardModel()
     @ObservedObject private var syncBridge = WatchFavoritesSyncBridge.shared

@@ -159,3 +159,15 @@ Example:
 ```bash
 ./scripts/run_ios_smoke.sh "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
 ```
+
+Apple Watch smoke validation:
+
+- Watch shortcut tests: [apple/watchAppTests/WatchShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchShortcutRunnerTests.swift)
+- Watch dashboard tests: [apple/watchAppTests/WatchDashboardModelTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchDashboardModelTests.swift)
+- Convenience script: [scripts/run_watch_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_watch_smoke.sh)
+
+Example:
+
+```bash
+./scripts/run_watch_smoke.sh "platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.2"
+```
