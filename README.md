@@ -151,6 +151,8 @@ The generated Xcode project lives at `apple/BiziZaragoza.xcodeproj`. The SwiftUI
 
 Apple smoke validation:
 
+- Shortcut logic tests: [apple/iosAppTests/AppleShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleShortcutRunnerTests.swift)
+- Launch-request store tests: [apple/iosAppTests/AppleLaunchRequestStoreTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleLaunchRequestStoreTests.swift)
 - UI smoke tests: [apple/iosAppUITests/BiziZaragozaUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiziZaragozaUITests.swift)
 - Convenience script: [scripts/run_ios_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_ios_smoke.sh)
 

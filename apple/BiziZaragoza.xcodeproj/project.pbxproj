@@ -14,6 +14,7 @@
 		21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
 		25C551CD6AF783E22E715857 /* WatchDashboardModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E26BE131F3A1C6A96110E /* WatchDashboardModelTests.swift */; };
 		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
+		4C54F8C1AB5DB240BB54D4B9 /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */; };
 		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
 		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
 		63246534A4832C85D0098F7F /* WatchDashboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB089C6F846721EF5C2BBC /* WatchDashboardModel.swift */; };
@@ -23,17 +24,20 @@
 		8709497EC6DA8DD925701061 /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */; };
 		8769F0B8C935731B9F3DEE4C /* WatchShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B787355DCD28FB6C56CE0C3 /* WatchShortcutRunnerTests.swift */; };
 		89AD6405ECA273DA01F1C32A /* BiziZaragozaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D168340322759EF9567637E /* BiziZaragozaUITests.swift */; };
+		8DF323D330ABEED435C7E209 /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */; };
 		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
 		94F10365EE3C8C6CF5BCEF5B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD5333C6EA05B9D70A461E9 /* XCTest.framework */; };
 		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
 		9C968EB1DF389438011411B1 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */; };
 		A243B8C20CB5E78CFDDE0583 /* WatchShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA3807D819E2E34AE2EFF7F /* WatchShortcutRunner.swift */; };
 		B0BBCE96C9C319747545B866 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
+		BB3DC77160C6BA5D83BCAC4A /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */; };
 		C6B00F91BC4A429B97879167 /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		C8EE260891FF1B9576C085FC /* ComposeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89ACDE081F371C07894C925 /* ComposeRootView.swift */; };
 		D3D00AA0A6D7A8ABAE420276 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
 		D54B16E831DD2F24F8B45E2A /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFD41BB51AE548DBD1B3A9D /* BiziWatchGraph.swift */; };
 		D881B22074E50C95E697A736 /* WatchShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FA3807D819E2E34AE2EFF7F /* WatchShortcutRunner.swift */; };
+		DE268D708D1CDF9B0850B526 /* AppleShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AC4660D6A712A4AF1A8B00 /* AppleShortcutRunnerTests.swift */; };
 		E4462B5DA92F20FB0667D1DD /* BiziZaragozaWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */; };
 		F1802D680CAB4E94C22B5D57 /* FavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */; };
 		F3275F32B2CC0EA730AA2ECE /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */; };
@@ -54,6 +58,7 @@
 /* Begin PBXFileReference section */
 		0095BAA0F0C3878CBD7DAA51 /* BiziZaragozaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiziZaragozaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStoreTests.swift; sourceTree = "<group>"; };
+		08AC4660D6A712A4AF1A8B00 /* AppleShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunnerTests.swift; sourceTree = "<group>"; };
 		2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
 		3FA3807D819E2E34AE2EFF7F /* WatchShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunner.swift; sourceTree = "<group>"; };
@@ -72,6 +77,7 @@
 		AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaWatchApp.swift; sourceTree = "<group>"; };
 		ADD5333C6EA05B9D70A461E9 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
+		BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
 		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
 		C89ACDE081F371C07894C925 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
@@ -132,6 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */,
+				08AC4660D6A712A4AF1A8B00 /* AppleShortcutRunnerTests.swift */,
 				AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */,
 			);
 			path = iosAppTests;
@@ -209,6 +216,7 @@
 			isa = PBXGroup;
 			children = (
 				3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */,
+				BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */,
 				EC58133CDF714873B84A2060 /* BiziShortcuts.swift */,
 				BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */,
 				C89ACDE081F371C07894C925 /* ComposeRootView.swift */,
@@ -463,6 +471,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */,
+				4C54F8C1AB5DB240BB54D4B9 /* AppleShortcutRunner.swift in Sources */,
 				F3275F32B2CC0EA730AA2ECE /* BiziAppleGraph.swift in Sources */,
 				962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */,
 				425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */,
@@ -512,6 +521,9 @@
 			files = (
 				B0BBCE96C9C319747545B866 /* AppleLaunchRequestStore.swift in Sources */,
 				12F2139A9050266D04982B56 /* AppleLaunchRequestStoreTests.swift in Sources */,
+				BB3DC77160C6BA5D83BCAC4A /* AppleShortcutRunner.swift in Sources */,
+				DE268D708D1CDF9B0850B526 /* AppleShortcutRunnerTests.swift in Sources */,
+				8DF323D330ABEED435C7E209 /* BiziAppleGraph.swift in Sources */,
 				01E62CDC7B11EEFA5F2F47CD /* FavoritesSyncBridge.swift in Sources */,
 				F1802D680CAB4E94C22B5D57 /* FavoritesSyncBridgeTests.swift in Sources */,
 			);

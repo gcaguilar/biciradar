@@ -73,7 +73,9 @@ targets:
     sources:
       - path: iosAppTests
       - path: iosApp/AppleLaunchRequestStore.swift
+      - path: iosApp/AppleShortcutRunner.swift
       - path: iosApp/FavoritesSyncBridge.swift
+      - path: sharedApple/BiziAppleGraph.swift
     dependencies:
       - sdk: XCTest.framework
     preBuildScripts:
