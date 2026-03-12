@@ -130,6 +130,17 @@ adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://ass
 adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.bizizaragoza
 ```
 
+Android smoke validation:
+
+- Maestro flow: [maestro/android/assistant-smoke.yaml](/Users/guillermo.castella/bizi/maestro/android/assistant-smoke.yaml)
+- Convenience script: [scripts/run_android_assistant_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_android_assistant_smoke.sh)
+
+Example:
+
+```bash
+./scripts/run_android_assistant_smoke.sh emulator-5554
+```
+
 ## Apple
 
 The generated Xcode project lives at `apple/BiziZaragoza.xcodeproj`. The SwiftUI/App Intents base is in `apple/`, and the KMP frameworks consumed there are:
