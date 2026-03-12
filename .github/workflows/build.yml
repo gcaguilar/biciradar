@@ -84,8 +84,14 @@ jobs:
         run: chmod +x gradlew scripts/*.sh
 
       - name: Resolve iOS simulator destination
-        id: destination
-        run: echo "value=$(./scripts/resolve_xcode_destination.sh ios)" >> "$GITHUB_OUTPUT"
+        run: |
+          destination="$(./scripts/resolve_xcode_destination.sh ios)"
+          echo "Using iOS destination: $destination"
+          {
+            echo 'IOS_DESTINATION<<EOF'
+            echo "$destination"
+            echo EOF
+          } >> "$GITHUB_ENV"
 
       - name: Run iOS tests
         run: |
@@ -93,7 +99,7 @@ jobs:
             -project apple/BiziZaragoza.xcodeproj \
             -scheme BiziZaragoza \
             -sdk iphonesimulator \
-            -destination "${{ steps.destination.outputs.value }}" \
+            -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
             -resultBundlePath "$RUNNER_TEMP/ios-tests.xcresult" \
             test
@@ -104,7 +110,7 @@ jobs:
             -project apple/BiziZaragoza.xcodeproj \
             -scheme BiziZaragoza \
             -sdk iphonesimulator \
-            -destination "${{ steps.destination.outputs.value }}" \
+            -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
             build
 
@@ -155,8 +161,14 @@ jobs:
         run: chmod +x gradlew scripts/*.sh
 
       - name: Resolve watchOS simulator destination
-        id: destination
-        run: echo "value=$(./scripts/resolve_xcode_destination.sh watchos)" >> "$GITHUB_OUTPUT"
+        run: |
+          destination="$(./scripts/resolve_xcode_destination.sh watchos)"
+          echo "Using watchOS destination: $destination"
+          {
+            echo 'WATCHOS_DESTINATION<<EOF'
+            echo "$destination"
+            echo EOF
+          } >> "$GITHUB_ENV"
 
       - name: Run watchOS tests
         run: |
@@ -164,7 +176,7 @@ jobs:
             -project apple/BiziZaragoza.xcodeproj \
             -scheme BiziZaragozaWatch \
             -sdk watchsimulator \
-            -destination "${{ steps.destination.outputs.value }}" \
+            -destination "$WATCHOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
             -resultBundlePath "$RUNNER_TEMP/watchos-tests.xcresult" \
             test
@@ -175,7 +187,7 @@ jobs:
             -project apple/BiziZaragoza.xcodeproj \
             -scheme BiziZaragozaWatch \
             -sdk watchsimulator \
-            -destination "${{ steps.destination.outputs.value }}" \
+            -destination "$WATCHOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
             build
 
