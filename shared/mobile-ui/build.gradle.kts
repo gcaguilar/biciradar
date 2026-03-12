@@ -30,6 +30,7 @@ kotlin {
     commonMain.dependencies {
       api(project(":shared:core"))
       implementation(compose.foundation)
+      implementation(compose.materialIconsExtended)
       implementation(compose.material3)
       implementation(compose.runtime)
       implementation(compose.ui)

@@ -1,6 +1,8 @@
 package com.gcaguilar.bizizaragoza.mobileui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,16 +20,32 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.KeyboardVoice
+import androidx.compose.material.icons.filled.LocalParking
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,12 +79,17 @@ import kotlin.math.roundToInt
 
 private val BiziRed = Color(0xFFD7191F)
 private val BiziLight = Color(0xFFF8F6F6)
+private val BiziGrouped = Color(0xFFF2F2F7)
 private val BiziInk = Color(0xFF211111)
+private val BiziMuted = Color(0xFF64748B)
+private val BiziPanel = Color(0xFFF1F5F9)
+private val BiziGreen = Color(0xFF167C3C)
+private val BiziBlue = Color(0xFF2563EB)
 
 private enum class MobileTab(val label: String) {
   Mapa("Mapa"),
   Favoritos("Favoritos"),
-  Perfil("Perfil"),
+  Perfil("Ajustes"),
 }
 
 private val MobileTabs = listOf(
@@ -120,6 +143,7 @@ fun BiziMobileApp(
   launchRequest: MobileLaunchRequest? = null,
   assistantLaunchRequest: AssistantLaunchRequest? = null,
 ) {
+  val mobilePlatform = remember { currentMobileUiPlatform() }
   val graph = remember(platformBindings) {
     SharedGraph.Companion.create(platformBindings)
   }
@@ -315,10 +339,14 @@ fun BiziMobileApp(
     selectedStationId?.let(stationsRepository::stationById)
   }
 
-  BiziTheme {
-    Surface(modifier = modifier.fillMaxSize(), color = BiziLight) {
+  BiziTheme(mobilePlatform) {
+    Surface(
+      modifier = modifier.fillMaxSize(),
+      color = pageBackgroundColor(mobilePlatform),
+    ) {
       when {
         assistantOpen -> AssistantScreen(
+          mobilePlatform = mobilePlatform,
           graph = graph,
           stationsRepository = stationsRepository,
           favoriteIds = favoriteIds,
@@ -329,6 +357,7 @@ fun BiziMobileApp(
           onBack = { assistantOpen = false },
         )
         selectedStation != null -> StationDetailScreen(
+          mobilePlatform = mobilePlatform,
           station = selectedStation,
           isFavorite = favoriteIds.contains(selectedStation.id),
           userLocation = stationsState.userLocation,
@@ -339,36 +368,37 @@ fun BiziMobileApp(
           onRoute = { graph.routeLauncher.launch(selectedStation) },
         )
         else -> Scaffold(
+          containerColor = pageBackgroundColor(mobilePlatform),
           floatingActionButton = {
-            FloatingActionButton(
-              containerColor = BiziRed,
-              contentColor = Color.White,
-              onClick = { assistantOpen = true },
-            ) {
-              Text("Asist.")
+            if (mobilePlatform == MobileUiPlatform.Android) {
+              ExtendedFloatingActionButton(
+                containerColor = BiziRed,
+                contentColor = Color.White,
+                onClick = { assistantOpen = true },
+                icon = {
+                  Icon(Icons.Filled.KeyboardVoice, contentDescription = null)
+                },
+                text = {
+                  Text("Atajos")
+                },
+              )
             }
           },
           bottomBar = {
-            NavigationBar(containerColor = Color.White) {
-              MobileTabs.forEach { tab ->
-                NavigationBarItem(
-                  selected = currentTab == tab,
-                  onClick = { currentTab = tab },
-                  icon = {
-                    Box(
-                      modifier = Modifier
-                        .size(10.dp)
-                        .background(if (currentTab == tab) BiziRed else Color.LightGray, CircleShape),
-                    )
-                  },
-                  label = { Text(tab.label) },
-                )
-              }
+            if (mobilePlatform == MobileUiPlatform.Android) {
+              AndroidBottomNavigationBar(
+                currentTab = currentTab,
+                onTabSelected = { currentTab = it },
+              )
             }
           },
         ) { innerPadding ->
           when (currentTab) {
             MobileTab.Mapa -> DashboardScreen(
+              mobilePlatform = mobilePlatform,
+              currentTab = currentTab,
+              onTabSelected = { currentTab = it },
+              onOpenAssistant = { assistantOpen = true },
               stations = filteredStations,
               favoriteIds = favoriteIds,
               loading = stationsState.isLoading,
@@ -386,6 +416,10 @@ fun BiziMobileApp(
               paddingValues = innerPadding,
             )
             MobileTab.Favoritos -> FavoritesScreen(
+              mobilePlatform = mobilePlatform,
+              currentTab = currentTab,
+              onTabSelected = { currentTab = it },
+              onOpenAssistant = { assistantOpen = true },
               stations = favoriteStations,
               searchQuery = searchQuery,
               onSearchQueryChange = { searchQuery = it },
@@ -393,6 +427,10 @@ fun BiziMobileApp(
               paddingValues = innerPadding,
             )
             MobileTab.Perfil -> ProfileScreen(
+              mobilePlatform = mobilePlatform,
+              currentTab = currentTab,
+              onTabSelected = { currentTab = it },
+              onOpenAssistant = { assistantOpen = true },
               paddingValues = innerPadding,
               searchRadiusMeters = searchRadiusMeters,
               userLocation = stationsState.userLocation,
@@ -408,21 +446,53 @@ fun BiziMobileApp(
 }
 
 @Composable
-private fun BiziTheme(content: @Composable () -> Unit) {
+private fun BiziTheme(
+  mobilePlatform: MobileUiPlatform,
+  content: @Composable () -> Unit,
+) {
   MaterialTheme(
     colorScheme = MaterialTheme.colorScheme.copy(
       primary = BiziRed,
-      background = BiziLight,
+      background = pageBackgroundColor(mobilePlatform),
       surface = Color.White,
       onSurface = BiziInk,
       onBackground = BiziInk,
+      surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) BiziPanel else BiziLight,
     ),
     content = content,
   )
 }
 
 @Composable
+private fun AndroidBottomNavigationBar(
+  currentTab: MobileTab,
+  onTabSelected: (MobileTab) -> Unit,
+) {
+  NavigationBar(
+    containerColor = Color.White,
+  ) {
+    MobileTabs.forEach { tab ->
+      NavigationBarItem(
+        selected = currentTab == tab,
+        onClick = { onTabSelected(tab) },
+        icon = {
+          Icon(
+            imageVector = tab.icon(),
+            contentDescription = tab.label,
+          )
+        },
+        label = { Text(tab.label) },
+      )
+    }
+  }
+}
+
+@Composable
 private fun DashboardScreen(
+  mobilePlatform: MobileUiPlatform,
+  currentTab: MobileTab,
+  onTabSelected: (MobileTab) -> Unit,
+  onOpenAssistant: () -> Unit,
   stations: List<Station>,
   favoriteIds: Set<String>,
   loading: Boolean,
@@ -442,31 +512,43 @@ private fun DashboardScreen(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
-      .background(BiziLight),
+      .background(pageBackgroundColor(mobilePlatform)),
     contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     item {
-      Text(
-        text = "Zaragoza Bizi",
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-        color = BiziRed,
-      )
-      Spacer(Modifier.height(8.dp))
-      Text(
-        text = "Estaciones cercanas, favoritos y rutas rápidas desde una sola vista.",
-        style = MaterialTheme.typography.bodyMedium,
-      )
-      Spacer(Modifier.height(4.dp))
-      Text(
-        text = "Radio cercano activo: ${searchRadiusMeters} m",
-        style = MaterialTheme.typography.bodySmall,
-        color = Color(0xFF64748B),
-      )
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        MobilePageHeader(
+          title = "Bizi Zaragoza",
+          subtitle = "Muévete con una vista clara de estaciones, favoritas y rutas. Radio actual: ${searchRadiusMeters} m.",
+          currentTab = currentTab,
+          onTabSelected = onTabSelected,
+          onOpenAssistant = onOpenAssistant,
+        )
+      } else {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = "Zaragoza Bizi",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = BiziRed,
+          )
+          Text(
+            text = "Estaciones cercanas, favoritas y rutas rápidas desde una sola vista.",
+            style = MaterialTheme.typography.bodyMedium,
+          )
+          StationMetricPill(
+            modifier = Modifier.fillMaxWidth(),
+            label = "Radio cercano",
+            value = "${searchRadiusMeters} m",
+            tint = BiziBlue,
+          )
+        }
+      }
     }
     item {
       MapHeroCard(
+        mobilePlatform = mobilePlatform,
         stations = stations,
         userLocation = userLocation,
         nearestSelection = nearestSelection,
@@ -474,52 +556,80 @@ private fun DashboardScreen(
       )
     }
     item {
-      OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+      StationSearchField(
+        mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = { Text("Buscar estación o dirección") },
+        label = "Buscar estación o dirección",
       )
     }
     item {
-      Text(
-        text = if (loading) "Actualizando estaciones..." else "Estaciones disponibles",
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.SemiBold,
-      )
-      if (errorMessage != null) {
-        Spacer(Modifier.height(8.dp))
-        Text(errorMessage, color = BiziRed)
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(onClick = onRetry) {
-          Text("Reintentar")
+      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        SummaryValueCard(
+          modifier = Modifier.weight(1f),
+          title = "Estaciones",
+          value = stations.size.toString(),
+          icon = Icons.Filled.Map,
+          tint = BiziRed,
+          mobilePlatform = mobilePlatform,
+        )
+        SummaryValueCard(
+          modifier = Modifier.weight(1f),
+          title = "Favoritas",
+          value = favoriteIds.size.toString(),
+          icon = Icons.Filled.Favorite,
+          tint = BiziBlue,
+          mobilePlatform = mobilePlatform,
+        )
+        SummaryValueCard(
+          modifier = Modifier.weight(1f),
+          title = "Más cerca",
+          value = nearestStation?.distanceMeters?.let { "$it m" } ?: "--",
+          icon = Icons.Filled.LocationOn,
+          tint = BiziGreen,
+          mobilePlatform = mobilePlatform,
+        )
+      }
+    }
+    item {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+          text = if (loading) "Actualizando estaciones..." else "Cerca de ti",
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+          text = if (nearestSelection.usesFallback) {
+            "Si no hay estaciones dentro del radio, te seguimos mostrando la opción más cercana."
+          } else {
+            "Toca cualquier tarjeta para abrir el detalle, guardar la estación o lanzar la ruta."
+          },
+          style = MaterialTheme.typography.bodySmall,
+          color = BiziMuted,
+        )
+        if (errorMessage != null) {
+          Text(errorMessage, color = BiziRed)
+          OutlinedButton(onClick = onRetry) {
+            Icon(Icons.Filled.Sync, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Reintentar")
+          }
         }
       }
     }
     if (!loading && stations.isEmpty()) {
       item {
-        Card(
-          colors = CardDefaults.cardColors(containerColor = Color.White),
-        ) {
-          Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            Text("No se han cargado estaciones todavía.", fontWeight = FontWeight.SemiBold)
-            Text(
-              "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.",
-              style = MaterialTheme.typography.bodySmall,
-              color = Color(0xFF64748B),
-            )
-            OutlinedButton(onClick = onRetry) {
-              Text("Cargar estaciones")
-            }
-          }
-        }
+        EmptyStateCard(
+          title = "Todavía no tenemos estaciones en pantalla",
+          description = "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.",
+          primaryAction = "Cargar estaciones",
+          onPrimaryAction = onRetry,
+        )
       }
     }
-    items(stations.take(10), key = { it.id }) { station ->
+    items(stations.take(12), key = { it.id }) { station ->
       StationRow(
+        mobilePlatform = mobilePlatform,
         station = station,
         isFavorite = station.id in favoriteIds,
         onClick = { onStationSelected(station) },
@@ -531,6 +641,7 @@ private fun DashboardScreen(
 
 @Composable
 private fun MapHeroCard(
+  mobilePlatform: MobileUiPlatform,
   stations: List<Station>,
   userLocation: GeoPoint?,
   nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
@@ -539,7 +650,7 @@ private fun MapHeroCard(
   val nearestStation = nearestSelection.highlightedStation
   Card(
     modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(28.dp),
+    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
     colors = CardDefaults.cardColors(containerColor = Color.White),
   ) {
     Box(modifier = Modifier.fillMaxWidth().height(260.dp)) {
@@ -551,25 +662,33 @@ private fun MapHeroCard(
         onStationSelected = onStationSelected,
       )
       nearestStation?.let { station ->
+        val overlayContainer = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziRed
+        val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) BiziInk else Color.White
+        val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) BiziMuted else Color.White.copy(alpha = 0.84f)
         Card(
           modifier = Modifier
             .align(Alignment.BottomStart)
             .padding(16.dp),
-          colors = CardDefaults.cardColors(containerColor = BiziRed),
+          shape = RoundedCornerShape(22.dp),
+          border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)) else null,
+          colors = CardDefaults.cardColors(containerColor = overlayContainer),
         ) {
-          Column(Modifier.padding(16.dp)) {
+          Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+          ) {
             Text(
               if (nearestSelection.usesFallback) {
                 "No hay dentro de ${nearestSelection.radiusMeters} m"
               } else {
                 "Estación más cercana"
               },
-              color = Color.White.copy(alpha = 0.72f),
+              color = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else overlayBody,
             )
             Text(
               text = station.name,
               style = MaterialTheme.typography.headlineSmall,
-              color = Color.White,
+              color = overlayTitle,
               fontWeight = FontWeight.Bold,
             )
             Text(
@@ -578,7 +697,7 @@ private fun MapHeroCard(
               } else {
                 "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
               },
-              color = Color.White,
+              color = overlayBody,
             )
           }
         }
@@ -589,6 +708,10 @@ private fun MapHeroCard(
 
 @Composable
 private fun FavoritesScreen(
+  mobilePlatform: MobileUiPlatform,
+  currentTab: MobileTab,
+  onTabSelected: (MobileTab) -> Unit,
+  onOpenAssistant: () -> Unit,
   stations: List<Station>,
   searchQuery: String,
   onSearchQueryChange: (String) -> Unit,
@@ -598,36 +721,47 @@ private fun FavoritesScreen(
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
-      .padding(paddingValues),
+      .padding(paddingValues)
+      .background(pageBackgroundColor(mobilePlatform)),
     contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     item {
-      Text(
-        text = "Mis estaciones",
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-      )
-      Spacer(Modifier.height(8.dp))
-      OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        MobilePageHeader(
+          title = "Favoritas",
+          subtitle = "Tus estaciones guardadas para consultar el estado o abrir una ruta con un toque.",
+          currentTab = currentTab,
+          onTabSelected = onTabSelected,
+          onOpenAssistant = onOpenAssistant,
+        )
+      } else {
+        Text(
+          text = "Mis estaciones",
+          style = MaterialTheme.typography.headlineSmall,
+          fontWeight = FontWeight.Bold,
+        )
+      }
+    }
+    item {
+      StationSearchField(
+        mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = { Text("Filtrar favoritas") },
+        label = "Filtrar favoritas",
       )
     }
     if (stations.isEmpty()) {
       item {
-        Card {
-          Text(
-            text = "Guarda estaciones desde el mapa para tenerlas siempre a mano.",
-            modifier = Modifier.padding(16.dp),
-          )
-        }
+        EmptyStateCard(
+          title = "Todavía no tienes favoritas",
+          description = "Guarda estaciones desde el mapa para consultarlas más rápido y compartirlas con el reloj.",
+        )
       }
     } else {
       items(stations, key = { it.id }) { station ->
         StationRow(
+          mobilePlatform = mobilePlatform,
           station = station,
           isFavorite = true,
           onClick = { onStationSelected(station) },
@@ -641,57 +775,84 @@ private fun FavoritesScreen(
 
 @Composable
 private fun ProfileScreen(
+  mobilePlatform: MobileUiPlatform,
+  currentTab: MobileTab,
+  onTabSelected: (MobileTab) -> Unit,
+  onOpenAssistant: () -> Unit,
   paddingValues: PaddingValues,
   searchRadiusMeters: Int,
   userLocation: GeoPoint?,
   onSearchRadiusSelected: (Int) -> Unit,
 ) {
-  Column(
+  LazyColumn(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
-      .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(12.dp),
+      .background(pageBackgroundColor(mobilePlatform)),
+    contentPadding = PaddingValues(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    Text("Perfil y ajustes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    Card {
-      Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Idioma inicial: Español")
-        Text("Rutas: delegadas a Google Maps y Apple Maps")
-        Text("Atajos: App Actions, App Shortcuts y Siri/App Intents")
-        Text("Radio cercano: ${searchRadiusMeters} m en línea recta")
-        Text(
-          if (userLocation != null) {
-            "Ubicación activa: ${userLocation.latitude.formatCoordinate()}, ${userLocation.longitude.formatCoordinate()}"
-          } else {
-            "Ubicación pendiente. Se usa el centro de Zaragoza como fallback."
-          },
+    item {
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        MobilePageHeader(
+          title = "Ajustes",
+          subtitle = "Controla el radio cercano, revisa la ubicación activa y mantén clara la experiencia en cada plataforma.",
+          currentTab = currentTab,
+          onTabSelected = onTabSelected,
+          onOpenAssistant = onOpenAssistant,
         )
+      } else {
+        Text("Perfil y ajustes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
       }
     }
-    Card {
-      Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Radio para estación cercana", fontWeight = FontWeight.SemiBold)
-        Text(
-          "Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia.",
-          style = MaterialTheme.typography.bodySmall,
-          color = Color(0xFF64748B),
-        )
-        SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
-          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            rowOptions.forEach { radiusMeters ->
-              OutlinedButton(
-                modifier = Modifier.weight(1f),
-                onClick = { onSearchRadiusSelected(radiusMeters) },
-              ) {
-                Text(
-                  if (radiusMeters == searchRadiusMeters) "${radiusMeters} m activo" else "${radiusMeters} m",
-                  color = if (radiusMeters == searchRadiusMeters) BiziRed else Color.Unspecified,
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          InfoLine(icon = Icons.Filled.LocationOn, label = "Ubicación") {
+            if (userLocation != null) {
+              "Activa: ${userLocation.latitude.formatCoordinate()}, ${userLocation.longitude.formatCoordinate()}"
+            } else {
+              "Pendiente. Se usa el centro de Zaragoza como fallback."
+            }
+          }
+          InfoLine(icon = Icons.Filled.Directions, label = "Rutas") {
+            "Delegadas a Google Maps y Apple Maps."
+          }
+          InfoLine(icon = Icons.Filled.KeyboardVoice, label = "Atajos") {
+            "App Actions, App Shortcuts y Siri/App Intents."
+          }
+          InfoLine(icon = Icons.Filled.Tune, label = "Idioma") {
+            "Español."
+          }
+        }
+      }
+    }
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+          Text("Radio para estación cercana", fontWeight = FontWeight.SemiBold)
+          Text(
+            "Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia.",
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+          SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+              rowOptions.forEach { radiusMeters ->
+                RadiusSelectionButton(
+                  modifier = Modifier.weight(1f),
+                  selected = radiusMeters == searchRadiusMeters,
+                  label = if (radiusMeters == searchRadiusMeters) "${radiusMeters} m activo" else "${radiusMeters} m",
+                  onClick = { onSearchRadiusSelected(radiusMeters) },
                 )
               }
-            }
-            if (rowOptions.size == 1) {
-              Spacer(Modifier.weight(1f))
+              if (rowOptions.size == 1) {
+                Spacer(Modifier.weight(1f))
+              }
             }
           }
         }
@@ -702,6 +863,7 @@ private fun ProfileScreen(
 
 @Composable
 private fun StationDetailScreen(
+  mobilePlatform: MobileUiPlatform,
   station: Station,
   isFavorite: Boolean,
   userLocation: GeoPoint?,
@@ -709,52 +871,113 @@ private fun StationDetailScreen(
   onToggleFavorite: () -> Unit,
   onRoute: () -> Unit,
 ) {
-  Column(
+  LazyColumn(
     modifier = Modifier
       .fillMaxSize()
-      .padding(16.dp),
+      .background(pageBackgroundColor(mobilePlatform)),
+    contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    TextButton(onClick = onBack) { Text("Volver") }
-    Text(station.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-    Text(station.address, style = MaterialTheme.typography.bodyLarge)
-    Card(
-      shape = RoundedCornerShape(24.dp),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
-    ) {
-      PlatformStationMap(
-        modifier = Modifier.fillMaxWidth().height(180.dp),
-        stations = listOf(station),
-        userLocation = userLocation,
-        highlightedStationId = station.id,
-        onStationSelected = {},
-      )
-    }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-      AvailabilityCard(
-        modifier = Modifier.fillMaxWidth(0.48f),
-        label = "Bicis",
-        value = station.bikesAvailable.toString(),
-        tint = BiziRed,
-      )
-      AvailabilityCard(
-        modifier = Modifier.fillMaxWidth(0.48f),
-        label = "Libres",
-        value = station.slotsFree.toString(),
-        tint = Color(0xFF475569),
-      )
-    }
-    Card {
-      Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Distancia aproximada: ${station.distanceMeters} metros")
-        Text("Fuente: ${station.sourceLabel}")
+    item {
+      TextButton(onClick = onBack) {
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text(if (mobilePlatform == MobileUiPlatform.IOS) "Volver al mapa" else "Volver")
       }
     }
-    Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
-      Text("Ir con mapas")
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+              station.name,
+              style = MaterialTheme.typography.headlineSmall,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.weight(1f),
+            )
+            FavoritePill(
+              active = isFavorite,
+              onClick = onToggleFavorite,
+              label = if (isFavorite) "Guardada" else "Guardar",
+            )
+          }
+          Text(station.address, style = MaterialTheme.typography.bodyMedium, color = BiziMuted)
+          Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            StationMetricPill(
+              modifier = Modifier.weight(1f),
+              label = "Distancia",
+              value = "${station.distanceMeters} m",
+              tint = BiziBlue,
+            )
+            StationMetricPill(
+              modifier = Modifier.weight(1f),
+              label = "Fuente",
+              value = station.sourceLabel,
+              tint = BiziMuted,
+            )
+          }
+        }
+      }
     }
-    OutlinedButton(onClick = onToggleFavorite, modifier = Modifier.fillMaxWidth()) {
-      Text(if (isFavorite) "Quitar de favoritos" else "Guardar en favoritos")
+    item {
+      Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        PlatformStationMap(
+          modifier = Modifier.fillMaxWidth().height(200.dp),
+          stations = listOf(station),
+          userLocation = userLocation,
+          highlightedStationId = station.id,
+          onStationSelected = {},
+        )
+      }
+    }
+    item {
+      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        AvailabilityCard(
+          modifier = Modifier.weight(1f),
+          label = "Bicis",
+          value = station.bikesAvailable.toString(),
+          icon = Icons.AutoMirrored.Filled.DirectionsBike,
+          tint = BiziRed,
+          mobilePlatform = mobilePlatform,
+        )
+        AvailabilityCard(
+          modifier = Modifier.weight(1f),
+          label = "Huecos",
+          value = station.slotsFree.toString(),
+          icon = Icons.Filled.LocalParking,
+          tint = BiziBlue,
+          mobilePlatform = mobilePlatform,
+        )
+      }
+    }
+    item {
+      Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
+        Icon(Icons.Filled.Directions, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("Abrir ruta en mapas")
+      }
+    }
+    item {
+      OutlinedButton(onClick = onToggleFavorite, modifier = Modifier.fillMaxWidth()) {
+        Icon(
+          if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+          contentDescription = null,
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(if (isFavorite) "Quitar de favoritos" else "Guardar en favoritos")
+      }
     }
   }
 }
@@ -762,6 +985,7 @@ private fun StationDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssistantScreen(
+  mobilePlatform: MobileUiPlatform,
   graph: SharedGraph,
   stationsRepository: com.gcaguilar.bizizaragoza.core.StationsRepository,
   favoriteIds: Set<String>,
@@ -772,7 +996,7 @@ private fun AssistantScreen(
   onBack: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
-  var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritos o rutas.") }
+  var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritas o rutas.") }
   val suggestions = listOf(
     AssistantAction.NearestStation,
     AssistantAction.NearestStationWithBikes,
@@ -793,25 +1017,49 @@ private fun AssistantScreen(
     onInitialActionConsumed()
   }
 
-  Column(
+  LazyColumn(
     modifier = Modifier
       .fillMaxSize()
-      .padding(16.dp),
+      .background(pageBackgroundColor(mobilePlatform)),
+    contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    TextButton(onClick = onBack) { Text("Cerrar") }
-    Text("Asistente y atajos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    item {
+      TextButton(onClick = onBack) {
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("Cerrar")
+      }
+    }
+    item {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Atajos y asistentes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text(
+          "Usa acciones rápidas del sistema para resolver consultas sin navegar por toda la app. Radio actual: ${searchRadiusMeters} m.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = BiziMuted,
+        )
+      }
+    }
+    item {
+      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          Text("Última respuesta", fontWeight = FontWeight.SemiBold)
+          Text(latestAnswer)
+        }
+      }
+    }
+    item {
       Text(
-        "Esta instalación usa asistentes y atajos directos del sistema para resolver consultas de estaciones.",
-        modifier = Modifier.padding(16.dp),
+        text = "Prueba rápida",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
       )
     }
-    Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
-      Text(latestAnswer, modifier = Modifier.padding(16.dp))
-    }
-    Text("Sugerencias")
-    suggestions.forEach { action ->
+    items(suggestions, key = { it.label() }) { action ->
       OutlinedButton(
         modifier = Modifier.fillMaxWidth(),
         onClick = {
@@ -826,6 +1074,8 @@ private fun AssistantScreen(
           }
         },
       ) {
+        Icon(action.icon(), contentDescription = null)
+        Spacer(Modifier.width(10.dp))
         Text(action.label())
       }
     }
@@ -837,13 +1087,23 @@ private fun AvailabilityCard(
   modifier: Modifier,
   label: String,
   value: String,
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
   tint: Color,
+  mobilePlatform: MobileUiPlatform,
 ) {
   Card(
     modifier = modifier,
-    colors = CardDefaults.cardColors(containerColor = tint.copy(alpha = 0.08f)),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, tint.copy(alpha = 0.14f)) else null,
+    colors = CardDefaults.cardColors(
+      containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
+        Color.White
+      } else {
+        tint.copy(alpha = 0.08f)
+      },
+    ),
   ) {
     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
       Text(label, color = tint)
       Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
     }
@@ -852,6 +1112,7 @@ private fun AvailabilityCard(
 
 @Composable
 private fun StationRow(
+  mobilePlatform: MobileUiPlatform,
   station: Station,
   isFavorite: Boolean,
   onClick: () -> Unit,
@@ -862,38 +1123,374 @@ private fun StationRow(
     modifier = Modifier
       .fillMaxWidth()
       .clickable(onClick = onClick),
+    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
     colors = CardDefaults.cardColors(containerColor = Color.White),
   ) {
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+      ) {
+        Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          Text(
+            station.name,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+          Text(
+            station.address,
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
+        Spacer(Modifier.width(12.dp))
+        if (showFavoriteCta) {
+          FavoritePill(
+            active = isFavorite,
+            onClick = onFavoriteToggle,
+            label = if (isFavorite) "Guardada" else "Guardar",
+          )
+        } else {
+          FavoritePill(
+            active = true,
+            onClick = {},
+            label = "Favorita",
+          )
+        }
+      }
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StationMetricPill(
+          modifier = Modifier.weight(1f),
+          label = "Bicis",
+          value = station.bikesAvailable.toString(),
+          tint = BiziRed,
+        )
+        StationMetricPill(
+          modifier = Modifier.weight(1f),
+          label = "Huecos",
+          value = station.slotsFree.toString(),
+          tint = BiziBlue,
+        )
+        StationMetricPill(
+          modifier = Modifier.weight(1f),
+          label = "Distancia",
+          value = "${station.distanceMeters} m",
+          tint = BiziGreen,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun MobilePageHeader(
+  title: String,
+  subtitle: String,
+  currentTab: MobileTab,
+  onTabSelected: (MobileTab) -> Unit,
+  onOpenAssistant: () -> Unit,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.Top,
+    ) {
+      Column(
+        modifier = Modifier.weight(1f),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+      ) {
+        Text(
+          text = title,
+          style = MaterialTheme.typography.headlineMedium,
+          fontWeight = FontWeight.Bold,
+        )
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.bodyMedium,
+          color = BiziMuted,
+        )
+      }
+      Spacer(Modifier.width(12.dp))
+      Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = BiziRed.copy(alpha = 0.10f),
+        border = BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)),
+        modifier = Modifier.clickable(onClick = onOpenAssistant),
+      ) {
+        Row(
+          modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          Icon(
+            Icons.Filled.KeyboardVoice,
+            contentDescription = null,
+            tint = BiziRed,
+          )
+          Text("Atajos", color = BiziRed, fontWeight = FontWeight.SemiBold)
+        }
+      }
+    }
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
+        .background(Color.White, RoundedCornerShape(22.dp))
+        .border(BorderStroke(1.dp, BiziPanel), RoundedCornerShape(22.dp))
+        .padding(4.dp),
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-      Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-          station.name,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.SemiBold,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-        )
-        Text("${station.bikesAvailable} bicis · ${station.slotsFree} libres · ${station.distanceMeters} m")
-        Text(station.address, style = MaterialTheme.typography.bodySmall, color = Color(0xFF64748B))
-      }
-      Spacer(Modifier.width(12.dp))
-      Column(horizontalAlignment = Alignment.End) {
-        if (showFavoriteCta) {
-          TextButton(onClick = onFavoriteToggle) {
-            Text(if (isFavorite) "Guardada" else "Guardar", color = BiziRed)
+      MobileTabs.forEach { tab ->
+        Surface(
+          modifier = Modifier
+            .weight(1f)
+            .clickable { onTabSelected(tab) },
+          shape = RoundedCornerShape(18.dp),
+          color = if (tab == currentTab) BiziRed else Color.Transparent,
+        ) {
+          Column(
+            modifier = Modifier.padding(vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Icon(
+              imageVector = tab.icon(),
+              contentDescription = null,
+              tint = if (tab == currentTab) Color.White else BiziMuted,
+            )
+            Text(
+              text = tab.label,
+              color = if (tab == currentTab) Color.White else BiziMuted,
+              style = MaterialTheme.typography.labelSmall,
+              fontWeight = FontWeight.SemiBold,
+            )
           }
-        } else {
-          Text("Favorita", color = BiziRed)
         }
       }
     }
   }
+}
+
+@Composable
+private fun StationSearchField(
+  mobilePlatform: MobileUiPlatform,
+  value: String,
+  onValueChange: (String) -> Unit,
+  label: String,
+) {
+  OutlinedTextField(
+    modifier = Modifier.fillMaxWidth(),
+    value = value,
+    onValueChange = onValueChange,
+    singleLine = true,
+    shape = RoundedCornerShape(20.dp),
+    leadingIcon = {
+      Icon(Icons.Filled.Search, contentDescription = null, tint = BiziMuted)
+    },
+    trailingIcon = if (value.isNotEmpty()) {
+      {
+        Icon(
+          imageVector = Icons.Filled.Close,
+          contentDescription = "Limpiar búsqueda",
+          tint = BiziMuted,
+          modifier = Modifier.clickable { onValueChange("") },
+        )
+      }
+    } else {
+      null
+    },
+    label = if (mobilePlatform == MobileUiPlatform.Android) {
+      { Text(label) }
+    } else {
+      null
+    },
+    placeholder = { Text(label) },
+    colors = OutlinedTextFieldDefaults.colors(
+      focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziPanel.copy(alpha = 0.35f),
+      unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziPanel.copy(alpha = 0.35f),
+      focusedBorderColor = BiziRed.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
+      unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) BiziPanel else BiziMuted.copy(alpha = 0.18f),
+    ),
+  )
+}
+
+@Composable
+private fun SummaryValueCard(
+  modifier: Modifier,
+  title: String,
+  value: String,
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
+  tint: Color,
+  mobilePlatform: MobileUiPlatform,
+) {
+  Card(
+    modifier = modifier,
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
+    colors = CardDefaults.cardColors(containerColor = Color.White),
+  ) {
+    Column(
+      modifier = Modifier.padding(14.dp),
+      verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+      Text(title, style = MaterialTheme.typography.labelSmall, color = BiziMuted)
+      Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = tint)
+    }
+  }
+}
+
+@Composable
+private fun EmptyStateCard(
+  title: String,
+  description: String,
+  primaryAction: String? = null,
+  onPrimaryAction: (() -> Unit)? = null,
+) {
+  Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Column(
+      modifier = Modifier.padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Text(title, fontWeight = FontWeight.SemiBold)
+      Text(description, style = MaterialTheme.typography.bodySmall, color = BiziMuted)
+      if (primaryAction != null && onPrimaryAction != null) {
+        OutlinedButton(onClick = onPrimaryAction) {
+          Text(primaryAction)
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun RadiusSelectionButton(
+  modifier: Modifier,
+  selected: Boolean,
+  label: String,
+  onClick: () -> Unit,
+) {
+  Surface(
+    modifier = modifier.clickable(onClick = onClick),
+    shape = RoundedCornerShape(18.dp),
+    color = if (selected) BiziRed.copy(alpha = 0.10f) else Color.White,
+    border = BorderStroke(1.dp, if (selected) BiziRed.copy(alpha = 0.25f) else BiziPanel),
+  ) {
+    Text(
+      text = label,
+      modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+      color = if (selected) BiziRed else BiziInk,
+      style = MaterialTheme.typography.bodySmall,
+      fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+    )
+  }
+}
+
+@Composable
+private fun InfoLine(
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
+  label: String,
+  value: () -> String,
+) {
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+    verticalAlignment = Alignment.Top,
+  ) {
+    Icon(icon, contentDescription = null, tint = BiziRed)
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+      Text(label, style = MaterialTheme.typography.labelMedium, color = BiziMuted)
+      Text(value(), style = MaterialTheme.typography.bodyMedium)
+    }
+  }
+}
+
+@Composable
+private fun StationMetricPill(
+  modifier: Modifier = Modifier,
+  label: String,
+  value: String,
+  tint: Color,
+) {
+  Surface(
+    modifier = modifier,
+    shape = RoundedCornerShape(16.dp),
+    color = tint.copy(alpha = 0.09f),
+  ) {
+    Column(
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+      verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+      Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
+      Text(
+        value,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+    }
+  }
+}
+
+@Composable
+private fun FavoritePill(
+  active: Boolean,
+  onClick: () -> Unit,
+  label: String,
+) {
+  Surface(
+    shape = RoundedCornerShape(16.dp),
+    color = if (active) BiziRed.copy(alpha = 0.10f) else Color.Transparent,
+    border = BorderStroke(1.dp, if (active) BiziRed.copy(alpha = 0.16f) else BiziPanel),
+    modifier = Modifier.clickable(onClick = onClick),
+  ) {
+    Row(
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Icon(
+        imageVector = if (active) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+        contentDescription = null,
+        tint = BiziRed,
+        modifier = Modifier.size(16.dp),
+      )
+      Text(label, color = BiziRed, style = MaterialTheme.typography.labelMedium)
+    }
+  }
+}
+
+private fun pageBackgroundColor(platform: MobileUiPlatform): Color =
+  if (platform == MobileUiPlatform.IOS) BiziGrouped else BiziLight
+
+private fun MobileTab.icon() = when (this) {
+  MobileTab.Mapa -> Icons.Filled.Map
+  MobileTab.Favoritos -> Icons.Filled.Favorite
+  MobileTab.Perfil -> Icons.Filled.Tune
+}
+
+private fun AssistantAction.icon() = when (this) {
+  AssistantAction.FavoriteStations -> Icons.Filled.Favorite
+  AssistantAction.NearestStation -> Icons.Filled.LocationOn
+  AssistantAction.NearestStationWithBikes -> Icons.AutoMirrored.Filled.DirectionsBike
+  AssistantAction.NearestStationWithSlots -> Icons.Filled.LocalParking
+  is AssistantAction.StationBikeCount -> Icons.AutoMirrored.Filled.DirectionsBike
+  is AssistantAction.StationSlotCount -> Icons.Filled.LocalParking
+  is AssistantAction.RouteToStation -> Icons.Filled.Directions
+  is AssistantAction.StationStatus -> Icons.Filled.LocationOn
 }
 
 private fun AssistantAction.label(): String = when (this) {

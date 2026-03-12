@@ -20,6 +20,21 @@ struct WatchDashboardView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Bizi Zaragoza")
+                            .font(.headline)
+                        Text("Consulta cercanas, favoritas y abre la ruta más rápido desde el reloj.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 8) {
+                            WatchInfoBadge(label: "Cerca", value: "\(model.nearbyStations.count)")
+                            WatchInfoBadge(label: "Fav", value: "\(syncBridge.favoriteIds.count)")
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+
                 if let errorMessage = model.errorMessage {
                     Section {
                         Text(errorMessage)
@@ -28,7 +43,7 @@ struct WatchDashboardView: View {
                     }
                 }
 
-                Section("Cercanas") {
+                Section("Cerca de ti") {
                     if model.nearbyStations.isEmpty, model.isLoading {
                         ProgressView()
                     } else {
@@ -42,11 +57,11 @@ struct WatchDashboardView: View {
                     }
                 }
 
-                Section("Favoritas") {
+                Section("Sincronizadas") {
                     if model.favoriteStations.isEmpty {
                         Text(syncBridge.favoriteIds.isEmpty
-                             ? "Esperando favoritas desde el iPhone."
-                             : "Todavía no he podido resolver tus favoritas.")
+                             ? "Esperando favoritas del iPhone."
+                             : "Todavía no he podido cargar tus favoritas.")
                             .font(.footnote)
                     } else {
                         ForEach(model.favoriteStations) { station in
@@ -84,14 +99,21 @@ private struct StationRow: View {
     let station: WatchStationSnapshot
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(station.name)
                 .font(.headline)
                 .lineLimit(2)
-            Text("\(station.distanceMeters) m · \(station.bikesAvailable) bicis · \(station.slotsFree) huecos")
+            Text(station.address)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+            HStack(spacing: 6) {
+                WatchInfoBadge(label: "m", value: "\(station.distanceMeters)")
+                WatchInfoBadge(label: "B", value: "\(station.bikesAvailable)")
+                WatchInfoBadge(label: "H", value: "\(station.slotsFree)")
+            }
         }
+        .padding(.vertical, 2)
     }
 }
 
@@ -102,15 +124,17 @@ private struct WatchStationDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(station.name)
                     .font(.headline)
                 Text(station.address)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                Label("\(station.distanceMeters) metros", systemImage: "location")
-                Label("\(station.bikesAvailable) bicis", systemImage: "bicycle")
-                Label("\(station.slotsFree) huecos", systemImage: "dock.rectangle")
+                HStack(spacing: 8) {
+                    WatchInfoBadge(label: "Dist.", value: "\(station.distanceMeters) m")
+                    WatchInfoBadge(label: "Bicis", value: "\(station.bikesAvailable)")
+                    WatchInfoBadge(label: "Huecos", value: "\(station.slotsFree)")
+                }
                 Button("Abrir en Maps") {
                     Task {
                         do {
@@ -145,5 +169,23 @@ private struct WatchStationDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .navigationTitle("Detalle")
+    }
+}
+
+private struct WatchInfoBadge: View {
+    let label: String
+    let value: String
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.footnote.weight(.semibold))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
