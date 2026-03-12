@@ -1,5 +1,6 @@
 import BiziSharedCore
 import Foundation
+import SwiftUI
 
 @MainActor
 final class WatchDashboardModel: ObservableObject {
@@ -14,16 +15,26 @@ final class WatchDashboardModel: ObservableObject {
     }
 
     func refresh(favoriteIds: Set<String>) async {
-        isLoading = true
-        errorMessage = nil
-        do {
-            nearbyStations = try await graph.nearbyStations(limit: 5)
-            favoriteStations = try await graph.favoriteStations(favoriteIds: favoriteIds)
-        } catch {
-            errorMessage = error.localizedDescription
-            nearbyStations = []
-            favoriteStations = []
+        withAnimation(.easeOut(duration: 0.18)) {
+            isLoading = true
+            errorMessage = nil
         }
-        isLoading = false
+        do {
+            let nearbyStations = try await graph.nearbyStations(limit: 5)
+            let favoriteStations = try await graph.favoriteStations(favoriteIds: favoriteIds)
+            withAnimation(.spring(response: 0.36, dampingFraction: 0.82)) {
+                self.nearbyStations = nearbyStations
+                self.favoriteStations = favoriteStations
+            }
+        } catch {
+            withAnimation(.easeOut(duration: 0.18)) {
+                errorMessage = error.localizedDescription
+                nearbyStations = []
+                favoriteStations = []
+            }
+        }
+        withAnimation(.easeOut(duration: 0.18)) {
+            isLoading = false
+        }
     }
 }

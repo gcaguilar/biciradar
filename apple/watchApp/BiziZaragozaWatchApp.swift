@@ -33,6 +33,8 @@ struct WatchDashboardView: View {
                         }
                     }
                     .padding(.vertical, 4)
+                    .animation(.spring(response: 0.36, dampingFraction: 0.82), value: model.nearbyStations.count)
+                    .animation(.spring(response: 0.36, dampingFraction: 0.82), value: syncBridge.favoriteIds.count)
                 }
 
                 if let errorMessage = model.errorMessage {
@@ -40,6 +42,7 @@ struct WatchDashboardView: View {
                         Text(errorMessage)
                             .font(.footnote)
                             .foregroundStyle(.red)
+                            .transition(.opacity)
                     }
                 }
 
@@ -83,6 +86,8 @@ struct WatchDashboardView: View {
                 }
             }
             .navigationTitle("Bizi")
+            .animation(.spring(response: 0.36, dampingFraction: 0.82), value: model.nearbyStations.count)
+            .animation(.spring(response: 0.36, dampingFraction: 0.82), value: model.favoriteStations.count)
             .task {
                 await model.refresh(favoriteIds: syncBridge.favoriteIds)
             }
@@ -114,6 +119,8 @@ private struct StationRow: View {
             }
         }
         .padding(.vertical, 2)
+        .animation(.spring(response: 0.32, dampingFraction: 0.85), value: station.bikesAvailable)
+        .animation(.spring(response: 0.32, dampingFraction: 0.85), value: station.slotsFree)
     }
 }
 
@@ -159,14 +166,18 @@ private struct WatchStationDetailView: View {
                     Text(localRouteStatus)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
                 if let routeStatus {
                     Text(routeStatus)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .animation(.spring(response: 0.32, dampingFraction: 0.84), value: localRouteStatus)
+            .animation(.spring(response: 0.32, dampingFraction: 0.84), value: routeStatus)
         }
         .navigationTitle("Detalle")
     }
@@ -187,5 +198,6 @@ private struct WatchInfoBadge: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .animation(.spring(response: 0.3, dampingFraction: 0.82), value: value)
     }
 }
