@@ -404,7 +404,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == iphoneos ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaTests.\"\n  echo \"Use an iPhone device or an iOS Simulator.\"\n  exit 1\nfi\n";
 		};
 		7D5DAF4D660D5178300C157A /* Build KMP iOS frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -423,7 +423,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelse\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == iphoneos ]]; then\n  ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiziZaragoza.\"\n  echo \"Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'.\"\n  exit 1\nfi\n";
 		};
 		E829EB521952CD556E9C46B5 /* Build KMP watchOS test framework */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -442,7 +442,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
 		};
 		FF13FF5755CC341F984068A6 /* Build KMP watchOS framework */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -461,7 +461,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaWatch.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -569,6 +569,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
 				PRODUCT_NAME = "Bizi Zaragoza";
 				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -602,6 +603,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.bizizaragoza.ios;
 				PRODUCT_NAME = "Bizi Zaragoza";
 				SDKROOT = iphoneos;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
