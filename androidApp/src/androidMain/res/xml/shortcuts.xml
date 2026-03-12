@@ -203,4 +203,20 @@
                 android:value="route_to_station" />
         </capability-binding>
     </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@android:drawable/ic_menu_search"
+        android:shortcutId="show_station"
+        android:shortcutLongLabel="@string/shortcut_show_station"
+        android:shortcutShortLabel="@string/shortcut_show_station">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
+            android:targetPackage="com.gcaguilar.bizizaragoza">
+            <extra
+                android:name="assistant_action"
+                android:value="show_station" />
+        </intent>
+        <capability-binding android:key="actions.intent.GET_THING" />
+    </shortcut>
 </shortcuts>
