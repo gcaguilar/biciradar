@@ -148,3 +148,14 @@ The generated Xcode project lives at `apple/BiziZaragoza.xcodeproj`. The SwiftUI
 - `BiziSharedCore`
 - `BiziMobileUi`
 - `BiziMobileUi` exports `MainViewController()` so it can be integrated from SwiftUI/UIKit
+
+Apple smoke validation:
+
+- UI smoke tests: [apple/iosAppUITests/BiziZaragozaUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiziZaragozaUITests.swift)
+- Convenience script: [scripts/run_ios_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_ios_smoke.sh)
+
+Example:
+
+```bash
+./scripts/run_ios_smoke.sh "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
+```

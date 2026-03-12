@@ -9,6 +9,7 @@ struct BiziZaragozaApp: App {
     @State private var launchToken: Int = 0
 
     init() {
+        AppleLaunchRequestStore.shared.seedFromLaunchEnvironment()
         FavoritesSyncBridge.shared.activate()
     }
 

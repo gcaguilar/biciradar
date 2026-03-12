@@ -108,6 +108,25 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.tests
         PRODUCT_NAME: Bizi Zaragoza Tests
 
+  BiziZaragozaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: iosAppUITests
+    dependencies:
+      - target: BiziZaragoza
+      - sdk: XCTest.framework
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.uitests
+        PRODUCT_NAME: Bizi Zaragoza UI Tests
+        TEST_TARGET_NAME: BiziZaragoza
+
   BiziZaragozaWatch:
     type: application
     platform: watchOS
@@ -195,10 +214,12 @@ schemes:
       targets:
         BiziZaragoza: all
         BiziZaragozaTests: [testing]
+        BiziZaragozaUITests: [testing]
     test:
       config: Debug
       targets:
         - BiziZaragozaTests
+        - BiziZaragozaUITests
     run:
       config: Debug
   BiziZaragozaWatch:

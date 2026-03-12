@@ -5,6 +5,11 @@ import Foundation
 final class AppleLaunchRequestStore: ObservableObject {
     static let shared = AppleLaunchRequestStore()
 
+    private enum UITestEnvironment {
+        static let pendingAction = "BIZI_UI_TEST_PENDING_ACTION"
+        static let pendingStationId = "BIZI_UI_TEST_PENDING_STATION_ID"
+    }
+
     private enum LaunchAction {
         static let favoriteStations = "favorite_stations"
         static let legacyFavorites = "favorites"
@@ -23,6 +28,22 @@ final class AppleLaunchRequestStore: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+    }
+
+    func seedFromLaunchEnvironment(_ environment: [String: String] = ProcessInfo.processInfo.environment) {
+        guard let action = environment[UITestEnvironment.pendingAction]?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !action.isEmpty else {
+            return
+        }
+
+        defaults.set(action, forKey: actionKey)
+
+        if let stationId = environment[UITestEnvironment.pendingStationId]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !stationId.isEmpty {
+            defaults.set(stationId, forKey: stationIdKey)
+        } else {
+            defaults.removeObject(forKey: stationIdKey)
+        }
     }
 
     func save(_ request: any MobileLaunchRequest) {
