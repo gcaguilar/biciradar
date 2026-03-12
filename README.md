@@ -36,6 +36,26 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 
 The build and release checklist is available in `RELEASE.md`.
 
+## Continuous Integration
+
+GitHub Actions runs the workflow at `.github/workflows/build.yml` on pushes to `main`, on pull requests, and on manual dispatches.
+
+It runs three jobs in parallel:
+
+- `android`: runs shared JVM tests, Android unit tests, and builds the Android phone and Wear OS debug APKs.
+- `ios`: runs iPhone tests and uploads a zipped `.app` bundle that can be installed on an iOS Simulator.
+- `watchos`: runs Apple Watch tests and uploads a zipped `.app` bundle that can be installed on a watchOS Simulator.
+
+Published artifacts:
+
+- `android-debug-apks`
+- `ios-simulator-app`
+- `watchos-simulator-app`
+
+Important note:
+
+- Apple simulator installs use `.app` bundles, not `.ipa` files, so the workflow packages those bundles as `.zip` artifacts.
+
 ## Shortcuts and Voice
 
 ### iPhone with Siri and Shortcuts

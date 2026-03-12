@@ -1,0 +1,202 @@
+name: Build and Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android build and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run Android build and tests
+        run: ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
+
+      - name: Upload Android debug APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apks
+          if-no-files-found: error
+          path: |
+            androidApp/build/outputs/apk/debug/*.apk
+            wearApp/build/outputs/apk/debug/*.apk
+
+      - name: Upload Android test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          if-no-files-found: ignore
+          path: |
+            androidApp/build/reports/tests/**
+            androidApp/build/test-results/**
+            shared/core/build/reports/tests/**
+            shared/core/build/test-results/**
+
+  ios:
+    name: iOS build and tests
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make scripts executable
+        run: chmod +x gradlew scripts/*.sh
+
+      - name: Resolve iOS simulator destination
+        id: destination
+        run: echo "value=$(./scripts/resolve_xcode_destination.sh ios)" >> "$GITHUB_OUTPUT"
+
+      - name: Run iOS tests
+        run: |
+          xcodebuild \
+            -project apple/BiziZaragoza.xcodeproj \
+            -scheme BiziZaragoza \
+            -sdk iphonesimulator \
+            -destination "${{ steps.destination.outputs.value }}" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
+            -resultBundlePath "$RUNNER_TEMP/ios-tests.xcresult" \
+            test
+
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild \
+            -project apple/BiziZaragoza.xcodeproj \
+            -scheme BiziZaragoza \
+            -sdk iphonesimulator \
+            -destination "${{ steps.destination.outputs.value }}" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
+            build
+
+      - name: Package iOS simulator app
+        run: |
+          mkdir -p "$RUNNER_TEMP/artifacts"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$RUNNER_TEMP/derived-data-ios/Build/Products/Debug-iphonesimulator/Bizi Zaragoza.app" \
+            "$RUNNER_TEMP/artifacts/BiziZaragoza-ios-simulator-app.zip"
+
+      - name: Upload iOS simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          if-no-files-found: error
+          path: ${{ runner.temp }}/artifacts/BiziZaragoza-ios-simulator-app.zip
+
+      - name: Upload iOS test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-results
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/ios-tests.xcresult
+
+  watchos:
+    name: watchOS build and tests
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make scripts executable
+        run: chmod +x gradlew scripts/*.sh
+
+      - name: Resolve watchOS simulator destination
+        id: destination
+        run: echo "value=$(./scripts/resolve_xcode_destination.sh watchos)" >> "$GITHUB_OUTPUT"
+
+      - name: Run watchOS tests
+        run: |
+          xcodebuild \
+            -project apple/BiziZaragoza.xcodeproj \
+            -scheme BiziZaragozaWatch \
+            -sdk watchsimulator \
+            -destination "${{ steps.destination.outputs.value }}" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
+            -resultBundlePath "$RUNNER_TEMP/watchos-tests.xcresult" \
+            test
+
+      - name: Build watchOS simulator app
+        run: |
+          xcodebuild \
+            -project apple/BiziZaragoza.xcodeproj \
+            -scheme BiziZaragozaWatch \
+            -sdk watchsimulator \
+            -destination "${{ steps.destination.outputs.value }}" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
+            build
+
+      - name: Package watchOS simulator app
+        run: |
+          mkdir -p "$RUNNER_TEMP/artifacts"
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$RUNNER_TEMP/derived-data-watchos/Build/Products/Debug-watchsimulator/Bizi Zaragoza Watch.app" \
+            "$RUNNER_TEMP/artifacts/BiziZaragoza-watchos-simulator-app.zip"
+
+      - name: Upload watchOS simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: watchos-simulator-app
+          if-no-files-found: error
+          path: ${{ runner.temp }}/artifacts/BiziZaragoza-watchos-simulator-app.zip
+
+      - name: Upload watchOS test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watchos-test-results
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/watchos-tests.xcresult

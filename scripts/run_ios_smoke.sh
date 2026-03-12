@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-DESTINATION="${1:-platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DESTINATION="${1:-$("$ROOT_DIR/scripts/resolve_xcode_destination.sh" ios)}"
 
 cd "$ROOT_DIR"
 
