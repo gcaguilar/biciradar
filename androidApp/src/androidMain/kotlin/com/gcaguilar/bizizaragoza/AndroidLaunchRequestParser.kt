@@ -27,6 +27,19 @@ internal data class AndroidLaunchPayload(
   val assistantLaunchRequest: AssistantLaunchRequest? = null,
 )
 
+internal data class AndroidLaunchSource(
+  val assistantAction: String? = null,
+  val deepLinkAction: String? = null,
+  val feature: String? = null,
+  val deepLinkFeature: String? = null,
+  val stationId: String? = null,
+  val deepLinkStationId: String? = null,
+  val deepLinkStationIdAlias: String? = null,
+  val stationQuery: String? = null,
+  val deepLinkStationQuery: String? = null,
+  val deepLinkQuery: String? = null,
+)
+
 internal fun parseLaunchRequest(
   assistantAction: String? = null,
   feature: String? = null,
@@ -113,17 +126,28 @@ internal fun parseLaunchPayload(
 }
 
 internal fun Intent.toLaunchPayload(): AndroidLaunchPayload? = parseLaunchPayload(
-  assistantAction = getStringExtra(ASSISTANT_ACTION_EXTRA) ?: data?.getQueryParameter("action"),
-  feature = getStringExtra(FEATURE_EXTRA) ?: data?.getQueryParameter("feature"),
-  stationId = getStringExtra(STATION_ID_EXTRA)
-    ?: data?.getQueryParameter("station_id")
-    ?: data?.getQueryParameter("stationId"),
-  stationQuery = getStringExtra(STATION_QUERY_EXTRA)
-    ?: data?.getQueryParameter(STATION_QUERY_EXTRA)
-    ?: data?.getQueryParameter("query"),
+  source = AndroidLaunchSource(
+    assistantAction = getStringExtra(ASSISTANT_ACTION_EXTRA),
+    deepLinkAction = data?.getQueryParameter("action"),
+    feature = getStringExtra(FEATURE_EXTRA),
+    deepLinkFeature = data?.getQueryParameter("feature"),
+    stationId = getStringExtra(STATION_ID_EXTRA),
+    deepLinkStationId = data?.getQueryParameter("station_id"),
+    deepLinkStationIdAlias = data?.getQueryParameter("stationId"),
+    stationQuery = getStringExtra(STATION_QUERY_EXTRA),
+    deepLinkStationQuery = data?.getQueryParameter(STATION_QUERY_EXTRA),
+    deepLinkQuery = data?.getQueryParameter("query"),
+  ),
 )
 
 internal fun Intent.toLaunchRequest(): MobileLaunchRequest? = toLaunchPayload()?.launchRequest
+
+internal fun parseLaunchPayload(source: AndroidLaunchSource): AndroidLaunchPayload? = parseLaunchPayload(
+  assistantAction = source.assistantAction ?: source.deepLinkAction,
+  feature = source.feature ?: source.deepLinkFeature,
+  stationId = source.stationId ?: source.deepLinkStationId ?: source.deepLinkStationIdAlias,
+  stationQuery = source.stationQuery ?: source.deepLinkStationQuery ?: source.deepLinkQuery,
+)
 
 private fun canonicalAction(rawValue: String?): String? {
   val normalized = rawValue?.let(::normalizeActionToken)?.takeIf { it.isNotEmpty() } ?: return null
