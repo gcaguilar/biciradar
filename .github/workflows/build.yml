@@ -65,14 +65,25 @@ jobs:
             shared/core/build/reports/tests/**
             shared/core/build/test-results/**
 
+      - name: Resolve Firebase distribution flags
+        if: github.event_name != 'pull_request'
+        env:
+          _SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          _AID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          _WID: ${{ secrets.FIREBASE_WEAR_ANDROID_APP_ID }}
+        run: |
+          echo "DIST_ANDROID=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_ANDROID_APP_ID != '' }}" >> "$GITHUB_ENV"
+          echo "DIST_WEAR=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_WEAR_ANDROID_APP_ID != '' }}" >> "$GITHUB_ENV"
+          echo "DIST_ANDROID_OR_WEAR=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && (secrets.FIREBASE_ANDROID_APP_ID != '' || secrets.FIREBASE_WEAR_ANDROID_APP_ID != '') }}" >> "$GITHUB_ENV"
+
       - name: Generate Android release notes
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && (secrets.FIREBASE_ANDROID_APP_ID != '' || secrets.FIREBASE_WEAR_ANDROID_APP_ID != '')
+        if: github.event_name != 'pull_request' && env.DIST_ANDROID_OR_WEAR == 'true'
         run: |
           ./scripts/write_release_notes.sh "$RUNNER_TEMP/android-release-notes.txt" "Android internal build"
           ./scripts/write_release_notes.sh "$RUNNER_TEMP/wear-release-notes.txt" "Wear OS internal build"
 
       - name: Distribute Android phone APK to Firebase
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_ANDROID_APP_ID != ''
+        if: github.event_name != 'pull_request' && env.DIST_ANDROID == 'true'
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
@@ -83,7 +94,7 @@ jobs:
           file: androidApp/build/outputs/apk/debug/androidApp-debug.apk
 
       - name: Distribute Wear OS APK to Firebase
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_WEAR_ANDROID_APP_ID != ''
+        if: github.event_name != 'pull_request' && env.DIST_WEAR == 'true'
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_WEAR_ANDROID_APP_ID }}
@@ -175,8 +186,13 @@ jobs:
           if-no-files-found: ignore
           path: ${{ runner.temp }}/ios-tests.xcresult
 
+      - name: Resolve Firebase distribution flags
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "DIST_IOS=${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != '' }}" >> "$GITHUB_ENV"
+
       - name: Install Apple signing assets
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != ''
+        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         env:
           APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
@@ -185,7 +201,7 @@ jobs:
         run: ./scripts/install_apple_signing_assets.sh
 
       - name: Build signed iOS IPA
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != ''
+        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         env:
           APPLE_BUNDLE_ID: com.gcaguilar.bizizaragoza.ios
           APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
@@ -195,7 +211,7 @@ jobs:
           ./scripts/export_ios_ipa.sh "$RUNNER_TEMP/ios-export" "$RUNNER_TEMP/BiziZaragoza.xcarchive"
 
       - name: Upload signed iOS IPA
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != ''
+        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-device-ipa
@@ -203,11 +219,11 @@ jobs:
           path: ${{ runner.temp }}/ios-export/*.ipa
 
       - name: Generate iOS release notes
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != ''
+        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         run: ./scripts/write_release_notes.sh "$RUNNER_TEMP/ios-release-notes.txt" "iOS internal build"
 
       - name: Distribute iOS IPA to Firebase
-        if: github.event_name != 'pull_request' && secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' && secrets.FIREBASE_IOS_APP_ID != '' && secrets.APPLE_TEAM_ID != '' && secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 != '' && secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD != '' && secrets.APPLE_PROVISIONING_PROFILE_BASE64 != ''
+        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
