@@ -41,7 +41,7 @@ jobs:
 
       - name: Run Android build and tests
         env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
         run: ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
 
       - name: Upload Android debug APKs
