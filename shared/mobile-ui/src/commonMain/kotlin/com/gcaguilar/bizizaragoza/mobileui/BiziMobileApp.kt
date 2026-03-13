@@ -452,6 +452,7 @@ fun BiziMobileApp(
                   onFavoriteToggle = { station ->
                     scope.launch { favoritesRepository.toggle(station.id) }
                   },
+                  onQuickRoute = { station -> graph.routeLauncher.launch(station) },
                   paddingValues = innerPadding,
                 )
                 MobileTab.Favoritos -> FavoritesScreen(
@@ -546,6 +547,7 @@ private fun DashboardScreen(
   onStationSelected: (Station) -> Unit,
   onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
+  onQuickRoute: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val nearestStation = nearestSelection.highlightedStation
@@ -690,6 +692,7 @@ private fun DashboardScreen(
         isFavorite = station.id in favoriteIds,
         onClick = { onStationSelected(station) },
         onFavoriteToggle = { onFavoriteToggle(station) },
+        onQuickRoute = { onQuickRoute(station) },
       )
     }
   }
@@ -1190,6 +1193,7 @@ private fun StationRow(
   isFavorite: Boolean,
   onClick: () -> Unit,
   onFavoriteToggle: () -> Unit,
+  onQuickRoute: (() -> Unit)? = null,
   showFavoriteCta: Boolean = true,
 ) {
   Card(
@@ -1232,18 +1236,29 @@ private fun StationRow(
           )
         }
         Spacer(Modifier.width(12.dp))
-        if (showFavoriteCta) {
-          FavoritePill(
-            active = isFavorite,
-            onClick = onFavoriteToggle,
-            label = if (isFavorite) "Guardada" else "Guardar",
-          )
-        } else {
-          FavoritePill(
-            active = true,
-            onClick = {},
-            label = "Favorita",
-          )
+        Row(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          onQuickRoute?.let { quickRoute ->
+            RoutePill(
+              label = if (mobilePlatform == MobileUiPlatform.IOS) "Maps" else "Ruta",
+              onClick = quickRoute,
+            )
+          }
+          if (showFavoriteCta) {
+            FavoritePill(
+              active = isFavorite,
+              onClick = onFavoriteToggle,
+              label = if (isFavorite) "Guardada" else "Guardar",
+            )
+          } else {
+            FavoritePill(
+              active = true,
+              onClick = {},
+              label = "Favorita",
+            )
+          }
         }
       }
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1266,6 +1281,35 @@ private fun StationRow(
           tint = BiziGreen,
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun RoutePill(
+  label: String,
+  onClick: () -> Unit,
+) {
+  Surface(
+    shape = RoundedCornerShape(16.dp),
+    color = BiziBlue.copy(alpha = 0.08f),
+    border = BorderStroke(1.dp, BiziBlue.copy(alpha = 0.16f)),
+    modifier = Modifier.clickable(onClick = onClick),
+  ) {
+    Row(
+      modifier = Modifier
+        .padding(horizontal = 12.dp, vertical = 9.dp)
+        .animateContentSize(animationSpec = tween(180)),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Icon(
+        imageVector = Icons.Filled.Directions,
+        contentDescription = null,
+        tint = BiziBlue,
+        modifier = Modifier.size(16.dp),
+      )
+      Text(label, color = BiziBlue, style = MaterialTheme.typography.labelMedium)
     }
   }
 }
