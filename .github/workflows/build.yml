@@ -53,8 +53,7 @@ jobs:
           fi
           if [[ -n "$BIZI_CI_KEYSTORE_BASE64" ]]; then
             printf '%s' "$BIZI_CI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bizi-ci.keystore"
-            echo "CI keystore SHA-1:"
-            keytool -list -v -keystore "$RUNNER_TEMP/bizi-ci.keystore" -alias bizi-ci -storepass bizi-ci-store 2>/dev/null | grep "SHA1:"
+
           fi
 
       - name: Run Android build and tests
