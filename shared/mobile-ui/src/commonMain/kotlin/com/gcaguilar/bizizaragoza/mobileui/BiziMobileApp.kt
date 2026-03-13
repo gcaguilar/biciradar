@@ -1387,6 +1387,7 @@ private fun StationDetailScreen(
   onToggleWork: () -> Unit,
   onRoute: () -> Unit,
 ) {
+  PlatformBackHandler(enabled = true, onBack = onBack)
   Scaffold(
     topBar = {
       TopAppBar(
