@@ -45,10 +45,10 @@ jobs:
           GOOGLE_SERVICES_JSON_WEAR: ${{ secrets.GOOGLE_SERVICES_JSON_WEAR }}
         run: |
           if [[ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]]; then
-            echo "$GOOGLE_SERVICES_JSON_ANDROID" | base64 --decode > androidApp/google-services.json
+            printf '%s' "$GOOGLE_SERVICES_JSON_ANDROID" > androidApp/google-services.json
           fi
           if [[ -n "$GOOGLE_SERVICES_JSON_WEAR" ]]; then
-            echo "$GOOGLE_SERVICES_JSON_WEAR" | base64 --decode > wearApp/google-services.json
+            printf '%s' "$GOOGLE_SERVICES_JSON_WEAR" > wearApp/google-services.json
           fi
 
       - name: Run Android build and tests
@@ -147,7 +147,7 @@ jobs:
         run: |
           printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
           if [[ -n "$GOOGLE_SERVICE_INFO_PLIST" ]]; then
-            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > apple/iosApp/GoogleService-Info.plist
+            printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > apple/iosApp/GoogleService-Info.plist
           fi
 
       - name: Resolve iOS simulator destination
