@@ -2217,7 +2217,7 @@ private fun QuickRouteActionCard(
         station?.let(onRoute)
       },
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
   ) {
     Column(
       modifier = Modifier
