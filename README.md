@@ -31,6 +31,33 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 ## Configuration
 
 - `GOOGLE_MAPS_API_KEY` is optional and enables real map tiles on Android.
+- Android Crashlytics is enabled automatically when `androidApp/google-services.json` exists.
+- Wear OS Crashlytics is enabled automatically when `wearApp/google-services.json` exists.
+- iOS Crashlytics is enabled automatically when `apple/iosApp/GoogleService-Info.plist` exists and gets bundled into the app.
+
+### Crashlytics setup
+
+1. In Firebase, register the Android app `com.gcaguilar.bizizaragoza` and download `google-services.json`.
+2. Save that file at [androidApp/google-services.json](/Users/guillermo.castella/bizi/androidApp/google-services.json).
+3. In Firebase, register the Wear OS app `com.gcaguilar.bizizaragoza.wear` and download its `google-services.json`.
+4. Save that file at [wearApp/google-services.json](/Users/guillermo.castella/bizi/wearApp/google-services.json).
+5. In Firebase, register the iOS app `com.gcaguilar.bizizaragoza.ios` and download `GoogleService-Info.plist`.
+6. Save that file at [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/bizi/apple/iosApp/GoogleService-Info.plist).
+7. Save your local iPhone Google Maps key in [apple/Config/LocalSecrets.xcconfig](/Users/guillermo.castella/bizi/apple/Config/LocalSecrets.xcconfig) using the `GOOGLE_MAPS_IOS_API_KEY` setting.
+8. Rebuild the apps.
+
+What the repository already does for you:
+
+- Android applies `com.google.gms.google-services` and `com.google.firebase.crashlytics` only when the Firebase config file is present.
+- Wear OS applies `com.google.gms.google-services` and `com.google.firebase.crashlytics` only when the Firebase config file is present.
+- iOS configures `FirebaseApp` on startup only when `GoogleService-Info.plist` is bundled.
+- The iOS target includes the Crashlytics package and uploads dSYMs during build when the plist is available.
+- The repository only tracks [apple/Config/MapsConfig.xcconfig](/Users/guillermo.castella/bizi/apple/Config/MapsConfig.xcconfig). Your real iOS maps key lives in the ignored local file `apple/Config/LocalSecrets.xcconfig`.
+
+Quick verification:
+
+- Android: trigger a test crash and check that the event appears in Firebase Crashlytics.
+- iOS: launch the app once with the plist bundled, trigger a test crash, and verify the event plus symbol upload.
 
 ## Release
 
@@ -51,10 +78,42 @@ Published artifacts:
 - `android-debug-apks`
 - `ios-simulator-app`
 - `watchos-simulator-app`
+- `ios-device-ipa` when Apple signing secrets are configured
 
 Important note:
 
 - Apple simulator installs use `.app` bundles, not `.ipa` files, so the workflow packages those bundles as `.zip` artifacts.
+- Firebase App Distribution only receives installable device builds. In this repository that means Android APKs and, when signing is configured, a signed iOS IPA. Simulator `.app` bundles stay as GitHub Actions artifacts.
+
+### Optional Firebase App Distribution
+
+The same workflow can also distribute internal builds to Firebase App Distribution when the required GitHub secrets and variables are present.
+
+Required secrets:
+
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: raw JSON of a Firebase service account with App Distribution access.
+- `FIREBASE_ANDROID_APP_ID`: Firebase app id for the Android phone app.
+- `FIREBASE_WEAR_ANDROID_APP_ID`: optional Firebase app id for the Wear OS app.
+- `FIREBASE_IOS_APP_ID`: Firebase app id for the iOS app.
+- `APPLE_TEAM_ID`: Apple Developer team id for signing the iOS IPA.
+- `APPLE_SIGNING_CERTIFICATE_P12_BASE64`: base64-encoded `.p12` signing certificate for iOS distribution.
+- `APPLE_SIGNING_CERTIFICATE_PASSWORD`: password for the `.p12`.
+- `APPLE_PROVISIONING_PROFILE_BASE64`: base64-encoded provisioning profile for `com.gcaguilar.bizizaragoza.ios`.
+- `APPLE_KEYCHAIN_PASSWORD`: optional custom password for the temporary CI keychain.
+
+Optional GitHub repository variables:
+
+- `FIREBASE_APP_DIST_GROUPS`: comma-separated Firebase tester groups.
+- `FIREBASE_APP_DIST_TESTERS`: comma-separated tester emails.
+- `APPLE_EXPORT_METHOD`: Xcode export method for the IPA. Recommended values are `debugging` for development-style builds and `release-testing` for ad hoc style builds.
+- `APPLE_SIGNING_CERTIFICATE_TYPE`: optional explicit Xcode certificate selector such as `Apple Development` or `Apple Distribution`.
+
+Behavior:
+
+- `pull_request` runs keep building and testing, but skip Firebase distribution.
+- `push` to `main` and manual runs distribute Android APKs when Firebase secrets are present.
+- `push` to `main` and manual runs also export and distribute a signed iOS IPA when both Firebase and Apple signing secrets are present.
+- watchOS simulator builds continue to upload as GitHub artifacts only.
 
 ## Shortcuts and Voice
 
