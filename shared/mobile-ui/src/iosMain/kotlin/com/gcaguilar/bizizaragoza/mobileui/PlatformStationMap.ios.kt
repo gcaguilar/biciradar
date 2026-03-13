@@ -106,8 +106,12 @@ private class IOSStationMapCoordinator {
   var selectionHandler: (Station) -> Unit = {}
   var highlightedStationId: String? = null
   private var hasZoomed = false
+  private var lastStations: List<Station> = emptyList()
+  private var lastHighlightedStationId: String? = null
 
   private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
+  // Reverse map to update annotation views by station id
+  private val annotationByStationId = mutableMapOf<String, MKPointAnnotation>()
   private val delegate = StationMapDelegate(
     stationForAnnotation = { annotation -> stationAnnotations[annotation] },
     highlightedStationId = { highlightedStationId },
@@ -127,8 +131,6 @@ private class IOSStationMapCoordinator {
     highlightedStationId: String?,
   ) {
     this.highlightedStationId = highlightedStationId
-    stationAnnotations.clear()
-    mapView.removeAnnotations(mapView.annotations)
 
     // Zoom to user location only on first load
     if (!hasZoomed) {
@@ -149,15 +151,40 @@ private class IOSStationMapCoordinator {
     // Use native blue dot for user location
     mapView.showsUserLocation = userLocation != null
 
-    stations.forEach { station ->
-      val annotation = MKPointAnnotation().apply {
-        setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
-        setTitle(station.name)
-        setSubtitle("${station.bikesAvailable} bicis · ${station.slotsFree} libres")
+    val stationsChanged = stations.map { it.id } != lastStations.map { it.id } ||
+      stations.zip(lastStations).any { (a, b) ->
+        a.bikesAvailable != b.bikesAvailable || a.slotsFree != b.slotsFree
       }
-      stationAnnotations[annotation] = station
-      mapView.addAnnotation(annotation)
+
+    if (stationsChanged) {
+      // Full redraw: station list or availability changed
+      stationAnnotations.clear()
+      annotationByStationId.clear()
+      mapView.removeAnnotations(mapView.annotations)
+
+      stations.forEach { station ->
+        val annotation = MKPointAnnotation().apply {
+          setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
+          setTitle(station.name)
+          setSubtitle("${station.bikesAvailable} bicis · ${station.slotsFree} libres")
+        }
+        stationAnnotations[annotation] = station
+        annotationByStationId[station.id] = annotation
+        mapView.addAnnotation(annotation)
+      }
+      lastStations = stations
+    } else if (highlightedStationId != lastHighlightedStationId) {
+      // Only selection changed — update marker colors in-place without removing annotations
+      val affectedIds = listOfNotNull(lastHighlightedStationId, highlightedStationId)
+      affectedIds.forEach { stationId ->
+        val annotation = annotationByStationId[stationId] ?: return@forEach
+        val station = lastStations.firstOrNull { it.id == stationId } ?: return@forEach
+        val annotationView = mapView.viewForAnnotation(annotation) as? MKMarkerAnnotationView ?: return@forEach
+        annotationView.markerTintColor = stationMarkerColor(station, highlighted = stationId == highlightedStationId)
+      }
     }
+
+    lastHighlightedStationId = highlightedStationId
   }
 }
 

@@ -51,8 +51,8 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29557376
-    versionName = "2026.03.13.2356"
+    versionCode = 29557379
+    versionName = "2026.03.13.2359"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 
