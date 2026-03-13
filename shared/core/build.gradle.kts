@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.android.library)
+  alias(libs.plugins.android.kotlin.multiplatform.library)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.metro)
 }
@@ -76,10 +76,6 @@ android {
     minSdk = 26
   }
 
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
 }
 
 tasks.matching { it.name == "watchosSimulatorArm64Test" }.configureEach {
