@@ -32,6 +32,11 @@ val googleMapsApiKey: String = providers.environmentVariable("GOOGLE_MAPS_API_KE
     if (key.isEmpty()) logger.warn("WARNING: googleMapsApiKey is empty — Google Maps will not work in this build")
   }
 
+val ciKeystorePath: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orElse("").get()
+val ciKeystorePassword: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").orElse("").get()
+val ciKeyAlias: String = providers.environmentVariable("BIZI_CI_KEY_ALIAS").orElse("").get()
+val ciKeyPassword: String = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").orElse("").get()
+
 kotlin {
   compilerOptions {
     jvmTarget.set(JvmTarget.JVM_17)
@@ -46,8 +51,8 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29557327
-    versionName = "2026.03.13.2307"
+    versionCode = 29557330
+    versionName = "2026.03.13.2310"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 
@@ -60,6 +65,16 @@ android {
     release {
       isMinifyEnabled = false
       manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
+    }
+    debug {
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ci") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
     }
   }
 
