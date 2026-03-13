@@ -5,7 +5,10 @@
 build/
 **/build/
 local.properties
+androidApp/google-services.json
+wearApp/google-services.json
+apple/iosApp/GoogleService-Info.plist
+apple/Config/LocalSecrets.xcconfig
 *.iml
 DerivedData/
 xcuserdata/
-
