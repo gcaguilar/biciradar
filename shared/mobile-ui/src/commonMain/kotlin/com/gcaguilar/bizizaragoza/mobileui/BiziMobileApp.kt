@@ -533,19 +533,20 @@ fun BiziMobileApp(
                       isMapReady = isMapReady,
                     )
                     MobileTab.Cerca -> NearbyScreen(
-                      mobilePlatform = mobilePlatform,
-                      stations = stationsState.stations,
-                      favoriteIds = favoriteIds,
-                      loading = stationsState.isLoading,
-                      errorMessage = stationsState.errorMessage,
-                      nearestSelection = nearestSelection,
-                      searchRadiusMeters = searchRadiusMeters,
-                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
-                      onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                      onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-                      paddingValues = innerPadding,
-                    )
+                       mobilePlatform = mobilePlatform,
+                       stations = stationsState.stations,
+                       favoriteIds = favoriteIds,
+                       loading = stationsState.isLoading,
+                       errorMessage = stationsState.errorMessage,
+                       nearestSelection = nearestSelection,
+                       searchRadiusMeters = searchRadiusMeters,
+                       onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
+                       onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                       onRefresh = remember(scope, stationsRepository) { { scope.launch { stationsRepository.forceRefresh() } } },
+                       onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                       onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
+                       paddingValues = innerPadding,
+                     )
                     MobileTab.Favoritos -> FavoritesScreen(
                       mobilePlatform = mobilePlatform,
                       onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Atajos } },
@@ -857,6 +858,7 @@ private fun NearbyScreen(
   searchRadiusMeters: Int,
   onStationSelected: (Station) -> Unit,
   onRetry: () -> Unit,
+  onRefresh: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   paddingValues: PaddingValues,
@@ -880,31 +882,55 @@ private fun NearbyScreen(
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       if (mobilePlatform == MobileUiPlatform.IOS) {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Text(
-            text = "Cerca",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-          )
-          Text(
-            text = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = BiziMuted,
-          )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.Top,
+        ) {
+          Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+          ) {
+            Text(
+              text = "Cerca",
+              style = MaterialTheme.typography.headlineMedium,
+              fontWeight = FontWeight.Bold,
+            )
+            Text(
+              text = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
+              style = MaterialTheme.typography.bodyMedium,
+              color = BiziMuted,
+            )
+          }
+          IconButton(onClick = onRefresh, enabled = !loading) {
+            Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
+          }
         }
       } else {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = "Cerca de ti",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = BiziRed,
-          )
-          Text(
-            text = "Estaciones ordenadas por cercanía y acciones rápidas para moverte.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = BiziMuted,
-          )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.Top,
+        ) {
+          Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            Text(
+              text = "Cerca de ti",
+              style = MaterialTheme.typography.headlineMedium,
+              fontWeight = FontWeight.Bold,
+              color = BiziRed,
+            )
+            Text(
+              text = "Estaciones ordenadas por cercanía y acciones rápidas para moverte.",
+              style = MaterialTheme.typography.bodyMedium,
+              color = BiziMuted,
+            )
+          }
+          IconButton(onClick = onRefresh, enabled = !loading) {
+            Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
+          }
         }
       }
       Row(

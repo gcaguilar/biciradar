@@ -18,6 +18,7 @@ private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
 interface StationsRepository {
   val state: StateFlow<StationsState>
   suspend fun loadIfNeeded()
+  suspend fun forceRefresh()
   suspend fun refreshAvailability(stationIds: List<String>)
   fun stationById(stationId: String): Station?
 }
@@ -45,6 +46,11 @@ class StationsRepositoryImpl(
   private var loaded = false
 
   override val state: StateFlow<StationsState> = mutableState.asStateFlow()
+
+  override suspend fun forceRefresh() {
+    loaded = false
+    loadIfNeeded()
+  }
 
   override suspend fun loadIfNeeded() {
     if (loaded) return
