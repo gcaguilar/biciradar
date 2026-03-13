@@ -54,10 +54,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -1350,6 +1352,7 @@ private fun ProfileScreen(
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StationDetailScreen(
   mobilePlatform: MobileUiPlatform,
@@ -1365,23 +1368,25 @@ private fun StationDetailScreen(
   onToggleWork: () -> Unit,
   onRoute: () -> Unit,
 ) {
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = { Text(station.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        navigationIcon = {
+          IconButton(onClick = onBack) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+          }
+        },
+      )
+    },
+  ) { innerPadding ->
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
       .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
+    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = innerPadding.calculateTopPadding() + 16.dp, bottom = 16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    item {
-      OutlinedButton(
-        onClick = onBack,
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text("Volver")
-      }
-    }
     item {
       Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -1521,6 +1526,7 @@ private fun StationDetailScreen(
         Text(if (isFavorite) "Quitar de favoritos" else "Guardar en favoritos")
       }
     }
+  }
   }
 }
 
