@@ -8,7 +8,10 @@ plugins {
 }
 
 kotlin {
-  androidTarget {
+  android {
+    compileSdk = 36
+    minSdk = 26
+    namespace = "com.gcaguilar.bizizaragoza.shared.mobileui"
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }
@@ -41,14 +44,4 @@ kotlin {
       implementation(libs.play.services.maps)
     }
   }
-}
-
-android {
-  namespace = "com.gcaguilar.bizizaragoza.shared.mobileui"
-  compileSdk = 36
-
-  defaultConfig {
-    minSdk = 26
-  }
-
 }

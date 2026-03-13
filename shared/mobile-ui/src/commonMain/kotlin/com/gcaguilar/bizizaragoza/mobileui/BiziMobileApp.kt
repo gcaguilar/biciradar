@@ -447,6 +447,7 @@ fun BiziMobileApp(
                 isHomeStation = homeStationId == selectedStation.id,
                 isWorkStation = workStationId == selectedStation.id,
                 userLocation = stationsState.userLocation,
+                isMapReady = mapSupportStatus.isGoogleMapsReady(),
                 onBack = { selectedStationId = null },
                 onToggleFavorite = {
                   scope.launch { favoritesRepository.toggle(selectedStation.id) }
@@ -1350,6 +1351,7 @@ private fun StationDetailScreen(
   isHomeStation: Boolean,
   isWorkStation: Boolean,
   userLocation: GeoPoint?,
+  isMapReady: Boolean,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onToggleHome: () -> Unit,
@@ -1470,6 +1472,7 @@ private fun StationDetailScreen(
           stations = listOf(station),
           userLocation = userLocation,
           highlightedStationId = station.id,
+          isMapReady = isMapReady,
           onStationSelected = {},
         )
       }

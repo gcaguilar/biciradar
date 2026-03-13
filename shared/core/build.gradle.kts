@@ -8,7 +8,10 @@ plugins {
 }
 
 kotlin {
-  androidTarget {
+  android {
+    compileSdk = 36
+    minSdk = 26
+    namespace = "com.gcaguilar.bizizaragoza.shared.core"
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }
@@ -66,16 +69,6 @@ kotlin {
       }
     }
   }
-}
-
-android {
-  namespace = "com.gcaguilar.bizizaragoza.shared.core"
-  compileSdk = 36
-
-  defaultConfig {
-    minSdk = 26
-  }
-
 }
 
 tasks.matching { it.name == "watchosSimulatorArm64Test" }.configureEach {
