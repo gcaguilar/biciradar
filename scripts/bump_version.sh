@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # bump_version.sh — Updates version strings across iOS and Android project files.
-# Version format: yyyy.MM.dd.HHmm  (e.g. 2026.03.13.1530)
-# Build number:   yyyyMMddHHmm     (e.g. 202603131530)
+# Version name:  yyyy.MM.dd.HHmm  (e.g. 2026.03.13.1530)
+# Version code:  minutes since Unix epoch — always fits in Int32 (< 2^31)
+#                e.g. commit at 2026-03-13T15:34 UTC → 28,528,534
 #
 # Reads the timestamp of the latest git commit so the version is stable
 # even when the script runs multiple times for the same commit.
@@ -12,10 +13,10 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 # Use the author date of HEAD so re-runs produce the same value.
 commit_timestamp="$(git log -1 --format='%ad' --date='format:%Y.%m.%d.%H%M')"
-build_number="$(git log -1 --format='%ad' --date='format:%Y%m%d%H%M')"
+commit_unix="$(git log -1 --format='%ad' --date='format:%s')"
 
-version_name="$commit_timestamp"   # e.g. 2026.03.13.1530
-version_code="$build_number"       # e.g. 202603131530
+version_name="$commit_timestamp"              # e.g. 2026.03.13.1530
+version_code=$(( commit_unix / 60 ))          # minutes since epoch, fits in Int
 
 echo "Bumping version → name=${version_name}  code=${version_code}"
 
