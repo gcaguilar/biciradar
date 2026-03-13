@@ -1060,12 +1060,6 @@ private fun MapSelectedStationCard(
             overflow = TextOverflow.Ellipsis,
           )
         }
-        Spacer(Modifier.width(12.dp))
-        FavoritePill(
-          active = isFavorite,
-          onClick = onFavoriteToggle,
-          label = if (isFavorite) "Guardada" else "Guardar",
-        )
       }
       Text(
         text = if (isFallbackSelection) {
