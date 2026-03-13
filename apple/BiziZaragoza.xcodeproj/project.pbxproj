@@ -20,6 +20,7 @@
 		4CC0740FE6C9C66FA03583E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 984BA0E2F21405E13678B28B /* Assets.xcassets */; };
 		52C55C4B3E9604100CF95FDE /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 9EDF8FBE9F731BEDA3695F84 /* GoogleMaps */; };
 		5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC824927869DECDC66A1B8A /* SwiftUI.framework */; };
+		56489250264A501AF0E91051 /* GoogleMapsStationMapFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = F527453863BA31673E013DD3 /* GoogleMapsStationMapFactory.swift */; };
 		5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EAD93BA8276E4323A19B32F8 /* UIKit.framework */; };
 		63246534A4832C85D0098F7F /* WatchDashboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3CB089C6F846721EF5C2BBC /* WatchDashboardModel.swift */; };
 		63A000A2270F005B5BED7D82 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */; };
@@ -99,6 +100,7 @@
 		EC58133CDF714873B84A2060 /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
 		EE21223C514C28044A56CCA1 /* GoogleMapsBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleMapsBootstrap.swift; sourceTree = "<group>"; };
 		F3BF85899DE0B0B05DBE09D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F527453863BA31673E013DD3 /* GoogleMapsStationMapFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleMapsStationMapFactory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -251,6 +253,7 @@
 				6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */,
 				19E8B4F16C7C9200EBB7D9D1 /* FirebaseBootstrap.swift */,
 				EE21223C514C28044A56CCA1 /* GoogleMapsBootstrap.swift */,
+				F527453863BA31673E013DD3 /* GoogleMapsStationMapFactory.swift */,
 				CEAC14E87E1D3F44D559FE5B /* GoogleService-Info.plist */,
 			);
 			path = iosApp;
@@ -565,6 +568,7 @@
 				909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */,
 				2CD883FA2C770B999319B3F1 /* FirebaseBootstrap.swift in Sources */,
 				73651A1064D7BF7E6F9DDD34 /* GoogleMapsBootstrap.swift in Sources */,
+				56489250264A501AF0E91051 /* GoogleMapsStationMapFactory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -800,7 +804,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 29557011;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -813,7 +817,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 2026.03.13.1751;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -887,7 +891,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 29557011;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -906,7 +910,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 2026.03.13.1751;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
