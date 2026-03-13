@@ -51,8 +51,8 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29557385
-    versionName = "2026.03.14.0005"
+    versionCode = 29557394
+    versionName = "2026.03.14.0014"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 
@@ -61,9 +61,20 @@ android {
     compose = true
   }
 
+  lint {
+    // False positive: ComponentActivity ships its own modern FragmentActivity —
+    // the fragment version check does not apply here.
+    disable += "InvalidFragmentVersionForActivityResult"
+  }
+
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro",
+      )
       manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
     debug {
