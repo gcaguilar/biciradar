@@ -511,7 +511,6 @@ fun BiziMobileApp(
                     )
                     MobileTab.Cerca -> NearbyScreen(
                       mobilePlatform = mobilePlatform,
-                      onOpenAssistant = { currentTab = MobileTab.Atajos },
                       stations = stationsState.stations,
                       favoriteIds = favoriteIds,
                       loading = stationsState.isLoading,
@@ -843,7 +842,6 @@ private fun MapScreen(
 @Composable
 private fun NearbyScreen(
   mobilePlatform: MobileUiPlatform,
-  onOpenAssistant: () -> Unit,
   stations: List<Station>,
   favoriteIds: Set<String>,
   loading: Boolean,
@@ -873,11 +871,18 @@ private fun NearbyScreen(
   ) {
     item {
       if (mobilePlatform == MobileUiPlatform.IOS) {
-        MobilePageHeader(
-          title = "Cerca",
-          subtitle = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
-          onOpenAssistant = onOpenAssistant,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+          Text(
+            text = "Cerca",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+          )
+          Text(
+            text = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = BiziMuted,
+          )
+        }
       } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
