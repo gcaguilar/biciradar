@@ -83,5 +83,11 @@ class MainActivity : ComponentActivity() {
     val payload = intent.toLaunchPayload()
     launchRequest = payload?.launchRequest
     assistantLaunchRequest = payload?.assistantLaunchRequest
+    ShortcutAnalytics.trackLaunch(
+      context = applicationContext,
+      intent = intent,
+      launchRequest = launchRequest,
+      assistantLaunchRequest = assistantLaunchRequest,
+    )
   }
 }
