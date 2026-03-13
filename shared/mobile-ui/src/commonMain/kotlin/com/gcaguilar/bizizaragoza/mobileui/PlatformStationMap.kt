@@ -11,5 +11,6 @@ internal expect fun PlatformStationMap(
   stations: List<Station>,
   userLocation: GeoPoint?,
   highlightedStationId: String?,
+  isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
 )

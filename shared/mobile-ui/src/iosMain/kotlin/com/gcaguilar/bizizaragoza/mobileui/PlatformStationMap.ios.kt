@@ -26,6 +26,7 @@ internal actual fun PlatformStationMap(
   stations: List<Station>,
   userLocation: GeoPoint?,
   highlightedStationId: String?,
+  isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
 ) {
   val coordinator = remember { IOSStationMapCoordinator() }.apply {
