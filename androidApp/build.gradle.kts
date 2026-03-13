@@ -42,8 +42,8 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29556975
-    versionName = "2026.03.13.1715"
+    versionCode = 29556994
+    versionName = "2026.03.13.1734"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
   }
 
@@ -55,6 +55,7 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = false
+      manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
     }
   }
 

@@ -29,6 +29,44 @@ internal actual fun PlatformStationMap(
   isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
 ) {
+  val factory = LocalStationMapViewFactory.current
+
+  if (isMapReady && factory != null) {
+    val view = remember { factory.createView() }
+    UIKitView(
+      modifier = modifier,
+      factory = { view },
+      properties = UIKitInteropProperties(),
+      update = {
+        factory.updateView(
+          view = it,
+          stations = stations,
+          userLocation = userLocation,
+          highlightedStationId = highlightedStationId,
+          onStationSelected = onStationSelected,
+        )
+      },
+    )
+  } else {
+    AppleMapKitView(
+      modifier = modifier,
+      stations = stations,
+      userLocation = userLocation,
+      highlightedStationId = highlightedStationId,
+      onStationSelected = onStationSelected,
+    )
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+@Composable
+private fun AppleMapKitView(
+  modifier: Modifier,
+  stations: List<Station>,
+  userLocation: GeoPoint?,
+  highlightedStationId: String?,
+  onStationSelected: (Station) -> Unit,
+) {
   val coordinator = remember { IOSStationMapCoordinator() }.apply {
     selectionHandler = onStationSelected
   }
@@ -147,3 +185,4 @@ private class StationMapDelegate(
     stationForAnnotation(pointAnnotation)?.let(onStationSelected)
   }
 }
+

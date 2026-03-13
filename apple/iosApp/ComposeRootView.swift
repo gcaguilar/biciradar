@@ -12,10 +12,19 @@ struct ComposeRootView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 
     private func makeContentViewController() -> UIViewController {
+        let factory: (any StationMapViewFactory)? = GoogleMapsBootstrap.isSdkLinked()
+            ? GoogleMapsStationMapFactory()
+            : nil
         if let launchRequest {
-            return BiziMobileViewControllerKt.MainViewController(launchRequest: launchRequest)
+            return BiziMobileViewControllerKt.MainViewController(
+                launchRequest: launchRequest,
+                stationMapViewFactory: factory
+            )
         } else {
-            return BiziMobileViewControllerKt.RootViewController()
+            return BiziMobileViewControllerKt.MainViewController(
+                launchRequest: nil,
+                stationMapViewFactory: factory
+            )
         }
     }
 }
