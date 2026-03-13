@@ -70,6 +70,10 @@ Shortcuts published in [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.caste
 - `Enséñame cuántas bicis tiene una estación en Bizi Zaragoza`
 - `Enséñame cuántos huecos tiene una estación en Bizi Zaragoza`
 - `Llévame a una estación con Bizi Zaragoza`
+- `Enséñame el estado de casa en Bizi Zaragoza`
+- `Enséñame el estado de trabajo en Bizi Zaragoza`
+- `Llévame a casa con Bizi Zaragoza`
+- `Llévame a trabajo con Bizi Zaragoza`
 
 Supported queries:
 
@@ -81,6 +85,8 @@ Supported queries:
 - free docks at a station by name or station number
 - full station status by name
 - route to a station by name
+- full station status for the saved `Casa` and `Trabajo` stations
+- route to the saved `Casa` and `Trabajo` stations
 
 Current behavior:
 
@@ -98,6 +104,10 @@ Shortcuts published in [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillerm
 - `Enséñame cuántas bicis tiene una estación en el reloj con Bizi Zaragoza`
 - `Enséñame cuántos huecos tiene una estación en el reloj con Bizi Zaragoza`
 - `Abre una ruta en mi iPhone con Bizi Zaragoza`
+- `Enséñame el estado de casa en el reloj con Bizi Zaragoza`
+- `Enséñame el estado de trabajo en el reloj con Bizi Zaragoza`
+- `Abre una ruta a casa en mi iPhone con Bizi Zaragoza`
+- `Abre una ruta a trabajo en mi iPhone con Bizi Zaragoza`
 
 Current behavior:
 
@@ -120,6 +130,17 @@ Supported actions:
 - `route_to_station`
 - `show_station`
 
+Saved place aliases supported by Android launch resolution:
+
+- `casa`
+- `mi casa`
+- `home`
+- `trabajo`
+- `mi trabajo`
+- `work`
+- `oficina`
+- `mi oficina`
+
 Example target phrases for Assistant:
 
 - `abre Bizi Zaragoza y muéstrame la estación más cercana`
@@ -130,6 +151,10 @@ Example target phrases for Assistant:
 - `abre Bizi Zaragoza y enséñame cuántas bicis tiene una estación`
 - `abre Bizi Zaragoza y enséñame cuántos huecos tiene una estación`
 - `abre Bizi Zaragoza y llévame a una estación`
+- `abre Bizi Zaragoza y enséñame el estado de casa`
+- `abre Bizi Zaragoza y enséñame el estado de trabajo`
+- `abre Bizi Zaragoza y llévame a casa`
+- `abre Bizi Zaragoza y llévame al trabajo`
 
 Important note:
 

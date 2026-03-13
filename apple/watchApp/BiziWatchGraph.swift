@@ -73,6 +73,10 @@ actor BiziWatchGraph {
         guard let query else { return snapshots.first }
         let normalizedQuery = normalizeWatchStationQuery(query)
         guard !normalizedQuery.isEmpty else { return snapshots.first }
+        if let pinnedStationId = pinnedStationId(for: normalizedQuery),
+           let pinnedStation = try await station(stationId: pinnedStationId) {
+            return pinnedStation
+        }
         let numericQuery = query.filter(\.isNumber)
         return snapshots.first(where: { station in
             station.matches(normalizedQuery: normalizedQuery, numericQuery: numericQuery)
@@ -179,6 +183,17 @@ actor BiziWatchGraph {
 
     private func currentSearchRadiusMeters() -> Int {
         Int(graph.settingsRepository.currentSearchRadiusMeters())
+    }
+
+    private func pinnedStationId(for normalizedQuery: String) -> String? {
+        switch normalizedQuery {
+        case "casa", "mi casa", "home":
+            return graph.favoritesRepository.currentHomeStationId()
+        case "trabajo", "mi trabajo", "work", "oficina", "mi oficina":
+            return graph.favoritesRepository.currentWorkStationId()
+        default:
+            return nil
+        }
     }
 }
 

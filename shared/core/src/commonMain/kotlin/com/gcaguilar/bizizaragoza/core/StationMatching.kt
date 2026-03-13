@@ -29,6 +29,22 @@ fun findStationMatchingQuery(
   }
 }
 
+fun findStationMatchingQueryOrPinnedAlias(
+  stations: List<Station>,
+  query: String?,
+  homeStationId: String?,
+  workStationId: String?,
+): Station? {
+  val pinnedStationId = pinnedAliasStationId(
+    query = query,
+    homeStationId = homeStationId,
+    workStationId = workStationId,
+  )
+  return pinnedStationId?.let { id ->
+    stations.firstOrNull { station -> station.id == id }
+  } ?: findStationMatchingQuery(stations, query)
+}
+
 fun filterStationsByQuery(
   stations: List<Station>,
   query: String,
@@ -48,7 +64,7 @@ fun filterStationsByQuery(
   }
 }
 
-private fun normalizeStationSearchQuery(value: String?): String = value
+internal fun normalizeStationSearchQuery(value: String?): String = value
   .orEmpty()
   .trim()
   .lowercase()
@@ -72,3 +88,13 @@ private fun normalizeStationSearchQuery(value: String?): String = value
     "\\s+".toRegex(),
     " ",
   )
+
+private fun pinnedAliasStationId(
+  query: String?,
+  homeStationId: String?,
+  workStationId: String?,
+): String? = when (normalizeStationSearchQuery(query)) {
+  "casa", "mi casa", "home" -> homeStationId
+  "trabajo", "mi trabajo", "work", "oficina", "mi oficina" -> workStationId
+  else -> null
+}

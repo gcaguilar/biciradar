@@ -133,6 +133,7 @@
                 android:key="feature"
                 android:value="station_status" />
         </capability-binding>
+        <capability-binding android:key="actions.intent.GET_THING" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -156,6 +157,7 @@
                 android:key="feature"
                 android:value="station_bike_count" />
         </capability-binding>
+        <capability-binding android:key="actions.intent.GET_THING" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -179,6 +181,7 @@
                 android:key="feature"
                 android:value="station_slot_count" />
         </capability-binding>
+        <capability-binding android:key="actions.intent.GET_THING" />
     </shortcut>
     <shortcut
         android:enabled="true"
@@ -202,6 +205,7 @@
                 android:key="feature"
                 android:value="route_to_station" />
         </capability-binding>
+        <capability-binding android:key="actions.intent.GET_THING" />
     </shortcut>
     <shortcut
         android:enabled="true"

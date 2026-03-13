@@ -30,6 +30,13 @@ data class StationsState(
 )
 
 @Serializable
+data class FavoritesSyncSnapshot(
+  val favoriteIds: Set<String> = emptySet(),
+  val homeStationId: String? = null,
+  val workStationId: String? = null,
+)
+
+@Serializable
 sealed interface AssistantAction {
   @Serializable
   @SerialName("nearest_station")

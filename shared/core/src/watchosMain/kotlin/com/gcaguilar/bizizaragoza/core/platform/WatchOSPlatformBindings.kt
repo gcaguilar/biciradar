@@ -3,6 +3,7 @@ package com.gcaguilar.bizizaragoza.core.platform
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
 import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
+import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.LocationProvider
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
@@ -78,30 +79,45 @@ private class WatchOSRouteLauncher : RouteLauncher {
 
 private class WatchOSSyncBridge : WatchSyncBridge {
   @OptIn(ExperimentalForeignApi::class)
-  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
-    WatchOSFavoritesCache.persist(favoriteIds)
+  override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
+    WatchOSFavoritesCache.persist(snapshot)
     val session = WCSession.defaultSession
     memScoped {
       session.updateApplicationContext(
-        mapOf(WatchOSFavoritesCache.contextKey to favoriteIds.toList()),
+        buildMap {
+          put(WatchOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
+          snapshot.homeStationId?.let { put(WatchOSFavoritesCache.homeContextKey, it) }
+          snapshot.workStationId?.let { put(WatchOSFavoritesCache.workContextKey, it) }
+        },
         error = alloc<ObjCObjectVar<platform.Foundation.NSError?>>().ptr,
       )
     }
   }
 
-  override suspend fun latestFavoriteIds(): Set<String>? = WatchOSFavoritesCache.read().takeIf { it.isNotEmpty() }
+  override suspend fun latestFavorites(): FavoritesSyncSnapshot? = WatchOSFavoritesCache.read()
+    .takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null }
 }
 
 private object WatchOSFavoritesCache {
   const val cacheKey = "bizizaragoza.watch.favorite_ids"
   const val contextKey = "favorite_ids"
+  const val homeCacheKey = "bizizaragoza.watch.home_station_id"
+  const val workCacheKey = "bizizaragoza.watch.work_station_id"
+  const val homeContextKey = "home_station_id"
+  const val workContextKey = "work_station_id"
 
-  fun read(): Set<String> = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
-    .orEmpty()
-    .filterIsInstance<String>()
-    .toSet()
+  fun read(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
+    favoriteIds = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
+      .orEmpty()
+      .filterIsInstance<String>()
+      .toSet(),
+    homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
+    workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
+  )
 
-  fun persist(favoriteIds: Set<String>) {
-    NSUserDefaults.standardUserDefaults.setObject(favoriteIds.toList(), forKey = cacheKey)
+  fun persist(snapshot: FavoritesSyncSnapshot) {
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = homeCacheKey)
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = workCacheKey)
   }
 }

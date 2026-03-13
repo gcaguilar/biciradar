@@ -33,9 +33,9 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = object : WatchSyncBridge {
-        override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+        override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
 
-        override suspend fun latestFavoriteIds(): Set<String>? = null
+        override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
       },
     )
 
@@ -65,6 +65,24 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `settings repository persists preferred map app`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-mapapp-${Random.nextInt()}"
+    val repository = SettingsRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+    )
+
+    repository.bootstrap()
+    repository.setPreferredMapApp(PreferredMapApp.GoogleMaps)
+
+    assertEquals(PreferredMapApp.GoogleMaps, repository.currentPreferredMapApp())
+    assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/settings.json".toPath()))
+  }
+
+  @Test
   fun `favorites repository merges local and wearable ids on bootstrap`() = runTest {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-sync-${Random.nextInt()}"
     val fileSystem = FileSystem.SYSTEM
@@ -81,9 +99,11 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = object : WatchSyncBridge {
-        override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+        override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
 
-        override suspend fun latestFavoriteIds(): Set<String> = setOf("station-watch")
+        override suspend fun latestFavorites(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
+          favoriteIds = setOf("station-watch"),
+        )
       },
     )
 
@@ -101,7 +121,9 @@ class CoreRepositoryTest {
     fileSystem.write(rootPath) {
       writeUtf8("""{"favoriteIds":["station-local"]}""")
     }
-    val watchBridge = RecordingWatchSyncBridge(remoteFavoriteIds = setOf("station-watch"))
+    val watchBridge = RecordingWatchSyncBridge(
+      remoteSnapshot = FavoritesSyncSnapshot(favoriteIds = setOf("station-watch")),
+    )
     val repository = FavoritesRepositoryImpl(
       fileSystem = fileSystem,
       json = Json,
@@ -114,8 +136,8 @@ class CoreRepositoryTest {
     repository.bootstrap()
 
     assertEquals(
-      listOf(setOf("station-local", "station-watch")),
-      watchBridge.pushedFavoriteIds,
+      listOf(FavoritesSyncSnapshot(favoriteIds = setOf("station-local", "station-watch"))),
+      watchBridge.pushedSnapshots,
     )
   }
 
@@ -138,8 +160,12 @@ class CoreRepositoryTest {
     repository.toggle("station-1")
 
     assertEquals(
-      listOf(setOf("station-1"), setOf("station-1", "station-2"), setOf("station-2")),
-      watchBridge.pushedFavoriteIds,
+      listOf(
+        FavoritesSyncSnapshot(favoriteIds = setOf("station-1")),
+        FavoritesSyncSnapshot(favoriteIds = setOf("station-1", "station-2")),
+        FavoritesSyncSnapshot(favoriteIds = setOf("station-2")),
+      ),
+      watchBridge.pushedSnapshots,
     )
   }
 
@@ -153,11 +179,11 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = object : WatchSyncBridge {
-        override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
+        override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
 
-        override suspend fun latestFavoriteIds(): Set<String>? {
+        override suspend fun latestFavorites(): FavoritesSyncSnapshot? {
           delay(10_000)
-          return setOf("station-watch")
+          return FavoritesSyncSnapshot(favoriteIds = setOf("station-watch"))
         }
       },
     )
@@ -165,6 +191,72 @@ class CoreRepositoryTest {
     repository.bootstrap()
 
     assertTrue(repository.favoriteIds.value.isEmpty())
+  }
+
+  @Test
+  fun `favorites repository persists home and work stations`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-pinned-${Random.nextInt()}"
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = RecordingWatchSyncBridge(),
+    )
+
+    repository.bootstrap()
+    repository.setHomeStationId("station-home")
+    repository.setWorkStationId("station-work")
+
+    assertEquals("station-home", repository.currentHomeStationId())
+    assertEquals("station-work", repository.currentWorkStationId())
+    assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/favorites.json".toPath()))
+  }
+
+  @Test
+  fun `favorites repository deduplicates home and work stations`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-deduplicate-${Random.nextInt()}"
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = RecordingWatchSyncBridge(),
+    )
+
+    repository.bootstrap()
+    repository.setHomeStationId("station-1")
+    repository.setWorkStationId("station-1")
+
+    assertEquals("station-1", repository.currentHomeStationId())
+    assertNull(repository.currentWorkStationId())
+  }
+
+  @Test
+  fun `favorites repository merges remote home and work aliases`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-home-work-${Random.nextInt()}"
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = RecordingWatchSyncBridge(
+        remoteSnapshot = FavoritesSyncSnapshot(
+          favoriteIds = setOf("station-watch"),
+          homeStationId = "station-home",
+          workStationId = "station-work",
+        ),
+      ),
+    )
+
+    repository.bootstrap()
+
+    assertEquals(setOf("station-watch"), repository.favoriteIds.value)
+    assertEquals("station-home", repository.currentHomeStationId())
+    assertEquals("station-work", repository.currentWorkStationId())
   }
 
   @Test
@@ -256,12 +348,12 @@ class CoreRepositoryTest {
         override val routeLauncher: RouteLauncher = object : RouteLauncher {
           override fun launch(station: Station) = Unit
         }
-        override val storageDirectoryProvider: StorageDirectoryProvider = object : StorageDirectoryProvider {
-          override val rootPath: String = temporaryRoot
-        }
-        override val watchSyncBridge: WatchSyncBridge = object : WatchSyncBridge {
-          override suspend fun pushFavoriteIds(favoriteIds: Set<String>) = Unit
-          override suspend fun latestFavoriteIds(): Set<String>? = null
+          override val storageDirectoryProvider: StorageDirectoryProvider = object : StorageDirectoryProvider {
+            override val rootPath: String = temporaryRoot
+          }
+          override val watchSyncBridge: WatchSyncBridge = object : WatchSyncBridge {
+          override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
+          override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
         }
       },
     )
@@ -428,16 +520,49 @@ class CoreRepositoryTest {
     assertEquals("station-42", findStationMatchingQuery(stations, "42")?.id)
     assertEquals("station-99", findStationMatchingQuery(stations, "universidad")?.id)
   }
+
+  @Test
+  fun `findStationMatchingQueryOrPinnedAlias resolves home and work aliases`() {
+    val stations = listOf(
+      Station(
+        id = "station-home",
+        name = "Plaza España",
+        address = "Centro",
+        location = GeoPoint(41.6488, -0.8891),
+        bikesAvailable = 6,
+        slotsFree = 8,
+        distanceMeters = 100,
+      ),
+      Station(
+        id = "station-work",
+        name = "Actur",
+        address = "Norte",
+        location = GeoPoint(41.66, -0.87),
+        bikesAvailable = 2,
+        slotsFree = 9,
+        distanceMeters = 400,
+      ),
+    )
+
+    assertEquals(
+      "station-home",
+      findStationMatchingQueryOrPinnedAlias(stations, "casa", "station-home", "station-work")?.id,
+    )
+    assertEquals(
+      "station-work",
+      findStationMatchingQueryOrPinnedAlias(stations, "mi trabajo", "station-home", "station-work")?.id,
+    )
+  }
 }
 
 private class RecordingWatchSyncBridge(
-  private val remoteFavoriteIds: Set<String>? = null,
+  private val remoteSnapshot: FavoritesSyncSnapshot? = null,
 ) : WatchSyncBridge {
-  val pushedFavoriteIds = mutableListOf<Set<String>>()
+  val pushedSnapshots = mutableListOf<FavoritesSyncSnapshot>()
 
-  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
-    pushedFavoriteIds += favoriteIds
+  override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
+    pushedSnapshots += snapshot
   }
 
-  override suspend fun latestFavoriteIds(): Set<String>? = remoteFavoriteIds
+  override suspend fun latestFavorites(): FavoritesSyncSnapshot? = remoteSnapshot
 }

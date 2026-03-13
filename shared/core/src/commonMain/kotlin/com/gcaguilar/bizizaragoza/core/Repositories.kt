@@ -24,9 +24,15 @@ interface StationsRepository {
 
 interface FavoritesRepository {
   val favoriteIds: StateFlow<Set<String>>
+  val homeStationId: StateFlow<String?>
+  val workStationId: StateFlow<String?>
   suspend fun bootstrap()
   suspend fun toggle(stationId: String)
+  suspend fun setHomeStationId(stationId: String?)
+  suspend fun setWorkStationId(stationId: String?)
   fun isFavorite(stationId: String): Boolean
+  fun currentHomeStationId(): String?
+  fun currentWorkStationId(): String?
 }
 
 @Inject
@@ -94,28 +100,35 @@ class FavoritesRepositoryImpl(
   private val watchSyncBridge: WatchSyncBridge,
 ) : FavoritesRepository {
   private val mutableFavoriteIds = MutableStateFlow(emptySet<String>())
+  private val mutableHomeStationId = MutableStateFlow<String?>(null)
+  private val mutableWorkStationId = MutableStateFlow<String?>(null)
   private var bootstrapped = false
 
   override val favoriteIds: StateFlow<Set<String>> = mutableFavoriteIds.asStateFlow()
+  override val homeStationId: StateFlow<String?> = mutableHomeStationId.asStateFlow()
+  override val workStationId: StateFlow<String?> = mutableWorkStationId.asStateFlow()
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
     val snapshotPath = favoritesPath()
-    val localFavoriteIds = if (fileSystem.exists(snapshotPath)) {
-      val snapshot = json.decodeFromString<FavoritesSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
-      snapshot.favoriteIds
+    val localSnapshot = if (fileSystem.exists(snapshotPath)) {
+      json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
     } else {
-      emptySet()
+      FavoritesSyncSnapshot()
     }
-    val remoteFavoriteIds = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.latestFavoriteIds()
-    }.orEmpty()
-    val mergedFavoriteIds = localFavoriteIds + remoteFavoriteIds
-    mutableFavoriteIds.value = mergedFavoriteIds
-    if (mergedFavoriteIds.isNotEmpty()) {
-      persist(mergedFavoriteIds)
+    val remoteSnapshot = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.latestFavorites()
+    } ?: FavoritesSyncSnapshot()
+    val mergedSnapshot = FavoritesSyncSnapshot(
+      favoriteIds = localSnapshot.favoriteIds + remoteSnapshot.favoriteIds,
+      homeStationId = localSnapshot.homeStationId ?: remoteSnapshot.homeStationId,
+      workStationId = localSnapshot.workStationId ?: remoteSnapshot.workStationId,
+    ).deduplicated()
+    applySnapshot(mergedSnapshot)
+    if (mergedSnapshot.hasData()) {
+      persist(mergedSnapshot)
       withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-        watchSyncBridge.pushFavoriteIds(mergedFavoriteIds)
+        watchSyncBridge.pushFavorites(mergedSnapshot)
       }
     }
     bootstrapped = true
@@ -123,30 +136,74 @@ class FavoritesRepositoryImpl(
 
   override suspend fun toggle(stationId: String) {
     if (!bootstrapped) bootstrap()
-    val updated = mutableFavoriteIds.value.toMutableSet().apply {
+    val updatedFavoriteIds = mutableFavoriteIds.value.toMutableSet().apply {
       if (!add(stationId)) remove(stationId)
     }.toSet()
-    mutableFavoriteIds.value = updated
-    persist(updated)
+    val updatedSnapshot = currentSnapshot().copy(favoriteIds = updatedFavoriteIds)
+    applySnapshot(updatedSnapshot)
+    persist(updatedSnapshot)
     withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.pushFavoriteIds(updated)
+      watchSyncBridge.pushFavorites(updatedSnapshot)
+    }
+  }
+
+  override suspend fun setHomeStationId(stationId: String?) {
+    if (!bootstrapped) bootstrap()
+    val updatedSnapshot = currentSnapshot()
+      .copy(homeStationId = stationId?.takeIf(String::isNotBlank))
+      .deduplicated()
+    applySnapshot(updatedSnapshot)
+    persist(updatedSnapshot)
+    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.pushFavorites(updatedSnapshot)
+    }
+  }
+
+  override suspend fun setWorkStationId(stationId: String?) {
+    if (!bootstrapped) bootstrap()
+    val updatedSnapshot = currentSnapshot()
+      .copy(workStationId = stationId?.takeIf(String::isNotBlank))
+      .deduplicated()
+    applySnapshot(updatedSnapshot)
+    persist(updatedSnapshot)
+    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.pushFavorites(updatedSnapshot)
     }
   }
 
   override fun isFavorite(stationId: String): Boolean = mutableFavoriteIds.value.contains(stationId)
+  override fun currentHomeStationId(): String? = mutableHomeStationId.value
+  override fun currentWorkStationId(): String? = mutableWorkStationId.value
 
   private fun favoritesPath() = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
 
-  private suspend fun persist(favoriteIds: Set<String>) {
+  private fun currentSnapshot(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
+    favoriteIds = mutableFavoriteIds.value,
+    homeStationId = mutableHomeStationId.value,
+    workStationId = mutableWorkStationId.value,
+  )
+
+  private fun applySnapshot(snapshot: FavoritesSyncSnapshot) {
+    mutableFavoriteIds.value = snapshot.favoriteIds
+    mutableHomeStationId.value = snapshot.homeStationId
+    mutableWorkStationId.value = snapshot.workStationId
+  }
+
+  private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
     val path = favoritesPath()
     fileSystem.createDirectories(path.parent!!)
     fileSystem.write(path) {
-      writeUtf8(json.encodeToString(FavoritesSnapshot(favoriteIds)))
+      writeUtf8(json.encodeToString(snapshot))
     }
   }
 }
 
-@Serializable
-internal data class FavoritesSnapshot(
-  val favoriteIds: Set<String>,
-)
+private fun FavoritesSyncSnapshot.deduplicated(): FavoritesSyncSnapshot =
+  if (homeStationId != null && homeStationId == workStationId) {
+    copy(workStationId = null)
+  } else {
+    this
+  }
+
+private fun FavoritesSyncSnapshot.hasData(): Boolean =
+  favoriteIds.isNotEmpty() || homeStationId != null || workStationId != null

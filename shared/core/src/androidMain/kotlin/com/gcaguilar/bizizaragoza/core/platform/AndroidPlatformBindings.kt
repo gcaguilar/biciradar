@@ -10,6 +10,7 @@ import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.AssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
+import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.LocationProvider
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
@@ -133,28 +134,31 @@ private class AndroidWatchSyncBridge(
 ) : WatchSyncBridge {
   private val dataClient = runCatching { Wearable.getDataClient(context) }.getOrNull()
 
-  override suspend fun pushFavoriteIds(favoriteIds: Set<String>) {
+  override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
     val client = dataClient ?: return
     runCatching {
       val request = PutDataMapRequest.create(FAVORITES_PATH).apply {
-        dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(favoriteIds))
+        dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(snapshot.favoriteIds))
+        snapshot.homeStationId?.let { dataMap.putString(HOME_STATION_KEY, it) } ?: dataMap.remove(HOME_STATION_KEY)
+        snapshot.workStationId?.let { dataMap.putString(WORK_STATION_KEY, it) } ?: dataMap.remove(WORK_STATION_KEY)
         dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
       }.asPutDataRequest().setUrgent()
       client.putDataItem(request).await()
     }
   }
 
-  override suspend fun latestFavoriteIds(): Set<String>? {
+  override suspend fun latestFavorites(): FavoritesSyncSnapshot? {
     val client = dataClient ?: return null
     return runCatching {
       val dataItems = client.getDataItems(buildFavoritesUri()).await()
       try {
         if (dataItems.count == 0) return@runCatching null
-        val dataItem = dataItems.get(0)
-        DataMapItem.fromDataItem(dataItem)
-          .dataMap
-          .getStringArrayList(FAVORITES_KEY)
-          ?.toSet()
+        val dataMap = DataMapItem.fromDataItem(dataItems.get(0)).dataMap
+        FavoritesSyncSnapshot(
+          favoriteIds = dataMap.getStringArrayList(FAVORITES_KEY)?.toSet().orEmpty(),
+          homeStationId = dataMap.getString(HOME_STATION_KEY)?.takeIf { it.isNotBlank() },
+          workStationId = dataMap.getString(WORK_STATION_KEY)?.takeIf { it.isNotBlank() },
+        ).takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null }
       } finally {
         dataItems.release()
       }
@@ -169,6 +173,8 @@ private class AndroidWatchSyncBridge(
   private companion object {
     const val FAVORITES_PATH = "/bizi/favorites"
     const val FAVORITES_KEY = "favorite_ids"
+    const val HOME_STATION_KEY = "home_station_id"
+    const val WORK_STATION_KEY = "work_station_id"
     const val UPDATED_AT_KEY = "updated_at"
   }
 }

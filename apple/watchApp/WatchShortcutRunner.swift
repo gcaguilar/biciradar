@@ -103,6 +103,27 @@ struct WatchShortcutRunner {
         )
     }
 
+    func savedPlaceStatusDialog(savedPlace: String) async -> String {
+        await stationDetailDialog(
+            stationName: savedPlace,
+            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
+            missingMessage: "No he encontrado esa estación guardada en el reloj.",
+            errorMessage: "No he podido consultar esa estación guardada en el reloj."
+        )
+    }
+
+    func savedPlaceBikeCountDialog(savedPlace: String) async -> String {
+        await stationBikeCountDialog(stationName: savedPlace)
+    }
+
+    func savedPlaceSlotCountDialog(savedPlace: String) async -> String {
+        await stationSlotCountDialog(stationName: savedPlace)
+    }
+
+    func savedPlaceRouteDialog(savedPlace: String) async -> String {
+        await routeToStationDialog(stationName: savedPlace)
+    }
+
     private func assistantDialog(
         action: any AssistantAction,
         emptyMessage: String,

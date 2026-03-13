@@ -65,12 +65,48 @@ final class WatchShortcutRunnerTests: XCTestCase {
 
         XCTAssertEqual(dialog, "No he encontrado estaciones cercanas con huecos libres ahora mismo.")
     }
+
+    func testSavedPlaceStatusDialogResolvesHomeAlias() async {
+        let runner = WatchShortcutRunner(
+            graph: FakeWatchGraph(
+                queryMatches: [
+                    "casa": .fixture(id: "station-home", name: "Plaza España", bikes: 8, slots: 4)
+                ]
+            ),
+            favoriteIdsProvider: { [] },
+            routeRequester: { _ in true }
+        )
+
+        let dialog = await runner.savedPlaceStatusDialog(savedPlace: "casa")
+
+        XCTAssertEqual(dialog, "Plaza España tiene 8 bicis disponibles y 4 huecos libres.")
+    }
+
+    func testSavedPlaceRouteDialogUsesWorkAliasForHandoff() async {
+        let runner = WatchShortcutRunner(
+            graph: FakeWatchGraph(
+                queryMatches: [
+                    "trabajo": .fixture(id: "station-work", name: "Campus Río Ebro")
+                ]
+            ),
+            favoriteIdsProvider: { [] },
+            routeRequester: { stationId in
+                XCTAssertEqual(stationId, "station-work")
+                return true
+            }
+        )
+
+        let dialog = await runner.savedPlaceRouteDialog(savedPlace: "trabajo")
+
+        XCTAssertEqual(dialog, "He pedido al iPhone que abra la ruta a Campus Río Ebro.")
+    }
 }
 
 private struct FakeWatchGraph: WatchGraphClient {
     var nearby: [WatchStationSnapshot] = []
     var favorites: [WatchStationSnapshot] = []
     var matchedStation: WatchStationSnapshot?
+    var queryMatches: [String: WatchStationSnapshot] = [:]
     var assistantResolution: AssistantResolution = AssistantResolution(
         spokenResponse: "La estación más cercana es Plaza España con 6 bicis y 8 anclajes.",
         highlightedStationId: "station-1"
@@ -85,7 +121,8 @@ private struct FakeWatchGraph: WatchGraphClient {
     }
 
     func station(matching query: String?) async throws -> WatchStationSnapshot? {
-        matchedStation
+        guard let query else { return matchedStation }
+        return queryMatches[query] ?? matchedStation
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {

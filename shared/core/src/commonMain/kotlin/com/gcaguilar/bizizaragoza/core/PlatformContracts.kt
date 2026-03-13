@@ -30,8 +30,8 @@ interface AssistantIntentResolver {
 }
 
 interface WatchSyncBridge {
-  suspend fun pushFavoriteIds(favoriteIds: Set<String>)
-  suspend fun latestFavoriteIds(): Set<String>?
+  suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot)
+  suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
 
 interface PlatformBindings {

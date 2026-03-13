@@ -1,6 +1,24 @@
 import AppIntents
 import BiziSharedCore
 
+enum WatchSavedPlaceShortcut: String, AppEnum {
+    case home
+    case work
+
+    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Estación guardada")
+    static var caseDisplayRepresentations: [WatchSavedPlaceShortcut: DisplayRepresentation] = [
+        .home: DisplayRepresentation(title: "Casa"),
+        .work: DisplayRepresentation(title: "Trabajo")
+    ]
+
+    var spokenQuery: String {
+        switch self {
+        case .home: return "casa"
+        case .work: return "trabajo"
+        }
+    }
+}
+
 struct WatchNearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Estación cercana en reloj"
     static var openAppWhenRun: Bool = false
@@ -50,6 +68,32 @@ struct WatchRouteToStationIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         let dialog = await WatchShortcutRunner().routeToStationDialog(stationName: stationName)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct WatchSavedPlaceStatusIntent: AppIntent {
+    static var title: LocalizedStringResource = "Estado de casa o trabajo en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Estación guardada")
+    var savedPlace: WatchSavedPlaceShortcut
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await WatchShortcutRunner().savedPlaceStatusDialog(savedPlace: savedPlace.spokenQuery)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct WatchSavedPlaceRouteIntent: AppIntent {
+    static var title: LocalizedStringResource = "Ruta a casa o trabajo en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Estación guardada")
+    var savedPlace: WatchSavedPlaceShortcut
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await WatchShortcutRunner().savedPlaceRouteDialog(savedPlace: savedPlace.spokenQuery)
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -137,6 +181,22 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Ruta",
             systemImageName: "map.circle"
+        )
+        AppShortcut(
+            intent: WatchSavedPlaceStatusIntent(),
+            phrases: [
+                "Enséñame el estado de \(\.$savedPlace) en el reloj con \(.applicationName)"
+            ],
+            shortTitle: "Casa/Trabajo",
+            systemImageName: "house.circle"
+        )
+        AppShortcut(
+            intent: WatchSavedPlaceRouteIntent(),
+            phrases: [
+                "Abre una ruta a \(\.$savedPlace) en mi iPhone con \(.applicationName)"
+            ],
+            shortTitle: "Ruta casa",
+            systemImageName: "house.circle"
         )
     }
 }

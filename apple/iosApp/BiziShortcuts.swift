@@ -1,6 +1,24 @@
 import AppIntents
 import BiziMobileUi
 
+enum SavedPlaceShortcut: String, AppEnum {
+    case home
+    case work
+
+    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Estación guardada")
+    static var caseDisplayRepresentations: [SavedPlaceShortcut: DisplayRepresentation] = [
+        .home: DisplayRepresentation(title: "Casa"),
+        .work: DisplayRepresentation(title: "Trabajo")
+    ]
+
+    var spokenQuery: String {
+        switch self {
+        case .home: return "casa"
+        case .work: return "trabajo"
+        }
+    }
+}
+
 struct NearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Estación más cercana"
     static var openAppWhenRun: Bool = true
@@ -93,6 +111,32 @@ struct RouteToStationIntent: AppIntent {
     }
 }
 
+struct SavedPlaceStatusIntent: AppIntent {
+    static var title: LocalizedStringResource = "Estado de casa o trabajo"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(title: "Estación guardada")
+    var savedPlace: SavedPlaceShortcut
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().savedPlaceStatusDialog(savedPlace: savedPlace.spokenQuery)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct SavedPlaceRouteIntent: AppIntent {
+    static var title: LocalizedStringResource = "Ruta a casa o trabajo"
+    static var openAppWhenRun: Bool = true
+
+    @Parameter(title: "Estación guardada")
+    var savedPlace: SavedPlaceShortcut
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().savedPlaceRouteDialog(savedPlace: savedPlace.spokenQuery)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
 struct BiziAppShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
@@ -158,6 +202,22 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Ruta",
             systemImageName: "map.circle"
+        )
+        AppShortcut(
+            intent: SavedPlaceStatusIntent(),
+            phrases: [
+                "Enséñame el estado de \(\.$savedPlace) en \(.applicationName)"
+            ],
+            shortTitle: "Casa/Trabajo",
+            systemImageName: "house.circle"
+        )
+        AppShortcut(
+            intent: SavedPlaceRouteIntent(),
+            phrases: [
+                "Llévame a \(\.$savedPlace) con \(.applicationName)"
+            ],
+            shortTitle: "Ruta casa",
+            systemImageName: "house.circle"
         )
     }
 }

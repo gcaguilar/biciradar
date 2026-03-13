@@ -82,6 +82,42 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-48")
     }
+
+    func testSavedPlaceStatusDialogResolvesHomeAlias() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                queryMatches: [
+                    "casa": .fixture(id: "station-home", name: "Plaza España", bikes: 8, slots: 4)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.savedPlaceStatusDialog(savedPlace: "casa")
+
+        XCTAssertEqual(dialog, "Plaza España tiene 8 bicis disponibles y 4 huecos libres.")
+    }
+
+    func testSavedPlaceRouteDialogStoresWorkRouteLaunchRequest() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                queryMatches: [
+                    "trabajo": .fixture(id: "station-work", name: "Campus Río Ebro")
+                ]
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.savedPlaceRouteDialog(savedPlace: "trabajo")
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Abriendo una ruta hacia Campus Río Ebro.")
+        let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
+        XCTAssertEqual(routeRequest?.stationId, "station-work")
+    }
 }
 
 private actor LaunchRequestRecorder {
@@ -99,6 +135,7 @@ private actor LaunchRequestRecorder {
 private struct FakeAppleGraph: AppleGraphClient {
     var favorites: [BiziStationSnapshot] = []
     var matchedStation: BiziStationSnapshot?
+    var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
     var assistantResolution: AssistantResolution = AssistantResolution(
         spokenResponse: "La estación más cercana es Plaza España con 6 bicis y 8 huecos.",
@@ -110,7 +147,8 @@ private struct FakeAppleGraph: AppleGraphClient {
     }
 
     func station(matching query: String?) async throws -> BiziStationSnapshot? {
-        matchedStation
+        guard let query else { return matchedStation }
+        return queryMatches[query] ?? matchedStation
     }
 
     func station(stationId: String) async throws -> BiziStationSnapshot? {

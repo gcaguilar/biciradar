@@ -19,7 +19,7 @@ final class BiziZaragozaUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Favoritas"].waitForExistence(timeout: 20))
-        XCTAssertTrue(app.staticTexts["Filtrar favoritas"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Buscar estación para fijarla o filtrar favoritas"].waitForExistence(timeout: 20))
     }
 
     func testPendingAssistantLaunchOpensAssistantScreen() {

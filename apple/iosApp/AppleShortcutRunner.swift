@@ -96,6 +96,22 @@ struct AppleShortcutRunner {
         )
     }
 
+    func savedPlaceStatusDialog(savedPlace: String) async -> String {
+        await stationStatusDialog(stationName: savedPlace)
+    }
+
+    func savedPlaceBikeCountDialog(savedPlace: String) async -> String {
+        await stationBikeCountDialog(stationName: savedPlace)
+    }
+
+    func savedPlaceSlotCountDialog(savedPlace: String) async -> String {
+        await stationSlotCountDialog(stationName: savedPlace)
+    }
+
+    func savedPlaceRouteDialog(savedPlace: String) async -> String {
+        await routeToStationDialog(stationName: savedPlace)
+    }
+
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
