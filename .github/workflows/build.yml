@@ -41,7 +41,7 @@ jobs:
 
       - name: Run Android build and tests
         env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
         run: ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
 
       - name: Upload Android debug APKs
@@ -130,7 +130,7 @@ jobs:
 
       - name: Write iOS secrets
         env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
         run: printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
 
       - name: Resolve iOS simulator destination
