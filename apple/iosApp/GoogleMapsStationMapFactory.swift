@@ -3,8 +3,8 @@ import GoogleMaps
 import UIKit
 
 final class GoogleMapsStationMapFactory: StationMapViewFactory {
-    private var onStationSelected: ((BiziMobileUiStation) -> Void)?
-    private weak var delegate: GoogleMapsStationMapDelegate?
+    private var onStationSelected: ((Station) -> Void)?
+    private weak var mapDelegate: GoogleMapsStationMapDelegate?
 
     func createView() -> UIView {
         let camera = GMSCameraPosition.camera(
@@ -21,23 +21,27 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
             self?.onStationSelected?(station)
         }
         mapView.delegate = del
-        // Retain the delegate on the mapView via objc association
-        objc_setAssociatedObject(mapView, &GoogleMapsStationMapFactory.delegateKey, del, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-        self.delegate = del
+        objc_setAssociatedObject(
+            mapView,
+            &GoogleMapsStationMapFactory.delegateKey,
+            del,
+            .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+        self.mapDelegate = del
         return mapView
     }
 
     func updateView(
         view: UIView,
-        stations: [BiziMobileUiStation],
-        userLocation: BiziMobileUiGeoPoint?,
+        stations: [Station],
+        userLocation: GeoPoint?,
         highlightedStationId: String?,
-        onStationSelected: @escaping (BiziMobileUiStation) -> Void
+        onStationSelected: @escaping (Station) -> Void
     ) {
         guard let mapView = view as? GMSMapView else { return }
         self.onStationSelected = onStationSelected
-        delegate?.stations = stations
-        delegate?.highlightedStationId = highlightedStationId
+        mapDelegate?.stations = stations
+        mapDelegate?.highlightedStationId = highlightedStationId
 
         mapView.clear()
 
@@ -61,7 +65,10 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
 
         for station in stations {
             let marker = GMSMarker()
-            marker.position = CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude)
+            marker.position = CLLocationCoordinate2DMake(
+                station.location.latitude,
+                station.location.longitude
+            )
             marker.title = station.name
             marker.snippet = "\(station.bikesAvailable) bicis · \(station.slotsFree) libres"
             marker.icon = GMSMarker.markerImage(
@@ -78,16 +85,16 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
 }
 
 private final class GoogleMapsStationMapDelegate: NSObject, GMSMapViewDelegate {
-    var stations: [BiziMobileUiStation] = []
+    var stations: [Station] = []
     var highlightedStationId: String?
-    private let onStationSelected: (BiziMobileUiStation) -> Void
+    private let onStationSelected: (Station) -> Void
 
-    init(onStationSelected: @escaping (BiziMobileUiStation) -> Void) {
+    init(onStationSelected: @escaping (Station) -> Void) {
         self.onStationSelected = onStationSelected
     }
 
     func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
-        if let station = marker.userData as? BiziMobileUiStation {
+        if let station = marker.userData as? Station {
             onStationSelected(station)
         }
         return false
