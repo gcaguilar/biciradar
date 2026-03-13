@@ -54,7 +54,13 @@ jobs:
       - name: Run Android build and tests
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
-        run: ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
+        run: |
+          if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
+            echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
+          else
+            echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
+          fi
+          ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
 
       - name: Upload Android debug APKs
         uses: actions/upload-artifact@v4
@@ -159,6 +165,9 @@ jobs:
             echo "$destination"
             echo EOF
           } >> "$GITHUB_ENV"
+
+      - name: Build KMP iOS frameworks
+        run: ./gradlew :shared:mobile-ui:linkDebugFrameworkIosSimulatorArm64 :shared:core:linkDebugFrameworkIosSimulatorArm64
 
       - name: Run iOS tests
         run: |
@@ -290,6 +299,9 @@ jobs:
             echo "$destination"
             echo EOF
           } >> "$GITHUB_ENV"
+
+      - name: Build KMP watchOS frameworks
+        run: ./gradlew :shared:core:linkDebugFrameworkWatchosSimulatorArm64
 
       - name: Run watchOS tests
         run: |
