@@ -506,6 +506,7 @@ fun BiziMobileApp(
                       favoriteIds = favoriteIds,
                       onQuickRoute = { station -> graph.routeLauncher.launch(station) },
                       paddingValues = innerPadding,
+                      mapSupportStatus = mapSupportStatus,
                     )
                     MobileTab.Cerca -> NearbyScreen(
                       mobilePlatform = mobilePlatform,
@@ -703,6 +704,7 @@ private fun MapScreen(
   searchQuery: String,
   searchRadiusMeters: Int,
   userLocation: GeoPoint?,
+  mapSupportStatus: MapSupportStatus,
   onSearchQueryChange: (String) -> Unit,
   onStationSelected: (Station) -> Unit,
   onRetry: () -> Unit,
@@ -755,6 +757,7 @@ private fun MapScreen(
       stations = stations,
       userLocation = userLocation,
       highlightedStationId = selectedMapStation?.id,
+      isMapReady = mapSupportStatus.isGoogleMapsReady(),
       onStationSelected = { station ->
         hasExplicitMapSelection = true
         selectedMapStationId = station.id
@@ -1824,14 +1827,13 @@ private fun DismissibleFavoriteStationRow(
   onQuickRoute: () -> Unit,
   onRemoveFavorite: () -> Unit,
 ) {
-  val dismissState = rememberSwipeToDismissBoxState(
-    confirmValueChange = { value ->
-      if (value == SwipeToDismissBoxValue.EndToStart) {
-        onRemoveFavorite()
-      }
-      false
-    },
-  )
+  val dismissState = rememberSwipeToDismissBoxState()
+  LaunchedEffect(dismissState.currentValue) {
+    if (dismissState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+      onRemoveFavorite()
+      dismissState.snapTo(SwipeToDismissBoxValue.Settled)
+    }
+  }
   SwipeToDismissBox(
     state = dismissState,
     enableDismissFromStartToEnd = false,
