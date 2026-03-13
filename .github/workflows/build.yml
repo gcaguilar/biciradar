@@ -39,6 +39,18 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew scripts/*.sh
 
+      - name: Write Android Firebase config files
+        env:
+          GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
+          GOOGLE_SERVICES_JSON_WEAR: ${{ secrets.GOOGLE_SERVICES_JSON_WEAR }}
+        run: |
+          if [[ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]]; then
+            echo "$GOOGLE_SERVICES_JSON_ANDROID" | base64 --decode > androidApp/google-services.json
+          fi
+          if [[ -n "$GOOGLE_SERVICES_JSON_WEAR" ]]; then
+            echo "$GOOGLE_SERVICES_JSON_WEAR" | base64 --decode > wearApp/google-services.json
+          fi
+
       - name: Run Android build and tests
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
@@ -131,7 +143,12 @@ jobs:
       - name: Write iOS secrets
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
-        run: printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_IOS }}
+        run: |
+          printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
+          if [[ -n "$GOOGLE_SERVICE_INFO_PLIST" ]]; then
+            echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > apple/iosApp/GoogleService-Info.plist
+          fi
 
       - name: Resolve iOS simulator destination
         run: |
