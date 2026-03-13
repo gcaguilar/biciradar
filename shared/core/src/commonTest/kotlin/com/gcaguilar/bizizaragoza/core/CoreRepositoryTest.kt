@@ -352,9 +352,16 @@ class CoreRepositoryTest {
             override val rootPath: String = temporaryRoot
           }
           override val watchSyncBridge: WatchSyncBridge = object : WatchSyncBridge {
-          override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
-          override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
-        }
+            override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
+            override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
+          }
+          override val mapSupport: MapSupport = object : MapSupport {
+            override fun currentStatus() = MapSupportStatus(
+              embeddedProvider = EmbeddedMapProvider.None,
+              googleMapsSdkLinked = false,
+              googleMapsApiKeyConfigured = false,
+            )
+          }
       },
     )
 
