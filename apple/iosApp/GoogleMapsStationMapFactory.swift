@@ -6,6 +6,10 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private var onStationSelected: ((Station) -> Void)?
     private weak var mapDelegate: GoogleMapsStationMapDelegate?
     private var hasZoomed = false
+    // Track markers by station id to avoid full redraw on highlight change
+    private var markersByStationId: [String: GMSMarker] = [:]
+    private var lastStations: [Station] = []
+    private var lastHighlightedStationId: String? = nil
 
     func createView() -> UIView {
         let mapView = GMSMapView(frame: .zero)
@@ -42,8 +46,6 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         // Enable native blue dot for user location
         mapView.isMyLocationEnabled = userLocation != nil
 
-        mapView.clear()
-
         // Zoom to user location only on first load
         if !hasZoomed {
             let focusPoint = userLocation ?? stations.first?.location
@@ -58,21 +60,47 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
             }
         }
 
-        for station in stations {
-            let marker = GMSMarker()
-            marker.position = CLLocationCoordinate2DMake(
-                station.location.latitude,
-                station.location.longitude
-            )
-            marker.title = station.name
-            marker.snippet = "\(station.bikesAvailable) bicis · \(station.slotsFree) libres"
-            marker.icon = GMSMarker.markerImage(with: stationMarkerColor(
-                station: station,
-                highlighted: station.id == highlightedStationId
-            ))
-            marker.userData = station
-            marker.map = mapView
+        let stationsChanged = stations.map(\.id) != lastStations.map(\.id)
+            || zip(stations, lastStations).contains(where: {
+                $0.bikesAvailable != $1.bikesAvailable || $0.slotsFree != $1.slotsFree
+            })
+
+        if stationsChanged {
+            // Full redraw: station list or state changed
+            mapView.clear()
+            markersByStationId.removeAll()
+
+            for station in stations {
+                let marker = GMSMarker()
+                marker.position = CLLocationCoordinate2DMake(
+                    station.location.latitude,
+                    station.location.longitude
+                )
+                marker.title = station.name
+                marker.snippet = "\(station.bikesAvailable) bicis · \(station.slotsFree) libres"
+                marker.icon = GMSMarker.markerImage(with: stationMarkerColor(
+                    station: station,
+                    highlighted: station.id == highlightedStationId
+                ))
+                marker.userData = station
+                marker.map = mapView
+                markersByStationId[station.id] = marker
+            }
+            lastStations = stations
+        } else if highlightedStationId != lastHighlightedStationId {
+            // Only the selection changed — update the two affected markers in place
+            let affectedIds: [String?] = [lastHighlightedStationId, highlightedStationId]
+            for stationId in affectedIds.compactMap({ $0 }) {
+                guard let marker = markersByStationId[stationId],
+                      let station = lastStations.first(where: { $0.id == stationId }) else { continue }
+                marker.icon = GMSMarker.markerImage(with: stationMarkerColor(
+                    station: station,
+                    highlighted: stationId == highlightedStationId
+                ))
+            }
         }
+
+        lastHighlightedStationId = highlightedStationId
     }
 
     private func stationMarkerColor(station: Station, highlighted: Bool) -> UIColor {
