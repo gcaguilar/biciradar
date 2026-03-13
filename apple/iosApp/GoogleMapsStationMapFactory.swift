@@ -7,12 +7,13 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private weak var mapDelegate: GoogleMapsStationMapDelegate?
 
     func createView() -> UIView {
+        let mapView = GMSMapView(frame: .zero)
         let camera = GMSCameraPosition.camera(
             withLatitude: 41.6561,
             longitude: -0.8773,
             zoom: 14
         )
-        let mapView = GMSMapView(frame: .zero, camera: camera)
+        mapView.animate(to: camera)
         mapView.settings.rotateGestures = false
         mapView.settings.tiltGestures = false
         mapView.settings.compassButton = false

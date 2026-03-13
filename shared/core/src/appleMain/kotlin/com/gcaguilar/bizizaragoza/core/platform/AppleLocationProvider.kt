@@ -32,11 +32,6 @@ internal class AppleLocationProvider : LocationProvider {
   }
 
   override suspend fun currentLocation(): GeoPoint? = suspendCancellableCoroutine { continuation ->
-    if (!CLLocationManager.locationServicesEnabled()) {
-      continuation.resume(null)
-      return@suspendCancellableCoroutine
-    }
-
     pendingContinuation?.resume(null)
     pendingContinuation = continuation
     continuation.invokeOnCancellation {

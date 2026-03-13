@@ -185,6 +185,8 @@ fun BiziMobileApp(
   val workStationId by favoritesRepository.workStationId.collectAsState()
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
+  val isMapReady = mapSupportStatus.isGoogleMapsReady() &&
+    (mobilePlatform != MobileUiPlatform.IOS || preferredMapApp == PreferredMapApp.GoogleMaps)
   var currentTab by rememberSaveable { mutableStateOf(MobileTab.Cerca) }
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -447,7 +449,7 @@ fun BiziMobileApp(
                 isHomeStation = homeStationId == selectedStation.id,
                 isWorkStation = workStationId == selectedStation.id,
                 userLocation = stationsState.userLocation,
-                isMapReady = mapSupportStatus.isGoogleMapsReady(),
+                isMapReady = isMapReady,
                 onBack = { selectedStationId = null },
                 onToggleFavorite = {
                   scope.launch { favoritesRepository.toggle(selectedStation.id) }
@@ -507,7 +509,7 @@ fun BiziMobileApp(
                       favoriteIds = favoriteIds,
                       onQuickRoute = { station -> graph.routeLauncher.launch(station) },
                       paddingValues = innerPadding,
-                      mapSupportStatus = mapSupportStatus,
+                      isMapReady = isMapReady,
                     )
                     MobileTab.Cerca -> NearbyScreen(
                       mobilePlatform = mobilePlatform,
@@ -704,7 +706,7 @@ private fun MapScreen(
   searchQuery: String,
   searchRadiusMeters: Int,
   userLocation: GeoPoint?,
-  mapSupportStatus: MapSupportStatus,
+  isMapReady: Boolean,
   onSearchQueryChange: (String) -> Unit,
   onStationSelected: (Station) -> Unit,
   onRetry: () -> Unit,
@@ -757,7 +759,7 @@ private fun MapScreen(
       stations = stations,
       userLocation = userLocation,
       highlightedStationId = selectedMapStation?.id,
-      isMapReady = mapSupportStatus.isGoogleMapsReady(),
+      isMapReady = isMapReady,
       onStationSelected = { station ->
         hasExplicitMapSelection = true
         selectedMapStationId = station.id
