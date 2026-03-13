@@ -89,9 +89,23 @@ private fun AppleMapKitView(
 }
 
 @OptIn(ExperimentalForeignApi::class)
+private fun stationMarkerColor(station: Station, highlighted: Boolean): UIColor = when {
+  station.bikesAvailable > 0 && station.slotsFree > 0 ->
+    if (highlighted) UIColor.colorWithRed(0.10, 0.50, 0.10, 1.0)  // dark green
+    else UIColor.colorWithRed(0.20, 0.72, 0.20, 1.0)              // green
+  station.bikesAvailable == 0 && station.slotsFree == 0 ->
+    if (highlighted) UIColor.colorWithRed(0.66, 0.08, 0.10, 1.0)  // dark red
+    else UIColor.colorWithRed(0.84, 0.10, 0.12, 1.0)              // red
+  else ->
+    if (highlighted) UIColor.colorWithRed(0.70, 0.35, 0.00, 1.0)  // dark orange
+    else UIColor.colorWithRed(0.95, 0.50, 0.00, 1.0)              // orange
+}
+
+@OptIn(ExperimentalForeignApi::class)
 private class IOSStationMapCoordinator {
   var selectionHandler: (Station) -> Unit = {}
   var highlightedStationId: String? = null
+  private var hasZoomed = false
 
   private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
   private val delegate = StationMapDelegate(
@@ -116,26 +130,24 @@ private class IOSStationMapCoordinator {
     stationAnnotations.clear()
     mapView.removeAnnotations(mapView.annotations)
 
-    val focusPoint = userLocation ?: stations.firstOrNull()?.location
-    if (focusPoint != null) {
-      mapView.setRegion(
-        MKCoordinateRegionMakeWithDistance(
-          CLLocationCoordinate2DMake(focusPoint.latitude, focusPoint.longitude),
-          1_500.0,
-          1_500.0,
-        ),
-        animated = false,
-      )
+    // Zoom to user location only on first load
+    if (!hasZoomed) {
+      val focusPoint = userLocation ?: stations.firstOrNull()?.location
+      if (focusPoint != null) {
+        mapView.setRegion(
+          MKCoordinateRegionMakeWithDistance(
+            CLLocationCoordinate2DMake(focusPoint.latitude, focusPoint.longitude),
+            1_200.0,
+            1_200.0,
+          ),
+          animated = false,
+        )
+        hasZoomed = true
+      }
     }
 
-    userLocation?.let { location ->
-      mapView.addAnnotation(
-        MKPointAnnotation().apply {
-          setCoordinate(CLLocationCoordinate2DMake(location.latitude, location.longitude))
-          setTitle("Tu ubicación")
-        },
-      )
-    }
+    // Use native blue dot for user location
+    mapView.showsUserLocation = userLocation != null
 
     stations.forEach { station ->
       val annotation = MKPointAnnotation().apply {
@@ -163,18 +175,8 @@ private class StationMapDelegate(
       canShowCallout = true
       markerTintColor = when {
         station == null -> UIColor.blueColor
-        station.id == highlightedStationId() -> UIColor.colorWithRed(
-          red = 0.66,
-          green = 0.08,
-          blue = 0.10,
-          alpha = 1.0,
-        )
-        else -> UIColor.colorWithRed(
-          red = 0.84,
-          green = 0.10,
-          blue = 0.12,
-          alpha = 1.0,
-        )
+        station.id == highlightedStationId() -> stationMarkerColor(station, highlighted = true)
+        else -> stationMarkerColor(station, highlighted = false)
       }
     }
   }

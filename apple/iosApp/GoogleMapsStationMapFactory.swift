@@ -5,15 +5,10 @@ import UIKit
 final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private var onStationSelected: ((Station) -> Void)?
     private weak var mapDelegate: GoogleMapsStationMapDelegate?
+    private var hasZoomed = false
 
     func createView() -> UIView {
         let mapView = GMSMapView(frame: .zero)
-        let camera = GMSCameraPosition.camera(
-            withLatitude: 41.6561,
-            longitude: -0.8773,
-            zoom: 14
-        )
-        mapView.animate(to: camera)
         mapView.settings.rotateGestures = false
         mapView.settings.tiltGestures = false
         mapView.settings.compassButton = false
@@ -44,24 +39,23 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         mapDelegate?.stations = stations
         mapDelegate?.highlightedStationId = highlightedStationId
 
+        // Enable native blue dot for user location
+        mapView.isMyLocationEnabled = userLocation != nil
+
         mapView.clear()
 
-        let focusPoint = userLocation ?? stations.first?.location
-        if let focus = focusPoint {
-            let camera = GMSCameraPosition.camera(
-                withLatitude: focus.latitude,
-                longitude: focus.longitude,
-                zoom: 14
-            )
-            mapView.animate(to: camera)
-        }
-
-        if let location = userLocation {
-            let marker = GMSMarker()
-            marker.position = CLLocationCoordinate2DMake(location.latitude, location.longitude)
-            marker.title = "Tu ubicación"
-            marker.icon = GMSMarker.markerImage(with: .systemBlue)
-            marker.map = mapView
+        // Zoom to user location only on first load
+        if !hasZoomed {
+            let focusPoint = userLocation ?? stations.first?.location
+            if let focus = focusPoint {
+                let camera = GMSCameraPosition.camera(
+                    withLatitude: focus.latitude,
+                    longitude: focus.longitude,
+                    zoom: 15
+                )
+                mapView.animate(to: camera)
+                hasZoomed = true
+            }
         }
 
         for station in stations {
@@ -72,13 +66,31 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
             )
             marker.title = station.name
             marker.snippet = "\(station.bikesAvailable) bicis · \(station.slotsFree) libres"
-            marker.icon = GMSMarker.markerImage(
-                with: station.id == highlightedStationId
-                    ? UIColor(red: 0.66, green: 0.08, blue: 0.10, alpha: 1)
-                    : UIColor(red: 0.84, green: 0.10, blue: 0.12, alpha: 1)
-            )
+            marker.icon = GMSMarker.markerImage(with: stationMarkerColor(
+                station: station,
+                highlighted: station.id == highlightedStationId
+            ))
             marker.userData = station
             marker.map = mapView
+        }
+    }
+
+    private func stationMarkerColor(station: Station, highlighted: Bool) -> UIColor {
+        let hasBikes = station.bikesAvailable > 0
+        let hasSlots = station.slotsFree > 0
+        switch (hasBikes, hasSlots) {
+        case (true, true):
+            return highlighted
+                ? UIColor(red: 0.10, green: 0.50, blue: 0.10, alpha: 1)  // dark green
+                : UIColor(red: 0.20, green: 0.72, blue: 0.20, alpha: 1)  // green
+        case (false, false):
+            return highlighted
+                ? UIColor(red: 0.66, green: 0.08, blue: 0.10, alpha: 1)  // dark red
+                : UIColor(red: 0.84, green: 0.10, blue: 0.12, alpha: 1)  // red
+        default:
+            return highlighted
+                ? UIColor(red: 0.70, green: 0.35, blue: 0.00, alpha: 1)  // dark orange
+                : UIColor(red: 0.95, green: 0.50, blue: 0.00, alpha: 1)  // orange
         }
     }
 

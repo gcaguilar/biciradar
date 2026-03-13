@@ -2,7 +2,10 @@ package com.gcaguilar.bizizaragoza.mobileui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,11 +27,27 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerInfoWindowContent
-import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+
+private fun stationMarkerHue(station: Station, highlighted: Boolean): Float {
+  val base = when {
+    station.bikesAvailable > 0 && station.slotsFree > 0 -> BitmapDescriptorFactory.HUE_GREEN
+    station.bikesAvailable == 0 && station.slotsFree == 0 -> BitmapDescriptorFactory.HUE_RED
+    else -> BitmapDescriptorFactory.HUE_ORANGE
+  }
+  // Highlighted: shift slightly darker by moving hue toward a distinct anchor
+  return if (highlighted) {
+    when (base) {
+      BitmapDescriptorFactory.HUE_GREEN -> 130f  // darker green
+      BitmapDescriptorFactory.HUE_RED -> 355f    // deeper red
+      else -> 30f                                // darker orange
+    }
+  } else base
+}
 
 @Composable
 internal actual fun PlatformStationMap(
@@ -53,18 +72,22 @@ internal actual fun PlatformStationMap(
     return
   }
   val cameraPositionState = rememberCameraPositionState()
+  var hasZoomed by remember { mutableStateOf(false) }
 
   LaunchedEffect(userLocation, stations) {
+    if (hasZoomed) return@LaunchedEffect
     val focusPoint = userLocation ?: stations.firstOrNull()?.location ?: return@LaunchedEffect
     cameraPositionState.position = CameraPosition.fromLatLngZoom(
-        LatLng(focusPoint.latitude, focusPoint.longitude),
-        if (userLocation != null) 14f else 13f,
+      LatLng(focusPoint.latitude, focusPoint.longitude),
+      if (userLocation != null) 15f else 13f,
     )
+    hasZoomed = true
   }
 
   GoogleMap(
     modifier = modifier,
     cameraPositionState = cameraPositionState,
+    properties = MapProperties(isMyLocationEnabled = userLocation != null),
     uiSettings = MapUiSettings(
       compassEnabled = false,
       mapToolbarEnabled = false,
@@ -72,13 +95,6 @@ internal actual fun PlatformStationMap(
       zoomControlsEnabled = false,
     ),
   ) {
-    userLocation?.let { location ->
-      Marker(
-        state = remember(location) { MarkerState(position = LatLng(location.latitude, location.longitude)) },
-        title = "Tu ubicación",
-        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
-      )
-    }
     stations.forEach { station ->
       MarkerInfoWindowContent(
         state = remember(station.id) {
@@ -87,7 +103,7 @@ internal actual fun PlatformStationMap(
         title = station.name,
         snippet = "${station.bikesAvailable} bicis · ${station.slotsFree} libres",
         icon = BitmapDescriptorFactory.defaultMarker(
-          if (station.id == highlightedStationId) BitmapDescriptorFactory.HUE_RED else BitmapDescriptorFactory.HUE_ROSE,
+          stationMarkerHue(station, station.id == highlightedStationId),
         ),
         onClick = {
           onStationSelected(station)
