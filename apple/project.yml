@@ -18,17 +18,34 @@ settings:
     MARKETING_VERSION: 0.1.0
     SWIFT_VERSION: "5.10"
 
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    exactVersion: 12.10.0
+  GoogleMaps:
+    url: https://github.com/googlemaps/ios-maps-sdk
+    exactVersion: 10.10.0
+
 targets:
   BiziZaragoza:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
+    configFiles:
+      Debug: Config/MapsConfig.xcconfig
+      Release: Config/MapsConfig.xcconfig
     sources:
       - path: iosApp
       - path: sharedApple
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: UIKit.framework
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseCrashlytics
+      - package: GoogleMaps
+        product: GoogleMaps
     preBuildScripts:
       - name: Build KMP iOS frameworks
         basedOnDependencyAnalysis: false
@@ -49,11 +66,39 @@ targets:
             echo "Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'."
             exit 1
           fi
+    postBuildScripts:
+      - name: Upload Crashlytics dSYMs
+        basedOnDependencyAnalysis: false
+        inputFiles:
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist
+          - $(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}.debug.dylib
+        script: |
+          set -euo pipefail
+          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
+            echo "Skipping Crashlytics dSYM upload for simulator builds."
+            exit 0
+          fi
+          plist_path="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/GoogleService-Info.plist"
+          if [ ! -f "$plist_path" ]; then
+            echo "Skipping Crashlytics dSYM upload because GoogleService-Info.plist is not bundled."
+            exit 0
+          fi
+          run_script="${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+          if [ ! -x "$run_script" ]; then
+            echo "Crashlytics run script not found at $run_script"
+            exit 1
+          fi
+          "$run_script"
     settings:
       base:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
@@ -62,12 +107,13 @@ targets:
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
+        INFOPLIST_KEY_BiziGoogleMapsApiKey: $(GOOGLE_MAPS_IOS_API_KEY)
         INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza
         INFOPLIST_KEY_LSApplicationQueriesSchemes:
           - comgooglemaps
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
+        OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
         PRODUCT_NAME: Bizi Zaragoza
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
@@ -174,6 +220,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework

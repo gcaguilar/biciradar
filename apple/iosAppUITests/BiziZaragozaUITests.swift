@@ -6,12 +6,12 @@ final class BiziZaragozaUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testDashboardLoadsByDefault() {
+    func testNearbyLoadsByDefault() {
         let app = makeApp()
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Bizi Zaragoza"].waitForExistence(timeout: 20))
-        XCTAssertTrue(app.staticTexts["Buscar estación o dirección"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Cerca"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Listado cercano"].waitForExistence(timeout: 20))
     }
 
     func testPendingFavoritesLaunchOpensFavoritesScreen() {
@@ -22,12 +22,25 @@ final class BiziZaragozaUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Buscar estación para fijarla o filtrar favoritas"].waitForExistence(timeout: 20))
     }
 
-    func testPendingAssistantLaunchOpensAssistantScreen() {
+    func testPendingAssistantLaunchOpensShortcutsScreen() {
         let app = makeApp(pendingAction: "open_assistant")
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Atajos y asistentes"].waitForExistence(timeout: 20))
-        XCTAssertTrue(app.staticTexts["Estación más cercana"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Atajos"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Cómo invocarlos"].waitForExistence(timeout: 20))
+    }
+
+    func testShowStationLaunchCanReturnToDashboard() {
+        let app = makeApp(
+            pendingAction: "show_station",
+            pendingStationId: "48"
+        )
+        app.launch()
+
+        XCTAssertTrue(app.buttons["Volver"].waitForExistence(timeout: 20))
+        app.buttons["Volver"].tap()
+
+        XCTAssertTrue(app.staticTexts["Buscar estación o dirección"].waitForExistence(timeout: 20))
     }
 
     private func makeApp(

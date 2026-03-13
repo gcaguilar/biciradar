@@ -142,15 +142,15 @@ private struct WatchStationDetailView: View {
                     WatchInfoBadge(label: "Bicis", value: "\(station.bikesAvailable)")
                     WatchInfoBadge(label: "Huecos", value: "\(station.slotsFree)")
                 }
-                Button("Abrir en Maps") {
+                Button("Abrir ruta aquí") {
                     Task {
                         do {
                             let launchedStation = try await BiziWatchGraph.shared.openRoute(to: station.id)
                             localRouteStatus = launchedStation == nil
-                                ? "No he encontrado esa estación para abrir Maps."
+                                ? "No he encontrado esa estación para abrir la ruta."
                                 : "Abriendo la ruta en el reloj."
                         } catch {
-                            localRouteStatus = "No he podido abrir Maps ahora mismo."
+                            localRouteStatus = "No he podido abrir la ruta ahora mismo."
                         }
                     }
                 }

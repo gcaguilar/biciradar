@@ -11,6 +11,8 @@ struct BiziZaragozaApp: App {
     init() {
         AppleLaunchRequestStore.shared.seedFromLaunchEnvironment()
         FavoritesSyncBridge.shared.activate()
+        FirebaseBootstrap.configureIfAvailable()
+        GoogleMapsBootstrap.configureIfAvailable()
     }
 
     var body: some Scene {
