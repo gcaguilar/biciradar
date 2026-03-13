@@ -164,6 +164,21 @@ sealed interface AssistantLaunchRequest {
   ) : AssistantLaunchRequest
 }
 
+@androidx.compose.runtime.Stable
+private class AppState(
+  initialTab: MobileTab = MobileTab.Cerca,
+) {
+  var currentTab by mutableStateOf(initialTab)
+  var selectedStationId by mutableStateOf<String?>(null)
+  var searchQuery by mutableStateOf("")
+  var pendingAssistantAction by mutableStateOf<AssistantAction?>(null)
+  var pendingLaunchRequest by mutableStateOf<MobileLaunchRequest?>(null)
+  var pendingAssistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
+}
+
+@Composable
+private fun rememberAppState(): AppState = remember { AppState() }
+
 @Composable
 fun BiziMobileApp(
   platformBindings: PlatformBindings,
@@ -181,6 +196,7 @@ fun BiziMobileApp(
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
   val settingsRepository = remember(graph) { graph.settingsRepository }
   val scope = rememberCoroutineScope()
+  val appState = rememberAppState()
   val stationsState by stationsRepository.state.collectAsState()
   val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
   val homeStationId by favoritesRepository.homeStationId.collectAsState()
@@ -189,12 +205,6 @@ fun BiziMobileApp(
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
   val isMapReady = mapSupportStatus.isGoogleMapsReady() &&
     (mobilePlatform != MobileUiPlatform.IOS || preferredMapApp == PreferredMapApp.GoogleMaps)
-  var currentTab by rememberSaveable { mutableStateOf(MobileTab.Cerca) }
-  var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var searchQuery by rememberSaveable { mutableStateOf("") }
-  var pendingAssistantAction by remember { mutableStateOf<AssistantAction?>(null) }
-  var pendingLaunchRequest by remember { mutableStateOf<MobileLaunchRequest?>(null) }
-  var pendingAssistantLaunchRequest by remember { mutableStateOf<AssistantLaunchRequest?>(null) }
   var settingsBootstrapped by remember(graph) { mutableStateOf(false) }
   var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
@@ -252,72 +262,72 @@ fun BiziMobileApp(
   }
 
   LaunchedEffect(launchRequest) {
-    pendingLaunchRequest = launchRequest
+    appState.pendingLaunchRequest = launchRequest
   }
 
   LaunchedEffect(assistantLaunchRequest) {
-    pendingAssistantLaunchRequest = assistantLaunchRequest
+    appState.pendingAssistantLaunchRequest = assistantLaunchRequest
   }
 
-  LaunchedEffect(pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
-    when (val request = pendingLaunchRequest ?: return@LaunchedEffect) {
+  LaunchedEffect(appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
+    when (val request = appState.pendingLaunchRequest ?: return@LaunchedEffect) {
       MobileLaunchRequest.Favorites -> {
-        currentTab = MobileTab.Favoritos
-        pendingLaunchRequest = null
+        appState.currentTab = MobileTab.Favoritos
+        appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStation -> {
         val station = nearestSelection.highlightedStation ?: return@LaunchedEffect
-        selectedStationId = station.id
-        currentTab = MobileTab.Mapa
-        pendingLaunchRequest = null
+        appState.selectedStationId = station.id
+        appState.currentTab = MobileTab.Mapa
+        appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithBikes -> {
         val station = selectNearbyStation(
           stationsState.stations,
           searchRadiusMeters,
         ) { station -> station.bikesAvailable > 0 }.highlightedStation ?: return@LaunchedEffect
-        selectedStationId = station.id
-        currentTab = MobileTab.Mapa
-        pendingLaunchRequest = null
+        appState.selectedStationId = station.id
+        appState.currentTab = MobileTab.Mapa
+        appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithSlots -> {
         val station = selectNearbyStation(
           stationsState.stations,
           searchRadiusMeters,
         ) { station -> station.slotsFree > 0 }.highlightedStation ?: return@LaunchedEffect
-        selectedStationId = station.id
-        currentTab = MobileTab.Mapa
-        pendingLaunchRequest = null
+        appState.selectedStationId = station.id
+        appState.currentTab = MobileTab.Mapa
+        appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.OpenAssistant -> {
-        currentTab = MobileTab.Atajos
-        pendingLaunchRequest = null
+        appState.currentTab = MobileTab.Atajos
+        appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.StationStatus -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
-        pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        currentTab = MobileTab.Atajos
-        pendingLaunchRequest = null
+        appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
+        appState.currentTab = MobileTab.Atajos
+        appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
         val station = request.stationId?.let(stationsRepository::stationById)
           ?: stationsState.stations.firstOrNull()
           ?: return@LaunchedEffect
-        selectedStationId = station.id
+        appState.selectedStationId = station.id
         graph.routeLauncher.launch(station)
-        pendingLaunchRequest = null
+        appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.ShowStation -> {
         if (stationsRepository.stationById(request.stationId) == null) return@LaunchedEffect
-        selectedStationId = request.stationId
-        currentTab = MobileTab.Mapa
-        pendingLaunchRequest = null
+        appState.selectedStationId = request.stationId
+        appState.currentTab = MobileTab.Mapa
+        appState.pendingLaunchRequest = null
       }
     }
   }
 
-  LaunchedEffect(pendingAssistantLaunchRequest, stationsState.stations) {
-    val request = pendingAssistantLaunchRequest ?: return@LaunchedEffect
+  LaunchedEffect(appState.pendingAssistantLaunchRequest, stationsState.stations) {
+    val request = appState.pendingAssistantLaunchRequest ?: return@LaunchedEffect
     val station = resolveLaunchStation(
       stations = stationsState.stations,
       graph = graph,
@@ -339,53 +349,53 @@ fun BiziMobileApp(
 
     when (request) {
       is AssistantLaunchRequest.SearchStation -> {
-        searchQuery = request.stationQuery
-        currentTab = MobileTab.Mapa
-        station?.let { selectedStationId = it.id }
+        appState.searchQuery = request.stationQuery
+        appState.currentTab = MobileTab.Mapa
+        station?.let { appState.selectedStationId = it.id }
       }
       is AssistantLaunchRequest.StationStatus -> {
         if (station != null) {
-          pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          currentTab = MobileTab.Atajos
+          appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
+          appState.currentTab = MobileTab.Atajos
         } else {
-          searchQuery = request.stationQuery.orEmpty()
-          currentTab = MobileTab.Mapa
+          appState.searchQuery = request.stationQuery.orEmpty()
+          appState.currentTab = MobileTab.Mapa
         }
       }
       is AssistantLaunchRequest.StationBikeCount -> {
         if (station != null) {
-          pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          currentTab = MobileTab.Atajos
+          appState.pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
+          appState.currentTab = MobileTab.Atajos
         } else {
-          searchQuery = request.stationQuery.orEmpty()
-          currentTab = MobileTab.Mapa
+          appState.searchQuery = request.stationQuery.orEmpty()
+          appState.currentTab = MobileTab.Mapa
         }
       }
       is AssistantLaunchRequest.StationSlotCount -> {
         if (station != null) {
-          pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          currentTab = MobileTab.Atajos
+          appState.pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
+          appState.currentTab = MobileTab.Atajos
         } else {
-          searchQuery = request.stationQuery.orEmpty()
-          currentTab = MobileTab.Mapa
+          appState.searchQuery = request.stationQuery.orEmpty()
+          appState.currentTab = MobileTab.Mapa
         }
       }
       is AssistantLaunchRequest.RouteToStation -> {
         if (station != null) {
-          selectedStationId = station.id
+          appState.selectedStationId = station.id
           graph.routeLauncher.launch(station)
         } else {
-          searchQuery = request.stationQuery.orEmpty()
-          currentTab = MobileTab.Mapa
+          appState.searchQuery = request.stationQuery.orEmpty()
+          appState.currentTab = MobileTab.Mapa
         }
       }
     }
 
-    pendingAssistantLaunchRequest = null
+    appState.pendingAssistantLaunchRequest = null
   }
 
-  val filteredStations = remember(stationsState.stations, searchQuery) {
-    filterStations(stationsState.stations, searchQuery)
+  val filteredStations = remember(stationsState.stations, appState.searchQuery) {
+    filterStations(stationsState.stations, appState.searchQuery)
   }
   val favoriteStations = remember(filteredStations, favoriteIds) {
     val pinnedStationIds = setOfNotNull(homeStationId, workStationId)
@@ -397,8 +407,8 @@ fun BiziMobileApp(
   val workStation = remember(workStationId, stationsState.stations, stationsRepository) {
     workStationId?.let(stationsRepository::stationById)
   }
-  val selectedStation = remember(selectedStationId, stationsState.stations, stationsRepository) {
-    selectedStationId?.let(stationsRepository::stationById)
+  val selectedStation = remember(appState.selectedStationId, stationsState.stations, stationsRepository) {
+    appState.selectedStationId?.let(stationsRepository::stationById)
   }
   val showStartupSplash = remember(
     minimumSplashElapsed,
@@ -433,7 +443,7 @@ fun BiziMobileApp(
           AnimatedContent(
             targetState = when {
               selectedStation != null -> "station:${selectedStation.id}"
-              else -> "tab:${currentTab.name}"
+              else -> "tab:${appState.currentTab.name}"
             },
             transitionSpec = {
               (fadeIn(animationSpec = tween(240)) + slideInHorizontally(animationSpec = tween(240)) { it / 10 })
@@ -452,38 +462,49 @@ fun BiziMobileApp(
                 isWorkStation = workStationId == selectedStation.id,
                 userLocation = stationsState.userLocation,
                 isMapReady = isMapReady,
-                onBack = { selectedStationId = null },
-                onToggleFavorite = {
-                  scope.launch { favoritesRepository.toggle(selectedStation.id) }
+                onBack = remember(appState) { { appState.selectedStationId = null } },
+                onToggleFavorite = remember(appState, scope, favoritesRepository) {
+                  { scope.launch { favoritesRepository.toggle(appState.selectedStationId ?: return@launch) } }
                 },
-                onToggleHome = {
-                  scope.launch {
-                    favoritesRepository.setHomeStationId(
-                      if (homeStationId == selectedStation.id) null else selectedStation.id,
-                    )
+                onToggleHome = remember(appState, scope, favoritesRepository) {
+                  {
+                    val id = appState.selectedStationId ?: return@remember
+                    scope.launch {
+                      favoritesRepository.setHomeStationId(
+                        if (homeStationId == id) null else id,
+                      )
+                    }
                   }
                 },
-                onToggleWork = {
-                  scope.launch {
-                    favoritesRepository.setWorkStationId(
-                      if (workStationId == selectedStation.id) null else selectedStation.id,
-                    )
+                onToggleWork = remember(appState, scope, favoritesRepository) {
+                  {
+                    val id = appState.selectedStationId ?: return@remember
+                    scope.launch {
+                      favoritesRepository.setWorkStationId(
+                        if (workStationId == id) null else id,
+                      )
+                    }
                   }
                 },
-                onRoute = { graph.routeLauncher.launch(selectedStation) },
+                onRoute = remember(appState, graph, stationsRepository) {
+                  {
+                    val station = appState.selectedStationId?.let(stationsRepository::stationById) ?: return@remember
+                    graph.routeLauncher.launch(station)
+                  }
+                },
               )
               else -> Scaffold(
                 containerColor = pageBackgroundColor(mobilePlatform),
                 bottomBar = {
                   MobileBottomNavigationBar(
                     mobilePlatform = mobilePlatform,
-                    currentTab = currentTab,
-                    onTabSelected = { currentTab = it },
+                    currentTab = appState.currentTab,
+                    onTabSelected = remember(appState) { { tab -> appState.currentTab = tab } },
                   )
                 },
               ) { innerPadding ->
                 AnimatedContent(
-                  targetState = currentTab,
+                  targetState = appState.currentTab,
                   transitionSpec = {
                     (fadeIn(animationSpec = tween(220)) + slideInHorizontally(animationSpec = tween(220)) { it / 14 })
                       .togetherWith(
@@ -499,17 +520,15 @@ fun BiziMobileApp(
                       loading = stationsState.isLoading,
                       errorMessage = stationsState.errorMessage,
                       nearestSelection = nearestSelection,
-                      searchQuery = searchQuery,
+                      searchQuery = appState.searchQuery,
                       searchRadiusMeters = searchRadiusMeters,
                       userLocation = stationsState.userLocation,
-                      onSearchQueryChange = { searchQuery = it },
-                      onStationSelected = { selectedStationId = it.id },
-                      onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
-                      onFavoriteToggle = { station ->
-                        scope.launch { favoritesRepository.toggle(station.id) }
-                      },
+                      onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
+                      onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                      onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
                       favoriteIds = favoriteIds,
-                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
                       paddingValues = innerPadding,
                       isMapReady = isMapReady,
                     )
@@ -521,40 +540,28 @@ fun BiziMobileApp(
                       errorMessage = stationsState.errorMessage,
                       nearestSelection = nearestSelection,
                       searchRadiusMeters = searchRadiusMeters,
-                      onStationSelected = { selectedStationId = it.id },
-                      onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
-                      onFavoriteToggle = { station ->
-                        scope.launch { favoritesRepository.toggle(station.id) }
-                      },
-                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
+                      onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                      onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
                       paddingValues = innerPadding,
                     )
                     MobileTab.Favoritos -> FavoritesScreen(
                       mobilePlatform = mobilePlatform,
-                      onOpenAssistant = { currentTab = MobileTab.Atajos },
+                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Atajos } },
                       allStations = stationsState.stations,
                       stations = favoriteStations,
                       homeStation = homeStation,
                       workStation = workStation,
-                      searchQuery = searchQuery,
-                      onSearchQueryChange = { searchQuery = it },
-                      onStationSelected = { selectedStationId = it.id },
-                      onAssignHomeStation = { station ->
-                        scope.launch { favoritesRepository.setHomeStationId(station.id) }
-                      },
-                      onAssignWorkStation = { station ->
-                        scope.launch { favoritesRepository.setWorkStationId(station.id) }
-                      },
-                      onClearHomeStation = {
-                        scope.launch { favoritesRepository.setHomeStationId(null) }
-                      },
-                      onClearWorkStation = {
-                        scope.launch { favoritesRepository.setWorkStationId(null) }
-                      },
-                      onRemoveFavorite = { station ->
-                        scope.launch { favoritesRepository.toggle(station.id) }
-                      },
-                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      searchQuery = appState.searchQuery,
+                      onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
+                      onAssignHomeStation = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.setHomeStationId(station.id) } } },
+                      onAssignWorkStation = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.setWorkStationId(station.id) } } },
+                      onClearHomeStation = remember(scope, favoritesRepository) { { scope.launch { favoritesRepository.setHomeStationId(null) } } },
+                      onClearWorkStation = remember(scope, favoritesRepository) { { scope.launch { favoritesRepository.setWorkStationId(null) } } },
+                      onRemoveFavorite = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
                       paddingValues = innerPadding,
                     )
                     MobileTab.Atajos -> ShortcutsScreen(
@@ -564,24 +571,20 @@ fun BiziMobileApp(
                       stationsRepository = stationsRepository,
                       favoriteIds = favoriteIds,
                       searchRadiusMeters = searchRadiusMeters,
-                      initialAction = pendingAssistantAction,
-                      onInitialActionConsumed = { pendingAssistantAction = null },
+                      initialAction = appState.pendingAssistantAction,
+                      onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
                       paddingValues = innerPadding,
                     )
                     MobileTab.Perfil -> ProfileScreen(
                       mobilePlatform = mobilePlatform,
-                      onOpenAssistant = { currentTab = MobileTab.Atajos },
+                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Atajos } },
                       paddingValues = innerPadding,
                       mapSupportStatus = mapSupportStatus,
                       searchRadiusMeters = searchRadiusMeters,
                       preferredMapApp = preferredMapApp,
                       userLocation = stationsState.userLocation,
-                      onSearchRadiusSelected = { radiusMeters ->
-                        scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) }
-                      },
-                      onPreferredMapAppSelected = { mapApp ->
-                        scope.launch { settingsRepository.setPreferredMapApp(mapApp) }
-                      },
+                      onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
+                      onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
                     )
                   }
                 }
@@ -865,15 +868,17 @@ private fun NearbyScreen(
     selectNearbyStation(stations, searchRadiusMeters) { station -> station.slotsFree > 0 }
   }
 
-  LazyColumn(
+  Column(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    item {
+    // Header + quick-action cards — always visible, never scroll away
+    Column(
+      modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
       if (mobilePlatform == MobileUiPlatform.IOS) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
           Text(
@@ -902,8 +907,6 @@ private fun NearbyScreen(
           )
         }
       }
-    }
-    item {
       Row(
         modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -930,63 +933,70 @@ private fun NearbyScreen(
         )
       }
     }
-    item {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-          text = if (loading) "Actualizando estaciones..." else "Listado cercano",
-          style = MaterialTheme.typography.titleLarge,
-          fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-          text = if (nearestSelection.usesFallback) {
-            "Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana."
-          } else {
-            "Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta."
-          },
-          style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
-        )
-        AnimatedVisibility(
-          visible = errorMessage != null,
-          enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
-          exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-          label = "nearby-error",
-        ) {
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(errorMessage.orEmpty(), color = BiziRed)
-            OutlinedButton(onClick = onRetry) {
-              Icon(Icons.Filled.Sync, contentDescription = null)
-              Spacer(Modifier.width(8.dp))
-              Text("Reintentar")
+    // Scrollable list below
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      item {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = if (loading) "Actualizando estaciones..." else "Listado cercano",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+          )
+          Text(
+            text = if (nearestSelection.usesFallback) {
+              "Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana."
+            } else {
+              "Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+          AnimatedVisibility(
+            visible = errorMessage != null,
+            enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
+            exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+            label = "nearby-error",
+          ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(errorMessage.orEmpty(), color = BiziRed)
+              OutlinedButton(onClick = onRetry) {
+                Icon(Icons.Filled.Sync, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Reintentar")
+              }
             }
           }
         }
       }
-    }
-    item {
-      AnimatedVisibility(
-        visible = !loading && stations.isEmpty(),
-        enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
-        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-        label = "nearby-empty",
-      ) {
-        EmptyStateCard(
-          title = "Todavía no tenemos estaciones en pantalla",
-          description = "Vuelve a intentarlo y la app usará Zaragoza centro si la ubicación tarda demasiado.",
-          primaryAction = "Cargar estaciones",
-          onPrimaryAction = onRetry,
+      item {
+        AnimatedVisibility(
+          visible = !loading && stations.isEmpty(),
+          enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+          exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+          label = "nearby-empty",
+        ) {
+          EmptyStateCard(
+            title = "Todavía no tenemos estaciones en pantalla",
+            description = "Vuelve a intentarlo y la app usará Zaragoza centro si la ubicación tarda demasiado.",
+            primaryAction = "Cargar estaciones",
+            onPrimaryAction = onRetry,
+          )
+        }
+      }
+      items(stations.take(12), key = { it.id }) { station ->
+        StationRow(
+          mobilePlatform = mobilePlatform,
+          station = station,
+          isFavorite = station.id in favoriteIds,
+          onClick = { onStationSelected(station) },
+          onFavoriteToggle = { onFavoriteToggle(station) },
+          onQuickRoute = { onQuickRoute(station) },
         )
       }
-    }
-    items(stations.take(12), key = { it.id }) { station ->
-      StationRow(
-        mobilePlatform = mobilePlatform,
-        station = station,
-        isFavorite = station.id in favoriteIds,
-        onClick = { onStationSelected(station) },
-        onFavoriteToggle = { onFavoriteToggle(station) },
-        onQuickRoute = { onQuickRoute(station) },
-      )
     }
   }
 }
