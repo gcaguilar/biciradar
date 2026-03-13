@@ -876,7 +876,7 @@ private fun NearbyScreen(
   ) {
     // Header + quick-action cards — always visible, never scroll away
     Column(
-      modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp),
+      modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       if (mobilePlatform == MobileUiPlatform.IOS) {
@@ -942,7 +942,7 @@ private fun NearbyScreen(
       item {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
-            text = if (loading) "Actualizando estaciones..." else "Listado cercano",
+            text = if (loading) "Actualizando estaciones..." else "Estaciones cercanas",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
           )
@@ -1078,8 +1078,23 @@ private fun MapSelectedStationCard(
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         RoutePill(
           label = "Ruta",
+          onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
           onClick = { onQuickRoute(station) },
         )
+        if (mobilePlatform == MobileUiPlatform.IOS) {
+          FavoritePill(
+            active = isFavorite,
+            onClick = onFavoriteToggle,
+            label = if (isFavorite) "Guardada" else "Guardar",
+          )
+        } else {
+          OutlineActionPill(
+            label = if (isFavorite) "Guardada" else "Guardar",
+            tint = Color.White,
+            borderTint = Color.White.copy(alpha = 0.32f),
+            onClick = onFavoriteToggle,
+          )
+        }
         OutlineActionPill(
           label = "Detalle",
           tint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else Color.White,
@@ -1940,11 +1955,13 @@ private fun FavoriteDismissBackground(
 private fun RoutePill(
   label: String,
   onClick: () -> Unit,
+  onDarkBackground: Boolean = false,
 ) {
+  val pillColor = if (onDarkBackground) Color.White else BiziBlue
   Surface(
     shape = RoundedCornerShape(16.dp),
-    color = BiziBlue.copy(alpha = 0.08f),
-    border = BorderStroke(1.dp, BiziBlue.copy(alpha = 0.16f)),
+    color = if (onDarkBackground) Color.White.copy(alpha = 0.14f) else BiziBlue.copy(alpha = 0.08f),
+    border = BorderStroke(1.dp, if (onDarkBackground) Color.White.copy(alpha = 0.32f) else BiziBlue.copy(alpha = 0.16f)),
     modifier = Modifier.clickable(onClick = onClick),
   ) {
     Row(
@@ -1957,10 +1974,10 @@ private fun RoutePill(
       Icon(
         imageVector = Icons.Filled.Directions,
         contentDescription = null,
-        tint = BiziBlue,
+        tint = pillColor,
         modifier = Modifier.size(16.dp),
       )
-      Text(label, color = BiziBlue, style = MaterialTheme.typography.labelMedium)
+      Text(label, color = pillColor, style = MaterialTheme.typography.labelMedium)
     }
   }
 }
