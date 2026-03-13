@@ -24,9 +24,13 @@ if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.firebase.crashlytics")
 }
 
-val googleMapsApiKey = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
+val googleMapsApiKey: String = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
   .orElse(providers.gradleProperty("googleMapsApiKey"))
   .orElse(localProperties.getProperty("googleMapsApiKey") ?: "")
+  .get()
+  .also { key ->
+    if (key.isEmpty()) logger.warn("WARNING: googleMapsApiKey is empty — Google Maps will not work in this build")
+  }
 
 kotlin {
   compilerOptions {
@@ -42,9 +46,9 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29557080
-    versionName = "2026.03.13.1900"
-    manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
+    versionCode = 29557098
+    versionName = "2026.03.13.1918"
+    manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 
   buildFeatures {
@@ -55,7 +59,7 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = false
-      manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
+      manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
   }
 
