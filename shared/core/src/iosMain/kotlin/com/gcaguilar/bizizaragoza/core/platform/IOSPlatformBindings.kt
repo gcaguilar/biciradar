@@ -51,7 +51,10 @@ class IOSPlatformBindings(
 ) : PlatformBindings {
   private val fileSystemInstance: FileSystem = FileSystem.SYSTEM
   private val storageDirectoryProviderInstance = IOSStorageDirectoryProvider()
-  private val json = Json
+  private val json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
 
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = fileSystemInstance
