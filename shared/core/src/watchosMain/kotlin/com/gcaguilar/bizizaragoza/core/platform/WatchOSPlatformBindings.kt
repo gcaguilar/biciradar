@@ -3,9 +3,12 @@ package com.gcaguilar.bizizaragoza.core.platform
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
 import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
+import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.LocationProvider
+import com.gcaguilar.bizizaragoza.core.MapSupport
+import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.Station
@@ -39,6 +42,7 @@ class WatchOSPlatformBindings(
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val httpClientFactory: BiziHttpClientFactory = WatchOSHttpClientFactory()
   override val locationProvider: LocationProvider = WatchOSLocationProvider()
+  override val mapSupport: MapSupport = WatchOSMapSupport()
   override val routeLauncher: RouteLauncher = WatchOSRouteLauncher()
   override val storageDirectoryProvider: StorageDirectoryProvider = WatchOSStorageDirectoryProvider()
   override val watchSyncBridge: WatchSyncBridge = WatchOSSyncBridge()
@@ -66,6 +70,14 @@ private class WatchOSLocationProvider : LocationProvider {
   private val delegate = AppleLocationProvider()
 
   override suspend fun currentLocation(): GeoPoint? = delegate.currentLocation()
+}
+
+private class WatchOSMapSupport : MapSupport {
+  override fun currentStatus(): MapSupportStatus = MapSupportStatus(
+    embeddedProvider = EmbeddedMapProvider.None,
+    googleMapsSdkLinked = false,
+    googleMapsApiKeyConfigured = false,
+  )
 }
 
 private class WatchOSRouteLauncher : RouteLauncher {

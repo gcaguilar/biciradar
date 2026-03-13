@@ -40,6 +40,7 @@ interface PlatformBindings {
   val fileSystem: FileSystem
   val httpClientFactory: BiziHttpClientFactory
   val locationProvider: LocationProvider
+  val mapSupport: MapSupport
   val routeLauncher: RouteLauncher
   val storageDirectoryProvider: StorageDirectoryProvider
   val watchSyncBridge: WatchSyncBridge

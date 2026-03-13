@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -51,7 +52,6 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,8 +62,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -81,7 +84,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.bizizaragoza.core.AssistantAction
+import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.GeoPoint
+import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.PreferredMapApp
 import com.gcaguilar.bizizaragoza.core.SEARCH_RADIUS_OPTIONS_METERS
@@ -90,6 +95,7 @@ import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.filterStationsByQuery
 import com.gcaguilar.bizizaragoza.core.findStationMatchingQuery
 import com.gcaguilar.bizizaragoza.core.findStationMatchingQueryOrPinnedAlias
+import com.gcaguilar.bizizaragoza.core.isGoogleMapsReady
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -104,14 +110,18 @@ private val BiziGreen = Color(0xFF167C3C)
 private val BiziBlue = Color(0xFF2563EB)
 
 private enum class MobileTab(val label: String) {
+  Cerca("Cerca"),
   Mapa("Mapa"),
   Favoritos("Favoritos"),
+  Atajos("Atajos"),
   Perfil("Ajustes"),
 }
 
 private val MobileTabs = listOf(
+  MobileTab.Cerca,
   MobileTab.Mapa,
   MobileTab.Favoritos,
+  MobileTab.Atajos,
   MobileTab.Perfil,
 )
 
@@ -164,6 +174,7 @@ fun BiziMobileApp(
   val graph = remember(platformBindings) {
     SharedGraph.Companion.create(platformBindings)
   }
+  val mapSupportStatus = remember(platformBindings) { platformBindings.mapSupport.currentStatus() }
   val stationsRepository = remember(graph) { graph.stationsRepository }
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
   val settingsRepository = remember(graph) { graph.settingsRepository }
@@ -174,18 +185,38 @@ fun BiziMobileApp(
   val workStationId by favoritesRepository.workStationId.collectAsState()
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
-  var currentTab by rememberSaveable { mutableStateOf(MobileTab.Mapa) }
+  var currentTab by rememberSaveable { mutableStateOf(MobileTab.Cerca) }
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var assistantOpen by rememberSaveable { mutableStateOf(false) }
   var searchQuery by rememberSaveable { mutableStateOf("") }
   var pendingAssistantAction by remember { mutableStateOf<AssistantAction?>(null) }
   var pendingLaunchRequest by remember { mutableStateOf<MobileLaunchRequest?>(null) }
   var pendingAssistantLaunchRequest by remember { mutableStateOf<AssistantLaunchRequest?>(null) }
+  var settingsBootstrapped by remember(graph) { mutableStateOf(false) }
+  var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
+  var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
+  var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
+
+  LaunchedEffect(graph) {
+    settingsBootstrapped = false
+    runCatching { settingsRepository.bootstrap() }
+    settingsBootstrapped = true
+  }
+
+  LaunchedEffect(graph) {
+    favoritesBootstrapped = false
+    runCatching { favoritesRepository.bootstrap() }
+    favoritesBootstrapped = true
+  }
+
+  LaunchedEffect(graph) {
+    minimumSplashElapsed = false
+    kotlinx.coroutines.delay(700)
+    minimumSplashElapsed = true
+  }
 
   LaunchedEffect(graph, refreshKey) {
-    launch { settingsRepository.bootstrap() }
-    launch { favoritesRepository.bootstrap() }
     stationsRepository.loadIfNeeded()
+    initialLoadAttemptFinished = true
   }
 
   LaunchedEffect(graph) {
@@ -255,13 +286,13 @@ fun BiziMobileApp(
         pendingLaunchRequest = null
       }
       MobileLaunchRequest.OpenAssistant -> {
-        assistantOpen = true
+        currentTab = MobileTab.Atajos
         pendingLaunchRequest = null
       }
       MobileLaunchRequest.StationStatus -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
         pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        assistantOpen = true
+        currentTab = MobileTab.Atajos
         pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
@@ -311,7 +342,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationStatus -> {
         if (station != null) {
           pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          assistantOpen = true
+          currentTab = MobileTab.Atajos
         } else {
           searchQuery = request.stationQuery.orEmpty()
           currentTab = MobileTab.Mapa
@@ -320,7 +351,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationBikeCount -> {
         if (station != null) {
           pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          assistantOpen = true
+          currentTab = MobileTab.Atajos
         } else {
           searchQuery = request.stationQuery.orEmpty()
           currentTab = MobileTab.Mapa
@@ -329,7 +360,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationSlotCount -> {
         if (station != null) {
           pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          assistantOpen = true
+          currentTab = MobileTab.Atajos
         } else {
           searchQuery = request.stationQuery.orEmpty()
           currentTab = MobileTab.Mapa
@@ -365,6 +396,20 @@ fun BiziMobileApp(
   val selectedStation = remember(selectedStationId, stationsState.stations, stationsRepository) {
     selectedStationId?.let(stationsRepository::stationById)
   }
+  val showStartupSplash = remember(
+    minimumSplashElapsed,
+    settingsBootstrapped,
+    favoritesBootstrapped,
+    initialLoadAttemptFinished,
+    stationsState.isLoading,
+    stationsState.stations,
+    stationsState.errorMessage,
+  ) {
+    val startupDataReady = settingsBootstrapped &&
+      favoritesBootstrapped &&
+      (initialLoadAttemptFinished || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null)
+    !minimumSplashElapsed || !startupDataReady || (stationsState.isLoading && stationsState.stations.isEmpty())
+  }
 
   BiziTheme(mobilePlatform) {
     Surface(
@@ -372,143 +417,169 @@ fun BiziMobileApp(
       color = pageBackgroundColor(mobilePlatform),
     ) {
       AnimatedContent(
-        targetState = when {
-          assistantOpen -> "assistant"
-          selectedStation != null -> "station:${selectedStation.id}"
-          else -> "tab:${currentTab.name}"
-        },
+        targetState = showStartupSplash,
         transitionSpec = {
-          (fadeIn(animationSpec = tween(240)) + slideInHorizontally(animationSpec = tween(240)) { it / 10 })
-            .togetherWith(
-              fadeOut(animationSpec = tween(160)) + slideOutHorizontally(animationSpec = tween(160)) { -it / 12 },
-            )
+          fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))
         },
-        label = "mobile-root-transition",
-      ) {
-        when {
-          assistantOpen -> AssistantScreen(
-            mobilePlatform = mobilePlatform,
-            graph = graph,
-            stationsRepository = stationsRepository,
-            favoriteIds = favoriteIds,
-            searchRadiusMeters = searchRadiusMeters,
-            stations = stationsState.stations,
-            initialAction = pendingAssistantAction,
-            onInitialActionConsumed = { pendingAssistantAction = null },
-            onBack = { assistantOpen = false },
-          )
-          selectedStation != null -> StationDetailScreen(
-            mobilePlatform = mobilePlatform,
-            station = selectedStation,
-            isFavorite = favoriteIds.contains(selectedStation.id),
-            userLocation = stationsState.userLocation,
-            onBack = { selectedStationId = null },
-            onToggleFavorite = {
-              scope.launch { favoritesRepository.toggle(selectedStation.id) }
+        label = "startup-splash-transition",
+      ) { splashVisible ->
+        if (splashVisible) {
+          StartupSplashScreen(mobilePlatform = mobilePlatform)
+        } else {
+          AnimatedContent(
+            targetState = when {
+              selectedStation != null -> "station:${selectedStation.id}"
+              else -> "tab:${currentTab.name}"
             },
-            onRoute = { graph.routeLauncher.launch(selectedStation) },
-          )
-          else -> Scaffold(
-            containerColor = pageBackgroundColor(mobilePlatform),
-            floatingActionButton = {
-              if (mobilePlatform == MobileUiPlatform.Android) {
-                ExtendedFloatingActionButton(
-                  containerColor = BiziRed,
-                  contentColor = Color.White,
-                  onClick = { assistantOpen = true },
-                  icon = {
-                    Icon(Icons.Filled.KeyboardVoice, contentDescription = null)
-                  },
-                  text = {
-                    Text("Atajos")
-                  },
+            transitionSpec = {
+              (fadeIn(animationSpec = tween(240)) + slideInHorizontally(animationSpec = tween(240)) { it / 10 })
+                .togetherWith(
+                  fadeOut(animationSpec = tween(160)) + slideOutHorizontally(animationSpec = tween(160)) { -it / 12 },
                 )
-              }
             },
-            bottomBar = {
-              MobileBottomNavigationBar(
+            label = "mobile-root-transition",
+          ) {
+            when {
+              selectedStation != null -> StationDetailScreen(
                 mobilePlatform = mobilePlatform,
-                currentTab = currentTab,
-                onTabSelected = { currentTab = it },
+                station = selectedStation,
+                isFavorite = favoriteIds.contains(selectedStation.id),
+                isHomeStation = homeStationId == selectedStation.id,
+                isWorkStation = workStationId == selectedStation.id,
+                userLocation = stationsState.userLocation,
+                onBack = { selectedStationId = null },
+                onToggleFavorite = {
+                  scope.launch { favoritesRepository.toggle(selectedStation.id) }
+                },
+                onToggleHome = {
+                  scope.launch {
+                    favoritesRepository.setHomeStationId(
+                      if (homeStationId == selectedStation.id) null else selectedStation.id,
+                    )
+                  }
+                },
+                onToggleWork = {
+                  scope.launch {
+                    favoritesRepository.setWorkStationId(
+                      if (workStationId == selectedStation.id) null else selectedStation.id,
+                    )
+                  }
+                },
+                onRoute = { graph.routeLauncher.launch(selectedStation) },
               )
-            },
-          ) { innerPadding ->
-            AnimatedContent(
-              targetState = currentTab,
-              transitionSpec = {
-                (fadeIn(animationSpec = tween(220)) + slideInHorizontally(animationSpec = tween(220)) { it / 14 })
-                  .togetherWith(
-                    fadeOut(animationSpec = tween(140)) + slideOutHorizontally(animationSpec = tween(140)) { -it / 16 },
+              else -> Scaffold(
+                containerColor = pageBackgroundColor(mobilePlatform),
+                bottomBar = {
+                  MobileBottomNavigationBar(
+                    mobilePlatform = mobilePlatform,
+                    currentTab = currentTab,
+                    onTabSelected = { currentTab = it },
                   )
-              },
-              label = "mobile-tab-transition",
-            ) { tab ->
-              when (tab) {
-                MobileTab.Mapa -> DashboardScreen(
-                  mobilePlatform = mobilePlatform,
-                  currentTab = currentTab,
-                  onTabSelected = { currentTab = it },
-                  onOpenAssistant = { assistantOpen = true },
-                  stations = filteredStations,
-                  favoriteIds = favoriteIds,
-                  loading = stationsState.isLoading,
-                  errorMessage = stationsState.errorMessage,
-                  nearestSelection = nearestSelection,
-                  searchQuery = searchQuery,
-                  searchRadiusMeters = searchRadiusMeters,
-                  userLocation = stationsState.userLocation,
-                  onSearchQueryChange = { searchQuery = it },
-                  onStationSelected = { selectedStationId = it.id },
-                  onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
-                  onFavoriteToggle = { station ->
-                    scope.launch { favoritesRepository.toggle(station.id) }
+                },
+              ) { innerPadding ->
+                AnimatedContent(
+                  targetState = currentTab,
+                  transitionSpec = {
+                    (fadeIn(animationSpec = tween(220)) + slideInHorizontally(animationSpec = tween(220)) { it / 14 })
+                      .togetherWith(
+                        fadeOut(animationSpec = tween(140)) + slideOutHorizontally(animationSpec = tween(140)) { -it / 16 },
+                      )
                   },
-                  onQuickRoute = { station -> graph.routeLauncher.launch(station) },
-                  paddingValues = innerPadding,
-                )
-                MobileTab.Favoritos -> FavoritesScreen(
-                  mobilePlatform = mobilePlatform,
-                  currentTab = currentTab,
-                  onTabSelected = { currentTab = it },
-                  onOpenAssistant = { assistantOpen = true },
-                  allStations = stationsState.stations,
-                  stations = favoriteStations,
-                  homeStation = homeStation,
-                  workStation = workStation,
-                  searchQuery = searchQuery,
-                  onSearchQueryChange = { searchQuery = it },
-                  onStationSelected = { selectedStationId = it.id },
-                  onAssignHomeStation = { station ->
-                    scope.launch { favoritesRepository.setHomeStationId(station.id) }
-                  },
-                  onAssignWorkStation = { station ->
-                    scope.launch { favoritesRepository.setWorkStationId(station.id) }
-                  },
-                  onClearHomeStation = {
-                    scope.launch { favoritesRepository.setHomeStationId(null) }
-                  },
-                  onClearWorkStation = {
-                    scope.launch { favoritesRepository.setWorkStationId(null) }
-                  },
-                  onQuickRoute = { station -> graph.routeLauncher.launch(station) },
-                  paddingValues = innerPadding,
-                )
-                MobileTab.Perfil -> ProfileScreen(
-                  mobilePlatform = mobilePlatform,
-                  currentTab = currentTab,
-                  onTabSelected = { currentTab = it },
-                  onOpenAssistant = { assistantOpen = true },
-                  paddingValues = innerPadding,
-                  searchRadiusMeters = searchRadiusMeters,
-                  preferredMapApp = preferredMapApp,
-                  userLocation = stationsState.userLocation,
-                  onSearchRadiusSelected = { radiusMeters ->
-                    scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) }
-                  },
-                  onPreferredMapAppSelected = { mapApp ->
-                    scope.launch { settingsRepository.setPreferredMapApp(mapApp) }
-                  },
-                )
+                  label = "mobile-tab-transition",
+                ) { tab ->
+                  when (tab) {
+                    MobileTab.Mapa -> MapScreen(
+                      mobilePlatform = mobilePlatform,
+                      stations = filteredStations,
+                      loading = stationsState.isLoading,
+                      errorMessage = stationsState.errorMessage,
+                      nearestSelection = nearestSelection,
+                      searchQuery = searchQuery,
+                      searchRadiusMeters = searchRadiusMeters,
+                      userLocation = stationsState.userLocation,
+                      onSearchQueryChange = { searchQuery = it },
+                      onStationSelected = { selectedStationId = it.id },
+                      onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
+                      onFavoriteToggle = { station ->
+                        scope.launch { favoritesRepository.toggle(station.id) }
+                      },
+                      favoriteIds = favoriteIds,
+                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      paddingValues = innerPadding,
+                    )
+                    MobileTab.Cerca -> NearbyScreen(
+                      mobilePlatform = mobilePlatform,
+                      onOpenAssistant = { currentTab = MobileTab.Atajos },
+                      stations = stationsState.stations,
+                      favoriteIds = favoriteIds,
+                      loading = stationsState.isLoading,
+                      errorMessage = stationsState.errorMessage,
+                      nearestSelection = nearestSelection,
+                      searchRadiusMeters = searchRadiusMeters,
+                      onStationSelected = { selectedStationId = it.id },
+                      onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
+                      onFavoriteToggle = { station ->
+                        scope.launch { favoritesRepository.toggle(station.id) }
+                      },
+                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      paddingValues = innerPadding,
+                    )
+                    MobileTab.Favoritos -> FavoritesScreen(
+                      mobilePlatform = mobilePlatform,
+                      onOpenAssistant = { currentTab = MobileTab.Atajos },
+                      allStations = stationsState.stations,
+                      stations = favoriteStations,
+                      homeStation = homeStation,
+                      workStation = workStation,
+                      searchQuery = searchQuery,
+                      onSearchQueryChange = { searchQuery = it },
+                      onStationSelected = { selectedStationId = it.id },
+                      onAssignHomeStation = { station ->
+                        scope.launch { favoritesRepository.setHomeStationId(station.id) }
+                      },
+                      onAssignWorkStation = { station ->
+                        scope.launch { favoritesRepository.setWorkStationId(station.id) }
+                      },
+                      onClearHomeStation = {
+                        scope.launch { favoritesRepository.setHomeStationId(null) }
+                      },
+                      onClearWorkStation = {
+                        scope.launch { favoritesRepository.setWorkStationId(null) }
+                      },
+                      onRemoveFavorite = { station ->
+                        scope.launch { favoritesRepository.toggle(station.id) }
+                      },
+                      onQuickRoute = { station -> graph.routeLauncher.launch(station) },
+                      paddingValues = innerPadding,
+                    )
+                    MobileTab.Atajos -> ShortcutsScreen(
+                      mobilePlatform = mobilePlatform,
+                      stations = stationsState.stations,
+                      graph = graph,
+                      stationsRepository = stationsRepository,
+                      favoriteIds = favoriteIds,
+                      searchRadiusMeters = searchRadiusMeters,
+                      initialAction = pendingAssistantAction,
+                      onInitialActionConsumed = { pendingAssistantAction = null },
+                      paddingValues = innerPadding,
+                    )
+                    MobileTab.Perfil -> ProfileScreen(
+                      mobilePlatform = mobilePlatform,
+                      onOpenAssistant = { currentTab = MobileTab.Atajos },
+                      paddingValues = innerPadding,
+                      mapSupportStatus = mapSupportStatus,
+                      searchRadiusMeters = searchRadiusMeters,
+                      preferredMapApp = preferredMapApp,
+                      userLocation = stationsState.userLocation,
+                      onSearchRadiusSelected = { radiusMeters ->
+                        scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) }
+                      },
+                      onPreferredMapAppSelected = { mapApp ->
+                        scope.launch { settingsRepository.setPreferredMapApp(mapApp) }
+                      },
+                    )
+                  }
+                }
               }
             }
           }
@@ -534,6 +605,62 @@ private fun BiziTheme(
     ),
     content = content,
   )
+}
+
+@Composable
+private fun StartupSplashScreen(
+  mobilePlatform: MobileUiPlatform,
+) {
+  val backgroundColor = if (mobilePlatform == MobileUiPlatform.IOS) BiziGrouped else BiziLight
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(backgroundColor),
+    contentAlignment = Alignment.Center,
+  ) {
+    Column(
+      modifier = Modifier.padding(horizontal = 32.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      Surface(
+        shape = CircleShape,
+        color = BiziRed,
+      ) {
+        Icon(
+          imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
+          contentDescription = null,
+          tint = Color.White,
+          modifier = Modifier.padding(18.dp).size(30.dp),
+        )
+      }
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+      ) {
+        Text(
+          text = "Bizi Zaragoza",
+          style = MaterialTheme.typography.headlineMedium,
+          fontWeight = FontWeight.Bold,
+          color = BiziRed,
+        )
+        Text(
+          text = "Cargando estaciones cercanas, favoritas y atajos...",
+          style = MaterialTheme.typography.bodyMedium,
+          color = BiziMuted,
+        )
+      }
+      Text(
+        text = if (mobilePlatform == MobileUiPlatform.IOS) {
+          "Preparando la experiencia del iPhone."
+        } else {
+          "Preparando la experiencia de Android."
+        },
+        style = MaterialTheme.typography.labelMedium,
+        color = BiziMuted,
+      )
+    }
+  }
 }
 
 @Composable
@@ -566,11 +693,8 @@ private fun MobileBottomNavigationBar(
 }
 
 @Composable
-private fun DashboardScreen(
+private fun MapScreen(
   mobilePlatform: MobileUiPlatform,
-  currentTab: MobileTab,
-  onTabSelected: (MobileTab) -> Unit,
-  onOpenAssistant: () -> Unit,
   stations: List<Station>,
   favoriteIds: Set<String>,
   loading: Boolean,
@@ -587,28 +711,154 @@ private fun DashboardScreen(
   paddingValues: PaddingValues,
 ) {
   val nearestStation = nearestSelection.highlightedStation
+  var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
+  var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
+
+  LaunchedEffect(stations, nearestStation?.id, searchQuery) {
+    val hasSelectedStation = selectedMapStationId != null && stations.any { station -> station.id == selectedMapStationId }
+    if (!hasSelectedStation) {
+      selectedMapStationId = if (searchQuery.isNotBlank()) {
+        stations.firstOrNull()?.id
+      } else {
+        nearestStation?.id ?: stations.firstOrNull()?.id
+      }
+      hasExplicitMapSelection = false
+    }
+  }
+
+  val selectedMapStation = remember(selectedMapStationId, stations, nearestStation, searchQuery) {
+    selectedMapStationId?.let { id -> stations.firstOrNull { station -> station.id == id } }
+      ?: when {
+        stations.isEmpty() -> null
+        searchQuery.isNotBlank() -> stations.firstOrNull()
+        else -> nearestStation?.takeIf { nearest -> stations.any { it.id == nearest.id } } ?: stations.firstOrNull()
+      }
+  }
+  val mapIsShowingNearestSelection = !hasExplicitMapSelection && selectedMapStation?.id == nearestStation?.id
+  val mapIsShowingNearestFallback = selectedMapStation?.id == nearestStation?.id && nearestSelection.usesFallback
+
+  LaunchedEffect(searchQuery, stations) {
+    if (searchQuery.isBlank()) return@LaunchedEffect
+    val firstMatch = stations.firstOrNull() ?: return@LaunchedEffect
+    selectedMapStationId = firstMatch.id
+    hasExplicitMapSelection = false
+  }
+
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(paddingValues)
+      .background(pageBackgroundColor(mobilePlatform)),
+  ) {
+    PlatformStationMap(
+      modifier = Modifier.fillMaxSize(),
+      stations = stations,
+      userLocation = userLocation,
+      highlightedStationId = selectedMapStation?.id,
+      onStationSelected = { station ->
+        hasExplicitMapSelection = true
+        selectedMapStationId = station.id
+      },
+    )
+
+    Column(
+      modifier = Modifier
+        .align(Alignment.TopCenter)
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      StationSearchField(
+        mobilePlatform = mobilePlatform,
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
+        label = "Buscar estación o dirección",
+      )
+    }
+
+    AnimatedVisibility(
+      modifier = Modifier
+        .align(Alignment.Center)
+        .padding(horizontal = 16.dp),
+      visible = errorMessage != null || (!loading && stations.isEmpty()),
+      enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
+      exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+      label = "map-centered-feedback",
+    ) {
+      if (errorMessage != null) {
+        EmptyStateCard(
+          title = "No hemos podido actualizar el mapa",
+          description = errorMessage,
+          primaryAction = "Reintentar",
+          onPrimaryAction = onRetry,
+        )
+      } else {
+        EmptyStateCard(
+          title = if (searchQuery.isBlank()) "Todavía no tenemos estaciones en pantalla" else "No hay estaciones para esa búsqueda",
+          description = if (searchQuery.isBlank()) {
+            "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible."
+          } else {
+            "Prueba con otro nombre, dirección o número de estación."
+          },
+          primaryAction = "Cargar estaciones",
+          onPrimaryAction = onRetry,
+        )
+      }
+    }
+
+    Box(
+      modifier = Modifier
+        .align(Alignment.BottomCenter)
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 16.dp),
+    ) {
+      AnimatedVisibility(
+        visible = selectedMapStation != null,
+        enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+        exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+        label = "map-selected-station-overlay",
+      ) {
+        selectedMapStation?.let { station ->
+          MapSelectedStationCard(
+            mobilePlatform = mobilePlatform,
+            station = station,
+            isFavorite = station.id in favoriteIds,
+            isShowingNearestSelection = mapIsShowingNearestSelection,
+            isFallbackSelection = mapIsShowingNearestFallback,
+            searchRadiusMeters = searchRadiusMeters,
+            onFavoriteToggle = { onFavoriteToggle(station) },
+            onOpenStationDetails = { onStationSelected(station) },
+            onQuickRoute = { onQuickRoute(station) },
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun NearbyScreen(
+  mobilePlatform: MobileUiPlatform,
+  onOpenAssistant: () -> Unit,
+  stations: List<Station>,
+  favoriteIds: Set<String>,
+  loading: Boolean,
+  errorMessage: String?,
+  nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
+  searchRadiusMeters: Int,
+  onStationSelected: (Station) -> Unit,
+  onRetry: () -> Unit,
+  onFavoriteToggle: (Station) -> Unit,
+  onQuickRoute: (Station) -> Unit,
+  paddingValues: PaddingValues,
+) {
   val nearestWithBikesSelection = remember(stations, searchRadiusMeters) {
     selectNearbyStation(stations, searchRadiusMeters) { station -> station.bikesAvailable > 0 }
   }
   val nearestWithSlotsSelection = remember(stations, searchRadiusMeters) {
     selectNearbyStation(stations, searchRadiusMeters) { station -> station.slotsFree > 0 }
   }
-  var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
 
-  LaunchedEffect(stations, nearestStation?.id) {
-    val hasSelectedStation = selectedMapStationId != null && stations.any { station -> station.id == selectedMapStationId }
-    if (!hasSelectedStation) {
-      selectedMapStationId = nearestStation?.id
-      hasExplicitMapSelection = false
-    }
-  }
-
-  val selectedMapStation = remember(selectedMapStationId, stations, nearestStation) {
-    selectedMapStationId?.let { id -> stations.firstOrNull { station -> station.id == id } } ?: nearestStation
-  }
-  val mapIsShowingNearestSelection = !hasExplicitMapSelection && selectedMapStation?.id == nearestStation?.id
-  val mapIsShowingNearestFallback = selectedMapStation?.id == nearestStation?.id && nearestSelection.usesFallback
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
@@ -620,58 +870,25 @@ private fun DashboardScreen(
     item {
       if (mobilePlatform == MobileUiPlatform.IOS) {
         MobilePageHeader(
-          title = "Bizi Zaragoza",
-          subtitle = "Muévete con una vista clara de estaciones, favoritas y rutas. Radio actual: ${searchRadiusMeters} m.",
+          title = "Cerca",
+          subtitle = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
           onOpenAssistant = onOpenAssistant,
         )
       } else {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
-            text = "Zaragoza Bizi",
+            text = "Cerca de ti",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = BiziRed,
           )
           Text(
-            text = "Estaciones cercanas, favoritas y rutas rápidas desde una sola vista.",
+            text = "Estaciones ordenadas por cercanía y acciones rápidas para moverte.",
             style = MaterialTheme.typography.bodyMedium,
-          )
-          StationMetricPill(
-            modifier = Modifier.fillMaxWidth(),
-            label = "Radio cercano",
-            value = "${searchRadiusMeters} m",
-            tint = BiziBlue,
+            color = BiziMuted,
           )
         }
       }
-    }
-    item {
-      MapHeroCard(
-        mobilePlatform = mobilePlatform,
-        stations = stations,
-        userLocation = userLocation,
-        selectedStation = selectedMapStation,
-        isShowingNearestSelection = mapIsShowingNearestSelection,
-        isFallbackSelection = mapIsShowingNearestFallback,
-        searchRadiusMeters = searchRadiusMeters,
-        onStationSelected = { station ->
-          hasExplicitMapSelection = true
-          selectedMapStationId = station.id
-        },
-        onOpenStationDetails = { station ->
-          selectedMapStationId = station.id
-          onStationSelected(station)
-        },
-        onQuickRoute = onQuickRoute,
-      )
-    }
-    item {
-      StationSearchField(
-        mobilePlatform = mobilePlatform,
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        label = "Buscar estación o dirección",
-      )
     }
     item {
       Row(
@@ -703,15 +920,15 @@ private fun DashboardScreen(
     item {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = if (loading) "Actualizando estaciones..." else "Cerca de ti",
+          text = if (loading) "Actualizando estaciones..." else "Listado cercano",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.SemiBold,
         )
         Text(
           text = if (nearestSelection.usesFallback) {
-            "Si no hay estaciones dentro del radio, te seguimos mostrando la opción más cercana."
+            "Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana."
           } else {
-            "Toca cualquier tarjeta para abrir el detalle, guardar la estación o lanzar la ruta."
+            "Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta."
           },
           style = MaterialTheme.typography.bodySmall,
           color = BiziMuted,
@@ -720,7 +937,7 @@ private fun DashboardScreen(
           visible = errorMessage != null,
           enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
           exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-          label = "dashboard-error",
+          label = "nearby-error",
         ) {
           Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(errorMessage.orEmpty(), color = BiziRed)
@@ -738,11 +955,11 @@ private fun DashboardScreen(
         visible = !loading && stations.isEmpty(),
         enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
         exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-        label = "dashboard-empty",
+        label = "nearby-empty",
       ) {
         EmptyStateCard(
           title = "Todavía no tenemos estaciones en pantalla",
-          description = "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.",
+          description = "Vuelve a intentarlo y la app usará Zaragoza centro si la ubicación tarda demasiado.",
           primaryAction = "Cargar estaciones",
           onPrimaryAction = onRetry,
         )
@@ -762,91 +979,90 @@ private fun DashboardScreen(
 }
 
 @Composable
-private fun MapHeroCard(
+private fun MapSelectedStationCard(
   mobilePlatform: MobileUiPlatform,
-  stations: List<Station>,
-  userLocation: GeoPoint?,
-  selectedStation: Station?,
+  station: Station,
+  isFavorite: Boolean,
   isShowingNearestSelection: Boolean,
   isFallbackSelection: Boolean,
   searchRadiusMeters: Int,
-  onStationSelected: (Station) -> Unit,
+  onFavoriteToggle: () -> Unit,
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
 ) {
+  val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) BiziInk else Color.White
+  val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) BiziMuted else Color.White.copy(alpha = 0.84f)
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)) else null,
+    colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziRed),
   ) {
-    Box(modifier = Modifier.fillMaxWidth().height(260.dp)) {
-      PlatformStationMap(
-        modifier = Modifier.fillMaxSize(),
-        stations = stations.take(12),
-        userLocation = userLocation,
-        highlightedStationId = selectedStation?.id,
-        onStationSelected = onStationSelected,
+    Column(
+      modifier = Modifier
+        .padding(16.dp)
+        .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      Text(
+        if (isFallbackSelection) {
+          "No hay dentro de ${searchRadiusMeters} m"
+        } else if (isShowingNearestSelection) {
+          "Estación más cercana"
+        } else {
+          "Estación seleccionada"
+        },
+        color = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else overlayBody,
       )
-      Box(
-        modifier = Modifier
-          .align(Alignment.BottomStart)
-          .padding(16.dp),
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
       ) {
-        selectedStation?.let { station ->
-          val overlayContainer = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziRed
-          val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) BiziInk else Color.White
-          val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) BiziMuted else Color.White.copy(alpha = 0.84f)
-          Card(
-            modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
-            shape = RoundedCornerShape(22.dp),
-            border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)) else null,
-            colors = CardDefaults.cardColors(containerColor = overlayContainer),
-          ) {
-            Column(
-              modifier = Modifier
-                .padding(16.dp)
-                .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
-              verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-              Text(
-                if (isFallbackSelection) {
-                  "No hay dentro de ${searchRadiusMeters} m"
-                } else if (isShowingNearestSelection) {
-                  "Estación más cercana"
-                } else {
-                  "Estado en el mapa"
-                },
-                color = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else overlayBody,
-              )
-              Text(
-                text = station.name,
-                style = MaterialTheme.typography.headlineSmall,
-                color = overlayTitle,
-                fontWeight = FontWeight.Bold,
-              )
-              Text(
-                text = if (isFallbackSelection) {
-                  "La más cercana está a ${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
-                } else {
-                  "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
-                },
-                color = overlayBody,
-              )
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                RoutePill(
-                  label = if (mobilePlatform == MobileUiPlatform.IOS) "Maps" else "Ruta",
-                  onClick = { onQuickRoute(station) },
-                )
-                OutlineActionPill(
-                  label = "Detalle",
-                  tint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else Color.White,
-                  borderTint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.32f),
-                  onClick = { onOpenStationDetails(station) },
-                )
-              }
-            }
-          }
+        Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          Text(
+            text = station.name,
+            style = MaterialTheme.typography.titleLarge,
+            color = overlayTitle,
+            fontWeight = FontWeight.Bold,
+          )
+          Text(
+            text = station.address,
+            style = MaterialTheme.typography.bodySmall,
+            color = overlayBody,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+          )
         }
+        Spacer(Modifier.width(12.dp))
+        FavoritePill(
+          active = isFavorite,
+          onClick = onFavoriteToggle,
+          label = if (isFavorite) "Guardada" else "Guardar",
+        )
+      }
+      Text(
+        text = if (isFallbackSelection) {
+          "La más cercana está a ${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+        } else {
+          "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+        },
+        color = overlayBody,
+      )
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        RoutePill(
+          label = "Ruta",
+          onClick = { onQuickRoute(station) },
+        )
+        OutlineActionPill(
+          label = "Detalle",
+          tint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else Color.White,
+          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.32f),
+          onClick = { onOpenStationDetails(station) },
+        )
       }
     }
   }
@@ -855,8 +1071,6 @@ private fun MapHeroCard(
 @Composable
 private fun FavoritesScreen(
   mobilePlatform: MobileUiPlatform,
-  currentTab: MobileTab,
-  onTabSelected: (MobileTab) -> Unit,
   onOpenAssistant: () -> Unit,
   allStations: List<Station>,
   stations: List<Station>,
@@ -869,6 +1083,7 @@ private fun FavoritesScreen(
   onAssignWorkStation: (Station) -> Unit,
   onClearHomeStation: () -> Unit,
   onClearWorkStation: () -> Unit,
+  onRemoveFavorite: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
@@ -916,7 +1131,7 @@ private fun FavoritesScreen(
           fontWeight = FontWeight.SemiBold,
         )
         Text(
-          text = "Busca una estación y asígnala como Casa o Trabajo para pedirla luego con atajos de voz.",
+          text = "Puedes fijar Casa o Trabajo desde el buscador o directamente desde una favorita. Desliza una favorita para quitarla.",
           style = MaterialTheme.typography.bodySmall,
           color = BiziMuted,
         )
@@ -961,13 +1176,16 @@ private fun FavoritesScreen(
     }
     if (stations.isNotEmpty()) {
       items(stations, key = { it.id }) { station ->
-        StationRow(
+        DismissibleFavoriteStationRow(
           mobilePlatform = mobilePlatform,
           station = station,
-          isFavorite = true,
+          canAssignHome = homeStation == null,
+          canAssignWork = workStation == null,
           onClick = { onStationSelected(station) },
-          onFavoriteToggle = {},
-          showFavoriteCta = false,
+          onAssignHome = { onAssignHomeStation(station) },
+          onAssignWork = { onAssignWorkStation(station) },
+          onQuickRoute = { onQuickRoute(station) },
+          onRemoveFavorite = { onRemoveFavorite(station) },
         )
       }
     }
@@ -977,10 +1195,9 @@ private fun FavoritesScreen(
 @Composable
 private fun ProfileScreen(
   mobilePlatform: MobileUiPlatform,
-  currentTab: MobileTab,
-  onTabSelected: (MobileTab) -> Unit,
   onOpenAssistant: () -> Unit,
   paddingValues: PaddingValues,
+  mapSupportStatus: MapSupportStatus,
   searchRadiusMeters: Int,
   preferredMapApp: PreferredMapApp,
   userLocation: GeoPoint?,
@@ -1022,8 +1239,11 @@ private fun ProfileScreen(
             if (mobilePlatform == MobileUiPlatform.IOS) {
               "Se abrirán en ${preferredMapApp.displayName()} cuando lances una ruta."
             } else {
-              "Delegadas a Google Maps y Apple Maps."
+              "Se abrirán en la app de navegación disponible en Android."
             }
+          }
+          InfoLine(icon = Icons.Filled.Map, label = "Mapa en la app") {
+            mapSupportStatus.embeddedProvider.displayName()
           }
           InfoLine(icon = Icons.Filled.KeyboardVoice, label = "Atajos") {
             "App Actions, App Shortcuts y Siri/App Intents."
@@ -1063,13 +1283,31 @@ private fun ProfileScreen(
         }
       }
     }
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+          Text("Integración de Google Maps", fontWeight = FontWeight.SemiBold)
+          Text(
+            mapSupportStatus.googleMapsSupportHeadline(mobilePlatform),
+            style = MaterialTheme.typography.bodyMedium,
+          )
+          Text(
+            mapSupportStatus.googleMapsSupportDescription(mobilePlatform),
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+        }
+      }
+    }
     if (mobilePlatform == MobileUiPlatform.IOS) {
       item {
         Card(
           colors = CardDefaults.cardColors(containerColor = Color.White),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("App de mapas en iPhone", fontWeight = FontWeight.SemiBold)
+            Text("App de rutas en iPhone", fontWeight = FontWeight.SemiBold)
             Text(
               "Elige qué app abrir para las rutas rápidas, el detalle de estación y los atajos de Siri.",
               style = MaterialTheme.typography.bodySmall,
@@ -1106,9 +1344,13 @@ private fun StationDetailScreen(
   mobilePlatform: MobileUiPlatform,
   station: Station,
   isFavorite: Boolean,
+  isHomeStation: Boolean,
+  isWorkStation: Boolean,
   userLocation: GeoPoint?,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
+  onToggleHome: () -> Unit,
+  onToggleWork: () -> Unit,
   onRoute: () -> Unit,
 ) {
   LazyColumn(
@@ -1119,10 +1361,13 @@ private fun StationDetailScreen(
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     item {
-      TextButton(onClick = onBack) {
+      OutlinedButton(
+        onClick = onBack,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text(if (mobilePlatform == MobileUiPlatform.IOS) "Volver al mapa" else "Volver")
+        Text("Volver")
       }
     }
     item {
@@ -1170,6 +1415,50 @@ private fun StationDetailScreen(
     }
     item {
       Card(
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+      ) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          Text("Guardar esta estación", fontWeight = FontWeight.SemiBold)
+          Text(
+            "Márcala como favorita o fíjala como Casa o Trabajo para recuperarla más rápido desde Favoritas y con los atajos de voz.",
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FavoritePill(
+              active = isFavorite,
+              onClick = onToggleFavorite,
+              label = if (isFavorite) "Favorita" else "Guardar",
+            )
+            SavedPlacePill(
+              active = isHomeStation,
+              label = "Casa",
+              onClick = onToggleHome,
+            )
+            SavedPlacePill(
+              active = isWorkStation,
+              label = "Trabajo",
+              onClick = onToggleWork,
+            )
+          }
+          Text(
+            when {
+              isHomeStation && isWorkStation -> "Ahora mismo esta estación está marcada como Casa y Trabajo."
+              isHomeStation -> "Ahora mismo esta estación está marcada como Casa."
+              isWorkStation -> "Ahora mismo esta estación está marcada como Trabajo."
+              else -> "Puedes tocar Casa o Trabajo para asignarla directamente."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+        }
+      }
+    }
+    item {
+      Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
       ) {
@@ -1206,7 +1495,7 @@ private fun StationDetailScreen(
       Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Filled.Directions, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text("Abrir ruta en mapas")
+        Text("Abrir ruta")
       }
     }
     item {
@@ -1222,18 +1511,17 @@ private fun StationDetailScreen(
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AssistantScreen(
+private fun ShortcutsScreen(
   mobilePlatform: MobileUiPlatform,
+  stations: List<Station>,
   graph: SharedGraph,
   stationsRepository: com.gcaguilar.bizizaragoza.core.StationsRepository,
   favoriteIds: Set<String>,
   searchRadiusMeters: Int,
-  stations: List<Station>,
   initialAction: AssistantAction?,
   onInitialActionConsumed: () -> Unit,
-  onBack: () -> Unit,
+  paddingValues: PaddingValues,
 ) {
   val scope = rememberCoroutineScope()
   var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritas o rutas.") }
@@ -1244,6 +1532,7 @@ private fun AssistantScreen(
     AssistantAction.FavoriteStations,
     stations.firstOrNull()?.let { AssistantAction.RouteToStation(it.id) },
   ).filterNotNull()
+  val guides = remember(mobilePlatform) { shortcutGuidesFor(mobilePlatform) }
 
   LaunchedEffect(initialAction, stations, favoriteIds) {
     val action = initialAction ?: return@LaunchedEffect
@@ -1260,26 +1549,47 @@ private fun AssistantScreen(
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
+      .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
     contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     item {
-      TextButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text("Cerrar")
-      }
-    }
-    item {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Atajos y asistentes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text("Atajos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
-          "Usa acciones rápidas del sistema para resolver consultas sin navegar por toda la app. Radio actual: ${searchRadiusMeters} m.",
+          "Aquí tienes qué puede hacer la app y cómo invocarlo con ${mobilePlatform.assistantDisplayName()}.",
           style = MaterialTheme.typography.bodyMedium,
           color = BiziMuted,
         )
       }
+    }
+    item {
+      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          Text("Cómo invocarlos", fontWeight = FontWeight.SemiBold)
+          Text(
+            if (mobilePlatform == MobileUiPlatform.IOS) {
+              "Abre Siri o Atajos y usa frases como las de abajo terminando en “en Bizi Zaragoza”."
+            } else {
+              "Abre Google Assistant y prueba frases como las de abajo. Si hace falta, empieza por “abre Bizi Zaragoza y...”. La ruta se abrirá en la navegación del teléfono."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziMuted,
+          )
+          Text(
+            "Radio actual para búsquedas cercanas: ${searchRadiusMeters} m.",
+            style = MaterialTheme.typography.bodySmall,
+            color = BiziInk,
+          )
+        }
+      }
+    }
+    items(guides, key = { it.title }) { guide ->
+      ShortcutGuideCard(guide = guide)
     }
     item {
       Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
@@ -1317,6 +1627,45 @@ private fun AssistantScreen(
         Icon(action.icon(), contentDescription = null)
         Spacer(Modifier.width(10.dp))
         Text(action.label())
+      }
+    }
+  }
+}
+
+private data class ShortcutGuide(
+  val title: String,
+  val description: String,
+  val examples: List<String>,
+  val icon: androidx.compose.ui.graphics.vector.ImageVector,
+)
+
+@Composable
+private fun ShortcutGuideCard(
+  guide: ShortcutGuide,
+) {
+  Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Column(
+      modifier = Modifier.padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(guide.icon, contentDescription = null, tint = BiziRed)
+        Text(guide.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+      }
+      Text(
+        guide.description,
+        style = MaterialTheme.typography.bodySmall,
+        color = BiziMuted,
+      )
+      guide.examples.forEach { example ->
+        Text(
+          "\u2022 $example",
+          style = MaterialTheme.typography.bodyMedium,
+          color = BiziInk,
+        )
       }
     }
   }
@@ -1363,6 +1712,7 @@ private fun StationRow(
   onClick: () -> Unit,
   onFavoriteToggle: () -> Unit,
   onQuickRoute: (() -> Unit)? = null,
+  extraActions: @Composable (() -> Unit)? = null,
   showFavoriteCta: Boolean = true,
 ) {
   Card(
@@ -1411,7 +1761,7 @@ private fun StationRow(
         ) {
           onQuickRoute?.let { quickRoute ->
             RoutePill(
-              label = if (mobilePlatform == MobileUiPlatform.IOS) "Maps" else "Ruta",
+              label = "Ruta",
               onClick = quickRoute,
             )
           }
@@ -1450,6 +1800,110 @@ private fun StationRow(
           tint = BiziGreen,
         )
       }
+      extraActions?.let { actions ->
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          actions()
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun DismissibleFavoriteStationRow(
+  mobilePlatform: MobileUiPlatform,
+  station: Station,
+  canAssignHome: Boolean,
+  canAssignWork: Boolean,
+  onClick: () -> Unit,
+  onAssignHome: () -> Unit,
+  onAssignWork: () -> Unit,
+  onQuickRoute: () -> Unit,
+  onRemoveFavorite: () -> Unit,
+) {
+  val dismissState = rememberSwipeToDismissBoxState(
+    confirmValueChange = { value ->
+      if (value == SwipeToDismissBoxValue.EndToStart) {
+        onRemoveFavorite()
+      }
+      false
+    },
+  )
+  SwipeToDismissBox(
+    state = dismissState,
+    enableDismissFromStartToEnd = false,
+    backgroundContent = {
+      FavoriteDismissBackground(
+        mobilePlatform = mobilePlatform,
+        progress = dismissState.progress,
+      )
+    },
+    content = {
+      StationRow(
+        mobilePlatform = mobilePlatform,
+        station = station,
+        isFavorite = true,
+        onClick = onClick,
+        onFavoriteToggle = {},
+        onQuickRoute = onQuickRoute,
+        extraActions = {
+          if (canAssignHome) {
+            SavedPlaceQuickAction(
+              label = "Casa",
+              tint = BiziGreen,
+              onClick = onAssignHome,
+            )
+          }
+          if (canAssignWork) {
+            SavedPlaceQuickAction(
+              label = "Trabajo",
+              tint = BiziBlue,
+              onClick = onAssignWork,
+            )
+          }
+        },
+        showFavoriteCta = false,
+      )
+    },
+  )
+}
+
+@Composable
+private fun FavoriteDismissBackground(
+  mobilePlatform: MobileUiPlatform,
+  progress: Float,
+) {
+  val clampedProgress = progress.coerceIn(0f, 1f)
+  Box(
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(BiziRed.copy(alpha = 0.10f + (0.10f * clampedProgress)))
+      .padding(horizontal = 20.dp, vertical = 12.dp),
+    contentAlignment = Alignment.CenterEnd,
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.graphicsLayer {
+        alpha = 0.55f + (0.45f * clampedProgress)
+        scaleX = 0.92f + (0.08f * clampedProgress)
+        scaleY = 0.92f + (0.08f * clampedProgress)
+      },
+    ) {
+      Icon(
+        Icons.Filled.Delete,
+        contentDescription = null,
+        tint = BiziRed,
+      )
+      Text(
+        text = if (mobilePlatform == MobileUiPlatform.IOS) "Quitar favorita" else "Eliminar favorita",
+        color = BiziRed,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+      )
     }
   }
 }
@@ -1561,7 +2015,7 @@ private fun SavedPlaceCard(
       ) {
         if (station != null) {
           RoutePill(
-            label = if (mobilePlatform == MobileUiPlatform.IOS) "Maps" else "Ruta",
+            label = "Ruta",
             onClick = { onQuickRoute(station) },
           )
           OutlineActionPill(
@@ -1603,6 +2057,20 @@ private fun SavedPlaceCard(
       }
     }
   }
+}
+
+@Composable
+private fun SavedPlaceQuickAction(
+  label: String,
+  tint: Color,
+  onClick: () -> Unit,
+) {
+  OutlineActionPill(
+    label = label,
+    tint = tint,
+    borderTint = tint.copy(alpha = 0.16f),
+    onClick = onClick,
+  )
 }
 
 @Composable
@@ -1762,7 +2230,7 @@ private fun QuickRouteActionCard(
           color = BiziMuted,
         )
         Text(
-          if (mobilePlatform == MobileUiPlatform.IOS) "Abrir en Maps" else "Abrir ruta",
+          "Abrir ruta",
           style = MaterialTheme.typography.labelMedium,
           color = tint,
           fontWeight = FontWeight.SemiBold,
@@ -1878,6 +2346,99 @@ private fun PreferredMapApp.displayName(): String = when (this) {
   PreferredMapApp.GoogleMaps -> "Google Maps"
 }
 
+private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
+  MobileUiPlatform.Android -> "Google Assistant"
+  MobileUiPlatform.IOS -> "Siri"
+}
+
+private fun shortcutGuidesFor(
+  mobilePlatform: MobileUiPlatform,
+): List<ShortcutGuide> = listOf(
+  ShortcutGuide(
+    title = "Estación más cercana",
+    description = "Encuentra la estación más cercana a tu ubicación actual y te abre la app en el contexto correcto.",
+    examples = listOf(
+      "Muéstrame la estación más cercana en Bizi Zaragoza",
+      if (mobilePlatform == MobileUiPlatform.Android) {
+        "Abre Bizi Zaragoza y muéstrame la estación más cercana"
+      } else {
+        "Abre Bizi Zaragoza y enséñame la estación más cercana"
+      },
+    ),
+    icon = Icons.Filled.LocationOn,
+  ),
+  ShortcutGuide(
+    title = "Más cercana con bicis o huecos",
+    description = "Busca la mejor estación cercana para coger bici o para devolverla con huecos libres.",
+    examples = listOf(
+      "Muéstrame la estación más cercana con bicis en Bizi Zaragoza",
+      "Muéstrame la estación más cercana con huecos en Bizi Zaragoza",
+    ),
+    icon = Icons.AutoMirrored.Filled.DirectionsBike,
+  ),
+  ShortcutGuide(
+    title = "Estado de una estación",
+    description = "Consulta una estación concreta por nombre, dirección, número o usando tus alias de Casa y Trabajo.",
+    examples = listOf(
+      "Enséñame el estado de casa en Bizi Zaragoza",
+      "Enséñame cuántas bicis hay en Plaza España",
+      "Enséñame cuántos huecos hay en la estación 48",
+    ),
+    icon = Icons.Filled.Search,
+  ),
+  ShortcutGuide(
+    title = "Favoritas",
+    description = "Abre directamente tu lista de favoritas, con Casa y Trabajo incluidos cuando estén configurados.",
+    examples = listOf(
+      "Abre mis favoritas en Bizi Zaragoza",
+      "Enséñame el estado de trabajo en Bizi Zaragoza",
+    ),
+    icon = Icons.Filled.Favorite,
+  ),
+  ShortcutGuide(
+    title = "Ruta a una estación",
+    description = "Lanza la ruta rápida hacia una estación concreta o hacia Casa y Trabajo si ya los has configurado.",
+    examples = listOf(
+      "Llévame a Plaza España con Bizi Zaragoza",
+      "Llévame a trabajo con Bizi Zaragoza",
+    ),
+    icon = Icons.Filled.Directions,
+  ),
+)
+
+private fun EmbeddedMapProvider.displayName(): String = when (this) {
+  EmbeddedMapProvider.None -> "No hay mapa embebido"
+  EmbeddedMapProvider.AppleMapKit -> "Apple Maps"
+  EmbeddedMapProvider.GoogleMaps -> "Google Maps"
+}
+
+private fun MapSupportStatus.googleMapsSupportHeadline(
+  mobilePlatform: MobileUiPlatform,
+): String = when {
+  isGoogleMapsReady() -> "Google Maps está listo para usarse en esta plataforma."
+  mobilePlatform == MobileUiPlatform.Android ->
+    "Android ya usa Google Maps dentro de la app y solo falta dejar la API key configurada donde corresponda."
+  else ->
+    "iPhone sigue usando Apple Maps dentro de la app, pero ya queda preparado para activar Google Maps en cuanto enlacemos el SDK oficial."
+}
+
+private fun MapSupportStatus.googleMapsSupportDescription(
+  mobilePlatform: MobileUiPlatform,
+): String = when {
+  isGoogleMapsReady() && mobilePlatform == MobileUiPlatform.Android ->
+    "La clave de Google Maps está presente y el mapa embebido de Android queda operativo."
+  isGoogleMapsReady() ->
+    "El SDK de Google Maps está enlazado y la clave API está configurada."
+  mobilePlatform == MobileUiPlatform.Android ->
+    "Puedes usar la variable GOOGLE_MAPS_API_KEY, la propiedad de Gradle googleMapsApiKey o local.properties para dejarlo listo también en CI y desarrollo local."
+  googleMapsSdkLinked && !googleMapsApiKeyConfigured ->
+    "Falta definir la clave GOOGLE_MAPS_IOS_API_KEY para poder activar Google Maps en iPhone sin tocar más la UI."
+  !googleMapsSdkLinked && googleMapsApiKeyConfigured ->
+    "La clave ya está puesta. El siguiente paso será enlazar el SDK oficial de Google Maps en el proyecto iOS."
+  else ->
+    "La app ya detecta si el SDK de Google Maps está enlazado y si la clave está definida. Cuando lo añadamos al proyecto, el bootstrap quedará resuelto."
+}
+
 @Composable
 private fun InfoLine(
   icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -1976,12 +2537,59 @@ private fun FavoritePill(
   }
 }
 
+@Composable
+private fun SavedPlacePill(
+  active: Boolean,
+  label: String,
+  onClick: () -> Unit,
+) {
+  val tint = if (label == "Casa") BiziGreen else BiziBlue
+  val containerColor by animateColorAsState(
+    targetValue = if (active) tint.copy(alpha = 0.10f) else Color.Transparent,
+    animationSpec = tween(180),
+    label = "saved-place-pill-container",
+  )
+  val borderColor by animateColorAsState(
+    targetValue = if (active) tint.copy(alpha = 0.18f) else BiziPanel,
+    animationSpec = tween(180),
+    label = "saved-place-pill-border",
+  )
+  val scale by animateFloatAsState(
+    targetValue = if (active) 1f else 0.97f,
+    animationSpec = spring(dampingRatio = 0.78f, stiffness = 720f),
+    label = "saved-place-pill-scale",
+  )
+  Surface(
+    shape = RoundedCornerShape(16.dp),
+    color = containerColor,
+    border = BorderStroke(1.dp, borderColor),
+    modifier = Modifier
+      .graphicsLayer {
+        scaleX = scale
+        scaleY = scale
+      }
+      .clickable(onClick = onClick),
+  ) {
+    Text(
+      text = label,
+      modifier = Modifier
+        .padding(horizontal = 12.dp, vertical = 9.dp)
+        .animateContentSize(animationSpec = tween(180)),
+      color = tint,
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+    )
+  }
+}
+
 private fun pageBackgroundColor(platform: MobileUiPlatform): Color =
   if (platform == MobileUiPlatform.IOS) BiziGrouped else BiziLight
 
 private fun MobileTab.icon() = when (this) {
   MobileTab.Mapa -> Icons.Filled.Map
+  MobileTab.Cerca -> Icons.Filled.LocationOn
   MobileTab.Favoritos -> Icons.Filled.Favorite
+  MobileTab.Atajos -> Icons.Filled.KeyboardVoice
   MobileTab.Perfil -> Icons.Filled.Tune
 }
 

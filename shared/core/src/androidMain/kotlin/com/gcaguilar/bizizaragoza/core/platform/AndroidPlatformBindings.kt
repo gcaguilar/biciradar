@@ -10,9 +10,12 @@ import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.AssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
+import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.LocationProvider
+import com.gcaguilar.bizizaragoza.core.MapSupport
+import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.Station
@@ -45,6 +48,7 @@ class AndroidPlatformBindings(
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
+  override val mapSupport: MapSupport = AndroidMapSupport(context)
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = AndroidWatchSyncBridge(context)
@@ -87,6 +91,27 @@ private class AndroidRouteLauncher(
     }
     val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
     context.startActivity(launchIntent)
+  }
+}
+
+private class AndroidMapSupport(
+  private val context: Context,
+) : MapSupport {
+  override fun currentStatus(): MapSupportStatus {
+    val apiKey = runCatching {
+      val packageManager = context.packageManager
+      val applicationInfo = packageManager.getApplicationInfo(
+        context.packageName,
+        PackageManager.GET_META_DATA,
+      )
+      applicationInfo.metaData?.getString("com.google.android.geo.API_KEY").orEmpty().trim()
+    }.getOrDefault("")
+
+    return MapSupportStatus(
+      embeddedProvider = EmbeddedMapProvider.GoogleMaps,
+      googleMapsSdkLinked = true,
+      googleMapsApiKeyConfigured = apiKey.isNotBlank(),
+    )
   }
 }
 

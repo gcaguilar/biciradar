@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.Station
-import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -38,11 +38,9 @@ internal actual fun PlatformStationMap(
 
   LaunchedEffect(userLocation, stations) {
     val focusPoint = userLocation ?: stations.firstOrNull()?.location ?: return@LaunchedEffect
-    cameraPositionState.move(
-      CameraUpdateFactory.newLatLngZoom(
+    cameraPositionState.position = CameraPosition.fromLatLngZoom(
         LatLng(focusPoint.latitude, focusPoint.longitude),
         if (userLocation != null) 14f else 13f,
-      ),
     )
   }
 

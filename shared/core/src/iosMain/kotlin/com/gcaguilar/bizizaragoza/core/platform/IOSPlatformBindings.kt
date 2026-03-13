@@ -2,10 +2,13 @@ package com.gcaguilar.bizizaragoza.core.platform
 
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
 import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
+import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.LocationProvider
+import com.gcaguilar.bizizaragoza.core.MapSupport
+import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.PreferredMapApp
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
@@ -28,6 +31,8 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import platform.Foundation.NSHomeDirectory
+import platform.Foundation.NSBundle
+import platform.Foundation.NSClassFromString
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.MapKit.MKLaunchOptionsDirectionsModeDriving
@@ -52,6 +57,7 @@ class IOSPlatformBindings(
   override val fileSystem: FileSystem = fileSystemInstance
   override val httpClientFactory: BiziHttpClientFactory = IOSHttpClientFactory()
   override val locationProvider: LocationProvider = IOSLocationProvider()
+  override val mapSupport: MapSupport = IOSMapSupport()
   override val routeLauncher: RouteLauncher = IOSRouteLauncher(
     fileSystem = fileSystemInstance,
     json = json,
@@ -59,6 +65,21 @@ class IOSPlatformBindings(
   )
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance
   override val watchSyncBridge: WatchSyncBridge = IOSWatchSyncBridge()
+}
+
+private class IOSMapSupport : MapSupport {
+  override fun currentStatus(): MapSupportStatus {
+    val apiKey = NSBundle.mainBundle.objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
+      ?.toString()
+      ?.trim()
+      ?.takeUnless { it.startsWith("$(") }
+      .orEmpty()
+    return MapSupportStatus(
+      embeddedProvider = EmbeddedMapProvider.AppleMapKit,
+      googleMapsSdkLinked = NSClassFromString("GMSServices") != null && NSClassFromString("GMSMapView") != null,
+      googleMapsApiKeyConfigured = apiKey.isNotBlank(),
+    )
+  }
 }
 
 private class IOSHttpClientFactory : BiziHttpClientFactory {
