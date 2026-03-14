@@ -234,8 +234,8 @@ private val MobileTabs = listOf(
 
 private enum class MapFilter(val label: String) {
   BIKES_AND_SLOTS("Bicis + Huecos"),
+  ONLY_BIKES("Solo bicis"),
   ONLY_SLOTS("Solo huecos"),
-  EMPTY("Vacías"),
 }
 
 private const val CURRENT_CHANGELOG_VERSION = 1
@@ -245,7 +245,7 @@ private data class ChangelogEntry(val title: String, val description: String)
 private val CHANGELOG_ENTRIES = listOf(
   ChangelogEntry("Tema oscuro", "La app se adapta automáticamente al modo oscuro del sistema."),
   ChangelogEntry("Tarjeta descartable", "Ahora puedes cerrar la tarjeta de estación en el mapa con el botón X."),
-  ChangelogEntry("Filtros en el mapa", "Filtra estaciones por disponibilidad: bicis + huecos, solo huecos o vacías."),
+  ChangelogEntry("Filtros en el mapa", "Filtra estaciones por disponibilidad: bicis + huecos, solo bicis o solo huecos."),
   ChangelogEntry("Indicador de refresco", "Cuenta atrás visible junto al botón de refresco (actualización cada 5 min)."),
   ChangelogEntry("Patrón de uso", "Gráfica con la media histórica de bicis por hora en cada estación (datos de datosbizi.com)."),
 )
@@ -886,8 +886,8 @@ private fun MapScreen(
         activeFilters.any { filter ->
           when (filter) {
             MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
+            MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
             MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
-            MapFilter.EMPTY -> station.bikesAvailable == 0 && station.slotsFree == 0
           }
         }
       }
