@@ -112,7 +112,7 @@ internal actual fun PlatformStationMap(
       ) {
         Column(
           modifier = Modifier
-            .background(Color.White, RoundedCornerShape(16.dp))
+            .background(LocalBiziColors.current.surface, RoundedCornerShape(16.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
           verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -124,7 +124,7 @@ internal actual fun PlatformStationMap(
           Text(
             text = "${station.bikesAvailable} bicis · ${station.slotsFree} huecos · ${station.distanceMeters} m",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFF64748B),
+            color = LocalBiziColors.current.muted,
           )
         }
       }

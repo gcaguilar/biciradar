@@ -80,6 +80,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -110,6 +113,92 @@ private val BiziMuted = Color(0xFF64748B)
 private val BiziPanel = Color(0xFFF1F5F9)
 private val BiziGreen = Color(0xFF167C3C)
 private val BiziBlue = Color(0xFF2563EB)
+
+// --- Dark-mode palette raw tokens ---
+private val BiziDarkBackground = Color(0xFF121212)
+private val BiziDarkGrouped = Color(0xFF1C1C1E)
+private val BiziDarkSurface = Color(0xFF1E1E1E)
+private val BiziDarkInk = Color(0xFFF1EDED)
+private val BiziDarkMuted = Color(0xFF94A3B8)
+private val BiziDarkPanel = Color(0xFF2A2A2C)
+private val BiziDarkGreen = Color(0xFF22C55E)
+private val BiziDarkBlue = Color(0xFF60A5FA)
+private val BiziDarkRed = Color(0xFFEF4444)
+
+/**
+ * Semantic color scheme consumed by every composable in the app.
+ * Two instances exist: [LightBiziColors] and [DarkBiziColors].
+ */
+internal data class BiziColors(
+  /** Page-level background (Android). */
+  val background: Color,
+  /** Page-level background (iOS grouped style). */
+  val groupedBackground: Color,
+  /** Card / surface container. */
+  val surface: Color,
+  /** Primary text on surfaces. */
+  val ink: Color,
+  /** Secondary / caption text. */
+  val muted: Color,
+  /** Subtle borders and dividers. */
+  val panel: Color,
+  /** Accent: bikes count, favorites, brand. */
+  val red: Color,
+  /** Accent: slots count, routes. */
+  val blue: Color,
+  /** Accent: distance, home. */
+  val green: Color,
+  /** Foreground on accent fills (e.g. icon on BiziRed circle). */
+  val onAccent: Color,
+  /** NavigationBar container. */
+  val navBar: Color,
+  /** NavigationBar container (iOS translucent). */
+  val navBarIos: Color,
+  /** Text-field container (iOS). */
+  val fieldSurfaceIos: Color,
+  /** Text-field container (Android). */
+  val fieldSurfaceAndroid: Color,
+  /** Dismiss-to-delete background base alpha factor. */
+  val dismissAlphaBase: Float,
+)
+
+private val LightBiziColors = BiziColors(
+  background = BiziLight,
+  groupedBackground = BiziGrouped,
+  surface = Color.White,
+  ink = BiziInk,
+  muted = BiziMuted,
+  panel = BiziPanel,
+  red = BiziRed,
+  blue = BiziBlue,
+  green = BiziGreen,
+  onAccent = Color.White,
+  navBar = Color.White,
+  navBarIos = Color.White.copy(alpha = 0.96f),
+  fieldSurfaceIos = Color.White,
+  fieldSurfaceAndroid = BiziPanel.copy(alpha = 0.35f),
+  dismissAlphaBase = 0.10f,
+)
+
+private val DarkBiziColors = BiziColors(
+  background = BiziDarkBackground,
+  groupedBackground = BiziDarkGrouped,
+  surface = BiziDarkSurface,
+  ink = BiziDarkInk,
+  muted = BiziDarkMuted,
+  panel = BiziDarkPanel,
+  red = BiziDarkRed,
+  blue = BiziDarkBlue,
+  green = BiziDarkGreen,
+  onAccent = Color.White,
+  navBar = BiziDarkSurface,
+  navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
+  fieldSurfaceIos = BiziDarkSurface,
+  fieldSurfaceAndroid = BiziDarkPanel.copy(alpha = 0.50f),
+  dismissAlphaBase = 0.16f,
+)
+
+internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
 
 private enum class MobileTab(val label: String) {
   Cerca("Cerca"),
@@ -603,24 +692,29 @@ private fun BiziTheme(
   mobilePlatform: MobileUiPlatform,
   content: @Composable () -> Unit,
 ) {
-  MaterialTheme(
-    colorScheme = MaterialTheme.colorScheme.copy(
-      primary = BiziRed,
-      background = pageBackgroundColor(mobilePlatform),
-      surface = Color.White,
-      onSurface = BiziInk,
-      onBackground = BiziInk,
-      surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) BiziPanel else BiziLight,
-    ),
-    content = content,
-  )
+  val isDark = isSystemInDarkTheme()
+  val colors = if (isDark) DarkBiziColors else LightBiziColors
+  CompositionLocalProvider(LocalBiziColors provides colors) {
+    MaterialTheme(
+      colorScheme = MaterialTheme.colorScheme.copy(
+        primary = colors.red,
+        background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
+        surface = colors.surface,
+        onSurface = colors.ink,
+        onBackground = colors.ink,
+        surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+      ),
+      content = content,
+    )
+  }
 }
 
 @Composable
 private fun StartupSplashScreen(
   mobilePlatform: MobileUiPlatform,
 ) {
-  val backgroundColor = if (mobilePlatform == MobileUiPlatform.IOS) BiziGrouped else BiziLight
+  val c = LocalBiziColors.current
+  val backgroundColor = if (mobilePlatform == MobileUiPlatform.IOS) c.groupedBackground else c.background
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -634,12 +728,12 @@ private fun StartupSplashScreen(
     ) {
       Surface(
         shape = CircleShape,
-        color = BiziRed,
+        color = c.red,
       ) {
         Icon(
           imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
           contentDescription = null,
-          tint = Color.White,
+          tint = c.onAccent,
           modifier = Modifier.padding(18.dp).size(30.dp),
         )
       }
@@ -651,12 +745,12 @@ private fun StartupSplashScreen(
           text = "Bizi Zaragoza",
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
-          color = BiziRed,
+          color = c.red,
         )
         Text(
           text = "Cargando estaciones cercanas, favoritas y atajos...",
           style = MaterialTheme.typography.bodyMedium,
-          color = BiziMuted,
+          color = c.muted,
         )
       }
       Text(
@@ -666,7 +760,7 @@ private fun StartupSplashScreen(
           "Preparando la experiencia de Android."
         },
         style = MaterialTheme.typography.labelMedium,
-        color = BiziMuted,
+        color = c.muted,
       )
     }
   }
@@ -680,9 +774,9 @@ private fun MobileBottomNavigationBar(
 ) {
   NavigationBar(
     containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      Color.White.copy(alpha = 0.96f)
+      LocalBiziColors.current.navBarIos
     } else {
-      Color.White
+      LocalBiziColors.current.navBar
     },
   ) {
     MobileTabs.forEach { tab ->
@@ -899,7 +993,7 @@ private fun NearbyScreen(
             Text(
               text = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
               style = MaterialTheme.typography.bodyMedium,
-              color = BiziMuted,
+              color = LocalBiziColors.current.muted,
             )
           }
           IconButton(onClick = onRefresh, enabled = !loading) {
@@ -920,12 +1014,12 @@ private fun NearbyScreen(
               text = "Cerca de ti",
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
-              color = BiziRed,
+              color = LocalBiziColors.current.red,
             )
             Text(
               text = "Estaciones ordenadas por cercanía y acciones rápidas para moverte.",
               style = MaterialTheme.typography.bodyMedium,
-              color = BiziMuted,
+              color = LocalBiziColors.current.muted,
             )
           }
           IconButton(onClick = onRefresh, enabled = !loading) {
@@ -943,7 +1037,7 @@ private fun NearbyScreen(
           emptyTitle = "Sin bicis cercanas",
           selection = nearestWithBikesSelection,
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
-          tint = BiziRed,
+          tint = LocalBiziColors.current.red,
           mobilePlatform = mobilePlatform,
           onRoute = onQuickRoute,
         )
@@ -953,7 +1047,7 @@ private fun NearbyScreen(
           emptyTitle = "Sin huecos cercanos",
           selection = nearestWithSlotsSelection,
           icon = Icons.Filled.LocalParking,
-          tint = BiziBlue,
+          tint = LocalBiziColors.current.blue,
           mobilePlatform = mobilePlatform,
           onRoute = onQuickRoute,
         )
@@ -979,7 +1073,7 @@ private fun NearbyScreen(
               "Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta."
             },
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
           AnimatedVisibility(
             visible = errorMessage != null,
@@ -988,7 +1082,7 @@ private fun NearbyScreen(
             label = "nearby-error",
           ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(errorMessage.orEmpty(), color = BiziRed)
+              Text(errorMessage.orEmpty(), color = LocalBiziColors.current.red)
               OutlinedButton(onClick = onRetry) {
                 Icon(Icons.Filled.Sync, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
@@ -1039,13 +1133,14 @@ private fun MapSelectedStationCard(
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
 ) {
-  val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) BiziInk else Color.White
-  val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) BiziMuted else Color.White.copy(alpha = 0.84f)
+  val c = LocalBiziColors.current
+  val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
+  val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else c.onAccent.copy(alpha = 0.84f)
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)) else null,
-    colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziRed),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, c.red.copy(alpha = 0.12f)) else null,
+    colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
   ) {
     Column(
       modifier = Modifier
@@ -1061,7 +1156,7 @@ private fun MapSelectedStationCard(
         } else {
           "Estación seleccionada"
         },
-        color = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else overlayBody,
+        color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
       )
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1110,15 +1205,15 @@ private fun MapSelectedStationCard(
         } else {
           OutlineActionPill(
             label = if (isFavorite) "Guardada" else "Guardar",
-            tint = Color.White,
-            borderTint = Color.White.copy(alpha = 0.32f),
+            tint = c.onAccent,
+            borderTint = c.onAccent.copy(alpha = 0.32f),
             onClick = onFavoriteToggle,
           )
         }
         OutlineActionPill(
           label = "Detalle",
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed else Color.White,
-          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) BiziRed.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.32f),
+          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
+          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
           onClick = { onOpenStationDetails(station) },
         )
       }
@@ -1191,7 +1286,7 @@ private fun FavoritesScreen(
         Text(
           text = "Puedes fijar Casa o Trabajo desde el buscador o directamente desde una favorita. Desliza una favorita para quitarla.",
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       }
     }
@@ -1283,7 +1378,7 @@ private fun ProfileScreen(
     }
     item {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
           InfoLine(icon = Icons.Filled.LocationOn, label = "Ubicación") {
@@ -1314,14 +1409,14 @@ private fun ProfileScreen(
     }
     item {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
           Text("Radio para estación cercana", fontWeight = FontWeight.SemiBold)
           Text(
             "Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia.",
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
           SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1343,7 +1438,7 @@ private fun ProfileScreen(
     }
     item {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
           Text("Integración de Google Maps", fontWeight = FontWeight.SemiBold)
@@ -1354,7 +1449,7 @@ private fun ProfileScreen(
           Text(
             mapSupportStatus.googleMapsSupportDescription(mobilePlatform),
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
         }
       }
@@ -1362,14 +1457,14 @@ private fun ProfileScreen(
     if (mobilePlatform == MobileUiPlatform.IOS) {
       item {
         Card(
-          colors = CardDefaults.cardColors(containerColor = Color.White),
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("App de rutas en iPhone", fontWeight = FontWeight.SemiBold)
             Text(
               "Elige qué app abrir para las rutas rápidas, el detalle de estación y los atajos de Siri.",
               style = MaterialTheme.typography.bodySmall,
-              color = BiziMuted,
+              color = LocalBiziColors.current.muted,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
               RadiusSelectionButton(
@@ -1388,7 +1483,7 @@ private fun ProfileScreen(
             Text(
               "Si Google Maps no está instalado, Bizi Zaragoza usará Apple Maps como fallback.",
               style = MaterialTheme.typography.bodySmall,
-              color = BiziMuted,
+              color = LocalBiziColors.current.muted,
             )
           }
         }
@@ -1435,7 +1530,7 @@ private fun StationDetailScreen(
   ) {
     item {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(
           modifier = Modifier.padding(18.dp),
@@ -1458,19 +1553,19 @@ private fun StationDetailScreen(
               label = if (isFavorite) "Guardada" else "Guardar",
             )
           }
-          Text(station.address, style = MaterialTheme.typography.bodyMedium, color = BiziMuted)
+          Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
           Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StationMetricPill(
               modifier = Modifier.weight(1f),
               label = "Distancia",
               value = "${station.distanceMeters} m",
-              tint = BiziBlue,
+              tint = LocalBiziColors.current.blue,
             )
             StationMetricPill(
               modifier = Modifier.weight(1f),
               label = "Fuente",
               value = station.sourceLabel,
-              tint = BiziMuted,
+              tint = LocalBiziColors.current.muted,
             )
           }
         }
@@ -1478,7 +1573,7 @@ private fun StationDetailScreen(
     }
     item {
       Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(
           modifier = Modifier.padding(18.dp),
@@ -1488,7 +1583,7 @@ private fun StationDetailScreen(
           Text(
             "Márcala como favorita o fíjala como Casa o Trabajo para recuperarla más rápido desde Favoritas y con los atajos de voz.",
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
           Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FavoritePill(
@@ -1515,7 +1610,7 @@ private fun StationDetailScreen(
               else -> "Puedes tocar Casa o Trabajo para asignarla directamente."
             },
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
         }
       }
@@ -1523,7 +1618,7 @@ private fun StationDetailScreen(
     item {
       Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         PlatformStationMap(
           modifier = Modifier.fillMaxWidth().height(200.dp),
@@ -1542,7 +1637,7 @@ private fun StationDetailScreen(
           label = "Bicis",
           value = station.bikesAvailable.toString(),
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
-          tint = BiziRed,
+          tint = LocalBiziColors.current.red,
           mobilePlatform = mobilePlatform,
         )
         AvailabilityCard(
@@ -1550,7 +1645,7 @@ private fun StationDetailScreen(
           label = "Huecos",
           value = station.slotsFree.toString(),
           icon = Icons.Filled.LocalParking,
-          tint = BiziBlue,
+          tint = LocalBiziColors.current.blue,
           mobilePlatform = mobilePlatform,
         )
       }
@@ -1625,12 +1720,12 @@ private fun ShortcutsScreen(
         Text(
           "Aquí tienes qué puede hacer la app y cómo invocarlo con ${mobilePlatform.assistantDisplayName()}.",
           style = MaterialTheme.typography.bodyMedium,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       }
     }
     item {
-      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
         Column(
           modifier = Modifier.padding(18.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -1643,12 +1738,12 @@ private fun ShortcutsScreen(
               "Abre Google Assistant y prueba frases como las de abajo. Si hace falta, empieza por “abre Bizi Zaragoza y...”. La ruta se abrirá en la navegación del teléfono."
             },
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
           Text(
             "Radio actual para búsquedas cercanas: ${searchRadiusMeters} m.",
             style = MaterialTheme.typography.bodySmall,
-            color = BiziInk,
+            color = LocalBiziColors.current.ink,
           )
         }
       }
@@ -1657,7 +1752,7 @@ private fun ShortcutsScreen(
       ShortcutGuideCard(guide = guide)
     }
     item {
-      Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
         Column(
           modifier = Modifier.padding(18.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -1708,7 +1803,7 @@ private data class ShortcutGuide(
 private fun ShortcutGuideCard(
   guide: ShortcutGuide,
 ) {
-  Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+  Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
     Column(
       modifier = Modifier.padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -1717,19 +1812,19 @@ private fun ShortcutGuideCard(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Icon(guide.icon, contentDescription = null, tint = BiziRed)
+        Icon(guide.icon, contentDescription = null, tint = LocalBiziColors.current.red)
         Text(guide.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
       }
       Text(
         guide.description,
         style = MaterialTheme.typography.bodySmall,
-        color = BiziMuted,
+        color = LocalBiziColors.current.muted,
       )
       guide.examples.forEach { example ->
         Text(
           "\u2022 $example",
           style = MaterialTheme.typography.bodyMedium,
-          color = BiziInk,
+          color = LocalBiziColors.current.ink,
         )
       }
     }
@@ -1750,7 +1845,7 @@ private fun AvailabilityCard(
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, tint.copy(alpha = 0.14f)) else null,
     colors = CardDefaults.cardColors(
       containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-        Color.White
+        LocalBiziColors.current.surface
       } else {
         tint.copy(alpha = 0.08f)
       },
@@ -1786,8 +1881,8 @@ private fun StationRow(
       .clickable(onClick = onClick)
       .animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 520f)),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
+    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
       modifier = Modifier
@@ -1814,7 +1909,7 @@ private fun StationRow(
           Text(
             station.address,
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
           )
@@ -1850,19 +1945,19 @@ private fun StationRow(
           modifier = Modifier.weight(1f),
           label = "Bicis",
           value = station.bikesAvailable.toString(),
-          tint = BiziRed,
+          tint = LocalBiziColors.current.red,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
           label = "Huecos",
           value = station.slotsFree.toString(),
-          tint = BiziBlue,
+          tint = LocalBiziColors.current.blue,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
           label = "Distancia",
           value = "${station.distanceMeters} m",
-          tint = BiziGreen,
+          tint = LocalBiziColors.current.green,
         )
       }
       extraActions?.let { actions ->
@@ -1917,14 +2012,14 @@ private fun DismissibleFavoriteStationRow(
           if (canAssignHome) {
             SavedPlaceQuickAction(
               label = "Casa",
-              tint = BiziGreen,
+              tint = LocalBiziColors.current.green,
               onClick = onAssignHome,
             )
           }
           if (canAssignWork) {
             SavedPlaceQuickAction(
               label = "Trabajo",
-              tint = BiziBlue,
+              tint = LocalBiziColors.current.blue,
               onClick = onAssignWork,
             )
           }
@@ -1944,7 +2039,7 @@ private fun FavoriteDismissBackground(
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .background(BiziRed.copy(alpha = 0.10f + (0.10f * clampedProgress)))
+      .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
       .padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,
   ) {
@@ -1960,11 +2055,11 @@ private fun FavoriteDismissBackground(
       Icon(
         Icons.Filled.Delete,
         contentDescription = null,
-        tint = BiziRed,
+        tint = LocalBiziColors.current.red,
       )
       Text(
         text = if (mobilePlatform == MobileUiPlatform.IOS) "Quitar favorita" else "Eliminar favorita",
-        color = BiziRed,
+        color = LocalBiziColors.current.red,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
       )
@@ -1978,11 +2073,12 @@ private fun RoutePill(
   onClick: () -> Unit,
   onDarkBackground: Boolean = false,
 ) {
-  val pillColor = if (onDarkBackground) Color.White else BiziBlue
+  val c = LocalBiziColors.current
+  val pillColor = if (onDarkBackground) c.onAccent else c.blue
   Surface(
     shape = RoundedCornerShape(16.dp),
-    color = if (onDarkBackground) Color.White.copy(alpha = 0.14f) else BiziBlue.copy(alpha = 0.08f),
-    border = BorderStroke(1.dp, if (onDarkBackground) Color.White.copy(alpha = 0.32f) else BiziBlue.copy(alpha = 0.16f)),
+    color = if (onDarkBackground) c.onAccent.copy(alpha = 0.14f) else c.blue.copy(alpha = 0.08f),
+    border = BorderStroke(1.dp, if (onDarkBackground) c.onAccent.copy(alpha = 0.32f) else c.blue.copy(alpha = 0.16f)),
     modifier = Modifier.clickable(onClick = onClick),
   ) {
     Row(
@@ -2020,8 +2116,8 @@ private fun SavedPlaceCard(
       .fillMaxWidth()
       .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 500f)),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
+    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
       modifier = Modifier
@@ -2044,7 +2140,7 @@ private fun SavedPlaceCard(
           Text(
             text = station.address,
             style = MaterialTheme.typography.bodySmall,
-            color = BiziMuted,
+            color = LocalBiziColors.current.muted,
           )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2052,26 +2148,26 @@ private fun SavedPlaceCard(
             modifier = Modifier.weight(1f),
             label = "Bicis",
             value = station.bikesAvailable.toString(),
-            tint = BiziRed,
+            tint = LocalBiziColors.current.red,
           )
           StationMetricPill(
             modifier = Modifier.weight(1f),
             label = "Huecos",
             value = station.slotsFree.toString(),
-            tint = BiziBlue,
+            tint = LocalBiziColors.current.blue,
           )
           StationMetricPill(
             modifier = Modifier.weight(1f),
             label = "Distancia",
             value = "${station.distanceMeters} m",
-            tint = BiziGreen,
+            tint = LocalBiziColors.current.green,
           )
         }
       } else {
         Text(
           text = "Todavía no has fijado una estación para $title.",
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       }
       Row(
@@ -2086,24 +2182,24 @@ private fun SavedPlaceCard(
           )
           OutlineActionPill(
             label = "Detalle",
-            tint = BiziRed,
-            borderTint = BiziRed.copy(alpha = 0.16f),
+            tint = LocalBiziColors.current.red,
+            borderTint = LocalBiziColors.current.red.copy(alpha = 0.16f),
             onClick = { onOpenStationDetails(station) },
           )
         }
         if (assignableCandidate != null) {
           OutlineActionPill(
             label = "Asignar búsqueda",
-            tint = BiziBlue,
-            borderTint = BiziBlue.copy(alpha = 0.16f),
+            tint = LocalBiziColors.current.blue,
+            borderTint = LocalBiziColors.current.blue.copy(alpha = 0.16f),
             onClick = { onAssignCandidate(assignableCandidate) },
           )
         }
         if (station != null) {
           OutlineActionPill(
             label = "Quitar",
-            tint = BiziMuted,
-            borderTint = BiziPanel,
+            tint = LocalBiziColors.current.muted,
+            borderTint = LocalBiziColors.current.panel,
             onClick = onClear,
           )
         }
@@ -2112,13 +2208,13 @@ private fun SavedPlaceCard(
         Text(
           text = "La búsqueda actual apunta a ${assignableCandidate.name}. Se usará para $title si pulsas asignar.",
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       } else if (station == null) {
         Text(
           text = "Usa el buscador de arriba para elegir una estación y asignarla.",
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       }
     }
@@ -2167,15 +2263,15 @@ private fun MobilePageHeader(
         Text(
           text = subtitle,
           style = MaterialTheme.typography.bodyMedium,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       }
     }
     Spacer(Modifier.width(12.dp))
     Surface(
       shape = RoundedCornerShape(18.dp),
-      color = BiziRed.copy(alpha = 0.10f),
-      border = BorderStroke(1.dp, BiziRed.copy(alpha = 0.12f)),
+      color = LocalBiziColors.current.red.copy(alpha = 0.10f),
+      border = BorderStroke(1.dp, LocalBiziColors.current.red.copy(alpha = 0.12f)),
       modifier = Modifier.clickable(onClick = onOpenAssistant),
     ) {
       Row(
@@ -2186,9 +2282,9 @@ private fun MobilePageHeader(
         Icon(
           Icons.Filled.KeyboardVoice,
           contentDescription = null,
-          tint = BiziRed,
+          tint = LocalBiziColors.current.red,
         )
-        Text("Atajos", color = BiziRed, fontWeight = FontWeight.SemiBold)
+        Text("Atajos", color = LocalBiziColors.current.red, fontWeight = FontWeight.SemiBold)
       }
     }
   }
@@ -2208,14 +2304,14 @@ private fun StationSearchField(
     singleLine = true,
     shape = RoundedCornerShape(20.dp),
     leadingIcon = {
-      Icon(Icons.Filled.Search, contentDescription = null, tint = BiziMuted)
+      Icon(Icons.Filled.Search, contentDescription = null, tint = LocalBiziColors.current.muted)
     },
     trailingIcon = if (value.isNotEmpty()) {
       {
         Icon(
           imageVector = Icons.Filled.Close,
           contentDescription = "Limpiar búsqueda",
-          tint = BiziMuted,
+          tint = LocalBiziColors.current.muted,
           modifier = Modifier.clickable { onValueChange("") },
         )
       }
@@ -2229,10 +2325,10 @@ private fun StationSearchField(
     },
     placeholder = { Text(label) },
     colors = OutlinedTextFieldDefaults.colors(
-      focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziPanel.copy(alpha = 0.35f),
-      unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) Color.White else BiziPanel.copy(alpha = 0.35f),
-      focusedBorderColor = BiziRed.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
-      unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) BiziPanel else BiziMuted.copy(alpha = 0.18f),
+      focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.fieldSurfaceIos else LocalBiziColors.current.fieldSurfaceAndroid,
+      unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.fieldSurfaceIos else LocalBiziColors.current.fieldSurfaceAndroid,
+      focusedBorderColor = LocalBiziColors.current.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
+      unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.panel else LocalBiziColors.current.muted.copy(alpha = 0.18f),
     ),
   )
 }
@@ -2254,7 +2350,7 @@ private fun QuickRouteActionCard(
       .clickable(enabled = station != null) {
         station?.let(onRoute)
       },
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, BiziPanel) else null,
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
   ) {
     Column(
@@ -2264,7 +2360,7 @@ private fun QuickRouteActionCard(
       verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
-      Text(title, style = MaterialTheme.typography.labelSmall, color = BiziMuted)
+      Text(title, style = MaterialTheme.typography.labelSmall, color = LocalBiziColors.current.muted)
       if (station == null) {
         Text(
           emptyTitle,
@@ -2275,7 +2371,7 @@ private fun QuickRouteActionCard(
         Text(
           "Actualiza estaciones para poder abrir la ruta.",
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
       } else {
         Text(
@@ -2293,7 +2389,7 @@ private fun QuickRouteActionCard(
             "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} huecos"
           },
           style = MaterialTheme.typography.bodySmall,
-          color = BiziMuted,
+          color = LocalBiziColors.current.muted,
         )
         Text(
           "Abrir ruta",
@@ -2340,14 +2436,14 @@ private fun EmptyStateCard(
 ) {
   Card(
     modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
       modifier = Modifier.padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
       Text(title, fontWeight = FontWeight.SemiBold)
-      Text(description, style = MaterialTheme.typography.bodySmall, color = BiziMuted)
+      Text(description, style = MaterialTheme.typography.bodySmall, color = LocalBiziColors.current.muted)
       if (primaryAction != null && onPrimaryAction != null) {
         OutlinedButton(onClick = onPrimaryAction) {
           Text(primaryAction)
@@ -2365,17 +2461,17 @@ private fun RadiusSelectionButton(
   onClick: () -> Unit,
 ) {
   val containerColor by animateColorAsState(
-    targetValue = if (selected) BiziRed.copy(alpha = 0.10f) else Color.White,
+    targetValue = if (selected) LocalBiziColors.current.red.copy(alpha = 0.10f) else LocalBiziColors.current.surface,
     animationSpec = tween(180),
     label = "radius-container",
   )
   val borderColor by animateColorAsState(
-    targetValue = if (selected) BiziRed.copy(alpha = 0.25f) else BiziPanel,
+    targetValue = if (selected) LocalBiziColors.current.red.copy(alpha = 0.25f) else LocalBiziColors.current.panel,
     animationSpec = tween(180),
     label = "radius-border",
   )
   val textColor by animateColorAsState(
-    targetValue = if (selected) BiziRed else BiziInk,
+    targetValue = if (selected) LocalBiziColors.current.red else LocalBiziColors.current.ink,
     animationSpec = tween(180),
     label = "radius-text",
   )
@@ -2515,9 +2611,9 @@ private fun InfoLine(
     horizontalArrangement = Arrangement.spacedBy(10.dp),
     verticalAlignment = Alignment.Top,
   ) {
-    Icon(icon, contentDescription = null, tint = BiziRed)
+    Icon(icon, contentDescription = null, tint = LocalBiziColors.current.red)
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-      Text(label, style = MaterialTheme.typography.labelMedium, color = BiziMuted)
+      Text(label, style = MaterialTheme.typography.labelMedium, color = LocalBiziColors.current.muted)
       Text(value(), style = MaterialTheme.typography.bodyMedium)
     }
   }
@@ -2560,12 +2656,12 @@ private fun FavoritePill(
   label: String,
 ) {
   val containerColor by animateColorAsState(
-    targetValue = if (active) BiziRed.copy(alpha = 0.10f) else Color.Transparent,
+    targetValue = if (active) LocalBiziColors.current.red.copy(alpha = 0.10f) else Color.Transparent,
     animationSpec = tween(180),
     label = "favorite-pill-container",
   )
   val borderColor by animateColorAsState(
-    targetValue = if (active) BiziRed.copy(alpha = 0.16f) else BiziPanel,
+    targetValue = if (active) LocalBiziColors.current.red.copy(alpha = 0.16f) else LocalBiziColors.current.panel,
     animationSpec = tween(180),
     label = "favorite-pill-border",
   )
@@ -2595,10 +2691,10 @@ private fun FavoritePill(
       Icon(
         imageVector = if (active) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
         contentDescription = null,
-        tint = BiziRed,
+        tint = LocalBiziColors.current.red,
         modifier = Modifier.size(16.dp),
       )
-      Text(label, color = BiziRed, style = MaterialTheme.typography.labelMedium)
+      Text(label, color = LocalBiziColors.current.red, style = MaterialTheme.typography.labelMedium)
     }
   }
 }
@@ -2609,14 +2705,14 @@ private fun SavedPlacePill(
   label: String,
   onClick: () -> Unit,
 ) {
-  val tint = if (label == "Casa") BiziGreen else BiziBlue
+  val tint = if (label == "Casa") LocalBiziColors.current.green else LocalBiziColors.current.blue
   val containerColor by animateColorAsState(
     targetValue = if (active) tint.copy(alpha = 0.10f) else Color.Transparent,
     animationSpec = tween(180),
     label = "saved-place-pill-container",
   )
   val borderColor by animateColorAsState(
-    targetValue = if (active) tint.copy(alpha = 0.18f) else BiziPanel,
+    targetValue = if (active) tint.copy(alpha = 0.18f) else LocalBiziColors.current.panel,
     animationSpec = tween(180),
     label = "saved-place-pill-border",
   )
@@ -2648,8 +2744,11 @@ private fun SavedPlacePill(
   }
 }
 
-private fun pageBackgroundColor(platform: MobileUiPlatform): Color =
-  if (platform == MobileUiPlatform.IOS) BiziGrouped else BiziLight
+@Composable
+private fun pageBackgroundColor(platform: MobileUiPlatform): Color {
+  val c = LocalBiziColors.current
+  return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
+}
 
 private fun MobileTab.icon() = when (this) {
   MobileTab.Mapa -> Icons.Filled.Map
