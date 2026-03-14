@@ -6,6 +6,7 @@ import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
+import com.gcaguilar.bizizaragoza.core.LocalNotifier
 import com.gcaguilar.bizizaragoza.core.LocationProvider
 import com.gcaguilar.bizizaragoza.core.MapSupport
 import com.gcaguilar.bizizaragoza.core.MapSupportStatus
@@ -40,7 +41,9 @@ class WatchOSPlatformBindings(
 ) : PlatformBindings {
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = FileSystem.SYSTEM
+  override val googleMapsApiKey: String? = null
   override val httpClientFactory: BiziHttpClientFactory = WatchOSHttpClientFactory()
+  override val localNotifier: LocalNotifier = WatchOSLocalNotifier()
   override val locationProvider: LocationProvider = WatchOSLocationProvider()
   override val mapSupport: MapSupport = WatchOSMapSupport()
   override val routeLauncher: RouteLauncher = WatchOSRouteLauncher()
@@ -132,4 +135,9 @@ private object WatchOSFavoritesCache {
     NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = homeCacheKey)
     NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = workCacheKey)
   }
+}
+
+private class WatchOSLocalNotifier : LocalNotifier {
+  override suspend fun requestPermission(): Boolean = false
+  override suspend fun notify(title: String, body: String) = Unit
 }

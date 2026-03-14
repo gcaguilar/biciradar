@@ -14,8 +14,8 @@ options:
 
 settings:
   base:
-    CURRENT_PROJECT_VERSION: 29558256
-    MARKETING_VERSION: 2026.03.14.1436
+    CURRENT_PROJECT_VERSION: 29558310
+    MARKETING_VERSION: 2026.03.14.1530
     SWIFT_VERSION: "5.10"
 
 packages:
@@ -40,6 +40,7 @@ targets:
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: UIKit.framework
+      - sdk: BackgroundTasks.framework
       - package: Firebase
         product: FirebaseCore
       - package: Firebase
@@ -112,7 +113,11 @@ targets:
         INFOPLIST_KEY_LSApplicationQueriesSchemes:
           - comgooglemaps
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.
+        INFOPLIST_KEY_UIBackgroundModes:
+          - fetch
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers:
+          - com.gcaguilar.bizizaragoza.ios.refresh
         OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
         PRODUCT_NAME: Bizi Zaragoza

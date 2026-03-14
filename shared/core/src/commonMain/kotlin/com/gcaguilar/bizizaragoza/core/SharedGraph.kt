@@ -13,9 +13,11 @@ interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
   val datosBiziApi: DatosBiziApi
   val favoritesRepository: FavoritesRepository
+  val googlePlacesApi: GooglePlacesApi
   val routeLauncher: RouteLauncher
   val settingsRepository: SettingsRepository
   val stationsRepository: StationsRepository
+  val tripRepository: TripRepository
   val watchSyncBridge: WatchSyncBridge
 
   @SingleIn(AppScope::class)
@@ -62,6 +64,18 @@ interface SharedGraph {
   fun provideSettingsRepository(
     implementation: SettingsRepositoryImpl,
   ): SettingsRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideGooglePlacesApi(
+    httpClient: HttpClient,
+  ): GooglePlacesApi = GooglePlacesApiImpl(httpClient)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideTripRepository(
+    implementation: TripRepositoryImpl,
+  ): TripRepository = implementation
 
   @DependencyGraph.Factory
   fun interface Factory {

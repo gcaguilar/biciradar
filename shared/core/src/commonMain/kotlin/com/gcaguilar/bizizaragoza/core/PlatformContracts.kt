@@ -34,11 +34,18 @@ interface WatchSyncBridge {
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
 
+interface LocalNotifier {
+  suspend fun requestPermission(): Boolean
+  suspend fun notify(title: String, body: String)
+}
+
 interface PlatformBindings {
   val appConfiguration: AppConfiguration
   val assistantIntentResolver: AssistantIntentResolver
   val fileSystem: FileSystem
+  val googleMapsApiKey: String?
   val httpClientFactory: BiziHttpClientFactory
+  val localNotifier: LocalNotifier
   val locationProvider: LocationProvider
   val mapSupport: MapSupport
   val routeLauncher: RouteLauncher

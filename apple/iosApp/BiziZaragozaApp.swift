@@ -22,6 +22,7 @@ struct BiziZaragozaApp: App {
         FavoritesSyncBridge.shared.activate()
         FirebaseBootstrap.configureIfAvailable()
         GoogleMapsBootstrap.configureIfAvailable()
+        BiziBackgroundTaskHandler.registerTasks()
     }
 
     var body: some Scene {
@@ -31,9 +32,16 @@ struct BiziZaragozaApp: App {
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea()
                 .onAppear(perform: applyPendingLaunchRequest)
+                .onAppear { requestNotificationPermission() }
                 .onChange(of: scenePhase) { newPhase in
-                    if newPhase == .active {
+                    switch newPhase {
+                    case .active:
                         applyPendingLaunchRequest()
+                    case .background:
+                        BiziBackgroundTaskHandler.scheduleAppRefresh()
+                        handleBackgroundTransitionForMonitoring()
+                    default:
+                        break
                     }
                 }
         }
@@ -42,6 +50,23 @@ struct BiziZaragozaApp: App {
     private func applyPendingLaunchRequest() {
         guard let request = AppleLaunchRequestStore.shared.takePendingRequest() else { return }
         composeWrapper.updateLaunchRequest(request: request)
+    }
+
+    private func requestNotificationPermission() {
+        Task {
+            await BiziNotificationService.shared.requestAuthorization()
+        }
+    }
+
+    private func handleBackgroundTransitionForMonitoring() {
+        let bgTask = UIApplication.shared.beginBackgroundTask(withName: "BiziTripMonitor") {
+            // Expiry handler — time ran out, do nothing further
+        }
+        guard bgTask != .invalid else { return }
+
+        composeWrapper.doFinalBackgroundCheck {
+            UIApplication.shared.endBackgroundTask(bgTask)
+        }
     }
 }
 

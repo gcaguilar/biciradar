@@ -119,7 +119,7 @@ class CityBikesBiziApi(
   }
 }
 
-internal fun distanceBetween(origin: GeoPoint, destination: GeoPoint): Int {
+fun distanceBetween(origin: GeoPoint, destination: GeoPoint): Int {
   val earthRadiusMeters = 6_371_000.0
   val latitudeDelta = (destination.latitude - origin.latitude).toRadians()
   val longitudeDelta = (destination.longitude - origin.longitude).toRadians()

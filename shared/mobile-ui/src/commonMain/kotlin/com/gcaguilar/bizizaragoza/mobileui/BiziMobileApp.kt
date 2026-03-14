@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardVoice
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -105,6 +106,8 @@ import com.gcaguilar.bizizaragoza.core.findStationMatchingQuery
 import com.gcaguilar.bizizaragoza.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.bizizaragoza.core.isGoogleMapsReady
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
@@ -122,7 +125,14 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.gcaguilar.bizizaragoza.core.DatosBiziApi
+import com.gcaguilar.bizizaragoza.core.GooglePlacesApi
+import com.gcaguilar.bizizaragoza.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.bizizaragoza.core.PlacePrediction
 import com.gcaguilar.bizizaragoza.core.StationHourlyPattern
+import com.gcaguilar.bizizaragoza.core.TripDestination
+import com.gcaguilar.bizizaragoza.core.LocalNotifier
+import com.gcaguilar.bizizaragoza.core.TripRepository
+import com.gcaguilar.bizizaragoza.core.TripState
 
 private val BiziRed = Color(0xFFD7191F)
 private val BiziLight = Color(0xFFF8F6F6)
@@ -223,7 +233,7 @@ private enum class MobileTab(val label: String) {
   Cerca("Cerca"),
   Mapa("Mapa"),
   Favoritos("Favoritos"),
-  Atajos("Atajos"),
+  Viaje("Viaje"),
   Perfil("Ajustes"),
 }
 
@@ -231,7 +241,7 @@ private val MobileTabs = listOf(
   MobileTab.Cerca,
   MobileTab.Mapa,
   MobileTab.Favoritos,
-  MobileTab.Atajos,
+  MobileTab.Viaje,
   MobileTab.Perfil,
 )
 
@@ -312,6 +322,7 @@ fun BiziMobileApp(
   refreshKey: Any? = Unit,
   launchRequest: MobileLaunchRequest? = null,
   assistantLaunchRequest: AssistantLaunchRequest? = null,
+  onTripRepositoryReady: ((TripRepository) -> Unit)? = null,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val graph = remember(platformBindings) {
@@ -339,6 +350,10 @@ fun BiziMobileApp(
   var refreshCountdownSeconds by remember(graph) { mutableStateOf(0) }
   val lastSeenChangelog by settingsRepository.lastSeenChangelogVersion.collectAsState()
   var showChangelog by remember(graph) { mutableStateOf(false) }
+
+  LaunchedEffect(graph) {
+    onTripRepositoryReady?.invoke(graph.tripRepository)
+  }
 
   LaunchedEffect(graph) {
     settingsBootstrapped = false
@@ -444,13 +459,13 @@ fun BiziMobileApp(
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.OpenAssistant -> {
-        appState.currentTab = MobileTab.Atajos
+        appState.currentTab = MobileTab.Viaje
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.StationStatus -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
         appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        appState.currentTab = MobileTab.Atajos
+        appState.currentTab = MobileTab.Viaje
         appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
@@ -500,7 +515,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationStatus -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          appState.currentTab = MobileTab.Atajos
+          appState.currentTab = MobileTab.Viaje
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -509,7 +524,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationBikeCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          appState.currentTab = MobileTab.Atajos
+          appState.currentTab = MobileTab.Viaje
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -518,7 +533,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationSlotCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          appState.currentTab = MobileTab.Atajos
+          appState.currentTab = MobileTab.Viaje
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -703,7 +718,7 @@ fun BiziMobileApp(
                      )
                     MobileTab.Favoritos -> FavoritesScreen(
                       mobilePlatform = mobilePlatform,
-                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Atajos } },
+                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
                       allStations = stationsState.stations,
                       stations = favoriteStations,
                       homeStation = homeStation,
@@ -719,20 +734,19 @@ fun BiziMobileApp(
                       onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
                       paddingValues = innerPadding,
                     )
-                    MobileTab.Atajos -> ShortcutsScreen(
-                      mobilePlatform = mobilePlatform,
-                      stations = stationsState.stations,
-                      graph = graph,
-                      stationsRepository = stationsRepository,
-                      favoriteIds = favoriteIds,
-                      searchRadiusMeters = searchRadiusMeters,
-                      initialAction = appState.pendingAssistantAction,
-                      onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-                      paddingValues = innerPadding,
-                    )
+                     MobileTab.Viaje -> TripScreen(
+                       mobilePlatform = mobilePlatform,
+                       tripRepository = graph.tripRepository,
+                       googlePlacesApi = graph.googlePlacesApi,
+                       googleMapsApiKey = platformBindings.googleMapsApiKey,
+                       localNotifier = platformBindings.localNotifier,
+                       userLocation = stationsState.userLocation,
+                       searchRadiusMeters = searchRadiusMeters,
+                       paddingValues = innerPadding,
+                     )
                     MobileTab.Perfil -> ProfileScreen(
                       mobilePlatform = mobilePlatform,
-                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Atajos } },
+                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
                       paddingValues = innerPadding,
                       mapSupportStatus = mapSupportStatus,
                       searchRadiusMeters = searchRadiusMeters,
@@ -2211,6 +2225,546 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
   )
 }
 
+// ---------------------------------------------------------------------------
+// TripScreen — plan a trip to a destination and optionally monitor a station
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun TripScreen(
+  mobilePlatform: MobileUiPlatform,
+  tripRepository: TripRepository,
+  googlePlacesApi: GooglePlacesApi,
+  googleMapsApiKey: String?,
+  localNotifier: LocalNotifier,
+  userLocation: GeoPoint?,
+  searchRadiusMeters: Int,
+  paddingValues: PaddingValues,
+) {
+  val c = LocalBiziColors.current
+  val scope = rememberCoroutineScope()
+  val tripState by tripRepository.state.collectAsState()
+
+  // ---------- autocomplete state ----------
+  var query by rememberSaveable { mutableStateOf("") }
+  var suggestions by remember { mutableStateOf<List<PlacePrediction>>(emptyList()) }
+  var isLoadingSuggestions by remember { mutableStateOf(false) }
+  var debounceJob by remember { mutableStateOf<Job?>(null) }
+
+  // Trigger autocomplete on query change (debounced 400 ms)
+  LaunchedEffect(query) {
+    debounceJob?.cancel()
+    if (query.isBlank() || googleMapsApiKey == null) {
+      suggestions = emptyList()
+      return@LaunchedEffect
+    }
+    debounceJob = scope.launch {
+      delay(400)
+      isLoadingSuggestions = true
+      suggestions = googlePlacesApi.autocomplete(query, userLocation, googleMapsApiKey)
+      isLoadingSuggestions = false
+    }
+  }
+
+  // Reset query when the trip is cleared
+  LaunchedEffect(tripState.destination) {
+    if (tripState.destination == null) {
+      query = ""
+      suggestions = emptyList()
+    }
+  }
+
+  // ---------- monitoring duration selection ----------
+  var selectedDurationSeconds by rememberSaveable { mutableStateOf(MONITORING_DURATION_OPTIONS_SECONDS[0]) }
+
+  // ---------- layout ----------
+  LazyColumn(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(paddingValues)
+      .background(pageBackgroundColor(mobilePlatform)),
+    contentPadding = PaddingValues(16.dp),
+    verticalArrangement = Arrangement.spacedBy(16.dp),
+  ) {
+    // Header
+    item {
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          "Viaje",
+          style = MaterialTheme.typography.headlineSmall,
+          fontWeight = FontWeight.Bold,
+        )
+        Text(
+          "Busca la estación más cercana a tu destino y vigílala.",
+          style = MaterialTheme.typography.bodyMedium,
+          color = c.muted,
+        )
+      }
+    }
+
+    // ---------- ALERT card (State 7) — shown above everything when active ----------
+    if (tripState.alert != null) {
+      val alert = tripState.alert!!
+      item(key = "alert") {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = c.red.copy(alpha = 0.09f)),
+          border = BorderStroke(1.dp, c.red.copy(alpha = 0.22f)),
+        ) {
+          Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+          ) {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              Icon(Icons.Filled.Sync, contentDescription = null, tint = c.red)
+              Text(
+                "Estación llena",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = c.red,
+              )
+            }
+            Text(
+              "\"${alert.fullStation.name}\" ya no tiene plazas libres.",
+              style = MaterialTheme.typography.bodyMedium,
+            )
+            val altStation = alert.alternativeStation
+            if (altStation != null) {
+              val dist = alert.alternativeDistanceMeters
+              val distText = if (dist != null) " (${dist} m)" else ""
+              Text(
+                "Alternativa sugerida: ${altStation.name}$distText — ${altStation.slotsFree} plazas.",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+              )
+            } else {
+              Text(
+                "No se encontró alternativa cercana con plazas.",
+                style = MaterialTheme.typography.bodySmall,
+                color = c.muted,
+              )
+            }
+            Button(
+              onClick = { tripRepository.dismissAlert() },
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text("Entendido")
+            }
+          }
+        }
+      }
+    }
+
+    // ---------- DESTINATION INPUT (State 1) — shown when no destination yet ----------
+    if (tripState.destination == null) {
+      item(key = "destination-input") {
+        Card(colors = CardDefaults.cardColors(containerColor = c.surface)) {
+          Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            Text(
+              "¿Adónde vas?",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.SemiBold,
+            )
+            OutlinedTextField(
+              value = query,
+              onValueChange = { query = it },
+              modifier = Modifier.fillMaxWidth(),
+              label = { Text("Destino") },
+              placeholder = { Text("Escribe una dirección o lugar") },
+              singleLine = true,
+              leadingIcon = {
+                Icon(Icons.Filled.Search, contentDescription = null)
+              },
+              trailingIcon = {
+                if (query.isNotEmpty()) {
+                  IconButton(onClick = { query = ""; suggestions = emptyList() }) {
+                    Icon(Icons.Filled.Close, contentDescription = "Borrar")
+                  }
+                }
+              },
+              colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = c.red,
+                cursorColor = c.red,
+              ),
+            )
+            if (googleMapsApiKey == null) {
+              Text(
+                "Google Maps API key no disponible. La búsqueda de destinos no funcionará.",
+                style = MaterialTheme.typography.bodySmall,
+                color = c.red,
+              )
+            }
+          }
+        }
+      }
+
+      // Autocomplete suggestions
+      if (suggestions.isNotEmpty()) {
+        item(key = "suggestions-header") {
+          Text(
+            "Sugerencias",
+            style = MaterialTheme.typography.labelMedium,
+            color = c.muted,
+          )
+        }
+        items(suggestions, key = { it.placeId }) { prediction ->
+          Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = c.surface,
+            border = BorderStroke(1.dp, c.panel),
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                if (googleMapsApiKey != null) {
+                  scope.launch {
+                    val details = googlePlacesApi.placeDetails(prediction.placeId, googleMapsApiKey)
+                    if (details != null) {
+                      suggestions = emptyList()
+                      query = details.name
+                      tripRepository.setDestination(
+                        destination = TripDestination(
+                          name = details.name,
+                          location = details.location,
+                        ),
+                        searchRadiusMeters = searchRadiusMeters,
+                      )
+                    }
+                  }
+                }
+              },
+          ) {
+            Row(
+              modifier = Modifier.padding(12.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+              Icon(
+                Icons.Filled.LocationOn,
+                contentDescription = null,
+                tint = c.muted,
+                modifier = Modifier.size(18.dp),
+              )
+              Text(
+                prediction.description,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+              )
+            }
+          }
+        }
+      } else if (isLoadingSuggestions) {
+        item(key = "suggestions-loading") {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+          ) {
+            CircularProgressIndicator(
+              modifier = Modifier.size(24.dp),
+              strokeWidth = 2.dp,
+              color = c.red,
+            )
+          }
+        }
+      }
+    }
+
+    // ---------- DESTINATION SELECTED section ----------
+    if (tripState.destination != null) {
+      // Destination header with clear button
+      item(key = "destination-header") {
+        Card(colors = CardDefaults.cardColors(containerColor = c.surface)) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+          ) {
+            Icon(
+              Icons.Filled.Navigation,
+              contentDescription = null,
+              tint = c.red,
+              modifier = Modifier.size(22.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                "Destino",
+                style = MaterialTheme.typography.labelSmall,
+                color = c.muted,
+              )
+              Text(
+                tripState.destination!!.name,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+              )
+            }
+            OutlinedButton(
+              onClick = { tripRepository.clearTrip() },
+              contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+            ) {
+              Icon(
+                Icons.Filled.Close,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+              )
+              Spacer(Modifier.width(4.dp))
+              Text("Limpiar", style = MaterialTheme.typography.labelMedium)
+            }
+          }
+        }
+      }
+
+      // Searching spinner (State 3)
+      if (tripState.isSearchingStation) {
+        item(key = "searching") {
+          Card(colors = CardDefaults.cardColors(containerColor = c.surface)) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+              horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              CircularProgressIndicator(
+                modifier = Modifier.size(22.dp),
+                strokeWidth = 2.dp,
+                color = c.red,
+              )
+              Text(
+                "Buscando estación cercana...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = c.muted,
+              )
+            }
+          }
+        }
+      }
+
+      // Search error
+      if (tripState.searchError != null) {
+        item(key = "search-error") {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = c.red.copy(alpha = 0.07f)),
+            border = BorderStroke(1.dp, c.red.copy(alpha = 0.18f)),
+          ) {
+            Text(
+              tripState.searchError!!,
+              modifier = Modifier.padding(14.dp),
+              style = MaterialTheme.typography.bodyMedium,
+              color = c.red,
+            )
+          }
+        }
+      }
+
+      // Station found card (State 4)
+      val station = tripState.nearestStationWithSlots
+      if (station != null && !tripState.isSearchingStation) {
+        item(key = "station-card") {
+          TripStationCard(station = station, distanceMeters = tripState.distanceToStation)
+        }
+
+        // Monitoring active (State 6)
+        if (tripState.monitoring.isActive) {
+          item(key = "monitoring-active") {
+            TripMonitoringActiveCard(
+              monitoring = tripState.monitoring,
+              onStop = { tripRepository.stopMonitoring() },
+            )
+          }
+        } else {
+          // Monitoring setup (State 5)
+          item(key = "monitoring-setup") {
+            TripMonitoringSetupCard(
+              selectedDurationSeconds = selectedDurationSeconds,
+              onDurationSelected = { selectedDurationSeconds = it },
+              onStartMonitoring = {
+                scope.launch {
+                  localNotifier.requestPermission()
+                  tripRepository.startMonitoring(selectedDurationSeconds)
+                }
+              },
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun TripStationCard(
+  station: Station,
+  distanceMeters: Int?,
+) {
+  val c = LocalBiziColors.current
+  Card(colors = CardDefaults.cardColors(containerColor = c.surface)) {
+    Column(
+      modifier = Modifier.padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        Icon(
+          Icons.AutoMirrored.Filled.DirectionsBike,
+          contentDescription = null,
+          tint = c.red,
+        )
+        Text(
+          "Estación sugerida",
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
+          color = c.muted,
+        )
+      }
+      Text(
+        station.name,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+      )
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        StationMetricPill(
+          label = "Plazas libres",
+          value = station.slotsFree.toString(),
+          tint = c.blue,
+        )
+        StationMetricPill(
+          label = "Bicis",
+          value = station.bikesAvailable.toString(),
+          tint = c.red,
+        )
+        if (distanceMeters != null) {
+          StationMetricPill(
+            label = "Distancia",
+            value = "${distanceMeters} m",
+            tint = c.green,
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun TripMonitoringSetupCard(
+  selectedDurationSeconds: Int,
+  onDurationSelected: (Int) -> Unit,
+  onStartMonitoring: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Card(colors = CardDefaults.cardColors(containerColor = c.surface)) {
+    Column(
+      modifier = Modifier.padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Text(
+        "Vigilar esta estación",
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+        "Recibirás una notificación si se llena antes de que llegues.",
+        style = MaterialTheme.typography.bodySmall,
+        color = c.muted,
+      )
+      Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        MONITORING_DURATION_OPTIONS_SECONDS.forEach { durationSeconds ->
+          val minutes = durationSeconds / 60
+          FilterChip(
+            selected = selectedDurationSeconds == durationSeconds,
+            onClick = { onDurationSelected(durationSeconds) },
+            label = { Text("${minutes} min") },
+            colors = FilterChipDefaults.filterChipColors(
+              selectedContainerColor = c.red.copy(alpha = 0.12f),
+              selectedLabelColor = c.red,
+            ),
+          )
+        }
+      }
+      Button(
+        onClick = onStartMonitoring,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text("Iniciar vigilancia")
+      }
+    }
+  }
+}
+
+@Composable
+private fun TripMonitoringActiveCard(
+  monitoring: com.gcaguilar.bizizaragoza.core.TripMonitoringState,
+  onStop: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  val remaining = monitoring.remainingSeconds
+  val total = monitoring.totalSeconds
+  val minutes = remaining / 60
+  val seconds = remaining % 60
+  val progress = if (total > 0) remaining.toFloat() / total.toFloat() else 0f
+
+  Card(
+    colors = CardDefaults.cardColors(containerColor = c.blue.copy(alpha = 0.07f)),
+    border = BorderStroke(1.dp, c.blue.copy(alpha = 0.18f)),
+  ) {
+    Column(
+      modifier = Modifier.padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        CircularProgressIndicator(
+          progress = { progress },
+          modifier = Modifier.size(22.dp),
+          strokeWidth = 3.dp,
+          color = c.blue,
+          trackColor = c.blue.copy(alpha = 0.15f),
+        )
+        Text(
+          "Vigilancia activa",
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
+          color = c.blue,
+        )
+      }
+      Text(
+        "Tiempo restante: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
+        style = MaterialTheme.typography.headlineSmall,
+        fontWeight = FontWeight.Bold,
+      )
+      Text(
+        "Se comprueba cada 30 s. Notificación si la estación se llena.",
+        style = MaterialTheme.typography.bodySmall,
+        color = c.muted,
+      )
+      OutlinedButton(
+        onClick = onStop,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(6.dp))
+        Text("Parar vigilancia")
+      }
+    }
+  }
+}
+
 @Composable
 private fun ShortcutsScreen(
   mobilePlatform: MobileUiPlatform,
@@ -3295,7 +3849,7 @@ private fun MobileTab.icon() = when (this) {
   MobileTab.Mapa -> Icons.Filled.Map
   MobileTab.Cerca -> Icons.Filled.LocationOn
   MobileTab.Favoritos -> Icons.Filled.Favorite
-  MobileTab.Atajos -> Icons.Filled.KeyboardVoice
+  MobileTab.Viaje -> Icons.Filled.Navigation
   MobileTab.Perfil -> Icons.Filled.Tune
 }
 

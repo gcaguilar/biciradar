@@ -6,6 +6,7 @@ import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
+import com.gcaguilar.bizizaragoza.core.LocalNotifier
 import com.gcaguilar.bizizaragoza.core.LocationProvider
 import com.gcaguilar.bizizaragoza.core.MapSupport
 import com.gcaguilar.bizizaragoza.core.MapSupportStatus
@@ -40,6 +41,13 @@ import platform.MapKit.MKLaunchOptionsDirectionsModeKey
 import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
 import platform.UIKit.UIApplication
+import platform.UserNotifications.UNAuthorizationOptionAlert
+import platform.UserNotifications.UNAuthorizationOptionBadge
+import platform.UserNotifications.UNAuthorizationOptionSound
+import platform.UserNotifications.UNMutableNotificationContent
+import platform.UserNotifications.UNNotificationRequest
+import platform.UserNotifications.UNTimeIntervalNotificationTrigger
+import platform.UserNotifications.UNUserNotificationCenter
 import platform.WatchConnectivity.WCSession
 import platform.WatchConnectivity.WCSessionActivationStateActivated
 
@@ -58,7 +66,13 @@ class IOSPlatformBindings(
 
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = fileSystemInstance
+  override val googleMapsApiKey: String? = NSBundle.mainBundle
+    .objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
+    ?.toString()
+    ?.trim()
+    ?.takeUnless { it.startsWith("$(") || it.isBlank() }
   override val httpClientFactory: BiziHttpClientFactory = IOSHttpClientFactory()
+  override val localNotifier: LocalNotifier = IOSLocalNotifier()
   override val locationProvider: LocationProvider = IOSLocationProvider()
   override val mapSupport: MapSupport = IOSMapSupport()
   override val routeLauncher: RouteLauncher = IOSRouteLauncher(
@@ -212,5 +226,34 @@ private object IOSFavoritesCache {
     NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
     NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = homeCacheKey)
     NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = workCacheKey)
+  }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class IOSLocalNotifier : LocalNotifier {
+  private val center = UNUserNotificationCenter.currentNotificationCenter()
+
+  override suspend fun requestPermission(): Boolean {
+    var granted = false
+    center.requestAuthorizationWithOptions(
+      options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
+    ) { result, _ ->
+      granted = result
+    }
+    return granted
+  }
+
+  override suspend fun notify(title: String, body: String) {
+    val content = UNMutableNotificationContent().apply {
+      setTitle(title)
+      setBody(body)
+    }
+    val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(0.1, repeats = false)
+    val request = UNNotificationRequest.requestWithIdentifier(
+      identifier = "bizi_trip_${kotlin.random.Random.nextLong()}",
+      content = content,
+      trigger = trigger,
+    )
+    center.addNotificationRequest(request) { _ -> }
   }
 }

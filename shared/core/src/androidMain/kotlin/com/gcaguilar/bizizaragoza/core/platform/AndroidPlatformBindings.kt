@@ -1,10 +1,16 @@
 package com.gcaguilar.bizizaragoza.core.platform
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
 import com.gcaguilar.bizizaragoza.core.AppConfiguration
@@ -13,6 +19,7 @@ import com.gcaguilar.bizizaragoza.core.BiziHttpClientFactory
 import com.gcaguilar.bizizaragoza.core.EmbeddedMapProvider
 import com.gcaguilar.bizizaragoza.core.FavoritesSyncSnapshot
 import com.gcaguilar.bizizaragoza.core.GeoPoint
+import com.gcaguilar.bizizaragoza.core.LocalNotifier
 import com.gcaguilar.bizizaragoza.core.LocationProvider
 import com.gcaguilar.bizizaragoza.core.MapSupport
 import com.gcaguilar.bizizaragoza.core.MapSupportStatus
@@ -46,7 +53,16 @@ class AndroidPlatformBindings(
 ) : PlatformBindings {
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = FileSystem.SYSTEM
+  override val googleMapsApiKey: String? = runCatching {
+    val packageManager = context.packageManager
+    val applicationInfo = packageManager.getApplicationInfo(
+      context.packageName,
+      PackageManager.GET_META_DATA,
+    )
+    applicationInfo.metaData?.getString("com.google.android.geo.API_KEY")?.trim()?.takeIf { it.isNotBlank() }
+  }.getOrNull()
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
+  override val localNotifier: LocalNotifier = AndroidLocalNotifier(context)
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
   override val mapSupport: MapSupport = AndroidMapSupport(context)
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
@@ -201,5 +217,48 @@ private class AndroidWatchSyncBridge(
     const val HOME_STATION_KEY = "home_station_id"
     const val WORK_STATION_KEY = "work_station_id"
     const val UPDATED_AT_KEY = "updated_at"
+  }
+}
+
+private class AndroidLocalNotifier(
+  private val context: Context,
+) : LocalNotifier {
+  private val channelId = "bizi_trip"
+  private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
+
+  init {
+    ensureChannel()
+  }
+
+  override suspend fun requestPermission(): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+    return ContextCompat.checkSelfPermission(
+      context,
+      Manifest.permission.POST_NOTIFICATIONS,
+    ) == PackageManager.PERMISSION_GRANTED
+  }
+
+  @SuppressLint("MissingPermission")
+  override suspend fun notify(title: String, body: String) {
+    if (!requestPermission()) return
+    val notification = NotificationCompat.Builder(context, channelId)
+      .setSmallIcon(android.R.drawable.ic_dialog_info)
+      .setContentTitle(title)
+      .setContentText(body)
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setAutoCancel(true)
+      .build()
+    notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+  }
+
+  private fun ensureChannel() {
+    val channel = NotificationChannel(
+      channelId,
+      "Bizi Viaje",
+      NotificationManager.IMPORTANCE_HIGH,
+    ).apply {
+      description = "Notificaciones de monitorización de viaje en Bizi"
+    }
+    notificationManager.createNotificationChannel(channel)
   }
 }
