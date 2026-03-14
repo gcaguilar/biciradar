@@ -343,8 +343,11 @@ fun BiziMobileApp(
   }
 
   LaunchedEffect(settingsBootstrapped, lastSeenChangelog) {
-    if (settingsBootstrapped && lastSeenChangelog < CURRENT_CHANGELOG_VERSION) {
+    if (settingsBootstrapped && lastSeenChangelog in 1 until CURRENT_CHANGELOG_VERSION) {
       showChangelog = true
+    } else if (settingsBootstrapped && lastSeenChangelog == 0) {
+      // First install — silently mark as seen so the dialog only appears on future updates.
+      settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION)
     }
   }
 
