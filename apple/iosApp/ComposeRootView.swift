@@ -2,30 +2,18 @@ import BiziMobileUi
 import SwiftUI
 import UIKit
 
+/// Hosts the Compose UIViewController. A single instance is created and reused;
+/// new launch requests are pushed reactively via `updateLaunchRequest` so that
+/// the Compose tree is never torn down on navigation intents.
 struct ComposeRootView: UIViewControllerRepresentable {
-    let launchRequest: (any MobileLaunchRequest)?
+    let wrapper: BiziMainViewControllerWrapper
 
     func makeUIViewController(context: Context) -> UIViewController {
-        ComposeContainerViewController(contentViewController: makeContentViewController())
+        ComposeContainerViewController(contentViewController: wrapper.viewController)
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-
-    private func makeContentViewController() -> UIViewController {
-        let factory: (any StationMapViewFactory)? = GoogleMapsBootstrap.isSdkLinked()
-            ? GoogleMapsStationMapFactory()
-            : nil
-        if let launchRequest {
-            return BiziMobileViewControllerKt.MainViewController(
-                launchRequest: launchRequest,
-                stationMapViewFactory: factory
-            )
-        } else {
-            return BiziMobileViewControllerKt.MainViewController(
-                launchRequest: nil,
-                stationMapViewFactory: factory
-            )
-        }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // No-op: launch requests are pushed through the wrapper directly.
     }
 }
 
