@@ -216,6 +216,12 @@ private val MobileTabs = listOf(
   MobileTab.Perfil,
 )
 
+private enum class MapFilter(val label: String) {
+  BIKES_AND_SLOTS("Bicis + Huecos"),
+  ONLY_SLOTS("Solo huecos"),
+  EMPTY("Vacías"),
+}
+
 sealed interface MobileLaunchRequest {
   data object Favorites : MobileLaunchRequest
   data object NearestStation : MobileLaunchRequest
@@ -818,6 +824,23 @@ private fun MapScreen(
   var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
   var isCardDismissed by rememberSaveable { mutableStateOf(false) }
+  var activeFilters by remember { mutableStateOf(emptySet<MapFilter>()) }
+
+  val mapStations = remember(stations, activeFilters) {
+    if (activeFilters.isEmpty()) {
+      stations
+    } else {
+      stations.filter { station ->
+        activeFilters.any { filter ->
+          when (filter) {
+            MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
+            MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
+            MapFilter.EMPTY -> station.bikesAvailable == 0 && station.slotsFree == 0
+          }
+        }
+      }
+    }
+  }
 
   // Reset dismiss when the selected station changes (user tapped a marker).
   LaunchedEffect(selectedMapStationId) {
@@ -862,7 +885,7 @@ private fun MapScreen(
   ) {
     PlatformStationMap(
       modifier = Modifier.fillMaxSize(),
-      stations = stations,
+      stations = mapStations,
       userLocation = userLocation,
       highlightedStationId = selectedMapStation?.id,
       isMapReady = isMapReady,
@@ -884,6 +907,12 @@ private fun MapScreen(
         value = searchQuery,
         onValueChange = onSearchQueryChange,
         label = "Buscar estación o dirección",
+      )
+      MapFilterChipRow(
+        activeFilters = activeFilters,
+        onToggleFilter = { filter ->
+          activeFilters = if (filter in activeFilters) activeFilters - filter else activeFilters + filter
+        },
       )
     }
 
@@ -1125,6 +1154,58 @@ private fun NearbyScreen(
         )
       }
     }
+  }
+}
+
+@Composable
+private fun MapFilterChipRow(
+  activeFilters: Set<MapFilter>,
+  onToggleFilter: (MapFilter) -> Unit,
+) {
+  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    MapFilter.entries.forEach { filter ->
+      MapFilterChip(
+        label = filter.label,
+        selected = filter in activeFilters,
+        onClick = { onToggleFilter(filter) },
+      )
+    }
+  }
+}
+
+@Composable
+private fun MapFilterChip(
+  label: String,
+  selected: Boolean,
+  onClick: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  val backgroundColor by animateColorAsState(
+    targetValue = if (selected) c.red else c.surface,
+    animationSpec = tween(180),
+  )
+  val contentColor by animateColorAsState(
+    targetValue = if (selected) c.onAccent else c.ink,
+    animationSpec = tween(180),
+  )
+  val borderColor by animateColorAsState(
+    targetValue = if (selected) c.red else c.muted.copy(alpha = 0.28f),
+    animationSpec = tween(180),
+  )
+  Surface(
+    shape = RoundedCornerShape(16.dp),
+    color = backgroundColor,
+    border = BorderStroke(1.dp, borderColor),
+    shadowElevation = if (selected) 2.dp else 1.dp,
+    modifier = Modifier.clickable(onClick = onClick),
+  ) {
+    Text(
+      text = label,
+      color = contentColor,
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = FontWeight.SemiBold,
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    )
   }
 }
 
