@@ -347,6 +347,7 @@ class CoreRepositoryTest {
         }
         override val routeLauncher: RouteLauncher = object : RouteLauncher {
           override fun launch(station: Station) = Unit
+          override fun launchWalkToLocation(destination: GeoPoint) = Unit
         }
           override val storageDirectoryProvider: StorageDirectoryProvider = object : StorageDirectoryProvider {
             override val rootPath: String = temporaryRoot

@@ -108,6 +108,22 @@ private class AndroidRouteLauncher(
     val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
     context.startActivity(launchIntent)
   }
+
+  override fun launchWalkToLocation(destination: GeoPoint) {
+    val navigationUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=w")
+    val intent = Intent(Intent.ACTION_VIEW, navigationUri).apply {
+      setPackage("com.google.android.apps.maps")
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    val fallbackIntent = Intent(
+      Intent.ACTION_VIEW,
+      Uri.parse("geo:${destination.latitude},${destination.longitude}"),
+    ).apply {
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
+    context.startActivity(launchIntent)
+  }
 }
 
 private class AndroidMapSupport(

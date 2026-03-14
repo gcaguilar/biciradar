@@ -18,6 +18,8 @@ interface LocationProvider {
 
 interface RouteLauncher {
   fun launch(station: Station)
+  /** Launch walking directions to [destination] (from the user's current location or a given origin). */
+  fun launchWalkToLocation(destination: GeoPoint)
 }
 
 interface AssistantIntentResolver {

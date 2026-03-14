@@ -172,6 +172,39 @@ private class IOSRouteLauncher(
     return true
   }
 
+  override fun launchWalkToLocation(destination: GeoPoint) {
+    if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
+      val googleMapsUrl = NSURL.URLWithString(
+        "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=walking",
+      )
+      val application = UIApplication.sharedApplication
+      if (googleMapsUrl != null && application.canOpenURL(googleMapsUrl)) {
+        application.openURL(googleMapsUrl)
+        return
+      }
+    }
+    // Apple Maps fallback
+    val mapItem = MKMapItem(
+      placemark = MKPlacemark(
+        coordinate = destination.toCoordinate(),
+        addressDictionary = null,
+      ),
+    ).apply {
+      name = "Destino"
+    }
+    val opened = mapItem.openInMapsWithLaunchOptions(
+      mapOf(MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeWalking),
+    )
+    if (!opened) {
+      val fallbackUrl = NSURL.URLWithString(
+        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w",
+      )
+      if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
+        UIApplication.sharedApplication.openURL(fallbackUrl)
+      }
+    }
+  }
+
   private fun preferredMapApp(): PreferredMapApp {
     val path = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
     if (!fileSystem.exists(path)) return PreferredMapApp.AppleMaps
