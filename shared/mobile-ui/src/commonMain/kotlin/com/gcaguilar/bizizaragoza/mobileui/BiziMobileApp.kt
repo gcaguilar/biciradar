@@ -238,6 +238,18 @@ private enum class MapFilter(val label: String) {
   EMPTY("Vacías"),
 }
 
+private const val CURRENT_CHANGELOG_VERSION = 1
+
+private data class ChangelogEntry(val title: String, val description: String)
+
+private val CHANGELOG_ENTRIES = listOf(
+  ChangelogEntry("Tema oscuro", "La app se adapta automáticamente al modo oscuro del sistema."),
+  ChangelogEntry("Tarjeta descartable", "Ahora puedes cerrar la tarjeta de estación en el mapa con el botón X."),
+  ChangelogEntry("Filtros en el mapa", "Filtra estaciones por disponibilidad: bicis + huecos, solo huecos o vacías."),
+  ChangelogEntry("Indicador de refresco", "Cuenta atrás visible junto al botón de refresco (actualización cada 5 min)."),
+  ChangelogEntry("Patrón de uso", "Gráfica con la media histórica de bicis por hora en cada estación (datos de datosbizi.com)."),
+)
+
 sealed interface MobileLaunchRequest {
   data object Favorites : MobileLaunchRequest
   data object NearestStation : MobileLaunchRequest
@@ -321,11 +333,19 @@ fun BiziMobileApp(
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
   var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
   var refreshCountdownSeconds by remember(graph) { mutableStateOf(0) }
+  val lastSeenChangelog by settingsRepository.lastSeenChangelogVersion.collectAsState()
+  var showChangelog by remember(graph) { mutableStateOf(false) }
 
   LaunchedEffect(graph) {
     settingsBootstrapped = false
     runCatching { settingsRepository.bootstrap() }
     settingsBootstrapped = true
+  }
+
+  LaunchedEffect(settingsBootstrapped, lastSeenChangelog) {
+    if (settingsBootstrapped && lastSeenChangelog < CURRENT_CHANGELOG_VERSION) {
+      showChangelog = true
+    }
   }
 
   LaunchedEffect(graph) {
@@ -547,6 +567,14 @@ fun BiziMobileApp(
       modifier = modifier.fillMaxSize(),
       color = pageBackgroundColor(mobilePlatform),
     ) {
+      if (showChangelog) {
+        ChangelogDialog(
+          onDismiss = {
+            showChangelog = false
+            scope.launch { settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION) }
+          },
+        )
+      }
       AnimatedContent(
         targetState = showStartupSplash,
         transitionSpec = {
@@ -2009,6 +2037,44 @@ private fun StationPatternChart(
       }
     }
   }
+}
+
+@Composable
+private fun ChangelogDialog(onDismiss: () -> Unit) {
+  val colors = LocalBiziColors.current
+  androidx.compose.material3.AlertDialog(
+    onDismissRequest = onDismiss,
+    containerColor = colors.surface,
+    title = {
+      Text("Novedades", fontWeight = FontWeight.Bold)
+    },
+    text = {
+      LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+      ) {
+        items(CHANGELOG_ENTRIES.size) { index ->
+          val entry = CHANGELOG_ENTRIES[index]
+          Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+              entry.title,
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+              entry.description,
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
+          }
+        }
+      }
+    },
+    confirmButton = {
+      TextButton(onClick = onDismiss) {
+        Text("Entendido")
+      }
+    },
+  )
 }
 
 @Composable
