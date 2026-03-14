@@ -736,9 +736,11 @@ fun BiziMobileApp(
                       mapSupportStatus = mapSupportStatus,
                       searchRadiusMeters = searchRadiusMeters,
                       preferredMapApp = preferredMapApp,
+                      themePreference = themePreference,
                       userLocation = stationsState.userLocation,
                       onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
                       onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
+                      onThemePreferenceSelected = remember(scope, settingsRepository) { { pref -> scope.launch { settingsRepository.setThemePreference(pref) } } },
                     )
                   }
                 }
@@ -1546,9 +1548,11 @@ private fun ProfileScreen(
   mapSupportStatus: MapSupportStatus,
   searchRadiusMeters: Int,
   preferredMapApp: PreferredMapApp,
+  themePreference: ThemePreference,
   userLocation: GeoPoint?,
   onSearchRadiusSelected: (Int) -> Unit,
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
+  onThemePreferenceSelected: (ThemePreference) -> Unit,
 ) {
   LazyColumn(
     modifier = Modifier
@@ -1644,6 +1648,40 @@ private fun ProfileScreen(
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
+        }
+      }
+    }
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+          Text("Apariencia", fontWeight = FontWeight.SemiBold)
+          Text(
+            "Elige si la app sigue el sistema o usa siempre el tema claro u oscuro.",
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = themePreference == ThemePreference.System,
+              label = "Sistema",
+              onClick = { onThemePreferenceSelected(ThemePreference.System) },
+            )
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = themePreference == ThemePreference.Light,
+              label = "Claro",
+              onClick = { onThemePreferenceSelected(ThemePreference.Light) },
+            )
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = themePreference == ThemePreference.Dark,
+              label = "Oscuro",
+              onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
+            )
+          }
         }
       }
     }
