@@ -304,6 +304,7 @@ fun BiziMobileApp(
   var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
   var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
+  var refreshCountdownSeconds by remember(graph) { mutableStateOf(0) }
 
   LaunchedEffect(graph) {
     settingsBootstrapped = false
@@ -329,8 +330,13 @@ fun BiziMobileApp(
   }
 
   LaunchedEffect(graph) {
+    val intervalSeconds = 300 // 5 minutes
     while (true) {
-      kotlinx.coroutines.delay(30_000)
+      for (remaining in intervalSeconds downTo 1) {
+        refreshCountdownSeconds = remaining
+        kotlinx.coroutines.delay(1_000)
+      }
+      refreshCountdownSeconds = 0
       val ids = stationsRepository.state.value.stations.take(20).map { it.id }
       stationsRepository.refreshAvailability(ids)
     }
@@ -640,6 +646,7 @@ fun BiziMobileApp(
                        onRefresh = remember(scope, stationsRepository) { { scope.launch { stationsRepository.forceRefresh() } } },
                        onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
                        onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
+                       refreshCountdownSeconds = refreshCountdownSeconds,
                        paddingValues = innerPadding,
                      )
                     MobileTab.Favoritos -> FavoritesScreen(
@@ -991,6 +998,7 @@ private fun NearbyScreen(
   onRefresh: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  refreshCountdownSeconds: Int,
   paddingValues: PaddingValues,
 ) {
   val nearestWithBikesSelection = remember(stations, searchRadiusMeters) {
@@ -1032,9 +1040,11 @@ private fun NearbyScreen(
               color = LocalBiziColors.current.muted,
             )
           }
-          IconButton(onClick = onRefresh, enabled = !loading) {
-            Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
-          }
+          RefreshButtonWithCountdown(
+            countdown = refreshCountdownSeconds,
+            loading = loading,
+            onRefresh = onRefresh,
+          )
         }
       } else {
         Row(
@@ -1058,9 +1068,11 @@ private fun NearbyScreen(
               color = LocalBiziColors.current.muted,
             )
           }
-          IconButton(onClick = onRefresh, enabled = !loading) {
-            Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
-          }
+          RefreshButtonWithCountdown(
+            countdown = refreshCountdownSeconds,
+            loading = loading,
+            onRefresh = onRefresh,
+          )
         }
       }
       Row(
@@ -1153,6 +1165,30 @@ private fun NearbyScreen(
           onQuickRoute = { onQuickRoute(station) },
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun RefreshButtonWithCountdown(
+  countdown: Int,
+  loading: Boolean,
+  onRefresh: () -> Unit,
+) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    IconButton(onClick = onRefresh, enabled = !loading) {
+      Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
+    }
+    if (countdown > 0 && !loading) {
+      val minutes = countdown / 60
+      val seconds = countdown % 60
+      Text(
+        text = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s",
+        style = MaterialTheme.typography.labelSmall,
+        color = LocalBiziColors.current.muted,
+      )
     }
   }
 }
