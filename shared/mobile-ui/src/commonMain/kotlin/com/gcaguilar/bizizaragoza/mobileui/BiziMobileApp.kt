@@ -744,19 +744,25 @@ fun BiziMobileApp(
                        searchRadiusMeters = searchRadiusMeters,
                        paddingValues = innerPadding,
                      )
-                    MobileTab.Perfil -> ProfileScreen(
-                      mobilePlatform = mobilePlatform,
-                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
-                      paddingValues = innerPadding,
-                      mapSupportStatus = mapSupportStatus,
-                      searchRadiusMeters = searchRadiusMeters,
-                      preferredMapApp = preferredMapApp,
-                      themePreference = themePreference,
-                      userLocation = stationsState.userLocation,
-                      onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
-                      onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
-                      onThemePreferenceSelected = remember(scope, settingsRepository) { { pref: ThemePreference -> scope.launch { settingsRepository.setThemePreference(pref) } } },
-                    )
+                     MobileTab.Perfil -> ProfileScreen(
+                       mobilePlatform = mobilePlatform,
+                       onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
+                       paddingValues = innerPadding,
+                       mapSupportStatus = mapSupportStatus,
+                       searchRadiusMeters = searchRadiusMeters,
+                       preferredMapApp = preferredMapApp,
+                       themePreference = themePreference,
+                       userLocation = stationsState.userLocation,
+                       stations = stationsState.stations,
+                       graph = graph,
+                       stationsRepository = stationsRepository,
+                       favoriteIds = favoriteIds,
+                       initialAction = appState.pendingAssistantAction,
+                       onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+                       onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
+                       onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
+                       onThemePreferenceSelected = remember(scope, settingsRepository) { { pref: ThemePreference -> scope.launch { settingsRepository.setThemePreference(pref) } } },
+                     )
                   }
                 }
               }
@@ -1565,10 +1571,38 @@ private fun ProfileScreen(
   preferredMapApp: PreferredMapApp,
   themePreference: ThemePreference,
   userLocation: GeoPoint?,
+  stations: List<Station>,
+  graph: SharedGraph,
+  stationsRepository: com.gcaguilar.bizizaragoza.core.StationsRepository,
+  favoriteIds: Set<String>,
+  initialAction: AssistantAction?,
+  onInitialActionConsumed: () -> Unit,
   onSearchRadiusSelected: (Int) -> Unit,
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
   onThemePreferenceSelected: (ThemePreference) -> Unit,
 ) {
+  val scope = rememberCoroutineScope()
+  var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritas o rutas.") }
+  val assistantSuggestions = listOf(
+    AssistantAction.NearestStation,
+    AssistantAction.NearestStationWithBikes,
+    AssistantAction.NearestStationWithSlots,
+    AssistantAction.FavoriteStations,
+    stations.firstOrNull()?.let { AssistantAction.RouteToStation(it.id) },
+  ).filterNotNull()
+  val shortcutGuides = remember(mobilePlatform) { shortcutGuidesFor(mobilePlatform) }
+
+  LaunchedEffect(initialAction, stations, favoriteIds) {
+    val action = initialAction ?: return@LaunchedEffect
+    val resolution = graph.assistantIntentResolver.resolve(
+      action = action,
+      stationsState = stationsRepository.state.value,
+      favoriteIds = favoriteIds,
+      searchRadiusMeters = searchRadiusMeters,
+    )
+    latestAnswer = resolution.spokenResponse
+    onInitialActionConsumed()
+  }
   LazyColumn(
     modifier = Modifier
       .fillMaxSize()
@@ -1775,6 +1809,86 @@ private fun ProfileScreen(
             Text("Abrir formulario de feedback", style = MaterialTheme.typography.bodySmall)
           }
         }
+      }
+    }
+    // -------- Atajos / assistant shortcuts section --------
+    item {
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          "Atajos",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold,
+        )
+        Text(
+          "Qué puede hacer la app y cómo invocarlo con ${mobilePlatform.assistantDisplayName()}.",
+          style = MaterialTheme.typography.bodySmall,
+          color = LocalBiziColors.current.muted,
+        )
+      }
+    }
+    item {
+      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          Text("Cómo invocarlos", fontWeight = FontWeight.SemiBold)
+          Text(
+            if (mobilePlatform == MobileUiPlatform.IOS) {
+              "Abre Siri o Atajos y usa frases como las de abajo terminando en \u201cen Bizi Zaragoza\u201d."
+            } else {
+              "Abre Google Assistant y prueba frases como las de abajo. Si hace falta, empieza por \u201cabre Bizi Zaragoza y...\u201d. La ruta se abrir\u00e1 en la navegaci\u00f3n del tel\u00e9fono."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          Text(
+            "Radio actual para búsquedas cercanas: ${searchRadiusMeters} m.",
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.ink,
+          )
+        }
+      }
+    }
+    items(shortcutGuides, key = { it.title }) { guide ->
+      ShortcutGuideCard(guide = guide)
+    }
+    item {
+      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+        Column(
+          modifier = Modifier.padding(18.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          Text("Última respuesta", fontWeight = FontWeight.SemiBold)
+          Text(latestAnswer)
+        }
+      }
+    }
+    item {
+      Text(
+        text = "Prueba rápida",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+      )
+    }
+    items(assistantSuggestions, key = { it.label() }) { action ->
+      OutlinedButton(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = {
+          scope.launch {
+            val resolution = graph.assistantIntentResolver.resolve(
+              action = action,
+              stationsState = stationsRepository.state.value,
+              favoriteIds = favoriteIds,
+              searchRadiusMeters = searchRadiusMeters,
+            )
+            latestAnswer = resolution.spokenResponse
+          }
+        },
+      ) {
+        Icon(action.icon(), contentDescription = null)
+        Spacer(Modifier.width(10.dp))
+        Text(action.label())
       }
     }
   }
@@ -2760,127 +2874,6 @@ private fun TripMonitoringActiveCard(
         Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
         Text("Parar vigilancia")
-      }
-    }
-  }
-}
-
-@Composable
-private fun ShortcutsScreen(
-  mobilePlatform: MobileUiPlatform,
-  stations: List<Station>,
-  graph: SharedGraph,
-  stationsRepository: com.gcaguilar.bizizaragoza.core.StationsRepository,
-  favoriteIds: Set<String>,
-  searchRadiusMeters: Int,
-  initialAction: AssistantAction?,
-  onInitialActionConsumed: () -> Unit,
-  paddingValues: PaddingValues,
-) {
-  val scope = rememberCoroutineScope()
-  var latestAnswer by rememberSaveable { mutableStateOf("Pregunta por estaciones cercanas, favoritas o rutas.") }
-  val suggestions = listOf(
-    AssistantAction.NearestStation,
-    AssistantAction.NearestStationWithBikes,
-    AssistantAction.NearestStationWithSlots,
-    AssistantAction.FavoriteStations,
-    stations.firstOrNull()?.let { AssistantAction.RouteToStation(it.id) },
-  ).filterNotNull()
-  val guides = remember(mobilePlatform) { shortcutGuidesFor(mobilePlatform) }
-
-  LaunchedEffect(initialAction, stations, favoriteIds) {
-    val action = initialAction ?: return@LaunchedEffect
-    val resolution = graph.assistantIntentResolver.resolve(
-      action = action,
-      stationsState = stationsRepository.state.value,
-      favoriteIds = favoriteIds,
-      searchRadiusMeters = searchRadiusMeters,
-    )
-    latestAnswer = resolution.spokenResponse
-    onInitialActionConsumed()
-  }
-
-  LazyColumn(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    item {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Atajos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Text(
-          "Aquí tienes qué puede hacer la app y cómo invocarlo con ${mobilePlatform.assistantDisplayName()}.",
-          style = MaterialTheme.typography.bodyMedium,
-          color = LocalBiziColors.current.muted,
-        )
-      }
-    }
-    item {
-      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-        Column(
-          modifier = Modifier.padding(18.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-          Text("Cómo invocarlos", fontWeight = FontWeight.SemiBold)
-          Text(
-            if (mobilePlatform == MobileUiPlatform.IOS) {
-              "Abre Siri o Atajos y usa frases como las de abajo terminando en “en Bizi Zaragoza”."
-            } else {
-              "Abre Google Assistant y prueba frases como las de abajo. Si hace falta, empieza por “abre Bizi Zaragoza y...”. La ruta se abrirá en la navegación del teléfono."
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          Text(
-            "Radio actual para búsquedas cercanas: ${searchRadiusMeters} m.",
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.ink,
-          )
-        }
-      }
-    }
-    items(guides, key = { it.title }) { guide ->
-      ShortcutGuideCard(guide = guide)
-    }
-    item {
-      Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-        Column(
-          modifier = Modifier.padding(18.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-          Text("Última respuesta", fontWeight = FontWeight.SemiBold)
-          Text(latestAnswer)
-        }
-      }
-    }
-    item {
-      Text(
-        text = "Prueba rápida",
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-      )
-    }
-    items(suggestions, key = { it.label() }) { action ->
-      OutlinedButton(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = {
-          scope.launch {
-            val resolution = graph.assistantIntentResolver.resolve(
-              action = action,
-              stationsState = stationsRepository.state.value,
-              favoriteIds = favoriteIds,
-              searchRadiusMeters = searchRadiusMeters,
-            )
-            latestAnswer = resolution.spokenResponse
-          }
-        },
-      ) {
-        Icon(action.icon(), contentDescription = null)
-        Spacer(Modifier.width(10.dp))
-        Text(action.label())
       }
     }
   }
