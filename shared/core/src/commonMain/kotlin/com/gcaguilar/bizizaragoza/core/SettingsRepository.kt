@@ -13,11 +13,13 @@ import okio.Path.Companion.toPath
 interface SettingsRepository {
   val searchRadiusMeters: StateFlow<Int>
   val preferredMapApp: StateFlow<PreferredMapApp>
+  val lastSeenChangelogVersion: StateFlow<Int>
   suspend fun bootstrap()
   fun currentSearchRadiusMeters(): Int
   fun currentPreferredMapApp(): PreferredMapApp
   suspend fun setSearchRadiusMeters(searchRadiusMeters: Int)
   suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp)
+  suspend fun setLastSeenChangelogVersion(version: Int)
 }
 
 @Inject
@@ -28,10 +30,12 @@ class SettingsRepositoryImpl(
 ) : SettingsRepository {
   private val mutableSearchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
   private val mutablePreferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
+  private val mutableLastSeenChangelogVersion = MutableStateFlow(0)
   private var bootstrapped = false
 
   override val searchRadiusMeters: StateFlow<Int> = mutableSearchRadiusMeters.asStateFlow()
   override val preferredMapApp: StateFlow<PreferredMapApp> = mutablePreferredMapApp.asStateFlow()
+  override val lastSeenChangelogVersion: StateFlow<Int> = mutableLastSeenChangelogVersion.asStateFlow()
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
@@ -47,6 +51,7 @@ class SettingsRepositoryImpl(
       snapshot?.searchRadiusMeters ?: DEFAULT_SEARCH_RADIUS_METERS,
     )
     mutablePreferredMapApp.value = snapshot?.preferredMapApp ?: PreferredMapApp.AppleMaps
+    mutableLastSeenChangelogVersion.value = snapshot?.lastSeenChangelogVersion ?: 0
     bootstrapped = true
   }
 
@@ -61,6 +66,7 @@ class SettingsRepositoryImpl(
     persist(
       searchRadiusMeters = normalizedRadius,
       preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
     )
   }
 
@@ -70,6 +76,17 @@ class SettingsRepositoryImpl(
     persist(
       searchRadiusMeters = mutableSearchRadiusMeters.value,
       preferredMapApp = preferredMapApp,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+    )
+  }
+
+  override suspend fun setLastSeenChangelogVersion(version: Int) {
+    if (!bootstrapped) bootstrap()
+    mutableLastSeenChangelogVersion.value = version
+    persist(
+      searchRadiusMeters = mutableSearchRadiusMeters.value,
+      preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = version,
     )
   }
 
@@ -78,6 +95,7 @@ class SettingsRepositoryImpl(
   private suspend fun persist(
     searchRadiusMeters: Int,
     preferredMapApp: PreferredMapApp,
+    lastSeenChangelogVersion: Int,
   ) {
     val path = settingsPath()
     fileSystem.createDirectories(path.parent!!)
@@ -87,6 +105,7 @@ class SettingsRepositoryImpl(
           SettingsSnapshot(
             searchRadiusMeters = searchRadiusMeters,
             preferredMapApp = preferredMapApp,
+            lastSeenChangelogVersion = lastSeenChangelogVersion,
           ),
         ),
       )
@@ -104,4 +123,5 @@ enum class PreferredMapApp {
 internal data class SettingsSnapshot(
   val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
   val preferredMapApp: PreferredMapApp = PreferredMapApp.AppleMaps,
+  val lastSeenChangelogVersion: Int = 0,
 )
