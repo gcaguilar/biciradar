@@ -96,6 +96,7 @@ import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.PreferredMapApp
+import com.gcaguilar.bizizaragoza.core.ThemePreference
 import com.gcaguilar.bizizaragoza.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
@@ -740,7 +741,7 @@ fun BiziMobileApp(
                       userLocation = stationsState.userLocation,
                       onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
                       onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
-                      onThemePreferenceSelected = remember(scope, settingsRepository) { { pref -> scope.launch { settingsRepository.setThemePreference(pref) } } },
+                      onThemePreferenceSelected = remember(scope, settingsRepository) { { pref: ThemePreference -> scope.launch { settingsRepository.setThemePreference(pref) } } },
                     )
                   }
                 }

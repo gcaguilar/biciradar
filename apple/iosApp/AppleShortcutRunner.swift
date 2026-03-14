@@ -115,7 +115,10 @@ struct AppleShortcutRunner {
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
-            return "No he encontrado esa estación en Bizi Zaragoza."
+                return "No he encontrado esa estación en Bizi Zaragoza."
+            }
+            await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
+            return "Preparando ruta hacia \(station.name) en Bizi Zaragoza."
         } catch {
             return "No he podido preparar esa ruta ahora mismo."
         }
