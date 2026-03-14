@@ -328,6 +328,7 @@ fun BiziMobileApp(
   val workStationId by favoritesRepository.workStationId.collectAsState()
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
+  val themePreference by settingsRepository.themePreference.collectAsState()
   val isMapReady = mapSupportStatus.isGoogleMapsReady() &&
     (mobilePlatform != MobileUiPlatform.IOS || preferredMapApp == PreferredMapApp.GoogleMaps)
   var settingsBootstrapped by remember(graph) { mutableStateOf(false) }
@@ -567,7 +568,7 @@ fun BiziMobileApp(
     !minimumSplashElapsed || !startupDataReady || (stationsState.isLoading && stationsState.stations.isEmpty())
   }
 
-  BiziTheme(mobilePlatform) {
+  BiziTheme(mobilePlatform, themePreference) {
     Surface(
       modifier = modifier.fillMaxSize(),
       color = pageBackgroundColor(mobilePlatform),
@@ -753,9 +754,14 @@ fun BiziMobileApp(
 @Composable
 private fun BiziTheme(
   mobilePlatform: MobileUiPlatform,
+  themePreference: ThemePreference = ThemePreference.System,
   content: @Composable () -> Unit,
 ) {
-  val isDark = isSystemInDarkTheme()
+  val isDark = when (themePreference) {
+    ThemePreference.Light -> false
+    ThemePreference.Dark -> true
+    ThemePreference.System -> isSystemInDarkTheme()
+  }
   val colors = if (isDark) DarkBiziColors else LightBiziColors
   CompositionLocalProvider(LocalBiziColors provides colors) {
     MaterialTheme(
