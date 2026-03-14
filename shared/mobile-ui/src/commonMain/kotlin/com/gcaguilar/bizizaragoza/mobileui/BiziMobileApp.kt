@@ -1956,15 +1956,36 @@ private fun StationPatternCard(
               )
             }
           } else {
+            Text(
+              "Media de bicis disponibles en esta estación según la hora del día, basada en datos históricos de datosbizi.com.",
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
             StationPatternChart(
               patterns = filtered,
               modifier = Modifier.fillMaxWidth().height(160.dp),
             )
-            Text(
-              "Media de bicis disponibles por hora (datos históricos de datosbizi.com)",
-              style = MaterialTheme.typography.bodySmall,
-              color = colors.muted,
-            )
+            val bestBikesHour = filtered.maxByOrNull { it.bikesAvg }
+            val bestSlotsHour = filtered.maxByOrNull { it.anchorsAvg }
+            if (bestBikesHour != null && bestSlotsHour != null) {
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+              ) {
+                PatternHintPill(
+                  modifier = Modifier.weight(1f),
+                  label = "Más bicis",
+                  value = "${bestBikesHour.hour}:00h (~${bestBikesHour.bikesAvg.roundToInt()})",
+                  tint = colors.red,
+                )
+                PatternHintPill(
+                  modifier = Modifier.weight(1f),
+                  label = "Más huecos",
+                  value = "${bestSlotsHour.hour}:00h (~${bestSlotsHour.anchorsAvg.roundToInt()})",
+                  tint = colors.blue,
+                )
+              }
+            }
           }
         }
       }
@@ -2035,6 +2056,27 @@ private fun StationPatternChart(
           ),
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun PatternHintPill(
+  label: String,
+  value: String,
+  tint: Color,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    modifier = modifier,
+    shape = RoundedCornerShape(12.dp),
+    color = tint.copy(alpha = 0.12f),
+  ) {
+    Column(
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+      Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
+      Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
     }
   }
 }
