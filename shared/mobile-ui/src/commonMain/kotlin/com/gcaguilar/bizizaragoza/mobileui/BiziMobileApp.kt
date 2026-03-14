@@ -104,6 +104,22 @@ import com.gcaguilar.bizizaragoza.core.isGoogleMapsReady
 import com.gcaguilar.bizizaragoza.core.selectNearbyStation
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.text.TextMeasurer
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import com.gcaguilar.bizizaragoza.core.DatosBiziApi
+import com.gcaguilar.bizizaragoza.core.StationHourlyPattern
 
 private val BiziRed = Color(0xFFD7191F)
 private val BiziLight = Color(0xFFF8F6F6)
@@ -558,6 +574,7 @@ fun BiziMobileApp(
               selectedStation != null -> StationDetailScreen(
                 mobilePlatform = mobilePlatform,
                 station = selectedStation,
+                datosBiziApi = graph.datosBiziApi,
                 isFavorite = favoriteIds.contains(selectedStation.id),
                 isHomeStation = homeStationId == selectedStation.id,
                 isWorkStation = workStationId == selectedStation.id,
@@ -1634,6 +1651,7 @@ private fun ProfileScreen(
 private fun StationDetailScreen(
   mobilePlatform: MobileUiPlatform,
   station: Station,
+  datosBiziApi: DatosBiziApi,
   isFavorite: Boolean,
   isHomeStation: Boolean,
   isWorkStation: Boolean,
@@ -1646,6 +1664,20 @@ private fun StationDetailScreen(
   onRoute: () -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
+  var patterns by remember { mutableStateOf<List<StationHourlyPattern>>(emptyList()) }
+  var patternsLoading by remember { mutableStateOf(true) }
+  var patternsError by remember { mutableStateOf(false) }
+  var showWeekend by rememberSaveable { mutableStateOf(false) }
+  LaunchedEffect(station.id) {
+    patternsLoading = true
+    patternsError = false
+    try {
+      patterns = datosBiziApi.fetchPatterns(station.id)
+    } catch (_: Exception) {
+      patternsError = true
+    }
+    patternsLoading = false
+  }
   Scaffold(
     topBar = {
       TopAppBar(
@@ -1788,6 +1820,15 @@ private fun StationDetailScreen(
       }
     }
     item {
+      StationPatternCard(
+        patterns = patterns,
+        isLoading = patternsLoading,
+        isError = patternsError,
+        showWeekend = showWeekend,
+        onToggleDayType = { showWeekend = !showWeekend },
+      )
+    }
+    item {
       Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Filled.Directions, contentDescription = null)
         Spacer(Modifier.width(8.dp))
@@ -1805,6 +1846,168 @@ private fun StationDetailScreen(
       }
     }
   }
+  }
+}
+
+@Composable
+private fun StationPatternCard(
+  patterns: List<StationHourlyPattern>,
+  isLoading: Boolean,
+  isError: Boolean,
+  showWeekend: Boolean,
+  onToggleDayType: () -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  Card(
+    colors = CardDefaults.cardColors(containerColor = colors.surface),
+  ) {
+    Column(
+      modifier = Modifier.padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text("Patrón de uso", fontWeight = FontWeight.SemiBold)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+          FilterChip(
+            selected = !showWeekend,
+            onClick = { if (showWeekend) onToggleDayType() },
+            label = { Text("L-V", style = MaterialTheme.typography.labelSmall) },
+            colors = FilterChipDefaults.filterChipColors(
+              selectedContainerColor = colors.red,
+              selectedLabelColor = colors.onAccent,
+            ),
+          )
+          FilterChip(
+            selected = showWeekend,
+            onClick = { if (!showWeekend) onToggleDayType() },
+            label = { Text("S-D", style = MaterialTheme.typography.labelSmall) },
+            colors = FilterChipDefaults.filterChipColors(
+              selectedContainerColor = colors.red,
+              selectedLabelColor = colors.onAccent,
+            ),
+          )
+        }
+      }
+      when {
+        isLoading -> {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(160.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            CircularProgressIndicator(color = colors.red, modifier = Modifier.size(24.dp))
+          }
+        }
+        isError || patterns.isEmpty() -> {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(80.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            Text(
+              "No hay datos de patrón disponibles",
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
+          }
+        }
+        else -> {
+          val dayType = if (showWeekend) "WEEKEND" else "WEEKDAY"
+          val filtered = patterns.filter { it.dayType == dayType }.sortedBy { it.hour }
+          if (filtered.isEmpty()) {
+            Box(
+              modifier = Modifier.fillMaxWidth().height(80.dp),
+              contentAlignment = Alignment.Center,
+            ) {
+              Text(
+                "No hay datos para este tipo de día",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.muted,
+              )
+            }
+          } else {
+            StationPatternChart(
+              patterns = filtered,
+              modifier = Modifier.fillMaxWidth().height(160.dp),
+            )
+            Text(
+              "Media de bicis disponibles por hora (datos históricos de datosbizi.com)",
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun StationPatternChart(
+  patterns: List<StationHourlyPattern>,
+  modifier: Modifier = Modifier,
+) {
+  val colors = LocalBiziColors.current
+  val barColor = colors.red
+  val labelColor = colors.muted
+  val gridColor = colors.muted.copy(alpha = 0.2f)
+  val textMeasurer = rememberTextMeasurer()
+  val labelStyle = MaterialTheme.typography.labelSmall.copy(color = labelColor)
+  val maxBikes = patterns.maxOfOrNull { it.bikesAvg }?.coerceAtLeast(1.0) ?: 1.0
+
+  Canvas(modifier = modifier) {
+    val bottomPadding = 24f
+    val topPadding = 8f
+    val leftPadding = 0f
+    val chartHeight = size.height - bottomPadding - topPadding
+    val chartWidth = size.width - leftPadding
+    val barCount = patterns.size
+    val totalBarSpace = chartWidth / barCount
+    val barWidth = (totalBarSpace * 0.65f).coerceAtMost(20f)
+    val gap = totalBarSpace - barWidth
+
+    // Horizontal grid lines
+    val gridLines = 3
+    for (i in 1..gridLines) {
+      val y = topPadding + chartHeight * (1f - i.toFloat() / (gridLines + 1))
+      drawLine(
+        color = gridColor,
+        start = Offset(leftPadding, y),
+        end = Offset(size.width, y),
+        strokeWidth = 1f,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f)),
+      )
+    }
+
+    // Bars and labels
+    patterns.forEachIndexed { index, pattern ->
+      val x = leftPadding + index * totalBarSpace + gap / 2
+      val ratio = (pattern.bikesAvg / maxBikes).toFloat()
+      val barHeight = chartHeight * ratio
+      val barY = topPadding + chartHeight - barHeight
+
+      drawRoundRect(
+        color = barColor,
+        topLeft = Offset(x, barY),
+        size = Size(barWidth, barHeight),
+        cornerRadius = CornerRadius(barWidth / 4, barWidth / 4),
+      )
+
+      // Hour label every 3 hours
+      if (pattern.hour % 3 == 0) {
+        val text = "${pattern.hour}h"
+        val measured = textMeasurer.measure(text, labelStyle)
+        drawText(
+          textLayoutResult = measured,
+          topLeft = Offset(
+            x + barWidth / 2 - measured.size.width / 2,
+            size.height - bottomPadding + 4f,
+          ),
+        )
+      }
+    }
   }
 }
 
