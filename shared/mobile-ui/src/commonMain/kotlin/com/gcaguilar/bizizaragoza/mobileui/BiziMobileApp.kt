@@ -1712,10 +1712,52 @@ private fun ProfileScreen(
               )
             }
             Text(
-              "Si Google Maps no está instalado, Bizi Zaragoza usará Apple Maps como fallback.",
+               "Si Google Maps no está instalado, Bizi Zaragoza usará Apple Maps como fallback.",
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
+          }
+        }
+      }
+    }
+    item {
+      val uriHandler = LocalUriHandler.current
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Text("Datos de predicción", fontWeight = FontWeight.SemiBold)
+          Text(
+            "Los patrones horarios y predicciones de ocupación se obtienen de datosbizi.com, un proyecto independiente con datos históricos de Bizi Zaragoza.",
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          TextButton(
+            onClick = { uriHandler.openUri("https://datosbizi.com") },
+            contentPadding = PaddingValues(0.dp),
+          ) {
+            Text("Visitar datosbizi.com", style = MaterialTheme.typography.bodySmall)
+          }
+        }
+      }
+    }
+    item {
+      val uriHandler = LocalUriHandler.current
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Text("Comentarios y sugerencias", fontWeight = FontWeight.SemiBold)
+          Text(
+            "¿Algo no funciona bien o tienes una idea? Usa el formulario para enviar tu opinión.",
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          TextButton(
+            onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
+            contentPadding = PaddingValues(0.dp),
+          ) {
+            Text("Abrir formulario de feedback", style = MaterialTheme.typography.bodySmall)
           }
         }
       }
