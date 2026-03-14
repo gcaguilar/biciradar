@@ -363,6 +363,11 @@ class CoreRepositoryTest {
               googleMapsApiKeyConfigured = false,
             )
           }
+          override val googleMapsApiKey: String? = null
+          override val localNotifier: LocalNotifier = object : LocalNotifier {
+            override suspend fun requestPermission(): Boolean = true
+            override suspend fun notify(title: String, body: String) = Unit
+          }
       },
     )
 
