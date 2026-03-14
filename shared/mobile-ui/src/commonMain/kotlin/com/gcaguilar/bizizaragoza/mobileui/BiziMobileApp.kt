@@ -83,6 +83,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -192,7 +194,7 @@ private val LightBiziColors = BiziColors(
   navBar = Color.White,
   navBarIos = Color.White.copy(alpha = 0.96f),
   fieldSurfaceIos = Color.White,
-  fieldSurfaceAndroid = BiziPanel.copy(alpha = 0.35f),
+  fieldSurfaceAndroid = BiziPanel,
   dismissAlphaBase = 0.10f,
 )
 
@@ -210,7 +212,7 @@ private val DarkBiziColors = BiziColors(
   navBar = BiziDarkSurface,
   navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
   fieldSurfaceIos = BiziDarkSurface,
-  fieldSurfaceAndroid = BiziDarkPanel.copy(alpha = 0.50f),
+  fieldSurfaceAndroid = BiziDarkPanel,
   dismissAlphaBase = 0.16f,
 )
 
@@ -2490,6 +2492,7 @@ private fun FavoriteDismissBackground(
   Box(
     modifier = Modifier
       .fillMaxWidth()
+      .clip(RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp))
       .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
       .padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,
