@@ -57,6 +57,8 @@ internal actual fun PlatformStationMap(
   highlightedStationId: String?,
   isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
+  onMapClick: ((GeoPoint) -> Unit)?,
+  pinLocation: GeoPoint?,
 ) {
   if (!isMapReady) {
     Surface(modifier = modifier) {
@@ -94,6 +96,9 @@ internal actual fun PlatformStationMap(
       myLocationButtonEnabled = false,
       zoomControlsEnabled = false,
     ),
+    onMapClick = if (onMapClick != null) {
+      { latLng -> onMapClick(GeoPoint(latLng.latitude, latLng.longitude)) }
+    } else null,
   ) {
     stations.forEach { station ->
       MarkerInfoWindowContent(
@@ -128,6 +133,15 @@ internal actual fun PlatformStationMap(
           )
         }
       }
+    }
+    if (pinLocation != null) {
+      MarkerInfoWindowContent(
+        state = remember(pinLocation) {
+          MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
+        },
+        title = "Destino",
+        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
+      ) {}
     }
   }
 }

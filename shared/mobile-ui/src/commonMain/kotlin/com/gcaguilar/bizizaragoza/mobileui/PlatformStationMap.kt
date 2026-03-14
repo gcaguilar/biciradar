@@ -13,4 +13,6 @@ internal expect fun PlatformStationMap(
   highlightedStationId: String?,
   isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
+  onMapClick: ((GeoPoint) -> Unit)? = null,
+  pinLocation: GeoPoint? = null,
 )

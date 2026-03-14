@@ -9,6 +9,7 @@ import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.Station
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCSignatureOverride
+import kotlinx.cinterop.useContents
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.MapKit.MKAnnotationProtocol
 import platform.MapKit.MKCoordinateRegionMakeWithDistance
@@ -17,6 +18,7 @@ import platform.MapKit.MKMapView
 import platform.MapKit.MKMarkerAnnotationView
 import platform.MapKit.MKPointAnnotation
 import platform.UIKit.UIColor
+import platform.UIKit.UITapGestureRecognizer
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
@@ -28,6 +30,8 @@ internal actual fun PlatformStationMap(
   highlightedStationId: String?,
   isMapReady: Boolean,
   onStationSelected: (Station) -> Unit,
+  onMapClick: ((GeoPoint) -> Unit)?,
+  pinLocation: GeoPoint?,
 ) {
   val factory = LocalStationMapViewFactory.current
 
@@ -54,6 +58,8 @@ internal actual fun PlatformStationMap(
       userLocation = userLocation,
       highlightedStationId = highlightedStationId,
       onStationSelected = onStationSelected,
+      onMapClick = onMapClick,
+      pinLocation = pinLocation,
     )
   }
 }
@@ -66,9 +72,12 @@ private fun AppleMapKitView(
   userLocation: GeoPoint?,
   highlightedStationId: String?,
   onStationSelected: (Station) -> Unit,
+  onMapClick: ((GeoPoint) -> Unit)?,
+  pinLocation: GeoPoint?,
 ) {
   val coordinator = remember { IOSStationMapCoordinator() }.apply {
     selectionHandler = onStationSelected
+    mapClickHandler = onMapClick
   }
 
   UIKitView(
@@ -83,6 +92,7 @@ private fun AppleMapKitView(
         stations = stations,
         userLocation = userLocation,
         highlightedStationId = highlightedStationId,
+        pinLocation = pinLocation,
       )
     },
   )
@@ -104,10 +114,12 @@ private fun stationMarkerColor(station: Station, highlighted: Boolean): UIColor 
 @OptIn(ExperimentalForeignApi::class)
 private class IOSStationMapCoordinator {
   var selectionHandler: (Station) -> Unit = {}
+  var mapClickHandler: ((GeoPoint) -> Unit)? = null
   var highlightedStationId: String? = null
   private var hasZoomed = false
   private var lastStations: List<Station> = emptyList()
   private var lastHighlightedStationId: String? = null
+  private var pinAnnotation: MKPointAnnotation? = null
 
   private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
   // Reverse map to update annotation views by station id
@@ -117,11 +129,15 @@ private class IOSStationMapCoordinator {
     highlightedStationId = { highlightedStationId },
     onStationSelected = { station -> selectionHandler(station) },
   )
+  private val tapRecognizer = MapTapRecognizer { point ->
+    mapClickHandler?.invoke(point)
+  }
 
   val mapView = MKMapView().apply {
     rotateEnabled = false
     pitchEnabled = false
     delegate = this@IOSStationMapCoordinator.delegate
+    addGestureRecognizer(tapRecognizer.recognizer)
   }
 
   fun update(
@@ -129,8 +145,10 @@ private class IOSStationMapCoordinator {
     stations: List<Station>,
     userLocation: GeoPoint?,
     highlightedStationId: String?,
+    pinLocation: GeoPoint?,
   ) {
     this.highlightedStationId = highlightedStationId
+    tapRecognizer.mapView = mapView
 
     // Zoom to user location only on first load
     if (!hasZoomed) {
@@ -160,7 +178,9 @@ private class IOSStationMapCoordinator {
       // Full redraw: station list or availability changed
       stationAnnotations.clear()
       annotationByStationId.clear()
-      mapView.removeAnnotations(mapView.annotations)
+      // Remove only station annotations (keep pin if present)
+      val toRemove = mapView.annotations.filterIsInstance<MKPointAnnotation>().filter { it != pinAnnotation }
+      mapView.removeAnnotations(toRemove)
 
       stations.forEach { station ->
         val annotation = MKPointAnnotation().apply {
@@ -185,6 +205,47 @@ private class IOSStationMapCoordinator {
     }
 
     lastHighlightedStationId = highlightedStationId
+
+    // Update destination pin
+    val currentPin = pinAnnotation
+    if (pinLocation != null) {
+      if (currentPin != null) {
+        currentPin.setCoordinate(CLLocationCoordinate2DMake(pinLocation.latitude, pinLocation.longitude))
+      } else {
+        val newPin = MKPointAnnotation().apply {
+          setCoordinate(CLLocationCoordinate2DMake(pinLocation.latitude, pinLocation.longitude))
+          setTitle("Destino")
+        }
+        pinAnnotation = newPin
+        mapView.addAnnotation(newPin)
+      }
+    } else if (currentPin != null) {
+      mapView.removeAnnotation(currentPin)
+      pinAnnotation = null
+    }
+  }
+}
+
+/** Wraps a UITapGestureRecognizer to forward taps on the map to a GeoPoint handler. */
+@OptIn(ExperimentalForeignApi::class)
+private class MapTapRecognizer(
+  private val onTap: (GeoPoint) -> Unit,
+) : NSObject() {
+  var mapView: MKMapView? = null
+
+  val recognizer: UITapGestureRecognizer = UITapGestureRecognizer(
+    target = this,
+    action = platform.objc.sel_registerName("handleTap:"),
+  )
+
+  @Suppress("unused")
+  fun handleTap(recognizer: UITapGestureRecognizer) {
+    val mv = mapView ?: return
+    val touchPoint = recognizer.locationInView(mv)
+    val coordinate = mv.convertPoint(touchPoint, toCoordinateFromView = mv)
+    coordinate.useContents {
+      onTap(GeoPoint(latitude = latitude, longitude = longitude))
+    }
   }
 }
 
@@ -214,4 +275,5 @@ private class StationMapDelegate(
     stationForAnnotation(pointAnnotation)?.let(onStationSelected)
   }
 }
+
 
