@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 @DependencyGraph(AppScope::class)
 interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
+  val datosBiziApi: DatosBiziApi
   val favoritesRepository: FavoritesRepository
   val routeLauncher: RouteLauncher
   val settingsRepository: SettingsRepository
@@ -37,6 +38,12 @@ interface SharedGraph {
     appConfiguration: AppConfiguration,
     httpClient: HttpClient,
   ): BiziApi = CityBikesBiziApi(httpClient, appConfiguration)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideDatosBiziApi(
+    httpClient: HttpClient,
+  ): DatosBiziApi = DatosBiziApiImpl(httpClient)
 
   @SingleIn(AppScope::class)
   @Provides

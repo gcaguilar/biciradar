@@ -76,3 +76,14 @@ data class AssistantResolution(
   val spokenResponse: String,
   val highlightedStationId: String? = null,
 )
+
+@Serializable
+data class StationHourlyPattern(
+  val stationId: String,
+  val dayType: String,
+  val hour: Int,
+  val bikesAvg: Double,
+  val anchorsAvg: Double,
+  val occupancyAvg: Double,
+  val sampleCount: Int,
+)

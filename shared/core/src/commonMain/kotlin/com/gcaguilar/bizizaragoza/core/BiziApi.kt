@@ -18,6 +18,17 @@ interface BiziApi {
   suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability>
 }
 
+interface DatosBiziApi {
+  suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern>
+}
+
+class DatosBiziApiImpl(
+  private val httpClient: HttpClient,
+) : DatosBiziApi {
+  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> =
+    httpClient.get("https://datosbizi.com/api/patterns?stationId=$stationId").body()
+}
+
 data class StationAvailability(
   val bikesAvailable: Int,
   val slotsFree: Int,
