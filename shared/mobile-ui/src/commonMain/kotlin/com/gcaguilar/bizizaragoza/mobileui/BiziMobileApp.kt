@@ -128,6 +128,7 @@ import com.gcaguilar.bizizaragoza.core.DatosBiziApi
 import com.gcaguilar.bizizaragoza.core.GooglePlacesApi
 import com.gcaguilar.bizizaragoza.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.bizizaragoza.core.PlacePrediction
+import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.StationHourlyPattern
 import com.gcaguilar.bizizaragoza.core.TripDestination
 import com.gcaguilar.bizizaragoza.core.LocalNotifier
@@ -459,13 +460,13 @@ fun BiziMobileApp(
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.OpenAssistant -> {
-        appState.currentTab = MobileTab.Viaje
+        appState.currentTab = MobileTab.Perfil
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.StationStatus -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
         appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        appState.currentTab = MobileTab.Viaje
+        appState.currentTab = MobileTab.Perfil
         appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
@@ -515,7 +516,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationStatus -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          appState.currentTab = MobileTab.Viaje
+          appState.currentTab = MobileTab.Perfil
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -524,7 +525,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationBikeCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          appState.currentTab = MobileTab.Viaje
+          appState.currentTab = MobileTab.Perfil
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -533,7 +534,7 @@ fun BiziMobileApp(
       is AssistantLaunchRequest.StationSlotCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          appState.currentTab = MobileTab.Viaje
+          appState.currentTab = MobileTab.Perfil
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
           appState.currentTab = MobileTab.Mapa
@@ -716,9 +717,9 @@ fun BiziMobileApp(
                        refreshCountdownSeconds = refreshCountdownSeconds,
                        paddingValues = innerPadding,
                      )
-                    MobileTab.Favoritos -> FavoritesScreen(
-                      mobilePlatform = mobilePlatform,
-                      onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
+                     MobileTab.Favoritos -> FavoritesScreen(
+                       mobilePlatform = mobilePlatform,
+                       onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Perfil } },
                       allStations = stationsState.stations,
                       stations = favoriteStations,
                       homeStation = homeStation,
@@ -735,19 +736,21 @@ fun BiziMobileApp(
                       paddingValues = innerPadding,
                     )
                      MobileTab.Viaje -> TripScreen(
-                       mobilePlatform = mobilePlatform,
-                       tripRepository = graph.tripRepository,
-                       googlePlacesApi = graph.googlePlacesApi,
-                       googleMapsApiKey = platformBindings.googleMapsApiKey,
-                       localNotifier = platformBindings.localNotifier,
-                       userLocation = stationsState.userLocation,
-                       searchRadiusMeters = searchRadiusMeters,
-                       paddingValues = innerPadding,
-                     )
-                     MobileTab.Perfil -> ProfileScreen(
-                       mobilePlatform = mobilePlatform,
-                       onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Viaje } },
-                       paddingValues = innerPadding,
+                        mobilePlatform = mobilePlatform,
+                        tripRepository = graph.tripRepository,
+                        googlePlacesApi = graph.googlePlacesApi,
+                        googleMapsApiKey = platformBindings.googleMapsApiKey,
+                        localNotifier = platformBindings.localNotifier,
+                        routeLauncher = graph.routeLauncher,
+                        userLocation = stationsState.userLocation,
+                        stations = stationsState.stations,
+                        isMapReady = isMapReady,
+                        searchRadiusMeters = searchRadiusMeters,
+                        paddingValues = innerPadding,
+                      )
+                      MobileTab.Perfil -> ProfileScreen(
+                        mobilePlatform = mobilePlatform,
+                        paddingValues = innerPadding,
                        mapSupportStatus = mapSupportStatus,
                        searchRadiusMeters = searchRadiusMeters,
                        preferredMapApp = preferredMapApp,
@@ -1564,7 +1567,6 @@ private fun FavoritesScreen(
 @Composable
 private fun ProfileScreen(
   mobilePlatform: MobileUiPlatform,
-  onOpenAssistant: () -> Unit,
   paddingValues: PaddingValues,
   mapSupportStatus: MapSupportStatus,
   searchRadiusMeters: Int,
@@ -1612,14 +1614,19 @@ private fun ProfileScreen(
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
     item {
-      if (mobilePlatform == MobileUiPlatform.IOS) {
-        MobilePageHeader(
-          title = "Ajustes",
-          subtitle = "Controla el radio cercano, revisa la ubicación activa y mantén clara la experiencia en cada plataforma.",
-          onOpenAssistant = onOpenAssistant,
+      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+          text = if (mobilePlatform == MobileUiPlatform.IOS) "Ajustes" else "Perfil y ajustes",
+          style = MaterialTheme.typography.headlineSmall,
+          fontWeight = FontWeight.Bold,
         )
-      } else {
-        Text("Perfil y ajustes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        if (mobilePlatform == MobileUiPlatform.IOS) {
+          Text(
+            text = "Controla el radio cercano, revisa la ubicación activa y mantén clara la experiencia en cada plataforma.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = LocalBiziColors.current.muted,
+          )
+        }
       }
     }
     item {
@@ -2350,7 +2357,10 @@ private fun TripScreen(
   googlePlacesApi: GooglePlacesApi,
   googleMapsApiKey: String?,
   localNotifier: LocalNotifier,
+  routeLauncher: RouteLauncher,
   userLocation: GeoPoint?,
+  stations: List<Station>,
+  isMapReady: Boolean,
   searchRadiusMeters: Int,
   paddingValues: PaddingValues,
 ) {
@@ -2389,6 +2399,11 @@ private fun TripScreen(
 
   // ---------- monitoring duration selection ----------
   var selectedDurationSeconds by rememberSaveable { mutableStateOf(MONITORING_DURATION_OPTIONS_SECONDS[0]) }
+
+  // ---------- map picker state ----------
+  var mapPickerActive by rememberSaveable { mutableStateOf(false) }
+  var isReverseGeocoding by remember { mutableStateOf(false) }
+  var pickedLocation by remember { mutableStateOf<GeoPoint?>(null) }
 
   // ---------- layout ----------
   LazyColumn(
@@ -2511,6 +2526,82 @@ private fun TripScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = c.red,
               )
+            }
+            OutlinedButton(
+              onClick = { mapPickerActive = !mapPickerActive; pickedLocation = null },
+              modifier = Modifier.fillMaxWidth(),
+              border = BorderStroke(1.dp, c.red.copy(alpha = 0.5f)),
+            ) {
+              Icon(
+                if (mapPickerActive) Icons.Filled.Close else Icons.Filled.Map,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(6.dp))
+              Text(if (mapPickerActive) "Cancelar mapa" else "Elegir en mapa")
+            }
+          }
+        }
+      }
+
+      // Map picker overlay
+      if (mapPickerActive) {
+        item(key = "map-picker") {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = c.surface),
+            modifier = Modifier.height(300.dp),
+          ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+              PlatformStationMap(
+                modifier = Modifier.fillMaxSize(),
+                stations = stations,
+                userLocation = userLocation,
+                highlightedStationId = null,
+                isMapReady = isMapReady,
+                onStationSelected = {},
+                onMapClick = { tappedLocation ->
+                  if (googleMapsApiKey != null && !isReverseGeocoding) {
+                    pickedLocation = tappedLocation
+                    isReverseGeocoding = true
+                    scope.launch {
+                      val name = googlePlacesApi.reverseGeocode(tappedLocation, googleMapsApiKey)
+                        ?: "${tappedLocation.latitude.formatCoordinate()}, ${tappedLocation.longitude.formatCoordinate()}"
+                      mapPickerActive = false
+                      isReverseGeocoding = false
+                      tripRepository.setDestination(
+                        destination = TripDestination(name = name, location = tappedLocation),
+                        searchRadiusMeters = searchRadiusMeters,
+                      )
+                    }
+                  }
+                },
+                pinLocation = pickedLocation,
+              )
+              if (isReverseGeocoding) {
+                Box(
+                  modifier = Modifier
+                    .fillMaxSize()
+                    .background(c.background.copy(alpha = 0.55f)),
+                  contentAlignment = Alignment.Center,
+                ) {
+                  CircularProgressIndicator(color = c.red, modifier = Modifier.size(32.dp))
+                }
+              } else {
+                Surface(
+                  modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 10.dp),
+                  shape = RoundedCornerShape(20.dp),
+                  color = c.surface.copy(alpha = 0.92f),
+                ) {
+                  Text(
+                    "Toca el mapa para elegir destino",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = c.muted,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                  )
+                }
+              }
             }
           }
         }
@@ -2683,6 +2774,32 @@ private fun TripScreen(
       if (station != null && !tripState.isSearchingStation) {
         item(key = "station-card") {
           TripStationCard(station = station, distanceMeters = tripState.distanceToStation)
+        }
+
+        // Walking route to destination button
+        val destination = tripState.destination
+        if (destination != null) {
+          item(key = "walk-to-destination") {
+            OutlinedButton(
+              onClick = { routeLauncher.launchWalkToLocation(destination.location) },
+              modifier = Modifier.fillMaxWidth(),
+              border = BorderStroke(1.dp, c.red.copy(alpha = 0.5f)),
+            ) {
+              Icon(
+                Icons.Filled.Directions,
+                contentDescription = null,
+                tint = c.red,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(6.dp))
+              Text(
+                "Ruta a pie a ${destination.name}",
+                color = c.red,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+              )
+            }
+          }
         }
 
         // Monitoring active (State 6)
