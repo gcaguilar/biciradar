@@ -30,7 +30,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStation.shared,
             action: AssistantActionNearestStation.shared,
-            fallbackMessage: "Abriendo Bizi Zaragoza para buscar una estación cercana."
+            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana."
         )
     }
 
@@ -38,7 +38,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStationWithBikes.shared,
             action: AssistantActionNearestStationWithBikes.shared,
-            fallbackMessage: "Abriendo Bizi Zaragoza para buscar una estación cercana con bicis disponibles."
+            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana con bicis disponibles."
         )
     }
 
@@ -46,7 +46,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStationWithSlots.shared,
             action: AssistantActionNearestStationWithSlots.shared,
-            fallbackMessage: "Abriendo Bizi Zaragoza para buscar una estación cercana con huecos libres."
+            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana con huecos libres."
         )
     }
 
@@ -55,15 +55,15 @@ struct AppleShortcutRunner {
         do {
             let favorites = try await graph.favoriteStations()
             guard !favorites.isEmpty else {
-                return "Abriendo Bizi Zaragoza. Todavía no tienes estaciones favoritas guardadas."
+                return "Abre Bizi Zaragoza. Todavía no tienes estaciones favoritas guardadas."
             }
             let summary = favorites
                 .prefix(3)
                 .map(\.name)
                 .joined(separator: ", ")
-            return "Abriendo tus favoritas. Tienes \(favorites.count) en total: \(summary)."
+            return "Tus favoritas en Bizi Zaragoza. Tienes \(favorites.count) en total: \(summary)."
         } catch {
-            return "Abriendo Bizi Zaragoza para mostrar tus favoritas."
+            return "Abre Bizi Zaragoza para mostrar tus favoritas."
         }
     }
 
@@ -115,10 +115,7 @@ struct AppleShortcutRunner {
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
-                return "No he encontrado esa estación en Zaragoza Bizi."
-            }
-            await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
-            return "Abriendo una ruta hacia \(station.name)."
+            return "No he encontrado esa estación en Bizi Zaragoza."
         } catch {
             return "No he podido preparar esa ruta ahora mismo."
         }

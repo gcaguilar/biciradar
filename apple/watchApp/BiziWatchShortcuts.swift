@@ -129,7 +129,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationIntent(),
             phrases: [
-                "Muéstrame la estación más cercana en el reloj con \(.applicationName)"
+                "Muéstrame la estación más cercana en \(.applicationName)",
+                "¿Qué estación tengo más cerca en \(.applicationName)?"
             ],
             shortTitle: "Cercana",
             systemImageName: "location.circle"
@@ -137,7 +138,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationWithBikesIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con bicis en el reloj con \(.applicationName)"
+                "Muéstrame la estación más cercana con bicis en \(.applicationName)",
+                "¿Dónde hay bicis disponibles en \(.applicationName)?"
             ],
             shortTitle: "Con bicis",
             systemImageName: "bicycle.circle"
@@ -145,7 +147,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationWithSlotsIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con huecos en el reloj con \(.applicationName)"
+                "Muéstrame la estación más cercana con huecos en \(.applicationName)",
+                "¿Dónde hay huecos libres en \(.applicationName)?"
             ],
             shortTitle: "Con huecos",
             systemImageName: "parkingsign.circle"
@@ -153,7 +156,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchFavoriteStationsIntent(),
             phrases: [
-                "Enséñame mis favoritas en el reloj con \(.applicationName)"
+                "Muéstrame mis favoritas en \(.applicationName)",
+                "¿Cómo están mis estaciones favoritas en \(.applicationName)?"
             ],
             shortTitle: "Favoritas",
             systemImageName: "heart.circle"
@@ -161,7 +165,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchStationBikeCountIntent(),
             phrases: [
-                "Enséñame cuántas bicis tiene una estación en el reloj con \(.applicationName)"
+                "¿Cuántas bicis tiene una estación en \(.applicationName)?",
+                "Bicis disponibles en una estación en \(.applicationName)"
             ],
             shortTitle: "Bicis",
             systemImageName: "bicycle.circle"
@@ -169,7 +174,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchStationSlotCountIntent(),
             phrases: [
-                "Enséñame cuántos huecos tiene una estación en el reloj con \(.applicationName)"
+                "¿Cuántos huecos tiene una estación en \(.applicationName)?",
+                "Huecos libres en una estación en \(.applicationName)"
             ],
             shortTitle: "Huecos",
             systemImageName: "parkingsign.circle"
@@ -177,7 +183,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchRouteToStationIntent(),
             phrases: [
-                "Abre una ruta en mi iPhone con \(.applicationName)"
+                "Navega a una estación con \(.applicationName)",
+                "Abre una ruta a una estación en \(.applicationName)"
             ],
             shortTitle: "Ruta",
             systemImageName: "map.circle"
@@ -185,7 +192,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchSavedPlaceStatusIntent(),
             phrases: [
-                "Enséñame el estado de \(\.$savedPlace) en el reloj con \(.applicationName)"
+                "Estado de \(\.$savedPlace) en \(.applicationName)",
+                "¿Hay bicis cerca de \(\.$savedPlace) en \(.applicationName)?"
             ],
             shortTitle: "Casa/Trabajo",
             systemImageName: "house.circle"
@@ -193,7 +201,8 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchSavedPlaceRouteIntent(),
             phrases: [
-                "Abre una ruta a \(\.$savedPlace) en mi iPhone con \(.applicationName)"
+                "Navega a \(\.$savedPlace) con \(.applicationName)",
+                "Abre una ruta a \(\.$savedPlace) en \(.applicationName)"
             ],
             shortTitle: "Ruta casa",
             systemImageName: "house.circle"

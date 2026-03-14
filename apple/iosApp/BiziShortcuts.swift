@@ -142,7 +142,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: NearestStationIntent(),
             phrases: [
-                "Muéstrame la estación más cercana en \(.applicationName)"
+                "Muéstrame la estación más cercana en \(.applicationName)",
+                "Abre \(.applicationName) y muéstrame la estación más cercana"
             ],
             shortTitle: "Estación cercana",
             systemImageName: "location.circle"
@@ -150,7 +151,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: NearestStationWithBikesIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con bicis en \(.applicationName)"
+                "Muéstrame la estación más cercana con bicis en \(.applicationName)",
+                "Abre \(.applicationName) y muéstrame una estación con bicis disponibles"
             ],
             shortTitle: "Con bicis",
             systemImageName: "bicycle.circle"
@@ -158,7 +160,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: NearestStationWithSlotsIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con huecos en \(.applicationName)"
+                "Muéstrame la estación más cercana con huecos en \(.applicationName)",
+                "Abre \(.applicationName) y muéstrame una estación con huecos libres"
             ],
             shortTitle: "Con huecos",
             systemImageName: "parkingsign.circle"
@@ -166,7 +169,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: FavoriteStationsIntent(),
             phrases: [
-                "Abre mis favoritas en \(.applicationName)"
+                "Muéstrame mis favoritas en \(.applicationName)",
+                "Abre \(.applicationName) y muéstrame mis estaciones favoritas"
             ],
             shortTitle: "Favoritas",
             systemImageName: "heart.circle"
@@ -174,7 +178,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: StationStatusIntent(),
             phrases: [
-                "Enséñame el estado de una estación en \(.applicationName)"
+                "Consulta el estado de una estación en \(.applicationName)",
+                "¿Cuántas bicis y huecos tiene una estación en \(.applicationName)?"
             ],
             shortTitle: "Estado",
             systemImageName: "info.circle"
@@ -182,7 +187,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: StationBikeCountIntent(),
             phrases: [
-                "Enséñame cuántas bicis tiene una estación en \(.applicationName)"
+                "¿Cuántas bicis tiene una estación en \(.applicationName)?",
+                "Bicis disponibles en una estación en \(.applicationName)"
             ],
             shortTitle: "Bicis",
             systemImageName: "bicycle.circle"
@@ -190,7 +196,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: StationSlotCountIntent(),
             phrases: [
-                "Enséñame cuántos huecos tiene una estación en \(.applicationName)"
+                "¿Cuántos huecos tiene una estación en \(.applicationName)?",
+                "Huecos libres en una estación en \(.applicationName)"
             ],
             shortTitle: "Huecos",
             systemImageName: "parkingsign.circle"
@@ -198,7 +205,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: RouteToStationIntent(),
             phrases: [
-                "Llévame a una estación con \(.applicationName)"
+                "Llévame a una estación con \(.applicationName)",
+                "Abre \(.applicationName) y navega a una estación de bizi"
             ],
             shortTitle: "Ruta",
             systemImageName: "map.circle"
@@ -206,7 +214,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: SavedPlaceStatusIntent(),
             phrases: [
-                "Enséñame el estado de \(\.$savedPlace) en \(.applicationName)"
+                "Estado de \(\.$savedPlace) en \(.applicationName)",
+                "¿Hay bicis cerca de \(\.$savedPlace) en \(.applicationName)?"
             ],
             shortTitle: "Casa/Trabajo",
             systemImageName: "house.circle"
@@ -214,7 +223,8 @@ struct BiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: SavedPlaceRouteIntent(),
             phrases: [
-                "Llévame a \(\.$savedPlace) con \(.applicationName)"
+                "Llévame a \(\.$savedPlace) con \(.applicationName)",
+                "Abre \(.applicationName) y navega a \(\.$savedPlace)"
             ],
             shortTitle: "Ruta casa",
             systemImageName: "house.circle"
