@@ -242,6 +242,13 @@ private class MapTapRecognizer(
   fun handleTap(recognizer: UITapGestureRecognizer) {
     val mv = mapView ?: return
     val touchPoint = recognizer.locationInView(mv)
+    // Ignore taps that land on an annotation view (station pin / callout) so that
+    // tapping a station triggers onStationSelected (via MKMapViewDelegate) rather
+    // than also firing onMapClick here.
+    val hitView = mv.hitTest(touchPoint, withEvent = null)
+    if (hitView is platform.MapKit.MKAnnotationView ||
+      hitView?.superview() is platform.MapKit.MKAnnotationView
+    ) return
     val coordinate = mv.convertPoint(touchPoint, toCoordinateFromView = mv)
     coordinate.useContents {
       onTap(GeoPoint(latitude = latitude, longitude = longitude))

@@ -2558,7 +2558,17 @@ private fun TripScreen(
                 userLocation = userLocation,
                 highlightedStationId = null,
                 isMapReady = isMapReady,
-                onStationSelected = {},
+                onStationSelected = { station ->
+                  // Tapping a station pin directly sets it as destination — no reverse geocode needed
+                  mapPickerActive = false
+                  pickedLocation = null
+                  scope.launch {
+                    tripRepository.setDestination(
+                      destination = TripDestination(name = station.name, location = station.location),
+                      searchRadiusMeters = searchRadiusMeters,
+                    )
+                  }
+                },
                 onMapClick = { tappedLocation ->
                   if (googleMapsApiKey != null && !isReverseGeocoding) {
                     pickedLocation = tappedLocation
