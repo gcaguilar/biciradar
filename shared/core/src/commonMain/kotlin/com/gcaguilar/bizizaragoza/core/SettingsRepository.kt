@@ -14,12 +14,14 @@ interface SettingsRepository {
   val searchRadiusMeters: StateFlow<Int>
   val preferredMapApp: StateFlow<PreferredMapApp>
   val lastSeenChangelogVersion: StateFlow<Int>
+  val themePreference: StateFlow<ThemePreference>
   suspend fun bootstrap()
   fun currentSearchRadiusMeters(): Int
   fun currentPreferredMapApp(): PreferredMapApp
   suspend fun setSearchRadiusMeters(searchRadiusMeters: Int)
   suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp)
   suspend fun setLastSeenChangelogVersion(version: Int)
+  suspend fun setThemePreference(preference: ThemePreference)
 }
 
 @Inject
@@ -31,11 +33,13 @@ class SettingsRepositoryImpl(
   private val mutableSearchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
   private val mutablePreferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
   private val mutableLastSeenChangelogVersion = MutableStateFlow(0)
+  private val mutableThemePreference = MutableStateFlow(ThemePreference.System)
   private var bootstrapped = false
 
   override val searchRadiusMeters: StateFlow<Int> = mutableSearchRadiusMeters.asStateFlow()
   override val preferredMapApp: StateFlow<PreferredMapApp> = mutablePreferredMapApp.asStateFlow()
   override val lastSeenChangelogVersion: StateFlow<Int> = mutableLastSeenChangelogVersion.asStateFlow()
+  override val themePreference: StateFlow<ThemePreference> = mutableThemePreference.asStateFlow()
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
@@ -52,6 +56,7 @@ class SettingsRepositoryImpl(
     )
     mutablePreferredMapApp.value = snapshot?.preferredMapApp ?: PreferredMapApp.AppleMaps
     mutableLastSeenChangelogVersion.value = snapshot?.lastSeenChangelogVersion ?: 0
+    mutableThemePreference.value = snapshot?.themePreference ?: ThemePreference.System
     bootstrapped = true
   }
 
@@ -67,6 +72,7 @@ class SettingsRepositoryImpl(
       searchRadiusMeters = normalizedRadius,
       preferredMapApp = mutablePreferredMapApp.value,
       lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      themePreference = mutableThemePreference.value,
     )
   }
 
@@ -77,6 +83,7 @@ class SettingsRepositoryImpl(
       searchRadiusMeters = mutableSearchRadiusMeters.value,
       preferredMapApp = preferredMapApp,
       lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      themePreference = mutableThemePreference.value,
     )
   }
 
@@ -87,6 +94,18 @@ class SettingsRepositoryImpl(
       searchRadiusMeters = mutableSearchRadiusMeters.value,
       preferredMapApp = mutablePreferredMapApp.value,
       lastSeenChangelogVersion = version,
+      themePreference = mutableThemePreference.value,
+    )
+  }
+
+  override suspend fun setThemePreference(preference: ThemePreference) {
+    if (!bootstrapped) bootstrap()
+    mutableThemePreference.value = preference
+    persist(
+      searchRadiusMeters = mutableSearchRadiusMeters.value,
+      preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      themePreference = preference,
     )
   }
 
@@ -96,6 +115,7 @@ class SettingsRepositoryImpl(
     searchRadiusMeters: Int,
     preferredMapApp: PreferredMapApp,
     lastSeenChangelogVersion: Int,
+    themePreference: ThemePreference,
   ) {
     val path = settingsPath()
     fileSystem.createDirectories(path.parent!!)
@@ -106,6 +126,7 @@ class SettingsRepositoryImpl(
             searchRadiusMeters = searchRadiusMeters,
             preferredMapApp = preferredMapApp,
             lastSeenChangelogVersion = lastSeenChangelogVersion,
+            themePreference = themePreference,
           ),
         ),
       )
@@ -120,8 +141,16 @@ enum class PreferredMapApp {
 }
 
 @Serializable
+enum class ThemePreference {
+  System,
+  Light,
+  Dark,
+}
+
+@Serializable
 internal data class SettingsSnapshot(
   val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
   val preferredMapApp: PreferredMapApp = PreferredMapApp.AppleMaps,
   val lastSeenChangelogVersion: Int = 0,
+  val themePreference: ThemePreference = ThemePreference.System,
 )
