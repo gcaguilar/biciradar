@@ -83,7 +83,7 @@ private class WatchOSMapSupport : MapSupport {
 private class WatchOSRouteLauncher : RouteLauncher {
   override fun launch(station: Station) {
     val routeUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}",
+      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
     ) ?: return
     WKExtension.sharedExtension().openSystemURL(routeUrl)
   }

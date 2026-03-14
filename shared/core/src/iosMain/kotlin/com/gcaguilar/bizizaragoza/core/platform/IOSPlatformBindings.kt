@@ -35,7 +35,7 @@ import platform.Foundation.NSBundle
 import platform.Foundation.NSClassFromString
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
-import platform.MapKit.MKLaunchOptionsDirectionsModeDriving
+import platform.MapKit.MKLaunchOptionsDirectionsModeWalking
 import platform.MapKit.MKLaunchOptionsDirectionsModeKey
 import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
@@ -134,13 +134,13 @@ private class IOSRouteLauncher(
 
     val openedInMaps = mapItem.openInMapsWithLaunchOptions(
       mapOf(
-        MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeDriving,
+        MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeWalking,
       ),
     )
     if (openedInMaps) return
 
     val fallbackUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}",
+      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
     )
     if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
       UIApplication.sharedApplication.openURL(fallbackUrl)
@@ -150,7 +150,7 @@ private class IOSRouteLauncher(
   private fun launchGoogleMaps(station: Station): Boolean {
     val googleMapsUrl = NSURL.URLWithString(
       "comgooglemaps://?daddr=${station.location.latitude},${station.location.longitude}" +
-        "&directionsmode=driving&q=${station.name}",
+        "&directionsmode=walking&q=${station.name}",
     ) ?: return false
     val application = UIApplication.sharedApplication
     if (!application.canOpenURL(googleMapsUrl)) return false

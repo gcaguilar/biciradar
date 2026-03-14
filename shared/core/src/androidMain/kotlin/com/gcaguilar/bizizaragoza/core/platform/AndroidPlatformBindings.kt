@@ -78,7 +78,7 @@ private class AndroidRouteLauncher(
   private val context: Context,
 ) : RouteLauncher {
   override fun launch(station: Station) {
-    val navigationUri = Uri.parse("google.navigation:q=${station.location.latitude},${station.location.longitude}")
+    val navigationUri = Uri.parse("google.navigation:q=${station.location.latitude},${station.location.longitude}&mode=w")
     val intent = Intent(Intent.ACTION_VIEW, navigationUri).apply {
       setPackage("com.google.android.apps.maps")
       addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
