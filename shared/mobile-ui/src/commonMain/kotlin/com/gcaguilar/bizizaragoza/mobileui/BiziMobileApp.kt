@@ -968,7 +968,7 @@ private fun MapScreen(
       MapFilterChipRow(
         activeFilters = activeFilters,
         onToggleFilter = { filter ->
-          activeFilters = if (filter in activeFilters) activeFilters - filter else activeFilters + filter
+          activeFilters = if (filter in activeFilters) emptySet() else setOf(filter)
         },
       )
     }
