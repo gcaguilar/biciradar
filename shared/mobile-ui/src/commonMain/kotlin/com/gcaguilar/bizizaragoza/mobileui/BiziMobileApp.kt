@@ -817,6 +817,12 @@ private fun MapScreen(
   val nearestStation = nearestSelection.highlightedStation
   var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
+  var isCardDismissed by rememberSaveable { mutableStateOf(false) }
+
+  // Reset dismiss when the selected station changes (user tapped a marker).
+  LaunchedEffect(selectedMapStationId) {
+    isCardDismissed = false
+  }
 
   LaunchedEffect(stations, nearestStation?.id, searchQuery) {
     val hasSelectedStation = selectedMapStationId != null && stations.any { station -> station.id == selectedMapStationId }
@@ -918,7 +924,7 @@ private fun MapScreen(
         .padding(horizontal = 16.dp, vertical = 16.dp),
     ) {
       AnimatedVisibility(
-        visible = selectedMapStation != null,
+        visible = selectedMapStation != null && !isCardDismissed,
         enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
         exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
         label = "map-selected-station-overlay",
@@ -934,6 +940,7 @@ private fun MapScreen(
             onFavoriteToggle = { onFavoriteToggle(station) },
             onOpenStationDetails = { onStationSelected(station) },
             onQuickRoute = { onQuickRoute(station) },
+            onDismiss = { isCardDismissed = true },
           )
         }
       }
@@ -1132,6 +1139,7 @@ private fun MapSelectedStationCard(
   onFavoriteToggle: () -> Unit,
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  onDismiss: () -> Unit,
 ) {
   val c = LocalBiziColors.current
   val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
@@ -1148,16 +1156,28 @@ private fun MapSelectedStationCard(
         .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      Text(
-        if (isFallbackSelection) {
-          "No hay dentro de ${searchRadiusMeters} m"
-        } else if (isShowingNearestSelection) {
-          "Estación más cercana"
-        } else {
-          "Estación seleccionada"
-        },
-        color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
-      )
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          if (isFallbackSelection) {
+            "No hay dentro de ${searchRadiusMeters} m"
+          } else if (isShowingNearestSelection) {
+            "Estación más cercana"
+          } else {
+            "Estación seleccionada"
+          },
+          color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
+        )
+        Icon(
+          imageVector = Icons.Filled.Close,
+          contentDescription = "Cerrar",
+          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
+          modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
+        )
+      }
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
