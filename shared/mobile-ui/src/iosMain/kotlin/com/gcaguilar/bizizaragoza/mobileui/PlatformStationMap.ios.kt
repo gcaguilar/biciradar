@@ -8,6 +8,7 @@ import androidx.compose.ui.viewinterop.UIKitView
 import com.gcaguilar.bizizaragoza.core.GeoPoint
 import com.gcaguilar.bizizaragoza.core.Station
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.useContents
 import platform.CoreLocation.CLLocationCoordinate2DMake
@@ -238,6 +239,8 @@ private class MapTapRecognizer(
     action = platform.objc.sel_registerName("handleTap:"),
   )
 
+  @OptIn(kotlinx.cinterop.BetaInteropApi::class)
+  @ObjCAction
   @Suppress("unused")
   fun handleTap(recognizer: UITapGestureRecognizer) {
     val mv = mapView ?: return
