@@ -1,0 +1,90 @@
+package com.gcaguilar.bizizaragoza.mobileui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.gcaguilar.bizizaragoza.core.AssistantAction
+import com.gcaguilar.bizizaragoza.core.DefaultAssistantIntentResolver
+import com.gcaguilar.bizizaragoza.core.PreferredMapApp
+import com.gcaguilar.bizizaragoza.core.SettingsRepository
+import com.gcaguilar.bizizaragoza.core.Station
+import com.gcaguilar.bizizaragoza.core.StationsRepository
+import com.gcaguilar.bizizaragoza.core.ThemePreference
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+data class ProfileUiState(
+  val searchRadiusMeters: Int = 500,
+  val preferredMapApp: PreferredMapApp = PreferredMapApp.GoogleMaps,
+  val themePreference: ThemePreference = ThemePreference.System,
+  val latestAnswer: String = "Pregunta por estaciones cercanas, favoritas o rutas.",
+  val assistantSuggestions: List<AssistantAction> = emptyList(),
+  val shortcutGuides: List<ShortcutGuide> = emptyList(),
+)
+
+data class ShortcutGuide(
+  val title: String,
+  val description: String,
+  val icon: String,
+)
+
+class ProfileViewModel(
+  private val settingsRepository: SettingsRepository,
+  private val stationsRepository: StationsRepository,
+  private val searchRadiusMeters: Int,
+) : ViewModel() {
+
+  private val _uiState = MutableStateFlow(ProfileUiState())
+  val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+  init {
+    viewModelScope.launch {
+      settingsRepository.searchRadiusMeters.collect { radius ->
+        _uiState.value = _uiState.value.copy(searchRadiusMeters = radius)
+      }
+    }
+
+    viewModelScope.launch {
+      settingsRepository.preferredMapApp.collect { app ->
+        _uiState.value = _uiState.value.copy(preferredMapApp = app)
+      }
+    }
+
+    viewModelScope.launch {
+      settingsRepository.themePreference.collect { theme ->
+        _uiState.value = _uiState.value.copy(themePreference = theme)
+      }
+    }
+  }
+
+  fun onSearchRadiusSelected(radius: Int) {
+    viewModelScope.launch {
+      settingsRepository.setSearchRadiusMeters(radius)
+    }
+  }
+
+  fun onPreferredMapAppSelected(app: PreferredMapApp) {
+    viewModelScope.launch {
+      settingsRepository.setPreferredMapApp(app)
+    }
+  }
+
+  fun onThemePreferenceSelected(theme: ThemePreference) {
+    viewModelScope.launch {
+      settingsRepository.setThemePreference(theme)
+    }
+  }
+
+  fun updateLatestAnswer(answer: String) {
+    _uiState.value = _uiState.value.copy(latestAnswer = answer)
+  }
+
+  fun setAssistantSuggestions(suggestions: List<AssistantAction>) {
+    _uiState.value = _uiState.value.copy(assistantSuggestions = suggestions)
+  }
+
+  fun setShortcutGuides(guides: List<ShortcutGuide>) {
+    _uiState.value = _uiState.value.copy(shortcutGuides = guides)
+  }
+}
