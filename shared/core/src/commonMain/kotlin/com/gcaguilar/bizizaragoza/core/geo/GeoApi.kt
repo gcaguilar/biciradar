@@ -76,9 +76,14 @@ class GeoApiImpl(
         bodyJson: String,
         isRetry: Boolean = false,
     ): List<GeoResult> {
+        println("[GeoApi] >>> $path retry=$isRetry body=$bodyJson")
+
         val token = if (isRetry) tokenManager.forceRefresh() else tokenManager.getValidToken()
+        println("[GeoApi] token acquired (expires=${token.expiresAtEpochMs})")
+
         val bodyBytes = bodyJson.encodeToByteArray()
         val signed = requestSigner.signedHeaders(method = "POST", path = path, body = bodyBytes)
+        println("[GeoApi] signed installationId=${signed.installationId} nonce=${signed.nonce}")
 
         val response = runCatching {
             httpClient.post("$BASE_URL$path") {
@@ -92,18 +97,28 @@ class GeoApiImpl(
                     append("X-Signature", signed.signature)
                 }
             }
-        }.getOrElse { throw GeoError.Network(it) }
+        }.getOrElse { ex ->
+            println("[GeoApi] NETWORK ERROR $path: ${ex::class.simpleName} — ${ex.message}")
+            throw GeoError.Network(ex)
+        }
+
+        println("[GeoApi] <<< $path status=${response.status.value}")
 
         if (response.status == HttpStatusCode.Unauthorized && !isRetry) {
-            // One automatic retry after refreshing the token
+            println("[GeoApi] 401 on $path — retrying with fresh token")
             return executeGeoRequest(path = path, bodyJson = bodyJson, isRetry = true)
         }
         if (!response.status.isSuccess()) {
+            println("[GeoApi] SERVER ERROR $path: ${response.status.value} ${response.status.description}")
             throw GeoError.Server(response.status.value, response.status.description)
         }
 
         val apiResponse = runCatching { response.body<GeoApiResponse>() }
-            .getOrElse { throw GeoError.Unknown(it) }
+            .getOrElse { ex ->
+                println("[GeoApi] PARSE ERROR $path: ${ex::class.simpleName} — ${ex.message}")
+                throw GeoError.Unknown(ex)
+            }
+        println("[GeoApi] $path OK — ${apiResponse.results.size} results")
         return apiResponse.results.map { it.toDomain() }
     }
 }

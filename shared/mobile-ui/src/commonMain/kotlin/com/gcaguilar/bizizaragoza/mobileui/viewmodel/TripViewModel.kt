@@ -66,8 +66,15 @@ class TripViewModel(
 
       val results = runCatching { geoSearchUseCase.execute(newQuery, userLocation) }
 
+      results.exceptionOrNull()?.let { ex ->
+        println("[GeoSearch] ERROR query='$newQuery' type=${ex::class.simpleName} message=${ex.message}")
+        ex.cause?.let { println("[GeoSearch] CAUSE type=${it::class.simpleName} message=${it.message}") }
+      }
+
       if (_uiState.value.query == newQuery) {
-        val errorMsg = results.exceptionOrNull()?.let { "Error de búsqueda: ${it.message?.take(80)}" }
+        val errorMsg = results.exceptionOrNull()?.let { ex ->
+          "Error de búsqueda: ${ex.message ?: ex::class.simpleName ?: "desconocido"}"
+        }
         _uiState.value = _uiState.value.copy(
           suggestions = results.getOrElse { emptyList() },
           isLoadingSuggestions = false,

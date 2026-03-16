@@ -55,7 +55,9 @@ class TokenManager(
     // ------------------------------------------------------------------
 
     private suspend fun refresh(): AccessToken {
+        println("[TokenManager] refreshing token...")
         val (identity, keyPair) = identityRepo.getOrRegister()
+        println("[TokenManager] got identity installationId=${identity.installationId}")
 
         val timestamp = currentTimeMs() / 1000L   // unix seconds
         val nonce = generateNonce()
@@ -74,27 +76,37 @@ class TokenManager(
             ),
         )
 
+        println("[TokenManager] POST /token/refresh installationId=${identity.installationId}")
         val response = runCatching {
             httpClient.post("$BASE_URL/token/refresh") {
                 contentType(ContentType.Application.Json)
                 setBody(requestBody)
             }
-        }.getOrElse { throw GeoError.Network(it) }
+        }.getOrElse { ex ->
+            println("[TokenManager] NETWORK ERROR /token/refresh: ${ex::class.simpleName} — ${ex.message}")
+            throw GeoError.Network(ex)
+        }
 
+        println("[TokenManager] /token/refresh status=${response.status.value}")
         if (response.status.value == 401 || response.status.value == 403) {
-            // Identity may be invalid; clear and re-register on next call
+            println("[TokenManager] identity rejected (${response.status.value}) — clearing and throwing Unauthorized")
             identityRepo.clear()
             throw GeoError.Unauthorized
         }
         if (!response.status.isSuccess()) {
+            println("[TokenManager] SERVER ERROR /token/refresh: ${response.status.value} ${response.status.description}")
             throw GeoError.Server(response.status.value, response.status.description)
         }
 
         val tokenResponse = runCatching { response.body<TokenRefreshResponse>() }
-            .getOrElse { throw GeoError.Unknown(it) }
+            .getOrElse { ex ->
+                println("[TokenManager] PARSE ERROR /token/refresh: ${ex::class.simpleName} — ${ex.message}")
+                throw GeoError.Unknown(ex)
+            }
 
         val expiresAtMs = currentTimeMs() + (tokenResponse.expiresIn * 1000L)
         val token = AccessToken(token = tokenResponse.accessToken, expiresAtEpochMs = expiresAtMs)
+        println("[TokenManager] token OK expiresIn=${tokenResponse.expiresIn}s")
         currentToken = token
         return token
     }

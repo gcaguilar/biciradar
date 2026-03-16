@@ -125,16 +125,22 @@ internal fun GeoResultDto.toDomain() = GeoResult(
 // ---------------------------------------------------------------------------
 
 sealed class GeoError : Exception() {
-    data object NotRegistered : GeoError()
-    data object Unauthorized : GeoError()
+    data object NotRegistered : GeoError() {
+        override val message: String get() = "Installation not registered"
+    }
+    data object Unauthorized : GeoError() {
+        override val message: String get() = "Unauthorized (invalid token or installation)"
+    }
     class Network(val rootCause: Throwable) : GeoError() {
         override val cause: Throwable get() = rootCause
+        override val message: String get() = rootCause.message ?: rootCause::class.simpleName ?: "Network error"
     }
     class Server(val statusCode: Int, val errorMessage: String) : GeoError() {
         override val message: String get() = "HTTP $statusCode: $errorMessage"
     }
     class Unknown(val rootCause: Throwable) : GeoError() {
         override val cause: Throwable get() = rootCause
+        override val message: String get() = rootCause.message ?: rootCause::class.simpleName ?: "Unknown error"
     }
 }
 
