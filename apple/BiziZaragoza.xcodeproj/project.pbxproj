@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		01E62CDC7B11EEFA5F2F47CD /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
+		0983A991EC91D29F83F4C970 /* BackgroundTasks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D14F3C7693F0B66C62F1CFE /* BackgroundTasks.framework */; };
 		12F2139A9050266D04982B56 /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 067F67C0778F140B9C439FAE /* AppleLaunchRequestStoreTests.swift */; };
+		15A976A520CC680A4AC1028A /* BiziBackgroundTaskHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FCC2AB78CDE184A5E1B050 /* BiziBackgroundTaskHandler.swift */; };
 		16434C5475C6CB106470BC71 /* WatchFavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B840181B8183228EA6B8DD /* WatchFavoritesSyncBridgeTests.swift */; };
 		1901F7F94DAF47AC177BE7DC /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A5DDB1B2B1F0BF0F61771BF /* WatchFavoritesSyncBridge.swift */; };
 		21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */; };
@@ -16,6 +18,7 @@
 		29317923DEED29DAEECB28C2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = F1C96FDCA66526D4B8C80448 /* FirebaseCrashlytics */; };
 		2CD883FA2C770B999319B3F1 /* FirebaseBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E8B4F16C7C9200EBB7D9D1 /* FirebaseBootstrap.swift */; };
 		425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */; };
+		4B8C8D4A4836B250E5D5F778 /* BiziNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6ADD9795F1D933458A1B3E8 /* BiziNotificationService.swift */; };
 		4C54F8C1AB5DB240BB54D4B9 /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */; };
 		4CC0740FE6C9C66FA03583E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 984BA0E2F21405E13678B28B /* Assets.xcassets */; };
 		52C55C4B3E9604100CF95FDE /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 9EDF8FBE9F731BEDA3695F84 /* GoogleMaps */; };
@@ -32,6 +35,7 @@
 		8769F0B8C935731B9F3DEE4C /* WatchShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B787355DCD28FB6C56CE0C3 /* WatchShortcutRunnerTests.swift */; };
 		89AD6405ECA273DA01F1C32A /* BiziZaragozaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D168340322759EF9567637E /* BiziZaragozaUITests.swift */; };
 		8DF323D330ABEED435C7E209 /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */; };
+		8EC3408940DB80897D8CFFC9 /* StationAvailabilityCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAB1DB941ED1BA669C98171 /* StationAvailabilityCache.swift */; };
 		909C0BEF306FB95D52D27CB0 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */; };
 		94F10365EE3C8C6CF5BCEF5B /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADD5333C6EA05B9D70A461E9 /* XCTest.framework */; };
 		962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC58133CDF714873B84A2060 /* BiziShortcuts.swift */; };
@@ -70,6 +74,7 @@
 		08AC4660D6A712A4AF1A8B00 /* AppleShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunnerTests.swift; sourceTree = "<group>"; };
 		19E8B4F16C7C9200EBB7D9D1 /* FirebaseBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrap.swift; sourceTree = "<group>"; };
 		2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		3D14F3C7693F0B66C62F1CFE /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
 		3FA3807D819E2E34AE2EFF7F /* WatchShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunner.swift; sourceTree = "<group>"; };
 		3FB5D9CB7A75A8E89FDD2358 /* BiziZaragoza.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BiziZaragoza.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +84,7 @@
 		5CC824927869DECDC66A1B8A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		5D06EA3BE96DC32028370C51 /* BiziWatchShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchShortcuts.swift; sourceTree = "<group>"; };
 		6FBCBF69119F927827A8BA58 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
+		78FCC2AB78CDE184A5E1B050 /* BiziBackgroundTaskHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziBackgroundTaskHandler.swift; sourceTree = "<group>"; };
 		814FB832E8C1F4AE5A2537D8 /* BiziZaragozaUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiziZaragozaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83B840181B8183228EA6B8DD /* WatchFavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
 		8B787355DCD28FB6C56CE0C3 /* WatchShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunnerTests.swift; sourceTree = "<group>"; };
@@ -89,7 +95,9 @@
 		AB54246FF996BB6C42668DBD /* BiziZaragozaWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaWatchApp.swift; sourceTree = "<group>"; };
 		ADD5333C6EA05B9D70A461E9 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		AEDC070302195177D77AFCEB /* FavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
+		B6ADD9795F1D933458A1B3E8 /* BiziNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziNotificationService.swift; sourceTree = "<group>"; };
 		BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
+		BCAB1DB941ED1BA669C98171 /* StationAvailabilityCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAvailabilityCache.swift; sourceTree = "<group>"; };
 		BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziZaragozaApp.swift; sourceTree = "<group>"; };
 		C89ACDE081F371C07894C925 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		CB80D43FCE4427389AF7C93C /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
@@ -119,6 +127,7 @@
 			files = (
 				5443D606DA751BE11A3287D1 /* SwiftUI.framework in Frameworks */,
 				5EA6813FBCEAC9CCFF60BCB1 /* UIKit.framework in Frameworks */,
+				0983A991EC91D29F83F4C970 /* BackgroundTasks.framework in Frameworks */,
 				ECB5A5955F82EC06D2A08D20 /* FirebaseCore in Frameworks */,
 				29317923DEED29DAEECB28C2 /* FirebaseCrashlytics in Frameworks */,
 				52C55C4B3E9604100CF95FDE /* GoogleMaps in Frameworks */,
@@ -166,6 +175,7 @@
 		534F5641E71B302FF1DFF77B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3D14F3C7693F0B66C62F1CFE /* BackgroundTasks.framework */,
 				5CC824927869DECDC66A1B8A /* SwiftUI.framework */,
 				EAD93BA8276E4323A19B32F8 /* UIKit.framework */,
 				2D3EAA1FEF16FE5DCFB540CF /* WatchConnectivity.framework */,
@@ -247,6 +257,8 @@
 				3F34DC3C8F3C649FC35D891A /* AppleLaunchRequestStore.swift */,
 				BC8794DCDB94AE98F328E48F /* AppleShortcutRunner.swift */,
 				984BA0E2F21405E13678B28B /* Assets.xcassets */,
+				78FCC2AB78CDE184A5E1B050 /* BiziBackgroundTaskHandler.swift */,
+				B6ADD9795F1D933458A1B3E8 /* BiziNotificationService.swift */,
 				EC58133CDF714873B84A2060 /* BiziShortcuts.swift */,
 				BDB0AB9E680ED175D0DCC4A5 /* BiziZaragozaApp.swift */,
 				C89ACDE081F371C07894C925 /* ComposeRootView.swift */,
@@ -255,6 +267,7 @@
 				EE21223C514C28044A56CCA1 /* GoogleMapsBootstrap.swift */,
 				F527453863BA31673E013DD3 /* GoogleMapsStationMapFactory.swift */,
 				CEAC14E87E1D3F44D559FE5B /* GoogleService-Info.plist */,
+				BCAB1DB941ED1BA669C98171 /* StationAvailabilityCache.swift */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -562,6 +575,8 @@
 				21C365CA8D25CE2887673429 /* AppleLaunchRequestStore.swift in Sources */,
 				4C54F8C1AB5DB240BB54D4B9 /* AppleShortcutRunner.swift in Sources */,
 				F3275F32B2CC0EA730AA2ECE /* BiziAppleGraph.swift in Sources */,
+				15A976A520CC680A4AC1028A /* BiziBackgroundTaskHandler.swift in Sources */,
+				4B8C8D4A4836B250E5D5F778 /* BiziNotificationService.swift in Sources */,
 				962BFDBA32DE51A35C36108E /* BiziShortcuts.swift in Sources */,
 				425AEB2482AA068BF341902E /* BiziZaragozaApp.swift in Sources */,
 				C8EE260891FF1B9576C085FC /* ComposeRootView.swift in Sources */,
@@ -569,6 +584,7 @@
 				2CD883FA2C770B999319B3F1 /* FirebaseBootstrap.swift in Sources */,
 				73651A1064D7BF7E6F9DDD34 /* GoogleMapsBootstrap.swift in Sources */,
 				56489250264A501AF0E91051 /* GoogleMapsStationMapFactory.swift in Sources */,
+				8EC3408940DB80897D8CFFC9 /* StationAvailabilityCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -649,6 +665,9 @@
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers = (
+					com.gcaguilar.bizizaragoza.ios.refresh,
+				);
 				INFOPLIST_KEY_BiziGoogleMapsApiKey = "$(GOOGLE_MAPS_IOS_API_KEY)";
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
@@ -656,6 +675,9 @@
 					comgooglemaps,
 				);
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.";
+				INFOPLIST_KEY_UIBackgroundModes = (
+					fetch,
+				);
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -688,6 +710,9 @@
 					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers = (
+					com.gcaguilar.bizizaragoza.ios.refresh,
+				);
 				INFOPLIST_KEY_BiziGoogleMapsApiKey = "$(GOOGLE_MAPS_IOS_API_KEY)";
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bizi Zaragoza";
@@ -695,6 +720,9 @@
 					comgooglemaps,
 				);
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.";
+				INFOPLIST_KEY_UIBackgroundModes = (
+					fetch,
+				);
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -804,7 +832,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29557011;
+				CURRENT_PROJECT_VERSION = 29560919;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -817,7 +845,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2026.03.13.1751;
+				MARKETING_VERSION = 2026.03.16.1059;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -891,7 +919,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29557011;
+				CURRENT_PROJECT_VERSION = 29560919;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -910,7 +938,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2026.03.13.1751;
+				MARKETING_VERSION = 2026.03.16.1059;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
