@@ -56,4 +56,9 @@ interface PlatformBindings {
   val routeLauncher: RouteLauncher
   val storageDirectoryProvider: StorageDirectoryProvider
   val watchSyncBridge: WatchSyncBridge
+
+  /** Called once after the [SharedGraph] has been created. Implementations may use this to wire
+   *  graph-provided dependencies (e.g. [SettingsRepository]) into platform-specific objects that
+   *  were constructed before the graph existed. */
+  fun onGraphCreated(graph: SharedGraph) {}
 }

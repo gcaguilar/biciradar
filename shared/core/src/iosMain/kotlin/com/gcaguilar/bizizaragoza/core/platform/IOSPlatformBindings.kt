@@ -13,7 +13,8 @@ import com.gcaguilar.bizizaragoza.core.MapSupportStatus
 import com.gcaguilar.bizizaragoza.core.PlatformBindings
 import com.gcaguilar.bizizaragoza.core.PreferredMapApp
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
-import com.gcaguilar.bizizaragoza.core.SettingsSnapshot
+import com.gcaguilar.bizizaragoza.core.SettingsRepository
+import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.StorageDirectoryProvider
 import com.gcaguilar.bizizaragoza.core.WatchSyncBridge
@@ -29,10 +30,8 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
-import okio.Path.Companion.toPath
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSBundle
 import platform.Foundation.NSClassFromString
@@ -66,6 +65,8 @@ class IOSPlatformBindings(
     explicitNulls = false
   }
 
+  private val iosRouteLauncher = IOSRouteLauncher()
+
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = fileSystemInstance
   override val googleMapsApiKey: String? = NSBundle.mainBundle
@@ -77,13 +78,13 @@ class IOSPlatformBindings(
   override val localNotifier: LocalNotifier = IOSLocalNotifier()
   override val locationProvider: LocationProvider = IOSLocationProvider()
   override val mapSupport: MapSupport = IOSMapSupport()
-  override val routeLauncher: RouteLauncher = IOSRouteLauncher(
-    fileSystem = fileSystemInstance,
-    json = json,
-    storageDirectoryProvider = storageDirectoryProviderInstance,
-  )
+  override val routeLauncher: RouteLauncher = iosRouteLauncher
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance
   override val watchSyncBridge: WatchSyncBridge = IOSWatchSyncBridge()
+
+  override fun onGraphCreated(graph: SharedGraph) {
+    iosRouteLauncher.settingsRepository = graph.settingsRepository
+  }
 }
 
 private class IOSMapSupport : MapSupport {
@@ -126,11 +127,9 @@ private class IOSLocationProvider : LocationProvider {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class IOSRouteLauncher(
-  private val fileSystem: FileSystem,
-  private val json: Json,
-  private val storageDirectoryProvider: StorageDirectoryProvider,
-) : RouteLauncher {
+private class IOSRouteLauncher : RouteLauncher {
+  var settingsRepository: SettingsRepository? = null
+
   override fun launch(station: Station) {
     if (preferredMapApp() == PreferredMapApp.GoogleMaps && launchGoogleMaps(station)) {
       return
@@ -207,15 +206,8 @@ private class IOSRouteLauncher(
     }
   }
 
-  private fun preferredMapApp(): PreferredMapApp {
-    val path = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
-    if (!fileSystem.exists(path)) return PreferredMapApp.AppleMaps
-    return runCatching {
-      fileSystem.read(path) { readUtf8() }
-    }.mapCatching { raw ->
-      json.decodeFromString<SettingsSnapshot>(raw).preferredMapApp
-    }.getOrDefault(PreferredMapApp.AppleMaps)
-  }
+  private fun preferredMapApp(): PreferredMapApp =
+    settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
 }
 
 private class IOSWatchSyncBridge : WatchSyncBridge {

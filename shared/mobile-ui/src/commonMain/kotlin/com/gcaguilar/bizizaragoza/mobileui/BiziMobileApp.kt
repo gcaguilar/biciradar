@@ -353,6 +353,7 @@ fun BiziMobileApp(
   var showChangelog by remember(graph) { mutableStateOf(false) }
 
   LaunchedEffect(graph) {
+    platformBindings.onGraphCreated(graph)
     onTripRepositoryReady?.invoke(graph.tripRepository)
   }
 
