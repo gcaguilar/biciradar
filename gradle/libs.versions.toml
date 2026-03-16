@@ -7,16 +7,17 @@ ktor = "3.3.1"
 metro = "0.11.2"
 okio = "3.16.0"
 serialization = "1.9.0"
-androidx-activity = "1.10.1"
+androidx-activity = "1.13.0"
 androidx-lifecycle = "2.10.0"
-androidx-core = "1.17.0"
+androidx-core = "1.18.0"
 androidx-wear-compose = "1.5.6"
-maps-compose = "6.12.1"
+maps-compose = "8.2.1"
 play-services-location = "21.3.0"
-play-services-maps = "19.2.0"
+play-services-maps = "20.0.0"
 play-services-wearable = "19.0.0"
+navigation-compose = "2.9.2"
 junit = "4.13.2"
-firebase-bom = "34.7.0"
+firebase-bom = "34.10.0"
 firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
 
@@ -43,6 +44,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
