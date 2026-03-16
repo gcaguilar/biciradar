@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -46,17 +48,20 @@ class StationsRepositoryImpl(
 ) : StationsRepository {
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
   private var loaded = false
+  private val loadMutex = Mutex()
 
   override val state: StateFlow<StationsState> = mutableState.asStateFlow()
 
   override suspend fun forceRefresh() {
-    loaded = false
+    loadMutex.withLock { loaded = false }
     loadIfNeeded()
   }
 
   override suspend fun loadIfNeeded() {
-    if (loaded) return
-    mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+    loadMutex.withLock {
+      if (loaded) return
+      mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+    }
     val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
       runCatching { locationProvider.currentLocation() }.getOrNull()
     }
@@ -68,10 +73,10 @@ class StationsRepositoryImpl(
           isLoading = false,
           userLocation = currentLocation,
         )
-        loaded = true
+        loadMutex.withLock { loaded = true }
       }
       .onFailure { error ->
-        // No marcar loaded=true para permitir reintentos
+        // Do not set loaded=true so that retries are allowed
         mutableState.update {
           it.copy(
             isLoading = false,
