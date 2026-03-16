@@ -118,7 +118,8 @@ class SettingsRepositoryImpl(
     themePreference: ThemePreference,
   ) {
     val path = settingsPath()
-    fileSystem.createDirectories(path.parent!!)
+    val dir = path.parent ?: return
+    fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(
         json.encodeToString(

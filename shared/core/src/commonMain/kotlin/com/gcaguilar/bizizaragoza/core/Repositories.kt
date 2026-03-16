@@ -199,7 +199,8 @@ class FavoritesRepositoryImpl(
 
   private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
     val path = favoritesPath()
-    fileSystem.createDirectories(path.parent!!)
+    val dir = path.parent ?: return
+    fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(snapshot))
     }
