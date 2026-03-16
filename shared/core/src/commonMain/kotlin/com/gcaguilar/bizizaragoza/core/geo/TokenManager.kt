@@ -13,7 +13,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlin.random.Random
 
 /**
  * Manages the short-lived access token for datosbizi.com.
@@ -21,7 +20,7 @@ import kotlin.random.Random
  * Guarantees:
  * - Only one refresh request in-flight at a time (Mutex).
  * - Proactively refreshes tokens that are within 30 s of expiry.
- * - Delegates signing of the token-refresh request to [RequestSigner].
+ * - Uses the refreshToken from [InstallationIdentityRepository] (rotated on each refresh).
  */
 @Inject
 class TokenManager(
@@ -56,24 +55,11 @@ class TokenManager(
 
     private suspend fun refresh(): AccessToken {
         println("[TokenManager] refreshing token...")
-        val (identity, keyPair) = identityRepo.getOrRegister()
+        val (identity, _) = identityRepo.getOrRegister()
         println("[TokenManager] got identity installationId=${identity.installationId}")
 
-        val timestamp = currentTimeMs() / 1000L   // unix seconds
-        val nonce = generateNonce()
-
-        // Signature payload for token refresh: installationId + "\n" + timestamp + "\n" + nonce
-        val signingPayload = "${identity.installationId}\n$timestamp\n$nonce"
-            .encodeToByteArray()
-        val signature = keyPair.sign(signingPayload)
-
         val requestBody = json.encodeToString(
-            TokenRefreshRequest(
-                installationId = identity.installationId,
-                timestamp = timestamp,
-                nonce = nonce,
-                signature = signature,
-            ),
+            TokenRefreshRequest(refreshToken = identity.refreshToken),
         )
 
         println("[TokenManager] POST /token/refresh installationId=${identity.installationId}")
@@ -104,6 +90,9 @@ class TokenManager(
                 throw GeoError.Unknown(ex)
             }
 
+        // Persist the rotated refresh token
+        identityRepo.updateRefreshToken(tokenResponse.refreshToken)
+
         val expiresAtMs = currentTimeMs() + (tokenResponse.expiresIn * 1000L)
         val token = AccessToken(token = tokenResponse.accessToken, expiresAtEpochMs = expiresAtMs)
         println("[TokenManager] token OK expiresIn=${tokenResponse.expiresIn}s")
@@ -113,6 +102,6 @@ class TokenManager(
 
     companion object {
         internal fun generateNonce(): String =
-            Random.nextBytes(16).joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
+            kotlin.random.Random.nextBytes(16).joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') }
     }
 }

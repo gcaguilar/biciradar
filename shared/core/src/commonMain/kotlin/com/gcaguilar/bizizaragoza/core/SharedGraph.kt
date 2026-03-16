@@ -92,6 +92,7 @@ interface SharedGraph {
     storageDirectoryProvider: StorageDirectoryProvider,
     secureKeyStore: SecureKeyStore,
     @AppVersion appVersion: String,
+    @OsVersion osVersion: String,
     @Platform platform: String,
   ): InstallationIdentityRepository = InstallationIdentityRepository(
     httpClient = httpClient,
@@ -100,6 +101,7 @@ interface SharedGraph {
     storageDirectoryProvider = storageDirectoryProvider,
     secureKeyStore = secureKeyStore,
     appVersion = appVersion,
+    osVersion = osVersion,
     platform = platform,
   )
 
@@ -127,12 +129,12 @@ interface SharedGraph {
     httpClient: HttpClient,
     json: Json,
     tokenManager: TokenManager,
-    requestSigner: RequestSigner,
+    identityRepo: InstallationIdentityRepository,
   ): GeoApi = GeoApiImpl(
     httpClient = httpClient,
     json = json,
     tokenManager = tokenManager,
-    requestSigner = requestSigner,
+    identityRepo = identityRepo,
   )
 
   @SingleIn(AppScope::class)

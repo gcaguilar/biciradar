@@ -44,6 +44,7 @@ import platform.MapKit.MKLaunchOptionsDirectionsModeKey
 import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
 import platform.UIKit.UIApplication
+import platform.UIKit.UIDevice
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
@@ -86,6 +87,7 @@ class IOSPlatformBindings(
   override val locationProvider: LocationProvider = IOSLocationProvider()
   override val mapSupport: MapSupport = IOSMapSupport()
   override val platform: String = "ios"
+  override val osVersion: String = UIDevice.currentDevice.systemVersion
   override val routeLauncher: RouteLauncher = iosRouteLauncher
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance

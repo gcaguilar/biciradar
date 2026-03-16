@@ -21,10 +21,11 @@ import okio.Path.Companion.toPath
  *
  * On first call to [getOrRegister] it:
  *  1. Generates (or loads) an RSA key pair via [SecureKeyStore].
- *  2. POSTs the public key to `/install/register`.
- *  3. Persists the returned [InstallationIdentity] to disk.
+ *  2. POSTs the public key to `/api/install/register`.
+ *  3. Persists the returned [InstallationIdentity] (including refreshToken) to disk.
  *
  * Subsequent calls return the cached identity instantly.
+ * Call [updateRefreshToken] after each token refresh to persist the rotated token.
  */
 @Inject
 class InstallationIdentityRepository(
@@ -34,6 +35,7 @@ class InstallationIdentityRepository(
     private val storageDirectoryProvider: StorageDirectoryProvider,
     private val secureKeyStore: SecureKeyStore,
     private val appVersion: String,
+    private val osVersion: String,
     private val platform: String,
 ) {
     @kotlin.concurrent.Volatile
@@ -73,7 +75,7 @@ class InstallationIdentityRepository(
         }
 
         // 2. Register with the server
-        println("[InstallRepo] no persisted identity — registering with server platform=$platform appVersion=$appVersion")
+        println("[InstallRepo] no persisted identity — registering with server platform=$platform appVersion=$appVersion osVersion=$osVersion")
         val publicKeyBase64 = keyPair.publicKeyDerBase64
         val response = runCatching {
             httpClient.post("$BASE_URL/install/register") {
@@ -81,9 +83,10 @@ class InstallationIdentityRepository(
                 setBody(
                     json.encodeToString(
                         RegisterRequest(
-                            publicKey = publicKeyBase64,
-                            appVersion = appVersion,
                             platform = platform,
+                            appVersion = appVersion,
+                            osVersion = osVersion,
+                            publicKey = publicKeyBase64,
                         ),
                     ),
                 )
@@ -106,8 +109,9 @@ class InstallationIdentityRepository(
             }
 
         val identity = InstallationIdentity(
-            installationId = registerResponse.installationId,
+            installationId = registerResponse.installId,
             publicKeyBase64 = publicKeyBase64,
+            refreshToken = registerResponse.refreshToken,
         )
         println("[InstallRepo] registered installationId=${identity.installationId}")
 
@@ -117,6 +121,18 @@ class InstallationIdentityRepository(
         val result = identity to keyPair
         cached = result
         return result
+    }
+
+    /**
+     * Persists a rotated [refreshToken] returned by `/api/token/refresh`.
+     * Must be called after each successful token refresh.
+     */
+    suspend fun updateRefreshToken(newRefreshToken: String) {
+        val current = cached ?: return
+        val updated = current.first.copy(refreshToken = newRefreshToken)
+        saveToDisk(updated)
+        cached = updated to current.second
+        println("[InstallRepo] refreshToken rotated and persisted")
     }
 
     /** Clears the persisted identity (e.g., for re-registration after a device restore). */

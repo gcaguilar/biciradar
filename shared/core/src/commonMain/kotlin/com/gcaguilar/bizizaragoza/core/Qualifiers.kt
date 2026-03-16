@@ -11,3 +11,8 @@ annotation class AppVersion
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Platform
+
+/** Qualifier for the OS version string (e.g. "Android 14" or "iOS 17.2"). */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class OsVersion

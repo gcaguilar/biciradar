@@ -55,6 +55,7 @@ interface PlatformBindings {
   val localNotifier: LocalNotifier
   val locationProvider: LocationProvider
   val mapSupport: MapSupport
+  @OsVersion val osVersion: String
   @Platform val platform: String
   val routeLauncher: RouteLauncher
   val secureKeyStore: SecureKeyStore

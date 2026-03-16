@@ -68,6 +68,7 @@ class AndroidPlatformBindings(
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
   override val mapSupport: MapSupport = AndroidMapSupport(context)
   override val platform: String = "android"
+  override val osVersion: String = "Android ${android.os.Build.VERSION.RELEASE}"
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)

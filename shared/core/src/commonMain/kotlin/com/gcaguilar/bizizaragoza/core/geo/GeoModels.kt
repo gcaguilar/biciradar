@@ -1,6 +1,5 @@
 package com.gcaguilar.bizizaragoza.core.geo
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // ---------------------------------------------------------------------------
@@ -15,6 +14,7 @@ import kotlinx.serialization.Serializable
 data class InstallationIdentity(
     val installationId: String,
     val publicKeyBase64: String,
+    val refreshToken: String,
 )
 
 // ---------------------------------------------------------------------------
@@ -61,63 +61,79 @@ data class GeoResult(
 
 @Serializable
 internal data class RegisterRequest(
-    @SerialName("public_key") val publicKey: String,
-    @SerialName("app_version") val appVersion: String,
-    @SerialName("platform") val platform: String,
+    val platform: String,
+    val appVersion: String,
+    val osVersion: String,
+    val publicKey: String,
 )
 
 @Serializable
 internal data class RegisterResponse(
-    @SerialName("installation_id") val installationId: String,
+    val installId: String,
+    val refreshToken: String,
 )
 
 @Serializable
 internal data class TokenRefreshRequest(
-    @SerialName("installation_id") val installationId: String,
-    @SerialName("timestamp") val timestamp: Long,
-    @SerialName("nonce") val nonce: String,
-    @SerialName("signature") val signature: String,
+    val refreshToken: String,
 )
 
 @Serializable
 internal data class TokenRefreshResponse(
-    @SerialName("access_token") val accessToken: String,
-    @SerialName("expires_in") val expiresIn: Int,       // seconds
+    val accessToken: String,
+    val refreshToken: String,
+    val expiresIn: Int,       // seconds
 )
 
 @Serializable
 internal data class GeoSearchRequest(
-    @SerialName("query") val query: String,
-    @SerialName("latitude") val latitude: Double? = null,
-    @SerialName("longitude") val longitude: Double? = null,
+    val query: String,
+    val limit: Int? = null,
 )
 
 @Serializable
 internal data class ReverseGeocodeRequest(
-    @SerialName("latitude") val latitude: Double,
-    @SerialName("longitude") val longitude: Double,
+    val lat: Double,
+    val lon: Double,
 )
 
 @Serializable
 internal data class GeoApiResponse(
-    @SerialName("results") val results: List<GeoResultDto>,
+    val results: List<GeoResultDto>,
 )
 
 @Serializable
 internal data class GeoResultDto(
-    @SerialName("id") val id: String,
-    @SerialName("name") val name: String,
-    @SerialName("address") val address: String = "",
-    @SerialName("latitude") val latitude: Double,
-    @SerialName("longitude") val longitude: Double,
+    val id: String,
+    val name: String,
+    val address: String = "",
+    val lat: Double,
+    val lon: Double,
+)
+
+@Serializable
+internal data class ReverseGeocodeResponse(
+    val address: String,
+    val city: String,
+    val district: String? = null,
+    val lat: Double,
+    val lon: Double,
 )
 
 internal fun GeoResultDto.toDomain() = GeoResult(
     id = id,
     name = name,
     address = address,
-    latitude = latitude,
-    longitude = longitude,
+    latitude = lat,
+    longitude = lon,
+)
+
+internal fun ReverseGeocodeResponse.toDomain() = GeoResult(
+    id = "$lat,$lon",
+    name = district ?: city,
+    address = address,
+    latitude = lat,
+    longitude = lon,
 )
 
 // ---------------------------------------------------------------------------

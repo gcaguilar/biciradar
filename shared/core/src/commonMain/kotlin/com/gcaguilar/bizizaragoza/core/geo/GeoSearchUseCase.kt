@@ -1,6 +1,5 @@
 package com.gcaguilar.bizizaragoza.core.geo
 
-import com.gcaguilar.bizizaragoza.core.GeoPoint
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -27,9 +26,8 @@ class GeoSearchUseCase(
 
     /**
      * @param query Raw user input (will be trimmed + lowercased for dedup purposes).
-     * @param bias Optional location to bias results.
      */
-    suspend fun execute(query: String, bias: GeoPoint? = null): List<GeoResult> {
+    suspend fun execute(query: String): List<GeoResult> {
         val key = query.trim().lowercase()
         if (key.isBlank()) return emptyList()
 
@@ -42,15 +40,15 @@ class GeoSearchUseCase(
 
         return mutex.withLock {
             // Another coroutine may have completed the same search while we waited
-            if (key == lastKey) lastResult ?: fetchAndCache(key, bias)
-            else fetchAndCache(key, bias)
+            if (key == lastKey) lastResult ?: fetchAndCache(key)
+            else fetchAndCache(key)
         }.also {
             inFlightLock.withLock { inFlight.remove(key) }
         }
     }
 
-    private suspend fun fetchAndCache(key: String, bias: GeoPoint?): List<GeoResult> {
-        val result = geoApi.search(key, bias)
+    private suspend fun fetchAndCache(key: String): List<GeoResult> {
+        val result = geoApi.search(key)
         lastKey = key
         lastResult = result
         return result

@@ -64,7 +64,7 @@ class TripViewModel(
 
       val userLocation: GeoPoint? = null
 
-      val results = runCatching { geoSearchUseCase.execute(newQuery, userLocation) }
+      val results = runCatching { geoSearchUseCase.execute(newQuery) }
 
       results.exceptionOrNull()?.let { ex ->
         println("[GeoSearch] ERROR query='$newQuery' type=${ex::class.simpleName} message=${ex.message}")

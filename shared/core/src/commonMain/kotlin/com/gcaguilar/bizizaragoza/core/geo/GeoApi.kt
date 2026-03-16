@@ -19,15 +19,14 @@ import kotlinx.serialization.json.Json
  * Low-level geo API client for datosbizi.com.
  *
  * Handles:
- * - Attaching `Authorization: Bearer <token>` and signed headers.
+ * - Attaching `Authorization: Bearer <token>` and `X-Installation-Id` headers.
  * - One automatic retry on HTTP 401 (force-refreshes the token).
  */
 interface GeoApi {
     /**
      * Searches for geographic locations matching [query].
-     * @param bias Optional user location to bias results.
      */
-    suspend fun search(query: String, bias: GeoPoint? = null): List<GeoResult>
+    suspend fun search(query: String): List<GeoResult>
 
     /** Reverse-geocodes a coordinate to a human-readable address. */
     suspend fun reverseGeocode(location: GeoPoint): GeoResult?
@@ -38,18 +37,14 @@ class GeoApiImpl(
     private val httpClient: HttpClient,
     private val json: Json,
     private val tokenManager: TokenManager,
-    private val requestSigner: RequestSigner,
+    private val identityRepo: InstallationIdentityRepository,
 ) : GeoApi {
 
-    override suspend fun search(query: String, bias: GeoPoint?): List<GeoResult> {
+    override suspend fun search(query: String): List<GeoResult> {
         val requestBody = json.encodeToString(
-            GeoSearchRequest(
-                query = query,
-                latitude = bias?.latitude,
-                longitude = bias?.longitude,
-            ),
+            GeoSearchRequest(query = query),
         )
-        return executeGeoRequest(
+        return executeSearchRequest(
             path = "/geo/search",
             bodyJson = requestBody,
         )
@@ -58,20 +53,52 @@ class GeoApiImpl(
     override suspend fun reverseGeocode(location: GeoPoint): GeoResult? {
         val requestBody = json.encodeToString(
             ReverseGeocodeRequest(
-                latitude = location.latitude,
-                longitude = location.longitude,
+                lat = location.latitude,
+                lon = location.longitude,
             ),
         )
-        val results = executeGeoRequest(
-            path = "/geo/reverse",
-            bodyJson = requestBody,
-        )
-        return results.firstOrNull()
+        println("[GeoApi] >>> /geo/reverse body=$requestBody")
+
+        val token = tokenManager.getValidToken()
+        val (identity, _) = identityRepo.getOrRegister()
+
+        val response = runCatching {
+            httpClient.post("$BASE_URL/geo/reverse") {
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+                headers {
+                    append("Authorization", "Bearer ${token.token}")
+                    append("X-Installation-Id", identity.installationId)
+                }
+            }
+        }.getOrElse { ex ->
+            println("[GeoApi] NETWORK ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}")
+            throw GeoError.Network(ex)
+        }
+
+        println("[GeoApi] <<< /geo/reverse status=${response.status.value}")
+
+        if (response.status == HttpStatusCode.Unauthorized) {
+            println("[GeoApi] 401 on /geo/reverse — retrying with fresh token")
+            return reverseGeocodeWithToken(requestBody, forceRefresh = true)
+        }
+        if (!response.status.isSuccess()) {
+            println("[GeoApi] SERVER ERROR /geo/reverse: ${response.status.value} ${response.status.description}")
+            throw GeoError.Server(response.status.value, response.status.description)
+        }
+
+        val reverseResponse = runCatching { response.body<ReverseGeocodeResponse>() }
+            .getOrElse { ex ->
+                println("[GeoApi] PARSE ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}")
+                throw GeoError.Unknown(ex)
+            }
+        println("[GeoApi] /geo/reverse OK address=${reverseResponse.address}")
+        return reverseResponse.toDomain()
     }
 
     // ------------------------------------------------------------------
 
-    private suspend fun executeGeoRequest(
+    private suspend fun executeSearchRequest(
         path: String,
         bodyJson: String,
         isRetry: Boolean = false,
@@ -81,9 +108,8 @@ class GeoApiImpl(
         val token = if (isRetry) tokenManager.forceRefresh() else tokenManager.getValidToken()
         println("[GeoApi] token acquired (expires=${token.expiresAtEpochMs})")
 
-        val bodyBytes = bodyJson.encodeToByteArray()
-        val signed = requestSigner.signedHeaders(method = "POST", path = path, body = bodyBytes)
-        println("[GeoApi] signed installationId=${signed.installationId} nonce=${signed.nonce}")
+        val (identity, _) = identityRepo.getOrRegister()
+        println("[GeoApi] using installationId=${identity.installationId}")
 
         val response = runCatching {
             httpClient.post("$BASE_URL$path") {
@@ -91,10 +117,7 @@ class GeoApiImpl(
                 setBody(bodyJson)
                 headers {
                     append("Authorization", "Bearer ${token.token}")
-                    append("X-Installation-Id", signed.installationId)
-                    append("X-Timestamp", signed.timestamp.toString())
-                    append("X-Nonce", signed.nonce)
-                    append("X-Signature", signed.signature)
+                    append("X-Installation-Id", identity.installationId)
                 }
             }
         }.getOrElse { ex ->
@@ -106,7 +129,7 @@ class GeoApiImpl(
 
         if (response.status == HttpStatusCode.Unauthorized && !isRetry) {
             println("[GeoApi] 401 on $path — retrying with fresh token")
-            return executeGeoRequest(path = path, bodyJson = bodyJson, isRetry = true)
+            return executeSearchRequest(path = path, bodyJson = bodyJson, isRetry = true)
         }
         if (!response.status.isSuccess()) {
             println("[GeoApi] SERVER ERROR $path: ${response.status.value} ${response.status.description}")
@@ -120,5 +143,36 @@ class GeoApiImpl(
             }
         println("[GeoApi] $path OK — ${apiResponse.results.size} results")
         return apiResponse.results.map { it.toDomain() }
+    }
+
+    private suspend fun reverseGeocodeWithToken(bodyJson: String, forceRefresh: Boolean): GeoResult? {
+        val token = if (forceRefresh) tokenManager.forceRefresh() else tokenManager.getValidToken()
+        val (identity, _) = identityRepo.getOrRegister()
+
+        val response = runCatching {
+            httpClient.post("$BASE_URL/geo/reverse") {
+                contentType(ContentType.Application.Json)
+                setBody(bodyJson)
+                headers {
+                    append("Authorization", "Bearer ${token.token}")
+                    append("X-Installation-Id", identity.installationId)
+                }
+            }
+        }.getOrElse { ex ->
+            println("[GeoApi] NETWORK ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}")
+            throw GeoError.Network(ex)
+        }
+
+        if (!response.status.isSuccess()) {
+            println("[GeoApi] SERVER ERROR /geo/reverse (retry): ${response.status.value} ${response.status.description}")
+            throw GeoError.Server(response.status.value, response.status.description)
+        }
+
+        val reverseResponse = runCatching { response.body<ReverseGeocodeResponse>() }
+            .getOrElse { ex ->
+                println("[GeoApi] PARSE ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}")
+                throw GeoError.Unknown(ex)
+            }
+        return reverseResponse.toDomain()
     }
 }

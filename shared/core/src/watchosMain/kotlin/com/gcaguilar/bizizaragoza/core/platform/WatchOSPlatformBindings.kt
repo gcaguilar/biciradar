@@ -34,6 +34,7 @@ import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.WatchConnectivity.WCSession
 import platform.WatchKit.WKExtension
+import platform.WatchKit.WKInterfaceDevice
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
@@ -54,6 +55,7 @@ class WatchOSPlatformBindings(
   override val locationProvider: LocationProvider = WatchOSLocationProvider()
   override val mapSupport: MapSupport = WatchOSMapSupport()
   override val platform: String = "watchos"
+  override val osVersion: String = WKInterfaceDevice.currentDevice().systemVersion()
   override val routeLauncher: RouteLauncher = WatchOSRouteLauncher()
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = WatchOSStorageDirectoryProvider()
