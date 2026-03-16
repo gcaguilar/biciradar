@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class NearbyUiState(
@@ -37,6 +38,9 @@ class NearbyViewModel(
 
   val stationsState: StateFlow<StationsState> = stationsRepository.state
 
+  /** Set to true while the Nearby screen is visible; false when it goes off-screen. */
+  private val _isActive = MutableStateFlow(false)
+
   init {
     viewModelScope.launch {
       stationsRepository.state.collect { state ->
@@ -58,15 +62,28 @@ class NearbyViewModel(
     viewModelScope.launch {
       val intervalSeconds = 300
       while (true) {
+        // Suspend until the screen becomes active
+        _isActive.first { it }
         for (remaining in intervalSeconds downTo 1) {
+          // If screen goes inactive mid-countdown, break and wait again
+          if (!_isActive.value) break
           _uiState.value = _uiState.value.copy(refreshCountdownSeconds = remaining)
           delay(1_000)
+        }
+        if (!_isActive.value) {
+          _uiState.value = _uiState.value.copy(refreshCountdownSeconds = 0)
+          continue
         }
         _uiState.value = _uiState.value.copy(refreshCountdownSeconds = 0)
         val ids = stationsRepository.state.value.stations.take(20).map { it.id }
         stationsRepository.refreshAvailability(ids)
       }
     }
+  }
+
+  /** Called by the composable when the Nearby screen enters/leaves the composition. */
+  fun setActive(active: Boolean) {
+    _isActive.value = active
   }
 
   fun onStationSelected(station: Station) {
@@ -94,3 +111,4 @@ class NearbyViewModel(
     routeLauncher.launch(station)
   }
 }
+
