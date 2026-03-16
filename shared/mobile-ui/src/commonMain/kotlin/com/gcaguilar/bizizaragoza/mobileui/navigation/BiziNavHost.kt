@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -132,8 +136,12 @@ internal fun BiziNavHost(
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.Trip>()
       val viewModel = remember(tripViewModelFactory) { tripViewModelFactory.create() }
-      if (route.prefilledQuery != null) {
-        LaunchedEffect(route.prefilledQuery) { viewModel.onQueryChange(route.prefilledQuery) }
+      var prefilledApplied by rememberSaveable { mutableStateOf(false) }
+      if (route.prefilledQuery != null && !prefilledApplied) {
+        LaunchedEffect(Unit) {
+          viewModel.onQueryChange(route.prefilledQuery)
+          prefilledApplied = true
+        }
       }
       BiziMobileAppContent.TripScreenContent(
         viewModel = viewModel,
