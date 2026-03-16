@@ -46,9 +46,13 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         activationDidCompleteWith activationState: WCSessionActivationState,
         error: Error?
     ) {
-        apply(context: session.receivedApplicationContext)
-        if activationState == .activated, !favoriteIds.isEmpty {
-            pushFavorites(favoriteIds)
+        let context = session.receivedApplicationContext
+        let currentFavoriteIds = favoriteIds
+        Task { @MainActor in
+            apply(context: context)
+            if activationState == .activated, !currentFavoriteIds.isEmpty {
+                pushFavorites(currentFavoriteIds)
+            }
         }
     }
 
@@ -59,7 +63,9 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
-        apply(context: applicationContext)
+        Task { @MainActor in
+            apply(context: applicationContext)
+        }
     }
 
     func apply(context: [String: Any]) {

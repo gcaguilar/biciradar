@@ -12,6 +12,12 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private var lastHighlightedStationId: String? = nil
 
     func createView() -> UIView {
+        // Reset per-view state so a second call doesn't inherit stale markers/zoom
+        hasZoomed = false
+        markersByStationId.removeAll()
+        lastStations = []
+        lastHighlightedStationId = nil
+
         let mapView = GMSMapView(frame: .zero)
         mapView.settings.rotateGestures = false
         mapView.settings.tiltGestures = false
