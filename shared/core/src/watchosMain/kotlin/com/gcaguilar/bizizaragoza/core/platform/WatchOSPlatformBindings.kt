@@ -15,6 +15,7 @@ import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.StorageDirectoryProvider
 import com.gcaguilar.bizizaragoza.core.WatchSyncBridge
+import com.gcaguilar.bizizaragoza.core.crypto.SecureKeyStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -27,6 +28,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import platform.Foundation.NSBundle
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
@@ -39,6 +41,11 @@ private const val CONNECT_TIMEOUT_MILLIS = 10_000L
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
 ) : PlatformBindings {
+  override val appVersion: String = NSBundle.mainBundle
+    .objectForInfoDictionaryKey("CFBundleShortVersionString")
+    ?.toString()
+    ?.trim()
+    ?.takeIf { it.isNotBlank() } ?: "unknown"
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val googleMapsApiKey: String? = null
@@ -46,7 +53,9 @@ class WatchOSPlatformBindings(
   override val localNotifier: LocalNotifier = WatchOSLocalNotifier()
   override val locationProvider: LocationProvider = WatchOSLocationProvider()
   override val mapSupport: MapSupport = WatchOSMapSupport()
+  override val platform: String = "watchos"
   override val routeLauncher: RouteLauncher = WatchOSRouteLauncher()
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = WatchOSStorageDirectoryProvider()
   override val watchSyncBridge: WatchSyncBridge = WatchOSSyncBridge()
 }

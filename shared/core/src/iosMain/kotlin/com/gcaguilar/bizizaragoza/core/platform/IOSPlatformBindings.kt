@@ -18,6 +18,7 @@ import com.gcaguilar.bizizaragoza.core.SharedGraph
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.StorageDirectoryProvider
 import com.gcaguilar.bizizaragoza.core.WatchSyncBridge
+import com.gcaguilar.bizizaragoza.core.crypto.SecureKeyStore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -67,6 +68,11 @@ class IOSPlatformBindings(
 
   private val iosRouteLauncher = IOSRouteLauncher()
 
+  override val appVersion: String = NSBundle.mainBundle
+    .objectForInfoDictionaryKey("CFBundleShortVersionString")
+    ?.toString()
+    ?.trim()
+    ?.takeIf { it.isNotBlank() } ?: "unknown"
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val fileSystem: FileSystem = fileSystemInstance
   override val googleMapsApiKey: String? = NSBundle.mainBundle
@@ -78,7 +84,9 @@ class IOSPlatformBindings(
   override val localNotifier: LocalNotifier = IOSLocalNotifier()
   override val locationProvider: LocationProvider = IOSLocationProvider()
   override val mapSupport: MapSupport = IOSMapSupport()
+  override val platform: String = "ios"
   override val routeLauncher: RouteLauncher = iosRouteLauncher
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance
   override val watchSyncBridge: WatchSyncBridge = IOSWatchSyncBridge()
 

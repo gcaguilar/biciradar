@@ -1,6 +1,7 @@
 package com.gcaguilar.bizizaragoza.core
 
 import androidx.compose.runtime.Stable
+import com.gcaguilar.bizizaragoza.core.crypto.SecureKeyStore
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -46,6 +47,7 @@ interface LocalNotifier {
 
 interface PlatformBindings {
   val appConfiguration: AppConfiguration
+  @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver
   val fileSystem: FileSystem
   val googleMapsApiKey: String?
@@ -53,7 +55,9 @@ interface PlatformBindings {
   val localNotifier: LocalNotifier
   val locationProvider: LocationProvider
   val mapSupport: MapSupport
+  @Platform val platform: String
   val routeLauncher: RouteLauncher
+  val secureKeyStore: SecureKeyStore
   val storageDirectoryProvider: StorageDirectoryProvider
   val watchSyncBridge: WatchSyncBridge
 

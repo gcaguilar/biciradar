@@ -128,10 +128,9 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.gcaguilar.bizizaragoza.core.DatosBiziApi
-import com.gcaguilar.bizizaragoza.core.GooglePlacesApi
+import com.gcaguilar.bizizaragoza.core.geo.GeoResult
 import com.gcaguilar.bizizaragoza.core.StationsRepository
 import com.gcaguilar.bizizaragoza.core.MONITORING_DURATION_OPTIONS_SECONDS
-import com.gcaguilar.bizizaragoza.core.PlacePrediction
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.StationHourlyPattern
 import com.gcaguilar.bizizaragoza.core.TripDestination
@@ -588,8 +587,8 @@ fun BiziMobileApp(
           val tripViewModelFactory = remember(graph, searchRadiusMeters) {
             com.gcaguilar.bizizaragoza.mobileui.viewmodel.TripViewModelFactory(
               tripRepository = graph.tripRepository,
-              googlePlacesApi = graph.googlePlacesApi,
-              googleMapsApiKey = platformBindings.googleMapsApiKey,
+              geoSearchUseCase = graph.geoSearchUseCase,
+              reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
               searchRadiusMeters = searchRadiusMeters,
             )
           }
@@ -2458,7 +2457,7 @@ private fun TripScreen(
             color = c.muted,
           )
         }
-        items(uiState.suggestions, key = { it.placeId }) { prediction ->
+        items(uiState.suggestions, key = { it.id }) { prediction ->
           Surface(
             shape = RoundedCornerShape(12.dp),
             color = c.surface,
@@ -2479,7 +2478,7 @@ private fun TripScreen(
                 modifier = Modifier.size(18.dp),
               )
               Text(
-                prediction.description,
+                prediction.name,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

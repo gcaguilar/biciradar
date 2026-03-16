@@ -28,6 +28,7 @@ import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.StorageDirectoryProvider
 import com.gcaguilar.bizizaragoza.core.WatchSyncBridge
+import com.gcaguilar.bizizaragoza.core.crypto.SecureKeyStore
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -66,9 +67,14 @@ class AndroidPlatformBindings(
   override val localNotifier: LocalNotifier = androidLocalNotifier
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
   override val mapSupport: MapSupport = AndroidMapSupport(context)
+  override val platform: String = "android"
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = AndroidWatchSyncBridge(context)
+  override val appVersion: String = runCatching {
+    context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+  }.getOrDefault("unknown")
 
   /** Provide an Activity-backed requester so [AndroidLocalNotifier] can actually trigger the
    *  POST_NOTIFICATIONS runtime-permission dialog on Android 13+. Call this from

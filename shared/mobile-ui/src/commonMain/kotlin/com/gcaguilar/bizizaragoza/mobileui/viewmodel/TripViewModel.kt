@@ -3,13 +3,13 @@ package com.gcaguilar.bizizaragoza.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.bizizaragoza.core.GeoPoint
-import com.gcaguilar.bizizaragoza.core.GooglePlacesApi
 import com.gcaguilar.bizizaragoza.core.MONITORING_DURATION_OPTIONS_SECONDS
-import com.gcaguilar.bizizaragoza.core.PlaceDetails
-import com.gcaguilar.bizizaragoza.core.PlacePrediction
 import com.gcaguilar.bizizaragoza.core.TripDestination
 import com.gcaguilar.bizizaragoza.core.TripRepository
 import com.gcaguilar.bizizaragoza.core.TripState
+import com.gcaguilar.bizizaragoza.core.geo.GeoResult
+import com.gcaguilar.bizizaragoza.core.geo.GeoSearchUseCase
+import com.gcaguilar.bizizaragoza.core.geo.ReverseGeocodeUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 
 data class TripUiState(
   val query: String = "",
-  val suggestions: List<PlacePrediction> = emptyList(),
+  val suggestions: List<GeoResult> = emptyList(),
   val isLoadingSuggestions: Boolean = false,
   val suggestionsError: String? = null,
   val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
@@ -30,8 +30,8 @@ data class TripUiState(
 
 class TripViewModel(
   private val tripRepository: TripRepository,
-  private val googlePlacesApi: GooglePlacesApi,
-  private val googleMapsApiKey: String?,
+  private val geoSearchUseCase: GeoSearchUseCase,
+  private val reverseGeocodeUseCase: ReverseGeocodeUseCase,
   private val searchRadiusMeters: Int,
 ) : ViewModel() {
 
@@ -44,10 +44,10 @@ class TripViewModel(
 
   fun onQueryChange(newQuery: String) {
     _uiState.value = _uiState.value.copy(query = newQuery)
-    
+
     debounceJob?.cancel()
-    
-    if (newQuery.isBlank() || googleMapsApiKey == null) {
+
+    if (newQuery.isBlank()) {
       _uiState.value = _uiState.value.copy(
         suggestions = emptyList(),
         isLoadingSuggestions = false,
@@ -59,29 +59,17 @@ class TripViewModel(
     debounceJob = viewModelScope.launch {
       delay(400)
       if (_uiState.value.query != newQuery) return@launch
-      
+
       _uiState.value = _uiState.value.copy(isLoadingSuggestions = true, suggestionsError = null)
-      
+
       val userLocation: GeoPoint? = null
-      
-      val result = googlePlacesApi.autocompleteWithStatus(newQuery, userLocation, googleMapsApiKey)
-      
-      if (result.error != null) {
-        println("[TripVM] autocomplete EXCEPTION: ${result.error}")
-      } else if (result.status != "OK" && result.status != "ZERO_RESULTS") {
-        println("[TripVM] autocomplete status=${result.status} query=$newQuery")
-      }
+
+      val results = runCatching { geoSearchUseCase.execute(newQuery, userLocation) }
 
       if (_uiState.value.query == newQuery) {
-        val errorMsg = when {
-          result.error != null -> "Error de red: ${result.error?.message?.take(80)}"
-          result.status == "REQUEST_DENIED" -> "API key no autorizada para Places (status: REQUEST_DENIED)"
-          result.status == "OVER_QUERY_LIMIT" -> "Límite de consultas superado"
-          result.status != "OK" && result.status != "ZERO_RESULTS" -> "Error Places API: ${result.status}"
-          else -> null
-        }
+        val errorMsg = results.exceptionOrNull()?.let { "Error de búsqueda: ${it.message?.take(80)}" }
         _uiState.value = _uiState.value.copy(
-          suggestions = result.predictions,
+          suggestions = results.getOrElse { emptyList() },
           isLoadingSuggestions = false,
           suggestionsError = errorMsg,
         )
@@ -93,45 +81,40 @@ class TripViewModel(
     _uiState.value = _uiState.value.copy(query = "", suggestions = emptyList(), suggestionsError = null)
   }
 
-  fun onSuggestionSelected(prediction: PlacePrediction) {
-    if (googleMapsApiKey == null) return
-
+  fun onSuggestionSelected(result: GeoResult) {
+    _uiState.value = _uiState.value.copy(
+      query = result.name,
+      suggestions = emptyList(),
+    )
     viewModelScope.launch {
-      val details = googlePlacesApi.placeDetails(prediction.placeId, googleMapsApiKey)
-      if (details != null) {
-        _uiState.value = _uiState.value.copy(
-          query = details.name,
-          suggestions = emptyList(),
-        )
-        tripRepository.setDestination(
-          destination = TripDestination(
-            name = details.name,
-            location = details.location,
-          ),
-          searchRadiusMeters = searchRadiusMeters,
-        )
-      }
+      tripRepository.setDestination(
+        destination = TripDestination(
+          name = result.name,
+          location = GeoPoint(result.latitude, result.longitude),
+        ),
+        searchRadiusMeters = searchRadiusMeters,
+      )
     }
   }
 
   fun onLocationPicked(location: GeoPoint) {
-    if (googleMapsApiKey == null) return
-
     _uiState.value = _uiState.value.copy(
       isReverseGeocoding = true,
       pickedLocation = location,
     )
 
     viewModelScope.launch {
-      val name = googlePlacesApi.reverseGeocode(location, googleMapsApiKey)
+      val name = runCatching { reverseGeocodeUseCase.execute(location) }
+        .getOrNull()
+        ?.name
         ?: "${location.latitude}, ${location.longitude}"
-      
+
       _uiState.value = _uiState.value.copy(
         mapPickerActive = false,
         isReverseGeocoding = false,
         pickedLocation = null,
       )
-      
+
       tripRepository.setDestination(
         destination = TripDestination(name = name, location = location),
         searchRadiusMeters = searchRadiusMeters,
@@ -141,7 +124,7 @@ class TripViewModel(
 
   fun onStationPickedFromMap(station: com.gcaguilar.bizizaragoza.core.Station) {
     _uiState.value = _uiState.value.copy(mapPickerActive = false, pickedLocation = null)
-    
+
     viewModelScope.launch {
       tripRepository.setDestination(
         destination = TripDestination(name = station.name, location = station.location),
