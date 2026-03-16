@@ -1,9 +1,12 @@
 package com.gcaguilar.bizizaragoza.core
 
+import androidx.compose.runtime.Immutable
+
 const val DEFAULT_SEARCH_RADIUS_METERS = 500
 
 val SEARCH_RADIUS_OPTIONS_METERS = listOf(300, 500, 750, 1000)
 
+@Immutable
 data class NearbyStationSelection(
   val withinRadiusStation: Station?,
   val fallbackStation: Station?,

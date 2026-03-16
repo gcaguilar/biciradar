@@ -1,5 +1,6 @@
 package com.gcaguilar.bizizaragoza.core
 
+import androidx.compose.runtime.Stable
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -16,6 +17,7 @@ interface LocationProvider {
   suspend fun currentLocation(): GeoPoint?
 }
 
+@Stable
 interface RouteLauncher {
   fun launch(station: Station)
   /** Launch walking directions to [destination] (from the user's current location or a given origin). */
@@ -36,6 +38,7 @@ interface WatchSyncBridge {
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
 
+@Stable
 interface LocalNotifier {
   suspend fun requestPermission(): Boolean
   suspend fun notify(title: String, body: String)
