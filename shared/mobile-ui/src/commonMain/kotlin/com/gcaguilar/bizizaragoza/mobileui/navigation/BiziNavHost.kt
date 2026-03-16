@@ -1,10 +1,14 @@
 package com.gcaguilar.bizizaragoza.mobileui.navigation
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -165,7 +169,13 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}station/{stationId}" }),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.StationDetail>()
-      val station = stations.firstOrNull { it.id == route.stationId } ?: return@composable
+      val station = stations.firstOrNull { it.id == route.stationId }
+      if (station == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          CircularProgressIndicator()
+        }
+        return@composable
+      }
       BiziMobileAppContent.StationDetailScreenContent(
         mobilePlatform = mobilePlatform,
         station = station,
