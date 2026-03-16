@@ -32,6 +32,7 @@ class BiziMainViewControllerWrapper(
 ) {
   private var currentLaunchRequest: MobileLaunchRequest? by mutableStateOf(initialLaunchRequest)
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+  private var tripRepository: TripRepository? = null
 
   val viewController: UIViewController = ComposeUIViewController(
     configure = { enforceStrictPlistSanityCheck = false },
@@ -41,7 +42,7 @@ class BiziMainViewControllerWrapper(
         platformBindings = IOSPlatformBindings(),
         launchRequest = currentLaunchRequest,
         onTripRepositoryReady = { repo ->
-          IOSTripRepositoryHolder.tripRepository = repo
+          tripRepository = repo
         },
       )
     }
@@ -54,15 +55,10 @@ class BiziMainViewControllerWrapper(
   /** Called by Swift when the app enters background with active monitoring. */
   fun doFinalBackgroundCheck(completion: () -> Unit) {
     scope.launch {
-      IOSTripRepositoryHolder.tripRepository?.doFinalBackgroundCheck()
+      tripRepository?.doFinalBackgroundCheck()
       completion()
     }
   }
-}
-
-/** Holds a reference to the active [TripRepository] so Swift can access it across boundaries. */
-object IOSTripRepositoryHolder {
-  var tripRepository: TripRepository? = null
 }
 
 // Keep legacy entry point for backward compatibility
