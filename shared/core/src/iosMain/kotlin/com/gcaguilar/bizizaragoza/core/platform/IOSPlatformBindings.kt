@@ -27,6 +27,8 @@ import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -266,14 +268,12 @@ private object IOSFavoritesCache {
 private class IOSLocalNotifier : LocalNotifier {
   private val center = UNUserNotificationCenter.currentNotificationCenter()
 
-  override suspend fun requestPermission(): Boolean {
-    var granted = false
+  override suspend fun requestPermission(): Boolean = suspendCoroutine { cont ->
     center.requestAuthorizationWithOptions(
       options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
     ) { result, _ ->
-      granted = result
+      cont.resume(result)
     }
-    return granted
   }
 
   override suspend fun notify(title: String, body: String) {
