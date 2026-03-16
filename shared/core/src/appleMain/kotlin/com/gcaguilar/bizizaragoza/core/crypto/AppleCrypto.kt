@@ -1,26 +1,36 @@
 package com.gcaguilar.bizizaragoza.core.crypto
 
+import kotlinx.cinterop.COpaquePointerVar
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.MemScope
+import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
 import platform.CoreFoundation.CFDictionaryCreateMutable
 import platform.CoreFoundation.CFDictionarySetValue
 import platform.CoreFoundation.CFErrorRefVar
+import platform.CoreFoundation.CFNumberCreate
 import platform.CoreFoundation.CFRelease
 import platform.CoreFoundation.CFStringRef
 import platform.CoreFoundation.CFTypeRef
 import platform.CoreFoundation.kCFAllocatorDefault
 import platform.CoreFoundation.kCFBooleanTrue
+import platform.CoreFoundation.kCFNumberSInt32Type
+import platform.Foundation.CFBridgingRelease
 import platform.Foundation.NSData
 import platform.Foundation.base64EncodedStringWithOptions
+import platform.Foundation.dataWithBytes
 import platform.Security.SecItemCopyMatching
 import platform.Security.SecItemDelete
-import platform.Security.SecKeyCreateRandomKey
 import platform.Security.SecKeyCopyExternalRepresentation
-import platform.Security.SecKeyCreateSignature
 import platform.Security.SecKeyCopyPublicKey
+import platform.Security.SecKeyCreateRandomKey
+import platform.Security.SecKeyCreateSignature
 import platform.Security.SecKeyRef
 import platform.Security.errSecSuccess
 import platform.Security.kSecAttrApplicationTag
@@ -33,15 +43,6 @@ import platform.Security.kSecClassKey
 import platform.Security.kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256
 import platform.Security.kSecPrivateKeyAttrs
 import platform.Security.kSecReturnRef
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.allocPointerTo
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
-import platform.Foundation.CFBridgingRelease
-import platform.CoreFoundation.CFNumberCreate
-import platform.CoreFoundation.kCFNumberSInt32Type
-import kotlinx.cinterop.IntVar
 
 @OptIn(ExperimentalForeignApi::class)
 actual class PlatformKeyPair(private val alias: String) {
@@ -52,8 +53,8 @@ actual class PlatformKeyPair(private val alias: String) {
             put(kSecAttrApplicationTag, alias.toNSData())
             put(kSecReturnRef, kCFBooleanTrue)
         }
-        val result = allocPointerTo<ObjCObjectVar<*>>()
-        val status = SecItemCopyMatching(query, result.ptr.reinterpret())
+        val result = alloc<COpaquePointerVar>()
+        val status = SecItemCopyMatching(query, result.ptr)
         if (status == errSecSuccess) {
             @Suppress("UNCHECKED_CAST")
             result.value as? SecKeyRef
@@ -117,8 +118,8 @@ actual class SecureKeyStore {
             put(kSecAttrApplicationTag, alias.toNSData())
             put(kSecReturnRef, kCFBooleanTrue)
         }
-        val result = allocPointerTo<ObjCObjectVar<*>>()
-        SecItemCopyMatching(query, result.ptr.reinterpret()) == errSecSuccess
+        val result = alloc<COpaquePointerVar>()
+        SecItemCopyMatching(query, result.ptr) == errSecSuccess
     }
 
     private fun generateKeyPair(alias: String) = memScoped {
@@ -143,14 +144,12 @@ actual class SecureKeyStore {
 // ---------------------------------------------------------------------------
 
 @OptIn(ExperimentalForeignApi::class)
-private fun String.toNSData(): NSData =
-    (this as platform.Foundation.NSString)
-        .dataUsingEncoding(platform.Foundation.NSUTF8StringEncoding)!!
+private fun String.toNSData(): NSData = encodeToByteArray().toNSData()
 
 @OptIn(ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData =
-    this.usePinned { pinned ->
-        NSData.create(bytes = pinned.addressOf(0), length = this.size.toULong())
+    usePinned { pinned ->
+        NSData.dataWithBytes(pinned.addressOf(0), size.convert())!!
     }
 
 @OptIn(ExperimentalForeignApi::class)
