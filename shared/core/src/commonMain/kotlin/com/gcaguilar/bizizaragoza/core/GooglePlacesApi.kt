@@ -22,7 +22,14 @@ interface GooglePlacesApi {
   suspend fun autocomplete(query: String, biasLocation: GeoPoint?, apiKey: String): List<PlacePrediction>
   suspend fun placeDetails(placeId: String, apiKey: String): PlaceDetails?
   suspend fun reverseGeocode(location: GeoPoint, apiKey: String): String?
+  suspend fun autocompleteWithStatus(query: String, biasLocation: GeoPoint?, apiKey: String): AutocompleteResult
 }
+
+data class AutocompleteResult(
+  val predictions: List<PlacePrediction>,
+  val status: String,
+  val error: Throwable? = null,
+)
 
 class GooglePlacesApiImpl(
   private val httpClient: HttpClient,
@@ -32,21 +39,35 @@ class GooglePlacesApiImpl(
     query: String,
     biasLocation: GeoPoint?,
     apiKey: String,
-  ): List<PlacePrediction> = runCatching {
-    val response = httpClient.get("https://maps.googleapis.com/maps/api/place/autocomplete/json") {
-      parameter("input", query)
-      parameter("key", apiKey)
-      parameter("language", "es")
-      parameter("components", "country:es")
-      if (biasLocation != null) {
-        parameter("location", "${biasLocation.latitude},${biasLocation.longitude}")
-        parameter("radius", 50000)
-      }
-    }.body<AutocompleteResponse>()
-    response.predictions.map { prediction ->
-      PlacePrediction(placeId = prediction.placeId, description = prediction.description)
+  ): List<PlacePrediction> = autocompleteWithStatus(query, biasLocation, apiKey).predictions
+
+  override suspend fun autocompleteWithStatus(
+    query: String,
+    biasLocation: GeoPoint?,
+    apiKey: String,
+  ): AutocompleteResult {
+    val result = runCatching {
+      val response = httpClient.get("https://maps.googleapis.com/maps/api/place/autocomplete/json") {
+        parameter("input", query)
+        parameter("key", apiKey)
+        parameter("language", "es")
+        parameter("components", "country:es")
+        if (biasLocation != null) {
+          parameter("location", "${biasLocation.latitude},${biasLocation.longitude}")
+          parameter("radius", 50000)
+        }
+      }.body<AutocompleteResponse>()
+      AutocompleteResult(
+        predictions = response.predictions.map { prediction ->
+          PlacePrediction(placeId = prediction.placeId, description = prediction.description)
+        },
+        status = response.status,
+      )
     }
-  }.getOrDefault(emptyList())
+    return result.getOrElse { throwable ->
+      AutocompleteResult(predictions = emptyList(), status = "EXCEPTION", error = throwable)
+    }
+  }
 
   override suspend fun placeDetails(placeId: String, apiKey: String): PlaceDetails? = runCatching {
     val response = httpClient.get("https://maps.googleapis.com/maps/api/place/details/json") {

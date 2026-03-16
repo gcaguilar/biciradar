@@ -21,6 +21,7 @@ data class TripUiState(
   val query: String = "",
   val suggestions: List<PlacePrediction> = emptyList(),
   val isLoadingSuggestions: Boolean = false,
+  val suggestionsError: String? = null,
   val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
   val mapPickerActive: Boolean = false,
   val isReverseGeocoding: Boolean = false,
@@ -50,6 +51,7 @@ class TripViewModel(
       _uiState.value = _uiState.value.copy(
         suggestions = emptyList(),
         isLoadingSuggestions = false,
+        suggestionsError = null,
       )
       return
     }
@@ -58,23 +60,37 @@ class TripViewModel(
       delay(400)
       if (_uiState.value.query != newQuery) return@launch
       
-      _uiState.value = _uiState.value.copy(isLoadingSuggestions = true)
+      _uiState.value = _uiState.value.copy(isLoadingSuggestions = true, suggestionsError = null)
       
       val userLocation: GeoPoint? = null
       
-      val results = googlePlacesApi.autocomplete(newQuery, userLocation, googleMapsApiKey)
+      val result = googlePlacesApi.autocompleteWithStatus(newQuery, userLocation, googleMapsApiKey)
       
+      if (result.error != null) {
+        println("[TripVM] autocomplete EXCEPTION: ${result.error}")
+      } else if (result.status != "OK" && result.status != "ZERO_RESULTS") {
+        println("[TripVM] autocomplete status=${result.status} query=$newQuery")
+      }
+
       if (_uiState.value.query == newQuery) {
+        val errorMsg = when {
+          result.error != null -> "Error de red: ${result.error?.message?.take(80)}"
+          result.status == "REQUEST_DENIED" -> "API key no autorizada para Places (status: REQUEST_DENIED)"
+          result.status == "OVER_QUERY_LIMIT" -> "Límite de consultas superado"
+          result.status != "OK" && result.status != "ZERO_RESULTS" -> "Error Places API: ${result.status}"
+          else -> null
+        }
         _uiState.value = _uiState.value.copy(
-          suggestions = results,
+          suggestions = result.predictions,
           isLoadingSuggestions = false,
+          suggestionsError = errorMsg,
         )
       }
     }
   }
 
   fun onClearQuery() {
-    _uiState.value = _uiState.value.copy(query = "", suggestions = emptyList())
+    _uiState.value = _uiState.value.copy(query = "", suggestions = emptyList(), suggestionsError = null)
   }
 
   fun onSuggestionSelected(prediction: PlacePrediction) {

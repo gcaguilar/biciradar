@@ -13,21 +13,17 @@ sealed class Screen {
   data object Favorites : Screen()
 
   @Serializable
-  data object Trip : Screen()
+  data class Trip(val prefilledQuery: String? = null) : Screen()
 
   @Serializable
   data object Profile : Screen()
 
   @Serializable
   data class StationDetail(val stationId: String) : Screen()
-
-  @Serializable
-  data class TripDestination(val name: String, val lat: Double, val lng: Double) : Screen()
 }
 
 object DeepLinks {
   const val BASE_URI = "bizi://"
 
   fun stationDetail(stationId: String) = "${BASE_URI}station/$stationId"
-  fun tripDestination(name: String, lat: Double, lng: Double) = "${BASE_URI}trip?name=$name&lat=$lat&lng=$lng"
 }
