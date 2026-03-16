@@ -214,17 +214,23 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
   @OptIn(ExperimentalForeignApi::class)
   override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
     IOSFavoritesCache.persist(snapshot)
+    if (!WCSession.isSupported()) return
     val session = WCSession.defaultSession
     if (session.activationState != WCSessionActivationStateActivated) return
     memScoped {
-      session.updateApplicationContext(
+      val errorPtr = alloc<ObjCObjectVar<platform.Foundation.NSError?>>()
+      val updated = session.updateApplicationContext(
         buildMap {
           put(IOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
           snapshot.homeStationId?.let { put(IOSFavoritesCache.homeContextKey, it) }
           snapshot.workStationId?.let { put(IOSFavoritesCache.workContextKey, it) }
         },
-        error = alloc<ObjCObjectVar<platform.Foundation.NSError?>>().ptr,
+        error = errorPtr.ptr,
       )
+      if (!updated) {
+        val msg = errorPtr.value?.localizedDescription ?: "unknown error"
+        println("[IOSWatchSyncBridge] updateApplicationContext failed: $msg")
+      }
     }
   }
 
