@@ -126,6 +126,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.gcaguilar.bizizaragoza.core.DatosBiziApi
 import com.gcaguilar.bizizaragoza.core.GooglePlacesApi
+import com.gcaguilar.bizizaragoza.core.StationsRepository
 import com.gcaguilar.bizizaragoza.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.bizizaragoza.core.PlacePrediction
 import com.gcaguilar.bizizaragoza.core.RouteLauncher
@@ -134,6 +135,11 @@ import com.gcaguilar.bizizaragoza.core.TripDestination
 import com.gcaguilar.bizizaragoza.core.LocalNotifier
 import com.gcaguilar.bizizaragoza.core.TripRepository
 import com.gcaguilar.bizizaragoza.core.TripState
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.gcaguilar.bizizaragoza.mobileui.navigation.BiziNavHost
+import com.gcaguilar.bizizaragoza.mobileui.navigation.Screen
 
 private val BiziRed = Color(0xFFD7191F)
 private val BiziLight = Color(0xFFF8F6F6)
@@ -302,11 +308,7 @@ sealed interface AssistantLaunchRequest {
 }
 
 @androidx.compose.runtime.Stable
-private class AppState(
-  initialTab: MobileTab = MobileTab.Cerca,
-) {
-  var currentTab by mutableStateOf(initialTab)
-  var selectedStationId by mutableStateOf<String?>(null)
+private class AppState {
   var searchQuery by mutableStateOf("")
   var pendingAssistantAction by mutableStateOf<AssistantAction?>(null)
   var pendingLaunchRequest by mutableStateOf<MobileLaunchRequest?>(null)
@@ -335,10 +337,9 @@ fun BiziMobileApp(
   val settingsRepository = remember(graph) { graph.settingsRepository }
   val scope = rememberCoroutineScope()
   val appState = rememberAppState()
+  val navController = rememberNavController()
   val stationsState by stationsRepository.state.collectAsState()
   val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
-  val homeStationId by favoritesRepository.homeStationId.collectAsState()
-  val workStationId by favoritesRepository.workStationId.collectAsState()
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
   val themePreference by settingsRepository.themePreference.collectAsState()
@@ -432,13 +433,12 @@ fun BiziMobileApp(
   LaunchedEffect(appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
     when (val request = appState.pendingLaunchRequest ?: return@LaunchedEffect) {
       MobileLaunchRequest.Favorites -> {
-        appState.currentTab = MobileTab.Favoritos
+        navController.navigate(Screen.Favorites) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStation -> {
         val station = nearestSelection.highlightedStation ?: return@LaunchedEffect
-        appState.selectedStationId = station.id
-        appState.currentTab = MobileTab.Mapa
+        navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithBikes -> {
@@ -446,8 +446,7 @@ fun BiziMobileApp(
           stationsState.stations,
           searchRadiusMeters,
         ) { station -> station.bikesAvailable > 0 }.highlightedStation ?: return@LaunchedEffect
-        appState.selectedStationId = station.id
-        appState.currentTab = MobileTab.Mapa
+        navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithSlots -> {
@@ -455,32 +454,29 @@ fun BiziMobileApp(
           stationsState.stations,
           searchRadiusMeters,
         ) { station -> station.slotsFree > 0 }.highlightedStation ?: return@LaunchedEffect
-        appState.selectedStationId = station.id
-        appState.currentTab = MobileTab.Mapa
+        navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.OpenAssistant -> {
-        appState.currentTab = MobileTab.Perfil
+        navController.navigate(Screen.Profile) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.StationStatus -> {
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
         appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        appState.currentTab = MobileTab.Perfil
+        navController.navigate(Screen.Profile) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
         val station = request.stationId?.let(stationsRepository::stationById)
           ?: stationsState.stations.firstOrNull()
           ?: return@LaunchedEffect
-        appState.selectedStationId = station.id
         graph.routeLauncher.launch(station)
         appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.ShowStation -> {
         if (stationsRepository.stationById(request.stationId) == null) return@LaunchedEffect
-        appState.selectedStationId = request.stationId
-        appState.currentTab = MobileTab.Mapa
+        navController.navigate(Screen.StationDetail(request.stationId))
         appState.pendingLaunchRequest = null
       }
     }
@@ -510,43 +506,45 @@ fun BiziMobileApp(
     when (request) {
       is AssistantLaunchRequest.SearchStation -> {
         appState.searchQuery = request.stationQuery
-        appState.currentTab = MobileTab.Mapa
-        station?.let { appState.selectedStationId = it.id }
+        if (station != null) {
+          navController.navigate(Screen.StationDetail(station.id))
+        } else {
+          navController.navigate(Screen.Map) { launchSingleTop = true }
+        }
       }
       is AssistantLaunchRequest.StationStatus -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          appState.currentTab = MobileTab.Perfil
+          navController.navigate(Screen.Profile) { launchSingleTop = true }
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
-          appState.currentTab = MobileTab.Mapa
+          navController.navigate(Screen.Map) { launchSingleTop = true }
         }
       }
       is AssistantLaunchRequest.StationBikeCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          appState.currentTab = MobileTab.Perfil
+          navController.navigate(Screen.Profile) { launchSingleTop = true }
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
-          appState.currentTab = MobileTab.Mapa
+          navController.navigate(Screen.Map) { launchSingleTop = true }
         }
       }
       is AssistantLaunchRequest.StationSlotCount -> {
         if (station != null) {
           appState.pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          appState.currentTab = MobileTab.Perfil
+          navController.navigate(Screen.Profile) { launchSingleTop = true }
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
-          appState.currentTab = MobileTab.Mapa
+          navController.navigate(Screen.Map) { launchSingleTop = true }
         }
       }
       is AssistantLaunchRequest.RouteToStation -> {
         if (station != null) {
-          appState.selectedStationId = station.id
           graph.routeLauncher.launch(station)
         } else {
           appState.searchQuery = request.stationQuery.orEmpty()
-          appState.currentTab = MobileTab.Mapa
+          navController.navigate(Screen.Map) { launchSingleTop = true }
         }
       }
     }
@@ -556,19 +554,6 @@ fun BiziMobileApp(
 
   val filteredStations = remember(stationsState.stations, appState.searchQuery) {
     filterStations(stationsState.stations, appState.searchQuery)
-  }
-  val favoriteStations = remember(filteredStations, favoriteIds) {
-    val pinnedStationIds = setOfNotNull(homeStationId, workStationId)
-    filteredStations.filter { station -> station.id in favoriteIds && station.id !in pinnedStationIds }
-  }
-  val homeStation = remember(homeStationId, stationsState.stations, stationsRepository) {
-    homeStationId?.let(stationsRepository::stationById)
-  }
-  val workStation = remember(workStationId, stationsState.stations, stationsRepository) {
-    workStationId?.let(stationsRepository::stationById)
-  }
-  val selectedStation = remember(appState.selectedStationId, stationsState.stations, stationsRepository) {
-    appState.selectedStationId?.let(stationsRepository::stationById)
   }
   val showStartupSplash = remember(
     minimumSplashElapsed,
@@ -608,168 +593,76 @@ fun BiziMobileApp(
         if (splashVisible) {
           StartupSplashScreen(mobilePlatform = mobilePlatform)
         } else {
-          AnimatedContent(
-            targetState = when {
-              selectedStation != null -> "station:${selectedStation.id}"
-              else -> "tab:${appState.currentTab.name}"
-            },
-            transitionSpec = {
-              (fadeIn(animationSpec = tween(240)) + slideInHorizontally(animationSpec = tween(240)) { it / 10 })
-                .togetherWith(
-                  fadeOut(animationSpec = tween(160)) + slideOutHorizontally(animationSpec = tween(160)) { -it / 12 },
-                )
-            },
-            label = "mobile-root-transition",
-          ) {
-            when {
-              selectedStation != null -> StationDetailScreen(
+          val tripViewModelFactory = remember(graph, searchRadiusMeters) {
+            com.gcaguilar.bizizaragoza.mobileui.viewmodel.TripViewModelFactory(
+              tripRepository = graph.tripRepository,
+              googlePlacesApi = graph.googlePlacesApi,
+              googleMapsApiKey = platformBindings.googleMapsApiKey,
+              searchRadiusMeters = searchRadiusMeters,
+            )
+          }
+          val nearbyViewModelFactory = remember(graph, searchRadiusMeters) {
+            com.gcaguilar.bizizaragoza.mobileui.viewmodel.NearbyViewModelFactory(
+              stationsRepository = graph.stationsRepository,
+              favoritesRepository = graph.favoritesRepository,
+              routeLauncher = graph.routeLauncher,
+              searchRadiusMeters = searchRadiusMeters,
+            )
+          }
+          val favoritesViewModelFactory = remember(graph) {
+            com.gcaguilar.bizizaragoza.mobileui.viewmodel.FavoritesViewModelFactory(
+              favoritesRepository = graph.favoritesRepository,
+              stationsRepository = graph.stationsRepository,
+              routeLauncher = graph.routeLauncher,
+            )
+          }
+          val profileViewModelFactory = remember(graph, searchRadiusMeters) {
+            com.gcaguilar.bizizaragoza.mobileui.viewmodel.ProfileViewModelFactory(
+              settingsRepository = graph.settingsRepository,
+              stationsRepository = graph.stationsRepository,
+              searchRadiusMeters = searchRadiusMeters,
+            )
+          }
+          Scaffold(
+            containerColor = pageBackgroundColor(mobilePlatform),
+            bottomBar = {
+              MobileBottomNavigationBar(
                 mobilePlatform = mobilePlatform,
-                station = selectedStation,
-                datosBiziApi = graph.datosBiziApi,
-                isFavorite = favoriteIds.contains(selectedStation.id),
-                isHomeStation = homeStationId == selectedStation.id,
-                isWorkStation = workStationId == selectedStation.id,
-                userLocation = stationsState.userLocation,
-                isMapReady = isMapReady,
-                onBack = remember(appState) { { appState.selectedStationId = null } },
-                onToggleFavorite = remember(appState, scope, favoritesRepository) {
-                  { scope.launch { favoritesRepository.toggle(appState.selectedStationId ?: return@launch) } }
-                },
-                onToggleHome = remember(appState, scope, favoritesRepository) {
-                  {
-                    val id = appState.selectedStationId ?: return@remember
-                    scope.launch {
-                      favoritesRepository.setHomeStationId(
-                        if (homeStationId == id) null else id,
-                      )
-                    }
-                  }
-                },
-                onToggleWork = remember(appState, scope, favoritesRepository) {
-                  {
-                    val id = appState.selectedStationId ?: return@remember
-                    scope.launch {
-                      favoritesRepository.setWorkStationId(
-                        if (workStationId == id) null else id,
-                      )
-                    }
-                  }
-                },
-                onRoute = remember(appState, graph, stationsRepository) {
-                  {
-                    val station = appState.selectedStationId?.let(stationsRepository::stationById) ?: return@remember
-                    graph.routeLauncher.launch(station)
-                  }
-                },
+                navController = navController,
               )
-              else -> Scaffold(
-                containerColor = pageBackgroundColor(mobilePlatform),
-                bottomBar = {
-                  MobileBottomNavigationBar(
-                    mobilePlatform = mobilePlatform,
-                    currentTab = appState.currentTab,
-                    onTabSelected = remember(appState) { { tab -> appState.currentTab = tab } },
-                  )
-                },
-              ) { innerPadding ->
-                AnimatedContent(
-                  targetState = appState.currentTab,
-                  transitionSpec = {
-                    (fadeIn(animationSpec = tween(220)) + slideInHorizontally(animationSpec = tween(220)) { it / 14 })
-                      .togetherWith(
-                        fadeOut(animationSpec = tween(140)) + slideOutHorizontally(animationSpec = tween(140)) { -it / 16 },
-                      )
-                  },
-                  label = "mobile-tab-transition",
-                ) { tab ->
-                  when (tab) {
-                    MobileTab.Mapa -> MapScreen(
-                      mobilePlatform = mobilePlatform,
-                      stations = filteredStations,
-                      loading = stationsState.isLoading,
-                      errorMessage = stationsState.errorMessage,
-                      nearestSelection = nearestSelection,
-                      searchQuery = appState.searchQuery,
-                      searchRadiusMeters = searchRadiusMeters,
-                      userLocation = stationsState.userLocation,
-                      onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
-                      onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                      onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                      favoriteIds = favoriteIds,
-                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-                      paddingValues = innerPadding,
-                      isMapReady = isMapReady,
-                    )
-                    MobileTab.Cerca -> NearbyScreen(
-                       mobilePlatform = mobilePlatform,
-                       stations = stationsState.stations,
-                       favoriteIds = favoriteIds,
-                       loading = stationsState.isLoading,
-                       errorMessage = stationsState.errorMessage,
-                       nearestSelection = nearestSelection,
-                       searchRadiusMeters = searchRadiusMeters,
-                       onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
-                       onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                       onRefresh = remember(scope, stationsRepository) { { scope.launch { stationsRepository.forceRefresh() } } },
-                       onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                       onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-                       refreshCountdownSeconds = refreshCountdownSeconds,
-                       paddingValues = innerPadding,
-                     )
-                     MobileTab.Favoritos -> FavoritesScreen(
-                       mobilePlatform = mobilePlatform,
-                       onOpenAssistant = remember(appState) { { appState.currentTab = MobileTab.Perfil } },
-                      allStations = stationsState.stations,
-                      stations = favoriteStations,
-                      homeStation = homeStation,
-                      workStation = workStation,
-                      searchQuery = appState.searchQuery,
-                      onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-                      onStationSelected = remember(appState) { { appState.selectedStationId = it.id } },
-                      onAssignHomeStation = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.setHomeStationId(station.id) } } },
-                      onAssignWorkStation = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.setWorkStationId(station.id) } } },
-                      onClearHomeStation = remember(scope, favoritesRepository) { { scope.launch { favoritesRepository.setHomeStationId(null) } } },
-                      onClearWorkStation = remember(scope, favoritesRepository) { { scope.launch { favoritesRepository.setWorkStationId(null) } } },
-                      onRemoveFavorite = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                      onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-                      paddingValues = innerPadding,
-                    )
-                     MobileTab.Viaje -> TripScreen(
-                        mobilePlatform = mobilePlatform,
-                        tripRepository = graph.tripRepository,
-                        googlePlacesApi = graph.googlePlacesApi,
-                        googleMapsApiKey = platformBindings.googleMapsApiKey,
-                        localNotifier = platformBindings.localNotifier,
-                        routeLauncher = graph.routeLauncher,
-                        userLocation = stationsState.userLocation,
-                        stations = stationsState.stations,
-                        isMapReady = isMapReady,
-                        searchRadiusMeters = searchRadiusMeters,
-                        paddingValues = innerPadding,
-                      )
-                      MobileTab.Perfil -> ProfileScreen(
-                        mobilePlatform = mobilePlatform,
-                        paddingValues = innerPadding,
-                       mapSupportStatus = mapSupportStatus,
-                       searchRadiusMeters = searchRadiusMeters,
-                       preferredMapApp = preferredMapApp,
-                       themePreference = themePreference,
-                       userLocation = stationsState.userLocation,
-                       stations = stationsState.stations,
-                       graph = graph,
-                       stationsRepository = stationsRepository,
-                       favoriteIds = favoriteIds,
-                       initialAction = appState.pendingAssistantAction,
-                       onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-                       onSearchRadiusSelected = remember(scope, settingsRepository) { { radiusMeters -> scope.launch { settingsRepository.setSearchRadiusMeters(radiusMeters) } } },
-                       onPreferredMapAppSelected = remember(scope, settingsRepository) { { mapApp -> scope.launch { settingsRepository.setPreferredMapApp(mapApp) } } },
-                       onThemePreferenceSelected = remember(scope, settingsRepository) { { pref: ThemePreference -> scope.launch { settingsRepository.setThemePreference(pref) } } },
-                     )
-                  }
-                }
-              }
-            }
+            },
+          ) { innerPadding ->
+            BiziNavHost(
+              navController = navController,
+              mobilePlatform = mobilePlatform,
+              tripViewModelFactory = tripViewModelFactory,
+              nearbyViewModelFactory = nearbyViewModelFactory,
+              favoritesViewModelFactory = favoritesViewModelFactory,
+              profileViewModelFactory = profileViewModelFactory,
+              stations = filteredStations,
+              favoriteIds = favoriteIds,
+              loading = stationsState.isLoading,
+              errorMessage = stationsState.errorMessage,
+              nearestSelection = nearestSelection,
+              userLocation = stationsState.userLocation,
+              searchQuery = appState.searchQuery,
+              searchRadiusMeters = searchRadiusMeters,
+              refreshCountdownSeconds = refreshCountdownSeconds,
+              isMapReady = isMapReady,
+              onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+              onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+              onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+              onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
+              onOpenAssistant = remember(navController) { { navController.navigate(Screen.Profile) { launchSingleTop = true } } },
+              localNotifier = platformBindings.localNotifier,
+              routeLauncher = graph.routeLauncher,
+              mapSupportStatus = mapSupportStatus,
+              graph = graph,
+              stationsRepository = stationsRepository,
+              initialAssistantAction = appState.pendingAssistantAction,
+              onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+              paddingValues = innerPadding,
+            )
           }
         }
       }
@@ -864,9 +757,10 @@ private fun StartupSplashScreen(
 @Composable
 private fun MobileBottomNavigationBar(
   mobilePlatform: MobileUiPlatform,
-  currentTab: MobileTab,
-  onTabSelected: (MobileTab) -> Unit,
+  navController: NavHostController,
 ) {
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = navBackStackEntry?.destination?.route
   NavigationBar(
     containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
       LocalBiziColors.current.navBarIos
@@ -875,9 +769,10 @@ private fun MobileBottomNavigationBar(
     },
   ) {
     MobileTabs.forEach { tab ->
+      val screen = tab.screen()
       NavigationBarItem(
-        selected = currentTab == tab,
-        onClick = { onTabSelected(tab) },
+        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
+        onClick = { navController.navigate(screen) { launchSingleTop = true; restoreState = true; popUpTo(Screen.Nearby) { saveState = true } } },
         icon = {
           Icon(
             imageVector = tab.icon(),
@@ -2352,58 +2247,19 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
 
 @Composable
 private fun TripScreen(
+  viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.TripViewModel,
   mobilePlatform: MobileUiPlatform,
-  tripRepository: TripRepository,
-  googlePlacesApi: GooglePlacesApi,
-  googleMapsApiKey: String?,
   localNotifier: LocalNotifier,
   routeLauncher: RouteLauncher,
   userLocation: GeoPoint?,
   stations: List<Station>,
   isMapReady: Boolean,
-  searchRadiusMeters: Int,
   paddingValues: PaddingValues,
 ) {
   val c = LocalBiziColors.current
   val scope = rememberCoroutineScope()
-  val tripState by tripRepository.state.collectAsState()
-
-  // ---------- autocomplete state ----------
-  var query by rememberSaveable { mutableStateOf("") }
-  var suggestions by remember { mutableStateOf<List<PlacePrediction>>(emptyList()) }
-  var isLoadingSuggestions by remember { mutableStateOf(false) }
-  var debounceJob by remember { mutableStateOf<Job?>(null) }
-
-  // Trigger autocomplete on query change (debounced 400 ms)
-  LaunchedEffect(query) {
-    debounceJob?.cancel()
-    if (query.isBlank() || googleMapsApiKey == null) {
-      suggestions = emptyList()
-      return@LaunchedEffect
-    }
-    debounceJob = scope.launch {
-      delay(400)
-      isLoadingSuggestions = true
-      suggestions = googlePlacesApi.autocomplete(query, userLocation, googleMapsApiKey)
-      isLoadingSuggestions = false
-    }
-  }
-
-  // Reset query when the trip is cleared
-  LaunchedEffect(tripState.destination) {
-    if (tripState.destination == null) {
-      query = ""
-      suggestions = emptyList()
-    }
-  }
-
-  // ---------- monitoring duration selection ----------
-  var selectedDurationSeconds by rememberSaveable { mutableStateOf(MONITORING_DURATION_OPTIONS_SECONDS[0]) }
-
-  // ---------- map picker state ----------
-  var mapPickerActive by rememberSaveable { mutableStateOf(false) }
-  var isReverseGeocoding by remember { mutableStateOf(false) }
-  var pickedLocation by remember { mutableStateOf<GeoPoint?>(null) }
+  val uiState by viewModel.uiState.collectAsState()
+  val tripState by viewModel.tripState.collectAsState()
 
   // ---------- layout ----------
   LazyColumn(
@@ -2475,7 +2331,7 @@ private fun TripScreen(
               )
             }
             Button(
-              onClick = { tripRepository.dismissAlert() },
+              onClick = { viewModel.onDismissAlert() },
               modifier = Modifier.fillMaxWidth(),
             ) {
               Text("Entendido")
@@ -2499,8 +2355,8 @@ private fun TripScreen(
               fontWeight = FontWeight.SemiBold,
             )
             OutlinedTextField(
-              value = query,
-              onValueChange = { query = it },
+              value = uiState.query,
+              onValueChange = { viewModel.onQueryChange(it) },
               modifier = Modifier.fillMaxWidth(),
               label = { Text("Destino") },
               placeholder = { Text("Escribe una dirección o lugar") },
@@ -2509,8 +2365,8 @@ private fun TripScreen(
                 Icon(Icons.Filled.Search, contentDescription = null)
               },
               trailingIcon = {
-                if (query.isNotEmpty()) {
-                  IconButton(onClick = { query = ""; suggestions = emptyList() }) {
+                if (uiState.query.isNotEmpty()) {
+                  IconButton(onClick = { viewModel.onClearQuery() }) {
                     Icon(Icons.Filled.Close, contentDescription = "Borrar")
                   }
                 }
@@ -2520,32 +2376,25 @@ private fun TripScreen(
                 cursorColor = c.red,
               ),
             )
-            if (googleMapsApiKey == null) {
-              Text(
-                "Google Maps API key no disponible. La búsqueda de destinos no funcionará.",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.red,
-              )
-            }
             OutlinedButton(
-              onClick = { mapPickerActive = !mapPickerActive; pickedLocation = null },
+              onClick = { viewModel.onMapPickerToggle() },
               modifier = Modifier.fillMaxWidth(),
               border = BorderStroke(1.dp, c.red.copy(alpha = 0.5f)),
             ) {
               Icon(
-                if (mapPickerActive) Icons.Filled.Close else Icons.Filled.Map,
+                if (uiState.mapPickerActive) Icons.Filled.Close else Icons.Filled.Map,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
               )
               Spacer(Modifier.width(6.dp))
-              Text(if (mapPickerActive) "Cancelar mapa" else "Elegir en mapa")
+              Text(if (uiState.mapPickerActive) "Cancelar mapa" else "Elegir en mapa")
             }
           }
         }
       }
 
       // Map picker overlay
-      if (mapPickerActive) {
+      if (uiState.mapPickerActive) {
         item(key = "map-picker") {
           Card(
             colors = CardDefaults.cardColors(containerColor = c.surface),
@@ -2559,35 +2408,14 @@ private fun TripScreen(
                 highlightedStationId = null,
                 isMapReady = isMapReady,
                 onStationSelected = { station ->
-                  // Tapping a station pin directly sets it as destination — no reverse geocode needed
-                  mapPickerActive = false
-                  pickedLocation = null
-                  scope.launch {
-                    tripRepository.setDestination(
-                      destination = TripDestination(name = station.name, location = station.location),
-                      searchRadiusMeters = searchRadiusMeters,
-                    )
-                  }
+                  viewModel.onStationPickedFromMap(station)
                 },
                 onMapClick = { tappedLocation ->
-                  if (googleMapsApiKey != null && !isReverseGeocoding) {
-                    pickedLocation = tappedLocation
-                    isReverseGeocoding = true
-                    scope.launch {
-                      val name = googlePlacesApi.reverseGeocode(tappedLocation, googleMapsApiKey)
-                        ?: "${tappedLocation.latitude.formatCoordinate()}, ${tappedLocation.longitude.formatCoordinate()}"
-                      mapPickerActive = false
-                      isReverseGeocoding = false
-                      tripRepository.setDestination(
-                        destination = TripDestination(name = name, location = tappedLocation),
-                        searchRadiusMeters = searchRadiusMeters,
-                      )
-                    }
-                  }
+                  viewModel.onLocationPicked(tappedLocation)
                 },
-                pinLocation = pickedLocation,
+                pinLocation = uiState.pickedLocation,
               )
-              if (isReverseGeocoding) {
+              if (uiState.isReverseGeocoding) {
                 Box(
                   modifier = Modifier
                     .fillMaxSize()
@@ -2618,7 +2446,7 @@ private fun TripScreen(
       }
 
       // Autocomplete suggestions
-      if (suggestions.isNotEmpty()) {
+      if (uiState.suggestions.isNotEmpty()) {
         item(key = "suggestions-header") {
           Text(
             "Sugerencias",
@@ -2626,31 +2454,14 @@ private fun TripScreen(
             color = c.muted,
           )
         }
-        items(suggestions, key = { it.placeId }) { prediction ->
+        items(uiState.suggestions, key = { it.placeId }) { prediction ->
           Surface(
             shape = RoundedCornerShape(12.dp),
             color = c.surface,
             border = BorderStroke(1.dp, c.panel),
             modifier = Modifier
               .fillMaxWidth()
-              .clickable {
-                if (googleMapsApiKey != null) {
-                  scope.launch {
-                    val details = googlePlacesApi.placeDetails(prediction.placeId, googleMapsApiKey)
-                    if (details != null) {
-                      suggestions = emptyList()
-                      query = details.name
-                      tripRepository.setDestination(
-                        destination = TripDestination(
-                          name = details.name,
-                          location = details.location,
-                        ),
-                        searchRadiusMeters = searchRadiusMeters,
-                      )
-                    }
-                  }
-                }
-              },
+              .clickable { viewModel.onSuggestionSelected(prediction) },
           ) {
             Row(
               modifier = Modifier.padding(12.dp),
@@ -2672,7 +2483,7 @@ private fun TripScreen(
             }
           }
         }
-      } else if (isLoadingSuggestions) {
+      } else if (uiState.isLoadingSuggestions) {
         item(key = "suggestions-loading") {
           Row(
             modifier = Modifier.fillMaxWidth(),
@@ -2721,7 +2532,7 @@ private fun TripScreen(
               )
             }
             OutlinedButton(
-              onClick = { tripRepository.clearTrip() },
+              onClick = { viewModel.onClearTrip() },
               contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             ) {
               Icon(
@@ -2817,19 +2628,19 @@ private fun TripScreen(
           item(key = "monitoring-active") {
             TripMonitoringActiveCard(
               monitoring = tripState.monitoring,
-              onStop = { tripRepository.stopMonitoring() },
+              onStop = { viewModel.onStopMonitoring() },
             )
           }
         } else {
           // Monitoring setup (State 5)
           item(key = "monitoring-setup") {
             TripMonitoringSetupCard(
-              selectedDurationSeconds = selectedDurationSeconds,
-              onDurationSelected = { selectedDurationSeconds = it },
+              selectedDurationSeconds = uiState.selectedDurationSeconds,
+              onDurationSelected = { viewModel.onDurationSelected(it) },
               onStartMonitoring = {
                 scope.launch {
                   localNotifier.requestPermission()
-                  tripRepository.startMonitoring(selectedDurationSeconds)
+                  viewModel.onStartMonitoring()
                 }
               },
             )
@@ -3965,6 +3776,14 @@ private fun pageBackgroundColor(platform: MobileUiPlatform): Color {
   return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
 }
 
+private fun MobileTab.screen(): Screen = when (this) {
+  MobileTab.Mapa -> Screen.Map
+  MobileTab.Cerca -> Screen.Nearby
+  MobileTab.Favoritos -> Screen.Favorites
+  MobileTab.Viaje -> Screen.Trip
+  MobileTab.Perfil -> Screen.Profile
+}
+
 private fun MobileTab.icon() = when (this) {
   MobileTab.Mapa -> Icons.Filled.Map
   MobileTab.Cerca -> Icons.Filled.LocationOn
@@ -4016,3 +3835,302 @@ private fun resolveLaunchStation(
 }
 
 private fun Double.formatCoordinate(): String = ((this * 10_000).roundToInt() / 10_000.0).toString()
+
+internal object BiziMobileAppContent {
+  @Composable
+  fun TripScreenContent(
+    viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.TripViewModel,
+    mobilePlatform: MobileUiPlatform,
+    localNotifier: LocalNotifier,
+    routeLauncher: RouteLauncher,
+    userLocation: GeoPoint?,
+    stations: List<Station>,
+    isMapReady: Boolean,
+    paddingValues: PaddingValues,
+  ) = TripScreen(
+    viewModel = viewModel,
+    mobilePlatform = mobilePlatform,
+    localNotifier = localNotifier,
+    routeLauncher = routeLauncher,
+    userLocation = userLocation,
+    stations = stations,
+    isMapReady = isMapReady,
+    paddingValues = paddingValues,
+  )
+
+  @Composable
+  fun NearbyScreenContent(
+    mobilePlatform: MobileUiPlatform,
+    stations: List<Station>,
+    favoriteIds: Set<String>,
+    loading: Boolean,
+    errorMessage: String?,
+    nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
+    searchRadiusMeters: Int,
+    onStationSelected: (Station) -> Unit,
+    onRetry: () -> Unit,
+    onRefresh: () -> Unit,
+    onFavoriteToggle: (Station) -> Unit,
+    onQuickRoute: (Station) -> Unit,
+    refreshCountdownSeconds: Int,
+    paddingValues: PaddingValues,
+  ) = NearbyScreen(
+    mobilePlatform = mobilePlatform,
+    stations = stations,
+    favoriteIds = favoriteIds,
+    loading = loading,
+    errorMessage = errorMessage,
+    nearestSelection = nearestSelection,
+    searchRadiusMeters = searchRadiusMeters,
+    onStationSelected = onStationSelected,
+    onRetry = onRetry,
+    onRefresh = onRefresh,
+    onFavoriteToggle = onFavoriteToggle,
+    onQuickRoute = onQuickRoute,
+    refreshCountdownSeconds = refreshCountdownSeconds,
+    paddingValues = paddingValues,
+  )
+
+  @Composable
+  fun NearbyScreenContent(
+    viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.NearbyViewModel,
+    mobilePlatform: MobileUiPlatform,
+    nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
+    refreshCountdownSeconds: Int,
+    onStationSelected: (Station) -> Unit,
+    paddingValues: PaddingValues,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    NearbyScreen(
+      mobilePlatform = mobilePlatform,
+      stations = uiState.stations,
+      favoriteIds = uiState.favoriteIds,
+      loading = uiState.isLoading,
+      errorMessage = uiState.errorMessage,
+      nearestSelection = nearestSelection,
+      searchRadiusMeters = uiState.searchRadiusMeters,
+      onStationSelected = onStationSelected,
+      onRetry = viewModel::onRetry,
+      onRefresh = viewModel::onRefresh,
+      onFavoriteToggle = viewModel::onFavoriteToggle,
+      onQuickRoute = viewModel::onQuickRoute,
+      refreshCountdownSeconds = refreshCountdownSeconds,
+      paddingValues = paddingValues,
+    )
+  }
+
+  @Composable
+  fun FavoritesScreenContent(
+    mobilePlatform: MobileUiPlatform,
+    onOpenAssistant: () -> Unit,
+    allStations: List<Station>,
+    stations: List<Station>,
+    homeStation: Station?,
+    workStation: Station?,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onStationSelected: (Station) -> Unit,
+    onAssignHomeStation: (Station) -> Unit,
+    onAssignWorkStation: (Station) -> Unit,
+    onClearHomeStation: () -> Unit,
+    onClearWorkStation: () -> Unit,
+    onRemoveFavorite: (Station) -> Unit,
+    onQuickRoute: (Station) -> Unit,
+    paddingValues: PaddingValues,
+  ) = FavoritesScreen(
+    mobilePlatform = mobilePlatform,
+    onOpenAssistant = onOpenAssistant,
+    allStations = allStations,
+    stations = stations,
+    homeStation = homeStation,
+    workStation = workStation,
+    searchQuery = searchQuery,
+    onSearchQueryChange = onSearchQueryChange,
+    onStationSelected = onStationSelected,
+    onAssignHomeStation = onAssignHomeStation,
+    onAssignWorkStation = onAssignWorkStation,
+    onClearHomeStation = onClearHomeStation,
+    onClearWorkStation = onClearWorkStation,
+    onRemoveFavorite = onRemoveFavorite,
+    onQuickRoute = onQuickRoute,
+    paddingValues = paddingValues,
+  )
+
+  @Composable
+  fun FavoritesScreenContent(
+    viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.FavoritesViewModel,
+    mobilePlatform: MobileUiPlatform,
+    onOpenAssistant: () -> Unit,
+    onStationSelected: (Station) -> Unit,
+    paddingValues: PaddingValues,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    FavoritesScreen(
+      mobilePlatform = mobilePlatform,
+      onOpenAssistant = onOpenAssistant,
+      allStations = uiState.allStations,
+      stations = uiState.favoriteStations,
+      homeStation = uiState.homeStation,
+      workStation = uiState.workStation,
+      searchQuery = uiState.searchQuery,
+      onSearchQueryChange = viewModel::onSearchQueryChange,
+      onStationSelected = onStationSelected,
+      onAssignHomeStation = viewModel::onAssignHomeStation,
+      onAssignWorkStation = viewModel::onAssignWorkStation,
+      onClearHomeStation = viewModel::onClearHomeStation,
+      onClearWorkStation = viewModel::onClearWorkStation,
+      onRemoveFavorite = viewModel::onRemoveFavorite,
+      onQuickRoute = viewModel::onQuickRoute,
+      paddingValues = paddingValues,
+    )
+  }
+
+  @Composable
+  fun ProfileScreenContent(
+    mobilePlatform: MobileUiPlatform,
+    paddingValues: PaddingValues,
+    mapSupportStatus: MapSupportStatus,
+    searchRadiusMeters: Int,
+    preferredMapApp: PreferredMapApp,
+    themePreference: ThemePreference,
+    userLocation: GeoPoint?,
+    stations: List<Station>,
+    graph: SharedGraph,
+    stationsRepository: StationsRepository,
+    favoriteIds: Set<String>,
+    initialAction: AssistantAction?,
+    onInitialActionConsumed: () -> Unit,
+    onSearchRadiusSelected: (Int) -> Unit,
+    onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
+    onThemePreferenceSelected: (ThemePreference) -> Unit,
+  ) = ProfileScreen(
+    mobilePlatform = mobilePlatform,
+    paddingValues = paddingValues,
+    mapSupportStatus = mapSupportStatus,
+    searchRadiusMeters = searchRadiusMeters,
+    preferredMapApp = preferredMapApp,
+    themePreference = themePreference,
+    userLocation = userLocation,
+    stations = stations,
+    graph = graph,
+    stationsRepository = stationsRepository,
+    favoriteIds = favoriteIds,
+    initialAction = initialAction,
+    onInitialActionConsumed = onInitialActionConsumed,
+    onSearchRadiusSelected = onSearchRadiusSelected,
+    onPreferredMapAppSelected = onPreferredMapAppSelected,
+    onThemePreferenceSelected = onThemePreferenceSelected,
+  )
+
+  @Composable
+  fun ProfileScreenContent(
+    viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.ProfileViewModel,
+    mobilePlatform: MobileUiPlatform,
+    paddingValues: PaddingValues,
+    mapSupportStatus: MapSupportStatus,
+    userLocation: GeoPoint?,
+    stations: List<Station>,
+    graph: SharedGraph,
+    stationsRepository: StationsRepository,
+    favoriteIds: Set<String>,
+    initialAction: AssistantAction?,
+    onInitialActionConsumed: () -> Unit,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    ProfileScreen(
+      mobilePlatform = mobilePlatform,
+      paddingValues = paddingValues,
+      mapSupportStatus = mapSupportStatus,
+      searchRadiusMeters = uiState.searchRadiusMeters,
+      preferredMapApp = uiState.preferredMapApp,
+      themePreference = uiState.themePreference,
+      userLocation = userLocation,
+      stations = stations,
+      graph = graph,
+      stationsRepository = stationsRepository,
+      favoriteIds = favoriteIds,
+      initialAction = initialAction,
+      onInitialActionConsumed = onInitialActionConsumed,
+      onSearchRadiusSelected = viewModel::onSearchRadiusSelected,
+      onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
+      onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
+    )
+  }
+
+  @Composable
+  fun MapScreenContent(
+    mobilePlatform: MobileUiPlatform,
+    stations: List<Station>,
+    favoriteIds: Set<String>,
+    loading: Boolean,
+    errorMessage: String?,
+    nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
+    searchQuery: String,
+    searchRadiusMeters: Int,
+    userLocation: GeoPoint?,
+    isMapReady: Boolean,
+    onSearchQueryChange: (String) -> Unit,
+    onStationSelected: (Station) -> Unit,
+    onRetry: () -> Unit,
+    onFavoriteToggle: (Station) -> Unit,
+    onQuickRoute: (Station) -> Unit,
+    paddingValues: PaddingValues,
+  ) = MapScreen(
+    mobilePlatform = mobilePlatform,
+    stations = stations,
+    favoriteIds = favoriteIds,
+    loading = loading,
+    errorMessage = errorMessage,
+    nearestSelection = nearestSelection,
+    searchQuery = searchQuery,
+    searchRadiusMeters = searchRadiusMeters,
+    userLocation = userLocation,
+    isMapReady = isMapReady,
+    onSearchQueryChange = onSearchQueryChange,
+    onStationSelected = onStationSelected,
+    onRetry = onRetry,
+    onFavoriteToggle = onFavoriteToggle,
+    onQuickRoute = onQuickRoute,
+    paddingValues = paddingValues,
+  )
+
+  @Composable
+  fun StationDetailScreenContent(
+    mobilePlatform: MobileUiPlatform,
+    station: Station,
+    graph: SharedGraph,
+    favoriteIds: Set<String>,
+    userLocation: GeoPoint?,
+    isMapReady: Boolean,
+    onBack: () -> Unit,
+    stationsRepository: StationsRepository,
+  ) {
+    val scope = rememberCoroutineScope()
+    val favoritesRepository = graph.favoritesRepository
+    val homeStationId by favoritesRepository.homeStationId.collectAsState()
+    val workStationId by favoritesRepository.workStationId.collectAsState()
+    StationDetailScreen(
+      mobilePlatform = mobilePlatform,
+      station = station,
+      datosBiziApi = graph.datosBiziApi,
+      isFavorite = station.id in favoriteIds,
+      isHomeStation = homeStationId == station.id,
+      isWorkStation = workStationId == station.id,
+      userLocation = userLocation,
+      isMapReady = isMapReady,
+      onBack = onBack,
+      onToggleFavorite = { scope.launch { favoritesRepository.toggle(station.id) } },
+      onToggleHome = {
+        scope.launch {
+          favoritesRepository.setHomeStationId(if (homeStationId == station.id) null else station.id)
+        }
+      },
+      onToggleWork = {
+        scope.launch {
+          favoritesRepository.setWorkStationId(if (workStationId == station.id) null else station.id)
+        }
+      },
+      onRoute = { graph.routeLauncher.launch(station) },
+    )
+  }
+}
