@@ -9,6 +9,7 @@ import com.gcaguilar.bizizaragoza.core.TripRepository
 import com.gcaguilar.bizizaragoza.core.platform.IOSPlatformBindings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import platform.UIKit.UIViewController
 
@@ -30,7 +31,7 @@ class BiziMainViewControllerWrapper(
   stationMapViewFactory: StationMapViewFactory?,
 ) {
   private var currentLaunchRequest: MobileLaunchRequest? by mutableStateOf(initialLaunchRequest)
-  private val scope = CoroutineScope(Dispatchers.Main)
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
   val viewController: UIViewController = ComposeUIViewController(
     configure = { enforceStrictPlistSanityCheck = false },
