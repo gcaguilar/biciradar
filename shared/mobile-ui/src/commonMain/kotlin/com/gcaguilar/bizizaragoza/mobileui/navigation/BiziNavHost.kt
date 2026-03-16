@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -71,10 +72,6 @@ internal fun BiziNavHost(
   paddingValues: PaddingValues,
   modifier: Modifier = Modifier,
 ) {
-  val nearbyViewModel = remember(nearbyViewModelFactory) { nearbyViewModelFactory.create() }
-  val favoritesViewModel = remember(favoritesViewModelFactory) { favoritesViewModelFactory.create() }
-  val profileViewModel = remember(profileViewModelFactory) { profileViewModelFactory.create() }
-
   NavHost(
     navController = navController,
     startDestination = Screen.Nearby,
@@ -83,6 +80,7 @@ internal fun BiziNavHost(
     composable<Screen.Nearby>(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}nearby" }),
     ) {
+      val nearbyViewModel = viewModel(key = "nearby") { nearbyViewModelFactory.create() }
       DisposableEffect(nearbyViewModel) {
         nearbyViewModel.setActive(true)
         onDispose { nearbyViewModel.setActive(false) }
@@ -125,6 +123,7 @@ internal fun BiziNavHost(
     composable<Screen.Favorites>(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}favorites" }),
     ) {
+      val favoritesViewModel = viewModel(key = "favorites") { favoritesViewModelFactory.create() }
       BiziMobileAppContent.FavoritesScreenContent(
         viewModel = favoritesViewModel,
         mobilePlatform = mobilePlatform,
@@ -140,7 +139,7 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}trip" }),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.Trip>()
-      val viewModel = remember(tripViewModelFactory) { tripViewModelFactory.create() }
+      val viewModel = viewModel(key = "trip") { tripViewModelFactory.create() }
       var prefilledApplied by rememberSaveable { mutableStateOf(false) }
       if (route.prefilledQuery != null && !prefilledApplied) {
         LaunchedEffect(Unit) {
@@ -163,6 +162,7 @@ internal fun BiziNavHost(
     composable<Screen.Profile>(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}profile" }),
     ) {
+      val profileViewModel = viewModel(key = "profile") { profileViewModelFactory.create() }
       BiziMobileAppContent.ProfileScreenContent(
         viewModel = profileViewModel,
         mobilePlatform = mobilePlatform,
