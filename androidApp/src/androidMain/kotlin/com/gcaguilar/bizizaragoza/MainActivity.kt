@@ -3,6 +3,7 @@ package com.gcaguilar.bizizaragoza
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
@@ -18,6 +19,8 @@ import com.gcaguilar.bizizaragoza.core.platform.AndroidPlatformBindings
 import com.gcaguilar.bizizaragoza.mobileui.AssistantLaunchRequest
 import com.gcaguilar.bizizaragoza.mobileui.BiziMobileApp
 import com.gcaguilar.bizizaragoza.mobileui.MobileLaunchRequest
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +33,15 @@ class MainActivity : ComponentActivity() {
     ActivityResultContracts.RequestMultiplePermissions(),
   ) {
     refreshNonce += 1
+  }
+
+  // Coroutine continuation resumed when the user responds to the POST_NOTIFICATIONS dialog.
+  private var notificationPermissionContinuation: kotlin.coroutines.Continuation<Boolean>? = null
+  private val notificationPermissionLauncher = registerForActivityResult(
+    ActivityResultContracts.RequestPermission(),
+  ) { granted ->
+    notificationPermissionContinuation?.resume(granted)
+    notificationPermissionContinuation = null
   }
 
   private var launchRequest by mutableStateOf<MobileLaunchRequest?>(null)
@@ -46,6 +58,23 @@ class MainActivity : ComponentActivity() {
       context = applicationContext,
       appConfiguration = AppConfiguration(),
     )
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      platformBindings.bindNotificationPermissionRequester {
+        if (ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS,
+          ) == PackageManager.PERMISSION_GRANTED
+        ) {
+          return@bindNotificationPermissionRequester true
+        }
+        suspendCoroutine { cont ->
+          notificationPermissionContinuation = cont
+          notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+      }
+    }
+
     applyLaunchPayload(intent)
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
 

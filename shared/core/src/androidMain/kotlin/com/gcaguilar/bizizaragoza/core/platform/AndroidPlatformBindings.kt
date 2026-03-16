@@ -62,12 +62,20 @@ class AndroidPlatformBindings(
     applicationInfo.metaData?.getString("com.google.android.geo.API_KEY")?.trim()?.takeIf { it.isNotBlank() }
   }.getOrNull()
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
-  override val localNotifier: LocalNotifier = AndroidLocalNotifier(context)
+  private val androidLocalNotifier = AndroidLocalNotifier(context)
+  override val localNotifier: LocalNotifier = androidLocalNotifier
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
   override val mapSupport: MapSupport = AndroidMapSupport(context)
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = AndroidWatchSyncBridge(context)
+
+  /** Provide an Activity-backed requester so [AndroidLocalNotifier] can actually trigger the
+   *  POST_NOTIFICATIONS runtime-permission dialog on Android 13+. Call this from
+   *  [androidx.activity.ComponentActivity] after registering your [ActivityResultLauncher]. */
+  fun bindNotificationPermissionRequester(requester: suspend () -> Boolean) {
+    androidLocalNotifier.permissionRequester = requester
+  }
 }
 
 private class AndroidHttpClientFactory : BiziHttpClientFactory {
@@ -242,12 +250,19 @@ private class AndroidLocalNotifier(
   private val channelId = "bizi_trip"
   private val notificationManager: NotificationManagerCompat = NotificationManagerCompat.from(context)
 
+  /** Injected by [AndroidPlatformBindings.bindNotificationPermissionRequester] once the Activity
+   *  has registered its [ActivityResultLauncher]. When null, falls back to a check-only path. */
+  var permissionRequester: (suspend () -> Boolean)? = null
+
   init {
     ensureChannel()
   }
 
   override suspend fun requestPermission(): Boolean {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+    // If an Activity-backed requester is available, use it to show the system dialog.
+    permissionRequester?.let { return it() }
+    // Fallback: check current grant state without prompting.
     return ContextCompat.checkSelfPermission(
       context,
       Manifest.permission.POST_NOTIFICATIONS,
