@@ -159,6 +159,6 @@ class InstallationIdentityRepository(
     }
 
     companion object {
-        internal const val BASE_URL = "https://datosbizi.com"
+        internal const val BASE_URL = "https://datosbizi.com/api"
     }
 }

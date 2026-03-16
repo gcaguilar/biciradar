@@ -38,8 +38,8 @@ android {
     applicationId = "com.gcaguilar.bizizaragoza.wear"
     minSdk = 30
     targetSdk = 36
-    versionCode = 29561173
-    versionName = "2026.03.16.1513"
+    versionCode = 29561182
+    versionName = "2026.03.16.1522"
   }
 
   buildFeatures {
