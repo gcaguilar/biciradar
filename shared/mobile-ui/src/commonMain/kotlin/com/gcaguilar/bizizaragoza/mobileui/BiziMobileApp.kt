@@ -349,7 +349,6 @@ fun BiziMobileApp(
   var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
   var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
-  var refreshCountdownSeconds by remember(graph) { mutableStateOf(0) }
   val lastSeenChangelog by settingsRepository.lastSeenChangelogVersion.collectAsState()
   var showChangelog by remember(graph) { mutableStateOf(false) }
 
@@ -387,19 +386,6 @@ fun BiziMobileApp(
   LaunchedEffect(graph, refreshKey) {
     stationsRepository.loadIfNeeded()
     initialLoadAttemptFinished = true
-  }
-
-  LaunchedEffect(graph) {
-    val intervalSeconds = 300 // 5 minutes
-    while (true) {
-      for (remaining in intervalSeconds downTo 1) {
-        refreshCountdownSeconds = remaining
-        kotlinx.coroutines.delay(1_000)
-      }
-      refreshCountdownSeconds = 0
-      val ids = stationsRepository.state.value.stations.take(20).map { it.id }
-      stationsRepository.refreshAvailability(ids)
-    }
   }
 
   LaunchedEffect(
@@ -576,12 +562,14 @@ fun BiziMobileApp(
       color = pageBackgroundColor(mobilePlatform),
     ) {
       if (showChangelog) {
-        ChangelogDialog(
-          onDismiss = {
+        val onChangelogDismiss = remember {
+          {
             showChangelog = false
             scope.launch { settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION) }
-          },
-        )
+            Unit
+          }
+        }
+        ChangelogDialog(onDismiss = onChangelogDismiss)
       }
       AnimatedContent(
         targetState = showStartupSplash,
@@ -647,7 +635,6 @@ fun BiziMobileApp(
               userLocation = stationsState.userLocation,
               searchQuery = appState.searchQuery,
               searchRadiusMeters = searchRadiusMeters,
-              refreshCountdownSeconds = refreshCountdownSeconds,
               isMapReady = isMapReady,
               onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
               onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
@@ -2496,6 +2483,14 @@ private fun TripScreen(
             )
           }
         }
+      } else if (uiState.suggestionsError != null) {
+        item(key = "suggestions-error") {
+          Text(
+            uiState.suggestionsError ?: "",
+            style = MaterialTheme.typography.bodySmall,
+            color = c.red,
+          )
+        }
       }
     }
 
@@ -3780,7 +3775,7 @@ private fun MobileTab.screen(): Screen = when (this) {
   MobileTab.Mapa -> Screen.Map
   MobileTab.Cerca -> Screen.Nearby
   MobileTab.Favoritos -> Screen.Favorites
-  MobileTab.Viaje -> Screen.Trip
+  MobileTab.Viaje -> Screen.Trip()
   MobileTab.Perfil -> Screen.Profile
 }
 
@@ -3895,8 +3890,6 @@ internal object BiziMobileAppContent {
   fun NearbyScreenContent(
     viewModel: com.gcaguilar.bizizaragoza.mobileui.viewmodel.NearbyViewModel,
     mobilePlatform: MobileUiPlatform,
-    nearestSelection: com.gcaguilar.bizizaragoza.core.NearbyStationSelection,
-    refreshCountdownSeconds: Int,
     onStationSelected: (Station) -> Unit,
     paddingValues: PaddingValues,
   ) {
@@ -3907,14 +3900,15 @@ internal object BiziMobileAppContent {
       favoriteIds = uiState.favoriteIds,
       loading = uiState.isLoading,
       errorMessage = uiState.errorMessage,
-      nearestSelection = nearestSelection,
+      nearestSelection = uiState.nearestSelection
+        ?: com.gcaguilar.bizizaragoza.core.NearbyStationSelection(null, null, uiState.searchRadiusMeters),
       searchRadiusMeters = uiState.searchRadiusMeters,
       onStationSelected = onStationSelected,
       onRetry = viewModel::onRetry,
       onRefresh = viewModel::onRefresh,
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
-      refreshCountdownSeconds = refreshCountdownSeconds,
+      refreshCountdownSeconds = uiState.refreshCountdownSeconds,
       paddingValues = paddingValues,
     )
   }

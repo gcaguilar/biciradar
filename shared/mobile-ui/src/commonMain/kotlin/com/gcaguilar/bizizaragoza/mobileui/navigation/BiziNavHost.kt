@@ -3,6 +3,7 @@ package com.gcaguilar.bizizaragoza.mobileui.navigation
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -43,7 +44,6 @@ internal fun BiziNavHost(
   userLocation: GeoPoint?,
   searchQuery: String,
   searchRadiusMeters: Int,
-  refreshCountdownSeconds: Int,
   isMapReady: Boolean,
   onSearchQueryChange: (String) -> Unit,
   // Map interactions (still needed by MapScreen)
@@ -77,11 +77,9 @@ internal fun BiziNavHost(
       BiziMobileAppContent.NearbyScreenContent(
         viewModel = nearbyViewModel,
         mobilePlatform = mobilePlatform,
-        nearestSelection = nearestSelection,
-        refreshCountdownSeconds = refreshCountdownSeconds,
-        onStationSelected = { station ->
+        onStationSelected = remember(navController) { { station ->
           navController.navigate(Screen.StationDetail(station.id))
-        },
+        } },
         paddingValues = PaddingValues(),
       )
     }
@@ -101,9 +99,9 @@ internal fun BiziNavHost(
         userLocation = userLocation,
         isMapReady = isMapReady,
         onSearchQueryChange = onSearchQueryChange,
-        onStationSelected = { station ->
+        onStationSelected = remember(navController) { { station ->
           navController.navigate(Screen.StationDetail(station.id))
-        },
+        } },
         onRetry = onRetry,
         onFavoriteToggle = onFavoriteToggle,
         onQuickRoute = onQuickRoute,
@@ -118,17 +116,21 @@ internal fun BiziNavHost(
         viewModel = favoritesViewModel,
         mobilePlatform = mobilePlatform,
         onOpenAssistant = onOpenAssistant,
-        onStationSelected = { station ->
+        onStationSelected = remember(navController) { { station ->
           navController.navigate(Screen.StationDetail(station.id))
-        },
+        } },
         paddingValues = PaddingValues(),
       )
     }
 
     composable<Screen.Trip>(
       deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}trip" }),
-    ) {
-      val viewModel = tripViewModelFactory.create()
+    ) { backStackEntry ->
+      val route = backStackEntry.toRoute<Screen.Trip>()
+      val viewModel = remember(tripViewModelFactory) { tripViewModelFactory.create() }
+      if (route.prefilledQuery != null) {
+        LaunchedEffect(route.prefilledQuery) { viewModel.onQueryChange(route.prefilledQuery) }
+      }
       BiziMobileAppContent.TripScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
@@ -171,26 +173,8 @@ internal fun BiziNavHost(
         favoriteIds = favoriteIds,
         userLocation = userLocation,
         isMapReady = isMapReady,
-        onBack = { navController.popBackStack() },
+        onBack = remember(navController) { { navController.popBackStack() } },
         stationsRepository = stationsRepository,
-      )
-    }
-
-    composable<Screen.TripDestination>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}trip" }),
-    ) { backStackEntry ->
-      val route = backStackEntry.toRoute<Screen.TripDestination>()
-      val viewModel = tripViewModelFactory.create()
-      viewModel.onQueryChange(route.name)
-      BiziMobileAppContent.TripScreenContent(
-        viewModel = viewModel,
-        mobilePlatform = mobilePlatform,
-        localNotifier = localNotifier,
-        routeLauncher = routeLauncher,
-        userLocation = userLocation,
-        stations = stations,
-        isMapReady = isMapReady,
-        paddingValues = PaddingValues(),
       )
     }
   }
