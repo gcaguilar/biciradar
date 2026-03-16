@@ -2,9 +2,7 @@ package com.gcaguilar.bizizaragoza.core
 
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,8 +58,8 @@ class TripRepositoryImpl(
   private val stationsRepository: StationsRepository,
   private val localNotifier: LocalNotifier,
   private val appConfiguration: AppConfiguration,
+  private val scope: CoroutineScope,
 ) : TripRepository {
-  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   private val mutableState = MutableStateFlow(TripState())
   override val state: StateFlow<TripState> = mutableState.asStateFlow()
 

@@ -6,6 +6,9 @@ import dev.zacsweers.metro.Includes
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 
 @DependencyGraph(AppScope::class)
@@ -19,6 +22,10 @@ interface SharedGraph {
   val stationsRepository: StationsRepository
   val tripRepository: TripRepository
   val watchSyncBridge: WatchSyncBridge
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   @SingleIn(AppScope::class)
   @Provides
