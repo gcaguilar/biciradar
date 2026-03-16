@@ -8,6 +8,8 @@ import com.gcaguilar.bizizaragoza.core.RouteLauncher
 import com.gcaguilar.bizizaragoza.core.Station
 import com.gcaguilar.bizizaragoza.core.StationsRepository
 import com.gcaguilar.bizizaragoza.core.StationsState
+import com.gcaguilar.bizizaragoza.core.selectNearbyStation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +44,7 @@ class NearbyViewModel(
           stations = state.stations,
           isLoading = state.isLoading,
           errorMessage = state.errorMessage,
+          nearestSelection = selectNearbyStation(state.stations, searchRadiusMeters),
         )
       }
     }
@@ -49,6 +52,19 @@ class NearbyViewModel(
     viewModelScope.launch {
       favoritesRepository.favoriteIds.collect { ids ->
         _uiState.value = _uiState.value.copy(favoriteIds = ids)
+      }
+    }
+
+    viewModelScope.launch {
+      val intervalSeconds = 300
+      while (true) {
+        for (remaining in intervalSeconds downTo 1) {
+          _uiState.value = _uiState.value.copy(refreshCountdownSeconds = remaining)
+          delay(1_000)
+        }
+        _uiState.value = _uiState.value.copy(refreshCountdownSeconds = 0)
+        val ids = stationsRepository.state.value.stations.take(20).map { it.id }
+        stationsRepository.refreshAvailability(ids)
       }
     }
   }
