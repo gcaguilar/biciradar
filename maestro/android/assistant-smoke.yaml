@@ -1,27 +1,27 @@
-appId: com.gcaguilar.bizizaragoza
+appId: com.gcaguilar.biciradar
 ---
 - launchApp
 - assertVisible: "Zaragoza Bizi"
 - assertVisible: "Buscar estación o dirección"
 
-- openLink: "bizi://assistant?action=favorite_stations"
+- openLink: "biciradar://assistant?action=favorite_stations"
 - assertVisible: "Mis estaciones"
 - assertVisible: "Filtrar favoritas"
 
 - tapOn: "Mapa"
 - assertVisible: "Buscar estación o dirección"
 
-- openLink: "bizi://assistant?action=open_assistant"
+- openLink: "biciradar://assistant?action=open_assistant"
 - assertVisible: "Asistente y atajos"
 - assertVisible: "Estación más cercana"
 
 - tapOn: "Cerrar"
 - assertVisible: "Buscar estación o dirección"
 
-- openLink: "bizi://assistant?action=station_bike_count&station_query=Plaza%20España"
+- openLink: "biciradar://assistant?action=station_bike_count&station_query=Plaza%20España"
 - assertVisible: "Plaza España"
 - assertVisible: "Estaciones disponibles"
 
-- openLink: "bizi://assistant?action=station_slot_count&station_query=48"
+- openLink: "biciradar://assistant?action=station_slot_count&station_query=48"
 - assertVisible: "48"
 - assertVisible: "Estaciones disponibles"

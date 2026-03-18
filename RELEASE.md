@@ -15,13 +15,13 @@
 ## iOS and watchOS
 
 - Add [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/bizi/apple/iosApp/GoogleService-Info.plist) to enable Firebase Crashlytics on iOS.
-- Open [apple/BiziZaragoza.xcodeproj](/Users/guillermo.castella/bizi/apple/BiziZaragoza.xcodeproj).
-- Configure `Team`, signing, and provisioning for `BiziZaragoza`, `BiziZaragozaWatch`, and their tests.
+- Open [apple/BiciRadar.xcodeproj](/Users/guillermo.castella/bizi/apple/BiciRadar.xcodeproj).
+- Configure `Team`, signing, and provisioning for `BiciRadar`, `BiciRadarWatch`, and their tests.
 - Generate archives:
 
 ```bash
-xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragoza -configuration Release archive
-xcodebuild -project apple/BiziZaragoza.xcodeproj -scheme BiziZaragozaWatch -configuration Release archive
+xcodebuild -project apple/BiciRadar.xcodeproj -scheme BiciRadar -configuration Release archive
+xcodebuild -project apple/BiciRadar.xcodeproj -scheme BiciRadarWatch -configuration Release archive
 ```
 
 ## Firebase App Distribution

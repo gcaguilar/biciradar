@@ -1,7 +1,7 @@
-# Bizi Zaragoza Plan
+# BiciRadar Plan
 
 ## Summary
-- Greenfield project with base `package` `com.gcaguilar.bizizaragoza`.
+- Greenfield project with base `package` `com.gcaguilar.biciradar`.
 - `stitch` is used only as the initial visual inspiration.
 - v1 scope: nearby stations, availability, station detail, favorites, map, routes delegated to native maps, Android shortcuts/App Actions, and iOS/watchOS App Intents/App Shortcuts.
 - Targets: Android mobile with Compose Multiplatform, iOS mobile with Compose Multiplatform, Wear OS with Compose for Wear OS, and Apple Watch with SwiftUI plus shared KMP logic.
@@ -10,7 +10,7 @@
 
 ## Implementation Changes
 - Create KMP modules for domain, networking, local storage, favorites, assistant/intents, mobile-watch sync, and platform utilities.
-- Consume public Bizi Zaragoza data directly from shared code with Ktor and normalize it into internal models for stations, availability, favorites, and nearby queries. The primary source is the official Zaragoza City Council feed, with CityBikes as fallback.
+- Consume public BiciRadar data directly from shared code with Ktor and normalize it into internal models for stations, availability, favorites, and nearby queries. The primary source is the official Zaragoza City Council feed, with CityBikes as fallback.
 - Persist favorites locally and sync them between mobile and watch through pairing.
 - Resolve routes with deep links/intents to Google Maps and Apple Maps.
 - Implement Metro DI as the main container with shared bindings and native adapters.

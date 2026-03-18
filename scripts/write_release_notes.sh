@@ -12,7 +12,7 @@ commit_subject="$(git log --format=%s -n 1 "$commit_sha")"
 ref_name="${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
 
 {
-  echo "Bizi Zaragoza ${label}"
+  echo "BiciRadar ${label}"
   echo
   echo "Commit: ${commit_sha}"
   echo "Branch: ${ref_name}"

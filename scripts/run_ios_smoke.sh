@@ -8,8 +8,8 @@ DESTINATION="${1:-$("$ROOT_DIR/scripts/resolve_xcode_destination.sh" ios)}"
 cd "$ROOT_DIR"
 
 xcodebuild \
-  -project apple/BiziZaragoza.xcodeproj \
-  -scheme BiziZaragoza \
+  -project apple/BiciRadar.xcodeproj \
+  -scheme BiciRadar \
   -sdk iphonesimulator \
   -destination "$DESTINATION" \
   test

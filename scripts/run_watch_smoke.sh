@@ -8,8 +8,8 @@ DESTINATION="${1:-$("$ROOT_DIR/scripts/resolve_xcode_destination.sh" watchos)}"
 cd "$ROOT_DIR"
 
 xcodebuild \
-  -project apple/BiziZaragoza.xcodeproj \
-  -scheme BiziZaragozaWatch \
+  -project apple/BiciRadar.xcodeproj \
+  -scheme BiciRadarWatch \
   -sdk watchsimulator \
   -destination "$DESTINATION" \
   test

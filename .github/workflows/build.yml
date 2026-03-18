@@ -181,8 +181,8 @@ jobs:
       - name: Run iOS tests
         run: |
           xcodebuild \
-            -project apple/BiziZaragoza.xcodeproj \
-            -scheme BiziZaragoza \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadar \
             -sdk iphonesimulator \
             -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
@@ -192,8 +192,8 @@ jobs:
       - name: Build iOS simulator app
         run: |
           xcodebuild \
-            -project apple/BiziZaragoza.xcodeproj \
-            -scheme BiziZaragoza \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadar \
             -sdk iphonesimulator \
             -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
@@ -203,15 +203,15 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/artifacts"
           ditto -c -k --sequesterRsrc --keepParent \
-            "$RUNNER_TEMP/derived-data-ios/Build/Products/Debug-iphonesimulator/Bizi Zaragoza.app" \
-            "$RUNNER_TEMP/artifacts/BiziZaragoza-ios-simulator-app.zip"
+            "$RUNNER_TEMP/derived-data-ios/Build/Products/Debug-iphonesimulator/BiciRadar.app" \
+            "$RUNNER_TEMP/artifacts/BiciRadar-ios-simulator-app.zip"
 
       - name: Upload iOS simulator app
         uses: actions/upload-artifact@v4
         with:
           name: ios-simulator-app
           if-no-files-found: error
-          path: ${{ runner.temp }}/artifacts/BiziZaragoza-ios-simulator-app.zip
+          path: ${{ runner.temp }}/artifacts/BiciRadar-ios-simulator-app.zip
 
       - name: Upload iOS test results on failure
         if: failure()
@@ -245,12 +245,12 @@ jobs:
       - name: Build signed iOS IPA
         if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
         env:
-          APPLE_BUNDLE_ID: com.gcaguilar.bizizaragoza.ios
+          APPLE_BUNDLE_ID: com.gcaguilar.biciradar.ios
           APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
           APPLE_SIGNING_CERTIFICATE_TYPE: ${{ vars.APPLE_SIGNING_CERTIFICATE_TYPE }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          ./scripts/export_ios_ipa.sh "$RUNNER_TEMP/ios-export" "$RUNNER_TEMP/BiziZaragoza.xcarchive"
+          ./scripts/export_ios_ipa.sh "$RUNNER_TEMP/ios-export" "$RUNNER_TEMP/BiciRadar.xcarchive"
 
       - name: Upload signed iOS IPA
         if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
@@ -315,8 +315,8 @@ jobs:
       - name: Run watchOS tests
         run: |
           xcodebuild \
-            -project apple/BiziZaragoza.xcodeproj \
-            -scheme BiziZaragozaWatch \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadarWatch \
             -sdk watchsimulator \
             -destination "$WATCHOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
@@ -326,8 +326,8 @@ jobs:
       - name: Build watchOS simulator app
         run: |
           xcodebuild \
-            -project apple/BiziZaragoza.xcodeproj \
-            -scheme BiziZaragozaWatch \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadarWatch \
             -sdk watchsimulator \
             -destination "$WATCHOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
@@ -337,15 +337,15 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/artifacts"
           ditto -c -k --sequesterRsrc --keepParent \
-            "$RUNNER_TEMP/derived-data-watchos/Build/Products/Debug-watchsimulator/Bizi Zaragoza Watch.app" \
-            "$RUNNER_TEMP/artifacts/BiziZaragoza-watchos-simulator-app.zip"
+            "$RUNNER_TEMP/derived-data-watchos/Build/Products/Debug-watchsimulator/BiciRadar Watch.app" \
+            "$RUNNER_TEMP/artifacts/BiciRadar-watchos-simulator-app.zip"
 
       - name: Upload watchOS simulator app
         uses: actions/upload-artifact@v4
         with:
           name: watchos-simulator-app
           if-no-files-found: error
-          path: ${{ runner.temp }}/artifacts/BiziZaragoza-watchos-simulator-app.zip
+          path: ${{ runner.temp }}/artifacts/BiciRadar-watchos-simulator-app.zip
 
       - name: Upload watchOS test results on failure
         if: failure()

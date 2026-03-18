@@ -1,6 +1,6 @@
-# Bizi Zaragoza
+# BiciRadar
 
-Greenfield scaffold for `com.gcaguilar.bizizaragoza` with:
+Greenfield scaffold for `com.gcaguilar.biciradar` with:
 
 - Kotlin Multiplatform for domain, data, and shared contracts.
 - Compose Multiplatform for Android + iOS mobile.
@@ -37,11 +37,11 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 
 ### Crashlytics setup
 
-1. In Firebase, register the Android app `com.gcaguilar.bizizaragoza` and download `google-services.json`.
+1. In Firebase, register the Android app `com.gcaguilar.biciradar` and download `google-services.json`.
 2. Save that file at [androidApp/google-services.json](/Users/guillermo.castella/bizi/androidApp/google-services.json).
-3. In Firebase, register the Wear OS app `com.gcaguilar.bizizaragoza.wear` and download its `google-services.json`.
+3. In Firebase, register the Wear OS app `com.gcaguilar.biciradar.wear` and download its `google-services.json`.
 4. Save that file at [wearApp/google-services.json](/Users/guillermo.castella/bizi/wearApp/google-services.json).
-5. In Firebase, register the iOS app `com.gcaguilar.bizizaragoza.ios` and download `GoogleService-Info.plist`.
+5. In Firebase, register the iOS app `com.gcaguilar.biciradar.ios` and download `GoogleService-Info.plist`.
 6. Save that file at [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/bizi/apple/iosApp/GoogleService-Info.plist).
 7. Save your local iPhone Google Maps key in [apple/Config/LocalSecrets.xcconfig](/Users/guillermo.castella/bizi/apple/Config/LocalSecrets.xcconfig) using the `GOOGLE_MAPS_IOS_API_KEY` setting.
 8. Rebuild the apps.
@@ -98,7 +98,7 @@ Required secrets:
 - `APPLE_TEAM_ID`: Apple Developer team id for signing the iOS IPA.
 - `APPLE_SIGNING_CERTIFICATE_P12_BASE64`: base64-encoded `.p12` signing certificate for iOS distribution.
 - `APPLE_SIGNING_CERTIFICATE_PASSWORD`: password for the `.p12`.
-- `APPLE_PROVISIONING_PROFILE_BASE64`: base64-encoded provisioning profile for `com.gcaguilar.bizizaragoza.ios`.
+- `APPLE_PROVISIONING_PROFILE_BASE64`: base64-encoded provisioning profile for `com.gcaguilar.biciradar.ios`.
 - `APPLE_KEYCHAIN_PASSWORD`: optional custom password for the temporary CI keychain.
 
 Optional GitHub repository variables:
@@ -121,18 +121,18 @@ Behavior:
 
 Shortcuts published in [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castella/bizi/apple/iosApp/BiziShortcuts.swift):
 
-- `Muéstrame la estación más cercana en Bizi Zaragoza`
-- `Muéstrame la estación más cercana con bicis en Bizi Zaragoza`
-- `Muéstrame la estación más cercana con huecos en Bizi Zaragoza`
-- `Abre mis favoritas en Bizi Zaragoza`
-- `Enséñame el estado de una estación en Bizi Zaragoza`
-- `Enséñame cuántas bicis tiene una estación en Bizi Zaragoza`
-- `Enséñame cuántos huecos tiene una estación en Bizi Zaragoza`
-- `Llévame a una estación con Bizi Zaragoza`
-- `Enséñame el estado de casa en Bizi Zaragoza`
-- `Enséñame el estado de trabajo en Bizi Zaragoza`
-- `Llévame a casa con Bizi Zaragoza`
-- `Llévame a trabajo con Bizi Zaragoza`
+- `Cuál es la estación más cercana con Bici Radar`
+- `Dónde hay bicis cerca con Bici Radar`
+- `Dónde puedo dejar la bici con Bici Radar`
+- `Abre mis favoritas con Bici Radar`
+- `Cómo está una estación con Bici Radar`
+- `Cuántas bicis hay en una estación con Bici Radar`
+- `Cuántos huecos hay en una estación con Bici Radar`
+- `Llévame a una estación con Bici Radar`
+- `Cómo está casa con Bici Radar`
+- `Cómo está trabajo con Bici Radar`
+- `Llévame a casa con Bici Radar`
+- `Llévame a trabajo con Bici Radar`
 
 Supported queries:
 
@@ -156,17 +156,17 @@ Current behavior:
 
 Shortcuts published in [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.castella/bizi/apple/watchApp/BiziWatchShortcuts.swift):
 
-- `Muéstrame la estación más cercana en el reloj con Bizi Zaragoza`
-- `Muéstrame la estación más cercana con bicis en el reloj con Bizi Zaragoza`
-- `Muéstrame la estación más cercana con huecos en el reloj con Bizi Zaragoza`
-- `Enséñame mis favoritas en el reloj con Bizi Zaragoza`
-- `Enséñame cuántas bicis tiene una estación en el reloj con Bizi Zaragoza`
-- `Enséñame cuántos huecos tiene una estación en el reloj con Bizi Zaragoza`
-- `Abre una ruta en mi iPhone con Bizi Zaragoza`
-- `Enséñame el estado de casa en el reloj con Bizi Zaragoza`
-- `Enséñame el estado de trabajo en el reloj con Bizi Zaragoza`
-- `Abre una ruta a casa en mi iPhone con Bizi Zaragoza`
-- `Abre una ruta a trabajo en mi iPhone con Bizi Zaragoza`
+- `Cuál es la estación más cercana con Bici Radar`
+- `Dónde hay bicis cerca con Bici Radar`
+- `Dónde puedo dejar la bici con Bici Radar`
+- `Abre mis favoritas con Bici Radar`
+- `Cuántas bicis hay en una estación con Bici Radar`
+- `Cuántos huecos hay en una estación con Bici Radar`
+- `Llévame a una estación con Bici Radar`
+- `Cómo está casa con Bici Radar`
+- `Cómo está trabajo con Bici Radar`
+- `Llévame a casa con Bici Radar`
+- `Llévame a trabajo con Bici Radar`
 
 Current behavior:
 
@@ -175,7 +175,7 @@ Current behavior:
 
 ### Android with Google Assistant
 
-Android exposes actions and shortcuts in [androidApp/src/androidMain/res/xml/shortcuts.xml](/Users/guillermo.castella/bizi/androidApp/src/androidMain/res/xml/shortcuts.xml) and parses launches in [androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/bizi/androidApp/src/androidMain/kotlin/com/gcaguilar/bizizaragoza/AndroidLaunchRequestParser.kt).
+Android exposes actions and shortcuts in [androidApp/src/androidMain/res/xml/shortcuts.xml](/Users/guillermo.castella/bizi/androidApp/src/androidMain/res/xml/shortcuts.xml) and parses launches in [androidApp/src/androidMain/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/bizi/androidApp/src/androidMain/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt).
 
 Supported actions:
 
@@ -202,18 +202,18 @@ Saved place aliases supported by Android launch resolution:
 
 Example target phrases for Assistant:
 
-- `abre Bizi Zaragoza y muéstrame la estación más cercana`
-- `abre Bizi Zaragoza y muéstrame la estación más cercana con bicis`
-- `abre Bizi Zaragoza y muéstrame la estación más cercana con huecos`
-- `abre Bizi Zaragoza y abre mis favoritas`
-- `abre Bizi Zaragoza y enséñame el estado de una estación`
-- `abre Bizi Zaragoza y enséñame cuántas bicis tiene una estación`
-- `abre Bizi Zaragoza y enséñame cuántos huecos tiene una estación`
-- `abre Bizi Zaragoza y llévame a una estación`
-- `abre Bizi Zaragoza y enséñame el estado de casa`
-- `abre Bizi Zaragoza y enséñame el estado de trabajo`
-- `abre Bizi Zaragoza y llévame a casa`
-- `abre Bizi Zaragoza y llévame al trabajo`
+- `cuál es la estación más cercana con Bici Radar`
+- `dónde hay bicis cerca con Bici Radar`
+- `dónde puedo dejar la bici con Bici Radar`
+- `abre mis favoritas con Bici Radar`
+- `cómo está una estación con Bici Radar`
+- `cuántas bicis hay en una estación con Bici Radar`
+- `cuántos huecos hay en una estación con Bici Radar`
+- `llévame a una estación con Bici Radar`
+- `cómo está casa con Bici Radar`
+- `cómo está trabajo con Bici Radar`
+- `llévame a casa con Bici Radar`
+- `llévame al trabajo con Bici Radar`
 
 Important note:
 
@@ -223,15 +223,15 @@ Important note:
 `adb` test commands:
 
 ```bash
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=nearest_station' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=nearest_station_with_bikes' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=nearest_station_with_slots' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=favorite_stations' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=station_status&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=station_bike_count&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=station_slot_count&station_query=48' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?action=route_to_station&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.bizizaragoza
-adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'bizi://assistant?station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.bizizaragoza
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=nearest_station' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=nearest_station_with_bikes' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=nearest_station_with_slots' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=favorite_stations' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=station_status&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=station_bike_count&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=station_slot_count&station_query=48' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?action=route_to_station&station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.biciradar
+adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar://assistant?station_query=Plaza%20Espa%C3%B1a' com.gcaguilar.biciradar
 ```
 
 Android smoke validation:
@@ -247,7 +247,7 @@ Example:
 
 ## Apple
 
-The generated Xcode project lives at `apple/BiziZaragoza.xcodeproj`. The SwiftUI/App Intents base is in `apple/`, and the KMP frameworks consumed there are:
+The generated Xcode project lives at `apple/BiciRadar.xcodeproj`. The SwiftUI/App Intents base is in `apple/`, and the KMP frameworks consumed there are:
 
 - `BiziSharedCore`
 - `BiziMobileUi`
@@ -257,7 +257,7 @@ Apple smoke validation:
 
 - Shortcut logic tests: [apple/iosAppTests/AppleShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleShortcutRunnerTests.swift)
 - Launch-request store tests: [apple/iosAppTests/AppleLaunchRequestStoreTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleLaunchRequestStoreTests.swift)
-- UI smoke tests: [apple/iosAppUITests/BiziZaragozaUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiziZaragozaUITests.swift)
+- UI smoke tests: [apple/iosAppUITests/BiciRadarUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiciRadarUITests.swift)
 - Convenience script: [scripts/run_ios_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_ios_smoke.sh)
 
 Example:

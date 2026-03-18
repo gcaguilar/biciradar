@@ -61,13 +61,13 @@ object BiziMobileApp {
 ## Archivos Modificados/Creados
 
 ### Nuevos archivos
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/viewmodel/TripViewModel.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/viewmodel/TripViewModelFactory.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/viewmodel/NearbyViewModel.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/viewmodel/ProfileViewModel.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/viewmodel/FavoritesViewModel.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/navigation/Screen.kt`
-- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/bizizaragoza/mobileui/navigation/BiziNavHost.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/viewmodel/TripViewModel.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/viewmodel/TripViewModelFactory.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/viewmodel/NearbyViewModel.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/viewmodel/ProfileViewModel.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/viewmodel/FavoritesViewModel.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/navigation/Screen.kt`
+- `shared/mobile-ui/src/commonMain/kotlin/com/gcaguilar/biciradar/mobileui/navigation/BiziNavHost.kt`
 
 ### Archivos con cambios menores
 - `gradle/libs.versions.toml` - Añadido navigation-compose
@@ -81,13 +81,13 @@ object BiziMobileApp {
 ## Deep Links Planificados
 
 ```
-bizi://nearby           - PantallaCerca
-bizi://map               - Pantalla Mapa
-bizi://favorites         - Pantalla Favoritos
-bizi://trip              - Pantalla Viaje
-bizi://profile           - Pantalla Perfil
-bizi://station/{id}       - Detalle de estación
-bizi://trip?name=X&lat=Y&lng=Z - Viaje con destino
+biciradar://nearby           - PantallaCerca
+biciradar://map              - Pantalla Mapa
+biciradar://favorites        - Pantalla Favoritos
+biciradar://trip             - Pantalla Viaje
+biciradar://profile          - Pantalla Perfil
+biciradar://station/{id}     - Detalle de estación
+biciradar://trip?name=X&lat=Y&lng=Z - Viaje con destino
 ```
 
 ---
