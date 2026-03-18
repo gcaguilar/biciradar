@@ -1,4 +1,4 @@
-name: BiziZaragoza
+name: BiciRadar
 
 configs:
   Debug: debug
@@ -6,7 +6,7 @@ configs:
 
 options:
   autoCreateSchemes: false
-  bundleIdPrefix: com.gcaguilar.bizizaragoza
+  bundleIdPrefix: com.gcaguilar.biciradar
   createIntermediateGroups: true
   deploymentTarget:
     iOS: "16.0"
@@ -14,8 +14,8 @@ options:
 
 settings:
   base:
-    CURRENT_PROJECT_VERSION: 29561231
-    MARKETING_VERSION: 2026.03.16.1611
+    CURRENT_PROJECT_VERSION: 29564593
+    MARKETING_VERSION: 2026.03.19.0013
     SWIFT_VERSION: "5.10"
 
 packages:
@@ -27,7 +27,7 @@ packages:
     exactVersion: 10.10.0
 
 targets:
-  BiziZaragoza:
+  BiciRadar:
     type: application
     platform: iOS
     deploymentTarget: "16.0"
@@ -63,7 +63,7 @@ targets:
           elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
             ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
           else
-            echo "Unsupported destination platform '$PLATFORM_NAME' for BiziZaragoza."
+            echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadar."
             echo "Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'."
             exit 1
           fi
@@ -109,22 +109,22 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
         INFOPLIST_KEY_BiziGoogleMapsApiKey: $(GOOGLE_MAPS_IOS_API_KEY)
-        INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza
+        INFOPLIST_KEY_CFBundleDisplayName: Bici Radar
         INFOPLIST_KEY_LSApplicationQueriesSchemes:
           - comgooglemaps
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bici Radar necesita tu ubicación para mostrar estaciones cercanas.
         INFOPLIST_KEY_UIBackgroundModes:
           - fetch
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers:
-          - com.gcaguilar.bizizaragoza.ios.refresh
+          - com.gcaguilar.biciradar.ios.refresh
         OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios
-        PRODUCT_NAME: Bizi Zaragoza
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios
+        PRODUCT_NAME: BiciRadar
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         TARGETED_DEVICE_FAMILY: "1,2"
 
-  BiziZaragozaTests:
+  BiciRadarTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "16.0"
@@ -152,7 +152,7 @@ targets:
           elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
             ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
           else
-            echo "Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaTests."
+            echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarTests."
             echo "Use an iPhone device or an iOS Simulator."
             exit 1
           fi
@@ -169,17 +169,17 @@ targets:
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.tests
-        PRODUCT_NAME: Bizi Zaragoza Tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
+        PRODUCT_NAME: BiciRadar Tests
 
-  BiziZaragozaUITests:
+  BiciRadarUITests:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "16.0"
     sources:
       - path: iosAppUITests
     dependencies:
-      - target: BiziZaragoza
+      - target: BiciRadar
       - sdk: XCTest.framework
     settings:
       base:
@@ -187,11 +187,11 @@ targets:
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.uitests
-        PRODUCT_NAME: Bizi Zaragoza UI Tests
-        TEST_TARGET_NAME: BiziZaragoza
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.uitests
+        PRODUCT_NAME: BiciRadar UI Tests
+        TEST_TARGET_NAME: BiciRadar
 
-  BiziZaragozaWatch:
+  BiciRadarWatch:
     type: application
     platform: watchOS
     deploymentTarget: "9.0"
@@ -216,7 +216,7 @@ targets:
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
             ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
           else
-            echo "Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaWatch."
+            echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatch."
             echo "Use an Apple Watch device or a watchOS Simulator."
             exit 1
           fi
@@ -233,16 +233,16 @@ targets:
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Bizi Zaragoza Watch
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bizi Zaragoza necesita tu ubicación para mostrar estaciones cercanas en el reloj.
+        INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Watch
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bici Radar necesita tu ubicación para mostrar estaciones cercanas en el reloj.
         INFOPLIST_KEY_WKApplication: YES
-        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.bizizaragoza.ios
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.biciradar.ios
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
         OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.watch
-        PRODUCT_NAME: Bizi Zaragoza Watch
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch
+        PRODUCT_NAME: BiciRadar Watch
 
-  BiziZaragozaWatchTests:
+  BiciRadarWatchTests:
     type: bundle.unit-test
     platform: watchOS
     deploymentTarget: "9.0"
@@ -271,7 +271,7 @@ targets:
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
             ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
           else
-            echo "Unsupported destination platform '$PLATFORM_NAME' for BiziZaragozaWatchTests."
+            echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests."
             echo "Use an Apple Watch device or a watchOS Simulator."
             exit 1
           fi
@@ -288,31 +288,31 @@ targets:
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.bizizaragoza.ios.watch.tests
-        PRODUCT_NAME: Bizi Zaragoza Watch Tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.tests
+        PRODUCT_NAME: BiciRadar Watch Tests
 
 schemes:
-  BiziZaragoza:
+  BiciRadar:
     build:
       targets:
-        BiziZaragoza: all
-        BiziZaragozaTests: [testing]
-        BiziZaragozaUITests: [testing]
+        BiciRadar: all
+        BiciRadarTests: [testing]
+        BiciRadarUITests: [testing]
     test:
       config: Debug
       targets:
-        - BiziZaragozaTests
-        - BiziZaragozaUITests
+        - BiciRadarTests
+        - BiciRadarUITests
     run:
       config: Debug
-  BiziZaragozaWatch:
+  BiciRadarWatch:
     build:
       targets:
-        BiziZaragozaWatch: all
-        BiziZaragozaWatchTests: [testing]
+        BiciRadarWatch: all
+        BiciRadarWatchTests: [testing]
     test:
       config: Debug
       targets:
-        - BiziZaragozaWatchTests
+        - BiciRadarWatchTests
     run:
       config: Debug

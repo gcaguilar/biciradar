@@ -12,7 +12,7 @@ kotlin {
   android {
     compileSdk = 36
     minSdk = 26
-    namespace = "com.gcaguilar.bizizaragoza.shared.mobileui"
+    namespace = "com.gcaguilar.biciradar.shared.mobileui"
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }

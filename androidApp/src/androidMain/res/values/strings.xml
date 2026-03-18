@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Bizi Zaragoza</string>
+    <string name="app_name">Bici Radar</string>
     <string name="shortcut_nearest_station">Estación cercana</string>
     <string name="shortcut_nearest_station_with_bikes">Cercana con bicis</string>
     <string name="shortcut_nearest_station_with_slots">Cercana con huecos</string>

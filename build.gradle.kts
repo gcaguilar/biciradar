@@ -14,6 +14,6 @@ plugins {
 }
 
 allprojects {
-  group = "com.gcaguilar.bizizaragoza"
+  group = "com.gcaguilar.biciradar"
   version = "0.1.0"
 }

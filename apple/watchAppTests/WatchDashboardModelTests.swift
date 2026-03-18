@@ -73,6 +73,8 @@ private actor DashboardGraphStub: WatchGraphClient {
 
     func station(matching query: String?) async throws -> WatchStationSnapshot? { nil }
 
+    func station(stationId: String) async throws -> WatchStationSnapshot? { nil }
+
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         fatalError("Not used by WatchDashboardModel tests")
     }

@@ -40,9 +40,9 @@
 # Metro (compile-time DI — generated code is concrete, no reflection)
 # Keep graph interfaces and their factories so they are not removed.
 # ============================================================
--keep interface com.gcaguilar.bizizaragoza.core.SharedGraph { *; }
--keep class com.gcaguilar.bizizaragoza.core.SharedGraph$* { *; }
--keep class * implements com.gcaguilar.bizizaragoza.core.SharedGraph { *; }
+-keep interface com.gcaguilar.biciradar.core.SharedGraph { *; }
+-keep class com.gcaguilar.biciradar.core.SharedGraph$* { *; }
+-keep class * implements com.gcaguilar.biciradar.core.SharedGraph { *; }
 # Metro-generated $$MetroDependencyGraph implementations
 -keep class **$$MetroDependencyGraph { *; }
 -keep class **$$MetroDependencyGraph$* { *; }

@@ -8,7 +8,7 @@ final class WatchFavoritesSyncBridgeTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        suiteName = "com.gcaguilar.bizizaragoza.tests.watchsync.\(UUID().uuidString)"
+        suiteName = "com.gcaguilar.biciradar.tests.watchsync.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         bridge = WatchFavoritesSyncBridge(defaults: defaults)

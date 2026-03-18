@@ -13,7 +13,7 @@ kotlin {
   android {
     compileSdk = 36
     minSdk = 26
-    namespace = "com.gcaguilar.bizizaragoza.shared.core"
+    namespace = "com.gcaguilar.biciradar.shared.core"
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }

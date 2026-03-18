@@ -16,8 +16,10 @@ val localProperties = Properties().apply {
   }
 }
 
+val wearApplicationId = "com.gcaguilar.biciradar.wear"
 val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
-val firebaseCrashlyticsEnabled = firebaseConfigFile.exists()
+val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
+  firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
 
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -31,15 +33,15 @@ kotlin {
 }
 
 android {
-  namespace = "com.gcaguilar.bizizaragoza.wear"
+  namespace = wearApplicationId
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.gcaguilar.bizizaragoza.wear"
+    applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
-    versionCode = 29561231
-    versionName = "2026.03.16.1611"
+    versionCode = 29564593
+    versionName = "2026.03.19.0013"
   }
 
   buildFeatures {

@@ -2,8 +2,8 @@
     <capability android:name="actions.intent.OPEN_APP_FEATURE">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <parameter
                 android:key="feature"
                 android:name="feature" />
@@ -12,8 +12,8 @@
     <capability android:name="actions.intent.GET_THING">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <parameter
                 android:key="thing.name"
                 android:name="station_query" />
@@ -27,8 +27,8 @@
         android:shortcutShortLabel="@string/shortcut_nearest_station">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="nearest_station" />
@@ -50,8 +50,8 @@
         android:shortcutShortLabel="@string/shortcut_nearest_station_with_bikes">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="nearest_station_with_bikes" />
@@ -73,8 +73,8 @@
         android:shortcutShortLabel="@string/shortcut_nearest_station_with_slots">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="nearest_station_with_slots" />
@@ -96,8 +96,8 @@
         android:shortcutShortLabel="@string/shortcut_favorites">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="favorite_stations" />
@@ -119,8 +119,8 @@
         android:shortcutShortLabel="@string/shortcut_station_status">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="station_status" />
@@ -143,8 +143,8 @@
         android:shortcutShortLabel="@string/shortcut_station_bikes">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="station_bike_count" />
@@ -167,8 +167,8 @@
         android:shortcutShortLabel="@string/shortcut_station_slots">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="station_slot_count" />
@@ -191,8 +191,8 @@
         android:shortcutShortLabel="@string/shortcut_route">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="route_to_station" />
@@ -215,8 +215,8 @@
         android:shortcutShortLabel="@string/shortcut_show_station">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="com.gcaguilar.bizizaragoza.MainActivity"
-            android:targetPackage="com.gcaguilar.bizizaragoza">
+            android:targetClass="com.gcaguilar.biciradar.MainActivity"
+            android:targetPackage="com.gcaguilar.biciradar">
             <extra
                 android:name="assistant_action"
                 android:value="show_station" />

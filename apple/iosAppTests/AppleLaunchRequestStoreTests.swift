@@ -9,7 +9,7 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        suiteName = "com.gcaguilar.bizizaragoza.tests.launch.\(UUID().uuidString)"
+        suiteName = "com.gcaguilar.biciradar.tests.launch.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         store = AppleLaunchRequestStore(defaults: defaults)

@@ -33,6 +33,20 @@ final class WatchShortcutRunnerTests: XCTestCase {
         XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles.")
     }
 
+    func testStationStatusDialogReportsMatchingStation() async {
+        let runner = WatchShortcutRunner(
+            graph: FakeWatchGraph(
+                matchedStation: .fixture(id: "station-48", name: "Universidad", bikes: 7, slots: 5)
+            ),
+            favoriteIdsProvider: { [] },
+            routeRequester: { _ in true }
+        )
+
+        let dialog = await runner.stationStatusDialog(stationName: "Universidad")
+
+        XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles y 5 huecos libres.")
+    }
+
     func testRouteDialogConfirmsPhoneHandoff() async {
         let runner = WatchShortcutRunner(
             graph: FakeWatchGraph(
@@ -100,6 +114,38 @@ final class WatchShortcutRunnerTests: XCTestCase {
 
         XCTAssertEqual(dialog, "He pedido al iPhone que abra la ruta a Campus Río Ebro.")
     }
+
+    func testSavedPlaceBikeCountDialogResolvesHomeAlias() async {
+        let runner = WatchShortcutRunner(
+            graph: FakeWatchGraph(
+                queryMatches: [
+                    "casa": .fixture(id: "station-home", name: "Plaza España", bikes: 8, slots: 4)
+                ]
+            ),
+            favoriteIdsProvider: { [] },
+            routeRequester: { _ in true }
+        )
+
+        let dialog = await runner.savedPlaceBikeCountDialog(savedPlace: "casa")
+
+        XCTAssertEqual(dialog, "Plaza España tiene 8 bicis disponibles.")
+    }
+
+    func testSavedPlaceSlotCountDialogResolvesWorkAlias() async {
+        let runner = WatchShortcutRunner(
+            graph: FakeWatchGraph(
+                queryMatches: [
+                    "trabajo": .fixture(id: "station-work", name: "Campus Río Ebro", bikes: 5, slots: 9)
+                ]
+            ),
+            favoriteIdsProvider: { [] },
+            routeRequester: { _ in true }
+        )
+
+        let dialog = await runner.savedPlaceSlotCountDialog(savedPlace: "trabajo")
+
+        XCTAssertEqual(dialog, "Campus Río Ebro tiene 9 huecos libres.")
+    }
 }
 
 private struct FakeWatchGraph: WatchGraphClient {
@@ -107,6 +153,7 @@ private struct FakeWatchGraph: WatchGraphClient {
     var favorites: [WatchStationSnapshot] = []
     var matchedStation: WatchStationSnapshot?
     var queryMatches: [String: WatchStationSnapshot] = [:]
+    var stationById: [String: WatchStationSnapshot] = [:]
     var assistantResolution: AssistantResolution = AssistantResolution(
         spokenResponse: "La estación más cercana es Plaza España con 6 bicis y 8 anclajes.",
         highlightedStationId: "station-1"
@@ -123,6 +170,10 @@ private struct FakeWatchGraph: WatchGraphClient {
     func station(matching query: String?) async throws -> WatchStationSnapshot? {
         guard let query else { return matchedStation }
         return queryMatches[query] ?? matchedStation
+    }
+
+    func station(stationId: String) async throws -> WatchStationSnapshot? {
+        stationById[stationId] ?? matchedStation
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {

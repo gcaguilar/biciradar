@@ -19,7 +19,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.favoriteStationsDialog()
         let requests = await recorder.requests()
 
-        XCTAssertEqual(dialog, "Abriendo tus favoritas. Tienes 2 en total: Plaza España, Plaza Aragón.")
+        XCTAssertEqual(dialog, "Tus favoritas en Bici Radar. Tienes 2 en total: Plaza España, Plaza Aragón.")
         XCTAssertEqual(requests.count, 1)
         XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
     }
@@ -78,7 +78,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.routeToStationDialog(stationName: "Universidad")
         let requests = await recorder.requests()
 
-        XCTAssertEqual(dialog, "Abriendo una ruta hacia Universidad.")
+        XCTAssertEqual(dialog, "Preparando ruta hacia Universidad en Bici Radar.")
         let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-48")
     }
@@ -114,9 +114,39 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.savedPlaceRouteDialog(savedPlace: "trabajo")
         let requests = await recorder.requests()
 
-        XCTAssertEqual(dialog, "Abriendo una ruta hacia Campus Río Ebro.")
+        XCTAssertEqual(dialog, "Preparando ruta hacia Campus Río Ebro en Bici Radar.")
         let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-work")
+    }
+
+    func testSavedPlaceBikeCountDialogResolvesHomeAlias() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                queryMatches: [
+                    "casa": .fixture(id: "station-home", name: "Plaza España", bikes: 8, slots: 4)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.savedPlaceBikeCountDialog(savedPlace: "casa")
+
+        XCTAssertEqual(dialog, "Plaza España tiene 8 bicis disponibles.")
+    }
+
+    func testSavedPlaceSlotCountDialogResolvesWorkAlias() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                queryMatches: [
+                    "trabajo": .fixture(id: "station-work", name: "Campus Río Ebro", bikes: 5, slots: 9)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.savedPlaceSlotCountDialog(savedPlace: "trabajo")
+
+        XCTAssertEqual(dialog, "Campus Río Ebro tiene 9 huecos libres.")
     }
 }
 

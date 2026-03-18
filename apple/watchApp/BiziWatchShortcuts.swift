@@ -59,15 +59,42 @@ struct WatchFavoriteStationsIntent: AppIntent {
     }
 }
 
+struct WatchStationStatusIntent: AppIntent {
+    static var title: LocalizedStringResource = "Estado de estación en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(
+        title: "Estación",
+        requestValueDialog: IntentDialog("¿Qué estación quieres consultar?")
+    )
+    var station: WatchStationShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cómo está \(\.$station)")
+    }
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await WatchShortcutRunner().stationStatusDialog(stationId: station.id)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
 struct WatchRouteToStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Ruta desde reloj"
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Nombre de estación")
-    var stationName: String
+    @Parameter(
+        title: "Estación",
+        requestValueDialog: IntentDialog("¿A qué estación quieres ir?")
+    )
+    var station: WatchStationShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Llévame a \(\.$station)")
+    }
 
     func perform() async throws -> some IntentResult {
-        let dialog = await WatchShortcutRunner().routeToStationDialog(stationName: stationName)
+        let dialog = await WatchShortcutRunner().routeToStationDialog(stationId: station.id)
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -76,11 +103,58 @@ struct WatchSavedPlaceStatusIntent: AppIntent {
     static var title: LocalizedStringResource = "Estado de casa o trabajo en reloj"
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Estación guardada")
+    @Parameter(
+        title: "Estación guardada",
+        requestValueDialog: IntentDialog("¿Quieres consultar casa o trabajo?")
+    )
     var savedPlace: WatchSavedPlaceShortcut
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cómo está \(\.$savedPlace)")
+    }
 
     func perform() async throws -> some IntentResult {
         let dialog = await WatchShortcutRunner().savedPlaceStatusDialog(savedPlace: savedPlace.spokenQuery)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct WatchSavedPlaceBikeCountIntent: AppIntent {
+    static var title: LocalizedStringResource = "Bicis en casa o trabajo en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(
+        title: "Estación guardada",
+        requestValueDialog: IntentDialog("¿Quieres consultar casa o trabajo?")
+    )
+    var savedPlace: WatchSavedPlaceShortcut
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cuántas bicis hay en \(\.$savedPlace)")
+    }
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await WatchShortcutRunner().savedPlaceBikeCountDialog(savedPlace: savedPlace.spokenQuery)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct WatchSavedPlaceSlotCountIntent: AppIntent {
+    static var title: LocalizedStringResource = "Huecos en casa o trabajo en reloj"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(
+        title: "Estación guardada",
+        requestValueDialog: IntentDialog("¿Quieres consultar casa o trabajo?")
+    )
+    var savedPlace: WatchSavedPlaceShortcut
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cuántos huecos hay en \(\.$savedPlace)")
+    }
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await WatchShortcutRunner().savedPlaceSlotCountDialog(savedPlace: savedPlace.spokenQuery)
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -89,8 +163,15 @@ struct WatchSavedPlaceRouteIntent: AppIntent {
     static var title: LocalizedStringResource = "Ruta a casa o trabajo en reloj"
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Estación guardada")
+    @Parameter(
+        title: "Estación guardada",
+        requestValueDialog: IntentDialog("¿Quieres ir a casa o a trabajo?")
+    )
     var savedPlace: WatchSavedPlaceShortcut
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Llévame a \(\.$savedPlace)")
+    }
 
     func perform() async throws -> some IntentResult {
         let dialog = await WatchShortcutRunner().savedPlaceRouteDialog(savedPlace: savedPlace.spokenQuery)
@@ -102,11 +183,18 @@ struct WatchStationBikeCountIntent: AppIntent {
     static var title: LocalizedStringResource = "Bicis en estación en reloj"
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Nombre o número de estación")
-    var stationName: String
+    @Parameter(
+        title: "Estación",
+        requestValueDialog: IntentDialog("¿De qué estación quieres saber las bicis?")
+    )
+    var station: WatchStationShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cuántas bicis hay en \(\.$station)")
+    }
 
     func perform() async throws -> some IntentResult {
-        let dialog = await WatchShortcutRunner().stationBikeCountDialog(stationName: stationName)
+        let dialog = await WatchShortcutRunner().stationBikeCountDialog(stationId: station.id)
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -115,11 +203,18 @@ struct WatchStationSlotCountIntent: AppIntent {
     static var title: LocalizedStringResource = "Huecos en estación en reloj"
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Nombre o número de estación")
-    var stationName: String
+    @Parameter(
+        title: "Estación",
+        requestValueDialog: IntentDialog("¿De qué estación quieres saber los huecos?")
+    )
+    var station: WatchStationShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Cuántos huecos hay en \(\.$station)")
+    }
 
     func perform() async throws -> some IntentResult {
-        let dialog = await WatchShortcutRunner().stationSlotCountDialog(stationName: stationName)
+        let dialog = await WatchShortcutRunner().stationSlotCountDialog(stationId: station.id)
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -129,8 +224,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationIntent(),
             phrases: [
-                "Muéstrame la estación más cercana en la aplicación \(.applicationName)",
-                "¿Qué estación tengo más cerca en la aplicación \(.applicationName)?"
+                "Cuál es la estación más cercana con \(.applicationName)",
+                "Qué estación tengo más cerca con \(.applicationName)",
+                "Dónde tengo una estación cerca con \(.applicationName)"
             ],
             shortTitle: "Cercana",
             systemImageName: "location.circle"
@@ -138,8 +234,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationWithBikesIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con bicis en la aplicación \(.applicationName)",
-                "¿Dónde hay bicis disponibles en la aplicación \(.applicationName)?"
+                "Dónde hay bicis cerca con \(.applicationName)",
+                "Cuál es la estación más cercana con bicis con \(.applicationName)",
+                "Quiero coger una bici con \(.applicationName)"
             ],
             shortTitle: "Con bicis",
             systemImageName: "bicycle.circle"
@@ -147,8 +244,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchNearestStationWithSlotsIntent(),
             phrases: [
-                "Muéstrame la estación más cercana con huecos en la aplicación \(.applicationName)",
-                "¿Dónde hay huecos libres en la aplicación \(.applicationName)?"
+                "Dónde puedo dejar la bici con \(.applicationName)",
+                "Cuál es la estación más cercana con huecos con \(.applicationName)",
+                "Quiero dejar la bici con \(.applicationName)"
             ],
             shortTitle: "Con huecos",
             systemImageName: "parkingsign.circle"
@@ -156,17 +254,29 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchFavoriteStationsIntent(),
             phrases: [
-                "Muéstrame mis favoritas en la aplicación \(.applicationName)",
-                "¿Cómo están mis estaciones favoritas en la aplicación \(.applicationName)?"
+                "Abre mis favoritas con \(.applicationName)",
+                "Enséñame mis favoritas con \(.applicationName)",
+                "Mis favoritas con \(.applicationName)"
             ],
             shortTitle: "Favoritas",
             systemImageName: "heart.circle"
         )
         AppShortcut(
+            intent: WatchStationStatusIntent(),
+            phrases: [
+                "Cómo está \(\.$station) con \(.applicationName)",
+                "Cuál es el estado de \(\.$station) en \(.applicationName)",
+                "Qué tal está \(\.$station) con \(.applicationName)"
+            ],
+            shortTitle: "Estado",
+            systemImageName: "info.circle"
+        )
+        AppShortcut(
             intent: WatchStationBikeCountIntent(),
             phrases: [
-                "¿Cuántas bicis tiene una estación en la aplicación \(.applicationName)?",
-                "Bicis disponibles en una estación en la aplicación \(.applicationName)"
+                "Cuántas bicis hay en \(\.$station) con \(.applicationName)",
+                "Bicis disponibles en \(\.$station) en \(.applicationName)",
+                "Cuántas bicis tiene \(\.$station) con \(.applicationName)"
             ],
             shortTitle: "Bicis",
             systemImageName: "bicycle.circle"
@@ -174,8 +284,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchStationSlotCountIntent(),
             phrases: [
-                "¿Cuántos huecos tiene una estación en la aplicación \(.applicationName)?",
-                "Huecos libres en una estación en la aplicación \(.applicationName)"
+                "Cuántos huecos hay en \(\.$station) con \(.applicationName)",
+                "Huecos libres en \(\.$station) en \(.applicationName)",
+                "Cuántos anclajes libres hay en \(\.$station) con \(.applicationName)"
             ],
             shortTitle: "Huecos",
             systemImageName: "parkingsign.circle"
@@ -183,8 +294,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchRouteToStationIntent(),
             phrases: [
-                "Navega a una estación en la aplicación \(.applicationName)",
-                "Abre una ruta a una estación en la aplicación \(.applicationName)"
+                "Llévame a \(\.$station) con \(.applicationName)",
+                "Cómo llego a \(\.$station) con \(.applicationName)",
+                "Navega a \(\.$station) con \(.applicationName)"
             ],
             shortTitle: "Ruta",
             systemImageName: "map.circle"
@@ -192,8 +304,11 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchSavedPlaceStatusIntent(),
             phrases: [
-                "Estado de \(\.$savedPlace) en la aplicación \(.applicationName)",
-                "¿Hay bicis cerca de \(\.$savedPlace) en la aplicación \(.applicationName)?"
+                "Cómo está \(\.$savedPlace) con \(.applicationName)",
+                "Qué tal está \(\.$savedPlace) con \(.applicationName)",
+                "Cuál es el estado de \(\.$savedPlace) en \(.applicationName)",
+                "Cuántas bicis hay en \(\.$savedPlace) con \(.applicationName)",
+                "Cuántos huecos hay en \(\.$savedPlace) con \(.applicationName)"
             ],
             shortTitle: "Casa/Trabajo",
             systemImageName: "house.circle"
@@ -201,8 +316,9 @@ struct WatchBiziAppShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: WatchSavedPlaceRouteIntent(),
             phrases: [
-                "Navega a \(\.$savedPlace) en la aplicación \(.applicationName)",
-                "Abre una ruta a \(\.$savedPlace) en la aplicación \(.applicationName)"
+                "Llévame a \(\.$savedPlace) con \(.applicationName)",
+                "Cómo llego a \(\.$savedPlace) con \(.applicationName)",
+                "Llévame al \(\.$savedPlace) con \(.applicationName)"
             ],
             shortTitle: "Ruta casa",
             systemImageName: "house.circle"

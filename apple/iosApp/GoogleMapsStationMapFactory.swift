@@ -10,6 +10,7 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private var markersByStationId: [String: GMSMarker] = [:]
     private var lastStations: [Station] = []
     private var lastHighlightedStationId: String? = nil
+    private var lastRecenterRequestToken: Int32 = 0
 
     func createView() -> UIView {
         // Reset per-view state so a second call doesn't inherit stale markers/zoom
@@ -17,6 +18,7 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         markersByStationId.removeAll()
         lastStations = []
         lastHighlightedStationId = nil
+        lastRecenterRequestToken = 0
 
         let mapView = GMSMapView(frame: .zero)
         mapView.settings.rotateGestures = false
@@ -42,7 +44,8 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         stations: [Station],
         userLocation: GeoPoint?,
         highlightedStationId: String?,
-        onStationSelected: @escaping (Station) -> Void
+        onStationSelected: @escaping (Station) -> Void,
+        recenterRequestToken: Int32
     ) {
         guard let mapView = view as? GMSMapView else { return }
         self.onStationSelected = onStationSelected
@@ -56,14 +59,17 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         if !hasZoomed {
             let focusPoint = userLocation ?? stations.first?.location
             if let focus = focusPoint {
-                let camera = GMSCameraPosition.camera(
-                    withLatitude: focus.latitude,
-                    longitude: focus.longitude,
-                    zoom: 15
-                )
-                mapView.animate(to: camera)
+                mapView.animate(to: camera(for: focus, userLocation != nil))
                 hasZoomed = true
             }
+        }
+
+        if recenterRequestToken != lastRecenterRequestToken {
+            let focusPoint = userLocation ?? stations.first?.location
+            if let focus = focusPoint {
+                mapView.animate(to: camera(for: focus, userLocation != nil))
+            }
+            lastRecenterRequestToken = recenterRequestToken
         }
 
         let stationsChanged = stations.map(\.id) != lastStations.map(\.id)
@@ -107,6 +113,14 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         }
 
         lastHighlightedStationId = highlightedStationId
+    }
+
+    private func camera(for point: GeoPoint, _ prefersTightZoom: Bool) -> GMSCameraPosition {
+        GMSCameraPosition.camera(
+            withLatitude: point.latitude,
+            longitude: point.longitude,
+            zoom: prefersTightZoom ? 15 : 13
+        )
     }
 
     private func stationMarkerColor(station: Station, highlighted: Bool) -> UIColor {

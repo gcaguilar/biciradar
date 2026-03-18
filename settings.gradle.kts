@@ -14,7 +14,7 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "bizi-zaragoza"
+rootProject.name = "biciradar"
 
 include(":shared:core")
 include(":shared:mobile-ui")

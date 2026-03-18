@@ -16,8 +16,10 @@ val localProperties = Properties().apply {
   }
 }
 
+val androidApplicationId = "com.gcaguilar.biciradar"
 val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
-val firebaseCrashlyticsEnabled = firebaseConfigFile.exists()
+val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
+  firebaseConfigFile.readText().contains("\"package_name\": \"$androidApplicationId\"")
 
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -44,15 +46,15 @@ kotlin {
 }
 
 android {
-  namespace = "com.gcaguilar.bizizaragoza"
+  namespace = androidApplicationId
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.gcaguilar.bizizaragoza"
+    applicationId = androidApplicationId
     minSdk = 26
     targetSdk = 36
-    versionCode = 29561231
-    versionName = "2026.03.16.1611"
+    versionCode = 29564593
+    versionName = "2026.03.19.0013"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 

@@ -10,7 +10,7 @@ final class FavoritesSyncBridgeTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        suiteName = "com.gcaguilar.bizizaragoza.tests.sync.\(UUID().uuidString)"
+        suiteName = "com.gcaguilar.biciradar.tests.sync.\(UUID().uuidString)"
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         routeStore = AppleLaunchRequestStore(defaults: defaults)

@@ -5,6 +5,7 @@ protocol WatchGraphClient {
     func nearbyStations(limit: Int) async throws -> [WatchStationSnapshot]
     func favoriteStations(favoriteIds: Set<String>) async throws -> [WatchStationSnapshot]
     func station(matching query: String?) async throws -> WatchStationSnapshot?
+    func station(stationId: String) async throws -> WatchStationSnapshot?
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot?
 }
@@ -34,7 +35,7 @@ struct WatchShortcutRunner {
         await assistantDialog(
             action: AssistantActionNearestStation.shared,
             emptyMessage: "No he encontrado estaciones de Bizi cerca de ti ahora mismo.",
-            errorMessage: "No he podido consultar Bizi Zaragoza en el reloj."
+            errorMessage: "No he podido consultar Bici Radar en el reloj."
         )
     }
 
@@ -85,6 +86,38 @@ struct WatchShortcutRunner {
         }
     }
 
+    func routeToStationDialog(stationId: String) async -> String {
+        do {
+            guard let station = try await graph.station(stationId: stationId) else {
+                return "No he encontrado esa estación para enviar la ruta al iPhone."
+            }
+            let requested = await routeRequester(station.id)
+            return requested
+                ? "He pedido al iPhone que abra la ruta a \(station.name)."
+                : "No he podido contactar con el iPhone ahora mismo."
+        } catch {
+            return "No he podido preparar esa ruta desde el reloj."
+        }
+    }
+
+    func stationStatusDialog(stationName: String) async -> String {
+        await stationDetailDialog(
+            stationName: stationName,
+            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
+            missingMessage: "No he encontrado esa estación en el reloj.",
+            errorMessage: "No he podido consultar el estado de esa estación en el reloj."
+        )
+    }
+
+    func stationStatusDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
+            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
+            missingMessage: "No he encontrado esa estación en el reloj.",
+            errorMessage: "No he podido consultar el estado de esa estación en el reloj."
+        )
+    }
+
     func stationBikeCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
@@ -94,9 +127,27 @@ struct WatchShortcutRunner {
         )
     }
 
+    func stationBikeCountDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
+            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
+            missingMessage: "No he encontrado esa estación en el reloj.",
+            errorMessage: "No he podido consultar las bicis de esa estación en el reloj."
+        )
+    }
+
     func stationSlotCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
+            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
+            missingMessage: "No he encontrado esa estación en el reloj.",
+            errorMessage: "No he podido consultar los huecos de esa estación en el reloj."
+        )
+    }
+
+    func stationSlotCountDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
             value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
             missingMessage: "No he encontrado esa estación en el reloj.",
             errorMessage: "No he podido consultar los huecos de esa estación en el reloj."
@@ -145,6 +196,22 @@ struct WatchShortcutRunner {
     ) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
+                return missingMessage
+            }
+            return value(station)
+        } catch {
+            return errorMessage
+        }
+    }
+
+    private func stationDetailDialog(
+        stationId: String,
+        value: (WatchStationSnapshot) -> String,
+        missingMessage: String,
+        errorMessage: String
+    ) async -> String {
+        do {
+            guard let station = try await graph.station(stationId: stationId) else {
                 return missingMessage
             }
             return value(station)

@@ -30,9 +30,9 @@
 # ============================================================
 # Metro
 # ============================================================
--keep interface com.gcaguilar.bizizaragoza.core.SharedGraph { *; }
--keep class com.gcaguilar.bizizaragoza.core.SharedGraph$* { *; }
--keep class * implements com.gcaguilar.bizizaragoza.core.SharedGraph { *; }
+-keep interface com.gcaguilar.biciradar.core.SharedGraph { *; }
+-keep class com.gcaguilar.biciradar.core.SharedGraph$* { *; }
+-keep class * implements com.gcaguilar.biciradar.core.SharedGraph { *; }
 -keep class **$$MetroDependencyGraph { *; }
 -keep class **$$MetroDependencyGraph$* { *; }
 -keepclasseswithmembernames class * {

@@ -1,7 +1,7 @@
 import Foundation
 import UserNotifications
 
-/// Manages local notification permission and delivery for Bizi Zaragoza.
+/// Manages local notification permission and delivery for BiciRadar.
 @MainActor
 final class BiziNotificationService {
     static let shared = BiziNotificationService()

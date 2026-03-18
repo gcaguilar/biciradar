@@ -10,7 +10,7 @@ import Foundation
 /// 2. Call `scheduleAppRefresh()` when the app enters the background.
 /// 3. The system calls `handleAppRefresh(_:)` when it decides to run the task.
 enum BiziBackgroundTaskHandler {
-    static let appRefreshTaskIdentifier = "com.gcaguilar.bizizaragoza.ios.refresh"
+    static let appRefreshTaskIdentifier = "com.gcaguilar.biciradar.ios.refresh"
 
     // MARK: - Registration (call once at launch)
 

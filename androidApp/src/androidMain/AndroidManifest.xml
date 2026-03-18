@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BiziZaragoza">
+        android:theme="@style/Theme.BiciRadar">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${googleMapsApiKey}" />
@@ -29,7 +29,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="bizi" android:host="assistant" />
+                <data android:scheme="biciradar" android:host="assistant" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"

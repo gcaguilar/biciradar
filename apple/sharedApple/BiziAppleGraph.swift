@@ -66,20 +66,76 @@ actor BiziAppleGraph {
             .map(snapshot(from:))
     }
 
-    func station(matching query: String?) async throws -> BiziStationSnapshot? {
+    func suggestedStations(limit: Int = 8) async throws -> [BiziStationSnapshot] {
+        try await refreshData()
+        let state = stationsState()
+        let favoriteIds = Set(
+            state.stations
+                .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
+                .map(\.id)
+        )
+        let homeStationId = graph.favoritesRepository.currentHomeStationId()
+        let workStationId = graph.favoritesRepository.currentWorkStationId()
+        let rankedStations = state.stations.sorted { lhs, rhs in
+            let lhsPriority = lhs.suggestionPriority(
+                favoriteIds: favoriteIds,
+                homeStationId: homeStationId,
+                workStationId: workStationId
+            )
+            let rhsPriority = rhs.suggestionPriority(
+                favoriteIds: favoriteIds,
+                homeStationId: homeStationId,
+                workStationId: workStationId
+            )
+            if lhsPriority != rhsPriority {
+                return lhsPriority > rhsPriority
+            }
+            if lhs.distanceMeters != rhs.distanceMeters {
+                return lhs.distanceMeters < rhs.distanceMeters
+            }
+            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+        }
+        return Array(rankedStations.prefix(limit).map(snapshot(from:)))
+    }
+
+    func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshData()
         let snapshots = stationsState().stations.map(snapshot(from:))
-        guard let query else { return snapshots.first }
-        let normalizedQuery = normalizeStationQuery(query)
-        guard !normalizedQuery.isEmpty else { return snapshots.first }
-        if let pinnedStationId = pinnedStationId(for: normalizedQuery),
-           let pinnedStation = try await station(stationId: pinnedStationId) {
-            return pinnedStation
+        let normalizedQuery = normalizeStationSearchText(query)
+        guard !normalizedQuery.isEmpty else {
+            return try await suggestedStations(limit: limit)
         }
+        let pinnedStationId = pinnedStationId(for: normalizedQuery)
         let numericQuery = query.filter(\.isNumber)
-        return snapshots.first(where: { station in
-            station.matches(normalizedQuery: normalizedQuery, numericQuery: numericQuery)
-        })
+        return Array(
+            snapshots
+                .compactMap { snapshot -> (Int, BiziStationSnapshot)? in
+                    snapshot.searchScore(
+                        normalizedQuery: normalizedQuery,
+                        numericQuery: numericQuery,
+                        pinnedStationId: pinnedStationId
+                    ).map { ($0, snapshot) }
+                }
+                .sorted { lhs, rhs in
+                    if lhs.0 != rhs.0 {
+                        return lhs.0 > rhs.0
+                    }
+                    if lhs.1.distanceMeters != rhs.1.distanceMeters {
+                        return lhs.1.distanceMeters < rhs.1.distanceMeters
+                    }
+                    return lhs.1.name.localizedCaseInsensitiveCompare(rhs.1.name) == .orderedAscending
+                }
+                .map(\.1)
+                .prefix(limit)
+        )
+    }
+
+    func station(matching query: String?) async throws -> BiziStationSnapshot? {
+        guard let query else {
+            return try await suggestedStations(limit: 1).first
+        }
+        let matches = try await stationSuggestions(matching: query, limit: 1)
+        return matches.first
     }
 
     func station(stationId: String) async throws -> BiziStationSnapshot? {
@@ -194,26 +250,6 @@ actor BiziAppleGraph {
     }
 }
 
-private func normalizeStationQuery(_ value: String) -> String {
-    value
-        .trimmingCharacters(in: .whitespacesAndNewlines)
-        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-}
-
-private extension BiziStationSnapshot {
-    func matches(normalizedQuery: String, numericQuery: String) -> Bool {
-        let normalizedName = name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-        let normalizedAddress = address.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-        let normalizedId = id.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-        let stationNumericId = id.filter(\.isNumber)
-        return normalizedName.contains(normalizedQuery) ||
-            normalizedAddress.contains(normalizedQuery) ||
-            normalizedId == normalizedQuery ||
-            normalizedId.contains(normalizedQuery) ||
-            (!numericQuery.isEmpty && stationNumericId == numericQuery)
-    }
-}
-
 private func selectNearestSnapshot(
     from snapshots: [BiziStationSnapshot],
     radiusMeters: Int,
@@ -233,3 +269,95 @@ enum AppleGraphError: LocalizedError {
         }
     }
 }
+
+private func normalizeStationSearchText(_ value: String?) -> String {
+    var normalized = (value ?? "")
+        .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale.current)
+        .lowercased()
+    normalized = normalized.replacingOccurrences(of: "\\bc/\\s*", with: " calle ", options: NSString.CompareOptions.regularExpression)
+    normalized = normalized.replacingOccurrences(of: "\\bpza\\.?\\b", with: " plaza ", options: NSString.CompareOptions.regularExpression)
+    normalized = normalized.replacingOccurrences(of: "\\bavda\\.?\\b", with: " avenida ", options: NSString.CompareOptions.regularExpression)
+    normalized = normalized.replacingOccurrences(of: "\\bav\\.?\\b", with: " avenida ", options: NSString.CompareOptions.regularExpression)
+    normalized = normalized.replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: NSString.CompareOptions.regularExpression)
+    let tokens = normalized
+        .replacingOccurrences(of: "\\s+", with: " ", options: NSString.CompareOptions.regularExpression)
+        .split(separator: " ")
+        .map(String.init)
+        .filter { !$0.isEmpty && !appleStationStopwords.contains($0) }
+    return tokens.joined(separator: " ")
+}
+
+private extension Station {
+    func suggestionPriority(
+        favoriteIds: Set<String>,
+        homeStationId: String?,
+        workStationId: String?,
+    ) -> Int {
+        if id == homeStationId { return 400 }
+        if id == workStationId { return 380 }
+        if favoriteIds.contains(id) { return 320 }
+        return 100
+    }
+}
+
+private extension BiziStationSnapshot {
+    func searchScore(
+        normalizedQuery: String,
+        numericQuery: String,
+        pinnedStationId: String?,
+    ) -> Int? {
+        if id == pinnedStationId {
+            return 1000
+        }
+
+        let normalizedName = normalizeStationSearchText(name)
+        let normalizedAddress = normalizeStationSearchText(address)
+        let normalizedId = normalizeStationSearchText(id)
+        let stationNumericId = id.filter(\.isNumber)
+        let queryTokens = Set(normalizedQuery.split(separator: " ").map(String.init))
+        let nameTokens = Set(normalizedName.split(separator: " ").map(String.init))
+        let addressTokens = Set(normalizedAddress.split(separator: " ").map(String.init))
+
+        if normalizedId == normalizedQuery || (!numericQuery.isEmpty && stationNumericId == numericQuery) {
+            return 950
+        }
+        if normalizedName == normalizedQuery {
+            return 900
+        }
+        if normalizedAddress == normalizedQuery {
+            return 860
+        }
+        if normalizedName.hasPrefix(normalizedQuery) {
+            return 820
+        }
+        if normalizedAddress.hasPrefix(normalizedQuery) {
+            return 780
+        }
+        if !queryTokens.isEmpty && queryTokens.isSubset(of: nameTokens) {
+            return 740
+        }
+        if !queryTokens.isEmpty && queryTokens.isSubset(of: addressTokens) {
+            return 700
+        }
+        if normalizedName.contains(normalizedQuery) {
+            return 660
+        }
+        if normalizedAddress.contains(normalizedQuery) {
+            return 620
+        }
+        if normalizedId.contains(normalizedQuery) || (!numericQuery.isEmpty && stationNumericId.contains(numericQuery)) {
+            return 580
+        }
+        return nil
+    }
+}
+
+private let appleStationStopwords: Set<String> = [
+    "de",
+    "del",
+    "la",
+    "las",
+    "el",
+    "los",
+]

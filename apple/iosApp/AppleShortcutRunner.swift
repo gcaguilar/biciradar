@@ -30,7 +30,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStation.shared,
             action: AssistantActionNearestStation.shared,
-            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana."
+            fallbackMessage: "Abre Bici Radar para buscar una estación cercana."
         )
     }
 
@@ -38,7 +38,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStationWithBikes.shared,
             action: AssistantActionNearestStationWithBikes.shared,
-            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana con bicis disponibles."
+            fallbackMessage: "Abre Bici Radar para buscar una estación cercana con bicis disponibles."
         )
     }
 
@@ -46,7 +46,7 @@ struct AppleShortcutRunner {
         await nearestStationDialog(
             fallbackRequest: MobileLaunchRequestNearestStationWithSlots.shared,
             action: AssistantActionNearestStationWithSlots.shared,
-            fallbackMessage: "Abre Bizi Zaragoza para buscar una estación cercana con huecos libres."
+            fallbackMessage: "Abre Bici Radar para buscar una estación cercana con huecos libres."
         )
     }
 
@@ -55,15 +55,15 @@ struct AppleShortcutRunner {
         do {
             let favorites = try await graph.favoriteStations()
             guard !favorites.isEmpty else {
-                return "Abre Bizi Zaragoza. Todavía no tienes estaciones favoritas guardadas."
+                return "Abre Bici Radar. Todavía no tienes estaciones favoritas guardadas."
             }
             let summary = favorites
                 .prefix(3)
                 .map(\.name)
                 .joined(separator: ", ")
-            return "Tus favoritas en Bizi Zaragoza. Tienes \(favorites.count) en total: \(summary)."
+            return "Tus favoritas en Bici Radar. Tienes \(favorites.count) en total: \(summary)."
         } catch {
-            return "Abre Bizi Zaragoza para mostrar tus favoritas."
+            return "Abre Bici Radar para mostrar tus favoritas."
         }
     }
 
@@ -73,7 +73,18 @@ struct AppleShortcutRunner {
             value: { station in
                 "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres."
             },
-            missingMessage: "No he encontrado esa estación en Bizi Zaragoza.",
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
+            errorMessage: "No he podido consultar el estado de esa estación."
+        )
+    }
+
+    func stationStatusDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
+            value: { station in
+                "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres."
+            },
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
             errorMessage: "No he podido consultar el estado de esa estación."
         )
     }
@@ -82,7 +93,16 @@ struct AppleShortcutRunner {
         await stationDetailDialog(
             stationName: stationName,
             value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
-            missingMessage: "No he encontrado esa estación en Bizi Zaragoza.",
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
+            errorMessage: "No he podido consultar las bicis de esa estación."
+        )
+    }
+
+    func stationBikeCountDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
+            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
             errorMessage: "No he podido consultar las bicis de esa estación."
         )
     }
@@ -91,7 +111,16 @@ struct AppleShortcutRunner {
         await stationDetailDialog(
             stationName: stationName,
             value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en Bizi Zaragoza.",
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
+            errorMessage: "No he podido consultar los huecos de esa estación."
+        )
+    }
+
+    func stationSlotCountDialog(stationId: String) async -> String {
+        await stationDetailDialog(
+            stationId: stationId,
+            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
+            missingMessage: "No he encontrado esa estación en Bici Radar.",
             errorMessage: "No he podido consultar los huecos de esa estación."
         )
     }
@@ -115,10 +144,22 @@ struct AppleShortcutRunner {
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
-                return "No he encontrado esa estación en Bizi Zaragoza."
+                return "No he encontrado esa estación en Bici Radar."
             }
             await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
-            return "Preparando ruta hacia \(station.name) en Bizi Zaragoza."
+            return "Preparando ruta hacia \(station.name) en Bici Radar."
+        } catch {
+            return "No he podido preparar esa ruta ahora mismo."
+        }
+    }
+
+    func routeToStationDialog(stationId: String) async -> String {
+        do {
+            guard let station = try await graph.station(stationId: stationId) else {
+                return "No he encontrado esa estación en Bici Radar."
+            }
+            await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
+            return "Preparando ruta hacia \(station.name) en Bici Radar."
         } catch {
             return "No he podido preparar esa ruta ahora mismo."
         }
@@ -153,6 +194,22 @@ struct AppleShortcutRunner {
     ) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
+                return missingMessage
+            }
+            return value(station)
+        } catch {
+            return errorMessage
+        }
+    }
+
+    private func stationDetailDialog(
+        stationId: String,
+        value: (BiziStationSnapshot) -> String,
+        missingMessage: String,
+        errorMessage: String
+    ) async -> String {
+        do {
+            guard let station = try await graph.station(stationId: stationId) else {
                 return missingMessage
             }
             return value(station)
