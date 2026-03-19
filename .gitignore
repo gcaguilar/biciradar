@@ -13,3 +13,7 @@ apple/Config/LocalSecrets.xcconfig
 *.iml
 DerivedData/
 xcuserdata/
+pepk.jar
+encryption_public_key.pem
+play/
+play.zip
