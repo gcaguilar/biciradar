@@ -2,9 +2,10 @@ import AppKit
 import Foundation
 
 private let repoRoot = URL(fileURLWithPath: "/Users/guillermo.castella/bizi", isDirectory: true)
-private let backgroundColor = NSColor(calibratedRed: 0.972, green: 0.965, blue: 0.965, alpha: 1.0)
-private let redColor = NSColor(calibratedRed: 0.843, green: 0.098, blue: 0.122, alpha: 1.0)
-private let whiteColor = NSColor.white
+private let defaultSourceImagePath = repoRoot
+  .appendingPathComponent("design")
+  .appendingPathComponent("biciradar-app-icon-source.png")
+  .path
 
 private struct AppleIconSpec {
   let filename: String
@@ -81,7 +82,37 @@ private func point(_ x: CGFloat, _ y: CGFloat, in size: CGFloat) -> CGPoint {
   CGPoint(x: x * size, y: y * size)
 }
 
-private func writeIconPng(size: Int, to url: URL) throws {
+private func loadSourceImage() throws -> NSImage {
+  let sourcePath = CommandLine.arguments.dropFirst().first ?? defaultSourceImagePath
+  let sourceUrl = URL(fileURLWithPath: sourcePath)
+  guard let image = NSImage(contentsOf: sourceUrl) else {
+    throw NSError(
+      domain: "IconGenerator",
+      code: 10,
+      userInfo: [NSLocalizedDescriptionKey: "Could not load source image at \(sourceUrl.path)."]
+    )
+  }
+  return image
+}
+
+private func drawSourceImage(_ image: NSImage, in canvasSize: CGFloat) {
+  let sourceSize = image.size
+  guard sourceSize.width > 0, sourceSize.height > 0 else { return }
+
+  let scale = max(canvasSize / sourceSize.width, canvasSize / sourceSize.height)
+  let drawWidth = sourceSize.width * scale
+  let drawHeight = sourceSize.height * scale
+  let drawRect = NSRect(
+    x: (canvasSize - drawWidth) / 2,
+    y: (canvasSize - drawHeight) / 2,
+    width: drawWidth,
+    height: drawHeight
+  )
+
+  image.draw(in: drawRect, from: .zero, operation: .sourceOver, fraction: 1.0)
+}
+
+private func writeIconPng(sourceImage: NSImage, size: Int, to url: URL) throws {
   let canvasSize = CGFloat(size)
   guard let bitmap = NSBitmapImageRep(
     bitmapDataPlanes: nil,
@@ -105,107 +136,9 @@ private func writeIconPng(size: Int, to url: URL) throws {
   NSGraphicsContext.saveGraphicsState()
   NSGraphicsContext.current = context
 
-  backgroundColor.setFill()
+  NSColor.clear.setFill()
   NSBezierPath(rect: NSRect(x: 0, y: 0, width: canvasSize, height: canvasSize)).fill()
-
-  let circleDiameter = canvasSize * 0.76
-  let circleOrigin = (canvasSize - circleDiameter) / 2
-  redColor.setFill()
-  NSBezierPath(
-    ovalIn: NSRect(x: circleOrigin, y: circleOrigin, width: circleDiameter, height: circleDiameter)
-  ).fill()
-
-  let wheelRadius = canvasSize * 0.105
-  let lineWidth = canvasSize * 0.040
-  let leftWheel = point(0.33, 0.36, in: canvasSize)
-  let rightWheel = point(0.67, 0.36, in: canvasSize)
-  let seat = point(0.45, 0.56, in: canvasSize)
-  let frontJoint = point(0.58, 0.45, in: canvasSize)
-  let handleBase = point(0.60, 0.59, in: canvasSize)
-  let handleTip = point(0.665, 0.63, in: canvasSize)
-  let pedal = point(0.50, 0.44, in: canvasSize)
-  let hip = point(0.54, 0.65, in: canvasSize)
-  let shoulder = point(0.595, 0.605, in: canvasSize)
-  let headCenter = point(0.58, 0.75, in: canvasSize)
-  let headRadius = canvasSize * 0.05
-
-  whiteColor.setStroke()
-  whiteColor.setFill()
-
-  func strokedPath(_ builder: (NSBezierPath) -> Void) {
-    let path = NSBezierPath()
-    path.lineWidth = lineWidth
-    path.lineCapStyle = .round
-    path.lineJoinStyle = .round
-    builder(path)
-    path.stroke()
-  }
-
-  let leftWheelPath = NSBezierPath(ovalIn: NSRect(
-    x: leftWheel.x - wheelRadius,
-    y: leftWheel.y - wheelRadius,
-    width: wheelRadius * 2,
-    height: wheelRadius * 2
-  ))
-  leftWheelPath.lineWidth = lineWidth
-  leftWheelPath.stroke()
-
-  let rightWheelPath = NSBezierPath(ovalIn: NSRect(
-    x: rightWheel.x - wheelRadius,
-    y: rightWheel.y - wheelRadius,
-    width: wheelRadius * 2,
-    height: wheelRadius * 2
-  ))
-  rightWheelPath.lineWidth = lineWidth
-  rightWheelPath.stroke()
-
-  strokedPath { path in
-    path.move(to: leftWheel)
-    path.line(to: seat)
-    path.line(to: frontJoint)
-    path.line(to: rightWheel)
-  }
-
-  strokedPath { path in
-    path.move(to: leftWheel)
-    path.line(to: pedal)
-    path.line(to: frontJoint)
-  }
-
-  strokedPath { path in
-    path.move(to: frontJoint)
-    path.line(to: handleBase)
-    path.line(to: handleTip)
-  }
-
-  strokedPath { path in
-    path.move(to: point(0.41, 0.585, in: canvasSize))
-    path.line(to: point(0.47, 0.585, in: canvasSize))
-  }
-
-  strokedPath { path in
-    path.move(to: hip)
-    path.line(to: point(0.50, 0.58, in: canvasSize))
-    path.line(to: seat)
-  }
-
-  strokedPath { path in
-    path.move(to: shoulder)
-    path.line(to: handleBase)
-  }
-
-  strokedPath { path in
-    path.move(to: hip)
-    path.line(to: pedal)
-  }
-
-  let headPath = NSBezierPath(ovalIn: NSRect(
-    x: headCenter.x - headRadius,
-    y: headCenter.y - headRadius,
-    width: headRadius * 2,
-    height: headRadius * 2
-  ))
-  headPath.fill()
+  drawSourceImage(sourceImage, in: canvasSize)
 
   context.flushGraphics()
   NSGraphicsContext.restoreGraphicsState()
@@ -250,13 +183,14 @@ private func generateAndroidIcons(module: String) throws {
     ("mipmap-xxhdpi", 144),
     ("mipmap-xxxhdpi", 192),
   ]
+  let sourceImage = try loadSourceImage()
   for item in sizes {
     let base = repoRoot
       .appendingPathComponent(module)
       .appendingPathComponent("src/androidMain/res")
       .appendingPathComponent(item.directory)
-    try writeIconPng(size: item.size, to: base.appendingPathComponent("ic_launcher.png"))
-    try writeIconPng(size: item.size, to: base.appendingPathComponent("ic_launcher_round.png"))
+    try writeIconPng(sourceImage: sourceImage, size: item.size, to: base.appendingPathComponent("ic_launcher.png"))
+    try writeIconPng(sourceImage: sourceImage, size: item.size, to: base.appendingPathComponent("ic_launcher_round.png"))
   }
 }
 
@@ -264,11 +198,12 @@ private func generateAppleCatalog(
   root: URL,
   specs: [AppleIconSpec]
 ) throws {
+  let sourceImage = try loadSourceImage()
   try writeCatalogRoot(at: root)
   let iconSet = root.appendingPathComponent("AppIcon.appiconset")
   try writeCatalogRoot(at: iconSet)
   for spec in specs {
-    try writeIconPng(size: spec.pixelSize, to: iconSet.appendingPathComponent(spec.filename))
+    try writeIconPng(sourceImage: sourceImage, size: spec.pixelSize, to: iconSet.appendingPathComponent(spec.filename))
   }
   try writeContentsJson(images: specs.map(\.json), to: iconSet.appendingPathComponent("Contents.json"))
 }
