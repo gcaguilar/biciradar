@@ -20,6 +20,10 @@ val wearApplicationId = "com.gcaguilar.biciradar.wear"
 val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
 val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
   firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
+val ciKeystorePath: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orElse("").get()
+val ciKeystorePassword: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").orElse("").get()
+val ciKeyAlias: String = providers.environmentVariable("BIZI_CI_KEY_ALIAS").orElse("").get()
+val ciKeyPassword: String = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").orElse("").get()
 
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -40,8 +44,8 @@ android {
     applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
-    versionCode = 29564593
-    versionName = "2026.03.19.0013"
+    versionCode = 29565532
+    versionName = "2026.03.19.1552"
   }
 
   buildFeatures {
@@ -59,10 +63,28 @@ android {
     release {
       isMinifyEnabled = true
       isShrinkResources = true
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ciRelease") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
+    }
+    debug {
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ciDebug") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
     }
   }
 
