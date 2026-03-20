@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class MainActivity : ComponentActivity() {
+  @Volatile
+  private var startupReady = false
+
   private val locationPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions(),
   ) {
@@ -52,6 +56,7 @@ class MainActivity : ComponentActivity() {
   private var tripServiceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    installSplashScreen().setKeepOnScreenCondition { !startupReady }
     super.onCreate(savedInstanceState)
 
     val platformBindings = AndroidPlatformBindings(
@@ -85,6 +90,8 @@ class MainActivity : ComponentActivity() {
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
         onTripRepositoryReady = { repo -> wireTripMonitorService(repo) },
+        onStartupReadyChanged = { ready -> startupReady = ready },
+        useInAppStartupSplash = false,
       )
     }
 

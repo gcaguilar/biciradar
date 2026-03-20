@@ -120,7 +120,9 @@ android {
     implementation(project(":shared:mobile-ui"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.startup.runtime)
     if (firebaseCrashlyticsEnabled) {
       implementation(platform(libs.firebase.bom))
       implementation(libs.firebase.analytics)

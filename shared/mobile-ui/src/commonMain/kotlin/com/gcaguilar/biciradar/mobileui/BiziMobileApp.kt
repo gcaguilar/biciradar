@@ -333,6 +333,8 @@ fun BiziMobileApp(
   launchRequest: MobileLaunchRequest? = null,
   assistantLaunchRequest: AssistantLaunchRequest? = null,
   onTripRepositoryReady: ((TripRepository) -> Unit)? = null,
+  onStartupReadyChanged: (Boolean) -> Unit = {},
+  useInAppStartupSplash: Boolean = true,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val graph = remember(platformBindings) {
@@ -438,6 +440,10 @@ fun BiziMobileApp(
       minimumSplashElapsed &&
       (initialLoadAttemptFinished || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) &&
       !(stationsState.isLoading && stationsState.stations.isEmpty())
+  }
+
+  LaunchedEffect(startupLaunchReady) {
+    onStartupReadyChanged(startupLaunchReady)
   }
 
   LaunchedEffect(startupLaunchReady, appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
@@ -568,9 +574,10 @@ fun BiziMobileApp(
     filterStations(stationsState.stations, appState.searchQuery)
   }
   val showStartupSplash = remember(
+    useInAppStartupSplash,
     startupLaunchReady,
   ) {
-    !startupLaunchReady
+    useInAppStartupSplash && !startupLaunchReady
   }
 
   BiziTheme(mobilePlatform, themePreference) {
