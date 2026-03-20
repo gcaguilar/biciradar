@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-env:
-  FIREBASE_APP_DIST_GROUPS: ${{ vars.FIREBASE_APP_DIST_GROUPS }}
-  FIREBASE_APP_DIST_TESTERS: ${{ vars.FIREBASE_APP_DIST_TESTERS }}
-
 jobs:
   android:
     name: Android build and tests
@@ -92,44 +88,6 @@ jobs:
             shared/core/build/reports/tests/**
             shared/core/build/test-results/**
 
-      - name: Resolve Firebase distribution flags
-        if: github.event_name != 'pull_request'
-        env:
-          _SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          _AID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          _WID: ${{ secrets.FIREBASE_WEAR_ANDROID_APP_ID }}
-        run: |
-          echo "DIST_ANDROID=$([[ -n "$_SA" && -n "$_AID" ]] && echo true || echo false)" >> "$GITHUB_ENV"
-          echo "DIST_WEAR=$([[ -n "$_SA" && -n "$_WID" ]] && echo true || echo false)" >> "$GITHUB_ENV"
-          echo "DIST_ANDROID_OR_WEAR=$([[ -n "$_SA" && ( -n "$_AID" || -n "$_WID" ) ]] && echo true || echo false)" >> "$GITHUB_ENV"
-
-      - name: Generate Android release notes
-        if: github.event_name != 'pull_request' && env.DIST_ANDROID_OR_WEAR == 'true'
-        run: |
-          ./scripts/write_release_notes.sh "$RUNNER_TEMP/android-release-notes.txt" "Android internal build"
-          ./scripts/write_release_notes.sh "$RUNNER_TEMP/wear-release-notes.txt" "Wear OS internal build"
-
-      - name: Distribute Android phone APK to Firebase
-        if: github.event_name != 'pull_request' && env.DIST_ANDROID == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
-        with:
-          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          groups: ${{ vars.FIREBASE_APP_DIST_GROUPS }}
-          testers: ${{ vars.FIREBASE_APP_DIST_TESTERS }}
-          releaseNotesFile: ${{ runner.temp }}/android-release-notes.txt
-          file: androidApp/build/outputs/apk/debug/androidApp-debug.apk
-
-      - name: Distribute Wear OS APK to Firebase
-        if: github.event_name != 'pull_request' && env.DIST_WEAR == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
-        with:
-          appId: ${{ secrets.FIREBASE_WEAR_ANDROID_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          groups: ${{ vars.FIREBASE_APP_DIST_GROUPS }}
-          testers: ${{ vars.FIREBASE_APP_DIST_TESTERS }}
-          releaseNotesFile: ${{ runner.temp }}/wear-release-notes.txt
-          file: wearApp/build/outputs/apk/debug/wearApp-debug.apk
 
   ios:
     name: iOS build and tests
@@ -221,17 +179,15 @@ jobs:
           if-no-files-found: ignore
           path: ${{ runner.temp }}/ios-tests.xcresult
 
-      - name: Resolve Firebase distribution flags
+      - name: Resolve iOS signing flags
         if: github.event_name != 'pull_request'
         env:
-          _SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          _IID: ${{ secrets.FIREBASE_IOS_APP_ID }}
           _TID: ${{ secrets.APPLE_TEAM_ID }}
           _CERT: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           _PASS: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
           _PROF: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          echo "DIST_IOS=$([[ -n "$_SA" && -n "$_IID" && -n "$_TID" && -n "$_CERT" && -n "$_PASS" && -n "$_PROF" ]] && echo true || echo false)" >> "$GITHUB_ENV"
+          echo "DIST_IOS=$([[ -n "$_TID" && -n "$_CERT" && -n "$_PASS" && -n "$_PROF" ]] && echo true || echo false)" >> "$GITHUB_ENV"
 
       - name: Install Apple signing assets
         if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
@@ -260,20 +216,6 @@ jobs:
           if-no-files-found: error
           path: ${{ runner.temp }}/ios-export/*.ipa
 
-      - name: Generate iOS release notes
-        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        run: ./scripts/write_release_notes.sh "$RUNNER_TEMP/ios-release-notes.txt" "iOS internal build"
-
-      - name: Distribute iOS IPA to Firebase
-        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
-        with:
-          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          groups: ${{ vars.FIREBASE_APP_DIST_GROUPS }}
-          testers: ${{ vars.FIREBASE_APP_DIST_TESTERS }}
-          releaseNotesFile: ${{ runner.temp }}/ios-release-notes.txt
-          file: ${{ runner.temp }}/ios-export/*.ipa
 
   watchos:
     name: watchOS build and tests

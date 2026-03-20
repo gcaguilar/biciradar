@@ -1744,6 +1744,27 @@ private fun ProfileScreen(
         }
       }
     }
+    item {
+      val uriHandler = LocalUriHandler.current
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Text(localizedText("Privacidad y datos"), fontWeight = FontWeight.SemiBold)
+          Text(
+            localizedText("Consulta cómo gestiona Bici Radar la ubicación, los datos de uso y los accesos del dispositivo."),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          TextButton(
+            onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
+            contentPadding = PaddingValues(0.dp),
+          ) {
+            Text(localizedText("Abrir política de privacidad"), style = MaterialTheme.typography.bodySmall)
+          }
+        }
+      }
+    }
   }
 }
 
