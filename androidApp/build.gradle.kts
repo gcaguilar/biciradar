@@ -73,6 +73,14 @@ android {
     release {
       isMinifyEnabled = true
       isShrinkResources = true
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ciRelease") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
