@@ -8,6 +8,13 @@ options:
   autoCreateSchemes: false
   bundleIdPrefix: com.gcaguilar.biciradar
   createIntermediateGroups: true
+  developmentLanguage: en
+  knownRegions:
+    - Base
+    - en
+    - ca
+    - eu
+    - gl
   deploymentTarget:
     iOS: "16.0"
     watchOS: "9.0"

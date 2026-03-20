@@ -201,3 +201,25 @@ fun localizedText(key: String, vararg args: Any?): String {
   }
   return result
 }
+
+enum class SharedString(val fallback: String) {
+  UNKNOWN_STATION("No he encontrado esa estación."),
+  FAVORITE_COUNT("Tienes %s estaciones guardadas en Bici Radar."),
+  NO_NEARBY_STATIONS("No tengo datos de estaciones cercanas ahora mismo."),
+  NEAREST_STATION("La estación más cercana es %s con %s bicis y %s anclajes."),
+  NEAREST_STATION_FALLBACK("No he encontrado ninguna estación dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes."),
+  NO_NEARBY_BIKES("No he encontrado estaciones cercanas con bicis disponibles ahora mismo."),
+  NEAREST_WITH_BIKES("La estación más cercana con bicis disponibles es %s con %s bicis y %s anclajes."),
+  NEAREST_WITH_BIKES_FALLBACK("No he encontrado estaciones con bicis disponibles dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes."),
+  NO_NEARBY_SLOTS("No he encontrado estaciones cercanas con huecos libres ahora mismo."),
+  NEAREST_WITH_SLOTS("La estación más cercana con huecos libres es %s con %s huecos y %s bicis."),
+  NEAREST_WITH_SLOTS_FALLBACK("No he encontrado estaciones con huecos libres dentro de %s m. La más cercana está a %s m: %s, con %s huecos y %s bicis."),
+  STATION_BIKES("%s tiene %s bicis disponibles."),
+  STATION_SLOTS("%s tiene %s huecos libres."),
+  STATION_STATUS("%s tiene %s bicis disponibles y %s huecos libres."),
+  ROUTE_TO_SELECTED_STATION("Abriendo la ruta a la estación seleccionada."),
+}
+
+fun sharedString(key: SharedString): String = localizedText(key.fallback)
+
+fun sharedString(key: SharedString, vararg args: Any?): String = localizedText(key.fallback, *args)

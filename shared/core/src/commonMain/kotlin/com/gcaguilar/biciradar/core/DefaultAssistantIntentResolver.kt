@@ -9,17 +9,17 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
   ): AssistantResolution {
     return when (action) {
       AssistantAction.FavoriteStations -> AssistantResolution(
-        spokenResponse = localizedText("Tienes %s estaciones guardadas en Bici Radar.", favoriteIds.size),
+        spokenResponse = sharedString(SharedString.FAVORITE_COUNT, favoriteIds.size),
       )
       AssistantAction.NearestStation -> nearestStationResolution(
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters),
-        emptyMessage = localizedText("No tengo datos de estaciones cercanas ahora mismo."),
+        emptyMessage = sharedString(SharedString.NO_NEARBY_STATIONS),
         withinRadiusFormatter = { station ->
-          localizedText("La estación más cercana es %s con %s bicis y %s anclajes.", station.name, station.bikesAvailable, station.slotsFree)
+          sharedString(SharedString.NEAREST_STATION, station.name, station.bikesAvailable, station.slotsFree)
         },
         fallbackFormatter = { station, radiusMeters ->
-          localizedText(
-            "No he encontrado ninguna estación dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes.",
+          sharedString(
+            SharedString.NEAREST_STATION_FALLBACK,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -32,13 +32,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.bikesAvailable > 0
         },
-        emptyMessage = localizedText("No he encontrado estaciones cercanas con bicis disponibles ahora mismo."),
+        emptyMessage = sharedString(SharedString.NO_NEARBY_BIKES),
         withinRadiusFormatter = { station ->
-          localizedText("La estación más cercana con bicis disponibles es %s con %s bicis y %s anclajes.", station.name, station.bikesAvailable, station.slotsFree)
+          sharedString(SharedString.NEAREST_WITH_BIKES, station.name, station.bikesAvailable, station.slotsFree)
         },
         fallbackFormatter = { station, radiusMeters ->
-          localizedText(
-            "No he encontrado estaciones con bicis disponibles dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes.",
+          sharedString(
+            SharedString.NEAREST_WITH_BIKES_FALLBACK,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -51,13 +51,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.slotsFree > 0
         },
-        emptyMessage = localizedText("No he encontrado estaciones cercanas con huecos libres ahora mismo."),
+        emptyMessage = sharedString(SharedString.NO_NEARBY_SLOTS),
         withinRadiusFormatter = { station ->
-          localizedText("La estación más cercana con huecos libres es %s con %s huecos y %s bicis.", station.name, station.slotsFree, station.bikesAvailable)
+          sharedString(SharedString.NEAREST_WITH_SLOTS, station.name, station.slotsFree, station.bikesAvailable)
         },
         fallbackFormatter = { station, radiusMeters ->
-          localizedText(
-            "No he encontrado estaciones con huecos libres dentro de %s m. La más cercana está a %s m: %s, con %s huecos y %s bicis.",
+          sharedString(
+            SharedString.NEAREST_WITH_SLOTS_FALLBACK,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -70,8 +70,8 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            localizedText("%s tiene %s bicis disponibles.", it.name, it.bikesAvailable)
-          } ?: localizedText("No he encontrado esa estación."),
+            sharedString(SharedString.STATION_BIKES, it.name, it.bikesAvailable)
+          } ?: sharedString(SharedString.UNKNOWN_STATION),
           highlightedStationId = station?.id,
         )
       }
@@ -79,21 +79,21 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            localizedText("%s tiene %s huecos libres.", it.name, it.slotsFree)
-          } ?: localizedText("No he encontrado esa estación."),
+            sharedString(SharedString.STATION_SLOTS, it.name, it.slotsFree)
+          } ?: sharedString(SharedString.UNKNOWN_STATION),
           highlightedStationId = station?.id,
         )
       }
       is AssistantAction.RouteToStation -> AssistantResolution(
-        spokenResponse = localizedText("Abriendo la ruta a la estación seleccionada."),
+        spokenResponse = sharedString(SharedString.ROUTE_TO_SELECTED_STATION),
         highlightedStationId = action.stationId,
       )
       is AssistantAction.StationStatus -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            localizedText("%s tiene %s bicis disponibles y %s huecos libres.", it.name, it.bikesAvailable, it.slotsFree)
-          } ?: localizedText("No he encontrado esa estación."),
+            sharedString(SharedString.STATION_STATUS, it.name, it.bikesAvailable, it.slotsFree)
+          } ?: sharedString(SharedString.UNKNOWN_STATION),
           highlightedStationId = station?.id,
         )
       }

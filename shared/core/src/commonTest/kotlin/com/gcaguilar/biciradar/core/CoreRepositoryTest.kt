@@ -433,19 +433,10 @@ class CoreRepositoryTest {
     assertEquals("station-2", nearest.highlightedStationId)
     assertEquals("station-1", nearestWithBikes.highlightedStationId)
     assertEquals("station-2", nearestWithSlots.highlightedStationId)
-    assertEquals(
-      localizedText("La estación más cercana es %s con %s bicis y %s anclajes.", "Plaza Aragón", 0, 9),
-      nearest.spokenResponse,
-    )
-    assertEquals(
-      localizedText("La estación más cercana con bicis disponibles es %s con %s bicis y %s anclajes.", "Plaza Espana", 7, 4),
-      nearestWithBikes.spokenResponse,
-    )
-    assertEquals(
-      localizedText("La estación más cercana con huecos libres es %s con %s huecos y %s bicis.", "Plaza Aragón", 9, 0),
-      nearestWithSlots.spokenResponse,
-    )
-    assertEquals(localizedText("Tienes %s estaciones guardadas en Bici Radar.", 2), favorites.spokenResponse)
+    assertEquals(sharedString(SharedString.NEAREST_STATION, "Plaza Aragón", 0, 9), nearest.spokenResponse)
+    assertEquals(sharedString(SharedString.NEAREST_WITH_BIKES, "Plaza Espana", 7, 4), nearestWithBikes.spokenResponse)
+    assertEquals(sharedString(SharedString.NEAREST_WITH_SLOTS, "Plaza Aragón", 9, 0), nearestWithSlots.spokenResponse)
+    assertEquals(sharedString(SharedString.FAVORITE_COUNT, 2), favorites.spokenResponse)
   }
 
   @Test
@@ -458,7 +449,7 @@ class CoreRepositoryTest {
     )
 
     assertNull(resolution.highlightedStationId)
-    assertEquals(localizedText("No he encontrado esa estación."), resolution.spokenResponse)
+    assertEquals(sharedString(SharedString.UNKNOWN_STATION), resolution.spokenResponse)
   }
 
   @Test
@@ -490,8 +481,8 @@ class CoreRepositoryTest {
 
     assertEquals("station-42", bikes.highlightedStationId)
     assertEquals("station-42", slots.highlightedStationId)
-    assertEquals(localizedText("%s tiene %s bicis disponibles.", "Plaza Espana", 6), bikes.spokenResponse)
-    assertEquals(localizedText("%s tiene %s huecos libres.", "Plaza Espana", 8), slots.spokenResponse)
+    assertEquals(sharedString(SharedString.STATION_BIKES, "Plaza Espana", 6), bikes.spokenResponse)
+    assertEquals(sharedString(SharedString.STATION_SLOTS, "Plaza Espana", 8), slots.spokenResponse)
   }
 
   @Test
@@ -516,7 +507,7 @@ class CoreRepositoryTest {
     )
 
     assertEquals("station-7", resolution.highlightedStationId)
-    assertTrue(resolution.spokenResponse.contains(localizedText("No he encontrado estaciones con bicis disponibles dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes.", 500, 720, "Plaza Aragón", 3, 5)))
+    assertEquals(sharedString(SharedString.NEAREST_WITH_BIKES_FALLBACK, 500, 720, "Plaza Aragón", 3, 5), resolution.spokenResponse)
   }
 
   @Test
