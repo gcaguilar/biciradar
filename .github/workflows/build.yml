@@ -60,9 +60,9 @@ jobs:
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
           BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
-          BIZI_CI_KEYSTORE_PASSWORD: bizi-ci-store
-          BIZI_CI_KEY_ALIAS: bizi-ci
-          BIZI_CI_KEY_PASSWORD: bizi-ci-store
+          BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
+          BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
+          BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
         run: |
           if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
             echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
