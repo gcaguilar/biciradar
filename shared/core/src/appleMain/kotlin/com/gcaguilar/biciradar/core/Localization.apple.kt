@@ -1,10 +1,10 @@
 package com.gcaguilar.biciradar.core
 
 import platform.Foundation.NSLocale
-import platform.Foundation.NSLocale.Companion.preferredLanguages as nsPreferredLanguages
+import platform.Foundation.NSLocale.Companion.currentLocale
 
 actual fun currentAppLanguage(): AppLanguage {
-  val code = nsPreferredLanguages.firstOrNull()?.toString()?.substringBefore('-')?.lowercase()
+  val code = currentLocale.languageCode?.lowercase()
   return when (code) {
     "en" -> AppLanguage.EN
     "ca" -> AppLanguage.CA
