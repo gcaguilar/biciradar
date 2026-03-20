@@ -434,8 +434,8 @@ class CoreRepositoryTest {
     assertEquals("station-1", nearestWithBikes.highlightedStationId)
     assertEquals("station-2", nearestWithSlots.highlightedStationId)
     assertTrue(nearest.spokenResponse.contains("Plaza Aragón"))
-    assertTrue(nearestWithBikes.spokenResponse.contains("bicis disponibles"))
-    assertTrue(nearestWithSlots.spokenResponse.contains("huecos libres"))
+    assertTrue(nearestWithBikes.spokenResponse.contains("7 bicis"))
+    assertTrue(nearestWithSlots.spokenResponse.contains("9 huecos"))
     assertTrue(favorites.spokenResponse.contains("2 estaciones"))
   }
 
@@ -449,7 +449,7 @@ class CoreRepositoryTest {
     )
 
     assertNull(resolution.highlightedStationId)
-    assertEquals("No he encontrado esa estación.", resolution.spokenResponse)
+    assertEquals(localizedText("No he encontrado esa estación."), resolution.spokenResponse)
   }
 
   @Test
@@ -507,8 +507,7 @@ class CoreRepositoryTest {
     )
 
     assertEquals("station-7", resolution.highlightedStationId)
-    assertTrue(resolution.spokenResponse.contains("dentro de 500 m"))
-    assertTrue(resolution.spokenResponse.contains("720 m"))
+    assertTrue(resolution.spokenResponse.contains(localizedText("No he encontrado estaciones con bicis disponibles dentro de %s m. La más cercana está a %s m: %s, con %s bicis y %s anclajes.", 500, 720, "Plaza Aragón", 3, 5)))
   }
 
   @Test
