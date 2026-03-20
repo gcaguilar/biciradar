@@ -4,9 +4,9 @@
     <string name="shortcut_nearest_station_with_bikes">Propera amb bicis</string>
     <string name="shortcut_nearest_station_with_slots">Propera amb ancoratges</string>
     <string name="shortcut_favorites">Els meus favorits</string>
-    <string name="shortcut_route">Ruta a l&apos;estacio</string>
-    <string name="shortcut_station_status">Estat de l&apos;estacio</string>
-    <string name="shortcut_station_bikes">Bicis a l&apos;estacio</string>
-    <string name="shortcut_station_slots">Ancoratges a l&apos;estacio</string>
+    <string name="shortcut_route">Ruta a la estacio</string>
+    <string name="shortcut_station_status">Estat de la estacio</string>
+    <string name="shortcut_station_bikes">Bicis a la estacio</string>
+    <string name="shortcut_station_slots">Ancoratges a la estacio</string>
     <string name="shortcut_show_station">Buscar estacio</string>
 </resources>
