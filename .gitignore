@@ -9,6 +9,11 @@ androidApp/google-services.json
 wearApp/google-services.json
 apple/iosApp/GoogleService-Info.plist
 *.keystore
+*.jks
+*.p12
+*.mobileprovision
+*.pem
+github-secrets.txt
 apple/Config/LocalSecrets.xcconfig
 *.iml
 DerivedData/
