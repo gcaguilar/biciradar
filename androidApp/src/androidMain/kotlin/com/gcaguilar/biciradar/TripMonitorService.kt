@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.gcaguilar.biciradar.core.TripRepository
+import com.gcaguilar.biciradar.core.localizedText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,7 +34,7 @@ class TripMonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification("Vigilando estación Bizi…"))
+    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(localizedText("Vigilando estación Bizi…")))
     observeMonitoringState()
   }
 
@@ -62,7 +63,7 @@ class TripMonitorService : Service() {
           val minutes = remaining / 60
           val seconds = remaining % 60
           val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-          val body = "${station.name} · ${station.slotsFree} hueco(s) libre(s) · $timeText restante(s)"
+          val body = localizedText("%s · %s free slot(s) · %s remaining", station.name, station.slotsFree, timeText)
           notificationManager.notify(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(body))
         }
       }
@@ -72,7 +73,7 @@ class TripMonitorService : Service() {
   private fun buildForegroundNotification(text: String): Notification =
     NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle("Bizi Viaje")
+      .setContentTitle(localizedText("Bizi Viaje"))
       .setContentText(text)
       .setOngoing(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -81,10 +82,10 @@ class TripMonitorService : Service() {
   private fun ensureNotificationChannel() {
     val channel = NotificationChannel(
       CHANNEL_ID,
-      "Bizi Viaje (activo)",
+      localizedText("Bizi Viaje (activo)"),
       NotificationManager.IMPORTANCE_LOW,
     ).apply {
-      description = "Notificación persistente durante la monitorización de viaje"
+      description = localizedText("Notificación persistente durante la monitorización de viaje")
     }
     notificationManager.createNotificationChannel(channel)
   }

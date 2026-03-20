@@ -104,7 +104,7 @@ class TripRepositoryImpl(
       mutableState.update {
         it.copy(
           isSearchingStation = false,
-          searchError = "No se encontró ninguna estación con plazas libres cerca.",
+          searchError = localizedText("No se encontró ninguna estación con plazas libres cerca."),
         )
       }
       return

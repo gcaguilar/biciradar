@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Bici Radar</string>
+    <string name="shortcut_nearest_station">Estacion proxima</string>
+    <string name="shortcut_nearest_station_with_bikes">Proxima con bicis</string>
+    <string name="shortcut_nearest_station_with_slots">Proxima con ocos</string>
+    <string name="shortcut_favorites">As miñas favoritas</string>
+    <string name="shortcut_route">Ruta a estacion</string>
+    <string name="shortcut_station_status">Estado da estacion</string>
+    <string name="shortcut_station_bikes">Bicis na estacion</string>
+    <string name="shortcut_station_slots">Ocos na estacion</string>
+    <string name="shortcut_show_station">Buscar estacion</string>
+</resources>

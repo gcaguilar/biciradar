@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
+import com.gcaguilar.biciradar.core.localizedText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -84,9 +85,12 @@ class TripViewModel(
       if (_uiState.value.query == newQuery) {
         val errorMsg = results.exceptionOrNull()?.let { ex ->
           when (ex) {
-            is GeoError.Server -> "No hemos podido buscar esa ubicación ahora mismo."
-            is GeoError.Network -> "No hemos podido conectar con el servicio de localización."
-            else -> "Error de búsqueda: ${ex.message ?: ex::class.simpleName ?: "desconocido"}"
+            is GeoError.Server -> localizedText("No hemos podido buscar esa ubicación ahora mismo.")
+            is GeoError.Network -> localizedText("No hemos podido conectar con el servicio de localización.")
+            else -> localizedText(
+              "Error de búsqueda: %s",
+              ex.message ?: ex::class.simpleName ?: localizedText("desconocido"),
+            )
           }
         }
         _uiState.value = _uiState.value.copy(

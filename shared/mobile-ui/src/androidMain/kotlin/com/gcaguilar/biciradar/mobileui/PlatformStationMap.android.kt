@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.localizedText
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -64,7 +65,7 @@ internal actual fun PlatformStationMap(
   if (!isMapReady) {
     Surface(modifier = modifier) {
       Text(
-        text = "Mapa no disponible. Configura una API key de Google Maps.",
+        text = localizedText("Mapa no disponible. Configura una API key de Google Maps."),
         modifier = Modifier
           .fillMaxSize()
           .wrapContentSize(Alignment.Center),
@@ -116,7 +117,7 @@ internal actual fun PlatformStationMap(
           MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
         },
         title = station.name,
-        snippet = "${station.bikesAvailable} bicis · ${station.slotsFree} libres",
+        snippet = localizedText("%s bicis · %s libres", station.bikesAvailable, station.slotsFree),
         icon = BitmapDescriptorFactory.defaultMarker(
           stationMarkerHue(station, station.id == highlightedStationId),
         ),
@@ -137,7 +138,7 @@ internal actual fun PlatformStationMap(
             fontWeight = FontWeight.SemiBold,
           )
           Text(
-            text = "${station.bikesAvailable} bicis · ${station.slotsFree} huecos · ${station.distanceMeters} m",
+            text = localizedText("%s bicis · %s huecos · %s m", station.bikesAvailable, station.slotsFree, station.distanceMeters),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -149,7 +150,7 @@ internal actual fun PlatformStationMap(
         state = remember(pinLocation) {
           MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
         },
-        title = "Destino",
+        title = localizedText("Destino"),
         icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
       ) {}
     }

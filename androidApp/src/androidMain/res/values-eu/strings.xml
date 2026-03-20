@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Bici Radar</string>
+    <string name="shortcut_nearest_station">Geltoki hurbilena</string>
+    <string name="shortcut_nearest_station_with_bikes">Gertuko bizikletekin</string>
+    <string name="shortcut_nearest_station_with_slots">Gertuko lekuekin</string>
+    <string name="shortcut_favorites">Nire gogokoak</string>
+    <string name="shortcut_route">Geltokirako ibilbidea</string>
+    <string name="shortcut_station_status">Geltokiaren egoera</string>
+    <string name="shortcut_station_bikes">Bizikletak geltokian</string>
+    <string name="shortcut_station_slots">Lekuak geltokian</string>
+    <string name="shortcut_show_station">Bilatu geltokia</string>
+</resources>

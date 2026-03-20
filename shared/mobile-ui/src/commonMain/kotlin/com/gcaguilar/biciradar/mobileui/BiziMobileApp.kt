@@ -107,6 +107,7 @@ import com.gcaguilar.biciradar.core.filterStationsByQuery
 import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.biciradar.core.isGoogleMapsReady
+import com.gcaguilar.biciradar.core.localizedText
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -732,22 +733,22 @@ private fun StartupSplashScreen(
         verticalArrangement = Arrangement.spacedBy(6.dp),
       ) {
         Text(
-          text = "Bici Radar",
+          text = localizedText("Bici Radar"),
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
           color = c.red,
         )
         Text(
-          text = "Cargando estaciones cercanas, favoritas y atajos...",
+          text = localizedText("Cargando estaciones cercanas, favoritas y atajos..."),
           style = MaterialTheme.typography.bodyMedium,
           color = c.muted,
         )
       }
       Text(
         text = if (mobilePlatform == MobileUiPlatform.IOS) {
-          "Preparando la experiencia del iPhone."
+          localizedText("Preparando la experiencia del iPhone.")
         } else {
-          "Preparando la experiencia de Android."
+          localizedText("Preparando la experiencia de Android.")
         },
         style = MaterialTheme.typography.labelMedium,
         color = c.muted,
@@ -894,7 +895,7 @@ private fun MapScreen(
         mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = "Buscar estación o dirección",
+        label = localizedText("Buscar estación o dirección"),
       )
       MapFilterChipRow(
         activeFilters = activeFilters,
@@ -920,7 +921,7 @@ private fun MapScreen(
     ) {
       Icon(
         imageVector = Icons.Filled.MyLocation,
-        contentDescription = "Mi ubicación",
+        contentDescription = localizedText("Mi ubicación"),
         tint = LocalBiziColors.current.red,
         modifier = Modifier.padding(14.dp).size(22.dp),
       )
@@ -937,20 +938,24 @@ private fun MapScreen(
     ) {
       if (errorMessage != null) {
         EmptyStateCard(
-          title = "No hemos podido actualizar el mapa",
+          title = localizedText("No hemos podido actualizar el mapa"),
           description = errorMessage,
-          primaryAction = "Reintentar",
+          primaryAction = localizedText("Reintentar"),
           onPrimaryAction = onRetry,
         )
       } else {
         EmptyStateCard(
-          title = if (searchQuery.isBlank()) "Todavía no tenemos estaciones en pantalla" else "No hay estaciones para esa búsqueda",
-          description = if (searchQuery.isBlank()) {
-            "La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible."
+          title = if (searchQuery.isBlank()) {
+            localizedText("Todavía no tenemos estaciones en pantalla")
           } else {
-            "Prueba con otro nombre, dirección o número de estación."
+            localizedText("No hay estaciones para esa búsqueda")
           },
-          primaryAction = "Cargar estaciones",
+          description = if (searchQuery.isBlank()) {
+            localizedText("La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.")
+          } else {
+            localizedText("Prueba con otro nombre, dirección o número de estación.")
+          },
+          primaryAction = localizedText("Cargar estaciones"),
           onPrimaryAction = onRetry,
         )
       }
@@ -1033,12 +1038,12 @@ private fun NearbyScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
             Text(
-              text = "Cerca",
+              text = localizedText("Cerca"),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = "Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo.",
+              text = localizedText("Acciones rápidas para encontrar bicis, huecos y abrir rutas sin pasar por el mapa completo."),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1060,13 +1065,13 @@ private fun NearbyScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
           ) {
             Text(
-              text = "Cerca de ti",
+              text = localizedText("Cerca de ti"),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
               color = LocalBiziColors.current.red,
             )
             Text(
-              text = "Estaciones ordenadas por cercanía y acciones rápidas para moverte.",
+              text = localizedText("Estaciones ordenadas por cercanía y acciones rápidas para moverte."),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1084,8 +1089,8 @@ private fun NearbyScreen(
       ) {
         QuickRouteActionCard(
           modifier = Modifier.weight(1f),
-          title = "Más cercana con bicis",
-          emptyTitle = "Sin bicis cercanas",
+          title = localizedText("Más cercana con bicis"),
+          emptyTitle = localizedText("Sin bicis cercanas"),
           selection = nearestWithBikesSelection,
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
           tint = LocalBiziColors.current.red,
@@ -1094,8 +1099,8 @@ private fun NearbyScreen(
         )
         QuickRouteActionCard(
           modifier = Modifier.weight(1f),
-          title = "Más cercana con huecos",
-          emptyTitle = "Sin huecos cercanos",
+          title = localizedText("Más cercana con huecos"),
+          emptyTitle = localizedText("Sin huecos cercanos"),
           selection = nearestWithSlotsSelection,
           icon = Icons.Filled.LocalParking,
           tint = LocalBiziColors.current.blue,
@@ -1113,15 +1118,15 @@ private fun NearbyScreen(
       item {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
-            text = if (loading) "Actualizando estaciones..." else "Estaciones cercanas",
+            text = if (loading) localizedText("Actualizando estaciones...") else localizedText("Estaciones cercanas"),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
           )
           Text(
             text = if (nearestSelection.usesFallback) {
-              "Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana."
+              localizedText("Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana.")
             } else {
-              "Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta."
+              localizedText("Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta.")
             },
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
@@ -1137,7 +1142,7 @@ private fun NearbyScreen(
               OutlinedButton(onClick = onRetry) {
                 Icon(Icons.Filled.Sync, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Reintentar")
+                Text(localizedText("Reintentar"))
               }
             }
           }
@@ -1151,9 +1156,9 @@ private fun NearbyScreen(
           label = "nearby-empty",
         ) {
           EmptyStateCard(
-            title = "Todavía no tenemos estaciones en pantalla",
-            description = "Vuelve a intentarlo y la app usará Zaragoza centro si la ubicación tarda demasiado.",
-            primaryAction = "Cargar estaciones",
+            title = localizedText("Todavía no tenemos estaciones en pantalla"),
+            description = localizedText("La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible."),
+            primaryAction = localizedText("Cargar estaciones"),
             onPrimaryAction = onRetry,
           )
         }
@@ -1182,7 +1187,7 @@ private fun RefreshButtonWithCountdown(
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     IconButton(onClick = onRefresh, enabled = !loading) {
-      Icon(Icons.Filled.Sync, contentDescription = "Actualizar estaciones")
+      Icon(Icons.Filled.Sync, contentDescription = localizedText("Actualizar estaciones"))
     }
     if (countdown > 0 && !loading) {
       val minutes = countdown / 60
@@ -1204,7 +1209,8 @@ private fun MapFilterChipRow(
   Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
     MapFilter.entries.forEach { filter ->
       MapFilterChip(
-        label = filter.label,
+        filter = filter,
+        label = localizedText(filter.label),
         selected = filter in activeFilters,
         onClick = { onToggleFilter(filter) },
       )
@@ -1219,15 +1225,15 @@ private fun MapAvailabilityLegend() {
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     AvailabilityLegendChip(
-      label = "Bicis y huecos",
+      label = localizedText("Bicis y huecos"),
       color = LocalBiziColors.current.green,
     )
     AvailabilityLegendChip(
-      label = "Solo bicis o solo huecos",
+      label = localizedText("Solo bicis o solo huecos"),
       color = LocalBiziColors.current.orange,
     )
     AvailabilityLegendChip(
-      label = "Sin servicio",
+      label = localizedText("Sin servicio"),
       color = LocalBiziColors.current.red,
     )
   }
@@ -1265,36 +1271,51 @@ private fun AvailabilityLegendChip(
 
 @Composable
 private fun MapFilterChip(
+  filter: MapFilter,
   label: String,
   selected: Boolean,
   onClick: () -> Unit,
 ) {
   val c = LocalBiziColors.current
+  val accent = when (filter) {
+    MapFilter.BIKES_AND_SLOTS -> c.green
+    MapFilter.ONLY_BIKES -> c.red
+    MapFilter.ONLY_SLOTS -> c.blue
+  }
   val backgroundColor by animateColorAsState(
-    targetValue = if (selected) c.red else c.surface,
+    targetValue = if (selected) accent.copy(alpha = 0.12f) else c.surface,
     animationSpec = tween(180),
   )
   val contentColor by animateColorAsState(
-    targetValue = if (selected) c.onAccent else c.ink,
+    targetValue = if (selected) accent else c.ink,
     animationSpec = tween(180),
   )
   val borderColor by animateColorAsState(
-    targetValue = if (selected) c.red else c.muted.copy(alpha = 0.28f),
+    targetValue = if (selected) accent.copy(alpha = 0.28f) else c.panel,
     animationSpec = tween(180),
+  )
+  val selectionScale by animateFloatAsState(
+    targetValue = if (selected) 1f else 0.98f,
+    animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
+    label = "map-filter-scale",
   )
   Surface(
     shape = RoundedCornerShape(16.dp),
     color = backgroundColor,
     border = BorderStroke(1.dp, borderColor),
-    shadowElevation = if (selected) 2.dp else 1.dp,
-    modifier = Modifier.clickable(onClick = onClick),
+    modifier = Modifier
+      .graphicsLayer {
+        scaleX = selectionScale
+        scaleY = selectionScale
+      }
+      .clickable(onClick = onClick),
   ) {
     Text(
       text = label,
       color = contentColor,
-      style = MaterialTheme.typography.labelMedium,
+      style = MaterialTheme.typography.bodySmall,
       fontWeight = FontWeight.SemiBold,
-      modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+      modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
     )
   }
 }
@@ -1334,17 +1355,17 @@ private fun MapSelectedStationCard(
       ) {
         Text(
           if (isFallbackSelection) {
-            "No hay dentro de ${searchRadiusMeters} m"
+            localizedText("No hay dentro de %s m", searchRadiusMeters)
           } else if (isShowingNearestSelection) {
-            "Estación más cercana"
+            localizedText("Estación más cercana")
           } else {
-            "Estación seleccionada"
+            localizedText("Estación seleccionada")
           },
           color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
         )
         Icon(
           imageVector = Icons.Filled.Close,
-          contentDescription = "Cerrar",
+          contentDescription = localizedText("Cerrar"),
           tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
           modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
         )
@@ -1375,15 +1396,20 @@ private fun MapSelectedStationCard(
       }
       Text(
         text = if (isFallbackSelection) {
-          "La más cercana está a ${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+          localizedText(
+            "La más cercana está a %s m · %s bicis · %s libres",
+            station.distanceMeters,
+            station.bikesAvailable,
+            station.slotsFree,
+          )
         } else {
-          "${station.distanceMeters} m · ${station.bikesAvailable} bicis · ${station.slotsFree} libres"
+          localizedText("%s m · %s bicis · %s libres", station.distanceMeters, station.bikesAvailable, station.slotsFree)
         },
         color = overlayBody,
       )
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         RoutePill(
-          label = "Ruta",
+          label = localizedText("Ruta"),
           onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
           onClick = { onQuickRoute(station) },
         )
@@ -1391,18 +1417,18 @@ private fun MapSelectedStationCard(
           FavoritePill(
             active = isFavorite,
             onClick = onFavoriteToggle,
-            label = if (isFavorite) "Guardada" else "Guardar",
+            label = if (isFavorite) localizedText("Guardada") else localizedText("Guardar"),
           )
         } else {
           OutlineActionPill(
-            label = if (isFavorite) "Guardada" else "Guardar",
+            label = if (isFavorite) localizedText("Guardada") else localizedText("Guardar"),
             tint = c.onAccent,
             borderTint = c.onAccent.copy(alpha = 0.32f),
             onClick = onFavoriteToggle,
           )
         }
         OutlineActionPill(
-          label = "Detalle",
+          label = localizedText("Detalle"),
           tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
           borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
           onClick = { onOpenStationDetails(station) },
@@ -1447,13 +1473,13 @@ private fun FavoritesScreen(
     item {
       if (mobilePlatform == MobileUiPlatform.IOS) {
         MobilePageHeader(
-          title = "Favoritas",
-          subtitle = "Tus estaciones guardadas para consultar el estado o abrir una ruta con un toque.",
+          title = localizedText("Favoritos"),
+          subtitle = localizedText("Tus estaciones guardadas para consultar el estado o abrir una ruta con un toque."),
           onOpenAssistant = onOpenAssistant,
         )
       } else {
         Text(
-          text = "Mis estaciones",
+          text = localizedText("Mis estaciones"),
           style = MaterialTheme.typography.headlineSmall,
           fontWeight = FontWeight.Bold,
         )
@@ -1464,18 +1490,18 @@ private fun FavoritesScreen(
         mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = "Buscar estación para fijarla o filtrar favoritas",
+        label = localizedText("Buscar estación para fijarla o filtrar favoritas"),
       )
     }
     item {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = "Casa y trabajo",
+          text = localizedText("Casa y trabajo"),
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.SemiBold,
         )
         Text(
-          text = "Puedes fijar Casa o Trabajo desde el buscador o directamente desde una favorita. Desliza una favorita para quitarla.",
+          text = localizedText("Puedes fijar Casa o Trabajo desde el buscador o directamente desde una favorita. Desliza una favorita para quitarla."),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
@@ -1484,7 +1510,7 @@ private fun FavoritesScreen(
     item {
       SavedPlaceCard(
         mobilePlatform = mobilePlatform,
-        title = "Casa",
+        title = localizedText("Casa"),
         station = homeStation,
         assignmentCandidate = assignmentCandidate,
         onAssignCandidate = onAssignHomeStation,
@@ -1496,7 +1522,7 @@ private fun FavoritesScreen(
     item {
       SavedPlaceCard(
         mobilePlatform = mobilePlatform,
-        title = "Trabajo",
+        title = localizedText("Trabajo"),
         station = workStation,
         assignmentCandidate = assignmentCandidate,
         onAssignCandidate = onAssignWorkStation,
@@ -1513,8 +1539,8 @@ private fun FavoritesScreen(
         label = "favorites-empty",
       ) {
         EmptyStateCard(
-          title = "Todavía no tienes favoritas",
-          description = "Guarda estaciones desde el mapa para consultarlas más rápido y compartirlas con el reloj.",
+          title = localizedText("Todavía no tienes favoritas"),
+          description = localizedText("Guarda estaciones desde el mapa para consultarlas más rápido y compartirlas con el reloj."),
         )
       }
     }
@@ -1559,12 +1585,12 @@ private fun ProfileScreen(
     item {
       Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-          text = "Ajustes",
+          text = localizedText("Ajustes"),
           style = MaterialTheme.typography.headlineSmall,
           fontWeight = FontWeight.Bold,
         )
         Text(
-          text = "Personaliza la experiencia de la app y comparte feedback cuando quieras.",
+          text = localizedText("Personaliza la experiencia de la app y comparte feedback cuando quieras."),
           style = MaterialTheme.typography.bodyMedium,
           color = LocalBiziColors.current.muted,
         )
@@ -1575,9 +1601,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text("Radio para estación cercana", fontWeight = FontWeight.SemiBold)
+          Text(localizedText("Radio para estación cercana"), fontWeight = FontWeight.SemiBold)
           Text(
-            "Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia.",
+            localizedText("Si no hay estaciones dentro del radio, la app mostrará igualmente la más cercana y te indicará la distancia."),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1587,7 +1613,7 @@ private fun ProfileScreen(
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
                   selected = radiusMeters == searchRadiusMeters,
-                  label = if (radiusMeters == searchRadiusMeters) "${radiusMeters} m activo" else "${radiusMeters} m",
+                  label = if (radiusMeters == searchRadiusMeters) localizedText("%s m activo", radiusMeters) else localizedText("%s m", radiusMeters),
                   onClick = { onSearchRadiusSelected(radiusMeters) },
                 )
               }
@@ -1604,9 +1630,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-          Text("Atajos", fontWeight = FontWeight.SemiBold)
+          Text(localizedText("Atajos"), fontWeight = FontWeight.SemiBold)
           Text(
-            "Consulta todos los comandos de voz disponibles y cómo invocarlos con ${mobilePlatform.assistantDisplayName()}.",
+            localizedText("Consulta todos los comandos de voz disponibles y cómo invocarlos con %s.", mobilePlatform.assistantDisplayName()),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1616,7 +1642,7 @@ private fun ProfileScreen(
           ) {
             Icon(Icons.Filled.KeyboardVoice, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Abrir guía de atajos")
+            Text(localizedText("Abrir guía de atajos"))
           }
         }
       }
@@ -1626,9 +1652,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text("Apariencia", fontWeight = FontWeight.SemiBold)
+          Text(localizedText("Apariencia"), fontWeight = FontWeight.SemiBold)
           Text(
-            "Elige si la app sigue el sistema o usa siempre el tema claro u oscuro.",
+            localizedText("Elige si la app sigue el sistema o usa siempre el tema claro u oscuro."),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1636,19 +1662,19 @@ private fun ProfileScreen(
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.System,
-              label = "Sistema",
+              label = localizedText("Sistema"),
               onClick = { onThemePreferenceSelected(ThemePreference.System) },
             )
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.Light,
-              label = "Claro",
+              label = localizedText("Claro"),
               onClick = { onThemePreferenceSelected(ThemePreference.Light) },
             )
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.Dark,
-              label = "Oscuro",
+              label = localizedText("Oscuro"),
               onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
             )
           }
@@ -1661,9 +1687,9 @@ private fun ProfileScreen(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("App de rutas en iPhone", fontWeight = FontWeight.SemiBold)
+            Text(localizedText("App de rutas en iPhone"), fontWeight = FontWeight.SemiBold)
             Text(
-              "Elige qué app abrir para las rutas rápidas, el detalle de estación y los atajos de Siri.",
+              localizedText("Elige qué app abrir para las rutas rápidas, el detalle de estación y los atajos de Siri."),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
@@ -1682,7 +1708,7 @@ private fun ProfileScreen(
               )
             }
             Text(
-               "Si Google Maps no está instalado, Bici Radar usará Apple Maps como fallback.",
+               localizedText("Si Google Maps no está instalado, Bici Radar usará Apple Maps como fallback."),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
@@ -1696,9 +1722,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text("Comentarios y sugerencias", fontWeight = FontWeight.SemiBold)
+          Text(localizedText("Comentarios y sugerencias"), fontWeight = FontWeight.SemiBold)
           Text(
-            "¿Algo no funciona bien o tienes una idea? Usa el formulario para enviar tu opinión.",
+            localizedText("¿Algo no funciona bien o tienes una idea? Usa el formulario para enviar tu opinión."),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1706,7 +1732,7 @@ private fun ProfileScreen(
             onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
             contentPadding = PaddingValues(0.dp),
           ) {
-            Text("Abrir formulario de feedback", style = MaterialTheme.typography.bodySmall)
+            Text(localizedText("Abrir formulario de feedback"), style = MaterialTheme.typography.bodySmall)
           }
         }
       }
@@ -1754,12 +1780,12 @@ private fun ShortcutsScreen(
           if (mobilePlatform == MobileUiPlatform.IOS) {
             Text("")
           } else {
-            Text("Atajos")
+            Text(localizedText("Atajos"))
           }
         },
         navigationIcon = {
           IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = localizedText("Volver"))
           }
         },
       )
@@ -1784,12 +1810,12 @@ private fun ShortcutsScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
             Text(
-              text = "Atajos",
+              text = localizedText("Atajos"),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = "Consulta qué puedes pedirle a Siri y cómo invocarlo de forma natural en Bici Radar.",
+              text = localizedText("Consulta qué puedes pedirle a Siri y cómo invocarlo de forma natural en Bici Radar."),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1802,27 +1828,27 @@ private fun ShortcutsScreen(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
           ) {
-            Text("Cómo invocarlos", fontWeight = FontWeight.SemiBold)
+            Text(localizedText("Cómo invocarlos"), fontWeight = FontWeight.SemiBold)
             Text(
               if (mobilePlatform == MobileUiPlatform.IOS) {
-                "Estas acciones quedan disponibles en Siri y Atajos."
+                localizedText("Estas acciones quedan disponibles en Siri y Atajos.")
               } else {
-                "Qué puedes pedirle a ${mobilePlatform.assistantDisplayName()} y cómo invocarlo dentro de Bici Radar."
+                localizedText("Qué puedes pedirle a %s y cómo invocarlo dentro de Bici Radar.", mobilePlatform.assistantDisplayName())
               },
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
             Text(
               if (mobilePlatform == MobileUiPlatform.IOS) {
-                "Abre Siri o Atajos y usa frases naturales como las de abajo terminando en “con Bici Radar”."
+                localizedText("Abre Siri o Atajos y usa frases naturales como las de abajo terminando en “con Bici Radar”.")
               } else {
-                "Abre Google Assistant y prueba frases naturales como las de abajo. Si hace falta, añade “con Bici Radar” para desambiguar."
+                localizedText("Abre Google Assistant y prueba frases naturales como las de abajo. Si hace falta, añade “con Bici Radar” para desambiguar.")
               },
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
             Text(
-              "Radio actual para búsquedas cercanas: ${searchRadiusMeters} m.",
+              localizedText("Radio actual para búsquedas cercanas: %s m.", searchRadiusMeters),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.ink,
             )
@@ -1836,7 +1862,7 @@ private fun ShortcutsScreen(
               modifier = Modifier.padding(18.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              Text("Última respuesta", fontWeight = FontWeight.SemiBold)
+              Text(localizedText("Última respuesta"), fontWeight = FontWeight.SemiBold)
               Text(answer)
             }
           }
@@ -1893,7 +1919,7 @@ private fun StationDetailScreen(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         IconButton(onClick = onBack) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
+          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = localizedText("Volver"))
         }
         Text(
           text = station.name,
@@ -1935,20 +1961,20 @@ private fun StationDetailScreen(
             FavoritePill(
               active = isFavorite,
               onClick = onToggleFavorite,
-              label = if (isFavorite) "Guardada" else "Guardar",
+              label = if (isFavorite) localizedText("Guardada") else localizedText("Guardar"),
             )
           }
           Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
           Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StationMetricPill(
               modifier = Modifier.weight(1f),
-              label = "Distancia",
+              label = localizedText("Distancia"),
               value = "${station.distanceMeters} m",
               tint = LocalBiziColors.current.blue,
             )
             StationMetricPill(
               modifier = Modifier.weight(1f),
-              label = "Fuente",
+              label = localizedText("Fuente"),
               value = station.sourceLabel,
               tint = LocalBiziColors.current.muted,
             )
@@ -1964,9 +1990,9 @@ private fun StationDetailScreen(
           modifier = Modifier.padding(18.dp),
           verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          Text("Guardar esta estación", fontWeight = FontWeight.SemiBold)
+          Text(localizedText("Guardar esta estación"), fontWeight = FontWeight.SemiBold)
           Text(
-            "Márcala como favorita o fíjala como Casa o Trabajo para recuperarla más rápido desde Favoritas y con los atajos de voz.",
+            localizedText("Márcala como favorita o fíjala como Casa o Trabajo para recuperarla más rápido desde Favoritas y con los atajos de voz."),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1974,25 +2000,25 @@ private fun StationDetailScreen(
             FavoritePill(
               active = isFavorite,
               onClick = onToggleFavorite,
-              label = if (isFavorite) "Favorita" else "Guardar",
+              label = if (isFavorite) localizedText("Favorita") else localizedText("Guardar"),
             )
             SavedPlacePill(
               active = isHomeStation,
-              label = "Casa",
+              label = localizedText("Casa"),
               onClick = onToggleHome,
             )
             SavedPlacePill(
               active = isWorkStation,
-              label = "Trabajo",
+              label = localizedText("Trabajo"),
               onClick = onToggleWork,
             )
           }
           Text(
             when {
-              isHomeStation && isWorkStation -> "Ahora mismo esta estación está marcada como Casa y Trabajo."
-              isHomeStation -> "Ahora mismo esta estación está marcada como Casa."
-              isWorkStation -> "Ahora mismo esta estación está marcada como Trabajo."
-              else -> "Puedes tocar Casa o Trabajo para asignarla directamente."
+              isHomeStation && isWorkStation -> localizedText("Ahora mismo esta estación está marcada como Casa y Trabajo.")
+              isHomeStation -> localizedText("Ahora mismo esta estación está marcada como Casa.")
+              isWorkStation -> localizedText("Ahora mismo esta estación está marcada como Trabajo.")
+              else -> localizedText("Puedes tocar Casa o Trabajo para asignarla directamente.")
             },
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
@@ -2019,7 +2045,7 @@ private fun StationDetailScreen(
       Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         AvailabilityCard(
           modifier = Modifier.weight(1f),
-          label = "Bicis",
+          label = localizedText("Bicis"),
           value = station.bikesAvailable.toString(),
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
           tint = LocalBiziColors.current.red,
@@ -2027,7 +2053,7 @@ private fun StationDetailScreen(
         )
         AvailabilityCard(
           modifier = Modifier.weight(1f),
-          label = "Huecos",
+          label = localizedText("Huecos"),
           value = station.slotsFree.toString(),
           icon = Icons.Filled.LocalParking,
           tint = LocalBiziColors.current.blue,
@@ -2048,7 +2074,7 @@ private fun StationDetailScreen(
       Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Filled.Directions, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text("Abrir ruta")
+        Text(localizedText("Abrir ruta"))
       }
     }
     item {
@@ -2058,7 +2084,7 @@ private fun StationDetailScreen(
           contentDescription = null,
         )
         Spacer(Modifier.width(8.dp))
-        Text(if (isFavorite) "Quitar de favoritos" else "Guardar en favoritos")
+        Text(if (isFavorite) localizedText("Quitar de favoritos") else localizedText("Guardar en favoritos"))
       }
     }
   }
@@ -2086,7 +2112,7 @@ private fun StationPatternCard(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text("Patrón de uso", fontWeight = FontWeight.SemiBold)
+        Text(localizedText("Patrón de uso"), fontWeight = FontWeight.SemiBold)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
           FilterChip(
             selected = !showWeekend,
@@ -2123,7 +2149,7 @@ private fun StationPatternCard(
             contentAlignment = Alignment.Center,
           ) {
             Text(
-              "No hay datos de patrón disponibles",
+                localizedText("No hay datos de patrón disponibles"),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -2138,14 +2164,14 @@ private fun StationPatternCard(
               contentAlignment = Alignment.Center,
             ) {
               Text(
-                "No hay datos para este tipo de día",
+                localizedText("No hay datos para este tipo de día"),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.muted,
               )
             }
           } else {
             Text(
-              "Media de bicis disponibles en esta estación según la hora del día, basada en datos históricos de datosbizi.com.",
+              localizedText("Media de bicis disponibles en esta estación según la hora del día, basada en datos históricos de datosbizi.com."),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -2162,13 +2188,13 @@ private fun StationPatternCard(
               ) {
                 PatternHintPill(
                   modifier = Modifier.weight(1f),
-                  label = "Más bicis",
+                  label = localizedText("Más bicis"),
                   value = "${bestBikesHour.hour}:00h (~${bestBikesHour.bikesAvg.roundToInt()})",
                   tint = colors.red,
                 )
                 PatternHintPill(
                   modifier = Modifier.weight(1f),
-                  label = "Más huecos",
+                  label = localizedText("Más huecos"),
                   value = "${bestSlotsHour.hour}:00h (~${bestSlotsHour.anchorsAvg.roundToInt()})",
                   tint = colors.blue,
                 )
@@ -2347,12 +2373,12 @@ private fun TripScreen(
     item {
       Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-          "Viaje",
+          localizedText("Viaje"),
           style = MaterialTheme.typography.headlineSmall,
           fontWeight = FontWeight.Bold,
         )
         Text(
-          "Busca la estación más cercana a tu destino y vigílala.",
+          localizedText("Busca la estación más cercana a tu destino y vigílala."),
           style = MaterialTheme.typography.bodyMedium,
           color = c.muted,
         )
@@ -2377,14 +2403,14 @@ private fun TripScreen(
             ) {
               Icon(Icons.Filled.Sync, contentDescription = null, tint = c.red)
               Text(
-                "Estación llena",
+                localizedText("Estación llena"),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = c.red,
               )
             }
             Text(
-              "\"${alert.fullStation.name}\" ya no tiene plazas libres.",
+              localizedText("\"%s\" ya no tiene plazas libres.", alert.fullStation.name),
               style = MaterialTheme.typography.bodyMedium,
             )
             val altStation = alert.alternativeStation
@@ -2392,13 +2418,13 @@ private fun TripScreen(
               val dist = alert.alternativeDistanceMeters
               val distText = if (dist != null) " (${dist} m)" else ""
               Text(
-                "Alternativa sugerida: ${altStation.name}$distText — ${altStation.slotsFree} plazas.",
+                localizedText("Alternativa sugerida: %s%s — %s plazas.", altStation.name, distText, altStation.slotsFree),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
               )
             } else {
               Text(
-                "No se encontró alternativa cercana con plazas.",
+                localizedText("No se encontró alternativa cercana con plazas."),
                 style = MaterialTheme.typography.bodySmall,
                 color = c.muted,
               )
@@ -2407,7 +2433,7 @@ private fun TripScreen(
               onClick = { viewModel.onDismissAlert() },
               modifier = Modifier.fillMaxWidth(),
             ) {
-              Text("Entendido")
+              Text(localizedText("Entendido"))
             }
           }
         }
@@ -2423,7 +2449,7 @@ private fun TripScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
           ) {
             Text(
-              "¿Adónde vas?",
+              localizedText("¿Adónde vas?"),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
             )
@@ -2723,7 +2749,7 @@ private fun TripScreen(
               )
               Spacer(Modifier.width(6.dp))
               Text(
-                "Ruta a pie a ${destination.name}",
+                localizedText("Ruta a pie a %s", destination.name),
                 color = c.red,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -2781,7 +2807,7 @@ private fun TripStationCard(
           tint = c.red,
         )
         Text(
-          "Estación sugerida",
+          localizedText("Estación sugerida"),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
           color = c.muted,
@@ -2796,18 +2822,18 @@ private fun TripStationCard(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         StationMetricPill(
-          label = "Plazas libres",
+          label = localizedText("Plazas libres"),
           value = station.slotsFree.toString(),
           tint = c.blue,
         )
         StationMetricPill(
-          label = "Bicis",
+          label = localizedText("Bicis"),
           value = station.bikesAvailable.toString(),
           tint = c.red,
         )
         if (distanceMeters != null) {
           StationMetricPill(
-            label = "Distancia",
+            label = localizedText("Distancia"),
             value = "${distanceMeters} m",
             tint = c.green,
           )
@@ -2920,7 +2946,7 @@ private fun TripMonitoringActiveCard(
       ) {
         Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
-        Text("Parar vigilancia")
+        Text(localizedText("Parar vigilancia"))
       }
     }
   }
@@ -3055,7 +3081,7 @@ private fun StationRow(
         ) {
           onQuickRoute?.let { quickRoute ->
             RoutePill(
-              label = "Ruta",
+              label = localizedText("Ruta"),
               onClick = quickRoute,
             )
           }
@@ -3063,13 +3089,13 @@ private fun StationRow(
             FavoritePill(
               active = isFavorite,
               onClick = onFavoriteToggle,
-              label = if (isFavorite) "Guardada" else "Guardar",
+              label = if (isFavorite) localizedText("Guardada") else localizedText("Guardar"),
             )
           } else {
             FavoritePill(
               active = true,
               onClick = {},
-              label = "Favorita",
+              label = localizedText("Favorita"),
             )
           }
         }
@@ -3077,19 +3103,19 @@ private fun StationRow(
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = "Bicis",
+          label = localizedText("Bicis"),
           value = station.bikesAvailable.toString(),
           tint = LocalBiziColors.current.red,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = "Huecos",
+          label = localizedText("Huecos"),
           value = station.slotsFree.toString(),
           tint = LocalBiziColors.current.blue,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = "Distancia",
+          label = localizedText("Distancia"),
           value = "${station.distanceMeters} m",
           tint = LocalBiziColors.current.green,
         )
@@ -3145,14 +3171,14 @@ private fun DismissibleFavoriteStationRow(
         extraActions = {
           if (canAssignHome) {
             SavedPlaceQuickAction(
-              label = "Casa",
+              label = localizedText("Casa"),
               tint = LocalBiziColors.current.green,
               onClick = onAssignHome,
             )
           }
           if (canAssignWork) {
             SavedPlaceQuickAction(
-              label = "Trabajo",
+              label = localizedText("Trabajo"),
               tint = LocalBiziColors.current.blue,
               onClick = onAssignWork,
             )
@@ -3193,7 +3219,7 @@ private fun FavoriteDismissBackground(
         tint = LocalBiziColors.current.red,
       )
       Text(
-        text = if (mobilePlatform == MobileUiPlatform.IOS) "Quitar favorita" else "Eliminar favorita",
+        text = if (mobilePlatform == MobileUiPlatform.IOS) localizedText("Quitar favorita") else localizedText("Eliminar favorita"),
         color = LocalBiziColors.current.red,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
@@ -3652,48 +3678,48 @@ private fun shortcutGuidesFor(
   mobilePlatform: MobileUiPlatform,
 ): List<ShortcutGuide> = listOf(
   ShortcutGuide(
-    title = "Estación más cercana",
-    description = "Encuentra la estación más cercana a tu ubicación actual y te abre la app en el contexto correcto.",
+    title = localizedText("Estación más cercana"),
+    description = localizedText("Encuentra la estación más cercana a tu ubicación actual y te abre la app en el contexto correcto."),
     examples = listOf(
-      "Cuál es la estación más cercana con Bici Radar",
-      "Qué estación tengo más cerca con Bici Radar",
+      localizedText("Cuál es la estación más cercana con Bici Radar"),
+      localizedText("Qué estación tengo más cerca con Bici Radar"),
     ),
     icon = Icons.Filled.LocationOn,
   ),
   ShortcutGuide(
-    title = "Más cercana con bicis o huecos",
-    description = "Busca la mejor estación cercana para coger bici o para devolverla con huecos libres.",
+    title = localizedText("Más cercana con bicis o huecos"),
+    description = localizedText("Busca la mejor estación cercana para coger bici o para devolverla con huecos libres."),
     examples = listOf(
-      "Dónde hay bicis cerca con Bici Radar",
-      "Dónde puedo dejar la bici con Bici Radar",
+      localizedText("Dónde hay bicis cerca con Bici Radar"),
+      localizedText("Dónde puedo dejar la bici con Bici Radar"),
     ),
     icon = Icons.AutoMirrored.Filled.DirectionsBike,
   ),
   ShortcutGuide(
-    title = "Estado de una estación",
-    description = "Consulta una estación concreta por nombre, dirección, número o usando tus alias de Casa y Trabajo.",
+    title = localizedText("Estado de una estación"),
+    description = localizedText("Consulta una estación concreta por nombre, dirección, número o usando tus alias de Casa y Trabajo."),
     examples = listOf(
-      "Cómo está casa con Bici Radar",
-      "Cuántas bicis hay en casa con Bici Radar",
-      "Cuántos huecos hay en la estación 48 con Bici Radar",
+      localizedText("Cómo está casa con Bici Radar"),
+      localizedText("Cuántas bicis hay en casa con Bici Radar"),
+      localizedText("Cuántos huecos hay en la estación 48 con Bici Radar"),
     ),
     icon = Icons.Filled.Search,
   ),
   ShortcutGuide(
-    title = "Favoritas",
-    description = "Abre directamente tu lista de favoritas, con Casa y Trabajo incluidos cuando estén configurados.",
+    title = localizedText("Favoritos"),
+    description = localizedText("Abre directamente tu lista de favoritas, con Casa y Trabajo incluidos cuando estén configurados."),
     examples = listOf(
-      "Abre mis favoritas con Bici Radar",
-      "Cómo está trabajo con Bici Radar",
+      localizedText("Abre mis favoritas con Bici Radar"),
+      localizedText("Cómo está trabajo con Bici Radar"),
     ),
     icon = Icons.Filled.Favorite,
   ),
   ShortcutGuide(
-    title = "Ruta a una estación",
-    description = "Lanza la ruta rápida hacia una estación concreta o hacia Casa y Trabajo si ya los has configurado.",
+    title = localizedText("Ruta a una estación"),
+    description = localizedText("Lanza la ruta rápida hacia una estación concreta o hacia Casa y Trabajo si ya los has configurado."),
     examples = listOf(
-      "Llévame a Plaza España con Bici Radar",
-      "Llévame al trabajo con Bici Radar",
+      localizedText("Llévame a Plaza España con Bici Radar"),
+      localizedText("Llévame al trabajo con Bici Radar"),
     ),
     icon = Icons.Filled.Directions,
   ),
@@ -3785,7 +3811,7 @@ private fun SavedPlacePill(
   label: String,
   onClick: () -> Unit,
 ) {
-  val tint = if (label == "Casa") LocalBiziColors.current.green else LocalBiziColors.current.blue
+  val tint = if (label == localizedText("Casa")) LocalBiziColors.current.green else LocalBiziColors.current.blue
   val containerColor by animateColorAsState(
     targetValue = if (active) tint.copy(alpha = 0.10f) else Color.Transparent,
     animationSpec = tween(180),

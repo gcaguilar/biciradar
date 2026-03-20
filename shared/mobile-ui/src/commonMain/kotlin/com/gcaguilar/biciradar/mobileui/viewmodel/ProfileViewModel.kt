@@ -9,6 +9,7 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.localizedText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,7 @@ data class ProfileUiState(
   val searchRadiusMeters: Int = 500,
   val preferredMapApp: PreferredMapApp = PreferredMapApp.GoogleMaps,
   val themePreference: ThemePreference = ThemePreference.System,
-  val latestAnswer: String = "Pregunta por estaciones cercanas, favoritas o rutas.",
+  val latestAnswer: String = localizedText("Pregunta por estaciones cercanas, favoritas o rutas."),
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
 )
