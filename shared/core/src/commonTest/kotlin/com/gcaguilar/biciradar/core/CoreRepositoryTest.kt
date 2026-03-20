@@ -433,10 +433,19 @@ class CoreRepositoryTest {
     assertEquals("station-2", nearest.highlightedStationId)
     assertEquals("station-1", nearestWithBikes.highlightedStationId)
     assertEquals("station-2", nearestWithSlots.highlightedStationId)
-    assertTrue(nearest.spokenResponse.contains("Plaza Aragón"))
-    assertTrue(nearestWithBikes.spokenResponse.contains("7 bicis"))
-    assertTrue(nearestWithSlots.spokenResponse.contains("9 huecos"))
-    assertTrue(favorites.spokenResponse.contains("2 estaciones"))
+    assertEquals(
+      localizedText("La estación más cercana es %s con %s bicis y %s anclajes.", "Plaza Aragón", 0, 9),
+      nearest.spokenResponse,
+    )
+    assertEquals(
+      localizedText("La estación más cercana con bicis disponibles es %s con %s bicis y %s anclajes.", "Plaza Espana", 7, 4),
+      nearestWithBikes.spokenResponse,
+    )
+    assertEquals(
+      localizedText("La estación más cercana con huecos libres es %s con %s huecos y %s bicis.", "Plaza Aragón", 9, 0),
+      nearestWithSlots.spokenResponse,
+    )
+    assertEquals(localizedText("Tienes %s estaciones guardadas en Bici Radar.", 2), favorites.spokenResponse)
   }
 
   @Test
@@ -481,8 +490,8 @@ class CoreRepositoryTest {
 
     assertEquals("station-42", bikes.highlightedStationId)
     assertEquals("station-42", slots.highlightedStationId)
-    assertTrue(bikes.spokenResponse.contains("6 bicis"))
-    assertTrue(slots.spokenResponse.contains("8 huecos"))
+    assertEquals(localizedText("%s tiene %s bicis disponibles.", "Plaza Espana", 6), bikes.spokenResponse)
+    assertEquals(localizedText("%s tiene %s huecos libres.", "Plaza Espana", 8), slots.spokenResponse)
   }
 
   @Test
