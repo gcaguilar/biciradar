@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -34,7 +34,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew scripts/*.sh
@@ -72,7 +72,7 @@ jobs:
           ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :wearApp:assembleDebug
 
       - name: Upload Android debug APKs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-debug-apks
           if-no-files-found: error
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload Android test reports on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-test-reports
           if-no-files-found: ignore
@@ -111,7 +111,7 @@ jobs:
 
       - name: Distribute Android phone APK to Firebase
         if: github.event_name != 'pull_request' && env.DIST_ANDROID == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
@@ -122,7 +122,7 @@ jobs:
 
       - name: Distribute Wear OS APK to Firebase
         if: github.event_name != 'pull_request' && env.DIST_WEAR == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
         with:
           appId: ${{ secrets.FIREBASE_WEAR_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
@@ -138,7 +138,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -150,7 +150,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Make scripts executable
         run: chmod +x gradlew scripts/*.sh
@@ -207,7 +207,7 @@ jobs:
             "$RUNNER_TEMP/artifacts/BiciRadar-ios-simulator-app.zip"
 
       - name: Upload iOS simulator app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-simulator-app
           if-no-files-found: error
@@ -215,7 +215,7 @@ jobs:
 
       - name: Upload iOS test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-test-results
           if-no-files-found: ignore
@@ -254,7 +254,7 @@ jobs:
 
       - name: Upload signed iOS IPA
         if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-device-ipa
           if-no-files-found: error
@@ -266,7 +266,7 @@ jobs:
 
       - name: Distribute iOS IPA to Firebase
         if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.4.0
         with:
           appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
@@ -282,7 +282,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v6
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -294,7 +294,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Make scripts executable
         run: chmod +x gradlew scripts/*.sh
@@ -341,7 +341,7 @@ jobs:
             "$RUNNER_TEMP/artifacts/BiciRadar-watchos-simulator-app.zip"
 
       - name: Upload watchOS simulator app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: watchos-simulator-app
           if-no-files-found: error
@@ -349,7 +349,7 @@ jobs:
 
       - name: Upload watchOS test results on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: watchos-test-results
           if-no-files-found: ignore
