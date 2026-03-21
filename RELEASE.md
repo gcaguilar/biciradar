@@ -19,6 +19,7 @@
 - Configure `Team`, signing, and provisioning for `BiciRadar`, `BiciRadarWatch`, and their tests.
 - For App Store publication from CI, configure the dedicated workflow in `.github/workflows/publish-ios-store.yml`.
 - Add App Store Connect secrets `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_ID`, and `APP_STORE_CONNECT_API_KEY_P8`.
+- Add `GOOGLE_MAPS_API_KEY` if you want iOS CI builds to bundle the Google Maps key.
 - Add review-compliance secrets `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`, and optional `APP_REVIEW_NOTES`.
 - Add the repository variable `APP_USES_ENCRYPTION` and keep the App Store workflow secrets in a protected environment such as `app-store` for public repositories.
 - Set `APPLE_EXPORT_METHOD=app-store` and `APPLE_SIGNING_CERTIFICATE_TYPE=Apple Distribution` for the store workflow.

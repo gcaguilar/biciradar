@@ -85,7 +85,7 @@
 
 ### Secretos de build iOS a mantener
 
-- `GOOGLE_MAPS_KEY`
+- `GOOGLE_MAPS_API_KEY`
 - `GOOGLE_SERVICE_INFO_PLIST_IOS` opcional pero recomendado si la release usa Firebase en iOS
 
 ### Variables de repositorio

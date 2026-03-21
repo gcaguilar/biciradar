@@ -30,7 +30,7 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 
 ## Configuration
 
-- `GOOGLE_MAPS_API_KEY` is optional and enables real map tiles on Android.
+- `GOOGLE_MAPS_API_KEY` is optional locally and enables real map tiles on Android; the iOS CI workflows also read this same secret name.
 - Android Crashlytics is enabled automatically when `androidApp/google-services.json` exists.
 - Wear OS Crashlytics is enabled automatically when `wearApp/google-services.json` exists.
 - iOS Crashlytics is enabled automatically when `apple/iosApp/GoogleService-Info.plist` exists and gets bundled into the app.
@@ -103,6 +103,7 @@ Required secrets:
 - `APP_STORE_CONNECT_ISSUER_ID`: issuer id for the App Store Connect API key.
 - `APP_STORE_CONNECT_KEY_ID`: key id for the App Store Connect API key.
 - `APP_STORE_CONNECT_API_KEY_P8`: raw `.p8` App Store Connect API key contents.
+- `GOOGLE_MAPS_API_KEY`: Google Maps API key used by the iOS workflows to write `apple/Config/LocalSecrets.xcconfig`.
 - `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`: App Review contact data for App Store submission.
 - `APP_REVIEW_NOTES`: optional notes for Apple App Review.
 
