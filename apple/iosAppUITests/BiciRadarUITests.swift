@@ -18,7 +18,7 @@ final class BiciRadarUITests: XCTestCase {
         let app = makeApp(pendingAction: "favorite_stations")
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["Favoritas"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Favoritos"].waitForExistence(timeout: 20))
         XCTAssertTrue(app.staticTexts["Buscar estación para fijarla o filtrar favoritas"].waitForExistence(timeout: 20))
     }
 
