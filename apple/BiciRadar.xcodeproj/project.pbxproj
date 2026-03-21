@@ -423,10 +423,11 @@
 				};
 			};
 			buildConfigurationList = FE1A23B590F0A3DB8CD1ACC8 /* Build configuration list for PBXProject "BiciRadar" */;
-			developmentRegion = en;
+			developmentRegion = es;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
+				es,
 				en,
 				ca,
 				eu,

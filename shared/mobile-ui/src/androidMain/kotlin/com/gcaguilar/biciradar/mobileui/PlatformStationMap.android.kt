@@ -23,7 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.localizedText
+import com.gcaguilar.biciradar.core.SharedString
+import com.gcaguilar.biciradar.core.sharedString
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -65,7 +66,7 @@ internal actual fun PlatformStationMap(
   if (!isMapReady) {
     Surface(modifier = modifier) {
       Text(
-        text = localizedText("Mapa no disponible. Configura una API key de Google Maps."),
+        text = sharedString(SharedString.MAP_UNAVAILABLE_GOOGLE_API_KEY),
         modifier = Modifier
           .fillMaxSize()
           .wrapContentSize(Alignment.Center),
@@ -117,7 +118,7 @@ internal actual fun PlatformStationMap(
           MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
         },
         title = station.name,
-        snippet = localizedText("%s bicis · %s libres", station.bikesAvailable, station.slotsFree),
+        snippet = sharedString(SharedString.MAP_STATION_BIKES_FREE, station.bikesAvailable, station.slotsFree),
         icon = BitmapDescriptorFactory.defaultMarker(
           stationMarkerHue(station, station.id == highlightedStationId),
         ),
@@ -138,7 +139,7 @@ internal actual fun PlatformStationMap(
             fontWeight = FontWeight.SemiBold,
           )
           Text(
-            text = localizedText("%s bicis · %s huecos · %s m", station.bikesAvailable, station.slotsFree, station.distanceMeters),
+            text = sharedString(SharedString.MAP_STATION_BIKES_SLOTS_DISTANCE, station.bikesAvailable, station.slotsFree, station.distanceMeters),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -150,7 +151,7 @@ internal actual fun PlatformStationMap(
         state = remember(pinLocation) {
           MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
         },
-        title = localizedText("Destino"),
+        title = sharedString(SharedString.DESTINATION),
         icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
       ) {}
     }

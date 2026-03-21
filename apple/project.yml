@@ -8,9 +8,10 @@ options:
   autoCreateSchemes: false
   bundleIdPrefix: com.gcaguilar.biciradar
   createIntermediateGroups: true
-  developmentLanguage: en
+  developmentLanguage: es
   knownRegions:
     - Base
+    - es
     - en
     - ca
     - eu

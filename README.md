@@ -100,13 +100,20 @@ Required secrets:
 - `APPLE_SIGNING_CERTIFICATE_PASSWORD`: password for the `.p12`.
 - `APPLE_PROVISIONING_PROFILE_BASE64`: base64-encoded provisioning profile for `com.gcaguilar.biciradar.ios`.
 - `APPLE_KEYCHAIN_PASSWORD`: optional custom password for the temporary CI keychain.
+- `APP_STORE_CONNECT_ISSUER_ID`: issuer id for the App Store Connect API key.
+- `APP_STORE_CONNECT_KEY_ID`: key id for the App Store Connect API key.
+- `APP_STORE_CONNECT_API_KEY_P8`: raw `.p8` App Store Connect API key contents.
+- `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`: App Review contact data for App Store submission.
+- `APP_REVIEW_NOTES`: optional notes for Apple App Review.
 
 Optional GitHub repository variables:
 
 - `FIREBASE_APP_DIST_GROUPS`: comma-separated Firebase tester groups.
 - `FIREBASE_APP_DIST_TESTERS`: comma-separated tester emails.
-- `APPLE_EXPORT_METHOD`: Xcode export method for the IPA. Recommended values are `debugging` for development-style builds and `release-testing` for ad hoc style builds.
+- `APPLE_EXPORT_METHOD`: Xcode export method for the IPA. Recommended values are `debugging` for development-style builds, `release-testing` for ad hoc style builds, and `app-store` for App Store submissions.
 - `APPLE_SIGNING_CERTIFICATE_TYPE`: optional explicit Xcode certificate selector such as `Apple Development` or `Apple Distribution`.
+- `APPLE_BUNDLE_ID`: optional bundle id override for iOS release workflows. Defaults to `com.gcaguilar.biciradar.ios`.
+- `APP_USES_ENCRYPTION`: `true` or `false` export-compliance value passed to App Store submission.
 
 Behavior:
 
@@ -114,6 +121,8 @@ Behavior:
 - `push` to `main` and manual runs distribute Android APKs when Firebase secrets are present.
 - `push` to `main` and manual runs also export and distribute a signed iOS IPA when both Firebase and Apple signing secrets are present.
 - watchOS simulator builds continue to upload as GitHub artifacts only.
+- `.github/workflows/publish-ios-store.yml` is a separate manual workflow that builds a signed App Store IPA, uploads it to App Store Connect, submits it for review, and enables automatic release after approval.
+- For public repositories, keep App Store secrets in a protected GitHub environment such as `app-store`; `scripts/print_ios_store_ci_values.sh` prints the current local values in a copy-pasteable format.
 
 ## Shortcuts and Voice
 

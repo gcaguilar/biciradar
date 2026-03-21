@@ -11,6 +11,9 @@ apple/iosApp/GoogleService-Info.plist
 *.keystore
 *.jks
 *.p12
+*.p8
+*.key
+*.csr
 *.cer
 *.mobileprovision
 *.pem

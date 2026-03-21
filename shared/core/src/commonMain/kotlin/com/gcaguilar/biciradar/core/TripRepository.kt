@@ -84,7 +84,12 @@ class TripRepositoryImpl(
   private suspend fun findNearestStation(location: GeoPoint, searchRadiusMeters: Int) {
     val stations = stationsRepository.state.value.stations
     if (stations.isEmpty()) {
-      mutableState.update { it.copy(isSearchingStation = false, searchError = "No hay datos de estaciones disponibles.") }
+      mutableState.update {
+        it.copy(
+          isSearchingStation = false,
+          searchError = sharedString(SharedString.TRIP_NO_STATION_DATA_AVAILABLE),
+        )
+      }
       return
     }
 
@@ -104,7 +109,7 @@ class TripRepositoryImpl(
       mutableState.update {
         it.copy(
           isSearchingStation = false,
-          searchError = localizedText("No se encontró ninguna estación con plazas libres cerca."),
+          searchError = sharedString(SharedString.TRIP_NO_STATION_WITH_FREE_SLOTS_NEARBY),
         )
       }
       return

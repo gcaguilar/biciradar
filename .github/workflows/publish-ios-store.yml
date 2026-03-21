@@ -1,0 +1,204 @@
+name: Publish iOS to App Store
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-ios-store
+  cancel-in-progress: false
+
+jobs:
+  publish-ios-store:
+    name: Publish signed iOS IPA to App Store
+    environment: app-store
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
+      APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
+      APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
+      APPLE_SIGNING_CERTIFICATE_TYPE: ${{ vars.APPLE_SIGNING_CERTIFICATE_TYPE }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      APP_REVIEW_CONTACT_FIRST_NAME: ${{ secrets.APP_REVIEW_CONTACT_FIRST_NAME }}
+      APP_REVIEW_CONTACT_LAST_NAME: ${{ secrets.APP_REVIEW_CONTACT_LAST_NAME }}
+      APP_REVIEW_CONTACT_EMAIL: ${{ secrets.APP_REVIEW_CONTACT_EMAIL }}
+      APP_REVIEW_CONTACT_PHONE: ${{ secrets.APP_REVIEW_CONTACT_PHONE }}
+      APP_REVIEW_NOTES: ${{ secrets.APP_REVIEW_NOTES }}
+      APP_USES_ENCRYPTION: ${{ vars.APP_USES_ENCRYPTION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses non-interactively
+        run: yes | sdkmanager --licenses >/dev/null
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Make scripts executable
+        run: chmod +x gradlew scripts/*.sh
+
+      - name: Validate App Store release configuration
+        run: |
+          export_method="${APPLE_EXPORT_METHOD:-app-store}"
+          signing_certificate="${APPLE_SIGNING_CERTIFICATE_TYPE:-Apple Distribution}"
+          bundle_id="${APPLE_BUNDLE_ID:-com.gcaguilar.biciradar.ios}"
+
+          if [[ "$export_method" != "app-store" ]]; then
+            echo "::error::APPLE_EXPORT_METHOD must be app-store for App Store submissions"
+            exit 1
+          fi
+
+          if [[ "$signing_certificate" != "Apple Distribution" ]]; then
+            echo "::error::APPLE_SIGNING_CERTIFICATE_TYPE must be Apple Distribution"
+            exit 1
+          fi
+
+          {
+            echo "APPLE_EXPORT_METHOD=$export_method"
+            echo "APPLE_SIGNING_CERTIFICATE_TYPE=$signing_certificate"
+            echo "APPLE_BUNDLE_ID=$bundle_id"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate App Store secrets
+        env:
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
+          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_IOS }}
+        run: |
+          missing=0
+          required_envs=(
+            APPLE_TEAM_ID
+            APP_STORE_CONNECT_ISSUER_ID
+            APP_STORE_CONNECT_KEY_ID
+            APP_STORE_CONNECT_API_KEY_P8
+            APP_REVIEW_CONTACT_FIRST_NAME
+            APP_REVIEW_CONTACT_LAST_NAME
+            APP_REVIEW_CONTACT_EMAIL
+            APP_REVIEW_CONTACT_PHONE
+            APP_USES_ENCRYPTION
+            APPLE_PROVISIONING_PROFILE_BASE64
+            APPLE_SIGNING_CERTIFICATE_P12_BASE64
+            APPLE_SIGNING_CERTIFICATE_PASSWORD
+            GOOGLE_MAPS_API_KEY
+          )
+
+          for name in "${required_envs[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::$name is required"
+              missing=1
+            fi
+          done
+
+          if [[ -n "${APP_USES_ENCRYPTION:-}" && "${APP_USES_ENCRYPTION,,}" != "true" && "${APP_USES_ENCRYPTION,,}" != "false" ]]; then
+            echo "::error::APP_USES_ENCRYPTION must be true or false"
+            missing=1
+          fi
+
+          if [[ -z "${APPLE_KEYCHAIN_PASSWORD:-}" ]]; then
+            echo "::warning::APPLE_KEYCHAIN_PASSWORD is not set; the workflow will fall back to a temporary default value"
+          fi
+
+          if [[ -z "${GOOGLE_SERVICE_INFO_PLIST:-}" ]]; then
+            echo "::warning::GOOGLE_SERVICE_INFO_PLIST_IOS is not set; Firebase Crashlytics upload may be skipped"
+          fi
+
+          if (( missing != 0 )); then
+            exit 1
+          fi
+
+      - name: Write iOS secrets
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_KEY }}
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_IOS }}
+        run: |
+          printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
+          if [[ -n "$GOOGLE_SERVICE_INFO_PLIST" ]]; then
+            printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > apple/iosApp/GoogleService-Info.plist
+          fi
+
+      - name: Resolve iOS simulator destination
+        run: |
+          destination="$(./scripts/resolve_xcode_destination.sh ios)"
+          echo "Using iOS destination: $destination"
+          {
+            echo 'IOS_DESTINATION<<EOF'
+            echo "$destination"
+            echo EOF
+          } >> "$GITHUB_ENV"
+
+      - name: Build KMP iOS frameworks
+        run: ./gradlew :shared:mobile-ui:linkDebugFrameworkIosSimulatorArm64 :shared:core:linkDebugFrameworkIosSimulatorArm64
+
+      - name: Run iOS tests
+        run: |
+          xcodebuild \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadar \
+            -sdk iphonesimulator \
+            -destination "$IOS_DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-ios-store" \
+            -resultBundlePath "$RUNNER_TEMP/ios-store-tests.xcresult" \
+            test
+
+      - name: Upload iOS test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-store-test-results
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/ios-store-tests.xcresult
+
+      - name: Install Apple signing assets
+        env:
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
+          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
+        run: ./scripts/install_apple_signing_assets.sh
+
+      - name: Build signed iOS IPA
+        run: |
+          ./scripts/export_ios_ipa.sh "$RUNNER_TEMP/ios-store-export" "$RUNNER_TEMP/BiciRadar-store.xcarchive"
+          shopt -s nullglob
+          ipa_files=("$RUNNER_TEMP/ios-store-export"/*.ipa)
+          if (( ${#ipa_files[@]} != 1 )); then
+            echo "::error::Expected exactly one IPA in $RUNNER_TEMP/ios-store-export"
+            ls -la "$RUNNER_TEMP/ios-store-export"
+            exit 1
+          fi
+          echo "APPLE_IPA_PATH=${ipa_files[0]}" >> "$GITHUB_ENV"
+
+      - name: Upload signed iOS IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-app-store-ipa
+          if-no-files-found: error
+          path: ${{ env.APPLE_IPA_PATH }}
+
+      - name: Set up Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Submit IPA to App Store Connect
+        run: bundle exec fastlane ios release_to_app_store

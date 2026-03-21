@@ -4,14 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.SharedString
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
+import com.gcaguilar.biciradar.core.sharedString
 import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
-import com.gcaguilar.biciradar.core.localizedText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -85,11 +86,11 @@ class TripViewModel(
       if (_uiState.value.query == newQuery) {
         val errorMsg = results.exceptionOrNull()?.let { ex ->
           when (ex) {
-            is GeoError.Server -> localizedText("No hemos podido buscar esa ubicación ahora mismo.")
-            is GeoError.Network -> localizedText("No hemos podido conectar con el servicio de localización.")
-            else -> localizedText(
-              "Error de búsqueda: %s",
-              ex.message ?: ex::class.simpleName ?: localizedText("desconocido"),
+            is GeoError.Server -> sharedString(SharedString.TRIP_SEARCH_LOCATION_UNAVAILABLE)
+            is GeoError.Network -> sharedString(SharedString.TRIP_LOCATION_SERVICE_UNAVAILABLE)
+            else -> sharedString(
+              SharedString.SEARCH_ERROR,
+              ex.message ?: ex::class.simpleName ?: sharedString(SharedString.UNKNOWN),
             )
           }
         }

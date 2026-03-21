@@ -1,0 +1,53 @@
+default_platform(:ios)
+
+def required_env(name)
+  value = ENV[name].to_s.strip
+  UI.user_error!("Missing required environment variable #{name}") if value.empty?
+  value
+end
+
+def optional_env(name)
+  ENV[name].to_s.strip
+end
+
+def required_boolean_env(name)
+  value = required_env(name).downcase
+  return true if %w[1 true yes y].include?(value)
+  return false if %w[0 false no n].include?(value)
+
+  UI.user_error!("Environment variable #{name} must be true/false")
+end
+
+platform :ios do
+  desc "Upload the signed IPA to App Store Connect and submit it for review"
+  lane :release_to_app_store do
+    api_key = app_store_connect_api_key(
+      key_id: required_env("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: required_env("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: required_env("APP_STORE_CONNECT_API_KEY_P8")
+    )
+
+    upload_to_app_store(
+      api_key: api_key,
+      platform: "ios",
+      app_identifier: ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios"),
+      ipa: required_env("APPLE_IPA_PATH"),
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      run_precheck_before_submit: true,
+      submission_information: {
+        export_compliance_uses_encryption: required_boolean_env("APP_USES_ENCRYPTION")
+      },
+      app_review_information: {
+        first_name: required_env("APP_REVIEW_CONTACT_FIRST_NAME"),
+        last_name: required_env("APP_REVIEW_CONTACT_LAST_NAME"),
+        phone_number: required_env("APP_REVIEW_CONTACT_PHONE"),
+        email_address: required_env("APP_REVIEW_CONTACT_EMAIL"),
+        notes: optional_env("APP_REVIEW_NOTES")
+      }
+    )
+  end
+end
