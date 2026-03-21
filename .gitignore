@@ -11,10 +11,12 @@ apple/iosApp/GoogleService-Info.plist
 *.keystore
 *.jks
 *.p12
+*.cer
 *.mobileprovision
 *.pem
 github-secrets.txt
 apple/Config/LocalSecrets.xcconfig
+apple-cert/
 *.iml
 DerivedData/
 xcuserdata/
