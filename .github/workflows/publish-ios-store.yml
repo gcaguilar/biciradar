@@ -109,7 +109,9 @@ jobs:
             fi
           done
 
-          if [[ -n "${APP_USES_ENCRYPTION:-}" && "${APP_USES_ENCRYPTION,,}" != "true" && "${APP_USES_ENCRYPTION,,}" != "false" ]]; then
+          app_uses_encryption="$(printf '%s' "${APP_USES_ENCRYPTION:-}" | tr '[:upper:]' '[:lower:]')"
+
+          if [[ -n "$app_uses_encryption" && "$app_uses_encryption" != "true" && "$app_uses_encryption" != "false" ]]; then
             echo "::error::APP_USES_ENCRYPTION must be true or false"
             missing=1
           fi
