@@ -114,6 +114,6 @@ jobs:
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          tracks: qa
+          track: qa
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
