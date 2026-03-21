@@ -28,7 +28,7 @@ settings:
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
-    exactVersion: 12.10.0
+    exactVersion: 12.11.0
   GoogleMaps:
     url: https://github.com/googlemaps/ios-maps-sdk
     exactVersion: 10.10.0
