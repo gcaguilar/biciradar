@@ -73,6 +73,9 @@ android {
     release {
       isMinifyEnabled = true
       isShrinkResources = true
+      ndk {
+        debugSymbolLevel = "SYMBOL_TABLE"
+      }
       if (ciKeystorePath.isNotEmpty()) {
         signingConfig = signingConfigs.create("ciRelease") {
           storeFile = file(ciKeystorePath)
