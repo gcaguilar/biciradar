@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+      - "*.*.*"
   workflow_dispatch:
 
 permissions:
@@ -19,8 +20,27 @@ jobs:
       PLAY_CONSOLE_TRACK: closed
 
     steps:
-      - name: Checkout
+      - name: Checkout repository history
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Checkout latest release tag
+        run: |
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" && -n "${GITHUB_REF_NAME:-}" ]]; then
+            release_tag="${GITHUB_REF_NAME}"
+          else
+            release_tag="$(git for-each-ref --sort=-creatordate --count=1 --format='%(refname:strip=2)' refs/tags)"
+          fi
+
+          if [[ -z "$release_tag" ]]; then
+            echo "::error::No git tags found to publish"
+            exit 1
+          fi
+
+          git checkout --detach "$release_tag"
+          echo "Publishing Android release from tag $release_tag"
+          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
@@ -96,6 +116,6 @@ jobs:
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          tracks: ${{ env.PLAY_CONSOLE_TRACK }}
+          track: ${{ env.PLAY_CONSOLE_TRACK }}
           status: completed
-          releaseName: ${{ github.ref_name }}
+          releaseName: ${{ env.RELEASE_TAG }}
