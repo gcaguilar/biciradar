@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      PLAY_CONSOLE_TRACK: closed
+      PLAY_CONSOLE_TRACK: alpha
 
     steps:
       - name: Checkout repository history
@@ -116,6 +116,6 @@ jobs:
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          track: ${{ env.PLAY_CONSOLE_TRACK }}
+          tracks: ${{ env.PLAY_CONSOLE_TRACK }}
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
