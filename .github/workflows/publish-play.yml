@@ -16,8 +16,6 @@ jobs:
     name: Publish Android AAB to Play Closed Testing
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      PLAY_CONSOLE_TRACK: alpha
 
     steps:
       - name: Checkout repository history
@@ -116,6 +114,6 @@ jobs:
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/release/*.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          tracks: ${{ env.PLAY_CONSOLE_TRACK }}
+          tracks: qa
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
