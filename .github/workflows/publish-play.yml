@@ -2,22 +2,9 @@ name: Publish Android to Play Closed Testing
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      tag_selector:
-        description: Tag a publicar
-        required: true
-        default: latest
-        type: choice
-        options:
-          - latest
-          - specific
-      release_tag:
-        description: Tag concreto a publicar cuando el selector sea `specific` (ej. v1.2.3)
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -37,31 +24,31 @@ jobs:
 
       - name: Select release tag
         env:
-          TAG_SELECTOR: ${{ github.event.inputs.tag_selector }}
           REQUESTED_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           if [[ "${GITHUB_REF_TYPE:-}" == "tag" && -n "${GITHUB_REF_NAME:-}" ]]; then
             release_tag="${GITHUB_REF_NAME}"
-          elif [[ "${TAG_SELECTOR:-latest}" == "specific" ]]; then
-            release_tag="${REQUESTED_RELEASE_TAG:-}"
+          elif [[ -n "${REQUESTED_RELEASE_TAG:-}" ]]; then
+            release_tag="${REQUESTED_RELEASE_TAG}"
           else
             mapfile -t release_tags < <(git tag --list 'v*.*.*' --sort=-v:refname)
             release_tag="${release_tags[0]:-}"
           fi
 
-          if [[ -z "$release_tag" ]]; then
-            echo "::error::No release tag found to publish"
-            exit 1
+          if [[ -n "$release_tag" && -d ".git" ]]; then
+            if git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null 2>&1; then
+              git checkout --detach "$release_tag"
+              echo "Publishing Android release from tag $release_tag"
+            else
+              echo "Tag $release_tag not found, using current commit"
+              release_tag=""
+            fi
+          else
+            echo "Publishing Android release from current commit (no tag)"
+            release_tag=""
           fi
 
-          if ! git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null; then
-            echo "::error::Tag $release_tag does not exist"
-            exit 1
-          fi
-
-          git checkout --detach "$release_tag"
-          echo "Publishing Android release from tag $release_tag"
-          echo "RELEASE_TAG=$release_tag" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=${release_tag:-$(git rev-parse --short HEAD)}" >> "$GITHUB_ENV"
 
       - name: Set up Java 21
         uses: actions/setup-java@v5
