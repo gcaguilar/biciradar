@@ -30,9 +30,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class MainActivity : ComponentActivity() {
-  @Volatile
-  private var startupReady = false
-
   private val locationPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions(),
   ) {
@@ -56,7 +53,7 @@ class MainActivity : ComponentActivity() {
   private var tripServiceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    installSplashScreen().setKeepOnScreenCondition { !startupReady }
+    installSplashScreen()
     super.onCreate(savedInstanceState)
 
     val platformBindings = AndroidPlatformBindings(
@@ -90,8 +87,6 @@ class MainActivity : ComponentActivity() {
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
         onTripRepositoryReady = { repo -> wireTripMonitorService(repo) },
-        onStartupReadyChanged = { ready -> startupReady = ready },
-        useInAppStartupSplash = false,
       )
     }
 
