@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # post-commit hook — bumps version strings then amends the commit in place.
-# Installed by scripts/install_git_hooks.sh
+# Installed by tooling/project/install_git_hooks.sh
 
 set -euo pipefail
 
@@ -8,7 +8,7 @@ set -euo pipefail
 [[ "${GIT_NO_POST_COMMIT:-}" == "1" ]] && exit 0
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-BUMP_SCRIPT="${REPO_ROOT}/scripts/bump_version.sh"
+BUMP_SCRIPT="${REPO_ROOT}/tooling/project/bump_version.sh"
 
 [[ -x "$BUMP_SCRIPT" ]] || { echo "bump_version.sh not found or not executable, skipping."; exit 0; }
 

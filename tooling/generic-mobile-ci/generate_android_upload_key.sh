@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
-KEYSTORE_PATH="${1:-bici-upload-v2.keystore}"
-KEY_ALIAS="${2:-bici-upload-v2}"
-CERT_PATH="${3:-bici-upload-v2.pem}"
+KEYSTORE_PATH="${1:-android-upload.keystore}"
+KEY_ALIAS="${2:-android-upload}"
+CERT_PATH="${3:-android-upload.pem}"
 SECRETS_FILE="${4:-github-secrets.txt}"
 VALIDITY_DAYS="${VALIDITY_DAYS:-9125}"
 KEY_SIZE="${KEY_SIZE:-4096}"
@@ -27,9 +27,9 @@ if [[ -z "$KEY_PASSWORD" ]]; then
   KEY_PASSWORD="$KEYSTORE_PASSWORD"
 fi
 
-read -rp "Distinguished name [CN=BiciRadar Upload, OU=Mobile, O=BiciRadar, L=Barcelona, ST=Barcelona, C=ES]: " DNAME
+read -rp "Distinguished name [CN=Android Upload, OU=Mobile, O=Example, L=City, ST=State, C=US]: " DNAME
 if [[ -z "$DNAME" ]]; then
-  DNAME="CN=BiciRadar Upload, OU=Mobile, O=BiciRadar, L=Barcelona, ST=Barcelona, C=ES"
+  DNAME="CN=Android Upload, OU=Mobile, O=Example, L=City, ST=State, C=US"
 fi
 
 for path in "$KEYSTORE_PATH" "$CERT_PATH" "$SECRETS_FILE"; do

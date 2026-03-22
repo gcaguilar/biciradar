@@ -14,8 +14,21 @@ certificate_path="${RUNNER_TEMP}/signing-certificate.p12"
 profile_path="${RUNNER_TEMP}/signing-profile.mobileprovision"
 profile_plist_path="${RUNNER_TEMP}/signing-profile.plist"
 
-printf '%s' "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 --decode > "$certificate_path"
-printf '%s' "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$profile_path"
+decode_base64_to_file() {
+  local input_value="$1"
+  local output_path="$2"
+
+  BASE64_INPUT="$input_value" OUTPUT_PATH="$output_path" python3 <<'PY'
+import base64
+import os
+from pathlib import Path
+
+Path(os.environ["OUTPUT_PATH"]).write_bytes(base64.b64decode(os.environ["BASE64_INPUT"]))
+PY
+}
+
+decode_base64_to_file "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" "$certificate_path"
+decode_base64_to_file "$APPLE_PROVISIONING_PROFILE_BASE64" "$profile_path"
 
 security create-keychain -p "$keychain_password" "$keychain_path"
 security set-keychain-settings -lut 21600 "$keychain_path"

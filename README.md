@@ -123,7 +123,7 @@ Behavior:
 - `push` to `main` and manual runs also export and distribute a signed iOS IPA when both Firebase and Apple signing secrets are present.
 - watchOS simulator builds continue to upload as GitHub artifacts only.
 - `.github/workflows/publish-ios-store.yml` is a separate manual workflow that builds a signed App Store IPA, uploads it to App Store Connect, submits it for review, and enables automatic release after approval.
-- For public repositories, keep App Store secrets in a protected GitHub environment such as `app-store`; `scripts/print_ios_store_ci_values.sh` prints the current local values in a copy-pasteable format.
+- For public repositories, keep App Store secrets in a protected GitHub environment such as `app-store`; `tooling/generic-mobile-ci/print_ios_store_ci_values.sh` prints the current local values in a copy-pasteable format.
 
 ## Shortcuts and Voice
 
@@ -247,12 +247,12 @@ adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar:
 Android smoke validation:
 
 - Maestro flow: [maestro/android/assistant-smoke.yaml](/Users/guillermo.castella/bizi/maestro/android/assistant-smoke.yaml)
-- Convenience script: [scripts/run_android_assistant_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_android_assistant_smoke.sh)
+- Convenience script: `tooling/project/run_smoke.sh`
 
 Example:
 
 ```bash
-./scripts/run_android_assistant_smoke.sh emulator-5554
+./tooling/project/run_smoke.sh android-assistant emulator-5554
 ```
 
 ## Apple
@@ -268,22 +268,22 @@ Apple smoke validation:
 - Shortcut logic tests: [apple/iosAppTests/AppleShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleShortcutRunnerTests.swift)
 - Launch-request store tests: [apple/iosAppTests/AppleLaunchRequestStoreTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleLaunchRequestStoreTests.swift)
 - UI smoke tests: [apple/iosAppUITests/BiciRadarUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiciRadarUITests.swift)
-- Convenience script: [scripts/run_ios_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_ios_smoke.sh)
+- Convenience script: `tooling/project/run_smoke.sh`
 
 Example:
 
 ```bash
-./scripts/run_ios_smoke.sh "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
+./tooling/project/run_smoke.sh ios "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
 ```
 
 Apple Watch smoke validation:
 
 - Watch shortcut tests: [apple/watchAppTests/WatchShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchShortcutRunnerTests.swift)
 - Watch dashboard tests: [apple/watchAppTests/WatchDashboardModelTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchDashboardModelTests.swift)
-- Convenience script: [scripts/run_watch_smoke.sh](/Users/guillermo.castella/bizi/scripts/run_watch_smoke.sh)
+- Convenience script: `tooling/project/run_smoke.sh`
 
 Example:
 
 ```bash
-./scripts/run_watch_smoke.sh "platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.2"
+./tooling/project/run_smoke.sh watchos "platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.2"
 ```

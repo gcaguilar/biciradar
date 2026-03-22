@@ -1,7 +1,11 @@
 import AppKit
 import Foundation
 
-private let repoRoot = URL(fileURLWithPath: "/Users/guillermo.castella/bizi", isDirectory: true)
+private let repoRoot = URL(fileURLWithPath: CommandLine.arguments[0], isDirectory: false)
+  .resolvingSymlinksInPath()
+  .deletingLastPathComponent()
+  .deletingLastPathComponent()
+  .deletingLastPathComponent()
 private let defaultSourceImagePath = repoRoot
   .appendingPathComponent("design")
   .appendingPathComponent("biciradar-app-icon-source.png")

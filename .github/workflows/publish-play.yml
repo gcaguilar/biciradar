@@ -3,9 +3,21 @@ name: Publish Android to Play Closed Testing
 on:
   push:
     tags:
-      - "v*"
-      - "*.*.*"
+      - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      tag_selector:
+        description: Tag a publicar
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - specific
+      release_tag:
+        description: Tag concreto a publicar cuando el selector sea `specific` (ej. v1.2.3)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -23,16 +35,27 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Checkout latest release tag
+      - name: Select release tag
+        env:
+          TAG_SELECTOR: ${{ github.event.inputs.tag_selector }}
+          REQUESTED_RELEASE_TAG: ${{ github.event.inputs.release_tag }}
         run: |
           if [[ "${GITHUB_REF_TYPE:-}" == "tag" && -n "${GITHUB_REF_NAME:-}" ]]; then
             release_tag="${GITHUB_REF_NAME}"
+          elif [[ "${TAG_SELECTOR:-latest}" == "specific" ]]; then
+            release_tag="${REQUESTED_RELEASE_TAG:-}"
           else
-            release_tag="$(git for-each-ref --sort=-creatordate --count=1 --format='%(refname:strip=2)' refs/tags)"
+            mapfile -t release_tags < <(git tag --list 'v*.*.*' --sort=-v:refname)
+            release_tag="${release_tags[0]:-}"
           fi
 
           if [[ -z "$release_tag" ]]; then
-            echo "::error::No git tags found to publish"
+            echo "::error::No release tag found to publish"
+            exit 1
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$release_tag" >/dev/null; then
+            echo "::error::Tag $release_tag does not exist"
             exit 1
           fi
 

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 apple_cert_dir="${APPLE_CERT_DIR:-$repo_root/apple-cert}"
 ios_app_dir="${IOS_APP_DIR:-$repo_root/apple/iosApp}"
 
@@ -35,7 +35,7 @@ api_key_id_default="${api_key_filename#AuthKey_}"
 api_key_id_default="${api_key_id_default%.p8}"
 app_store_connect_key_id="${APP_STORE_CONNECT_KEY_ID:-$api_key_id_default}"
 
-readarray -t profile_values < <(PROFILE_PATH="$profile_path" python3 <<'PY'
+profile_values="$({ PROFILE_PATH="$profile_path" python3 <<'PY'
 import os
 import plistlib
 from pathlib import Path
@@ -54,10 +54,13 @@ bundle_id = app_id.split(".", 1)[1]
 print(team_id)
 print(bundle_id)
 PY
-)
+})"
 
-apple_team_id="${APPLE_TEAM_ID:-${profile_values[0]}}"
-apple_bundle_id="${APPLE_BUNDLE_ID:-${profile_values[1]}}"
+apple_team_id_default="${profile_values%%$'\n'*}"
+apple_bundle_id_default="${profile_values#*$'\n'}"
+
+apple_team_id="${APPLE_TEAM_ID:-$apple_team_id_default}"
+apple_bundle_id="${APPLE_BUNDLE_ID:-$apple_bundle_id_default}"
 apple_export_method="${APPLE_EXPORT_METHOD:-app-store}"
 apple_signing_certificate_type="${APPLE_SIGNING_CERTIFICATE_TYPE:-Apple Distribution}"
 

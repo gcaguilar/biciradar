@@ -4,6 +4,7 @@ set -euo pipefail
 
 output_path="${1:?usage: write_release_notes.sh <output-path> [label]}"
 label="${2:-build}"
+project_name="${PROJECT_NAME:-App}"
 
 mkdir -p "$(dirname "$output_path")"
 
@@ -12,7 +13,7 @@ commit_subject="$(git log --format=%s -n 1 "$commit_sha")"
 ref_name="${GITHUB_REF_NAME:-$(git rev-parse --abbrev-ref HEAD)}"
 
 {
-  echo "BiciRadar ${label}"
+  echo "${project_name} ${label}"
   echo
   echo "Commit: ${commit_sha}"
   echo "Branch: ${ref_name}"

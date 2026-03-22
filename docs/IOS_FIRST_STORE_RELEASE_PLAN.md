@@ -10,8 +10,8 @@
 
 - Ya existe build y test de iOS en `.github/workflows/build.yml`.
 - El repo ya puede generar una IPA firmada cuando estan configurados los secretos Apple.
-- La firma se apoya en `scripts/install_apple_signing_assets.sh`.
-- La exportacion de la IPA se apoya en `scripts/export_ios_ipa.sh`.
+- La firma se apoya en `tooling/generic-mobile-ci/install_apple_signing_assets.sh`.
+- La exportacion de la IPA se apoya en `tooling/generic-mobile-ci/export_ios_ipa.sh`.
 - El bundle id principal actual es `com.gcaguilar.biciradar.ios` en `apple/project.yml`.
 - El repo no tiene todavia un workflow dedicado a publicar en App Store Connect.
 - El repo no tiene todavia configuracion de `fastlane`.
@@ -164,7 +164,7 @@
 
 - Mantener como fuente de verdad `MARKETING_VERSION` y `CURRENT_PROJECT_VERSION` en `apple/project.yml`.
 - Hacer el bump de version antes de lanzar la release, no durante el workflow.
-- Usar el script existente `scripts/bump_version.sh` solo como herramienta previa al commit de release.
+- Usar el script existente `tooling/project/bump_version.sh` solo como herramienta previa al commit de release.
 - Verificar que el proyecto generado y `apple/project.yml` no tengan deriva antes de la publicacion.
 
 ## Riesgos y checks obligatorios
