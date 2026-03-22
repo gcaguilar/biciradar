@@ -21,7 +21,7 @@ jobs:
       APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
       APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
       APPLE_SIGNING_CERTIFICATE_TYPE: ${{ vars.APPLE_SIGNING_CERTIFICATE_TYPE }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
@@ -120,7 +120,6 @@ jobs:
         run: |
           missing=0
           required_envs=(
-            APPLE_TEAM_ID
             APP_STORE_CONNECT_ISSUER_ID
             APP_STORE_CONNECT_KEY_ID
             APP_STORE_CONNECT_API_KEY_P8
