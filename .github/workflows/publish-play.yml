@@ -1,9 +1,6 @@
 name: Publish Android to Play Closed Testing
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
