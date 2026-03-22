@@ -85,10 +85,6 @@ jobs:
 
       - name: Validate App Store release configuration
         run: |
-          echo "DEBUG: APPLE_EXPORT_METHOD='$APPLE_EXPORT_METHOD'"
-          echo "DEBUG: APPLE_SIGNING_CERTIFICATE_TYPE='$APPLE_SIGNING_CERTIFICATE_TYPE'"
-          echo "DEBUG: APPLE_BUNDLE_ID='$APPLE_BUNDLE_ID'"
-
           export_method="${APPLE_EXPORT_METHOD:-app-store}"
           signing_certificate="${APPLE_SIGNING_CERTIFICATE_TYPE:-Apple Distribution}"
           bundle_id="${APPLE_BUNDLE_ID:-com.gcaguilar.biciradar.ios}"
