@@ -23,12 +23,26 @@ import base64
 import os
 from pathlib import Path
 
-Path(os.environ["OUTPUT_PATH"]).write_bytes(base64.b64decode(os.environ["BASE64_INPUT"]))
+data = os.environ["BASE64_INPUT"]
+print(f"DEBUG: Decoding {len(data)} bytes of base64 data", file=sys.stderr)
+try:
+    decoded = base64.b64decode(data)
+    print(f"DEBUG: Decoded to {len(decoded)} bytes", file=sys.stderr)
+    Path(os.environ["OUTPUT_PATH"]).write_bytes(decoded)
+    print(f"DEBUG: Written to {os.environ['OUTPUT_PATH']}", file=sys.stderr)
+except Exception as e:
+    print(f"ERROR: Decode failed: {e}", file=sys.stderr)
+    raise
 PY
 }
 
 decode_base64_to_file "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" "$certificate_path"
 decode_base64_to_file "$APPLE_PROVISIONING_PROFILE_BASE64" "$profile_path"
+
+echo "DEBUG: Checking P12 file..."
+ls -la "$certificate_path"
+file "$certificate_path"
+openssl pkcs12 -info -in "$certificate_path" -passin "pass:$APPLE_SIGNING_CERTIFICATE_PASSWORD" -nokeys -noout 2>&1 || echo "P12 verification failed!"
 
 security create-keychain -p "$keychain_password" "$keychain_path"
 security set-keychain-settings -lut 21600 "$keychain_path"
