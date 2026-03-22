@@ -13,6 +13,12 @@ updates:
           - "androidx.compose*"
           - "org.jetbrains.compose*"
 
+  - package-ecosystem: "swift"
+    directory: "/apple"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
