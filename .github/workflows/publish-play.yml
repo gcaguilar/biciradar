@@ -31,8 +31,7 @@ jobs:
           elif [[ -n "${REQUESTED_RELEASE_TAG:-}" ]]; then
             release_tag="${REQUESTED_RELEASE_TAG}"
           else
-            mapfile -t release_tags < <(git tag --list 'v*.*.*' --sort=-v:refname)
-            release_tag="${release_tags[0]:-}"
+            release_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           fi
 
           if [[ -n "$release_tag" && -d ".git" ]]; then
