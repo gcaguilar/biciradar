@@ -57,6 +57,38 @@ final class FavoritesSyncBridgeTests: XCTestCase {
         XCTAssertNil(routeStore.takePendingRequest())
     }
 
+    func testApplyIgnoresEqualRouteRequests() {
+        bridge.apply(context: [
+            "route_station_id": "303",
+            "route_requested_at": 100.0,
+        ])
+        _ = routeStore.takePendingRequest()
+
+        bridge.apply(context: [
+            "route_station_id": "404",
+            "route_requested_at": 100.0,
+        ])
+
+        XCTAssertNil(routeStore.takePendingRequest())
+    }
+
+    func testApplyIgnoresRouteRequestsWithoutTimestamp() {
+        bridge.apply(context: [
+            "route_station_id": "303",
+        ])
+
+        XCTAssertNil(routeStore.takePendingRequest())
+    }
+
+    func testApplyIgnoresEmptyRouteStationIdentifier() {
+        bridge.apply(context: [
+            "route_station_id": "",
+            "route_requested_at": 100.0,
+        ])
+
+        XCTAssertNil(routeStore.takePendingRequest())
+    }
+
     func testApplyWithoutFavoriteIdsPreservesCachedFavorites() {
         defaults.set(["101", "202"], forKey: FavoritesSyncBridge.favoritesCacheKey)
         bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)

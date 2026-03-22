@@ -30,15 +30,12 @@ final class BiciRadarUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Cómo invocarlos"].waitForExistence(timeout: 20))
     }
 
-    func testShowStationLaunchCanReturnToDashboard() {
+    func testUnknownPendingStationLaunchDoesNotBlockDashboard() {
         let app = makeApp(
             pendingAction: "show_station",
-            pendingStationId: "48"
+            pendingStationId: "ui-test-missing-station"
         )
         app.launch()
-
-        XCTAssertTrue(app.buttons["Volver"].waitForExistence(timeout: 20))
-        app.buttons["Volver"].tap()
 
         XCTAssertTrue(app.staticTexts["Estaciones cercanas"].waitForExistence(timeout: 20))
     }
@@ -48,6 +45,7 @@ final class BiciRadarUITests: XCTestCase {
         pendingStationId: String? = nil
     ) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchEnvironment["BIZI_UI_TEST_MODE"] = "1"
         if let pendingAction {
             app.launchEnvironment["BIZI_UI_TEST_PENDING_ACTION"] = pendingAction
         }

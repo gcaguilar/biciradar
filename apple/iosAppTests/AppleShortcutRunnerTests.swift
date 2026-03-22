@@ -24,6 +24,41 @@ final class AppleShortcutRunnerTests: XCTestCase {
         XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
     }
 
+    func testFavoriteStationsDialogOnlyListsFirstThreeStations() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                favorites: [
+                    .fixture(id: "station-1", name: "Plaza España"),
+                    .fixture(id: "station-2", name: "Plaza Aragón"),
+                    .fixture(id: "station-3", name: "Universidad"),
+                    .fixture(id: "station-4", name: "Campus Río Ebro"),
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.favoriteStationsDialog()
+
+        XCTAssertEqual(dialog, "Tus favoritas en Bici Radar. Tienes 4 en total: Plaza España, Plaza Aragón, Universidad.")
+    }
+
+    func testFavoriteStationsDialogHandlesEmptyFavorites() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.favoriteStationsDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Abre Bici Radar. Todavía no tienes estaciones favoritas guardadas.")
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
+    }
+
     func testNearestStationDialogPromotesHighlightedStationWhenAvailable() async {
         let recorder = LaunchRequestRecorder()
         let runner = AppleShortcutRunner(
@@ -51,6 +86,50 @@ final class AppleShortcutRunnerTests: XCTestCase {
         XCTAssertEqual(detailRequest?.stationId, "station-48")
     }
 
+    func testNearestStationWithBikesDialogUsesFallbackWhenAssistantCannotHighlightStation() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                assistantResolution: AssistantResolution(
+                    spokenResponse: "Esto no debería usarse.",
+                    highlightedStationId: nil
+                )
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.nearestStationWithBikesDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Abre Bici Radar para buscar una estación cercana con bicis disponibles.")
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertTrue(requests.first is MobileLaunchRequestNearestStationWithBikes)
+    }
+
+    func testNearestStationWithSlotsDialogReturnsSpokenResponseWhenHighlightedStationCannotLoad() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                assistantResolution: AssistantResolution(
+                    spokenResponse: "La estación más cercana tiene huecos libres.",
+                    highlightedStationId: "station-missing"
+                )
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.nearestStationWithSlotsDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "La estación más cercana tiene huecos libres.")
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertTrue(requests.first is MobileLaunchRequestNearestStationWithSlots)
+    }
+
     func testStationBikeCountDialogReportsMatchingStation() async {
         let runner = AppleShortcutRunner(
             graph: FakeAppleGraph(
@@ -62,6 +141,36 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.stationBikeCountDialog(stationName: "Universidad")
 
         XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles.")
+    }
+
+    func testStationStatusDialogReportsStationByIdentifier() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                stationById: [
+                    "station-7": .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.stationStatusDialog(stationId: "station-7")
+
+        XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles y 5 huecos libres.")
+    }
+
+    func testStationSlotCountDialogReportsStationByIdentifier() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                stationById: [
+                    "station-7": .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.stationSlotCountDialog(stationId: "station-7")
+
+        XCTAssertEqual(dialog, "Universidad tiene 5 huecos libres.")
     }
 
     func testRouteDialogStoresRouteLaunchRequest() async {
@@ -76,6 +185,27 @@ final class AppleShortcutRunnerTests: XCTestCase {
         )
 
         let dialog = await runner.routeToStationDialog(stationName: "Universidad")
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Preparando ruta hacia Universidad en Bici Radar.")
+        let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
+        XCTAssertEqual(routeRequest?.stationId, "station-48")
+    }
+
+    func testRouteDialogByIdentifierStoresRouteLaunchRequest() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                stationById: [
+                    "station-48": .fixture(id: "station-48", name: "Universidad")
+                ]
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.routeToStationDialog(stationId: "station-48")
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Preparando ruta hacia Universidad en Bici Radar.")

@@ -37,6 +37,12 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
     }
 
+    func testNearestStationRequestRoundTrips() {
+        store.save(MobileLaunchRequestNearestStation.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStation)
+    }
+
     func testNearestStationWithBikesRequestRoundTrips() {
         store.save(MobileLaunchRequestNearestStationWithBikes.shared)
 
@@ -47,6 +53,18 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         store.save(MobileLaunchRequestNearestStationWithSlots.shared)
 
         XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStationWithSlots)
+    }
+
+    func testOpenAssistantRequestRoundTrips() {
+        store.save(MobileLaunchRequestOpenAssistant.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestOpenAssistant)
+    }
+
+    func testStationStatusRequestRoundTrips() {
+        store.save(MobileLaunchRequestStationStatus.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestStationStatus)
     }
 
     func testRouteRequestRequiresStationIdentifier() {
@@ -87,5 +105,15 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
 
         let request = store.takePendingRequest() as? MobileLaunchRequestShowStation
         XCTAssertEqual(request?.stationId, "station-77")
+    }
+
+    func testLaunchEnvironmentClearsStaleStationIdentifierWhenOmitted() {
+        defaults.set("station-stale", forKey: "bizizaragoza.pendingStationId")
+
+        store.seedFromLaunchEnvironment([
+            "BIZI_UI_TEST_PENDING_ACTION": "favorite_stations"
+        ])
+
+        XCTAssertNil(defaults.string(forKey: "bizizaragoza.pendingStationId"))
     }
 }

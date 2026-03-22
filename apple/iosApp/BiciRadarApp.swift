@@ -1,11 +1,13 @@
 import AppIntents
 import BiziMobileUi
+import Foundation
 import SwiftUI
 import UIKit
 
 @main
 struct BiciRadarApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    private let isUITesting = UITestConfiguration.isEnabled
 
     /// Single long-lived wrapper — the Compose tree is never torn down on navigation.
     private let composeWrapper: BiziMainViewControllerWrapper = {
@@ -20,6 +22,7 @@ struct BiciRadarApp: App {
 
     init() {
         AppleLaunchRequestStore.shared.seedFromLaunchEnvironment()
+        guard !UITestConfiguration.isEnabled else { return }
         FavoritesSyncBridge.shared.activate()
         FirebaseBootstrap.configureIfAvailable()
         GoogleMapsBootstrap.configureIfAvailable()
@@ -36,12 +39,16 @@ struct BiciRadarApp: App {
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea()
                 .onAppear(perform: applyPendingLaunchRequest)
-                .onAppear { requestNotificationPermission() }
+                .onAppear {
+                    guard !isUITesting else { return }
+                    requestNotificationPermission()
+                }
                 .onChange(of: scenePhase) { newPhase in
                     switch newPhase {
                     case .active:
                         applyPendingLaunchRequest()
                     case .background:
+                        guard !isUITesting else { break }
                         BiziBackgroundTaskHandler.scheduleAppRefresh()
                         handleBackgroundTransitionForMonitoring()
                     default:
@@ -83,5 +90,13 @@ struct IOSAssistantShortcutsView: View {
             Label("Ruta a estación", systemImage: "map.circle")
         }
         .navigationTitle("Atajos")
+    }
+}
+
+private enum UITestConfiguration {
+    static let enabledKey = "BIZI_UI_TEST_MODE"
+
+    static var isEnabled: Bool {
+        ProcessInfo.processInfo.environment[enabledKey] == "1"
     }
 }

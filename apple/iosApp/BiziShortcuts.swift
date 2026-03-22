@@ -306,12 +306,30 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Cómo está \(\.$savedPlace) con \(.applicationName)",
                 "Qué tal está \(\.$savedPlace) con \(.applicationName)",
-                "Cuál es el estado de \(\.$savedPlace) en \(.applicationName)",
-                "Cuántas bicis hay en \(\.$savedPlace) con \(.applicationName)",
-                "Cuántos huecos hay en \(\.$savedPlace) con \(.applicationName)"
+                "Cuál es el estado de \(\.$savedPlace) en \(.applicationName)"
             ],
             shortTitle: "Casa/Trabajo",
             systemImageName: "house.circle"
+        )
+        AppShortcut(
+            intent: SavedPlaceBikeCountIntent(),
+            phrases: [
+                "Cuántas bicis hay en \(\.$savedPlace) con \(.applicationName)",
+                "Bicis disponibles en \(\.$savedPlace) con \(.applicationName)",
+                "Cuántas bicis tiene \(\.$savedPlace) con \(.applicationName)"
+            ],
+            shortTitle: "Bicis casa",
+            systemImageName: "bicycle.circle"
+        )
+        AppShortcut(
+            intent: SavedPlaceSlotCountIntent(),
+            phrases: [
+                "Cuántos huecos hay en \(\.$savedPlace) con \(.applicationName)",
+                "Huecos libres en \(\.$savedPlace) con \(.applicationName)",
+                "Cuántos anclajes libres hay en \(\.$savedPlace) con \(.applicationName)"
+            ],
+            shortTitle: "Huecos casa",
+            systemImageName: "parkingsign.circle"
         )
         AppShortcut(
             intent: SavedPlaceRouteIntent(),
