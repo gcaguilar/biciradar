@@ -170,30 +170,6 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/ios-tests.xcresult" \
             test
 
-      - name: Build iOS simulator app
-        run: |
-          xcodebuild \
-            -project apple/BiciRadar.xcodeproj \
-            -scheme BiciRadar \
-            -sdk iphonesimulator \
-            -destination "$IOS_DESTINATION" \
-            -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
-            build
-
-      - name: Package iOS simulator app
-        run: |
-          mkdir -p "$RUNNER_TEMP/artifacts"
-          ditto -c -k --sequesterRsrc --keepParent \
-            "$RUNNER_TEMP/derived-data-ios/Build/Products/Debug-iphonesimulator/BiciRadar.app" \
-            "$RUNNER_TEMP/artifacts/BiciRadar-ios-simulator-app.zip"
-
-      - name: Upload iOS simulator app
-        uses: actions/upload-artifact@v7
-        with:
-          name: ios-simulator-app
-          if-no-files-found: error
-          path: ${{ runner.temp }}/artifacts/BiciRadar-ios-simulator-app.zip
-
       - name: Upload iOS test results on failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v7
@@ -263,20 +239,6 @@ jobs:
             -destination "$WATCHOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-watchos" \
             build
-
-      - name: Package watchOS simulator app
-        run: |
-          mkdir -p "$RUNNER_TEMP/artifacts"
-          ditto -c -k --sequesterRsrc --keepParent \
-            "$RUNNER_TEMP/derived-data-watchos/Build/Products/Debug-watchsimulator/BiciRadar Watch.app" \
-            "$RUNNER_TEMP/artifacts/BiciRadar-watchos-simulator-app.zip"
-
-      - name: Upload watchOS simulator app
-        uses: actions/upload-artifact@v7
-        with:
-          name: watchos-simulator-app
-          if-no-files-found: error
-          path: ${{ runner.temp }}/artifacts/BiciRadar-watchos-simulator-app.zip
 
       - name: Upload watchOS test results on failure
         if: failure()
