@@ -79,46 +79,6 @@ struct StationStatusIntent: AppIntent {
     }
 }
 
-struct StationBikeCountIntent: AppIntent {
-    static var title: LocalizedStringResource = "Bicis en estación"
-    static var openAppWhenRun: Bool = false
-
-    @Parameter(
-        title: "Estación",
-        requestValueDialog: IntentDialog("¿De qué estación quieres saber las bicis?")
-    )
-    var station: BiziStationShortcutEntity
-
-    static var parameterSummary: some ParameterSummary {
-        Summary("Cuántas bicis hay en \(\.$station)")
-    }
-
-    func perform() async throws -> some IntentResult {
-        let dialog = await AppleShortcutRunner().stationBikeCountDialog(stationId: station.id)
-        return .result(dialog: IntentDialog(stringLiteral: dialog))
-    }
-}
-
-struct StationSlotCountIntent: AppIntent {
-    static var title: LocalizedStringResource = "Huecos en estación"
-    static var openAppWhenRun: Bool = false
-
-    @Parameter(
-        title: "Estación",
-        requestValueDialog: IntentDialog("¿De qué estación quieres saber los huecos?")
-    )
-    var station: BiziStationShortcutEntity
-
-    static var parameterSummary: some ParameterSummary {
-        Summary("Cuántos huecos hay en \(\.$station)")
-    }
-
-    func perform() async throws -> some IntentResult {
-        let dialog = await AppleShortcutRunner().stationSlotCountDialog(stationId: station.id)
-        return .result(dialog: IntentDialog(stringLiteral: dialog))
-    }
-}
-
 struct RouteToStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Ruta a estación"
     static var openAppWhenRun: Bool = true
@@ -270,26 +230,6 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Estado",
             systemImageName: "info.circle"
-        )
-        AppShortcut(
-            intent: StationBikeCountIntent(),
-            phrases: [
-                "Cuántas bicis hay en \(\.$station) con \(.applicationName)",
-                "Bicis disponibles en \(\.$station) en \(.applicationName)",
-                "Cuántas bicis tiene \(\.$station) con \(.applicationName)"
-            ],
-            shortTitle: "Bicis",
-            systemImageName: "bicycle.circle"
-        )
-        AppShortcut(
-            intent: StationSlotCountIntent(),
-            phrases: [
-                "Cuántos huecos hay en \(\.$station) con \(.applicationName)",
-                "Huecos libres en \(\.$station) en \(.applicationName)",
-                "Cuántos anclajes libres hay en \(\.$station) con \(.applicationName)"
-            ],
-            shortTitle: "Huecos",
-            systemImageName: "parkingsign.circle"
         )
         AppShortcut(
             intent: RouteToStationIntent(),

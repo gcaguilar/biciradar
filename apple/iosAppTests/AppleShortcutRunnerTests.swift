@@ -130,19 +130,6 @@ final class AppleShortcutRunnerTests: XCTestCase {
         XCTAssertTrue(requests.first is MobileLaunchRequestNearestStationWithSlots)
     }
 
-    func testStationBikeCountDialogReportsMatchingStation() async {
-        let runner = AppleShortcutRunner(
-            graph: FakeAppleGraph(
-                matchedStation: .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
-            ),
-            saveLaunchRequest: { _ in }
-        )
-
-        let dialog = await runner.stationBikeCountDialog(stationName: "Universidad")
-
-        XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles.")
-    }
-
     func testStationStatusDialogReportsStationByIdentifier() async {
         let runner = AppleShortcutRunner(
             graph: FakeAppleGraph(
@@ -156,21 +143,6 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.stationStatusDialog(stationId: "station-7")
 
         XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles y 5 huecos libres.")
-    }
-
-    func testStationSlotCountDialogReportsStationByIdentifier() async {
-        let runner = AppleShortcutRunner(
-            graph: FakeAppleGraph(
-                stationById: [
-                    "station-7": .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
-                ]
-            ),
-            saveLaunchRequest: { _ in }
-        )
-
-        let dialog = await runner.stationSlotCountDialog(stationId: "station-7")
-
-        XCTAssertEqual(dialog, "Universidad tiene 5 huecos libres.")
     }
 
     func testRouteDialogStoresRouteLaunchRequest() async {
