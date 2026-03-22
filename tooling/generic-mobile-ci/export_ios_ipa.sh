@@ -10,8 +10,8 @@ archive_path="${2:-${RUNNER_TEMP:-/tmp}/BiciRadar.xcarchive}"
 project_path="${APPLE_XCODE_PROJECT_PATH:-apple/BiciRadar.xcodeproj}"
 scheme_name="${APPLE_XCODE_SCHEME:-BiciRadar}"
 bundle_identifier="${APPLE_BUNDLE_ID:-com.gcaguilar.biciradar.ios}"
-export_method="${APPLE_EXPORT_METHOD:-debugging}"
-signing_certificate="${APPLE_SIGNING_CERTIFICATE_TYPE:-}"
+export_method="${APPLE_EXPORT_METHOD:-app-store}"
+signing_certificate="Apple Distribution"
 export_options_plist="${RUNNER_TEMP:-/tmp}/BiciRadar-export-options.plist"
 
 mkdir -p "$export_path"
@@ -52,6 +52,7 @@ xcodebuild \
   -archivePath "$archive_path" \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="$signing_certificate" \
   PROVISIONING_PROFILE_SPECIFIER="$APPLE_PROFILE_NAME" \
   archive
 

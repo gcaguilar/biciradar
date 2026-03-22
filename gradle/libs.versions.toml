@@ -5,8 +5,10 @@ coroutines = "1.10.2"
 kotlin = "2.3.20"
 ktor = "3.4.1"
 metro = "0.11.4"
+mokoResources = "0.26.1"
 okio = "3.17.0"
 serialization = "1.10.0"
+mokoResources = "0.26.1"
 androidx-activity = "1.13.0"
 androidx-lifecycle = "2.10.0"
 androidx-core = "1.18.0"
@@ -48,6 +50,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
+moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "mokoResources" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
@@ -68,3 +71,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
+moko-resources = { id = "dev.icerock.moko.resources", version.ref = "mokoResources" }

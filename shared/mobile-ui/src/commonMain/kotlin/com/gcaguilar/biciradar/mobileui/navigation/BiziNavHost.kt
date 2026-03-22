@@ -76,7 +76,7 @@ internal fun BiziNavHost(
     modifier = modifier.padding(paddingValues),
   ) {
     composable<Screen.Nearby>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}nearby" }),
+      deepLinks = listOf(navDeepLink<Screen.Nearby>(basePath = "${DeepLinks.BASE_URI}nearby")),
     ) {
       val nearbyViewModel = viewModel(key = "nearby") { nearbyViewModelFactory.create() }
       DisposableEffect(nearbyViewModel) {
@@ -94,7 +94,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Map>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}map" }),
+      deepLinks = listOf(navDeepLink<Screen.Map>(basePath = "${DeepLinks.BASE_URI}map")),
     ) {
       BiziMobileAppContent.MapScreenContent(
         mobilePlatform = mobilePlatform,
@@ -119,7 +119,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Favorites>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}favorites" }),
+      deepLinks = listOf(navDeepLink<Screen.Favorites>(basePath = "${DeepLinks.BASE_URI}favorites")),
     ) {
       val favoritesViewModel = viewModel(key = "favorites") { favoritesViewModelFactory.create() }
       BiziMobileAppContent.FavoritesScreenContent(
@@ -134,7 +134,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Trip>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}trip" }),
+      deepLinks = listOf(navDeepLink<Screen.Trip>(basePath = "${DeepLinks.BASE_URI}trip")),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.Trip>()
       val viewModel = viewModel(key = "trip") { tripViewModelFactory.create() }
@@ -158,7 +158,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Profile>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}profile" }),
+      deepLinks = listOf(navDeepLink<Screen.Profile>(basePath = "${DeepLinks.BASE_URI}profile")),
     ) {
       val profileViewModel = viewModel(key = "profile") { profileViewModelFactory.create() }
       BiziMobileAppContent.ProfileScreenContent(
@@ -170,7 +170,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Shortcuts>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}shortcuts" }),
+      deepLinks = listOf(navDeepLink<Screen.Shortcuts>(basePath = "${DeepLinks.BASE_URI}shortcuts")),
     ) {
       BiziMobileAppContent.ShortcutsScreenContent(
         mobilePlatform = mobilePlatform,
@@ -192,7 +192,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.StationDetail>(
-      deepLinks = listOf(navDeepLink { uriPattern = "${DeepLinks.BASE_URI}station/{stationId}" }),
+      deepLinks = listOf(navDeepLink<Screen.StationDetail>(basePath = "${DeepLinks.BASE_URI}station")),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.StationDetail>()
       val station = stations.firstOrNull { it.id == route.stationId }

@@ -71,12 +71,6 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK licenses non-interactively
-        run: yes | sdkmanager --licenses >/dev/null
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
