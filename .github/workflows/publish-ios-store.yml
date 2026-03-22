@@ -173,7 +173,10 @@ jobs:
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-        run: ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
+        run: |
+          echo "Debug: P12 base64 length: ${#APPLE_SIGNING_CERTIFICATE_P12_BASE64}"
+          echo "Debug: P12 password: $APPLE_SIGNING_CERTIFICATE_PASSWORD"
+          ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
 
       - name: Build signed iOS IPA
         run: |
