@@ -959,30 +959,30 @@ private fun MapScreen(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Bottom,
       ) {
-        Box(modifier = Modifier.weight(1f)) {
-          AnimatedVisibility(
-            visible = selectedMapStation != null && !isCardDismissed,
-            enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
-            label = "map-selected-station-overlay",
-          ) {
-            selectedMapStation?.let { station ->
-              MapSelectedStationCard(
-                modifier = Modifier.fillMaxWidth(),
-                mobilePlatform = mobilePlatform,
-                station = station,
-                isFavorite = station.id in favoriteIds,
-                isShowingNearestSelection = mapIsShowingNearestSelection,
-                isFallbackSelection = mapIsShowingNearestFallback,
-                searchRadiusMeters = searchRadiusMeters,
-                onFavoriteToggle = { onFavoriteToggle(station) },
-                onOpenStationDetails = { onStationSelected(station) },
-                onQuickRoute = { onQuickRoute(station) },
-                onDismiss = { isCardDismissed = true },
-              )
-            }
+        AnimatedVisibility(
+          visible = selectedMapStation != null && !isCardDismissed,
+          modifier = Modifier.weight(1f),
+          enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+          exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+          label = "map-selected-station-overlay",
+        ) {
+          selectedMapStation?.let { station ->
+            MapSelectedStationCard(
+              modifier = Modifier.fillMaxWidth(),
+              mobilePlatform = mobilePlatform,
+              station = station,
+              isFavorite = station.id in favoriteIds,
+              isShowingNearestSelection = mapIsShowingNearestSelection,
+              isFallbackSelection = mapIsShowingNearestFallback,
+              searchRadiusMeters = searchRadiusMeters,
+              onFavoriteToggle = { onFavoriteToggle(station) },
+              onOpenStationDetails = { onStationSelected(station) },
+              onQuickRoute = { onQuickRoute(station) },
+              onDismiss = { isCardDismissed = true },
+            )
           }
         }
+      }
         MapRecenterButton(
           enabled = userLocation != null || stations.isNotEmpty(),
           onClick = {
