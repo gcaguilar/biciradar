@@ -202,43 +202,6 @@ jobs:
           if-no-files-found: ignore
           path: ${{ runner.temp }}/ios-tests.xcresult
 
-      - name: Resolve iOS signing flags
-        if: github.event_name != 'pull_request'
-        env:
-          _TID: ${{ secrets.APPLE_TEAM_ID }}
-          _CERT: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
-          _PASS: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-          _PROF: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          echo "DIST_IOS=$([[ -n "$_TID" && -n "$_CERT" && -n "$_PASS" && -n "$_PROF" ]] && echo true || echo false)" >> "$GITHUB_ENV"
-
-      - name: Install Apple signing assets
-        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        env:
-          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
-          APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
-          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-        run: ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
-
-      - name: Build signed iOS IPA
-        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        env:
-          APPLE_BUNDLE_ID: com.gcaguilar.biciradar.ios
-          APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
-          APPLE_SIGNING_CERTIFICATE_TYPE: ${{ vars.APPLE_SIGNING_CERTIFICATE_TYPE }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          ./tooling/generic-mobile-ci/export_ios_ipa.sh "$RUNNER_TEMP/ios-export" "$RUNNER_TEMP/BiciRadar.xcarchive"
-
-      - name: Upload signed iOS IPA
-        if: github.event_name != 'pull_request' && env.DIST_IOS == 'true'
-        uses: actions/upload-artifact@v7
-        with:
-          name: ios-device-ipa
-          if-no-files-found: error
-          path: ${{ runner.temp }}/ios-export/*.ipa
-
 
   watchos:
     name: watchOS build and tests
