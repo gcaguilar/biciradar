@@ -56,15 +56,12 @@ class TokenManager(
     // ------------------------------------------------------------------
 
     private suspend fun refresh(): AccessToken {
-        println("[TokenManager] refreshing token...")
         val (identity, _) = identityRepo.getOrRegister()
-        println("[TokenManager] got identity installationId=${identity.installationId}")
 
         val requestBody = json.encodeToString(
             TokenRefreshRequest(refreshToken = identity.refreshToken),
         )
 
-        println("[TokenManager] POST /token/refresh installationId=${identity.installationId}")
         val response = try {
             httpClient.post("$BASE_URL/token/refresh") {
                 expectSuccess = false
@@ -74,33 +71,26 @@ class TokenManager(
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (ex: Throwable) {
-            println("[TokenManager] NETWORK ERROR /token/refresh: ${ex::class.simpleName} — ${ex.message}")
             throw GeoError.Network(ex)
         }
 
-        println("[TokenManager] /token/refresh status=${response.status.value}")
         if (response.status.value == 401 || response.status.value == 403) {
-            println("[TokenManager] identity rejected (${response.status.value}) — clearing and throwing Unauthorized")
             identityRepo.clear()
             throw GeoError.Unauthorized
         }
         if (!response.status.isSuccess()) {
-            println("[TokenManager] SERVER ERROR /token/refresh: ${response.status.value} ${response.status.description}")
             throw GeoError.Server(response.status.value, response.status.description)
         }
 
         val tokenResponse = runCatching { response.body<TokenRefreshResponse>() }
             .getOrElse { ex ->
-                println("[TokenManager] PARSE ERROR /token/refresh: ${ex::class.simpleName} — ${ex.message}")
                 throw GeoError.Unknown(ex)
             }
 
-        // Persist the rotated refresh token
         identityRepo.updateRefreshToken(tokenResponse.refreshToken)
 
         val expiresAtMs = currentTimeMs() + (tokenResponse.expiresIn * 1000L)
         val token = AccessToken(token = tokenResponse.accessToken, expiresAtEpochMs = expiresAtMs)
-        println("[TokenManager] token OK expiresIn=${tokenResponse.expiresIn}s")
         currentToken = token
         return token
     }

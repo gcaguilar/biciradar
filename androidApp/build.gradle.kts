@@ -53,8 +53,8 @@ android {
     applicationId = androidApplicationId
     minSdk = 26
     targetSdk = 36
-    versionCode = 29568074
-    versionName = "2026.03.21.0914"
+    versionCode = 29568075
+    versionName = "2026.03.22.1856"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
   }
 
