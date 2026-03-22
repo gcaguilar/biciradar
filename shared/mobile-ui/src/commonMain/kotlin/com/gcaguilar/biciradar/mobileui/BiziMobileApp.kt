@@ -958,42 +958,41 @@ private fun MapScreen(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.Bottom,
-      ) {
-        AnimatedVisibility(
-          visible = selectedMapStation != null && !isCardDismissed,
-          modifier = Modifier.weight(1f),
-          enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
-          exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
-          label = "map-selected-station-overlay",
         ) {
-          selectedMapStation?.let { station ->
-            MapSelectedStationCard(
-              modifier = Modifier.fillMaxWidth(),
-              mobilePlatform = mobilePlatform,
-              station = station,
-              isFavorite = station.id in favoriteIds,
-              isShowingNearestSelection = mapIsShowingNearestSelection,
-              isFallbackSelection = mapIsShowingNearestFallback,
-              searchRadiusMeters = searchRadiusMeters,
-              onFavoriteToggle = { onFavoriteToggle(station) },
-              onOpenStationDetails = { onStationSelected(station) },
-              onQuickRoute = { onQuickRoute(station) },
-              onDismiss = { isCardDismissed = true },
-            )
+          AnimatedVisibility(
+            visible = selectedMapStation != null && !isCardDismissed,
+            modifier = Modifier.weight(1f),
+            enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+            label = "map-selected-station-overlay",
+          ) {
+            selectedMapStation?.let { station ->
+              MapSelectedStationCard(
+                modifier = Modifier.fillMaxWidth(),
+                mobilePlatform = mobilePlatform,
+                station = station,
+                isFavorite = station.id in favoriteIds,
+                isShowingNearestSelection = mapIsShowingNearestSelection,
+                isFallbackSelection = mapIsShowingNearestFallback,
+                searchRadiusMeters = searchRadiusMeters,
+                onFavoriteToggle = { onFavoriteToggle(station) },
+                onOpenStationDetails = { onStationSelected(station) },
+                onQuickRoute = { onQuickRoute(station) },
+                onDismiss = { isCardDismissed = true },
+              )
+            }
           }
+          MapRecenterButton(
+            enabled = userLocation != null || stations.isNotEmpty(),
+            onClick = {
+              recenterRequestToken += 1
+              isCardDismissed = false
+            },
+          )
         }
-      }
-        MapRecenterButton(
-          enabled = userLocation != null || stations.isNotEmpty(),
-          onClick = {
-            recenterRequestToken += 1
-            isCardDismissed = false
-          },
-        )
       }
     }
   }
-}
 
 @Composable
 private fun NearbyScreen(
@@ -2420,14 +2419,75 @@ private fun TripScreen(
   val tripState by viewModel.tripState.collectAsState()
 
   // ---------- layout ----------
-  LazyColumn(
+  Column(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
+    // Map picker — hoisted out of LazyColumn so the native map view is never
+    // disposed / recreated by lazy-item recycling on scroll.
+    AnimatedVisibility(
+      visible = tripState.destination == null && uiState.mapPickerActive,
+      enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+      exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+    ) {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = c.surface),
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp)
+          .padding(top = 16.dp)
+          .height(300.dp),
+      ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+          PlatformStationMap(
+            modifier = Modifier.fillMaxSize(),
+            stations = stations,
+            userLocation = userLocation,
+            highlightedStationId = null,
+            isMapReady = isMapReady,
+            onStationSelected = { station ->
+              viewModel.onStationPickedFromMap(station)
+            },
+            onMapClick = { tappedLocation ->
+              viewModel.onLocationPicked(tappedLocation)
+            },
+            pinLocation = uiState.pickedLocation,
+          )
+          if (uiState.isReverseGeocoding) {
+            Box(
+              modifier = Modifier
+                .fillMaxSize()
+                .background(c.background.copy(alpha = 0.55f)),
+              contentAlignment = Alignment.Center,
+            ) {
+              CircularProgressIndicator(color = c.red, modifier = Modifier.size(32.dp))
+            }
+          } else {
+            Surface(
+              modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 10.dp),
+              shape = RoundedCornerShape(20.dp),
+              color = c.surface.copy(alpha = 0.92f),
+            ) {
+              Text(
+                sharedString(SharedString.TAP_MAP_TO_PICK_DESTINATION),
+                style = MaterialTheme.typography.labelMedium,
+                color = c.muted,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+              )
+            }
+          }
+        }
+      }
+    }
+    LazyColumn(
+      modifier = Modifier.weight(1f),
+      contentPadding = PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
     // ---------- ALERT card (State 7) — shown above everything when active ----------
     if (tripState.alert != null) {
       val alert = tripState.alert!!
@@ -2547,58 +2607,6 @@ private fun TripScreen(
                 color = c.blue,
                 fontWeight = FontWeight.SemiBold,
               )
-            }
-          }
-        }
-      }
-
-      // Map picker overlay
-      if (uiState.mapPickerActive) {
-        item(key = "map-picker") {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = c.surface),
-            modifier = Modifier.height(300.dp),
-          ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-              PlatformStationMap(
-                modifier = Modifier.fillMaxSize(),
-                stations = stations,
-                userLocation = userLocation,
-                highlightedStationId = null,
-                isMapReady = isMapReady,
-                onStationSelected = { station ->
-                  viewModel.onStationPickedFromMap(station)
-                },
-                onMapClick = { tappedLocation ->
-                  viewModel.onLocationPicked(tappedLocation)
-                },
-                pinLocation = uiState.pickedLocation,
-              )
-              if (uiState.isReverseGeocoding) {
-                Box(
-                  modifier = Modifier
-                    .fillMaxSize()
-                    .background(c.background.copy(alpha = 0.55f)),
-                  contentAlignment = Alignment.Center,
-                ) {
-                  CircularProgressIndicator(color = c.red, modifier = Modifier.size(32.dp))
-                }
-              } else {
-                Surface(
-                  modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 10.dp),
-                  shape = RoundedCornerShape(20.dp),
-                  color = c.surface.copy(alpha = 0.92f),
-                ) {
-                  Text(
-                    sharedString(SharedString.TAP_MAP_TO_PICK_DESTINATION),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = c.muted,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                  )
-                }
-              }
             }
           }
         }
