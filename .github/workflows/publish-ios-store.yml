@@ -85,17 +85,21 @@ jobs:
 
       - name: Validate App Store release configuration
         run: |
+          echo "DEBUG: APPLE_EXPORT_METHOD='$APPLE_EXPORT_METHOD'"
+          echo "DEBUG: APPLE_SIGNING_CERTIFICATE_TYPE='$APPLE_SIGNING_CERTIFICATE_TYPE'"
+          echo "DEBUG: APPLE_BUNDLE_ID='$APPLE_BUNDLE_ID'"
+
           export_method="${APPLE_EXPORT_METHOD:-app-store}"
           signing_certificate="${APPLE_SIGNING_CERTIFICATE_TYPE:-Apple Distribution}"
           bundle_id="${APPLE_BUNDLE_ID:-com.gcaguilar.biciradar.ios}"
 
           if [[ "$export_method" != "app-store" ]]; then
-            echo "::error::APPLE_EXPORT_METHOD must be app-store for App Store submissions"
+            echo "::error::APPLE_EXPORT_METHOD must be app-store (got: $export_method)"
             exit 1
           fi
 
           if [[ "$signing_certificate" != "Apple Distribution" ]]; then
-            echo "::error::APPLE_SIGNING_CERTIFICATE_TYPE must be Apple Distribution"
+            echo "::error::APPLE_SIGNING_CERTIFICATE_TYPE must be Apple Distribution (got: $signing_certificate)"
             exit 1
           fi
 
@@ -173,10 +177,7 @@ jobs:
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-        run: |
-          echo "Debug: P12 base64 length: ${#APPLE_SIGNING_CERTIFICATE_P12_BASE64}"
-          echo "Debug: P12 password: $APPLE_SIGNING_CERTIFICATE_PASSWORD"
-          ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
+        run: ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
 
       - name: Build signed iOS IPA
         run: |
