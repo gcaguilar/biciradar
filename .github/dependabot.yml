@@ -13,12 +13,6 @@ updates:
           - "androidx.compose*"
           - "org.jetbrains.compose*"
 
-  - package-ecosystem: "cocoapods"
-    directory: "/apple"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-
   - package-ecosystem: "swift"
     directory: "/apple"
     schedule:
