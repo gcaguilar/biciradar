@@ -55,6 +55,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -911,28 +912,6 @@ private fun MapScreen(
           activeFilters = if (filter in activeFilters) emptySet() else setOf(filter)
         },
       )
-      MapAvailabilityLegend()
-    }
-
-    Surface(
-      modifier = Modifier
-        .align(Alignment.TopEnd)
-        .padding(top = 112.dp, end = 16.dp)
-        .clickable(enabled = userLocation != null || stations.isNotEmpty()) {
-          recenterRequestToken += 1
-          isCardDismissed = false
-        },
-      shape = CircleShape,
-      color = LocalBiziColors.current.surface.copy(alpha = 0.96f),
-      tonalElevation = 4.dp,
-      shadowElevation = 6.dp,
-    ) {
-      Icon(
-        imageVector = Icons.Filled.MyLocation,
-        contentDescription = sharedString(SharedString.MAP_MY_LOCATION),
-        tint = LocalBiziColors.current.red,
-        modifier = Modifier.padding(14.dp).size(22.dp),
-      )
     }
 
     AnimatedVisibility(
@@ -975,26 +954,42 @@ private fun MapScreen(
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 16.dp),
     ) {
-      AnimatedVisibility(
-        visible = selectedMapStation != null && !isCardDismissed,
-        enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
-        exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
-        label = "map-selected-station-overlay",
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Bottom,
       ) {
-        selectedMapStation?.let { station ->
-          MapSelectedStationCard(
-            mobilePlatform = mobilePlatform,
-            station = station,
-            isFavorite = station.id in favoriteIds,
-            isShowingNearestSelection = mapIsShowingNearestSelection,
-            isFallbackSelection = mapIsShowingNearestFallback,
-            searchRadiusMeters = searchRadiusMeters,
-            onFavoriteToggle = { onFavoriteToggle(station) },
-            onOpenStationDetails = { onStationSelected(station) },
-            onQuickRoute = { onQuickRoute(station) },
-            onDismiss = { isCardDismissed = true },
-          )
+        Box(modifier = Modifier.weight(1f)) {
+          AnimatedVisibility(
+            visible = selectedMapStation != null && !isCardDismissed,
+            enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+            label = "map-selected-station-overlay",
+          ) {
+            selectedMapStation?.let { station ->
+              MapSelectedStationCard(
+                modifier = Modifier.fillMaxWidth(),
+                mobilePlatform = mobilePlatform,
+                station = station,
+                isFavorite = station.id in favoriteIds,
+                isShowingNearestSelection = mapIsShowingNearestSelection,
+                isFallbackSelection = mapIsShowingNearestFallback,
+                searchRadiusMeters = searchRadiusMeters,
+                onFavoriteToggle = { onFavoriteToggle(station) },
+                onOpenStationDetails = { onStationSelected(station) },
+                onQuickRoute = { onQuickRoute(station) },
+                onDismiss = { isCardDismissed = true },
+              )
+            }
+          }
         }
+        MapRecenterButton(
+          enabled = userLocation != null || stations.isNotEmpty(),
+          onClick = {
+            recenterRequestToken += 1
+            isCardDismissed = false
+          },
+        )
       }
     }
   }
@@ -1214,7 +1209,10 @@ private fun MapFilterChipRow(
   activeFilters: Set<MapFilter>,
   onToggleFilter: (MapFilter) -> Unit,
 ) {
-  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+  Row(
+    modifier = Modifier.horizontalScroll(rememberScrollState()),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
     MapFilter.entries.forEach { filter ->
       MapFilterChip(
         filter = filter,
@@ -1223,24 +1221,7 @@ private fun MapFilterChipRow(
         onClick = { onToggleFilter(filter) },
       )
     }
-  }
-}
-
-@Composable
-private fun MapAvailabilityLegend() {
-  Row(
-    modifier = Modifier.horizontalScroll(rememberScrollState()),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    AvailabilityLegendChip(
-      label = sharedString(SharedString.MAP_LEGEND_BIKES_AND_SLOTS),
-      color = LocalBiziColors.current.green,
-    )
-    AvailabilityLegendChip(
-      label = sharedString(SharedString.MAP_LEGEND_ONLY_BIKES_OR_SLOTS),
-      color = LocalBiziColors.current.orange,
-    )
-    AvailabilityLegendChip(
+    MapLegendChip(
       label = sharedString(SharedString.MAP_LEGEND_OUT_OF_SERVICE),
       color = LocalBiziColors.current.red,
     )
@@ -1248,33 +1229,42 @@ private fun MapAvailabilityLegend() {
 }
 
 @Composable
-private fun AvailabilityLegendChip(
+private fun MapLegendChip(
   label: String,
   color: Color,
 ) {
+  val c = LocalBiziColors.current
   Surface(
     shape = RoundedCornerShape(18.dp),
-    color = LocalBiziColors.current.surface.copy(alpha = 0.92f),
-    border = BorderStroke(1.dp, LocalBiziColors.current.panel),
+    color = c.surface.copy(alpha = 0.92f),
+    border = BorderStroke(1.dp, c.panel),
   ) {
     Row(
       modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      Box(
-        modifier = Modifier
-          .size(10.dp)
-          .clip(CircleShape)
-          .background(color),
-      )
+      MapColorDot(color = color)
       Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
-        color = LocalBiziColors.current.ink,
+        color = c.ink,
       )
     }
   }
+}
+
+@Composable
+private fun MapColorDot(
+  color: Color,
+  modifier: Modifier = Modifier,
+) {
+  Box(
+    modifier = modifier
+      .size(10.dp)
+      .clip(CircleShape)
+      .background(color),
+  )
 }
 
 @Composable
@@ -1287,8 +1277,8 @@ private fun MapFilterChip(
   val c = LocalBiziColors.current
   val accent = when (filter) {
     MapFilter.BIKES_AND_SLOTS -> c.green
-    MapFilter.ONLY_BIKES -> c.red
-    MapFilter.ONLY_SLOTS -> c.blue
+    MapFilter.ONLY_BIKES,
+    MapFilter.ONLY_SLOTS -> c.orange
   }
   val backgroundColor by animateColorAsState(
     targetValue = if (selected) accent.copy(alpha = 0.12f) else c.surface,
@@ -1318,18 +1308,47 @@ private fun MapFilterChip(
       }
       .clickable(onClick = onClick),
   ) {
-    Text(
-      text = label,
-      color = contentColor,
-      style = MaterialTheme.typography.bodySmall,
-      fontWeight = FontWeight.SemiBold,
+    Row(
       modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      MapColorDot(color = accent)
+      Text(
+        text = label,
+        color = contentColor,
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.SemiBold,
+      )
+    }
+  }
+}
+
+@Composable
+private fun MapRecenterButton(
+  enabled: Boolean,
+  onClick: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Surface(
+    modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
+    shape = CircleShape,
+    color = c.surface.copy(alpha = if (enabled) 0.96f else 0.88f),
+    tonalElevation = 4.dp,
+    shadowElevation = 6.dp,
+  ) {
+    Icon(
+      imageVector = Icons.Filled.MyLocation,
+      contentDescription = sharedString(SharedString.MAP_MY_LOCATION),
+      tint = if (enabled) c.green else c.muted,
+      modifier = Modifier.padding(14.dp).size(22.dp),
     )
   }
 }
 
 @Composable
 private fun MapSelectedStationCard(
+  modifier: Modifier = Modifier,
   mobilePlatform: MobileUiPlatform,
   station: Station,
   isFavorite: Boolean,
@@ -1345,16 +1364,16 @@ private fun MapSelectedStationCard(
   val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
   val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else c.onAccent.copy(alpha = 0.84f)
   Card(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier,
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, c.red.copy(alpha = 0.12f)) else null,
     colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
   ) {
     Column(
       modifier = Modifier
-        .padding(16.dp)
+        .padding(horizontal = 14.dp, vertical = 13.dp)
         .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1415,7 +1434,10 @@ private fun MapSelectedStationCard(
         },
         color = overlayBody,
       )
-      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+      Row(
+        modifier = Modifier.horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
         RoutePill(
           label = sharedString(SharedString.ROUTE),
           onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
@@ -1647,10 +1669,18 @@ private fun ProfileScreen(
           OutlinedButton(
             modifier = Modifier.fillMaxWidth(),
             onClick = onOpenShortcuts,
+            border = BorderStroke(1.dp, LocalBiziColors.current.red.copy(alpha = 0.24f)),
+            colors = ButtonDefaults.outlinedButtonColors(
+              containerColor = LocalBiziColors.current.red.copy(alpha = 0.04f),
+            ),
           ) {
-            Icon(Icons.Filled.KeyboardVoice, contentDescription = null)
+            Icon(Icons.Filled.KeyboardVoice, contentDescription = null, tint = LocalBiziColors.current.red)
             Spacer(Modifier.width(8.dp))
-            Text(sharedString(SharedString.OPEN_SHORTCUTS_GUIDE))
+            Text(
+              sharedString(SharedString.OPEN_SHORTCUTS_GUIDE),
+              color = LocalBiziColors.current.red,
+              fontWeight = FontWeight.SemiBold,
+            )
           }
         }
       }
@@ -2398,22 +2428,6 @@ private fun TripScreen(
     contentPadding = PaddingValues(16.dp),
     verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-    // Header
-    item {
-      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-          sharedString(SharedString.TAB_TRIP),
-          style = MaterialTheme.typography.headlineSmall,
-          fontWeight = FontWeight.Bold,
-        )
-        Text(
-          sharedString(SharedString.TRIP_SUBTITLE),
-          style = MaterialTheme.typography.bodyMedium,
-          color = c.muted,
-        )
-      }
-    }
-
     // ---------- ALERT card (State 7) — shown above everything when active ----------
     if (tripState.alert != null) {
       val alert = tripState.alert!!
@@ -2482,6 +2496,11 @@ private fun TripScreen(
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
             )
+            Text(
+              sharedString(SharedString.TRIP_SUBTITLE),
+              style = MaterialTheme.typography.bodySmall,
+              color = c.muted,
+            )
             OutlinedTextField(
               value = uiState.query,
               onValueChange = { viewModel.onQueryChange(it) },
@@ -2507,12 +2526,16 @@ private fun TripScreen(
             OutlinedButton(
               onClick = { viewModel.onMapPickerToggle() },
               modifier = Modifier.fillMaxWidth(),
-              border = BorderStroke(1.dp, c.red.copy(alpha = 0.5f)),
+              border = BorderStroke(1.dp, c.blue.copy(alpha = if (uiState.mapPickerActive) 0.30f else 0.22f)),
+              colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = if (uiState.mapPickerActive) c.blue.copy(alpha = 0.08f) else Color.Transparent,
+              ),
             ) {
               Icon(
                 if (uiState.mapPickerActive) Icons.Filled.Close else Icons.Filled.Map,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
+                tint = c.blue,
               )
               Spacer(Modifier.width(6.dp))
               Text(
@@ -2521,6 +2544,8 @@ private fun TripScreen(
                 } else {
                   sharedString(SharedString.PICK_ON_MAP)
                 },
+                color = c.blue,
+                fontWeight = FontWeight.SemiBold,
               )
             }
           }

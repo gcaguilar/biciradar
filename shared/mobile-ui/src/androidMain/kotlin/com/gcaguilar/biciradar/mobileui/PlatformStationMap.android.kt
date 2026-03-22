@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -77,6 +78,17 @@ internal actual fun PlatformStationMap(
     return
   }
   val cameraPositionState = rememberCameraPositionState()
+  val mapProperties = remember(userLocation != null) {
+    MapProperties(isMyLocationEnabled = userLocation != null)
+  }
+  val mapUiSettings = remember {
+    MapUiSettings(
+      compassEnabled = false,
+      mapToolbarEnabled = false,
+      myLocationButtonEnabled = false,
+      zoomControlsEnabled = false,
+    )
+  }
   var hasZoomed by remember { mutableStateOf(false) }
 
   LaunchedEffect(userLocation, stations) {
@@ -101,59 +113,59 @@ internal actual fun PlatformStationMap(
   GoogleMap(
     modifier = modifier,
     cameraPositionState = cameraPositionState,
-    properties = MapProperties(isMyLocationEnabled = userLocation != null),
-    uiSettings = MapUiSettings(
-      compassEnabled = false,
-      mapToolbarEnabled = false,
-      myLocationButtonEnabled = false,
-      zoomControlsEnabled = false,
-    ),
+    properties = mapProperties,
+    uiSettings = mapUiSettings,
     onMapClick = if (onMapClick != null) {
       { latLng -> onMapClick(GeoPoint(latLng.latitude, latLng.longitude)) }
     } else null,
   ) {
     stations.forEach { station ->
-      MarkerInfoWindowContent(
-        state = remember(station.id) {
+      key(station.id) {
+        val markerState = remember(station.location.latitude, station.location.longitude) {
           MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
-        },
-        title = station.name,
-        snippet = sharedString(SharedString.MAP_STATION_BIKES_FREE, station.bikesAvailable, station.slotsFree),
-        icon = BitmapDescriptorFactory.defaultMarker(
-          stationMarkerHue(station, station.id == highlightedStationId),
-        ),
-        onClick = {
-          onStationSelected(station)
-          false
-        },
-      ) {
-        Column(
-          modifier = Modifier
-            .background(LocalBiziColors.current.surface, RoundedCornerShape(16.dp))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
+        }
+        MarkerInfoWindowContent(
+          state = markerState,
+          title = station.name,
+          snippet = sharedString(SharedString.MAP_STATION_BIKES_FREE, station.bikesAvailable, station.slotsFree),
+          icon = BitmapDescriptorFactory.defaultMarker(
+            stationMarkerHue(station, station.id == highlightedStationId),
+          ),
+          onClick = {
+            onStationSelected(station)
+            false
+          },
         ) {
-          Text(
-            text = station.name,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-          )
-          Text(
-            text = sharedString(SharedString.MAP_STATION_BIKES_SLOTS_DISTANCE, station.bikesAvailable, station.slotsFree, station.distanceMeters),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
+          Column(
+            modifier = Modifier
+              .background(LocalBiziColors.current.surface, RoundedCornerShape(16.dp))
+              .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Text(
+              text = station.name,
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+              text = sharedString(SharedString.MAP_STATION_BIKES_SLOTS_DISTANCE, station.bikesAvailable, station.slotsFree, station.distanceMeters),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+          }
         }
       }
     }
     if (pinLocation != null) {
-      MarkerInfoWindowContent(
-        state = remember(pinLocation) {
-          MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
-        },
-        title = sharedString(SharedString.DESTINATION),
-        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
-      ) {}
+      key("destination-pin") {
+        MarkerInfoWindowContent(
+          state = remember(pinLocation.latitude, pinLocation.longitude) {
+            MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
+          },
+          title = sharedString(SharedString.DESTINATION),
+          icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
+        ) {}
+      }
     }
   }
 }
