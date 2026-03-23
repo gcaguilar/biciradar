@@ -91,7 +91,7 @@ jobs:
           BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
           BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
         run: |
-          ./gradlew :androidApp:bundleRelease
+          ./gradlew :androidApp:bundleRelease --no-build-cache
 
       - name: Upload Android mapping to Firebase Crashlytics
         if: hashFiles('androidApp/google-services.json') != ''
