@@ -43,14 +43,14 @@ android {
     compose = true
   }
 
-  val keystorePath = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orNull
+  val keystorePath = System.getenv("BIZI_CI_KEYSTORE_PATH")
   if (keystorePath != null) {
     signingConfigs {
       create("release") {
         storeFile = file(keystorePath)
-        storePassword = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").get()
-        keyAlias = providers.environmentVariable("BIZI_CI_KEY_ALIAS").get()
-        keyPassword = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").get()
+        storePassword = System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+        keyAlias = System.getenv("BIZI_CI_KEY_ALIAS")
+        keyPassword = System.getenv("BIZI_CI_KEY_PASSWORD")
       }
     }
   }
