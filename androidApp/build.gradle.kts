@@ -43,14 +43,22 @@ android {
     compose = true
   }
 
-  val keystorePath = System.getenv("BIZI_CI_KEYSTORE_PATH")
-  if (keystorePath != null) {
-    signingConfigs {
-      create("release") {
+signingConfigs {
+    create("release") {
+      val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+        ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+      val keystorePassword = project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+        ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+      val keyAliasEnv = project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+        ?: System.getenv("BIZI_CI_KEY_ALIAS")
+      val keyPassword = project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+        ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+
+      if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
         storeFile = file(keystorePath)
-        storePassword = System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-        keyAlias = System.getenv("BIZI_CI_KEY_ALIAS")
-        keyPassword = System.getenv("BIZI_CI_KEY_PASSWORD")
+        storePassword = keystorePassword
+        keyAlias = keyAliasEnv
+        this.keyPassword = keyPassword
       }
     }
   }
@@ -63,7 +71,7 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
       )
-      signingConfig = signingConfigs.findByName("release")
+      signingConfig = signingConfigs.getByName("release")
       ndk {
         debugSymbolLevel = "FULL"
       }

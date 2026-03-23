@@ -38,7 +38,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}' -allowProvisioningUpdates",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
@@ -64,8 +64,6 @@ platform :ios do
       keychain_name: "fastlane_tmp_keychain"
     )
 
-    profile_path = required_env("APPLE_PROFILE_PATH")
-    profile_name = required_env("APPLE_PROFILE_NAME")
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
     team_id = required_env("APPLE_TEAM_ID")
 
@@ -75,7 +73,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}' -allowProvisioningUpdates",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {

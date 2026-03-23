@@ -65,12 +65,14 @@ jobs:
       - name: Build Android release bundle
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
-          BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
-          BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
-          BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
-          BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
         run: |
-          ./gradlew :androidApp:bundleRelease :androidApp:uploadCrashlyticsMappingFileRelease --no-build-cache
+          echo "Keystore path: ${{ runner.temp }}/bizi-ci.keystore"
+          echo "Keystore exists: $(test -f '${{ runner.temp }}/bizi-ci.keystore' && echo 'yes' || echo 'no')"
+          ./gradlew :androidApp:bundleRelease :androidApp:uploadCrashlyticsMappingFileRelease --no-build-cache \
+            -PBIZI_CI_KEYSTORE_PATH="${{ runner.temp }}/bizi-ci.keystore" \
+            -PBIZI_CI_KEYSTORE_PASSWORD="${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}" \
+            -PBIZI_CI_KEY_ALIAS="${{ secrets.BIZI_CI_KEY_ALIAS }}" \
+            -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
 
       - name: Upload Android release bundle artifact
         uses: actions/upload-artifact@v7
