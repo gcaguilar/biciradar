@@ -67,15 +67,26 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
+            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
           elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
-            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
+            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadar."
             echo "Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'."
             exit 1
           fi
     postBuildScripts:
+      - name: Copy moko-resources to app bundle
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          ./gradlew --no-configuration-cache :shared:core:copyFrameworkResourcesToApp \
+            -Pmoko.resources.PLATFORM_NAME="$PLATFORM_NAME" \
+            -Pmoko.resources.CONFIGURATION="${KOTLIN_FRAMEWORK_BUILD_TYPE:-$CONFIGURATION}" \
+            -Pmoko.resources.ARCHS="$ARCHS" \
+            -Pmoko.resources.BUILT_PRODUCTS_DIR="$BUILT_PRODUCTS_DIR" \
+            -Pmoko.resources.CONTENTS_FOLDER_PATH="$CONTENTS_FOLDER_PATH"
       - name: Upload Crashlytics dSYMs
         basedOnDependencyAnalysis: false
         inputFiles:
@@ -157,9 +168,9 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
+            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
           elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
-            ./gradlew :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
+            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarTests."
             echo "Use an iPhone device or an iOS Simulator."
@@ -221,14 +232,26 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
-            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
+            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatch."
             echo "Use an Apple Watch device or a watchOS Simulator."
             exit 1
           fi
+    postBuildScripts:
+      - name: Copy moko-resources to app bundle
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          ./gradlew --no-configuration-cache :shared:core:copyFrameworkResourcesToApp \
+            -Pmoko.resources.PLATFORM_NAME="$PLATFORM_NAME" \
+            -Pmoko.resources.CONFIGURATION="${KOTLIN_FRAMEWORK_BUILD_TYPE:-$CONFIGURATION}" \
+            -Pmoko.resources.ARCHS="$ARCHS" \
+            -Pmoko.resources.BUILT_PRODUCTS_DIR="$BUILT_PRODUCTS_DIR" \
+            -Pmoko.resources.CONTENTS_FOLDER_PATH="$CONTENTS_FOLDER_PATH"
     settings:
       base:
         CODE_SIGN_STYLE: Automatic
@@ -276,9 +299,9 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
-            ./gradlew :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
+            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests."
             echo "Use an Apple Watch device or a watchOS Simulator."

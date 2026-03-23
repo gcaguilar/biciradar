@@ -1,9 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MR
@@ -46,7 +47,6 @@ internal actual fun PlatformStationMap(
     UIKitView(
       modifier = modifier,
       factory = { view },
-      properties = UIKitInteropProperties(),
       update = {
         factory.updateView(
           view = it,
@@ -94,7 +94,6 @@ private fun AppleMapKitView(
     factory = {
       coordinator.mapView
     },
-    properties = UIKitInteropProperties(),
     update = { mapView ->
       coordinator.update(
         mapView = mapView,
