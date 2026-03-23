@@ -71,6 +71,7 @@ android {
     implementation(project(":shared:core"))
     implementation(project(":shared:mobile-ui"))
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.fragment)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.compose)
