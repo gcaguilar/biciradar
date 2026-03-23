@@ -3,7 +3,9 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
+import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
+import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
@@ -21,6 +23,7 @@ data class ProfileUiState(
   val searchRadiusMeters: Int = 500,
   val preferredMapApp: PreferredMapApp = PreferredMapApp.GoogleMaps,
   val themePreference: ThemePreference = ThemePreference.System,
+  val selectedCity: City = City.ZARAGOZA,
   val latestAnswer: StringDesc = StringDesc.Resource(MR.strings.askAboutStationsFavoritesOrRoutes),
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
@@ -35,6 +38,7 @@ data class ShortcutGuide(
 class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
+  private val favoritesRepository: FavoritesRepository,
   private val searchRadiusMeters: Int,
 ) : ViewModel() {
 
@@ -59,6 +63,12 @@ class ProfileViewModel(
         _uiState.value = _uiState.value.copy(themePreference = theme)
       }
     }
+
+    viewModelScope.launch {
+      settingsRepository.selectedCity.collect { city ->
+        _uiState.value = _uiState.value.copy(selectedCity = city)
+      }
+    }
   }
 
   fun onSearchRadiusSelected(radius: Int) {
@@ -76,6 +86,14 @@ class ProfileViewModel(
   fun onThemePreferenceSelected(theme: ThemePreference) {
     viewModelScope.launch {
       settingsRepository.setThemePreference(theme)
+    }
+  }
+
+  fun onCitySelected(city: City) {
+    viewModelScope.launch {
+      settingsRepository.setSelectedCity(city)
+      favoritesRepository.clearAll()
+      stationsRepository.forceRefresh()
     }
   }
 

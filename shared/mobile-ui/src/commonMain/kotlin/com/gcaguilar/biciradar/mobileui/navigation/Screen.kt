@@ -23,6 +23,9 @@ sealed class Screen {
 
   @Serializable
   data class StationDetail(val stationId: String) : Screen()
+
+  @Serializable
+  data object CitySelection : Screen()
 }
 
 object DeepLinks {

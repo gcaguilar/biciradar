@@ -97,6 +97,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.AssistantAction
+import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
@@ -122,6 +123,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.geometry.CornerRadius
@@ -268,6 +271,8 @@ private enum class MapFilter(val labelKey: StringResource) {
   BIKES_AND_SLOTS(MR.strings.mapFilterBikesAndSlots),
   ONLY_BIKES(MR.strings.mapFilterOnlyBikes),
   ONLY_SLOTS(MR.strings.mapFilterOnlySlots),
+  ONLY_EBIKES(MR.strings.mapFilterOnlyEbikes),
+  ONLY_REGULAR_BIKES(MR.strings.mapFilterOnlyRegularBikes),
 }
 
 private const val CURRENT_CHANGELOG_VERSION = 1
@@ -364,7 +369,10 @@ fun BiziMobileApp(
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
   var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
   val lastSeenChangelog by settingsRepository.lastSeenChangelogVersion.collectAsState()
+  val hasCompletedOnboarding by settingsRepository.hasCompletedOnboarding.collectAsState()
   var showChangelog by remember(graph) { mutableStateOf(false) }
+  var showCitySelection by remember(graph) { mutableStateOf(false) }
+  var currentCity by remember(graph) { mutableStateOf(City.ZARAGOZA) }
 
   LaunchedEffect(graph) {
     platformBindings.onGraphCreated(graph)
@@ -383,6 +391,19 @@ fun BiziMobileApp(
     } else if (settingsBootstrapped && lastSeenChangelog == 0) {
       // First install — silently mark as seen so the dialog only appears on future updates.
       settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION)
+    }
+  }
+
+  LaunchedEffect(settingsBootstrapped) {
+    if (settingsBootstrapped) {
+      currentCity = runCatching { settingsRepository.selectedCity.value }.getOrNull() ?: City.ZARAGOZA
+      showCitySelection = !hasCompletedOnboarding
+    }
+  }
+
+  LaunchedEffect(showCitySelection) {
+    if (!showCitySelection && hasCompletedOnboarding) {
+      currentCity = runCatching { settingsRepository.selectedCity.value }.getOrNull() ?: City.ZARAGOZA
     }
   }
 
@@ -600,6 +621,18 @@ fun BiziMobileApp(
         }
         ChangelogDialog(onDismiss = onChangelogDismiss)
       }
+      if (showCitySelection) {
+        CitySelectionScreen(
+          onCitySelected = { city ->
+            scope.launch {
+              settingsRepository.setSelectedCity(city)
+              settingsRepository.setHasCompletedOnboarding(true)
+              favoritesRepository.clearAll()
+            }
+            showCitySelection = false
+          }
+        )
+      }
       AnimatedContent(
         targetState = showStartupSplash,
         transitionSpec = {
@@ -637,6 +670,7 @@ fun BiziMobileApp(
             com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
               settingsRepository = graph.settingsRepository,
               stationsRepository = graph.stationsRepository,
+              favoritesRepository = graph.favoritesRepository,
               searchRadiusMeters = searchRadiusMeters,
             )
           }
@@ -836,6 +870,8 @@ private fun MapScreen(
             MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
             MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
             MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
+            MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
+            MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
           }
         }
       }
@@ -1280,7 +1316,9 @@ private fun MapFilterChip(
   val accent = when (filter) {
     MapFilter.BIKES_AND_SLOTS -> c.green
     MapFilter.ONLY_BIKES,
-    MapFilter.ONLY_SLOTS -> c.orange
+    MapFilter.ONLY_SLOTS,
+    MapFilter.ONLY_EBIKES,
+    MapFilter.ONLY_REGULAR_BIKES -> c.orange
   }
   val backgroundColor by animateColorAsState(
     targetValue = if (selected) accent.copy(alpha = 0.12f) else c.surface,
@@ -1596,10 +1634,12 @@ private fun ProfileScreen(
   searchRadiusMeters: Int,
   preferredMapApp: PreferredMapApp,
   themePreference: ThemePreference,
+  selectedCity: City,
   onOpenShortcuts: () -> Unit,
   onSearchRadiusSelected: (Int) -> Unit,
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
   onThemePreferenceSelected: (ThemePreference) -> Unit,
+  onCitySelected: (City) -> Unit,
 ) {
   LazyColumn(
     modifier = Modifier
@@ -1649,6 +1689,24 @@ private fun ProfileScreen(
               }
             }
           }
+        }
+      }
+    }
+    item {
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+          Text(stringResource(MR.strings.selectedCity), fontWeight = FontWeight.SemiBold)
+          Text(
+            stringResource(MR.strings.citySelectionSubtitle),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          CitySelector(
+            selectedCity = selectedCity,
+            onCitySelected = onCitySelected,
+          )
         }
       }
     }
@@ -1942,6 +2000,7 @@ private fun StationDetailScreen(
   isWorkStation: Boolean,
   userLocation: GeoPoint?,
   isMapReady: Boolean,
+  supportsUsagePatterns: Boolean,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onToggleHome: () -> Unit,
@@ -2117,14 +2176,16 @@ private fun StationDetailScreen(
         )
       }
     }
-    item {
-      StationPatternCard(
-        patterns = patterns,
-        isLoading = patternsLoading,
-        isError = patternsError,
-        showWeekend = showWeekend,
-        onToggleDayType = { showWeekend = !showWeekend },
-      )
+    if (supportsUsagePatterns) {
+      item {
+        StationPatternCard(
+          patterns = patterns,
+          isLoading = patternsLoading,
+          isError = patternsError,
+          showWeekend = showWeekend,
+          onToggleDayType = { showWeekend = !showWeekend },
+        )
+      }
     }
     item {
       Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
@@ -2387,6 +2448,81 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
       }
     },
   )
+}
+
+@Composable
+private fun CitySelectionScreen(
+  onCitySelected: (City) -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(colors.background)
+      .windowInsetsPadding(WindowInsets.statusBars)
+      .padding(24.dp),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Text(
+      text = stringResource(MR.strings.citySelectionTitle),
+      style = MaterialTheme.typography.headlineMedium,
+      fontWeight = FontWeight.Bold,
+      color = colors.ink,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+      text = stringResource(MR.strings.citySelectionSubtitle),
+      style = MaterialTheme.typography.bodyMedium,
+      color = colors.muted,
+    )
+    Spacer(modifier = Modifier.height(32.dp))
+    LazyColumn(
+      modifier = Modifier.weight(1f),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      items(City.entries.size) { index ->
+        val city = City.entries[index]
+        Card(
+          modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCitySelected(city) },
+          colors = CardDefaults.cardColors(containerColor = colors.surface),
+          border = BorderStroke(1.dp, colors.panel),
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Column {
+              Text(
+                text = city.displayName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.ink,
+              )
+              if (city.supportsEbikes) {
+                Text(
+                  text = "Bicis eléctricas disponibles",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = colors.muted,
+                )
+              }
+            }
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
+              contentDescription = null,
+              tint = colors.red,
+            )
+          }
+        }
+      }
+    }
+    Spacer(modifier = Modifier.height(24.dp))
+  }
 }
 
 private fun geoSuggestionSecondaryText(result: GeoResult): String? {
@@ -3736,6 +3872,71 @@ private fun PreferredMapApp.displayName(): String = when (this) {
   PreferredMapApp.GoogleMaps -> "Google Maps"
 }
 
+@Composable
+private fun CitySelector(
+  selectedCity: City,
+  onCitySelected: (City) -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  var expanded by remember { mutableStateOf(false) }
+
+  Box {
+    OutlinedButton(
+      onClick = { expanded = true },
+      modifier = Modifier.fillMaxWidth(),
+      border = BorderStroke(1.dp, colors.panel),
+      colors = ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = selectedCity.displayName,
+          color = colors.ink,
+        )
+        Icon(
+          imageVector = Icons.Filled.Navigation,
+          contentDescription = null,
+          tint = colors.red,
+        )
+      }
+    }
+
+    DropdownMenu(
+      expanded = expanded,
+      onDismissRequest = { expanded = false },
+      modifier = Modifier.background(colors.surface),
+    ) {
+      City.entries.forEach { city ->
+        DropdownMenuItem(
+          text = {
+            Text(
+              text = city.displayName,
+              color = if (city == selectedCity) colors.red else colors.ink,
+              fontWeight = if (city == selectedCity) FontWeight.SemiBold else FontWeight.Normal,
+            )
+          },
+          onClick = {
+            onCitySelected(city)
+            expanded = false
+          },
+          leadingIcon = {
+            if (city == selectedCity) {
+              Icon(
+                imageVector = Icons.Filled.Favorite,
+                contentDescription = null,
+                tint = colors.red,
+              )
+            }
+          },
+        )
+      }
+    }
+  }
+}
+
 private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
   MobileUiPlatform.Android -> "Google Assistant"
   MobileUiPlatform.IOS -> "Siri"
@@ -4138,20 +4339,24 @@ internal object BiziMobileAppContent {
     searchRadiusMeters: Int,
     preferredMapApp: PreferredMapApp,
     themePreference: ThemePreference,
+    selectedCity: City,
     onOpenShortcuts: () -> Unit,
     onSearchRadiusSelected: (Int) -> Unit,
     onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
     onThemePreferenceSelected: (ThemePreference) -> Unit,
+    onCitySelected: (City) -> Unit,
   ) = ProfileScreen(
     mobilePlatform = mobilePlatform,
     paddingValues = paddingValues,
     searchRadiusMeters = searchRadiusMeters,
     preferredMapApp = preferredMapApp,
     themePreference = themePreference,
+    selectedCity = selectedCity,
     onOpenShortcuts = onOpenShortcuts,
     onSearchRadiusSelected = onSearchRadiusSelected,
     onPreferredMapAppSelected = onPreferredMapAppSelected,
     onThemePreferenceSelected = onThemePreferenceSelected,
+    onCitySelected = onCitySelected,
   )
 
   @Composable
@@ -4168,10 +4373,12 @@ internal object BiziMobileAppContent {
       searchRadiusMeters = uiState.searchRadiusMeters,
       preferredMapApp = uiState.preferredMapApp,
       themePreference = uiState.themePreference,
+      selectedCity = uiState.selectedCity,
       onOpenShortcuts = onOpenShortcuts,
       onSearchRadiusSelected = viewModel::onSearchRadiusSelected,
       onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
       onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
+      onCitySelected = viewModel::onCitySelected,
     )
   }
 
@@ -4250,6 +4457,7 @@ internal object BiziMobileAppContent {
     val favoritesRepository = graph.favoritesRepository
     val homeStationId by favoritesRepository.homeStationId.collectAsState()
     val workStationId by favoritesRepository.workStationId.collectAsState()
+    val selectedCity by graph.settingsRepository.selectedCity.collectAsState()
     StationDetailScreen(
       mobilePlatform = mobilePlatform,
       station = station,
@@ -4259,6 +4467,7 @@ internal object BiziMobileAppContent {
       isWorkStation = workStationId == station.id,
       userLocation = userLocation,
       isMapReady = isMapReady,
+      supportsUsagePatterns = selectedCity.supportsUsagePatterns,
       onBack = onBack,
       onToggleFavorite = { scope.launch { favoritesRepository.toggle(station.id) } },
       onToggleHome = {
