@@ -48,12 +48,13 @@ class MainActivity : ComponentActivity() {
   private var launchRequest by mutableStateOf<MobileLaunchRequest?>(null)
   private var assistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
   private var refreshNonce by mutableIntStateOf(0)
+  private var startupReady by mutableStateOf(false)
 
   /** Coroutine scope used to observe TripRepository state for foreground service control. */
   private var tripServiceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    installSplashScreen()
+    installSplashScreen().setKeepOnScreenCondition { !startupReady }
     super.onCreate(savedInstanceState)
 
     val platformBindings = AndroidPlatformBindings(
@@ -87,6 +88,8 @@ class MainActivity : ComponentActivity() {
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
         onTripRepositoryReady = { repo -> wireTripMonitorService(repo) },
+        onStartupReadyChanged = { ready -> startupReady = ready },
+        useInAppStartupSplash = false,
       )
     }
 
