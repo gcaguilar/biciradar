@@ -29,8 +29,12 @@ platform :ios do
       keychain_name: "fastlane_tmp_keychain"
     )
 
+    profile_path = required_env("APPLE_PROFILE_PATH")
+    profile_name = required_env("APPLE_PROFILE_NAME")
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
     team_id = required_env("APPLE_TEAM_ID")
+
+    install_provisioning_profile(path: profile_path)
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -38,12 +42,15 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' -allowProvisioningUpdates",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
-        signingStyle: "automatic",
-        teamID: team_id
+        signingStyle: "manual",
+        teamID: team_id,
+        provisioningProfiles: {
+          bundle_id => profile_name
+        }
       }
     )
   end
@@ -64,8 +71,12 @@ platform :ios do
       keychain_name: "fastlane_tmp_keychain"
     )
 
+    profile_path = required_env("APPLE_PROFILE_PATH")
+    profile_name = required_env("APPLE_PROFILE_NAME")
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
     team_id = required_env("APPLE_TEAM_ID")
+
+    install_provisioning_profile(path: profile_path)
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -73,12 +84,15 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' -allowProvisioningUpdates",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
-        signingStyle: "automatic",
-        teamID: team_id
+        signingStyle: "manual",
+        teamID: team_id,
+        provisioningProfiles: {
+          bundle_id => profile_name
+        }
       }
     )
 

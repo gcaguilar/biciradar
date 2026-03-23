@@ -64,17 +64,32 @@ jobs:
             printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > apple/iosApp/GoogleService-Info.plist
           fi
 
-      - name: Decode signing certificate
+      - name: Decode signing assets
         env:
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
           if [[ -z "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" ]]; then
             echo "::error::APPLE_SIGNING_CERTIFICATE_P12_BASE64 secret is empty or not available"
             exit 1
           fi
+          if [[ -z "$APPLE_PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "::error::APPLE_PROVISIONING_PROFILE_BASE64 secret is empty or not available"
+            exit 1
+          fi
 
           printf '%s' "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 -D > "$RUNNER_TEMP/signing-certificate.p12"
+          printf '%s' "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/signing-profile.mobileprovision"
+
           echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12" >> "$GITHUB_ENV"
+          echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision" >> "$GITHUB_ENV"
+
+          profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i '$RUNNER_TEMP/signing-profile.mobileprovision' 2>/dev/null)" 2>/dev/null || true)
+          if [[ -z "$profile_name" ]]; then
+            profile_name=$(grep -a -A1 '<key>Name</key>' '$RUNNER_TEMP/signing-profile.mobileprovision' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          fi
+          echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
+          echo "Profile name: $profile_name"
 
       - name: Set up Ruby and Bundler
         uses: ruby/setup-ruby@v1
