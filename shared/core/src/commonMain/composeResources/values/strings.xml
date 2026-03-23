@@ -75,8 +75,12 @@
     <string name="map_filter_bikes_and_slots">Bicis + Huecos</string>
     <string name="map_filter_only_bikes">Solo bicis</string>
     <string name="map_filter_only_slots">Solo huecos</string>
+    <string name="map_filter_only_ebikes">Solo eléctricas</string>
+    <string name="map_filter_only_regular_bikes">Solo convencionales</string>
     <string name="map_legend_bikes_and_slots">Bicis y huecos</string>
     <string name="map_legend_only_bikes_or_slots">Solo bicis o solo huecos</string>
+    <string name="map_legend_only_ebikes">Solo eléctricas</string>
+    <string name="map_legend_only_regular_bikes">Solo convencionales</string>
     <string name="map_legend_out_of_service">Sin servicio</string>
     <string name="map_location_fallback_description">La app volverá a usar Zaragoza centro si la ubicación tarda demasiado o no está disponible.</string>
     <string name="map_my_location">Mi ubicación</string>
@@ -200,10 +204,9 @@
     <string name="trip_suggested_alternative">Alternativa sugerida: %s%s — %s plazas.</string>
     <string name="trip_suggested_station">Estación sugerida</string>
     <string name="unknown">desconocido</string>
-    <string name="unknown_station">No he encontrado esa estación.</string>
-    <string name="use_search_to_assign_station">Usa el buscador de arriba para elegir una estación y asignarla.</string>
-    <string name="vigilando_estacion_bizi">Vigilando estación Bizi…</string>
-    <string name="walk_route_to">Ruta a pie a %s</string>
-    <string name="where_are_you_going">¿Adónde vas?</string>
-    <string name="work">Trabajo</string>
+    <string name="select_city">Seleccionar ciudad</string>
+    <string name="city_selection_title">Elige tu ciudad</string>
+    <string name="city_selection_subtitle">Selecciona la ciudad donde usarás Bici Radar</string>
+    <string name="selected_city">Ciudad seleccionada</string>
+    <string name="continue_button">Continuar</string>
 </resources>

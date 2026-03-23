@@ -75,8 +75,12 @@
     <string name="map_filter_bikes_and_slots">Bikes + Slots</string>
     <string name="map_filter_only_bikes">Bikes only</string>
     <string name="map_filter_only_slots">Slots only</string>
+    <string name="map_filter_only_ebikes">E-bikes only</string>
+    <string name="map_filter_only_regular_bikes">Regular bikes only</string>
     <string name="map_legend_bikes_and_slots">Bikes and slots</string>
     <string name="map_legend_only_bikes_or_slots">Only bikes or only slots</string>
+    <string name="map_legend_only_ebikes">E-bikes only</string>
+    <string name="map_legend_only_regular_bikes">Regular bikes only</string>
     <string name="map_legend_out_of_service">Out of service</string>
     <string name="map_location_fallback_description">The app will fall back to downtown Zaragoza if location takes too long or is unavailable.</string>
     <string name="map_my_location">My location</string>
@@ -201,6 +205,11 @@
     <string name="trip_suggested_station">Suggested station</string>
     <string name="unknown">unknown</string>
     <string name="unknown_station">I couldn't find that station.</string>
+    <string name="select_city">Select city</string>
+    <string name="city_selection_title">Choose your city</string>
+    <string name="city_selection_subtitle">Select the city where you will use Bici Radar</string>
+    <string name="selected_city">Selected city</string>
+    <string name="continue_button">Continue</string>
     <string name="use_search_to_assign_station">Use the search field above to choose and assign a station.</string>
     <string name="vigilando_estacion_bizi">Monitoring Bizi station...</string>
     <string name="walk_route_to">Walking route to %s</string>
