@@ -38,14 +38,11 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
-        signingStyle: "manual",
-        provisioningProfiles: {
-          bundle_id => required_env("APPLE_PROFILE_NAME")
-        },
+        signingStyle: "automatic",
         teamID: team_id
       }
     )
@@ -72,8 +69,6 @@ platform :ios do
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
     team_id = required_env("APPLE_TEAM_ID")
 
-    install_provisioning_profile(path: profile_path)
-
     build_app(
       project: "apple/BiciRadar.xcodeproj",
       scheme: "BiciRadar",
@@ -84,10 +79,7 @@ platform :ios do
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
-        signingStyle: "manual",
-        provisioningProfiles: {
-          bundle_id => profile_name
-        },
+        signingStyle: "automatic",
         teamID: team_id
       }
     )
