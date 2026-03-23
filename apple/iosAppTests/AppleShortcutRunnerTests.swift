@@ -270,7 +270,7 @@ private struct FakeAppleGraph: AppleGraphClient {
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
     var assistantResolution: AssistantResolution = AssistantResolution(
-        spokenResponse: "La estación más cercana es Plaza España con 6 bicis y 8 huecos.",
+        spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
         highlightedStationId: "station-1"
     )
 
