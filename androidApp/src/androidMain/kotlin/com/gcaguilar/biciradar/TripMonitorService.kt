@@ -37,7 +37,7 @@ class TripMonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(StringDesc.Resource(MR.strings.vigilandoEstacionBizi).localized()))
+    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(StringDesc.Resource(MR.strings.vigilandoEstacionBizi).toString(this)))
     observeMonitoringState()
   }
 
@@ -66,7 +66,7 @@ class TripMonitorService : Service() {
           val minutes = remaining / 60
           val seconds = remaining % 60
           val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-          val body = StringDesc.ResourceFormatted(MR.strings.tripAlertSlotsFreeRemaining, station.name, station.slotsFree, timeText).localized()
+          val body = StringDesc.ResourceFormatted(MR.strings.tripAlertSlotsFreeRemaining, station.name, station.slotsFree, timeText).toString(this)
           notificationManager.notify(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(body))
         }
       }
@@ -76,7 +76,7 @@ class TripMonitorService : Service() {
   private fun buildForegroundNotification(text: String): Notification =
     NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle(StringDesc.Resource(MR.strings.biziViaje).localized())
+      .setContentTitle(StringDesc.Resource(MR.strings.biziViaje).toString(this))
       .setContentText(text)
       .setOngoing(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -85,10 +85,10 @@ class TripMonitorService : Service() {
   private fun ensureNotificationChannel() {
     val channel = NotificationChannel(
       CHANNEL_ID,
-      StringDesc.Resource(MR.strings.biziViajeActivo).localized(),
+      StringDesc.Resource(MR.strings.biziViajeActivo).toString(this),
       NotificationManager.IMPORTANCE_LOW,
     ).apply {
-      description = StringDesc.Resource(MR.strings.notificacionPersistenteViaje).localized()
+      description = StringDesc.Resource(MR.strings.notificacionPersistenteViaje).toString(this@TripMonitorService)
     }
     notificationManager.createNotificationChannel(channel)
   }
