@@ -42,9 +42,9 @@ class GbfsBiziApi(
 ) : BiziApi {
   override suspend fun fetchStations(origin: GeoPoint): List<Station> {
     val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-    val stationInfoUrl = discovery.data.en.firstOrNull { it.name == "station_information" }?.url
+    val stationInfoUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_information" }?.url
       ?: error("No station_information feed found")
-    val stationStatusUrl = discovery.data.en.firstOrNull { it.name == "station_status" }?.url
+    val stationStatusUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
       ?: error("No station_status feed found")
 
     val stationInfo = httpClient.get(stationInfoUrl).body<GbfsStationInfoEnvelope>()
@@ -82,7 +82,7 @@ class GbfsBiziApi(
   override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
     val stationStatusUrl = runCatching {
       val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-      discovery.data.en.firstOrNull { it.name == "station_status" }?.url
+      discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
     }.getOrNull() ?: return emptyMap()
 
     return try {
@@ -266,7 +266,12 @@ private data class GbfsDiscoveryEnvelope(
 
 @Serializable
 private data class GbfsDiscoveryData(
-  val en: List<GbfsFeed> = emptyList(),
+  val en: GbfsDiscoveryLanguage = GbfsDiscoveryLanguage(),
+)
+
+@Serializable
+private data class GbfsDiscoveryLanguage(
+  val feeds: List<GbfsFeed> = emptyList(),
 )
 
 @Serializable
@@ -287,10 +292,10 @@ private data class GbfsStationInfoData(
 
 @Serializable
 private data class GbfsStationInfo(
-  val stationId: String,
+  @SerialName("station_id") val stationId: String,
   val name: String,
-  val latitude: Double,
-  val longitude: Double,
+  @SerialName("lat") val latitude: Double,
+  @SerialName("lon") val longitude: Double,
   val address: String? = null,
 )
 
@@ -306,7 +311,7 @@ private data class GbfsStationStatusData(
 
 @Serializable
 private data class GbfsStationStatus(
-  val stationId: String,
+  @SerialName("station_id") val stationId: String,
   @SerialName("num_bikes_available") val numBikesAvailable: Int,
   @SerialName("num_docks_available") val numDocksAvailable: Int,
   @SerialName("vehicle_types_available") val vehicleTypesAvailable: List<VehicleTypeAvailable>? = null,
