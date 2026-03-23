@@ -31,3 +31,4 @@ fastlane/output/
 fastlane/report.xml
 fastlane/test_output/
 .bundle/
+vendor/bundle/

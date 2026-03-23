@@ -19,6 +19,35 @@ def required_boolean_env(name)
 end
 
 platform :ios do
+  desc "Build signed IPA for testing (no upload)"
+  lane :build_signed_ipa do
+    setup_ci
+
+    import_certificate(
+      certificate_path: required_env("APPLE_CERTIFICATE_PATH"),
+      certificate_password: required_env("APPLE_SIGNING_CERTIFICATE_PASSWORD"),
+      keychain_name: "fastlane_tmp_keychain"
+    )
+
+    install_provisioning_profile(
+      path: required_env("APPLE_PROFILE_PATH")
+    )
+
+    profile_specifier = optional_env("APPLE_PROFILE_NAME")
+    profile_uuid = optional_env("APPLE_PROFILE_UUID")
+
+    build_app(
+      project: "apple/BiciRadar.xcodeproj",
+      scheme: "BiciRadar",
+      configuration: "Release",
+      export_method: "app-store",
+      destination: "generic/platform=iOS",
+      xcargs: "DEVELOPMENT_TEAM='#{required_env("APPLE_TEAM_ID")}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      output_directory: "fastlane/output",
+      output_name: "BiciRadar.ipa"
+    )
+  end
+
   desc "Build signed IPA and upload to App Store Connect for review"
   lane :release_to_app_store do
     setup_ci
