@@ -106,6 +106,8 @@ jobs:
         with:
           ruby-version: '3.1'
           bundler-cache: true
+        env:
+          BUNDLE_FROZEN: "false"
 
       - name: Build, sign and upload to App Store
         run: bundle exec fastlane ios release_to_app_store
