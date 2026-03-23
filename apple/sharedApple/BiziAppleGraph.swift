@@ -14,12 +14,7 @@ actor BiziAppleGraph {
     static let shared = BiziAppleGraph()
 
     private let bindings = IOSPlatformBindings(
-        appConfiguration: AppConfiguration(
-            stationsApiUrl: "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json?rows=300",
-            stationsFallbackApiUrl: "https://api.citybik.es/v2/networks/bizi-zaragoza",
-            defaultLatitude: 41.6488,
-            defaultLongitude: -0.8891
-        )
+        appConfiguration: AppConfiguration()
     )
 
     private lazy var graph: any SharedGraph = SharedGraphCompanion.shared.create(
