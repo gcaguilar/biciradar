@@ -15,13 +15,18 @@ interface SettingsRepository {
   val preferredMapApp: StateFlow<PreferredMapApp>
   val lastSeenChangelogVersion: StateFlow<Int>
   val themePreference: StateFlow<ThemePreference>
+  val selectedCity: StateFlow<City>
+  val hasCompletedOnboarding: StateFlow<Boolean>
   suspend fun bootstrap()
   fun currentSearchRadiusMeters(): Int
   fun currentPreferredMapApp(): PreferredMapApp
+  fun currentSelectedCity(): City
   suspend fun setSearchRadiusMeters(searchRadiusMeters: Int)
   suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp)
   suspend fun setLastSeenChangelogVersion(version: Int)
   suspend fun setThemePreference(preference: ThemePreference)
+  suspend fun setSelectedCity(city: City)
+  suspend fun setHasCompletedOnboarding(completed: Boolean)
 }
 
 @Inject
@@ -34,12 +39,16 @@ class SettingsRepositoryImpl(
   private val mutablePreferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
   private val mutableLastSeenChangelogVersion = MutableStateFlow(0)
   private val mutableThemePreference = MutableStateFlow(ThemePreference.System)
+  private val mutableSelectedCity = MutableStateFlow(City.defaultCity())
+  private val mutableHasCompletedOnboarding = MutableStateFlow(false)
   private var bootstrapped = false
 
   override val searchRadiusMeters: StateFlow<Int> = mutableSearchRadiusMeters.asStateFlow()
   override val preferredMapApp: StateFlow<PreferredMapApp> = mutablePreferredMapApp.asStateFlow()
   override val lastSeenChangelogVersion: StateFlow<Int> = mutableLastSeenChangelogVersion.asStateFlow()
   override val themePreference: StateFlow<ThemePreference> = mutableThemePreference.asStateFlow()
+  override val selectedCity: StateFlow<City> = mutableSelectedCity.asStateFlow()
+  override val hasCompletedOnboarding: StateFlow<Boolean> = mutableHasCompletedOnboarding.asStateFlow()
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
@@ -57,12 +66,16 @@ class SettingsRepositoryImpl(
     mutablePreferredMapApp.value = snapshot?.preferredMapApp ?: PreferredMapApp.AppleMaps
     mutableLastSeenChangelogVersion.value = snapshot?.lastSeenChangelogVersion ?: 0
     mutableThemePreference.value = snapshot?.themePreference ?: ThemePreference.System
+    mutableSelectedCity.value = snapshot?.selectedCityId?.let { City.fromId(it) } ?: City.defaultCity()
+    mutableHasCompletedOnboarding.value = snapshot?.hasCompletedOnboarding ?: false
     bootstrapped = true
   }
 
   override fun currentSearchRadiusMeters(): Int = mutableSearchRadiusMeters.value
 
   override fun currentPreferredMapApp(): PreferredMapApp = mutablePreferredMapApp.value
+
+  override fun currentSelectedCity(): City = mutableSelectedCity.value
 
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) {
     if (!bootstrapped) bootstrap()
@@ -73,6 +86,8 @@ class SettingsRepositoryImpl(
       preferredMapApp = mutablePreferredMapApp.value,
       lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
       themePreference = mutableThemePreference.value,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
     )
   }
 
@@ -84,6 +99,8 @@ class SettingsRepositoryImpl(
       preferredMapApp = preferredMapApp,
       lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
       themePreference = mutableThemePreference.value,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
     )
   }
 
@@ -95,6 +112,8 @@ class SettingsRepositoryImpl(
       preferredMapApp = mutablePreferredMapApp.value,
       lastSeenChangelogVersion = version,
       themePreference = mutableThemePreference.value,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
     )
   }
 
@@ -106,6 +125,34 @@ class SettingsRepositoryImpl(
       preferredMapApp = mutablePreferredMapApp.value,
       lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
       themePreference = preference,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
+    )
+  }
+
+  override suspend fun setSelectedCity(city: City) {
+    if (!bootstrapped) bootstrap()
+    mutableSelectedCity.value = city
+    persist(
+      searchRadiusMeters = mutableSearchRadiusMeters.value,
+      preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      themePreference = mutableThemePreference.value,
+      selectedCityId = city.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
+    )
+  }
+
+  override suspend fun setHasCompletedOnboarding(completed: Boolean) {
+    if (!bootstrapped) bootstrap()
+    mutableHasCompletedOnboarding.value = completed
+    persist(
+      searchRadiusMeters = mutableSearchRadiusMeters.value,
+      preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      themePreference = mutableThemePreference.value,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = completed,
     )
   }
 
@@ -116,6 +163,8 @@ class SettingsRepositoryImpl(
     preferredMapApp: PreferredMapApp,
     lastSeenChangelogVersion: Int,
     themePreference: ThemePreference,
+    selectedCityId: String,
+    hasCompletedOnboarding: Boolean,
   ) {
     val path = settingsPath()
     val dir = path.parent ?: return
@@ -128,6 +177,8 @@ class SettingsRepositoryImpl(
             preferredMapApp = preferredMapApp,
             lastSeenChangelogVersion = lastSeenChangelogVersion,
             themePreference = themePreference,
+            selectedCityId = selectedCityId,
+            hasCompletedOnboarding = hasCompletedOnboarding,
           ),
         ),
       )
@@ -154,4 +205,6 @@ internal data class SettingsSnapshot(
   val preferredMapApp: PreferredMapApp = PreferredMapApp.AppleMaps,
   val lastSeenChangelogVersion: Int = 0,
   val themePreference: ThemePreference = ThemePreference.System,
+  val selectedCityId: String = City.defaultCity().id,
+  val hasCompletedOnboarding: Boolean = false,
 )

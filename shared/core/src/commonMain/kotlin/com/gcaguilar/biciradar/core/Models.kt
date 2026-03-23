@@ -20,6 +20,8 @@ data class Station(
   val slotsFree: Int,
   val distanceMeters: Int,
   val sourceLabel: String = "BiciRadar",
+  val ebikesAvailable: Int = 0,
+  val regularBikesAvailable: Int = 0,
 )
 
 @Serializable
