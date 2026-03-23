@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import androidx.compose.runtime.Immutable
+import dev.icerock.moko.resources.desc.StringDesc
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -75,9 +76,8 @@ sealed interface AssistantAction {
   data class RouteToStation(val stationId: String) : AssistantAction
 }
 
-@Serializable
 data class AssistantResolution(
-  val spokenResponse: String,
+  val spokenResponse: StringDesc,
   val highlightedStationId: String? = null,
 )
 

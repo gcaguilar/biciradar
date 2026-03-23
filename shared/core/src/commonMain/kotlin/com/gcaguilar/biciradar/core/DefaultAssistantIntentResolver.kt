@@ -1,5 +1,9 @@
 package com.gcaguilar.biciradar.core
 
+import dev.icerock.moko.resources.desc.Resource
+import dev.icerock.moko.resources.desc.ResourceFormatted
+import dev.icerock.moko.resources.desc.StringDesc
+
 class DefaultAssistantIntentResolver : AssistantIntentResolver {
   override suspend fun resolve(
     action: AssistantAction,
@@ -9,17 +13,17 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
   ): AssistantResolution {
     return when (action) {
       AssistantAction.FavoriteStations -> AssistantResolution(
-        spokenResponse = sharedString(SharedString.FAVORITE_COUNT, favoriteIds.size),
+        spokenResponse = StringDesc.ResourceFormatted(MR.strings.favoriteCount, favoriteIds.size),
       )
       AssistantAction.NearestStation -> nearestStationResolution(
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters),
-        emptyMessage = sharedString(SharedString.NO_NEARBY_STATIONS),
+        emptyMessage = StringDesc.Resource(MR.strings.noNearbyStations),
         withinRadiusFormatter = { station ->
-          sharedString(SharedString.NEAREST_STATION, station.name, station.bikesAvailable, station.slotsFree)
+          StringDesc.ResourceFormatted(MR.strings.nearestStation, station.name, station.bikesAvailable, station.slotsFree)
         },
         fallbackFormatter = { station, radiusMeters ->
-          sharedString(
-            SharedString.NEAREST_STATION_FALLBACK,
+          StringDesc.ResourceFormatted(
+            MR.strings.nearestStationFallback,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -32,13 +36,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.bikesAvailable > 0
         },
-        emptyMessage = sharedString(SharedString.NO_NEARBY_BIKES),
+        emptyMessage = StringDesc.Resource(MR.strings.noNearbyBikes),
         withinRadiusFormatter = { station ->
-          sharedString(SharedString.NEAREST_WITH_BIKES, station.name, station.bikesAvailable, station.slotsFree)
+          StringDesc.ResourceFormatted(MR.strings.nearestWithBikes, station.name, station.bikesAvailable, station.slotsFree)
         },
         fallbackFormatter = { station, radiusMeters ->
-          sharedString(
-            SharedString.NEAREST_WITH_BIKES_FALLBACK,
+          StringDesc.ResourceFormatted(
+            MR.strings.nearestWithBikesFallback,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -51,13 +55,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.slotsFree > 0
         },
-        emptyMessage = sharedString(SharedString.NO_NEARBY_SLOTS),
+        emptyMessage = StringDesc.Resource(MR.strings.noNearbySlots),
         withinRadiusFormatter = { station ->
-          sharedString(SharedString.NEAREST_WITH_SLOTS, station.name, station.slotsFree, station.bikesAvailable)
+          StringDesc.ResourceFormatted(MR.strings.nearestWithSlots, station.name, station.slotsFree, station.bikesAvailable)
         },
         fallbackFormatter = { station, radiusMeters ->
-          sharedString(
-            SharedString.NEAREST_WITH_SLOTS_FALLBACK,
+          StringDesc.ResourceFormatted(
+            MR.strings.nearestWithSlotsFallback,
             radiusMeters,
             station.distanceMeters,
             station.name,
@@ -70,8 +74,8 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            sharedString(SharedString.STATION_BIKES, it.name, it.bikesAvailable)
-          } ?: sharedString(SharedString.UNKNOWN_STATION),
+            StringDesc.ResourceFormatted(MR.strings.stationBikes, it.name, it.bikesAvailable)
+          } ?: StringDesc.Resource(MR.strings.unknownStation),
           highlightedStationId = station?.id,
         )
       }
@@ -79,21 +83,21 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            sharedString(SharedString.STATION_SLOTS, it.name, it.slotsFree)
-          } ?: sharedString(SharedString.UNKNOWN_STATION),
+            StringDesc.ResourceFormatted(MR.strings.stationSlots, it.name, it.slotsFree)
+          } ?: StringDesc.Resource(MR.strings.unknownStation),
           highlightedStationId = station?.id,
         )
       }
       is AssistantAction.RouteToStation -> AssistantResolution(
-        spokenResponse = sharedString(SharedString.ROUTE_TO_SELECTED_STATION),
+        spokenResponse = StringDesc.Resource(MR.strings.routeToSelectedStation),
         highlightedStationId = action.stationId,
       )
       is AssistantAction.StationStatus -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         AssistantResolution(
           spokenResponse = station?.let {
-            sharedString(SharedString.STATION_STATUS, it.name, it.bikesAvailable, it.slotsFree)
-          } ?: sharedString(SharedString.UNKNOWN_STATION),
+            StringDesc.ResourceFormatted(MR.strings.stationStatus, it.name, it.bikesAvailable, it.slotsFree)
+          } ?: StringDesc.Resource(MR.strings.unknownStation),
           highlightedStationId = station?.id,
         )
       }
@@ -102,9 +106,9 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
 
   private fun nearestStationResolution(
     selection: NearbyStationSelection,
-    emptyMessage: String,
-    withinRadiusFormatter: (Station) -> String,
-    fallbackFormatter: (Station, Int) -> String,
+    emptyMessage: StringDesc,
+    withinRadiusFormatter: (Station) -> StringDesc,
+    fallbackFormatter: (Station, Int) -> StringDesc,
   ): AssistantResolution = AssistantResolution(
     spokenResponse = when {
       selection.withinRadiusStation != null -> withinRadiusFormatter(selection.withinRadiusStation)

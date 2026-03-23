@@ -6,9 +6,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitView
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.SharedString
-import com.gcaguilar.biciradar.core.sharedString
+import dev.icerock.moko.resources.desc.Resource
+import dev.icerock.moko.resources.desc.ResourceFormatted
+import dev.icerock.moko.resources.desc.StringDesc
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.ObjCSignatureOverride
@@ -197,7 +199,7 @@ private class IOSStationMapCoordinator {
         val annotation = MKPointAnnotation().apply {
           setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
           setTitle(station.name)
-          setSubtitle(sharedString(SharedString.MAP_STATION_BIKES_FREE, station.bikesAvailable, station.slotsFree))
+          setSubtitle(StringDesc.ResourceFormatted(MR.strings.mapStationBikesFree, station.bikesAvailable, station.slotsFree).localized())
         }
         stationAnnotations[annotation] = station
         annotationByStationId[station.id] = annotation
@@ -225,7 +227,7 @@ private class IOSStationMapCoordinator {
       } else {
         val newPin = MKPointAnnotation().apply {
           setCoordinate(CLLocationCoordinate2DMake(pinLocation.latitude, pinLocation.longitude))
-          setTitle(sharedString(SharedString.DESTINATION))
+          setTitle(StringDesc.Resource(MR.strings.destination).localized())
         }
         pinAnnotation = newPin
         mapView.addAnnotation(newPin)

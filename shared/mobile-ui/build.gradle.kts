@@ -41,6 +41,7 @@ kotlin {
       implementation(libs.metro.runtime)
       implementation(libs.androidx.lifecycle.runtime.compose)
       implementation(libs.navigation.compose)
+      implementation(libs.moko.resources.compose)
     }
     androidMain.dependencies {
       implementation(libs.maps.compose)

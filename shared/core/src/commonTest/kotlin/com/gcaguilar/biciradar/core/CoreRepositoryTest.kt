@@ -1,6 +1,9 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
+import dev.icerock.moko.resources.desc.Resource
+import dev.icerock.moko.resources.desc.ResourceFormatted
+import dev.icerock.moko.resources.desc.StringDesc
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.delay
@@ -433,10 +436,10 @@ class CoreRepositoryTest {
     assertEquals("station-2", nearest.highlightedStationId)
     assertEquals("station-1", nearestWithBikes.highlightedStationId)
     assertEquals("station-2", nearestWithSlots.highlightedStationId)
-    assertEquals(sharedString(SharedString.NEAREST_STATION, "Plaza Aragón", 0, 9), nearest.spokenResponse)
-    assertEquals(sharedString(SharedString.NEAREST_WITH_BIKES, "Plaza Espana", 7, 4), nearestWithBikes.spokenResponse)
-    assertEquals(sharedString(SharedString.NEAREST_WITH_SLOTS, "Plaza Aragón", 9, 0), nearestWithSlots.spokenResponse)
-    assertEquals(sharedString(SharedString.FAVORITE_COUNT, 2), favorites.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestStation, "Plaza Aragón", 0, 9), nearest.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithBikes, "Plaza Espana", 7, 4), nearestWithBikes.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithSlots, "Plaza Aragón", 9, 0), nearestWithSlots.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.favoriteCount, 2), favorites.spokenResponse)
   }
 
   @Test
@@ -449,7 +452,7 @@ class CoreRepositoryTest {
     )
 
     assertNull(resolution.highlightedStationId)
-    assertEquals(sharedString(SharedString.UNKNOWN_STATION), resolution.spokenResponse)
+    assertEquals(StringDesc.Resource(MR.strings.unknownStation), resolution.spokenResponse)
   }
 
   @Test
@@ -481,8 +484,8 @@ class CoreRepositoryTest {
 
     assertEquals("station-42", bikes.highlightedStationId)
     assertEquals("station-42", slots.highlightedStationId)
-    assertEquals(sharedString(SharedString.STATION_BIKES, "Plaza Espana", 6), bikes.spokenResponse)
-    assertEquals(sharedString(SharedString.STATION_SLOTS, "Plaza Espana", 8), slots.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.stationBikes, "Plaza Espana", 6), bikes.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.stationSlots, "Plaza Espana", 8), slots.spokenResponse)
   }
 
   @Test
@@ -507,7 +510,7 @@ class CoreRepositoryTest {
     )
 
     assertEquals("station-7", resolution.highlightedStationId)
-    assertEquals(sharedString(SharedString.NEAREST_WITH_BIKES_FALLBACK, 500, 720, "Plaza Aragón", 3, 5), resolution.spokenResponse)
+    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithBikesFallback, 500, 720, "Plaza Aragón", 3, 5), resolution.spokenResponse)
   }
 
   @Test

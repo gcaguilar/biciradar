@@ -8,8 +8,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.TripRepository
-import com.gcaguilar.biciradar.core.localizedText
+import dev.icerock.moko.resources.desc.Resource
+import dev.icerock.moko.resources.desc.ResourceFormatted
+import dev.icerock.moko.resources.desc.StringDesc
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,7 +37,7 @@ class TripMonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(localizedText("Vigilando estación Bizi…")))
+    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(StringDesc.Resource(MR.strings.vigilandoEstacionBizi).localized()))
     observeMonitoringState()
   }
 
@@ -63,7 +66,7 @@ class TripMonitorService : Service() {
           val minutes = remaining / 60
           val seconds = remaining % 60
           val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-          val body = localizedText("%s · %s free slot(s) · %s remaining", station.name, station.slotsFree, timeText)
+          val body = StringDesc.ResourceFormatted(MR.strings.tripAlertSlotsFreeRemaining, station.name, station.slotsFree, timeText).localized()
           notificationManager.notify(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(body))
         }
       }
@@ -73,7 +76,7 @@ class TripMonitorService : Service() {
   private fun buildForegroundNotification(text: String): Notification =
     NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle(localizedText("Bizi Viaje"))
+      .setContentTitle(StringDesc.Resource(MR.strings.biziViaje).localized())
       .setContentText(text)
       .setOngoing(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -82,10 +85,10 @@ class TripMonitorService : Service() {
   private fun ensureNotificationChannel() {
     val channel = NotificationChannel(
       CHANNEL_ID,
-      localizedText("Bizi Viaje (activo)"),
+      StringDesc.Resource(MR.strings.biziViajeActivo).localized(),
       NotificationManager.IMPORTANCE_LOW,
     ).apply {
-      description = localizedText("Notificación persistente durante la monitorización de viaje")
+      description = StringDesc.Resource(MR.strings.notificacionPersistenteViaje).localized()
     }
     notificationManager.createNotificationChannel(channel)
   }

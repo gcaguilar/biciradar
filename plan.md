@@ -1,35 +1,45 @@
-# Localization Migration Plan
+# BiciRadar Plan
 
-## Current state
+## Summary
+- Greenfield project with base `package` `com.gcaguilar.biciradar`.
+- `stitch` is used only as the initial visual inspiration.
+- v1 scope: nearby stations, availability, station detail, favorites, map, routes delegated to native maps, Android shortcuts/App Actions, and iOS/watchOS App Intents/App Shortcuts.
+- Targets: Android mobile with Compose Multiplatform, iOS mobile with Compose Multiplatform, Wear OS with Compose for Wear OS, and Apple Watch with SwiftUI plus shared KMP logic.
+- Baseline: Android 26+, Wear OS 3+, iOS 16+, watchOS 9+.
+- Out of current scope: system voice search.
 
-- Shared KMP now has typed keys started in `SharedString`.
-- Apple CI is temporarily unblocked with Spanish fallback in `appleMain` shared localization.
-- Android metadata strings remain in platform `strings.xml`.
-- Apple native strings still use `.strings` files and project localization wiring needs more cleanup.
+## Implementation Changes
+- Create KMP modules for domain, networking, local storage, favorites, assistant/intents, mobile-watch sync, and platform utilities.
+- Consume public BiciRadar data directly from shared code with Ktor and normalize it into internal models for stations, availability, favorites, and nearby queries. The primary source is the official Zaragoza City Council feed, with CityBikes as fallback.
+- Persist favorites locally and sync them between mobile and watch through pairing.
+- Resolve routes with deep links/intents to Google Maps and Apple Maps.
+- Implement Metro DI as the main container with shared bindings and native adapters.
+- Build a native UI per platform inspired by `stitch`, without reproducing layouts literally.
 
-## Next steps
+## Public APIs and Interfaces
+- `StationsRepository`
+- `FavoritesRepository`
+- `RouteLauncher`
+- `AssistantIntentResolver`
+- `WatchSyncBridge`
 
-1. Continue migrating `shared/mobile-ui` away from `localizedText("literal")` to `SharedString` keys or Compose resources.
-2. Expand typed keys in `shared/core/src/commonMain/kotlin/com/gcaguilar/biciradar/core/Localization.kt` by screen/feature.
-3. Update `BiziMobileApp.kt` in chunks:
-   - map screen
-   - favorites screen
-   - settings screen
-   - station detail
-   - shortcuts/help screens
-4. Keep `DefaultAssistantIntentResolver` and tests aligned with typed keys only.
-5. Introduce real Compose string resources for shared UI once the key inventory is stable.
-6. Revisit Apple native localization:
-   - verify `apple/project.yml`
-   - regenerate project if needed
-   - keep `.lproj` files or migrate to `.xcstrings`
-7. After migration chunks, run:
-   - `./gradlew --no-daemon :shared:core:jvmTest`
-   - `./gradlew --no-daemon :androidApp:assembleDebug`
-8. Then re-run GitHub Actions and fix remaining Apple-native build issues.
+## Cross-Platform Intents and Actions
+- `nearest_station`
+- `station_status`
+- `favorite_stations`
+- `route_to_station`
 
-## Important constraints
+## Test Plan
+- KMP unit tests for feed parsing, nearby calculation, cache, favorites, and intent resolution.
+- Integration tests for the Ktor client and public feed consumption.
+- Platform tests for App Actions/App Shortcuts on Android.
+- Platform tests for App Intents/App Shortcuts on iOS/watchOS.
+- Favorite sync tests between mobile and watch.
+- Native maps route launch tests.
+- Visual QA based on design-system consistency, not pixel parity with `stitch`.
 
-- Do not touch unrelated local changes like `androidApp/src/androidMain/AndroidManifest.xml` unless required.
-- Keep commits atomic by migration area.
-- Prefer stabilizing CI first, then improving localization architecture.
+## Assumptions and Defaults
+- `stitch` only inspires the design; it does not define functionality.
+- A public feed/API with enough station and availability data is assumed to be available.
+- Initial language: Spanish, while keeping the base ready for English later.
+- Versions are pinned in `libs.versions.toml` using the latest stable versions compatible with the KMP/Compose/Gradle stack.

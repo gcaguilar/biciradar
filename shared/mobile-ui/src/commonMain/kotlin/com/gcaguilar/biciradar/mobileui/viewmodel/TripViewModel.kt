@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
-import com.gcaguilar.biciradar.core.SharedString
+import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.TripDestination
+import dev.icerock.moko.resources.desc.Resource
+import dev.icerock.moko.resources.desc.ResourceFormatted
+import dev.icerock.moko.resources.desc.StringDesc
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
-import com.gcaguilar.biciradar.core.sharedString
 import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
@@ -25,7 +27,7 @@ data class TripUiState(
   val query: String = "",
   val suggestions: List<GeoResult> = emptyList(),
   val isLoadingSuggestions: Boolean = false,
-  val suggestionsError: String? = null,
+  val suggestionsError: StringDesc? = null,
   val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
   val mapPickerActive: Boolean = false,
   val isReverseGeocoding: Boolean = false,
@@ -84,13 +86,13 @@ class TripViewModel(
       }
 
       if (_uiState.value.query == newQuery) {
-        val errorMsg = results.exceptionOrNull()?.let { ex ->
+        val errorMsg: StringDesc? = results.exceptionOrNull()?.let { ex ->
           when (ex) {
-            is GeoError.Server -> sharedString(SharedString.TRIP_SEARCH_LOCATION_UNAVAILABLE)
-            is GeoError.Network -> sharedString(SharedString.TRIP_LOCATION_SERVICE_UNAVAILABLE)
-            else -> sharedString(
-              SharedString.SEARCH_ERROR,
-              ex.message ?: ex::class.simpleName ?: sharedString(SharedString.UNKNOWN),
+            is GeoError.Server -> StringDesc.Resource(MR.strings.tripSearchLocationUnavailable)
+            is GeoError.Network -> StringDesc.Resource(MR.strings.tripLocationServiceUnavailable)
+            else -> StringDesc.ResourceFormatted(
+              MR.strings.searchError,
+              ex.message ?: ex::class.simpleName ?: "",
             )
           }
         }

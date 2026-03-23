@@ -7,6 +7,11 @@ plugins {
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.metro)
+  alias(libs.plugins.moko.resources)
+}
+
+multiplatformResources {
+  resourcesPackage.set("com.gcaguilar.biciradar.core")
 }
 
 kotlin {
@@ -39,6 +44,7 @@ kotlin {
   }
   sourceSets {
     commonMain.dependencies {
+      api(libs.moko.resources)
       implementation(compose.runtime)
       implementation(libs.coroutines.core)
       implementation(libs.ktor.client.content.negotiation)
