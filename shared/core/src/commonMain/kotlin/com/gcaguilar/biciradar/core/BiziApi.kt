@@ -39,9 +39,13 @@ data class StationAvailability(
 class GbfsBiziApi(
   private val httpClient: HttpClient,
   private val configuration: AppConfiguration,
+  private val settingsRepository: SettingsRepository? = null,
 ) : BiziApi {
+  private val gbfsDiscoveryUrl: String
+    get() = settingsRepository?.currentSelectedCity()?.gbfsDiscoveryUrl ?: configuration.gbfsDiscoveryUrl
+
   override suspend fun fetchStations(origin: GeoPoint): List<Station> {
-    val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+    val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
     val stationInfoUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_information" }?.url
       ?: error("No station_information feed found")
     val stationStatusUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
@@ -81,7 +85,7 @@ class GbfsBiziApi(
 
   override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
     val stationStatusUrl = runCatching {
-      val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+      val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
       discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
     }.getOrNull() ?: return emptyMap()
 
