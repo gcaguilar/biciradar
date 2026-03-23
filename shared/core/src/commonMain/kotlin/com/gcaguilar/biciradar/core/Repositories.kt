@@ -33,6 +33,7 @@ interface FavoritesRepository {
   suspend fun toggle(stationId: String)
   suspend fun setHomeStationId(stationId: String?)
   suspend fun setWorkStationId(stationId: String?)
+  suspend fun clearAll()
   fun isFavorite(stationId: String): Boolean
   fun currentHomeStationId(): String?
   fun currentWorkStationId(): String?
@@ -179,6 +180,16 @@ class FavoritesRepositoryImpl(
     persist(updatedSnapshot)
     withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
       watchSyncBridge.pushFavorites(updatedSnapshot)
+    }
+  }
+
+  override suspend fun clearAll() {
+    if (!bootstrapped) bootstrap()
+    val emptySnapshot = FavoritesSyncSnapshot()
+    applySnapshot(emptySnapshot)
+    persist(emptySnapshot)
+    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.pushFavorites(emptySnapshot)
     }
   }
 

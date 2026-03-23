@@ -32,7 +32,86 @@ class DatosBiziApiImpl(
 data class StationAvailability(
   val bikesAvailable: Int,
   val slotsFree: Int,
+  val ebikesAvailable: Int = 0,
+  val regularBikesAvailable: Int = 0,
 )
+
+class GbfsBiziApi(
+  private val httpClient: HttpClient,
+  private val configuration: AppConfiguration,
+) : BiziApi {
+  override suspend fun fetchStations(origin: GeoPoint): List<Station> {
+    val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+    val stationInfoUrl = discovery.data.en.firstOrNull { it.name == "station_information" }?.url
+      ?: error("No station_information feed found")
+    val stationStatusUrl = discovery.data.en.firstOrNull { it.name == "station_status" }?.url
+      ?: error("No station_status feed found")
+
+    val stationInfo = httpClient.get(stationInfoUrl).body<GbfsStationInfoEnvelope>()
+    val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
+
+    val statusById = stationStatus.data.stations.associateBy { it.stationId }
+
+    return stationInfo.data.stations.mapNotNull { info ->
+      val status = statusById[info.stationId] ?: return@mapNotNull null
+      val location = GeoPoint(info.latitude, info.longitude)
+
+      val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
+      val ebikesCount = vehicleTypes
+        .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+        .sumOf { it.count }
+      val regularBikesCount = vehicleTypes
+        .filter { it.vehicleTypeId.contains("bike", ignoreCase = true) && !it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+        .sumOf { it.count }
+
+      Station(
+        id = info.stationId,
+        name = info.name,
+        address = info.address ?: info.name,
+        location = location,
+        bikesAvailable = status.numBikesAvailable,
+        slotsFree = status.numDocksAvailable,
+        distanceMeters = distanceBetween(origin, location),
+        sourceLabel = "GBFS",
+        ebikesAvailable = ebikesCount,
+        regularBikesAvailable = regularBikesCount,
+      )
+    }.sortedBy(Station::distanceMeters)
+  }
+
+  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
+    val stationStatusUrl = runCatching {
+      val discovery = httpClient.get(configuration.gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+      discovery.data.en.firstOrNull { it.name == "station_status" }?.url
+    }.getOrNull() ?: return emptyMap()
+
+    return try {
+      val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
+      val statusById = stationStatus.data.stations.associateBy { it.stationId }
+
+      stationIds.mapNotNull { id ->
+        val status = statusById[id] ?: return@mapNotNull null
+
+        val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
+        val ebikesCount = vehicleTypes
+          .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+          .sumOf { it.count }
+        val regularBikesCount = vehicleTypes
+          .filter { it.vehicleTypeId.contains("bike", ignoreCase = true) && !it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+          .sumOf { it.count }
+
+        id to StationAvailability(
+          bikesAvailable = status.numBikesAvailable,
+          slotsFree = status.numDocksAvailable,
+          ebikesAvailable = ebikesCount,
+          regularBikesAvailable = regularBikesCount,
+        )
+      }.toMap()
+    } catch (e: Exception) {
+      emptyMap()
+    }
+  }
+}
 
 class CityBikesBiziApi(
   private val httpClient: HttpClient,
@@ -178,4 +257,63 @@ private data class ZaragozaStation(
 @Serializable
 private data class ZaragozaGeometry(
   val coordinates: List<Double> = emptyList(),
+)
+
+@Serializable
+private data class GbfsDiscoveryEnvelope(
+  val data: GbfsDiscoveryData,
+)
+
+@Serializable
+private data class GbfsDiscoveryData(
+  val en: List<GbfsFeed> = emptyList(),
+)
+
+@Serializable
+private data class GbfsFeed(
+  val name: String,
+  val url: String,
+)
+
+@Serializable
+private data class GbfsStationInfoEnvelope(
+  val data: GbfsStationInfoData,
+)
+
+@Serializable
+private data class GbfsStationInfoData(
+  val stations: List<GbfsStationInfo> = emptyList(),
+)
+
+@Serializable
+private data class GbfsStationInfo(
+  val stationId: String,
+  val name: String,
+  val latitude: Double,
+  val longitude: Double,
+  val address: String? = null,
+)
+
+@Serializable
+private data class GbfsStationStatusEnvelope(
+  val data: GbfsStationStatusData,
+)
+
+@Serializable
+private data class GbfsStationStatusData(
+  val stations: List<GbfsStationStatus> = emptyList(),
+)
+
+@Serializable
+private data class GbfsStationStatus(
+  val stationId: String,
+  @SerialName("num_bikes_available") val numBikesAvailable: Int,
+  @SerialName("num_docks_available") val numDocksAvailable: Int,
+  @SerialName("vehicle_types_available") val vehicleTypesAvailable: List<VehicleTypeAvailable>? = null,
+)
+
+@Serializable
+private data class VehicleTypeAvailable(
+  @SerialName("vehicle_type_id") val vehicleTypeId: String,
+  val count: Int,
 )

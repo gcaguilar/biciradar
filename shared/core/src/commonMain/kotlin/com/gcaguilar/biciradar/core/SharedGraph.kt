@@ -52,8 +52,18 @@ interface SharedGraph {
 
   @SingleIn(AppScope::class)
   @Provides
+  fun provideAppConfiguration(settingsRepository: SettingsRepository): AppConfiguration {
+    val city = settingsRepository.selectedCity.let { flow ->
+      // Default to Zaragoza if not yet initialized
+      City.ZARAGOZA
+    }
+    return AppConfiguration(city = city)
+  }
+
+  @SingleIn(AppScope::class)
+  @Provides
   fun provideBiziApi(appConfiguration: AppConfiguration, httpClient: HttpClient): BiziApi =
-    CityBikesBiziApi(httpClient, appConfiguration)
+    GbfsBiziApi(httpClient, appConfiguration)
 
   @SingleIn(AppScope::class)
   @Provides
