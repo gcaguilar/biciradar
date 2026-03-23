@@ -182,7 +182,7 @@ struct WatchShortcutRunner {
     ) async -> String {
         do {
             let resolution = try await graph.assistantResponse(for: action)
-            return resolution.highlightedStationId == nil ? emptyMessage : resolution.spokenResponse
+            return resolution.highlightedStationId == nil ? emptyMessage : resolution.spokenResponse.localized()
         } catch {
             return errorMessage
         }
