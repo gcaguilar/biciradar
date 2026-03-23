@@ -103,14 +103,17 @@ import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.SharedString
+import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.Station
+import dev.icerock.moko.resources.StringResource
 import com.gcaguilar.biciradar.core.filterStationsByQuery
 import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.biciradar.core.isGoogleMapsReady
 import com.gcaguilar.biciradar.core.selectNearbyStation
-import com.gcaguilar.biciradar.core.sharedString
+import dev.icerock.moko.resources.compose.localized
+import dev.icerock.moko.resources.compose.stringResource
+import dev.icerock.moko.resources.desc.StringDesc
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -245,12 +248,12 @@ private val DarkBiziColors = BiziColors(
 
 internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
 
-private enum class MobileTab(val labelKey: SharedString) {
-  Cerca(SharedString.TAB_NEARBY),
-  Mapa(SharedString.TAB_MAP),
-  Favoritos(SharedString.TAB_FAVORITES),
-  Viaje(SharedString.TAB_TRIP),
-  Perfil(SharedString.TAB_SETTINGS),
+private enum class MobileTab(val labelKey: StringResource) {
+  Cerca(MR.strings.nearby),
+  Mapa(MR.strings.map),
+  Favoritos(MR.strings.favorites),
+  Viaje(MR.strings.trip),
+  Perfil(MR.strings.settings),
 }
 
 private val MobileTabs = listOf(
@@ -261,22 +264,22 @@ private val MobileTabs = listOf(
   MobileTab.Perfil,
 )
 
-private enum class MapFilter(val labelKey: SharedString) {
-  BIKES_AND_SLOTS(SharedString.MAP_FILTER_BIKES_AND_SLOTS),
-  ONLY_BIKES(SharedString.MAP_FILTER_ONLY_BIKES),
-  ONLY_SLOTS(SharedString.MAP_FILTER_ONLY_SLOTS),
+private enum class MapFilter(val labelKey: StringResource) {
+  BIKES_AND_SLOTS(MR.strings.mapFilterBikesAndSlots),
+  ONLY_BIKES(MR.strings.mapFilterOnlyBikes),
+  ONLY_SLOTS(MR.strings.mapFilterOnlySlots),
 }
 
 private const val CURRENT_CHANGELOG_VERSION = 1
 
-private data class ChangelogEntry(val titleKey: SharedString, val descriptionKey: SharedString)
+private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
 private val CHANGELOG_ENTRIES = listOf(
-  ChangelogEntry(SharedString.CHANGELOG_DARK_THEME_TITLE, SharedString.CHANGELOG_DARK_THEME_DESCRIPTION),
-  ChangelogEntry(SharedString.CHANGELOG_DISMISSIBLE_CARD_TITLE, SharedString.CHANGELOG_DISMISSIBLE_CARD_DESCRIPTION),
-  ChangelogEntry(SharedString.CHANGELOG_MAP_FILTERS_TITLE, SharedString.CHANGELOG_MAP_FILTERS_DESCRIPTION),
-  ChangelogEntry(SharedString.CHANGELOG_REFRESH_INDICATOR_TITLE, SharedString.CHANGELOG_REFRESH_INDICATOR_DESCRIPTION),
-  ChangelogEntry(SharedString.PATTERN_USAGE, SharedString.PATTERN_DESCRIPTION),
+  ChangelogEntry(MR.strings.changelogDarkThemeTitle, MR.strings.changelogDarkThemeDescription),
+  ChangelogEntry(MR.strings.changelogDismissibleCardTitle, MR.strings.changelogDismissibleCardDescription),
+  ChangelogEntry(MR.strings.changelogMapFiltersTitle, MR.strings.changelogMapFiltersDescription),
+  ChangelogEntry(MR.strings.changelogRefreshIndicatorTitle, MR.strings.changelogRefreshIndicatorDescription),
+  ChangelogEntry(MR.strings.usagePattern, MR.strings.averageBikesHour),
 )
 
 sealed interface MobileLaunchRequest {
@@ -742,22 +745,22 @@ private fun StartupSplashScreen(
         verticalArrangement = Arrangement.spacedBy(6.dp),
       ) {
         Text(
-          text = sharedString(SharedString.APP_NAME),
+          text = stringResource(MR.strings.appName),
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
           color = c.red,
         )
         Text(
-          text = sharedString(SharedString.SPLASH_LOADING_STATIONS),
+          text = stringResource(MR.strings.loadingStationsFavoritesShortcuts),
           style = MaterialTheme.typography.bodyMedium,
           color = c.muted,
         )
       }
       Text(
         text = if (mobilePlatform == MobileUiPlatform.IOS) {
-          sharedString(SharedString.SPLASH_PREPARING_IPHONE)
+          stringResource(MR.strings.preparingIphoneExperience)
         } else {
-          sharedString(SharedString.SPLASH_PREPARING_ANDROID)
+          stringResource(MR.strings.preparingAndroidExperience)
         },
         style = MaterialTheme.typography.labelMedium,
         color = c.muted,
@@ -788,10 +791,10 @@ private fun MobileBottomNavigationBar(
         icon = {
           Icon(
             imageVector = tab.icon(),
-            contentDescription = sharedString(tab.labelKey),
+            contentDescription = stringResource(tab.labelKey),
           )
         },
-        label = { Text(sharedString(tab.labelKey)) },
+        label = { Text(stringResource(tab.labelKey)) },
       )
     }
   }
@@ -904,7 +907,7 @@ private fun MapScreen(
         mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = sharedString(SharedString.MAP_SEARCH_STATION_OR_ADDRESS),
+        label = stringResource(MR.strings.mapSearchStationOrAddress),
       )
       MapFilterChipRow(
         activeFilters = activeFilters,
@@ -925,24 +928,24 @@ private fun MapScreen(
     ) {
       if (errorMessage != null) {
         EmptyStateCard(
-          title = sharedString(SharedString.MAP_UPDATE_FAILED),
+          title = stringResource(MR.strings.mapUpdateFailed),
           description = errorMessage,
-          primaryAction = sharedString(SharedString.RETRY),
+          primaryAction = stringResource(MR.strings.retry),
           onPrimaryAction = onRetry,
         )
       } else {
         EmptyStateCard(
           title = if (searchQuery.isBlank()) {
-            sharedString(SharedString.MAP_NO_STATIONS_ON_SCREEN)
+            stringResource(MR.strings.mapNoStationsOnScreen)
           } else {
-            sharedString(SharedString.MAP_NO_SEARCH_RESULTS)
+            stringResource(MR.strings.mapNoStations)
           },
           description = if (searchQuery.isBlank()) {
-            sharedString(SharedString.MAP_LOCATION_FALLBACK_DESCRIPTION)
+            stringResource(MR.strings.mapLocationFallbackDescription)
           } else {
-            sharedString(SharedString.MAP_TRY_ANOTHER_QUERY)
+            stringResource(MR.strings.mapTryAnotherQuery)
           },
-          primaryAction = sharedString(SharedString.LOAD_STATIONS),
+          primaryAction = stringResource(MR.strings.loadStations),
           onPrimaryAction = onRetry,
         )
       }
@@ -1040,12 +1043,12 @@ private fun NearbyScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
             Text(
-              text = sharedString(SharedString.TAB_NEARBY),
+              text = stringResource(MR.strings.nearby),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = sharedString(SharedString.NEARBY_QUICK_ACTIONS_DESCRIPTION),
+              text = stringResource(MR.strings.nearbyQuickActionsDescription),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1067,13 +1070,13 @@ private fun NearbyScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
           ) {
             Text(
-              text = sharedString(SharedString.NEARBY_NEAR_YOU),
+              text = stringResource(MR.strings.nearbyNearYou),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
               color = LocalBiziColors.current.red,
             )
             Text(
-              text = sharedString(SharedString.NEARBY_STATIONS_SORTED_DESCRIPTION),
+              text = stringResource(MR.strings.nearbyStationsSortedDescription),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1091,8 +1094,8 @@ private fun NearbyScreen(
       ) {
         QuickRouteActionCard(
           modifier = Modifier.weight(1f),
-          title = sharedString(SharedString.NEARBY_NEAREST_WITH_BIKES),
-          emptyTitle = sharedString(SharedString.NEARBY_NO_BIKES_NEARBY),
+          title = stringResource(MR.strings.nearbyNearestWithBikes),
+          emptyTitle = stringResource(MR.strings.nearbyNoBikesNearby),
           selection = nearestWithBikesSelection,
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
           tint = LocalBiziColors.current.red,
@@ -1101,8 +1104,8 @@ private fun NearbyScreen(
         )
         QuickRouteActionCard(
           modifier = Modifier.weight(1f),
-          title = sharedString(SharedString.NEARBY_NEAREST_WITH_SLOTS),
-          emptyTitle = sharedString(SharedString.NEARBY_NO_SLOTS_NEARBY),
+          title = stringResource(MR.strings.nearbyNearestWithSlots),
+          emptyTitle = stringResource(MR.strings.nearbyNoSlotsNearby),
           selection = nearestWithSlotsSelection,
           icon = Icons.Filled.LocalParking,
           tint = LocalBiziColors.current.blue,
@@ -1120,15 +1123,15 @@ private fun NearbyScreen(
       item {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
-            text = if (loading) sharedString(SharedString.NEARBY_UPDATING_STATIONS) else sharedString(SharedString.NEARBY_STATIONS),
+            text = if (loading) stringResource(MR.strings.nearbyUpdatingStations) else stringResource(MR.strings.nearbyStations),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
           )
           Text(
             text = if (nearestSelection.usesFallback) {
-              sharedString(SharedString.NEARBY_RADIUS_FALLBACK_HINT)
+              stringResource(MR.strings.nearbyRadiusFallbackHint)
             } else {
-              sharedString(SharedString.NEARBY_CARD_ACTIONS_HINT)
+              stringResource(MR.strings.nearbyCardActionsHint)
             },
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
@@ -1144,7 +1147,7 @@ private fun NearbyScreen(
               OutlinedButton(onClick = onRetry) {
                 Icon(Icons.Filled.Sync, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text(sharedString(SharedString.RETRY))
+                Text(stringResource(MR.strings.retry))
               }
             }
           }
@@ -1158,9 +1161,9 @@ private fun NearbyScreen(
           label = "nearby-empty",
         ) {
           EmptyStateCard(
-            title = sharedString(SharedString.MAP_NO_STATIONS_ON_SCREEN),
-            description = sharedString(SharedString.MAP_LOCATION_FALLBACK_DESCRIPTION),
-            primaryAction = sharedString(SharedString.LOAD_STATIONS),
+            title = stringResource(MR.strings.mapNoStationsOnScreen),
+            description = stringResource(MR.strings.mapLocationFallbackDescription),
+            primaryAction = stringResource(MR.strings.loadStations),
             onPrimaryAction = onRetry,
           )
         }
@@ -1189,7 +1192,7 @@ private fun RefreshButtonWithCountdown(
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     IconButton(onClick = onRefresh, enabled = !loading) {
-      Icon(Icons.Filled.Sync, contentDescription = sharedString(SharedString.REFRESH_STATIONS))
+      Icon(Icons.Filled.Sync, contentDescription = stringResource(MR.strings.refreshStations))
     }
     if (countdown > 0 && !loading) {
       val minutes = countdown / 60
@@ -1215,13 +1218,13 @@ private fun MapFilterChipRow(
     MapFilter.entries.forEach { filter ->
       MapFilterChip(
         filter = filter,
-        label = sharedString(filter.labelKey),
+        label = stringResource(filter.labelKey),
         selected = filter in activeFilters,
         onClick = { onToggleFilter(filter) },
       )
     }
     MapLegendChip(
-      label = sharedString(SharedString.MAP_LEGEND_OUT_OF_SERVICE),
+      label = stringResource(MR.strings.mapLegendOutOfService),
       color = LocalBiziColors.current.red,
     )
   }
@@ -1338,7 +1341,7 @@ private fun MapRecenterButton(
   ) {
     Icon(
       imageVector = Icons.Filled.MyLocation,
-      contentDescription = sharedString(SharedString.MAP_MY_LOCATION),
+      contentDescription = stringResource(MR.strings.mapMyLocation),
       tint = if (enabled) c.green else c.muted,
       modifier = Modifier.padding(14.dp).size(22.dp),
     )
@@ -1381,17 +1384,17 @@ private fun MapSelectedStationCard(
       ) {
         Text(
           if (isFallbackSelection) {
-            sharedString(SharedString.MAP_NO_STATIONS_WITHIN_RADIUS, searchRadiusMeters)
+            stringResource(MR.strings.mapNoStationsWithinRadius, searchRadiusMeters)
           } else if (isShowingNearestSelection) {
-            sharedString(SharedString.MAP_NEAREST_STATION_LABEL)
+            stringResource(MR.strings.mapNearestStationLabel)
           } else {
-            sharedString(SharedString.MAP_SELECTED_STATION_LABEL)
+            stringResource(MR.strings.mapSelectedStationLabel)
           },
           color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
         )
         Icon(
           imageVector = Icons.Filled.Close,
-          contentDescription = sharedString(SharedString.CLOSE),
+          contentDescription = stringResource(MR.strings.close),
           tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
           modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
         )
@@ -1422,14 +1425,9 @@ private fun MapSelectedStationCard(
       }
       Text(
         text = if (isFallbackSelection) {
-          sharedString(
-            SharedString.MAP_NEAREST_FALLBACK_SUMMARY,
-            station.distanceMeters,
-            station.bikesAvailable,
-            station.slotsFree,
-          )
+          stringResource(MR.strings.mapNearestFallbackSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
         } else {
-          sharedString(SharedString.MAP_STATION_DISTANCE_SUMMARY, station.distanceMeters, station.bikesAvailable, station.slotsFree)
+          stringResource(MR.strings.mapStationDistanceSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
         },
         color = overlayBody,
       )
@@ -1438,7 +1436,7 @@ private fun MapSelectedStationCard(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         RoutePill(
-          label = sharedString(SharedString.ROUTE),
+          label = stringResource(MR.strings.route),
           onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
           onClick = { onQuickRoute(station) },
         )
@@ -1446,18 +1444,18 @@ private fun MapSelectedStationCard(
           FavoritePill(
             active = isFavorite,
             onClick = onFavoriteToggle,
-            label = if (isFavorite) sharedString(SharedString.SAVED) else sharedString(SharedString.SAVE),
+            label = if (isFavorite) stringResource(MR.strings.saved) else stringResource(MR.strings.save),
           )
         } else {
           OutlineActionPill(
-            label = if (isFavorite) sharedString(SharedString.SAVED) else sharedString(SharedString.SAVE),
+            label = if (isFavorite) stringResource(MR.strings.saved) else stringResource(MR.strings.save),
             tint = c.onAccent,
             borderTint = c.onAccent.copy(alpha = 0.32f),
             onClick = onFavoriteToggle,
           )
         }
         OutlineActionPill(
-          label = sharedString(SharedString.DETAILS),
+          label = stringResource(MR.strings.details),
           tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
           borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
           onClick = { onOpenStationDetails(station) },
@@ -1502,13 +1500,13 @@ private fun FavoritesScreen(
     item {
       if (mobilePlatform == MobileUiPlatform.IOS) {
         MobilePageHeader(
-          title = sharedString(SharedString.TAB_FAVORITES),
-          subtitle = sharedString(SharedString.FAVORITES_SUBTITLE),
+          title = stringResource(MR.strings.favorites),
+          subtitle = stringResource(MR.strings.favoritesSubtitle),
           onOpenAssistant = onOpenAssistant,
         )
       } else {
         Text(
-          text = sharedString(SharedString.MY_STATIONS),
+          text = stringResource(MR.strings.myStations),
           style = MaterialTheme.typography.headlineSmall,
           fontWeight = FontWeight.Bold,
         )
@@ -1519,18 +1517,18 @@ private fun FavoritesScreen(
         mobilePlatform = mobilePlatform,
         value = searchQuery,
         onValueChange = onSearchQueryChange,
-        label = sharedString(SharedString.FAVORITES_SEARCH_STATION),
+        label = stringResource(MR.strings.favoritesSearchStation),
       )
     }
     item {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = sharedString(SharedString.HOME_AND_WORK),
+          text = stringResource(MR.strings.homeAndWork),
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.SemiBold,
         )
         Text(
-          text = sharedString(SharedString.HOME_AND_WORK_DESCRIPTION),
+          text = stringResource(MR.strings.homeAndWorkDescription),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
@@ -1539,7 +1537,7 @@ private fun FavoritesScreen(
     item {
       SavedPlaceCard(
         mobilePlatform = mobilePlatform,
-        title = sharedString(SharedString.HOME),
+        title = stringResource(MR.strings.home),
         station = homeStation,
         assignmentCandidate = assignmentCandidate,
         onAssignCandidate = onAssignHomeStation,
@@ -1551,7 +1549,7 @@ private fun FavoritesScreen(
     item {
       SavedPlaceCard(
         mobilePlatform = mobilePlatform,
-        title = sharedString(SharedString.WORK),
+        title = stringResource(MR.strings.work),
         station = workStation,
         assignmentCandidate = assignmentCandidate,
         onAssignCandidate = onAssignWorkStation,
@@ -1568,8 +1566,8 @@ private fun FavoritesScreen(
         label = "favorites-empty",
       ) {
         EmptyStateCard(
-          title = sharedString(SharedString.FAVORITES_EMPTY_TITLE),
-          description = sharedString(SharedString.FAVORITES_EMPTY_DESCRIPTION),
+          title = stringResource(MR.strings.favoritesEmptyTitle),
+          description = stringResource(MR.strings.favoritesEmptyDescription),
         )
       }
     }
@@ -1614,12 +1612,12 @@ private fun ProfileScreen(
     item {
       Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-          text = sharedString(SharedString.TAB_SETTINGS),
+          text = stringResource(MR.strings.settings),
           style = MaterialTheme.typography.headlineSmall,
           fontWeight = FontWeight.Bold,
         )
         Text(
-          text = sharedString(SharedString.PROFILE_SUBTITLE),
+          text = stringResource(MR.strings.profileSubtitle),
           style = MaterialTheme.typography.bodyMedium,
           color = LocalBiziColors.current.muted,
         )
@@ -1630,9 +1628,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text(sharedString(SharedString.NEARBY_STATION_RADIUS), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.NEARBY_STATION_RADIUS_DESCRIPTION),
+            stringResource(MR.strings.nearbyStationRadiusDescription),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1642,7 +1640,7 @@ private fun ProfileScreen(
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
                   selected = radiusMeters == searchRadiusMeters,
-                  label = if (radiusMeters == searchRadiusMeters) sharedString(SharedString.RADIUS_ACTIVE, radiusMeters) else sharedString(SharedString.METERS, radiusMeters),
+                  label = if (radiusMeters == searchRadiusMeters) stringResource(MR.strings.radiusActive, radiusMeters) else stringResource(MR.strings.meters, radiusMeters),
                   onClick = { onSearchRadiusSelected(radiusMeters) },
                 )
               }
@@ -1659,9 +1657,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-          Text(sharedString(SharedString.SHORTCUTS), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.shortcuts), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.SHORTCUTS_REVIEW_COMMANDS, mobilePlatform.assistantDisplayName()),
+            stringResource(MR.strings.shortcutsReviewCommands, mobilePlatform.assistantDisplayName()),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1676,7 +1674,7 @@ private fun ProfileScreen(
             Icon(Icons.Filled.KeyboardVoice, contentDescription = null, tint = LocalBiziColors.current.red)
             Spacer(Modifier.width(8.dp))
             Text(
-              sharedString(SharedString.OPEN_SHORTCUTS_GUIDE),
+              stringResource(MR.strings.openShortcutsGuide),
               color = LocalBiziColors.current.red,
               fontWeight = FontWeight.SemiBold,
             )
@@ -1689,9 +1687,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text(sharedString(SharedString.APPEARANCE), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.appearance), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.APPEARANCE_DESCRIPTION),
+            stringResource(MR.strings.appearanceDescription),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1699,19 +1697,19 @@ private fun ProfileScreen(
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.System,
-              label = sharedString(SharedString.SYSTEM),
+              label = stringResource(MR.strings.system),
               onClick = { onThemePreferenceSelected(ThemePreference.System) },
             )
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.Light,
-              label = sharedString(SharedString.LIGHT),
+              label = stringResource(MR.strings.light),
               onClick = { onThemePreferenceSelected(ThemePreference.Light) },
             )
             RadiusSelectionButton(
               modifier = Modifier.weight(1f),
               selected = themePreference == ThemePreference.Dark,
-              label = sharedString(SharedString.DARK),
+              label = stringResource(MR.strings.dark),
               onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
             )
           }
@@ -1724,9 +1722,9 @@ private fun ProfileScreen(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(sharedString(SharedString.IPHONE_ROUTE_APP), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(MR.strings.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
             Text(
-              sharedString(SharedString.IPHONE_ROUTE_APP_DESCRIPTION),
+              stringResource(MR.strings.iPhoneRouteAppDescription),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
@@ -1745,7 +1743,7 @@ private fun ProfileScreen(
               )
             }
             Text(
-               sharedString(SharedString.IPHONE_ROUTE_APP_FALLBACK),
+               stringResource(MR.strings.iPhoneRouteAppFallback),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
@@ -1759,9 +1757,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text(sharedString(SharedString.FEEDBACK_AND_SUGGESTIONS), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.FEEDBACK_DESCRIPTION),
+            stringResource(MR.strings.feedbackDescription),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1769,7 +1767,7 @@ private fun ProfileScreen(
             onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
             contentPadding = PaddingValues(0.dp),
           ) {
-            Text(sharedString(SharedString.OPEN_FEEDBACK_FORM), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(MR.strings.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
           }
         }
       }
@@ -1780,9 +1778,9 @@ private fun ProfileScreen(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text(sharedString(SharedString.PRIVACY_AND_DATA), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.privacyAndData), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.PRIVACY_DESCRIPTION),
+            stringResource(MR.strings.privacyDescription),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -1790,7 +1788,7 @@ private fun ProfileScreen(
             onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
             contentPadding = PaddingValues(0.dp),
           ) {
-            Text(sharedString(SharedString.OPEN_PRIVACY_POLICY), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(MR.strings.openPrivacyPolicy), style = MaterialTheme.typography.bodySmall)
           }
         }
       }
@@ -1812,8 +1810,8 @@ private fun ShortcutsScreen(
   onBack: () -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
-  var latestAnswer by rememberSaveable { mutableStateOf<String?>(null) }
-  val shortcutGuides = remember(mobilePlatform) { shortcutGuidesFor(mobilePlatform) }
+  var latestAnswer by remember { mutableStateOf<StringDesc?>(null) }
+  val shortcutGuides = shortcutGuidesFor(mobilePlatform)
 
   LaunchedEffect(initialAction, favoriteIds, searchRadiusMeters) {
     val action = initialAction ?: return@LaunchedEffect
@@ -1838,12 +1836,12 @@ private fun ShortcutsScreen(
           if (mobilePlatform == MobileUiPlatform.IOS) {
             Text("")
           } else {
-            Text(sharedString(SharedString.SHORTCUTS))
+            Text(stringResource(MR.strings.shortcuts))
           }
         },
         navigationIcon = {
           IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = sharedString(SharedString.BACK))
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(MR.strings.back))
           }
         },
       )
@@ -1868,12 +1866,12 @@ private fun ShortcutsScreen(
             verticalArrangement = Arrangement.spacedBy(6.dp),
           ) {
             Text(
-              text = sharedString(SharedString.SHORTCUTS),
+              text = stringResource(MR.strings.shortcuts),
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = sharedString(SharedString.SHORTCUTS_IOS_SUBTITLE),
+              text = stringResource(MR.strings.shortcutsIosSubtitle),
               style = MaterialTheme.typography.bodyMedium,
               color = LocalBiziColors.current.muted,
             )
@@ -1886,27 +1884,27 @@ private fun ShortcutsScreen(
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
           ) {
-            Text(sharedString(SharedString.HOW_TO_INVOKE), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(MR.strings.howToInvoke), fontWeight = FontWeight.SemiBold)
             Text(
               if (mobilePlatform == MobileUiPlatform.IOS) {
-                sharedString(SharedString.SHORTCUTS_AVAILABLE_ON_IOS)
+                stringResource(MR.strings.shortcutsAvailableOnIos)
               } else {
-                sharedString(SharedString.SHORTCUTS_AVAILABLE_WITH_ASSISTANT, mobilePlatform.assistantDisplayName())
+                stringResource(MR.strings.shortcutsAvailableWithAssistant, mobilePlatform.assistantDisplayName())
               },
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
             Text(
               if (mobilePlatform == MobileUiPlatform.IOS) {
-                sharedString(SharedString.SHORTCUTS_IOS_INVOCATION_HINT)
+                stringResource(MR.strings.shortcutsIosInvocationHint)
               } else {
-                sharedString(SharedString.SHORTCUTS_ANDROID_INVOCATION_HINT)
+                stringResource(MR.strings.shortcutsAndroidInvocationHint)
               },
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
             Text(
-              sharedString(SharedString.SHORTCUTS_CURRENT_RADIUS, searchRadiusMeters),
+              stringResource(MR.strings.shortcutsCurrentRadius, searchRadiusMeters),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.ink,
             )
@@ -1920,8 +1918,8 @@ private fun ShortcutsScreen(
               modifier = Modifier.padding(18.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              Text(sharedString(SharedString.LATEST_ANSWER), fontWeight = FontWeight.SemiBold)
-              Text(answer)
+              Text(stringResource(MR.strings.latestAnswer), fontWeight = FontWeight.SemiBold)
+              Text(answer.localized())
             }
           }
         }
@@ -1977,7 +1975,7 @@ private fun StationDetailScreen(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         IconButton(onClick = onBack) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = sharedString(SharedString.BACK))
+          Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(MR.strings.back))
         }
         Text(
           text = station.name,
@@ -2019,20 +2017,20 @@ private fun StationDetailScreen(
             FavoritePill(
               active = isFavorite,
               onClick = onToggleFavorite,
-              label = if (isFavorite) sharedString(SharedString.SAVED) else sharedString(SharedString.SAVE),
+              label = if (isFavorite) stringResource(MR.strings.saved) else stringResource(MR.strings.save),
             )
           }
           Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
           Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StationMetricPill(
               modifier = Modifier.weight(1f),
-              label = sharedString(SharedString.DISTANCE),
+              label = stringResource(MR.strings.distance),
               value = "${station.distanceMeters} m",
               tint = LocalBiziColors.current.blue,
             )
             StationMetricPill(
               modifier = Modifier.weight(1f),
-              label = sharedString(SharedString.SOURCE),
+              label = stringResource(MR.strings.source),
               value = station.sourceLabel,
               tint = LocalBiziColors.current.muted,
             )
@@ -2048,9 +2046,9 @@ private fun StationDetailScreen(
           modifier = Modifier.padding(18.dp),
           verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          Text(sharedString(SharedString.SAVE_THIS_STATION), fontWeight = FontWeight.SemiBold)
+          Text(stringResource(MR.strings.saveThisStation), fontWeight = FontWeight.SemiBold)
           Text(
-            sharedString(SharedString.SAVE_THIS_STATION_DESCRIPTION),
+            stringResource(MR.strings.saveThisStationDescription),
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
           )
@@ -2058,25 +2056,25 @@ private fun StationDetailScreen(
             FavoritePill(
               active = isFavorite,
               onClick = onToggleFavorite,
-              label = if (isFavorite) sharedString(SharedString.FAVORITE) else sharedString(SharedString.SAVE),
+              label = if (isFavorite) stringResource(MR.strings.favorite) else stringResource(MR.strings.save),
             )
             SavedPlacePill(
               active = isHomeStation,
-              label = sharedString(SharedString.HOME),
+              label = stringResource(MR.strings.home),
               onClick = onToggleHome,
             )
             SavedPlacePill(
               active = isWorkStation,
-              label = sharedString(SharedString.WORK),
+              label = stringResource(MR.strings.work),
               onClick = onToggleWork,
             )
           }
           Text(
             when {
-              isHomeStation && isWorkStation -> sharedString(SharedString.STATION_MARKED_HOME_AND_WORK)
-              isHomeStation -> sharedString(SharedString.STATION_MARKED_HOME)
-              isWorkStation -> sharedString(SharedString.STATION_MARKED_WORK)
-              else -> sharedString(SharedString.TAP_HOME_OR_WORK_TO_ASSIGN)
+              isHomeStation && isWorkStation -> stringResource(MR.strings.stationMarkedHomeAndWork)
+              isHomeStation -> stringResource(MR.strings.stationMarkedHome)
+              isWorkStation -> stringResource(MR.strings.stationMarkedWork)
+              else -> stringResource(MR.strings.tapHomeOrWorkToAssign)
             },
             style = MaterialTheme.typography.bodySmall,
             color = LocalBiziColors.current.muted,
@@ -2103,7 +2101,7 @@ private fun StationDetailScreen(
       Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         AvailabilityCard(
           modifier = Modifier.weight(1f),
-          label = sharedString(SharedString.BIKES),
+          label = stringResource(MR.strings.bikes),
           value = station.bikesAvailable.toString(),
           icon = Icons.AutoMirrored.Filled.DirectionsBike,
           tint = LocalBiziColors.current.red,
@@ -2111,7 +2109,7 @@ private fun StationDetailScreen(
         )
         AvailabilityCard(
           modifier = Modifier.weight(1f),
-          label = sharedString(SharedString.SLOTS),
+          label = stringResource(MR.strings.slots),
           value = station.slotsFree.toString(),
           icon = Icons.Filled.LocalParking,
           tint = LocalBiziColors.current.blue,
@@ -2132,7 +2130,7 @@ private fun StationDetailScreen(
       Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
         Icon(Icons.Filled.Directions, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text(sharedString(SharedString.OPEN_ROUTE))
+        Text(stringResource(MR.strings.openRoute))
       }
     }
     item {
@@ -2142,7 +2140,7 @@ private fun StationDetailScreen(
           contentDescription = null,
         )
         Spacer(Modifier.width(8.dp))
-        Text(if (isFavorite) sharedString(SharedString.REMOVE_FROM_FAVORITES) else sharedString(SharedString.SAVE_TO_FAVORITES))
+        Text(if (isFavorite) stringResource(MR.strings.removeFromFavorites) else stringResource(MR.strings.saveToFavorites))
       }
     }
   }
@@ -2170,7 +2168,7 @@ private fun StationPatternCard(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text(sharedString(SharedString.PATTERN_USAGE), fontWeight = FontWeight.SemiBold)
+        Text(stringResource(MR.strings.usagePattern), fontWeight = FontWeight.SemiBold)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
           FilterChip(
             selected = !showWeekend,
@@ -2207,7 +2205,7 @@ private fun StationPatternCard(
             contentAlignment = Alignment.Center,
           ) {
             Text(
-                sharedString(SharedString.PATTERN_NO_DATA),
+                stringResource(MR.strings.noUsagePatternData),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -2222,14 +2220,14 @@ private fun StationPatternCard(
               contentAlignment = Alignment.Center,
             ) {
               Text(
-                sharedString(SharedString.PATTERN_NO_DAY_TYPE_DATA),
+                stringResource(MR.strings.noDataForDayType),
                 style = MaterialTheme.typography.bodySmall,
                 color = colors.muted,
               )
             }
           } else {
             Text(
-              sharedString(SharedString.PATTERN_DESCRIPTION),
+              stringResource(MR.strings.averageBikesHour),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -2246,13 +2244,13 @@ private fun StationPatternCard(
               ) {
                 PatternHintPill(
                   modifier = Modifier.weight(1f),
-                  label = sharedString(SharedString.PATTERN_MORE_BIKES),
+                  label = stringResource(MR.strings.mostBikes),
                   value = "${bestBikesHour.hour}:00h (~${bestBikesHour.bikesAvg.roundToInt()})",
                   tint = colors.red,
                 )
                 PatternHintPill(
                   modifier = Modifier.weight(1f),
-                  label = sharedString(SharedString.PATTERN_MORE_SLOTS),
+                  label = stringResource(MR.strings.mostSlots),
                   value = "${bestSlotsHour.hour}:00h (~${bestSlotsHour.anchorsAvg.roundToInt()})",
                   tint = colors.blue,
                 )
@@ -2360,7 +2358,7 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
     onDismissRequest = onDismiss,
     containerColor = colors.surface,
     title = {
-      Text(sharedString(SharedString.CHANGELOG_WHATS_NEW), fontWeight = FontWeight.Bold)
+      Text(stringResource(MR.strings.changelogWhatsNew), fontWeight = FontWeight.Bold)
     },
     text = {
       LazyColumn(
@@ -2370,12 +2368,12 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
           val entry = CHANGELOG_ENTRIES[index]
           Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-              sharedString(entry.titleKey),
+              stringResource(entry.titleKey),
               style = MaterialTheme.typography.titleSmall,
               fontWeight = FontWeight.SemiBold,
             )
             Text(
-              sharedString(entry.descriptionKey),
+              stringResource(entry.descriptionKey),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -2385,7 +2383,7 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
     },
     confirmButton = {
       TextButton(onClick = onDismiss) {
-        Text(sharedString(SharedString.GOT_IT))
+        Text(stringResource(MR.strings.gotIt))
       }
     },
   )
@@ -2473,7 +2471,7 @@ private fun TripScreen(
               color = c.surface.copy(alpha = 0.92f),
             ) {
               Text(
-                sharedString(SharedString.TAP_MAP_TO_PICK_DESTINATION),
+                stringResource(MR.strings.tapMapToPickDestination),
                 style = MaterialTheme.typography.labelMedium,
                 color = c.muted,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
@@ -2506,14 +2504,14 @@ private fun TripScreen(
             ) {
               Icon(Icons.Filled.Sync, contentDescription = null, tint = c.red)
               Text(
-                sharedString(SharedString.TRIP_STATION_FULL),
+                stringResource(MR.strings.tripStationFull),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = c.red,
               )
             }
             Text(
-              sharedString(SharedString.TRIP_STATION_NO_LONGER_HAS_SLOTS, alert.fullStation.name),
+              stringResource(MR.strings.tripStationNoLongerHasSlots, alert.fullStation.name),
               style = MaterialTheme.typography.bodyMedium,
             )
             val altStation = alert.alternativeStation
@@ -2521,13 +2519,13 @@ private fun TripScreen(
               val dist = alert.alternativeDistanceMeters
               val distText = if (dist != null) " (${dist} m)" else ""
               Text(
-                sharedString(SharedString.TRIP_SUGGESTED_ALTERNATIVE, altStation.name, distText, altStation.slotsFree),
+                stringResource(MR.strings.tripSuggestedAlternative, altStation.name, distText, altStation.slotsFree),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
               )
             } else {
               Text(
-                sharedString(SharedString.TRIP_NO_NEARBY_ALTERNATIVE),
+                stringResource(MR.strings.tripNoNearbyAlternative),
                 style = MaterialTheme.typography.bodySmall,
                 color = c.muted,
               )
@@ -2536,7 +2534,7 @@ private fun TripScreen(
               onClick = { viewModel.onDismissAlert() },
               modifier = Modifier.fillMaxWidth(),
             ) {
-              Text(sharedString(SharedString.GOT_IT))
+              Text(stringResource(MR.strings.gotIt))
             }
           }
         }
@@ -2552,12 +2550,12 @@ private fun TripScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
           ) {
             Text(
-              sharedString(SharedString.WHERE_ARE_YOU_GOING),
+              stringResource(MR.strings.whereAreYouGoing),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
             )
             Text(
-              sharedString(SharedString.TRIP_SUBTITLE),
+              stringResource(MR.strings.tripSubtitle),
               style = MaterialTheme.typography.bodySmall,
               color = c.muted,
             )
@@ -2565,8 +2563,8 @@ private fun TripScreen(
               value = uiState.query,
               onValueChange = { viewModel.onQueryChange(it) },
               modifier = Modifier.fillMaxWidth(),
-              label = { Text(sharedString(SharedString.DESTINATION)) },
-              placeholder = { Text(sharedString(SharedString.DESTINATION_PLACEHOLDER)) },
+              label = { Text(stringResource(MR.strings.destination)) },
+              placeholder = { Text(stringResource(MR.strings.destinationPlaceholder)) },
               singleLine = true,
               leadingIcon = {
                 Icon(Icons.Filled.Search, contentDescription = null)
@@ -2574,7 +2572,7 @@ private fun TripScreen(
               trailingIcon = {
                 if (uiState.query.isNotEmpty()) {
                   IconButton(onClick = { viewModel.onClearQuery() }) {
-                    Icon(Icons.Filled.Close, contentDescription = sharedString(SharedString.CLEAR_FIELD))
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(MR.strings.clearField))
                   }
                 }
               },
@@ -2600,9 +2598,9 @@ private fun TripScreen(
               Spacer(Modifier.width(6.dp))
               Text(
                 if (uiState.mapPickerActive) {
-                  sharedString(SharedString.CANCEL_MAP)
+                  stringResource(MR.strings.cancelMap)
                 } else {
-                  sharedString(SharedString.PICK_ON_MAP)
+                  stringResource(MR.strings.pickOnMap)
                 },
                 color = c.blue,
                 fontWeight = FontWeight.SemiBold,
@@ -2616,7 +2614,7 @@ private fun TripScreen(
       if (uiState.suggestions.isNotEmpty()) {
         item(key = "suggestions-header") {
           Text(
-            sharedString(SharedString.SUGGESTIONS),
+            stringResource(MR.strings.suggestions),
             style = MaterialTheme.typography.labelMedium,
             color = c.muted,
           )
@@ -2668,7 +2666,7 @@ private fun TripScreen(
                   color = c.panel,
                 ) {
                   Text(
-                    text = sharedString(SharedString.DESTINATION),
+                    text = stringResource(MR.strings.destination),
                     style = MaterialTheme.typography.labelSmall,
                     color = c.muted,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -2694,7 +2692,7 @@ private fun TripScreen(
       } else if (uiState.suggestionsError != null) {
         item(key = "suggestions-error") {
           Text(
-            uiState.suggestionsError ?: "",
+            uiState.suggestionsError?.localized() ?: "",
             style = MaterialTheme.typography.bodySmall,
             color = c.red,
           )
@@ -2722,7 +2720,7 @@ private fun TripScreen(
             )
             Column(modifier = Modifier.weight(1f)) {
               Text(
-                sharedString(SharedString.DESTINATION),
+                stringResource(MR.strings.destination),
                 style = MaterialTheme.typography.labelSmall,
                 color = c.muted,
               )
@@ -2744,7 +2742,7 @@ private fun TripScreen(
                 modifier = Modifier.size(16.dp),
               )
               Spacer(Modifier.width(4.dp))
-              Text(sharedString(SharedString.CLEAR), style = MaterialTheme.typography.labelMedium)
+              Text(stringResource(MR.strings.clear), style = MaterialTheme.typography.labelMedium)
             }
           }
         }
@@ -2767,7 +2765,7 @@ private fun TripScreen(
                 color = c.red,
               )
               Text(
-                sharedString(SharedString.SEARCHING_NEARBY_STATION),
+                stringResource(MR.strings.searchingNearbyStation),
                 style = MaterialTheme.typography.bodyMedium,
                 color = c.muted,
               )
@@ -2784,7 +2782,7 @@ private fun TripScreen(
             border = BorderStroke(1.dp, c.red.copy(alpha = 0.18f)),
           ) {
             Text(
-              tripState.searchError!!,
+              tripState.searchError!!.localized(),
               modifier = Modifier.padding(14.dp),
               style = MaterialTheme.typography.bodyMedium,
               color = c.red,
@@ -2792,9 +2790,10 @@ private fun TripScreen(
           }
         }
       }
+    }
 
-      // Station found card (State 4)
-      val station = tripState.nearestStationWithSlots
+    // Station found card (State 4)
+    val station = tripState.nearestStationWithSlots
       if (station != null && !tripState.isSearchingStation) {
         item(key = "station-card") {
           TripStationCard(station = station, distanceMeters = tripState.distanceToStation)
@@ -2817,7 +2816,7 @@ private fun TripScreen(
               )
               Spacer(Modifier.width(6.dp))
               Text(
-                sharedString(SharedString.WALK_ROUTE_TO, destination.name),
+                stringResource(MR.strings.walkRouteTo, destination.name),
                 color = c.red,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -2875,7 +2874,7 @@ private fun TripStationCard(
           tint = c.red,
         )
         Text(
-          sharedString(SharedString.TRIP_SUGGESTED_STATION),
+          stringResource(MR.strings.tripSuggestedStation),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
           color = c.muted,
@@ -2890,18 +2889,18 @@ private fun TripStationCard(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         StationMetricPill(
-          label = sharedString(SharedString.FREE_SLOTS),
+          label = stringResource(MR.strings.freeSlots),
           value = station.slotsFree.toString(),
           tint = c.blue,
         )
         StationMetricPill(
-          label = sharedString(SharedString.BIKES),
+          label = stringResource(MR.strings.bikes),
           value = station.bikesAvailable.toString(),
           tint = c.red,
         )
         if (distanceMeters != null) {
           StationMetricPill(
-            label = sharedString(SharedString.DISTANCE),
+            label = stringResource(MR.strings.distance),
             value = "${distanceMeters} m",
             tint = c.green,
           )
@@ -2924,12 +2923,12 @@ private fun TripMonitoringSetupCard(
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Text(
-        sharedString(SharedString.MONITOR_THIS_STATION),
+        stringResource(MR.strings.monitorThisStation),
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
       )
       Text(
-        sharedString(SharedString.MONITOR_THIS_STATION_DESCRIPTION),
+        stringResource(MR.strings.monitorThisStationDescription),
         style = MaterialTheme.typography.bodySmall,
         color = c.muted,
       )
@@ -2954,7 +2953,7 @@ private fun TripMonitoringSetupCard(
         onClick = onStartMonitoring,
         modifier = Modifier.fillMaxWidth(),
       ) {
-        Text(sharedString(SharedString.START_MONITORING))
+        Text(stringResource(MR.strings.startMonitoring))
       }
     }
   }
@@ -2992,22 +2991,19 @@ private fun TripMonitoringActiveCard(
           trackColor = c.blue.copy(alpha = 0.15f),
         )
         Text(
-          sharedString(SharedString.MONITORING_ACTIVE),
+          stringResource(MR.strings.monitoringActive),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
           color = c.blue,
         )
       }
       Text(
-        sharedString(
-          SharedString.REMAINING_TIME,
-          "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
-        ),
+        stringResource(MR.strings.remainingTime, "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"),
         style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
       )
       Text(
-        sharedString(SharedString.MONITORING_ACTIVE_DESCRIPTION),
+        stringResource(MR.strings.monitoringActiveDescription),
         style = MaterialTheme.typography.bodySmall,
         color = c.muted,
       )
@@ -3017,7 +3013,7 @@ private fun TripMonitoringActiveCard(
       ) {
         Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(6.dp))
-        Text(sharedString(SharedString.STOP_MONITORING))
+        Text(stringResource(MR.strings.stopMonitoring))
       }
     }
   }
@@ -3152,7 +3148,7 @@ private fun StationRow(
         ) {
           onQuickRoute?.let { quickRoute ->
             RoutePill(
-              label = sharedString(SharedString.ROUTE),
+              label = stringResource(MR.strings.route),
               onClick = quickRoute,
             )
           }
@@ -3160,13 +3156,13 @@ private fun StationRow(
             FavoritePill(
               active = isFavorite,
               onClick = onFavoriteToggle,
-              label = if (isFavorite) sharedString(SharedString.SAVED) else sharedString(SharedString.SAVE),
+              label = if (isFavorite) stringResource(MR.strings.saved) else stringResource(MR.strings.save),
             )
           } else {
             FavoritePill(
               active = true,
               onClick = {},
-              label = sharedString(SharedString.FAVORITE),
+              label = stringResource(MR.strings.favorite),
             )
           }
         }
@@ -3174,19 +3170,19 @@ private fun StationRow(
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = sharedString(SharedString.BIKES),
+          label = stringResource(MR.strings.bikes),
           value = station.bikesAvailable.toString(),
           tint = LocalBiziColors.current.red,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = sharedString(SharedString.SLOTS),
+          label = stringResource(MR.strings.slots),
           value = station.slotsFree.toString(),
           tint = LocalBiziColors.current.blue,
         )
         StationMetricPill(
           modifier = Modifier.weight(1f),
-          label = sharedString(SharedString.DISTANCE),
+          label = stringResource(MR.strings.distance),
           value = "${station.distanceMeters} m",
           tint = LocalBiziColors.current.green,
         )
@@ -3242,14 +3238,14 @@ private fun DismissibleFavoriteStationRow(
         extraActions = {
           if (canAssignHome) {
             SavedPlaceQuickAction(
-              label = sharedString(SharedString.HOME),
+              label = stringResource(MR.strings.home),
               tint = LocalBiziColors.current.green,
               onClick = onAssignHome,
             )
           }
           if (canAssignWork) {
             SavedPlaceQuickAction(
-              label = sharedString(SharedString.WORK),
+              label = stringResource(MR.strings.work),
               tint = LocalBiziColors.current.blue,
               onClick = onAssignWork,
             )
@@ -3290,7 +3286,7 @@ private fun FavoriteDismissBackground(
         tint = LocalBiziColors.current.red,
       )
       Text(
-        text = if (mobilePlatform == MobileUiPlatform.IOS) sharedString(SharedString.REMOVE_FAVORITE) else sharedString(SharedString.DELETE_FAVORITE),
+        text = if (mobilePlatform == MobileUiPlatform.IOS) stringResource(MR.strings.removeFavorite) else stringResource(MR.strings.deleteFavorite),
         color = LocalBiziColors.current.red,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
@@ -3378,26 +3374,26 @@ private fun SavedPlaceCard(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
           StationMetricPill(
             modifier = Modifier.weight(1f),
-            label = sharedString(SharedString.BIKES),
+            label = stringResource(MR.strings.bikes),
             value = station.bikesAvailable.toString(),
             tint = LocalBiziColors.current.red,
           )
           StationMetricPill(
             modifier = Modifier.weight(1f),
-            label = sharedString(SharedString.SLOTS),
+            label = stringResource(MR.strings.slots),
             value = station.slotsFree.toString(),
             tint = LocalBiziColors.current.blue,
           )
           StationMetricPill(
             modifier = Modifier.weight(1f),
-            label = sharedString(SharedString.DISTANCE),
+            label = stringResource(MR.strings.distance),
             value = "${station.distanceMeters} m",
             tint = LocalBiziColors.current.green,
           )
         }
       } else {
         Text(
-          text = sharedString(SharedString.SAVED_PLACE_NOT_SET, title),
+          text = stringResource(MR.strings.savedPlaceNotSet, title),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
@@ -3409,11 +3405,11 @@ private fun SavedPlaceCard(
       ) {
         if (station != null) {
           RoutePill(
-            label = sharedString(SharedString.ROUTE),
+            label = stringResource(MR.strings.route),
             onClick = { onQuickRoute(station) },
           )
           OutlineActionPill(
-            label = sharedString(SharedString.DETAILS),
+            label = stringResource(MR.strings.details),
             tint = LocalBiziColors.current.red,
             borderTint = LocalBiziColors.current.red.copy(alpha = 0.16f),
             onClick = { onOpenStationDetails(station) },
@@ -3421,7 +3417,7 @@ private fun SavedPlaceCard(
         }
         if (assignableCandidate != null) {
           OutlineActionPill(
-            label = sharedString(SharedString.ASSIGN_SEARCH_RESULT),
+            label = stringResource(MR.strings.assignSearchResult),
             tint = LocalBiziColors.current.blue,
             borderTint = LocalBiziColors.current.blue.copy(alpha = 0.16f),
             onClick = { onAssignCandidate(assignableCandidate) },
@@ -3429,7 +3425,7 @@ private fun SavedPlaceCard(
         }
         if (station != null) {
           OutlineActionPill(
-            label = sharedString(SharedString.REMOVE),
+            label = stringResource(MR.strings.remove),
             tint = LocalBiziColors.current.muted,
             borderTint = LocalBiziColors.current.panel,
             onClick = onClear,
@@ -3438,13 +3434,13 @@ private fun SavedPlaceCard(
       }
       if (assignableCandidate != null) {
         Text(
-          text = sharedString(SharedString.CURRENT_SEARCH_ASSIGNMENT_HINT, assignableCandidate.name, title),
+          text = stringResource(MR.strings.currentSearchAssignmentHint, assignableCandidate.name, title),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
       } else if (station == null) {
         Text(
-          text = sharedString(SharedString.USE_SEARCH_TO_ASSIGN_STATION),
+          text = stringResource(MR.strings.useSearchToAssignStation),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
@@ -3516,7 +3512,7 @@ private fun MobilePageHeader(
           contentDescription = null,
           tint = LocalBiziColors.current.red,
         )
-        Text(sharedString(SharedString.SHORTCUTS), color = LocalBiziColors.current.red, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(MR.strings.shortcuts), color = LocalBiziColors.current.red, fontWeight = FontWeight.SemiBold)
       }
     }
   }
@@ -3542,7 +3538,7 @@ private fun StationSearchField(
       {
         Icon(
           imageVector = Icons.Filled.Close,
-          contentDescription = sharedString(SharedString.CLEAR_SEARCH),
+          contentDescription = stringResource(MR.strings.clearSearch),
           tint = LocalBiziColors.current.muted,
           modifier = Modifier.clickable { onValueChange("") },
         )
@@ -3601,7 +3597,7 @@ private fun QuickRouteActionCard(
           color = tint,
         )
         Text(
-          sharedString(SharedString.REFRESH_STATIONS_TO_OPEN_ROUTE),
+          stringResource(MR.strings.refreshStationsToOpenRoute),
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
@@ -3616,20 +3612,15 @@ private fun QuickRouteActionCard(
         )
         Text(
           if (selection.usesFallback) {
-            sharedString(SharedString.QUICK_ROUTE_FALLBACK_SUMMARY, selection.radiusMeters, station.distanceMeters)
+            stringResource(MR.strings.quickRouteFallbackSummary, selection.radiusMeters, station.distanceMeters)
           } else {
-            sharedString(
-              SharedString.QUICK_ROUTE_DISTANCE_SUMMARY,
-              station.distanceMeters,
-              station.bikesAvailable,
-              station.slotsFree,
-            )
+            stringResource(MR.strings.quickRouteDistanceSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
           },
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
         )
         Text(
-          sharedString(SharedString.OPEN_ROUTE),
+          stringResource(MR.strings.openRoute),
           style = MaterialTheme.typography.labelMedium,
           color = tint,
           fontWeight = FontWeight.SemiBold,
@@ -3750,52 +3741,53 @@ private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
   MobileUiPlatform.IOS -> "Siri"
 }
 
+@Composable
 private fun shortcutGuidesFor(
   mobilePlatform: MobileUiPlatform,
 ): List<ShortcutGuide> = listOf(
   ShortcutGuide(
-    title = sharedString(SharedString.MAP_NEAREST_STATION_LABEL),
-    description = sharedString(SharedString.GUIDE_NEAREST_STATION_DESCRIPTION),
+    title = stringResource(MR.strings.mapNearestStationLabel),
+    description = stringResource(MR.strings.guideNearestStationDescription),
     examples = listOf(
-      sharedString(SharedString.GUIDE_NEAREST_STATION_EXAMPLE_NEAREST),
-      sharedString(SharedString.GUIDE_NEAREST_STATION_EXAMPLE_CLOSEST),
+      stringResource(MR.strings.guideNearestStationExampleNearest),
+      stringResource(MR.strings.guideNearestStationExampleClosest),
     ),
     icon = Icons.Filled.LocationOn,
   ),
   ShortcutGuide(
-    title = sharedString(SharedString.GUIDE_NEAREST_WITH_BIKES_OR_SLOTS),
-    description = sharedString(SharedString.GUIDE_NEAREST_WITH_BIKES_OR_SLOTS_DESCRIPTION),
+    title = stringResource(MR.strings.guideNearestWithBikesOrSlots),
+    description = stringResource(MR.strings.guideNearestWithBikesOrSlotsDescription),
     examples = listOf(
-      sharedString(SharedString.GUIDE_NEAREST_WITH_BIKES_OR_SLOTS_EXAMPLE_BIKES),
-      sharedString(SharedString.GUIDE_NEAREST_WITH_BIKES_OR_SLOTS_EXAMPLE_SLOTS),
+      stringResource(MR.strings.guideNearestWithBikesOrSlotsExampleBikes),
+      stringResource(MR.strings.guideNearestWithBikesOrSlotsExampleSlots),
     ),
     icon = Icons.AutoMirrored.Filled.DirectionsBike,
   ),
   ShortcutGuide(
-    title = sharedString(SharedString.GUIDE_STATION_STATUS),
-    description = sharedString(SharedString.GUIDE_STATION_STATUS_DESCRIPTION),
+    title = stringResource(MR.strings.guideStationStatus),
+    description = stringResource(MR.strings.guideStationStatusDescription),
     examples = listOf(
-      sharedString(SharedString.GUIDE_STATION_STATUS_EXAMPLE_HOME),
-      sharedString(SharedString.GUIDE_STATION_STATUS_EXAMPLE_HOME_BIKES),
-      sharedString(SharedString.GUIDE_STATION_STATUS_EXAMPLE_STATION_SLOTS),
+      stringResource(MR.strings.guideStationStatusExampleHome),
+      stringResource(MR.strings.guideStationStatusExampleHomeBikes),
+      stringResource(MR.strings.guideStationStatusExampleStationSlots),
     ),
     icon = Icons.Filled.Search,
   ),
   ShortcutGuide(
-    title = sharedString(SharedString.TAB_FAVORITES),
-    description = sharedString(SharedString.GUIDE_FAVORITES_DESCRIPTION),
+    title = stringResource(MR.strings.favorites),
+    description = stringResource(MR.strings.guideFavoritesDescription),
     examples = listOf(
-      sharedString(SharedString.GUIDE_FAVORITES_EXAMPLE_OPEN),
-      sharedString(SharedString.GUIDE_FAVORITES_EXAMPLE_WORK),
+      stringResource(MR.strings.guideFavoritesExampleOpen),
+      stringResource(MR.strings.guideFavoritesExampleWork),
     ),
     icon = Icons.Filled.Favorite,
   ),
   ShortcutGuide(
-    title = sharedString(SharedString.GUIDE_ROUTE_TO_STATION),
-    description = sharedString(SharedString.GUIDE_ROUTE_TO_STATION_DESCRIPTION),
+    title = stringResource(MR.strings.guideRouteToStation),
+    description = stringResource(MR.strings.guideRouteToStationDescription),
     examples = listOf(
-      sharedString(SharedString.GUIDE_ROUTE_TO_STATION_EXAMPLE_PLAZA_ESPANA),
-      sharedString(SharedString.GUIDE_ROUTE_TO_STATION_EXAMPLE_WORK),
+      stringResource(MR.strings.guideRouteToStationExamplePlazaEspana),
+      stringResource(MR.strings.guideRouteToStationExampleWork),
     ),
     icon = Icons.Filled.Directions,
   ),
@@ -3887,7 +3879,7 @@ private fun SavedPlacePill(
   label: String,
   onClick: () -> Unit,
 ) {
-  val tint = if (label == sharedString(SharedString.HOME)) LocalBiziColors.current.green else LocalBiziColors.current.blue
+  val tint = if (label == stringResource(MR.strings.home)) LocalBiziColors.current.green else LocalBiziColors.current.blue
   val containerColor by animateColorAsState(
     targetValue = if (active) tint.copy(alpha = 0.10f) else Color.Transparent,
     animationSpec = tween(180),
@@ -3959,15 +3951,16 @@ private fun AssistantAction.icon() = when (this) {
   is AssistantAction.StationStatus -> Icons.Filled.LocationOn
 }
 
+@Composable
 private fun AssistantAction.label(): String = when (this) {
-  AssistantAction.FavoriteStations -> sharedString(SharedString.MY_FAVORITES)
-  AssistantAction.NearestStation -> sharedString(SharedString.MAP_NEAREST_STATION_LABEL)
-  AssistantAction.NearestStationWithBikes -> sharedString(SharedString.ASSISTANT_LABEL_NEAREST_WITH_BIKES)
-  AssistantAction.NearestStationWithSlots -> sharedString(SharedString.ASSISTANT_LABEL_NEAREST_WITH_SLOTS)
-  is AssistantAction.StationBikeCount -> sharedString(SharedString.BIKES_IN_STATION)
-  is AssistantAction.StationSlotCount -> sharedString(SharedString.SLOTS_IN_STATION)
-  is AssistantAction.RouteToStation -> sharedString(SharedString.ROUTE_TO_STATION)
-  is AssistantAction.StationStatus -> sharedString(SharedString.STATION_STATUS_LABEL)
+  AssistantAction.FavoriteStations -> stringResource(MR.strings.myFavorites)
+  AssistantAction.NearestStation -> stringResource(MR.strings.mapNearestStationLabel)
+  AssistantAction.NearestStationWithBikes -> stringResource(MR.strings.assistantLabelNearestWithBikes)
+  AssistantAction.NearestStationWithSlots -> stringResource(MR.strings.assistantLabelNearestWithSlots)
+  is AssistantAction.StationBikeCount -> stringResource(MR.strings.bikesInStation)
+  is AssistantAction.StationSlotCount -> stringResource(MR.strings.slotsInStation)
+  is AssistantAction.RouteToStation -> stringResource(MR.strings.routeToStation)
+  is AssistantAction.StationStatus -> stringResource(MR.strings.stationStatusLabel)
 }
 
 private fun filterStations(
