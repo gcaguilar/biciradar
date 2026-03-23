@@ -14,12 +14,7 @@ actor BiziWatchGraph {
     static let shared = BiziWatchGraph()
 
     private let bindings = WatchOSPlatformBindings(
-        appConfiguration: AppConfiguration(
-            stationsApiUrl: "https://www.zaragoza.es/sede/servicio/urbanismo-infraestructuras/estacion-bicicleta.json",
-            stationsFallbackApiUrl: "https://api.citybik.es/v2/networks/bizi-zaragoza",
-            defaultLatitude: 41.6488,
-            defaultLongitude: -0.8891
-        )
+        appConfiguration: AppConfiguration.companion.createDefault()
     )
 
     private lazy var graph: any SharedGraph = SharedGraphCompanion.shared.create(

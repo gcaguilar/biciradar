@@ -14,7 +14,7 @@ actor BiziAppleGraph {
     static let shared = BiziAppleGraph()
 
     private let bindings = IOSPlatformBindings(
-        appConfiguration: AppConfiguration()
+        appConfiguration: AppConfiguration.companion.createDefault()
     )
 
     private lazy var graph: any SharedGraph = SharedGraphCompanion.shared.create(

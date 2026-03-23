@@ -11,6 +11,10 @@ data class AppConfiguration(
   val defaultLongitude: Double = -0.8891,
 ) {
   val gbfsDiscoveryUrl: String get() = city.gbfsDiscoveryUrl
+
+  companion object {
+    fun createDefault(): AppConfiguration = AppConfiguration()
+  }
 }
 
 fun AppConfiguration.stationsApiUrl(start: Int, rows: Int): String =
