@@ -26,11 +26,11 @@ kotlin {
 }
 
 android {
-  namespace = "com.gcaguilar.bizizaragoza"
+  namespace = "com.gcaguilar.biciradar"
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.gcaguilar.bizizaragoza"
+    applicationId = "com.gcaguilar.biciradar"
     minSdk = 26
     targetSdk = 36
     versionCode = 1

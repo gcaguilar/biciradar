@@ -15,11 +15,11 @@ kotlin {
 }
 
 android {
-  namespace = "com.gcaguilar.bizizaragoza.wear"
+  namespace = "com.gcaguilar.biciradar.wear"
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.gcaguilar.bizizaragoza.wear"
+    applicationId = "com.gcaguilar.biciradar.wear"
     minSdk = 30
     targetSdk = 36
     versionCode = 1

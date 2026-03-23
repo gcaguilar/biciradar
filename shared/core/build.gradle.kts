@@ -75,7 +75,7 @@ kotlin {
 }
 
 android {
-  namespace = "com.gcaguilar.bizizaragoza.shared.core"
+  namespace = "com.gcaguilar.biciradar.shared.core"
   compileSdk = 36
 
   defaultConfig {
