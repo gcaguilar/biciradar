@@ -19,8 +19,6 @@ jobs:
     env:
       FASTLANE_SKIP_UPDATE_CHECK: "1"
       APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
-      APPLE_EXPORT_METHOD: ${{ vars.APPLE_EXPORT_METHOD }}
-      APPLE_SIGNING_CERTIFICATE_TYPE: ${{ vars.APPLE_SIGNING_CERTIFICATE_TYPE }}
       APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
@@ -31,6 +29,7 @@ jobs:
       APP_REVIEW_CONTACT_PHONE: ${{ secrets.APP_REVIEW_CONTACT_PHONE }}
       APP_REVIEW_NOTES: ${{ secrets.APP_REVIEW_NOTES }}
       APP_USES_ENCRYPTION: ${{ vars.APP_USES_ENCRYPTION }}
+      APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
 
     steps:
       - name: Checkout repository history
@@ -74,81 +73,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Make scripts executable
-        run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
-
-      - name: Validate App Store release configuration
-        run: |
-          export_method="${APPLE_EXPORT_METHOD:-app-store}"
-          signing_certificate="${APPLE_SIGNING_CERTIFICATE_TYPE:-Apple Distribution}"
-          bundle_id="${APPLE_BUNDLE_ID:-com.gcaguilar.biciradar.ios}"
-
-          if [[ "$export_method" != "app-store" ]]; then
-            echo "::error::APPLE_EXPORT_METHOD must be app-store (got: $export_method)"
-            exit 1
-          fi
-
-          if [[ "$signing_certificate" != "Apple Distribution" ]]; then
-            echo "::error::APPLE_SIGNING_CERTIFICATE_TYPE must be Apple Distribution (got: $signing_certificate)"
-            exit 1
-          fi
-
-          {
-            echo "APPLE_EXPORT_METHOD=$export_method"
-            echo "APPLE_SIGNING_CERTIFICATE_TYPE=$signing_certificate"
-            echo "APPLE_BUNDLE_ID=$bundle_id"
-          } >> "$GITHUB_ENV"
-
-      - name: Validate App Store secrets
-        env:
-          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
-          APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
-          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_IOS }}
-        run: |
-          missing=0
-          required_envs=(
-            APP_STORE_CONNECT_ISSUER_ID
-            APP_STORE_CONNECT_KEY_ID
-            APP_STORE_CONNECT_API_KEY_P8
-            APP_REVIEW_CONTACT_FIRST_NAME
-            APP_REVIEW_CONTACT_LAST_NAME
-            APP_REVIEW_CONTACT_EMAIL
-            APP_REVIEW_CONTACT_PHONE
-            APP_USES_ENCRYPTION
-            APPLE_PROVISIONING_PROFILE_BASE64
-            APPLE_SIGNING_CERTIFICATE_P12_BASE64
-            APPLE_SIGNING_CERTIFICATE_PASSWORD
-            GOOGLE_MAPS_API_KEY
-          )
-
-          for name in "${required_envs[@]}"; do
-            if [[ -z "${!name:-}" ]]; then
-              echo "::error::$name is required"
-              missing=1
-            fi
-          done
-
-          app_uses_encryption="$(printf '%s' "${APP_USES_ENCRYPTION:-}" | tr '[:upper:]' '[:lower:]')"
-
-          if [[ -n "$app_uses_encryption" && "$app_uses_encryption" != "true" && "$app_uses_encryption" != "false" ]]; then
-            echo "::error::APP_USES_ENCRYPTION must be true or false"
-            missing=1
-          fi
-
-          if [[ -z "${APPLE_KEYCHAIN_PASSWORD:-}" ]]; then
-            echo "::warning::APPLE_KEYCHAIN_PASSWORD is not set; the workflow will fall back to a temporary default value"
-          fi
-
-          if [[ -z "${GOOGLE_SERVICE_INFO_PLIST:-}" ]]; then
-            echo "::warning::GOOGLE_SERVICE_INFO_PLIST_IOS is not set; Firebase Crashlytics upload may be skipped"
-          fi
-
-          if (( missing != 0 )); then
-            exit 1
-          fi
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
 
       - name: Write iOS secrets
         env:
@@ -160,37 +86,33 @@ jobs:
             printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > apple/iosApp/GoogleService-Info.plist
           fi
 
-      - name: Install Apple signing assets
+      - name: Decode signing assets
         env:
-          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
-          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
-          APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-        run: ./tooling/generic-mobile-ci/install_apple_signing_assets.sh
-
-      - name: Build signed iOS IPA
+          APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          ./tooling/generic-mobile-ci/export_ios_ipa.sh "$RUNNER_TEMP/ios-store-export" "$RUNNER_TEMP/BiciRadar-store.xcarchive"
-          shopt -s nullglob
-          ipa_files=("$RUNNER_TEMP/ios-store-export"/*.ipa)
-          if (( ${#ipa_files[@]} != 1 )); then
-            echo "::error::Expected exactly one IPA in $RUNNER_TEMP/ios-store-export"
-            ls -la "$RUNNER_TEMP/ios-store-export"
-            exit 1
-          fi
-          echo "APPLE_IPA_PATH=${ipa_files[0]}" >> "$GITHUB_ENV"
+          echo "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/signing-certificate.p12"
+          echo "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing-profile.mobileprovision"
 
-      - name: Upload signed iOS IPA artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: ios-app-store-ipa
-          if-no-files-found: error
-          path: ${{ env.APPLE_IPA_PATH }}
+          profile_name="$(security cms -D -i "$RUNNER_TEMP/signing-profile.mobileprovision" | /usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin)"
+
+          {
+            echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12"
+            echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision"
+            echo "APPLE_PROFILE_NAME=$profile_name"
+          } >> "$GITHUB_ENV"
 
       - name: Set up Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
 
-      - name: Submit IPA to App Store Connect
+      - name: Build, sign and upload to App Store
         run: bundle exec fastlane ios release_to_app_store
+
+      - name: Upload signed iOS IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-app-store-ipa
+          if-no-files-found: error
+          path: fastlane/output/BiciRadar.ipa

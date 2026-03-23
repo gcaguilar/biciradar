@@ -27,3 +27,6 @@ pepk.jar
 encryption_public_key.pem
 play/
 play.zip
+fastlane/output/
+fastlane/report.xml
+fastlane/test_output/
