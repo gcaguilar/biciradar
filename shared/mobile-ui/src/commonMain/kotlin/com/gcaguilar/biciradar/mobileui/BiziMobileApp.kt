@@ -632,8 +632,7 @@ fun BiziMobileApp(
             showCitySelection = false
           }
         )
-      }
-      AnimatedContent(
+      } else AnimatedContent(
         targetState = showStartupSplash,
         transitionSpec = {
           fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))

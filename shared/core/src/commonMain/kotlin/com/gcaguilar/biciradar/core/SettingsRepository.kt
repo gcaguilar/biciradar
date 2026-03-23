@@ -67,7 +67,7 @@ class SettingsRepositoryImpl(
     mutableLastSeenChangelogVersion.value = snapshot?.lastSeenChangelogVersion ?: 0
     mutableThemePreference.value = snapshot?.themePreference ?: ThemePreference.System
     mutableSelectedCity.value = snapshot?.selectedCityId?.let { City.fromId(it) } ?: City.defaultCity()
-    mutableHasCompletedOnboarding.value = snapshot?.hasCompletedOnboarding ?: false
+    mutableHasCompletedOnboarding.value = snapshot?.hasCompletedOnboarding ?: (snapshot != null)
     bootstrapped = true
   }
 
