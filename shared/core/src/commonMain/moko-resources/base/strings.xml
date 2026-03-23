@@ -208,4 +208,13 @@
     <string name="routeToSelectedStation">Abriendo la ruta a la estación seleccionada.</string>
     <string name="unknownStation">No he encontrado esa estación.</string>
     <string name="tripAlertSlotsFreeRemaining">%s · %s hueco(s) libre(s) · %s restante(s)</string>
+    <string name="mapFilterOnlyEbikes">Solo eléctricas</string>
+    <string name="mapFilterOnlyRegularBikes">Solo convencionales</string>
+    <string name="mapLegendOnlyEbikes">Solo eléctricas</string>
+    <string name="mapLegendOnlyRegularBikes">Solo convencionales</string>
+    <string name="selectCity">Seleccionar ciudad</string>
+    <string name="citySelectionTitle">Elige tu ciudad</string>
+    <string name="citySelectionSubtitle">Selecciona la ciudad donde usarás Bici Radar</string>
+    <string name="selectedCity">Ciudad seleccionada</string>
+    <string name="continueButton">Continuar</string>
 </resources>

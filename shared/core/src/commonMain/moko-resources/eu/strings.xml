@@ -209,4 +209,13 @@
     <string name="routeToSelectedStation">Hautatutako geltokirako ibilbidea irekitzen.</string>
     <string name="unknownStation">Ez dut geltoki hori aurkitu.</string>
     <string name="tripAlertSlotsFreeRemaining">%s · %s leku libre · %s geratzen dira</string>
+    <string name="mapFilterOnlyEbikes">Elektrikoak soilik</string>
+    <string name="mapFilterOnlyRegularBikes">Arruntak soilik</string>
+    <string name="mapLegendOnlyEbikes">Elektrikoak soilik</string>
+    <string name="mapLegendOnlyRegularBikes">Arruntak soilik</string>
+    <string name="selectCity">Hiria hautatu</string>
+    <string name="citySelectionTitle">Aukeratu zure hiria</string>
+    <string name="citySelectionSubtitle">Hautatu Bici Radar erabiliko duzun hiria</string>
+    <string name="selectedCity">Hautatutako hiria</string>
+    <string name="continueButton">Jarraitu</string>
 </resources>

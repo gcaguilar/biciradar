@@ -208,4 +208,13 @@
     <string name="routeToSelectedStation">Obrint la ruta cap a l\'estació seleccionada.</string>
     <string name="unknownStation">No he trobat aquesta estació.</string>
     <string name="tripAlertSlotsFreeRemaining">%s · %s ancoratge(s) lliure(s) · %s restant(s)</string>
+    <string name="mapFilterOnlyEbikes">Només elèctriques</string>
+    <string name="mapFilterOnlyRegularBikes">Només convencionals</string>
+    <string name="mapLegendOnlyEbikes">Només elèctriques</string>
+    <string name="mapLegendOnlyRegularBikes">Només convencionals</string>
+    <string name="selectCity">Seleccionar ciutat</string>
+    <string name="citySelectionTitle">Tria la teva ciutat</string>
+    <string name="citySelectionSubtitle">Selecciona la ciutat on faràs servir Bici Radar</string>
+    <string name="selectedCity">Ciutat seleccionada</string>
+    <string name="continueButton">Continuar</string>
 </resources>

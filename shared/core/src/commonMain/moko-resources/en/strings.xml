@@ -208,4 +208,13 @@
     <string name="routeToSelectedStation">Opening the route to the selected station.</string>
     <string name="unknownStation">I couldn\'t find that station.</string>
     <string name="tripAlertSlotsFreeRemaining">%s · %s free slot(s) · %s remaining</string>
+    <string name="mapFilterOnlyEbikes">E-bikes only</string>
+    <string name="mapFilterOnlyRegularBikes">Regular bikes only</string>
+    <string name="mapLegendOnlyEbikes">E-bikes only</string>
+    <string name="mapLegendOnlyRegularBikes">Regular bikes only</string>
+    <string name="selectCity">Select city</string>
+    <string name="citySelectionTitle">Choose your city</string>
+    <string name="citySelectionSubtitle">Select the city where you will use Bici Radar</string>
+    <string name="selectedCity">Selected city</string>
+    <string name="continueButton">Continue</string>
 </resources>
