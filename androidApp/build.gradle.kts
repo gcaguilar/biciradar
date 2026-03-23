@@ -43,6 +43,18 @@ android {
     compose = true
   }
 
+  val keystorePath = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orNull
+  if (keystorePath != null) {
+    signingConfigs {
+      create("release") {
+        storeFile = file(keystorePath)
+        storePassword = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").get()
+        keyAlias = providers.environmentVariable("BIZI_CI_KEY_ALIAS").get()
+        keyPassword = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").get()
+      }
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = true
@@ -51,6 +63,10 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro"
       )
+      signingConfig = signingConfigs.findByName("release")
+      ndk {
+        debugSymbolLevel = "FULL"
+      }
     }
   }
 
