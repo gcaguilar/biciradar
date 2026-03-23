@@ -29,12 +29,8 @@ platform :ios do
       keychain_name: "fastlane_tmp_keychain"
     )
 
-    install_provisioning_profile(
-      path: required_env("APPLE_PROFILE_PATH")
-    )
-
-    profile_specifier = optional_env("APPLE_PROFILE_NAME")
-    profile_uuid = optional_env("APPLE_PROFILE_UUID")
+    bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
+    team_id = required_env("APPLE_TEAM_ID")
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -42,9 +38,16 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{required_env("APPLE_TEAM_ID")}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_IDENTITY='Apple Distribution'",
       output_directory: "fastlane/output",
-      output_name: "BiciRadar.ipa"
+      output_name: "BiciRadar.ipa",
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          bundle_id => required_env("APPLE_PROFILE_NAME")
+        },
+        teamID: team_id
+      }
     )
   end
 
@@ -64,12 +67,12 @@ platform :ios do
       keychain_name: "fastlane_tmp_keychain"
     )
 
-    install_provisioning_profile(
-      path: required_env("APPLE_PROFILE_PATH")
-    )
+    profile_path = required_env("APPLE_PROFILE_PATH")
+    profile_name = required_env("APPLE_PROFILE_NAME")
+    bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")
+    team_id = required_env("APPLE_TEAM_ID")
 
-    profile_specifier = optional_env("APPLE_PROFILE_NAME")
-    profile_uuid = optional_env("APPLE_PROFILE_UUID")
+    install_provisioning_profile(path: profile_path)
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -77,9 +80,16 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{required_env("APPLE_TEAM_ID")}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
-      output_name: "BiciRadar.ipa"
+      output_name: "BiciRadar.ipa",
+      export_options: {
+        signingStyle: "manual",
+        provisioningProfiles: {
+          bundle_id => profile_name
+        },
+        teamID: team_id
+      }
     )
 
     upload_to_app_store(
