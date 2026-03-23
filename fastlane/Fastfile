@@ -38,7 +38,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
@@ -75,7 +75,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_IDENTITY='Apple Distribution'",
+      xcargs: "DEVELOPMENT_TEAM='#{team_id}'",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
