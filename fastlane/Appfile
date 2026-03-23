@@ -1,0 +1,3 @@
+app_identifier(ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios"))
+apple_id(ENV.fetch("APPLE_ID", ""))
+team_id(ENV.fetch("APPLE_TEAM_ID", ""))
