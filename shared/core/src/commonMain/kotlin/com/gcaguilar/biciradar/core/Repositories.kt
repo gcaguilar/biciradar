@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.core
 
-import androidx.compose.runtime.Stable
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +17,6 @@ import okio.Path.Companion.toPath
 private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
 private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
 
-@Stable
 interface StationsRepository {
   val state: StateFlow<StationsState>
   suspend fun loadIfNeeded()
