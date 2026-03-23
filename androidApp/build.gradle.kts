@@ -59,6 +59,10 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
 
+  lint {
+    disable += "InvalidFragmentVersionForActivityResult"
+  }
+
   sourceSets {
     getByName("main") {
       manifest.srcFile("src/androidMain/AndroidManifest.xml")
