@@ -14,7 +14,6 @@
 		0D1C8A45A6C4DE44D7C1ADDA /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 556AFE9CE6EDB4F10439CD71 /* GoogleMaps */; };
 		14AB29D4AA54154DC9CB0606 /* WatchDashboardModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA81CAFF45F72A3F9E798C6 /* WatchDashboardModelTests.swift */; };
 		16F03485048BED3E901365CF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05F6FE2989AAE261F81A4893 /* SwiftUI.framework */; };
-		18516FA58B292EFCDF07B7B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 637FA5361E656C90A9462F62 /* GoogleService-Info.plist */; };
 		197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */; };
 		1B59A4F9B0439B18C0014937 /* FavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */; };
 		23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */; };
@@ -36,6 +35,7 @@
 		7EB04D334C1CEDCBB0128E94 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E55A8CFDB2BED84333A7249 /* WatchConnectivity.framework */; };
 		7FC3AE856AF7139EA6AD5B2C /* WatchDashboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */; };
 		820C221928C2861F1170BF3E /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */; };
+		82CE438F2F4E76FEF88DAE90 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 559060C69B64A00D2139B860 /* Localizable.strings */; };
 		8709E27517E4746DB4B6F6E9 /* StationAvailabilityCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */; };
 		8BAFF5DCEE0BDA01CA19F0A3 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 2C2B77CE801F89004E157228 /* FirebaseCrashlytics */; };
 		92099B6E7FF6B6503DB3657F /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1598AA72441D647040F04BB8 /* XCTest.framework */; };
@@ -57,6 +57,7 @@
 		DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FDBEC6252D80DCAD5A52992E /* FirebaseCore */; };
 		E549E2DA4C6AB6C75B22A6DF /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */; };
 		E722BA85CA1966A232FBDEFE /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1598AA72441D647040F04BB8 /* XCTest.framework */; };
+		E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8AFA899EBAC3579700B49207 /* Localizable.strings */; };
 		EE2B41863B39EDD823677BA9 /* WatchFavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C35FA87704051EDF4F0EE7 /* WatchFavoritesSyncBridgeTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -75,6 +76,7 @@
 		05F6FE2989AAE261F81A4893 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
 		1598AA72441D647040F04BB8 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		26CAE5B20B8CABB6A3FCBAE0 /* BiciRadar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadar.entitlements; sourceTree = "<group>"; };
 		2B50DEAA2C967B20FE470914 /* BiziWatchShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchShortcuts.swift; sourceTree = "<group>"; };
 		2BC9A77B9AF176A78BC317DF /* BiciRadarWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BiciRadarWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		31C35FA87704051EDF4F0EE7 /* WatchFavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
@@ -85,16 +87,20 @@
 		5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		54183542F89617F29EE06161 /* FirebaseBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrap.swift; sourceTree = "<group>"; };
 		575923083815B43475410B72 /* BiciRadarTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiciRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A6D5C019BC4FBE3FFDF5370 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		5B9E6540EF54F354D8AB7430 /* BiciRadarUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiciRadarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5FA81CAFF45F72A3F9E798C6 /* WatchDashboardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDashboardModelTests.swift; sourceTree = "<group>"; };
-		637FA5361E656C90A9462F62 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		65EA7DFF87DE12F9A74AA3EA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6BF902119A13611BE50A2CD9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6F0CAFAC56EAB8403BC384B6 /* WatchStationShortcutEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStationShortcutEntity.swift; sourceTree = "<group>"; };
+		73BE2847BE323AF95C5E7E8E /* eu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eu; path = eu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDashboardModel.swift; sourceTree = "<group>"; };
 		7B91BEC9F4945428E5A6E075 /* BiziNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziNotificationService.swift; sourceTree = "<group>"; };
+		7FA5C1204AB09733D18F1B7B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		91C35D52602A10877C0F95B1 /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = gl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		94E146351C07D91814CE43FB /* MapsConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MapsConfig.xcconfig; sourceTree = "<group>"; };
 		9F2F914614DF298F08D32FB9 /* BiziStationShortcutEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziStationShortcutEntity.swift; sourceTree = "<group>"; };
+		A12E3DA9EA2CE92679BAA972 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A15943BE6F812F733F33D68D /* BiciRadar.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BiciRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2D7661C15E89970A172881A /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
@@ -102,15 +108,20 @@
 		AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
 		AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziBackgroundTaskHandler.swift; sourceTree = "<group>"; };
 		B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunnerTests.swift; sourceTree = "<group>"; };
+		B63936BEAF54B41172371543 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		BA5F0343500174E24CBA4EC9 /* BiciRadarWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarWatchApp.swift; sourceTree = "<group>"; };
 		BF2A897D023496E147F3B0D6 /* WatchShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunnerTests.swift; sourceTree = "<group>"; };
 		BF381A1EDBC82B7C77CFA601 /* GoogleMapsBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleMapsBootstrap.swift; sourceTree = "<group>"; };
+		C1A801204A2974389551F17C /* eu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eu; path = eu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C573CFD8C4D13B37F739158D /* BiciRadarUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarUITests.swift; sourceTree = "<group>"; };
 		D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStoreTests.swift; sourceTree = "<group>"; };
 		D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunner.swift; sourceTree = "<group>"; };
 		DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarApp.swift; sourceTree = "<group>"; };
 		E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
+		EB59C343B1277217A7131D94 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
+		EFE4D5CD6A6F7916934E45C4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F04DAFB5534E3F9676F05A36 /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = gl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F189CFF421E93B8C23A41D1E /* BiciRadarWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiciRadarWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleMapsStationMapFactory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -217,6 +228,7 @@
 				AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */,
 				E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */,
 				6BF902119A13611BE50A2CD9 /* Assets.xcassets */,
+				26CAE5B20B8CABB6A3FCBAE0 /* BiciRadar.entitlements */,
 				DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */,
 				AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */,
 				7B91BEC9F4945428E5A6E075 /* BiziNotificationService.swift */,
@@ -226,8 +238,8 @@
 				54183542F89617F29EE06161 /* FirebaseBootstrap.swift */,
 				BF381A1EDBC82B7C77CFA601 /* GoogleMapsBootstrap.swift */,
 				FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */,
-				637FA5361E656C90A9462F62 /* GoogleService-Info.plist */,
 				46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */,
+				559060C69B64A00D2139B860 /* Localizable.strings */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -260,6 +272,7 @@
 				5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */,
 				D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */,
 				6F0CAFAC56EAB8403BC384B6 /* WatchStationShortcutEntity.swift */,
+				8AFA899EBAC3579700B49207 /* Localizable.strings */,
 			);
 			path = watchApp;
 			sourceTree = "<group>";
@@ -427,9 +440,9 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
-				es,
-				en,
 				ca,
+				en,
+				es,
 				eu,
 				gl,
 			);
@@ -459,6 +472,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B0132525479D6341D19760E /* Assets.xcassets in Resources */,
+				E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,7 +481,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB2393E4816C6C3EBB9A9D83 /* Assets.xcassets in Resources */,
-				18516FA58B292EFCDF07B7B1 /* GoogleService-Info.plist in Resources */,
+				82CE438F2F4E76FEF88DAE90 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,6 +673,33 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin PBXVariantGroup section */
+		559060C69B64A00D2139B860 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				EB59C343B1277217A7131D94 /* ca */,
+				7FA5C1204AB09733D18F1B7B /* en */,
+				A12E3DA9EA2CE92679BAA972 /* es */,
+				73BE2847BE323AF95C5E7E8E /* eu */,
+				91C35D52602A10877C0F95B1 /* gl */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		8AFA899EBAC3579700B49207 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5A6D5C019BC4FBE3FFDF5370 /* ca */,
+				B63936BEAF54B41172371543 /* en */,
+				EFE4D5CD6A6F7916934E45C4 /* es */,
+				C1A801204A2974389551F17C /* eu */,
+				F04DAFB5534E3F9676F05A36 /* gl */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
 		2760199B86E23BE2BA95EE78 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -812,7 +853,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29561231;
+				CURRENT_PROJECT_VERSION = 29568074;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -831,7 +872,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2026.03.16.1611;
+				MARKETING_VERSION = 2026.03.21.0914;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -870,7 +911,8 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
@@ -915,7 +957,8 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
@@ -1071,7 +1114,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29561231;
+				CURRENT_PROJECT_VERSION = 29568074;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1084,7 +1127,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2026.03.16.1611;
+				MARKETING_VERSION = 2026.03.21.0914;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1168,7 +1211,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = exactVersion;
-				version = 12.10.0;
+				version = 12.11.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

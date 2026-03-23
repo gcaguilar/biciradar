@@ -104,6 +104,7 @@ targets:
           "$run_script"
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: iosApp/BiciRadar.entitlements
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
