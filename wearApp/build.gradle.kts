@@ -1,51 +1,29 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.android.builtin.kotlin)
+  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.firebase.crashlytics) apply false
-  alias(libs.plugins.google.services) apply false
-}
-
-val localProperties = Properties().apply {
-  val localPropertiesFile = rootProject.file("local.properties")
-  if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use(::load)
-  }
-}
-
-val wearApplicationId = "com.gcaguilar.biciradar.wear"
-val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
-val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
-  firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
-val ciKeystorePath: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orElse("").get()
-val ciKeystorePassword: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").orElse("").get()
-val ciKeyAlias: String = providers.environmentVariable("BIZI_CI_KEY_ALIAS").orElse("").get()
-val ciKeyPassword: String = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").orElse("").get()
-
-if (firebaseCrashlyticsEnabled) {
-  apply(plugin = "com.google.gms.google-services")
-  apply(plugin = "com.google.firebase.crashlytics")
 }
 
 kotlin {
-  compilerOptions {
-    jvmTarget.set(JvmTarget.JVM_17)
+  androidTarget {
+    compilerOptions {
+      jvmTarget.set(JvmTarget.JVM_17)
+    }
   }
 }
 
 android {
-  namespace = wearApplicationId
+  namespace = "com.gcaguilar.bizizaragoza.wear"
   compileSdk = 36
 
   defaultConfig {
-    applicationId = wearApplicationId
+    applicationId = "com.gcaguilar.bizizaragoza.wear"
     minSdk = 30
     targetSdk = 36
-    versionCode = 29568074
-    versionName = "2026.03.21.0914"
+    versionCode = 1
+    versionName = "0.1.0"
   }
 
   buildFeatures {
@@ -53,38 +31,9 @@ android {
     compose = true
   }
 
-  lint {
-    // False positive: ComponentActivity ships its own modern FragmentActivity —
-    // the fragment version check does not apply here.
-    disable += "InvalidFragmentVersionForActivityResult"
-  }
-
   buildTypes {
     release {
-      isMinifyEnabled = true
-      isShrinkResources = true
-      if (ciKeystorePath.isNotEmpty()) {
-        signingConfig = signingConfigs.create("ciRelease") {
-          storeFile = file(ciKeystorePath)
-          storePassword = ciKeystorePassword
-          keyAlias = ciKeyAlias
-          keyPassword = ciKeyPassword
-        }
-      }
-      proguardFiles(
-        getDefaultProguardFile("proguard-android-optimize.txt"),
-        "proguard-rules.pro",
-      )
-    }
-    debug {
-      if (ciKeystorePath.isNotEmpty()) {
-        signingConfig = signingConfigs.create("ciDebug") {
-          storeFile = file(ciKeystorePath)
-          storePassword = ciKeystorePassword
-          keyAlias = ciKeyAlias
-          keyPassword = ciKeyPassword
-        }
-      }
+      isMinifyEnabled = false
     }
   }
 
@@ -109,9 +58,5 @@ android {
     implementation(libs.androidx.wear.compose.foundation)
     implementation(libs.androidx.wear.compose.material3)
     implementation(libs.androidx.wear.compose.navigation)
-    if (firebaseCrashlyticsEnabled) {
-      implementation(platform(libs.firebase.bom))
-      implementation(libs.firebase.crashlytics)
-    }
   }
 }

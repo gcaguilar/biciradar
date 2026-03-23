@@ -1,13 +1,14 @@
 [versions]
-agp = "9.1.0"
+agp = "8.13.0"
 composeMultiplatform = "1.10.3"
+composeCompiler = "2.2.20"
 coroutines = "1.10.2"
-kotlin = "2.3.20"
-ktor = "3.4.1"
-metro = "0.11.4"
+kotlin = "2.2.20"
+ktor = "3.3.3"
+metro = "0.9.4"
 mokoResources = "0.26.1"
 okio = "3.17.0"
-serialization = "1.10.0"
+serialization = "1.9.0"
 androidx-activity = "1.13.0"
 androidx-lifecycle = "2.10.0"
 androidx-core = "1.18.0"
@@ -25,6 +26,7 @@ firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
 
 [libraries]
+androidx-activity = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
@@ -60,7 +62,6 @@ serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-jso
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-android-builtin-kotlin = { id = "com.android.built-in-kotlin", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

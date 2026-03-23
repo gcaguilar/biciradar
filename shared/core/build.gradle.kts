@@ -2,9 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.android.kotlin.multiplatform.library)
-  alias(libs.plugins.compose.multiplatform)
-  alias(libs.plugins.compose.compiler)
+  alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.metro)
   alias(libs.plugins.moko.resources)
@@ -15,10 +13,7 @@ multiplatformResources {
 }
 
 kotlin {
-  android {
-    compileSdk = 36
-    minSdk = 26
-    namespace = "com.gcaguilar.biciradar.shared.core"
+  androidTarget {
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }
@@ -44,13 +39,12 @@ kotlin {
   }
   sourceSets {
     commonMain.dependencies {
-      api(libs.moko.resources)
-      implementation(compose.runtime)
       implementation(libs.coroutines.core)
       implementation(libs.ktor.client.content.negotiation)
       implementation(libs.ktor.client.core)
       implementation(libs.ktor.serialization.kotlinx.json)
       implementation(libs.metro.runtime)
+      implementation(libs.moko.resources)
       implementation(libs.okio)
       implementation(libs.serialization.json)
     }
@@ -77,6 +71,20 @@ kotlin {
         implementation(libs.ktor.client.darwin)
       }
     }
+  }
+}
+
+android {
+  namespace = "com.gcaguilar.bizizaragoza.shared.core"
+  compileSdk = 36
+
+  defaultConfig {
+    minSdk = 26
+  }
+
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
   }
 }
 

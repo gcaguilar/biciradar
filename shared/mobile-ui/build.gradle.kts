@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-  android {
+  androidLibrary {
     compileSdk = 36
     minSdk = 26
     namespace = "com.gcaguilar.biciradar.shared.mobileui"
