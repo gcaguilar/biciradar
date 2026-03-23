@@ -13,7 +13,6 @@ concurrency:
 jobs:
   publish-ios-store:
     name: Publish signed iOS IPA to App Store
-    environment: app-store
     runs-on: macos-latest
     timeout-minutes: 60
     env:
@@ -91,15 +90,36 @@ jobs:
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
-          echo "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/signing-certificate.p12"
-          echo "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing-profile.mobileprovision"
+          if [[ -z "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" ]]; then
+            echo "::error::APPLE_SIGNING_CERTIFICATE_P12_BASE64 secret is empty or not available"
+            exit 1
+          fi
+          if [[ -z "$APPLE_PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "::error::APPLE_PROVISIONING_PROFILE_BASE64 secret is empty or not available"
+            exit 1
+          fi
 
-          profile_name="$(security cms -D -i "$RUNNER_TEMP/signing-profile.mobileprovision" | /usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin)"
+          printf '%s' "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 -D > "$RUNNER_TEMP/signing-certificate.p12"
+          printf '%s' "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/signing-profile.mobileprovision"
+
+          echo "Decoded p12: $(wc -c < "$RUNNER_TEMP/signing-certificate.p12") bytes"
+          echo "Decoded profile: $(wc -c < "$RUNNER_TEMP/signing-profile.mobileprovision") bytes"
+
+          profile_uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' /dev/stdin <<< "$(security cms -D -i "$RUNNER_TEMP/signing-profile.mobileprovision" 2>/dev/null)" 2>/dev/null || true)"
+          if [[ -z "$profile_uuid" ]]; then
+            profile_uuid="$(grep -a -A1 '<key>UUID</key>' "$RUNNER_TEMP/signing-profile.mobileprovision" | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')"
+          fi
+          profile_name="$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$RUNNER_TEMP/signing-profile.mobileprovision" 2>/dev/null)" 2>/dev/null || true)"
+          if [[ -z "$profile_name" ]]; then
+            profile_name="$(grep -a -A1 '<key>Name</key>' "$RUNNER_TEMP/signing-profile.mobileprovision" | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')"
+          fi
+          echo "Profile name: $profile_name (UUID: $profile_uuid)"
 
           {
             echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12"
             echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision"
             echo "APPLE_PROFILE_NAME=$profile_name"
+            echo "APPLE_PROFILE_UUID=$profile_uuid"
           } >> "$GITHUB_ENV"
 
       - name: Set up Ruby and Bundler

@@ -21,13 +21,13 @@ end
 platform :ios do
   desc "Build signed IPA and upload to App Store Connect for review"
   lane :release_to_app_store do
+    setup_ci
+
     api_key = app_store_connect_api_key(
       key_id: required_env("APP_STORE_CONNECT_KEY_ID"),
       issuer_id: required_env("APP_STORE_CONNECT_ISSUER_ID"),
       key_content: required_env("APP_STORE_CONNECT_API_KEY_P8")
     )
-
-    setup_ci
 
     import_certificate(
       certificate_path: required_env("APPLE_CERTIFICATE_PATH"),
@@ -39,13 +39,22 @@ platform :ios do
       path: required_env("APPLE_PROFILE_PATH")
     )
 
+    profile_specifier = optional_env("APPLE_PROFILE_NAME")
+    profile_uuid = optional_env("APPLE_PROFILE_UUID")
+    signing_xcargs = "DEVELOPMENT_TEAM='#{required_env("APPLE_TEAM_ID")}' CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution'"
+    if !profile_specifier.empty?
+      signing_xcargs += " PROVISIONING_PROFILE_SPECIFIER='#{profile_specifier}'"
+    elsif !profile_uuid.empty?
+      signing_xcargs += " PROVISIONING_PROFILE='#{profile_uuid}'"
+    end
+
     build_app(
       project: "apple/BiciRadar.xcodeproj",
       scheme: "BiciRadar",
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{required_env("APPLE_TEAM_ID")}' CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY='Apple Distribution' PROVISIONING_PROFILE_SPECIFIER='#{required_env("APPLE_PROFILE_NAME")}'",
+      xcargs: signing_xcargs,
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa"
     )
