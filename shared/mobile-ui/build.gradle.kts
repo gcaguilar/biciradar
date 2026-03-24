@@ -39,6 +39,7 @@ kotlin {
       implementation(compose.material3)
       implementation(compose.runtime)
       implementation(compose.ui)
+      implementation(libs.compose.resources)
       implementation(libs.metro.runtime)
       implementation(libs.androidx.lifecycle.runtime.compose)
       implementation(libs.navigation.compose)

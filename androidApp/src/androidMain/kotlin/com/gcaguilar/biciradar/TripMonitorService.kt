@@ -9,8 +9,6 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.gcaguilar.biciradar.core.TripRepository
-
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,12 +16,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-/**
- * Foreground service that keeps trip monitoring alive while the app is in the background.
- *
- * Lifecycle: started by [TripMonitorServiceController] when monitoring begins, stopped when
- * monitoring ends or the user navigates away.
- */
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val notificationManager by lazy {
@@ -35,7 +27,7 @@ class TripMonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(StringDesc.Resource(MR.strings.vigilandoEstacionBizi).toString(this)))
+    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification("Vigilando estación Bizi..."))
     observeMonitoringState()
   }
 
@@ -54,7 +46,6 @@ class TripMonitorService : Service() {
     repo.state
       .onEach { state ->
         if (!state.monitoring.isActive && state.alert == null) {
-          // Monitoring stopped without an alert — stop the service
           stopSelf()
           return@onEach
         }
@@ -64,7 +55,7 @@ class TripMonitorService : Service() {
           val minutes = remaining / 60
           val seconds = remaining % 60
           val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-          val body = StringDesc.ResourceFormatted(MR.strings.tripAlertSlotsFreeRemaining, station.name, station.slotsFree, timeText).toString(this)
+          val body = "${station.name}: ${station.slotsFree} huecos libres · $timeText restantes"
           notificationManager.notify(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(body))
         }
       }
@@ -74,7 +65,7 @@ class TripMonitorService : Service() {
   private fun buildForegroundNotification(text: String): Notification =
     NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle(StringDesc.Resource(MR.strings.biziViaje).toString(this))
+      .setContentTitle("Bizi Viaje")
       .setContentText(text)
       .setOngoing(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -83,10 +74,10 @@ class TripMonitorService : Service() {
   private fun ensureNotificationChannel() {
     val channel = NotificationChannel(
       CHANNEL_ID,
-      StringDesc.Resource(MR.strings.biziViajeActivo).toString(this),
+      "Bizi Viaje (activo)",
       NotificationManager.IMPORTANCE_LOW,
     ).apply {
-      description = StringDesc.Resource(MR.strings.notificacionPersistenteViaje).toString(this@TripMonitorService)
+      description = "Notificación persistente durante la monitorización de viaje"
     }
     notificationManager.createNotificationChannel(channel)
   }
@@ -107,13 +98,6 @@ class TripMonitorService : Service() {
   }
 }
 
-/**
- * Singleton holder that allows [TripMonitorService] to access [TripRepository]
- * without requiring the full DI graph to be passed across process boundaries.
- *
- * Set by the mobile-ui layer when the SharedGraph is created (in BiziMobileApp),
- * and cleared when the graph is disposed.
- */
 object TripRepositoryHolder {
   @Volatile
   var tripRepository: TripRepository? = null
