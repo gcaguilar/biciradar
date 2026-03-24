@@ -42,6 +42,7 @@ kotlin {
     target.binaries.framework {
       baseName = "BiziSharedCore"
       isStatic = true
+      linkerOpts("-lsqlite3")
     }
   }
   sourceSets {

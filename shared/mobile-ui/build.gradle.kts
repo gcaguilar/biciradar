@@ -27,6 +27,7 @@ kotlin {
       baseName = "BiziMobileUi"
       isStatic = true
       export(project(":shared:core"))
+      linkerOpts("-lsqlite3")
     }
   }
 
