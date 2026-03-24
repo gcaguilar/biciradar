@@ -1,5 +1,8 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.StationEntity
+import com.gcaguilar.biciradar.core.local.toDomain
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +19,7 @@ import okio.Path.Companion.toPath
 
 private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
 private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
+private const val CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
 
 interface StationsRepository {
   val state: StateFlow<StationsState>
@@ -45,9 +49,27 @@ class StationsRepositoryImpl(
   private val appConfiguration: AppConfiguration,
   private val locationProvider: LocationProvider,
   private val settingsRepository: SettingsRepository,
+  private val database: BiciRadarDatabase?,
 ) : StationsRepository {
+
+  companion object {
+    fun clearCacheForCityChange(database: BiciRadarDatabase, newCityId: String) {
+      try {
+        val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
+        if (metadata?.city_id != newCityId) {
+          database.transaction {
+            database.biciradarQueries.deleteAllStations()
+            database.biciradarQueries.deleteAllCacheMetadata()
+          }
+        }
+      } catch (e: Exception) {
+        // Silently fail
+      }
+    }
+  }
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
   private var loaded = false
+  private var lastLoadedCityId: String? = null
   private val loadMutex = Mutex()
 
   override val state: StateFlow<StationsState> = mutableState.asStateFlow()
@@ -67,21 +89,72 @@ class StationsRepositoryImpl(
       if (loaded) return
       mutableState.update { it.copy(isLoading = true, errorMessage = null) }
     }
+
     val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
       runCatching { locationProvider.currentLocation() }.getOrNull()
     }
     val origin = currentLocation ?: defaultLocation()
-    runCatching { biziApi.fetchStations(origin) }
-      .onSuccess { stations ->
+    val city = settingsRepository.currentSelectedCity()
+
+    // Clear cache if city changed
+    if (database != null && lastLoadedCityId != null && lastLoadedCityId != city.id) {
+      clearCache()
+    }
+
+    // Check cache first (only if database is available)
+    if (database != null) {
+      val cachedStations = loadFromCache(city.id)
+      val isCacheValid = cachedStations != null && isCacheFresh(city.id)
+
+      if (isCacheValid && cachedStations!!.isNotEmpty()) {
+        // Load from cache (transparent to user)
+        val stations = cachedStations.map { it.toDomain(origin) }
         mutableState.value = StationsState(
           stations = stations,
           isLoading = false,
           userLocation = currentLocation,
         )
-        loadMutex.withLock { loaded = true }
+        loadMutex.withLock {
+          loaded = true
+          lastLoadedCityId = city.id
+        }
+        return
+      }
+    }
+
+    // Fetch from API and cache
+    runCatching { biziApi.fetchStations(origin) }
+      .onSuccess { stations ->
+        // Save to cache
+        saveToCache(city.id, stations)
+        mutableState.value = StationsState(
+          stations = stations,
+          isLoading = false,
+          userLocation = currentLocation,
+        )
+        loadMutex.withLock {
+          loaded = true
+          lastLoadedCityId = city.id
+        }
       }
       .onFailure { error ->
-        // Do not set loaded=true so that retries are allowed
+        // Try to use stale cache if available
+        if (database != null) {
+          val staleStations = loadFromCache(city.id)
+          if (staleStations != null && staleStations.isNotEmpty()) {
+            val stations = staleStations.map { it.toDomain(origin) }
+            mutableState.value = StationsState(
+              stations = stations,
+              isLoading = false,
+              userLocation = currentLocation,
+            )
+            loadMutex.withLock {
+              loaded = true
+              lastLoadedCityId = city.id
+            }
+            return@onFailure
+          }
+        }
         mutableState.update {
           it.copy(
             isLoading = false,
@@ -90,6 +163,93 @@ class StationsRepositoryImpl(
           )
         }
       }
+  }
+
+  private fun loadFromCache(cityId: String): List<StationEntity>? {
+    return try {
+      val db = database ?: return null
+      val metadata = db.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
+      if (metadata?.city_id == cityId) {
+        db.biciradarQueries.getAllStations().executeAsList().map { row ->
+          StationEntity(
+            id = row.id,
+            name = row.name,
+            address = row.address ?: "",
+            latitude = row.latitude,
+            longitude = row.longitude,
+            bikesAvailable = row.bikes_available.toInt(),
+            slotsFree = row.slots_free.toInt(),
+            ebikesAvailable = row.ebikes_available.toInt(),
+            regularBikesAvailable = row.regular_bikes_available.toInt(),
+            updatedAt = row.updated_at,
+          )
+        }
+      } else {
+        null
+      }
+    } catch (e: Exception) {
+      null
+    }
+  }
+
+  private fun isCacheFresh(cityId: String): Boolean {
+    return try {
+      val db = database ?: return false
+      val metadata = db.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
+      if (metadata?.city_id == cityId) {
+        val elapsed = System.currentTimeMillis() - metadata.last_updated
+        elapsed < CACHE_REFRESH_INTERVAL_MS
+      } else {
+        false
+      }
+    } catch (e: Exception) {
+      false
+    }
+  }
+
+  private fun clearCache() {
+    try {
+      val db = database ?: return
+      db.transaction {
+        db.biciradarQueries.deleteAllStations()
+        db.biciradarQueries.deleteAllCacheMetadata()
+      }
+    } catch (e: Exception) {
+      // Silently fail
+    }
+  }
+
+  private fun saveToCache(cityId: String, stations: List<Station>) {
+    try {
+      val db = database ?: return
+      db.transaction {
+        // Clear old data
+        db.biciradarQueries.deleteAllStations()
+        db.biciradarQueries.deleteAllCacheMetadata()
+        // Insert new stations
+        stations.forEach { station ->
+          db.biciradarQueries.insertStation(
+            id = station.id,
+            name = station.name,
+            address = station.address,
+            latitude = station.location.latitude,
+            longitude = station.location.longitude,
+            bikesAvailable = station.bikesAvailable.toLong(),
+            slotsFree = station.slotsFree.toLong(),
+            ebikesAvailable = station.ebikesAvailable.toLong(),
+            regularBikesAvailable = station.regularBikesAvailable.toLong(),
+            updatedAt = System.currentTimeMillis(),
+          )
+        }
+        // Save metadata
+        db.biciradarQueries.upsertCacheMetadata(
+          cityId = cityId,
+          lastUpdated = System.currentTimeMillis(),
+        )
+      }
+    } catch (e: Exception) {
+      // Silently fail - cache is optional
+    }
   }
 
   override suspend fun refreshAvailability(stationIds: List<String>) {

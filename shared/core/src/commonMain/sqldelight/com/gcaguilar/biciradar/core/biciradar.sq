@@ -1,0 +1,40 @@
+-- Stations table
+CREATE TABLE stations (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  address TEXT,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  bikes_available INTEGER NOT NULL,
+  slots_free INTEGER NOT NULL,
+  ebikes_available INTEGER NOT NULL DEFAULT 0,
+  regular_bikes_available INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL
+);
+
+-- Cache metadata (single city)
+CREATE TABLE cache_metadata (
+  city_id TEXT PRIMARY KEY NOT NULL,
+  last_updated INTEGER NOT NULL
+);
+
+-- Queries
+getAllStations:
+SELECT * FROM stations;
+
+getCacheMetadata:
+SELECT * FROM cache_metadata LIMIT 1;
+
+insertStation:
+INSERT INTO stations (id, name, address, latitude, longitude, bikes_available, slots_free, ebikes_available, regular_bikes_available, updated_at)
+VALUES (:id, :name, :address, :latitude, :longitude, :bikesAvailable, :slotsFree, :ebikesAvailable, :regularBikesAvailable, :updatedAt);
+
+deleteAllStations:
+DELETE FROM stations;
+
+upsertCacheMetadata:
+INSERT OR REPLACE INTO cache_metadata (city_id, last_updated)
+VALUES (:cityId, :lastUpdated);
+
+deleteAllCacheMetadata:
+DELETE FROM cache_metadata;

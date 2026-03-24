@@ -8,6 +8,7 @@ import com.gcaguilar.biciradar.core.geo.InstallationIdentityRepository
 import com.gcaguilar.biciradar.core.geo.RequestSigner
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
 import com.gcaguilar.biciradar.core.geo.TokenManager
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Includes
@@ -53,6 +54,12 @@ interface SharedGraph {
   @SingleIn(AppScope::class)
   @Provides
   fun provideAppConfiguration(): AppConfiguration = AppConfiguration()
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideDatabase(
+    databaseFactory: DatabaseFactory?,
+  ): BiciRadarDatabase? = databaseFactory?.create()
 
   @SingleIn(AppScope::class)
   @Provides

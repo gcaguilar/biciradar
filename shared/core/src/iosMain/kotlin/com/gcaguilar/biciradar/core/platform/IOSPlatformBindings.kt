@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.platform
 
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
+import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.EmbeddedMapProvider
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
@@ -18,7 +19,8 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
-import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.createNativeDriver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -76,6 +78,15 @@ class IOSPlatformBindings(
     ?.trim()
     ?.takeIf { it.isNotBlank() } ?: "unknown"
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
+  private var database: BiciRadarDatabase? = null
+  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
+    override fun create(): BiciRadarDatabase? {
+      if (database == null) {
+        database = BiciRadarDatabase(createNativeDriver())
+      }
+      return database
+    }
+  }
   override val fileSystem: FileSystem = fileSystemInstance
   override val googleMapsApiKey: String? = NSBundle.mainBundle
     .objectForInfoDictionaryKey("BiziGoogleMapsApiKey")

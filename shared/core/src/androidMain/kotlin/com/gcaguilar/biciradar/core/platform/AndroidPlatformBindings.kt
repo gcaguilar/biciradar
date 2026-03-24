@@ -16,6 +16,7 @@ import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
+import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.EmbeddedMapProvider
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -29,6 +30,8 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.createAndroidDriver
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -53,6 +56,15 @@ class AndroidPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
 ) : PlatformBindings {
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
+  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
+    private var database: BiciRadarDatabase? = null
+    override fun create(): BiciRadarDatabase? {
+      if (database == null) {
+        database = BiciRadarDatabase(createAndroidDriver(context))
+      }
+      return database
+    }
+  }
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val googleMapsApiKey: String? = runCatching {
     val packageManager = context.packageManager

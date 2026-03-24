@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -42,10 +43,19 @@ interface LocalNotifier {
   suspend fun notify(title: String, body: String)
 }
 
+interface DatabaseProvider {
+  fun provideDatabase(): BiciRadarDatabase?
+}
+
+interface DatabaseFactory {
+  fun create(): BiciRadarDatabase?
+}
+
 interface PlatformBindings {
   val appConfiguration: AppConfiguration
   @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver
+  val databaseFactory: DatabaseFactory?
   val fileSystem: FileSystem
   @GoogleMapsApiKey val googleMapsApiKey: String?
   val httpClientFactory: BiziHttpClientFactory

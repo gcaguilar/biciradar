@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.metro)
   alias(libs.plugins.moko.resources)
+  alias(libs.plugins.sqldelight)
 }
 
 multiplatformResources {
@@ -47,6 +48,8 @@ kotlin {
       implementation(libs.moko.resources)
       implementation(libs.okio)
       implementation(libs.serialization.json)
+      implementation(libs.sqldelight.runtime)
+      implementation(libs.sqldelight.coroutines)
     }
     commonTest.dependencies {
       implementation(libs.coroutines.test)
@@ -57,18 +60,25 @@ kotlin {
       implementation(libs.ktor.client.okhttp)
       implementation(libs.play.services.location)
       implementation(libs.play.services.wearable)
+      implementation(libs.sqldelight.runtime)
+      implementation(libs.sqldelight.android.driver)
     }
     jvmMain.dependencies {
       implementation(libs.ktor.client.cio)
+      implementation(libs.sqldelight.sqlite.driver)
     }
     val iosMain by getting {
       dependencies {
         implementation(libs.ktor.client.darwin)
+        implementation(libs.sqldelight.runtime)
+        implementation(libs.sqldelight.native.driver)
       }
     }
     val watchosMain by getting {
       dependencies {
         implementation(libs.ktor.client.darwin)
+        implementation(libs.sqldelight.runtime)
+        implementation(libs.sqldelight.native.driver)
       }
     }
   }
@@ -90,4 +100,13 @@ android {
 
 tasks.matching { it.name == "watchosSimulatorArm64Test" }.configureEach {
   enabled = false
+}
+
+sqldelight {
+  databases {
+    create("BiciRadarDatabase") {
+      packageName.set("com.gcaguilar.biciradar.core.local")
+      srcDirs.setFrom("src/commonMain/sqldelight")
+    }
+  }
 }
