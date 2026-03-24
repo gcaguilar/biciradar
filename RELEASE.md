@@ -6,11 +6,30 @@
 - Add [androidApp/google-services.json](/Users/guillermo.castella/bizi/androidApp/google-services.json) to enable Firebase Crashlytics on Android.
 - Add [wearApp/google-services.json](/Users/guillermo.castella/bizi/wearApp/google-services.json) to enable Firebase Crashlytics on Wear OS.
 - Configure release signing in `androidApp` and `wearApp`.
+- Both apps share the same `applicationId` (com.gcaguilar.biciradar) and are published to the same Play Store listing using different form factor tracks.
 - Generate builds:
 
 ```bash
 ./gradlew :androidApp:assembleRelease :wearApp:assembleRelease
 ```
+
+### Play Console Form Factor Configuration
+
+To publish both mobile and WearOS versions under the same app listing:
+
+1. Go to Play Console → **Test and release** → **Setup** → **Advanced settings**
+2. Select the **Form factors** tab
+3. Click **Add form factor** → Select **Wear OS**
+4. Upload Wear OS screenshots (minimum 384x384px, 1:1 aspect ratio)
+5. Upload your Wear OS-enabled app bundle to a test track first
+6. Return to Advanced settings and click **Manage** next to "Wear OS"
+7. Opt-in to distribution and review the terms of service
+
+The CI workflow publishes:
+- Mobile app to the `alpha` track
+- WearOS app to the `wear:alpha` dedicated form factor track
+
+Users will see one app listing, but Google Play serves the appropriate version based on their device.
 
 ## iOS and watchOS
 
