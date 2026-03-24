@@ -270,7 +270,7 @@ private struct FakeAppleGraph: AppleGraphClient {
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
     var assistantResolution: AssistantResolution = AssistantResolution(
-        spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
+        spokenResponse: StringDesc.Raw("Unknown station"),
         highlightedStationId: "station-1"
     )
 
