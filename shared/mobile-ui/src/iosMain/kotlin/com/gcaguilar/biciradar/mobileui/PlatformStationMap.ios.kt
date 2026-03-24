@@ -7,11 +7,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.UIKitView
 import com.gcaguilar.biciradar.core.GeoPoint
-import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.Station
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.ResourceFormatted
-import dev.icerock.moko.resources.desc.StringDesc
+
+
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.ObjCSignatureOverride
@@ -39,6 +37,8 @@ internal actual fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  stationSnippet: (Station) -> String,
+  pinTitle: String,
 ) {
   val factory = LocalStationMapViewFactory.current
 
@@ -68,6 +68,8 @@ internal actual fun PlatformStationMap(
       onMapClick = onMapClick,
       pinLocation = pinLocation,
       recenterRequestToken = recenterRequestToken,
+      stationSnippet = stationSnippet,
+      pinTitle = pinTitle,
     )
   }
 }
@@ -83,8 +85,10 @@ private fun AppleMapKitView(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  stationSnippet: (Station) -> String,
+  pinTitle: String,
 ) {
-  val coordinator = remember { IOSStationMapCoordinator() }.apply {
+  val coordinator = remember { IOSStationMapCoordinator(stationSnippet = stationSnippet, pinTitle = pinTitle) }.apply {
     selectionHandler = onStationSelected
     mapClickHandler = onMapClick
   }
@@ -121,7 +125,10 @@ private fun stationMarkerColor(station: Station, highlighted: Boolean): UIColor 
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class IOSStationMapCoordinator {
+private class IOSStationMapCoordinator(
+  private val stationSnippet: (Station) -> String = { "" },
+  private val pinTitle: String = "Destino",
+) {
   var selectionHandler: (Station) -> Unit = {}
   var mapClickHandler: ((GeoPoint) -> Unit)? = null
   var highlightedStationId: String? = null
@@ -198,7 +205,7 @@ private class IOSStationMapCoordinator {
         val annotation = MKPointAnnotation().apply {
           setCoordinate(CLLocationCoordinate2DMake(station.location.latitude, station.location.longitude))
           setTitle(station.name)
-          setSubtitle(StringDesc.ResourceFormatted(MR.strings.mapStationBikesFree, station.bikesAvailable, station.slotsFree).localized())
+          setSubtitle(stationSnippet(station))
         }
         stationAnnotations[annotation] = station
         annotationByStationId[station.id] = annotation
@@ -226,7 +233,7 @@ private class IOSStationMapCoordinator {
       } else {
         val newPin = MKPointAnnotation().apply {
           setCoordinate(CLLocationCoordinate2DMake(pinLocation.latitude, pinLocation.longitude))
-          setTitle(StringDesc.Resource(MR.strings.destination).localized())
+          setTitle(pinTitle)
         }
         pinAnnotation = newPin
         mapView.addAnnotation(newPin)

@@ -23,14 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
-import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.Station
 import com.google.android.gms.maps.model.CameraPosition
-import dev.icerock.moko.resources.compose.localized
-import dev.icerock.moko.resources.compose.stringResource
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.ResourceFormatted
-import dev.icerock.moko.resources.desc.StringDesc
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -67,11 +61,13 @@ internal actual fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  stationSnippet: (Station) -> String,
+  pinTitle: String,
 ) {
   if (!isMapReady) {
     Surface(modifier = modifier) {
       Text(
-        text = stringResource(MR.strings.mapUnavailableGoogleApiKey),
+        text = pinTitle,
         modifier = Modifier
           .fillMaxSize()
           .wrapContentSize(Alignment.Center),
@@ -131,7 +127,7 @@ internal actual fun PlatformStationMap(
         MarkerInfoWindowContent(
           state = markerState,
           title = station.name,
-          snippet = StringDesc.ResourceFormatted(MR.strings.mapStationBikesFree, station.bikesAvailable, station.slotsFree).localized(),
+          snippet = stationSnippet(station),
           icon = BitmapDescriptorFactory.defaultMarker(
             stationMarkerHue(station, station.id == highlightedStationId),
           ),
@@ -152,7 +148,7 @@ internal actual fun PlatformStationMap(
               fontWeight = FontWeight.SemiBold,
             )
             Text(
-              text = stringResource(MR.strings.mapStationBikesSlotsDistance, station.bikesAvailable, station.slotsFree, station.distanceMeters),
+              text = stationSnippet(station),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
@@ -166,7 +162,7 @@ internal actual fun PlatformStationMap(
           state = remember(pinLocation.latitude, pinLocation.longitude) {
             MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
           },
-          title = StringDesc.Resource(MR.strings.destination).localized(),
+          title = pinTitle,
           icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
         ) {}
       }

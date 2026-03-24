@@ -16,4 +16,6 @@ internal expect fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)? = null,
   pinLocation: GeoPoint? = null,
   recenterRequestToken: Int = 0,
+  stationSnippet: (Station) -> String = { "${it.bikesAvailable} bicis · ${it.slotsFree} libres" },
+  pinTitle: String = "Destino",
 )
