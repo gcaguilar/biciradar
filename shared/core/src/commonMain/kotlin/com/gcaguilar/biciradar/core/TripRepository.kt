@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.core
 
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.StringDesc
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -40,7 +38,7 @@ data class TripState(
   val monitoring: TripMonitoringState = TripMonitoringState(),
   val alert: TripAlert? = null,
   val isSearchingStation: Boolean = false,
-  val searchError: StringDesc? = null,
+  val searchError: String? = null,
 )
 
 interface TripRepository {
@@ -89,7 +87,7 @@ class TripRepositoryImpl(
       mutableState.update {
         it.copy(
           isSearchingStation = false,
-          searchError = StringDesc.Resource(MR.strings.tripNoStationDataAvailable),
+          searchError = "No station data available",
         )
       }
       return
@@ -111,7 +109,7 @@ class TripRepositoryImpl(
       mutableState.update {
         it.copy(
           isSearchingStation = false,
-          searchError = StringDesc.Resource(MR.strings.tripNoStationWithFreeSlotsNearby),
+          searchError = "No stations with free slots nearby",
         )
       }
       return

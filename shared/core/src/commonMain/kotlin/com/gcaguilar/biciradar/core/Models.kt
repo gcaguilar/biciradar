@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.core
 
-import dev.icerock.moko.resources.desc.StringDesc
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -75,7 +74,7 @@ sealed interface AssistantAction {
 }
 
 data class AssistantResolution(
-  val spokenResponse: StringDesc,
+  val spokenResponse: String,
   val highlightedStationId: String? = null,
 )
 

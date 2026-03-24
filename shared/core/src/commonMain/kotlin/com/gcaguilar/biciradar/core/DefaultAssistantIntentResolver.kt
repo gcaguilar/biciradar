@@ -1,9 +1,6 @@
 package com.gcaguilar.biciradar.core
 
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.ResourceFormatted
-import dev.icerock.moko.resources.desc.StringDesc
-
+// TODO: Migrate to Compose Resources when available
 class DefaultAssistantIntentResolver : AssistantIntentResolver {
   override suspend fun resolve(
     action: AssistantAction,
@@ -13,102 +10,111 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
   ): AssistantResolution {
     return when (action) {
       AssistantAction.FavoriteStations -> AssistantResolution(
-        spokenResponse = StringDesc.ResourceFormatted(MR.strings.favoriteCount, favoriteIds.size),
+        spokenResponse = "You have ${favoriteIds.size} favorite stations",
       )
       AssistantAction.NearestStation -> nearestStationResolution(
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters),
-        emptyMessage = StringDesc.Resource(MR.strings.noNearbyStations),
+        emptyMessage = "No nearby stations found",
         withinRadiusFormatter = { station ->
-          StringDesc.ResourceFormatted(MR.strings.nearestStation, station.name, station.bikesAvailable, station.slotsFree)
+          "Nearest station: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
         fallbackFormatter = { station, radiusMeters ->
-          StringDesc.ResourceFormatted(
-            MR.strings.nearestStationFallback,
-            radiusMeters,
-            station.distanceMeters,
-            station.name,
-            station.bikesAvailable,
-            station.slotsFree,
-          )
+          "No stations within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
       )
       AssistantAction.NearestStationWithBikes -> nearestStationResolution(
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.bikesAvailable > 0
         },
-        emptyMessage = StringDesc.Resource(MR.strings.noNearbyBikes),
+        emptyMessage = "No nearby stations with bikes",
         withinRadiusFormatter = { station ->
-          StringDesc.ResourceFormatted(MR.strings.nearestWithBikes, station.name, station.bikesAvailable, station.slotsFree)
+          "Nearest station with bikes: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
         fallbackFormatter = { station, radiusMeters ->
-          StringDesc.ResourceFormatted(
-            MR.strings.nearestWithBikesFallback,
-            radiusMeters,
-            station.distanceMeters,
-            station.name,
-            station.bikesAvailable,
-            station.slotsFree,
-          )
+          "No stations with bikes within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
       )
       AssistantAction.NearestStationWithSlots -> nearestStationResolution(
         selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
           station.slotsFree > 0
         },
-        emptyMessage = StringDesc.Resource(MR.strings.noNearbySlots),
+        emptyMessage = "No nearby stations with free slots",
         withinRadiusFormatter = { station ->
-          StringDesc.ResourceFormatted(MR.strings.nearestWithSlots, station.name, station.slotsFree, station.bikesAvailable)
+          "Nearest station with slots: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
         fallbackFormatter = { station, radiusMeters ->
-          StringDesc.ResourceFormatted(
-            MR.strings.nearestWithSlotsFallback,
-            radiusMeters,
-            station.distanceMeters,
-            station.name,
-            station.slotsFree,
-            station.bikesAvailable,
-          )
+          "No stations with slots within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
         },
       )
+      is AssistantAction.RouteToStation -> {
+        val station = stationsState.stations.firstOrNull { it.id == action.stationId }
+        if (station != null) {
+          AssistantResolution(
+            spokenResponse = "Opening route to ${station.name}",
+            highlightedStationId = station.id,
+          )
+        } else {
+          AssistantResolution(
+            spokenResponse = "Station not found",
+          )
+        }
+      }
       is AssistantAction.StationBikeCount -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
-        AssistantResolution(
-          spokenResponse = station?.let {
-            StringDesc.ResourceFormatted(MR.strings.stationBikes, it.name, it.bikesAvailable)
-          } ?: StringDesc.Resource(MR.strings.unknownStation),
-          highlightedStationId = station?.id,
-        )
+        if (station != null) {
+          AssistantResolution(
+            spokenResponse = "${station.name} has ${station.bikesAvailable} bikes available",
+            highlightedStationId = station.id,
+          )
+        } else {
+          AssistantResolution(
+            spokenResponse = "Station not found",
+          )
+        }
       }
       is AssistantAction.StationSlotCount -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
-        AssistantResolution(
-          spokenResponse = station?.let {
-            StringDesc.ResourceFormatted(MR.strings.stationSlots, it.name, it.slotsFree)
-          } ?: StringDesc.Resource(MR.strings.unknownStation),
-          highlightedStationId = station?.id,
-        )
+        if (station != null) {
+          AssistantResolution(
+            spokenResponse = "${station.name} has ${station.slotsFree} free slots",
+            highlightedStationId = station.id,
+          )
+        } else {
+          AssistantResolution(
+            spokenResponse = "Station not found",
+          )
+        }
       }
-      is AssistantAction.RouteToStation -> AssistantResolution(
-        spokenResponse = StringDesc.Resource(MR.strings.routeToSelectedStation),
-        highlightedStationId = action.stationId,
-      )
       is AssistantAction.StationStatus -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
-        AssistantResolution(
-          spokenResponse = station?.let {
-            StringDesc.ResourceFormatted(MR.strings.stationStatus, it.name, it.bikesAvailable, it.slotsFree)
-          } ?: StringDesc.Resource(MR.strings.unknownStation),
-          highlightedStationId = station?.id,
-        )
+        if (station != null) {
+          AssistantResolution(
+            spokenResponse = "${station.name}: ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free",
+            highlightedStationId = station.id,
+          )
+        } else {
+          AssistantResolution(
+            spokenResponse = "Station not found",
+          )
+        }
       }
     }
   }
 
+  private fun formatStationList(
+    stations: List<Station>,
+    limit: Int,
+  ): List<Pair<String, String>> = stations
+    .take(limit)
+    .map { station ->
+      station.name to "${station.bikesAvailable} bikes, ${station.slotsFree} slots"
+    }
+
   private fun nearestStationResolution(
     selection: NearbyStationSelection,
-    emptyMessage: StringDesc,
-    withinRadiusFormatter: (Station) -> StringDesc,
-    fallbackFormatter: (Station, Int) -> StringDesc,
+    emptyMessage: String,
+    withinRadiusFormatter: (Station) -> String,
+    fallbackFormatter: (Station, Int) -> String,
   ): AssistantResolution = AssistantResolution(
     spokenResponse = when {
       selection.withinRadiusStation != null -> withinRadiusFormatter(selection.withinRadiusStation)

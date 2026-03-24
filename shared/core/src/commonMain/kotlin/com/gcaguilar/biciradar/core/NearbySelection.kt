@@ -5,7 +5,11 @@ const val DEFAULT_SEARCH_RADIUS_METERS = 500
 val SEARCH_RADIUS_OPTIONS_METERS = listOf(300, 500, 750, 1000, 1500, 2000, 3000, 5000)
 
 fun formatDistance(meters: Int): String = when {
-    meters >= 1000 -> String.format("%.1f km", meters / 1000.0)
+    meters >= 1000 -> {
+        val km = meters / 1000.0
+        val rounded = (km * 10).toInt() / 10.0
+        "$rounded km"
+    }
     else -> "$meters m"
 }
 

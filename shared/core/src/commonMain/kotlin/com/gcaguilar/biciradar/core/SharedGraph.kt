@@ -53,10 +53,6 @@ interface SharedGraph {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideAppConfiguration(): AppConfiguration = AppConfiguration()
-
-  @SingleIn(AppScope::class)
-  @Provides
   fun provideDatabase(
     databaseFactory: DatabaseFactory?,
   ): BiciRadarDatabase? = databaseFactory?.create()

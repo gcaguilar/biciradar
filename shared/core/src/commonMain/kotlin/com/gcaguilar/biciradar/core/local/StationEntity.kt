@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.local
 
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
+import kotlin.math.*
 
 data class StationEntity(
   val id: String,
@@ -34,15 +35,15 @@ fun StationEntity.toDomain(origin: GeoPoint): Station {
 
 private fun distanceBetween(origin: GeoPoint, destination: GeoPoint): Int {
   val earthRadius = 6371000.0
-  val lat1Rad = Math.toRadians(origin.latitude)
-  val lat2Rad = Math.toRadians(destination.latitude)
-  val deltaLat = Math.toRadians(destination.latitude - origin.latitude)
-  val deltaLon = Math.toRadians(destination.longitude - origin.longitude)
+  val lat1Rad = origin.latitude * PI / 180.0
+  val lat2Rad = destination.latitude * PI / 180.0
+  val deltaLat = (destination.latitude - origin.latitude) * PI / 180.0
+  val deltaLon = (destination.longitude - origin.longitude) * PI / 180.0
 
-  val a = kotlin.math.sin(deltaLat / 2) * kotlin.math.sin(deltaLat / 2) +
-    kotlin.math.cos(lat1Rad) * kotlin.math.cos(lat2Rad) *
-    kotlin.math.sin(deltaLon / 2) * kotlin.math.sin(deltaLon / 2)
-  val c = 2 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1 - a))
+  val a = sin(deltaLat / 2) * sin(deltaLat / 2) +
+    cos(lat1Rad) * cos(lat2Rad) *
+    sin(deltaLon / 2) * sin(deltaLon / 2)
+  val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
   return (earthRadius * c).toInt()
 }

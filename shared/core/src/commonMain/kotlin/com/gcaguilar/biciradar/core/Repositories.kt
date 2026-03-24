@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.StationEntity
 import com.gcaguilar.biciradar.core.local.toDomain
@@ -197,7 +198,7 @@ class StationsRepositoryImpl(
       val db = database ?: return false
       val metadata = db.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
-        val elapsed = System.currentTimeMillis() - metadata.last_updated
+        val elapsed = currentTimeMs() - metadata.last_updated
         elapsed < CACHE_REFRESH_INTERVAL_MS
       } else {
         false
@@ -238,13 +239,13 @@ class StationsRepositoryImpl(
             slotsFree = station.slotsFree.toLong(),
             ebikesAvailable = station.ebikesAvailable.toLong(),
             regularBikesAvailable = station.regularBikesAvailable.toLong(),
-            updatedAt = System.currentTimeMillis(),
+            updatedAt = currentTimeMs(),
           )
         }
         // Save metadata
         db.biciradarQueries.upsertCacheMetadata(
           cityId = cityId,
-          lastUpdated = System.currentTimeMillis(),
+          lastUpdated = currentTimeMs(),
         )
       }
     } catch (e: Exception) {
