@@ -1,8 +1,6 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.android.application)
+  alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.google.services) apply false
   alias(libs.plugins.firebase.crashlytics) apply false
@@ -16,20 +14,6 @@ if (googleServicesJson.exists()) {
 
 val googleMapsApiKey = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
   .orElse("")
-
-kotlin {
-  androidTarget {
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_17)
-    }
-  }
-
-  sourceSets {
-    androidUnitTest.dependencies {
-      implementation(libs.junit)
-    }
-  }
-}
 
 android {
   namespace = "com.gcaguilar.biciradar"
@@ -49,7 +33,7 @@ android {
     compose = true
   }
 
-signingConfigs {
+  signingConfigs {
     create("release") {
       val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
         ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
@@ -86,14 +70,6 @@ signingConfigs {
     targetCompatibility = JavaVersion.VERSION_17
   }
 
-  sourceSets {
-    getByName("main") {
-      manifest.srcFile("src/androidMain/AndroidManifest.xml")
-      kotlin.srcDirs("src/androidMain/kotlin")
-      res.srcDirs("src/androidMain/res")
-    }
-  }
-
   dependencies {
     implementation(project(":shared:core"))
     implementation(project(":shared:mobile-ui"))
@@ -106,5 +82,6 @@ signingConfigs {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    testImplementation(libs.junit)
   }
 }

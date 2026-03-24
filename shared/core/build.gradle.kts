@@ -24,6 +24,9 @@ kotlin {
     compilerOptions {
       jvmTarget.set(JvmTarget.JVM_17)
     }
+    androidResources {
+      enable = true
+    }
   }
   jvm()
   iosArm64()

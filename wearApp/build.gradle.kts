@@ -1,9 +1,8 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
-  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.android.application)
+  alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.firebase.crashlytics) apply false
   alias(libs.plugins.google.services) apply false
@@ -30,14 +29,6 @@ if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.firebase.crashlytics")
 }
 
-kotlin {
-  androidTarget {
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_17)
-    }
-  }
-}
-
 android {
   namespace = "com.gcaguilar.biciradar.wear"
   compileSdk = 36
@@ -56,8 +47,6 @@ android {
   }
 
   lint {
-    // False positive: ComponentActivity ships its own modern FragmentActivity —
-    // the fragment version check does not apply here.
     disable += "InvalidFragmentVersionForActivityResult"
   }
 
@@ -93,14 +82,6 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
-  }
-
-  sourceSets {
-    getByName("main") {
-      manifest.srcFile("src/androidMain/AndroidManifest.xml")
-      kotlin.srcDirs("src/androidMain/kotlin")
-      res.srcDirs("src/androidMain/res")
-    }
   }
 
   dependencies {
