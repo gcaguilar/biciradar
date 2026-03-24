@@ -24,6 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.shared.core.generated.resources.Res
+import com.gcaguilar.biciradar.shared.core.generated.resources.mapUnavailableGoogleApiKey
+import org.jetbrains.compose.resources.stringResource
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
@@ -67,7 +70,7 @@ internal actual fun PlatformStationMap(
   if (!isMapReady) {
     Surface(modifier = modifier) {
       Text(
-        text = pinTitle,
+        text = stringResource(Res.string.mapUnavailableGoogleApiKey),
         modifier = Modifier
           .fillMaxSize()
           .wrapContentSize(Alignment.Center),
