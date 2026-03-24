@@ -137,6 +137,14 @@
     <string name="unknown">unknown</string>
     <string name="tripNoStationDataAvailable">No station data available.</string>
     <string name="changelogWhatsNew">What's new</string>
+    <string name="changelogNewCitiesTitle">New cities</string>
+    <string name="changelogNewCitiesDescription">Added 14 cities: Bilbao, Bizkaia, León, Valladolid, Málaga, Palma, Las Palmas, A Coruña, Mislata, Rivas-Vaciamadrid, Donostia, Reus, Santander, and Barcelona Donkey.</string>
+    <string name="changelogFilterColorsTitle">Filter colors</string>
+    <string name="changelogFilterColorsDescription">Each map filter now has a unique color for better visibility.</string>
+    <string name="changelogDistanceKmTitle">Distances in kilometers</string>
+    <string name="changelogDistanceKmDescription">Distances over 1000m now show in km. New radius options: 1.5km, 2km, 3km, and 5km.</string>
+    <string name="changelogDarkModeFixesTitle">Dark mode fixes</string>
+    <string name="changelogDarkModeFixesDescription">Fixed colors for search fields and empty cards in dark mode.</string>
     <string name="changelogDarkThemeTitle">Dark theme</string>
     <string name="changelogDarkThemeDescription">The app now adapts automatically to the system dark mode.</string>
     <string name="changelogDismissibleCardTitle">Dismissible card</string>

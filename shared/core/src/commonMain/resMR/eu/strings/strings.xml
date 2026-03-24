@@ -137,6 +137,14 @@
     <string name="unknown">ezezaguna</string>
     <string name="tripNoStationDataAvailable">Ez dago geltokien daturik erabilgarri.</string>
     <string name="changelogWhatsNew">Berritasunak</string>
+    <string name="changelogNewCitiesTitle">Hiri berriak</string>
+    <string name="changelogNewCitiesDescription">14 hiri gehitu dira: Bilbo, Bizkaia, Leon, Valladolid, Malaga, Palma, Las Palmas, A Coruña, Mislata, Rivas-Vaciamadrid, Donostia, Reus, Santander eta Barcelona Donkey.</string>
+    <string name="changelogFilterColorsTitle">Iragazi koloreak</string>
+    <string name="changelogFilterColorsDescription">Mapako iragazki bakoitzak orain kolore bakarra du ikusgarritasun hobea izateko.</string>
+    <string name="changelogDistanceKmTitle">Distantziak kilometrotan</string>
+    <string name="changelogDistanceKmDescription">1000m baino distantzia handiagoak km-tan erakusten dira. Erradio aukera berriak: 1.5km, 2km, 3km eta 5km.</string>
+    <string name="changelogDarkModeFixesTitle">Modu ilunaren hobekuntzak</string>
+    <string name="changelogDarkModeFixesDescription">Bilaketa eremuen eta txartel hutsen koloreak zuzendu dira modu ilunean.</string>
     <string name="changelogDarkThemeTitle">Gai iluna</string>
     <string name="changelogDarkThemeDescription">Aplikazioa automatikoki moldatzen da sistemaren modu ilunera.</string>
     <string name="changelogDismissibleCardTitle">Txartel itxigarria</string>

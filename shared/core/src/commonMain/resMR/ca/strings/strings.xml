@@ -137,6 +137,14 @@
     <string name="unknown">desconegut</string>
     <string name="tripNoStationDataAvailable">No hi ha dades d\'estacions disponibles.</string>
     <string name="changelogWhatsNew">Novetats</string>
+    <string name="changelogNewCitiesTitle">Noves ciutats</string>
+    <string name="changelogNewCitiesDescription">Afegides 14 ciutats: Bilbao, Bizkaia, León, Valladolid, Màlaga, Palma, Las Palmas, A Coruña, Mislata, Rivas-Vaciamadrid, Donostia, Reus, Santander i Barcelona Donkey.</string>
+    <string name="changelogFilterColorsTitle">Colors dels filtres</string>
+    <string name="changelogFilterColorsDescription">Cada filtre del mapa té ara un color únic per a millor visibilitat.</string>
+    <string name="changelogDistanceKmTitle">Distàncies en quilòmetres</string>
+    <string name="changelogDistanceKmDescription">Les distàncies superiors a 1000m es mostren en km. Noves opcions de radi: 1.5km, 2km, 3km i 5km.</string>
+    <string name="changelogDarkModeFixesTitle">Millores mode fosc</string>
+    <string name="changelogDarkModeFixesDescription">Corregits colors de camps de cerca i targetes buides en mode fosc.</string>
     <string name="changelogDarkThemeTitle">Tema fosc</string>
     <string name="changelogDarkThemeDescription">L\'app s\'adapta automàticament al mode fosc del sistema.</string>
     <string name="changelogDismissibleCardTitle">Targeta descartable</string>
