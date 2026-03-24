@@ -4,8 +4,14 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.google.services)
-  alias(libs.plugins.firebase.crashlytics)
+  alias(libs.plugins.google.services) apply false
+  alias(libs.plugins.firebase.crashlytics) apply false
+}
+
+val googleServicesJson = file("google-services.json")
+if (googleServicesJson.exists()) {
+  apply(plugin = libs.plugins.google.services.get().pluginId)
+  apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
 }
 
 val googleMapsApiKey = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
