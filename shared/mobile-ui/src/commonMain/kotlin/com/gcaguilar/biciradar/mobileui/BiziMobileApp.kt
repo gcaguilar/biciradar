@@ -103,6 +103,7 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.Station
@@ -152,14 +153,13 @@ import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 
 private val BiziRed = Color(0xFFD7191F)
-private val BiziLight = Color(0xFFF8F6F6)
-private val BiziGrouped = Color(0xFFF2F2F7)
-private val BiziInk = Color(0xFF211111)
-private val BiziMuted = Color(0xFF64748B)
-private val BiziPanel = Color(0xFFF1F5F9)
+private val BiziDarkRed = Color(0xFFCF6679)
 private val BiziGreen = Color(0xFF167C3C)
 private val BiziBlue = Color(0xFF2563EB)
+private val BiziDarkBlue = Color(0xFF64B5F6)
 private val BiziOrange = Color(0xFFF28000)
+private val BiziPurple = Color(0xFF7C3AED)
+private val BiziDarkPurple = Color(0xFFBB86FC)
 
 // --- Dark-mode palette raw tokens ---
 private val BiziDarkBackground = Color(0xFF121212)
@@ -197,6 +197,8 @@ internal data class BiziColors(
   val green: Color,
   /** Accent: partial availability on the map. */
   val orange: Color,
+  /** Accent: regular bikes. */
+  val purple: Color,
   /** Foreground on accent fills (e.g. icon on BiziRed circle). */
   val onAccent: Color,
   /** NavigationBar container. */
@@ -222,6 +224,7 @@ private val LightBiziColors = BiziColors(
   blue = BiziBlue,
   green = BiziGreen,
   orange = BiziOrange,
+  purple = BiziPurple,
   onAccent = Color.White,
   navBar = Color.White,
   navBarIos = Color.White.copy(alpha = 0.96f),
@@ -241,6 +244,7 @@ private val DarkBiziColors = BiziColors(
   blue = BiziDarkBlue,
   green = BiziDarkGreen,
   orange = BiziOrange,
+  purple = BiziDarkPurple,
   onAccent = Color.White,
   navBar = BiziDarkSurface,
   navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
@@ -275,16 +279,19 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_REGULAR_BIKES(MR.strings.mapFilterOnlyRegularBikes),
 }
 
-private const val CURRENT_CHANGELOG_VERSION = 1
+private const val CURRENT_CHANGELOG_VERSION = 2
 
 private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
 private val CHANGELOG_ENTRIES = listOf(
+  ChangelogEntry(MR.strings.changelogNewCitiesTitle, MR.strings.changelogNewCitiesDescription),
+  ChangelogEntry(MR.strings.changelogFilterColorsTitle, MR.strings.changelogFilterColorsDescription),
+  ChangelogEntry(MR.strings.changelogDistanceKmTitle, MR.strings.changelogDistanceKmDescription),
+  ChangelogEntry(MR.strings.changelogDarkModeFixesTitle, MR.strings.changelogDarkModeFixesDescription),
   ChangelogEntry(MR.strings.changelogDarkThemeTitle, MR.strings.changelogDarkThemeDescription),
   ChangelogEntry(MR.strings.changelogDismissibleCardTitle, MR.strings.changelogDismissibleCardDescription),
   ChangelogEntry(MR.strings.changelogMapFiltersTitle, MR.strings.changelogMapFiltersDescription),
   ChangelogEntry(MR.strings.changelogRefreshIndicatorTitle, MR.strings.changelogRefreshIndicatorDescription),
-  ChangelogEntry(MR.strings.usagePattern, MR.strings.averageBikesHour),
 )
 
 sealed interface MobileLaunchRequest {
@@ -1258,10 +1265,6 @@ private fun MapFilterChipRow(
         onClick = { onToggleFilter(filter) },
       )
     }
-    MapLegendChip(
-      label = stringResource(MR.strings.mapLegendOutOfService),
-      color = LocalBiziColors.current.red,
-    )
   }
 }
 
@@ -1314,13 +1317,13 @@ private fun MapFilterChip(
   val c = LocalBiziColors.current
   val accent = when (filter) {
     MapFilter.BIKES_AND_SLOTS -> c.green
-    MapFilter.ONLY_BIKES,
-    MapFilter.ONLY_SLOTS,
-    MapFilter.ONLY_EBIKES,
-    MapFilter.ONLY_REGULAR_BIKES -> c.orange
+    MapFilter.ONLY_BIKES -> c.blue
+    MapFilter.ONLY_SLOTS -> c.red
+    MapFilter.ONLY_EBIKES -> c.orange
+    MapFilter.ONLY_REGULAR_BIKES -> c.purple
   }
   val backgroundColor by animateColorAsState(
-    targetValue = if (selected) accent.copy(alpha = 0.12f) else c.surface,
+    targetValue = if (selected) c.surface else c.surface,
     animationSpec = tween(180),
   )
   val contentColor by animateColorAsState(
@@ -1328,7 +1331,7 @@ private fun MapFilterChip(
     animationSpec = tween(180),
   )
   val borderColor by animateColorAsState(
-    targetValue = if (selected) accent.copy(alpha = 0.28f) else c.panel,
+    targetValue = if (selected) accent else c.panel,
     animationSpec = tween(180),
   )
   val selectionScale by animateFloatAsState(
@@ -1436,29 +1439,23 @@ private fun MapSelectedStationCard(
           modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
         )
       }
-      Row(
+      Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
-        Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Text(
-            text = station.name,
-            style = MaterialTheme.typography.titleLarge,
-            color = overlayTitle,
-            fontWeight = FontWeight.Bold,
-          )
-          Text(
-            text = station.address,
-            style = MaterialTheme.typography.bodySmall,
-            color = overlayBody,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-          )
-        }
+        Text(
+          text = station.name,
+          style = MaterialTheme.typography.titleLarge,
+          color = overlayTitle,
+          fontWeight = FontWeight.Bold,
+        )
+        Text(
+          text = station.address,
+          style = MaterialTheme.typography.bodySmall,
+          color = overlayBody,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+        )
       }
       Text(
         text = if (isFallbackSelection) {
@@ -1679,7 +1676,7 @@ private fun ProfileScreen(
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
                   selected = radiusMeters == searchRadiusMeters,
-                  label = if (radiusMeters == searchRadiusMeters) stringResource(MR.strings.radiusActive, radiusMeters) else stringResource(MR.strings.meters, radiusMeters),
+                  label = if (radiusMeters == searchRadiusMeters) formatDistance(radiusMeters) else formatDistance(radiusMeters),
                   onClick = { onSearchRadiusSelected(radiusMeters) },
                 )
               }
@@ -2713,7 +2710,18 @@ private fun TripScreen(
               },
               colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = c.red,
+                unfocusedBorderColor = c.panel,
                 cursorColor = c.red,
+                focusedTextColor = c.ink,
+                unfocusedTextColor = c.ink,
+                focusedLabelColor = c.ink,
+                unfocusedLabelColor = c.muted,
+                focusedPlaceholderColor = c.muted,
+                unfocusedPlaceholderColor = c.muted,
+                focusedLeadingIconColor = c.muted,
+                unfocusedLeadingIconColor = c.muted,
+                focusedTrailingIconColor = c.muted,
+                unfocusedTrailingIconColor = c.muted,
               ),
             )
             OutlinedButton(
@@ -3660,6 +3668,7 @@ private fun StationSearchField(
   onValueChange: (String) -> Unit,
   label: String,
 ) {
+  val c = LocalBiziColors.current
   OutlinedTextField(
     modifier = Modifier.fillMaxWidth(),
     value = value,
@@ -3667,14 +3676,14 @@ private fun StationSearchField(
     singleLine = true,
     shape = RoundedCornerShape(20.dp),
     leadingIcon = {
-      Icon(Icons.Filled.Search, contentDescription = null, tint = LocalBiziColors.current.muted)
+      Icon(Icons.Filled.Search, contentDescription = null, tint = c.muted)
     },
     trailingIcon = if (value.isNotEmpty()) {
       {
         Icon(
           imageVector = Icons.Filled.Close,
           contentDescription = stringResource(MR.strings.clearSearch),
-          tint = LocalBiziColors.current.muted,
+          tint = c.muted,
           modifier = Modifier.clickable { onValueChange("") },
         )
       }
@@ -3686,12 +3695,22 @@ private fun StationSearchField(
     } else {
       null
     },
-    placeholder = { Text(label) },
+    placeholder = { Text(label, color = c.muted) },
     colors = OutlinedTextFieldDefaults.colors(
-      focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.fieldSurfaceIos else LocalBiziColors.current.fieldSurfaceAndroid,
-      unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.fieldSurfaceIos else LocalBiziColors.current.fieldSurfaceAndroid,
-      focusedBorderColor = LocalBiziColors.current.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
-      unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) LocalBiziColors.current.panel else LocalBiziColors.current.muted.copy(alpha = 0.18f),
+      focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.fieldSurfaceIos else c.fieldSurfaceAndroid,
+      unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.fieldSurfaceIos else c.fieldSurfaceAndroid,
+      focusedBorderColor = c.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
+      unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) c.panel else c.muted.copy(alpha = 0.18f),
+      focusedTextColor = c.ink,
+      unfocusedTextColor = c.ink,
+      focusedLabelColor = c.ink,
+      unfocusedLabelColor = c.muted,
+      focusedPlaceholderColor = c.muted,
+      unfocusedPlaceholderColor = c.muted,
+      focusedLeadingIconColor = c.muted,
+      unfocusedLeadingIconColor = c.muted,
+      focusedTrailingIconColor = c.muted,
+      unfocusedTrailingIconColor = c.muted,
     ),
   )
 }
@@ -3714,7 +3733,7 @@ private fun QuickRouteActionCard(
         station?.let(onRoute)
       },
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
       modifier = Modifier
@@ -3797,18 +3816,22 @@ private fun EmptyStateCard(
   primaryAction: String? = null,
   onPrimaryAction: (() -> Unit)? = null,
 ) {
+  val c = LocalBiziColors.current
   Card(
     modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+    colors = CardDefaults.cardColors(containerColor = c.surface),
   ) {
     Column(
       modifier = Modifier.padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      Text(title, fontWeight = FontWeight.SemiBold)
-      Text(description, style = MaterialTheme.typography.bodySmall, color = LocalBiziColors.current.muted)
+      Text(title, fontWeight = FontWeight.SemiBold, color = c.ink)
+      Text(description, style = MaterialTheme.typography.bodySmall, color = c.muted)
       if (primaryAction != null && onPrimaryAction != null) {
-        OutlinedButton(onClick = onPrimaryAction) {
+        OutlinedButton(
+          onClick = onPrimaryAction,
+          colors = ButtonDefaults.outlinedButtonColors(contentColor = c.red),
+        ) {
           Text(primaryAction)
         }
       }

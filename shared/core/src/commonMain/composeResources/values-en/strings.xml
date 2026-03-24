@@ -21,6 +21,14 @@
     <string name="changelog_map_filters_title">Map filters</string>
     <string name="changelog_refresh_indicator_description">Visible countdown next to the refresh button (updates every 5 min).</string>
     <string name="changelog_refresh_indicator_title">Refresh indicator</string>
+    <string name="changelog_new_cities_title">New cities</string>
+    <string name="changelog_new_cities_description">Added 14 cities: Bilbao, Bizkaia, León, Valladolid, Málaga, Palma, Las Palmas, A Coruña, Mislata, Rivas-Vaciamadrid, Donostia, Reus, Santander, and Barcelona Donkey.</string>
+    <string name="changelog_filter_colors_title">Filter colors</string>
+    <string name="changelog_filter_colors_description">Each map filter has its own color for better identification: green, blue, red, orange, and purple.</string>
+    <string name="changelog_distance_km_title">Distances in km</string>
+    <string name="changelog_distance_km_description">Distances over 1000m now show in kilometers. New radius options: 1.5km, 2km, 3km, and 5km.</string>
+    <string name="changelog_dark_mode_fixes_title">Dark mode fixes</string>
+    <string name="changelog_dark_mode_fixes_description">Fixed colors for search fields and other elements in dark mode.</string>
     <string name="changelog_whats_new">What's new</string>
     <string name="clear_field">Clear</string>
     <string name="clear_search">Clear search</string>

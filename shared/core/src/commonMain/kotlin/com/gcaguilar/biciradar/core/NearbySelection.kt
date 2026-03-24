@@ -2,7 +2,12 @@ package com.gcaguilar.biciradar.core
 
 const val DEFAULT_SEARCH_RADIUS_METERS = 500
 
-val SEARCH_RADIUS_OPTIONS_METERS = listOf(300, 500, 750, 1000)
+val SEARCH_RADIUS_OPTIONS_METERS = listOf(300, 500, 750, 1000, 1500, 2000, 3000, 5000)
+
+fun formatDistance(meters: Int): String = when {
+    meters >= 1000 -> String.format("%.1f km", meters / 1000.0)
+    else -> "$meters m"
+}
 
 data class NearbyStationSelection(
   val withinRadiusStation: Station?,

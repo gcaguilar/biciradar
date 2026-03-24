@@ -21,6 +21,14 @@
     <string name="changelog_map_filters_title">Filtros en el mapa</string>
     <string name="changelog_refresh_indicator_description">Cuenta atrás visible junto al botón de refresco (actualización cada 5 min).</string>
     <string name="changelog_refresh_indicator_title">Indicador de refresco</string>
+    <string name="changelog_new_cities_title">Nuevas ciudades</string>
+    <string name="changelog_new_cities_description">Añadidas 14 ciudades: Bilbao, Bizkaia, León, Valladolid, Málaga, Palma, Las Palmas, A Coruña, Mislata, Rivas-Vaciamadrid, Donostia, Reus, Santander y Barcelona Donkey.</string>
+    <string name="changelog_filter_colors_title">Colores en filtros</string>
+    <string name="changelog_filter_colors_description">Cada filtro del mapa tiene su propio color para identificarlo mejor: verde, azul, rojo, naranja y morado.</string>
+    <string name="changelog_distance_km_title">Distancias en km</string>
+    <string name="changelog_distance_km_description">Las distancias mayores de 1000m ahora se muestran en kilómetros. Nuevas opciones de radio: 1.5km, 2km, 3km y 5km.</string>
+    <string name="changelog_dark_mode_fixes_title">Mejoras tema oscuro</string>
+    <string name="changelog_dark_mode_fixes_description">Corregidos colores de campos de búsqueda y otros elementos para el tema oscuro.</string>
     <string name="changelog_whats_new">Novedades</string>
     <string name="clear_field">Borrar</string>
     <string name="clear_search">Limpiar búsqueda</string>

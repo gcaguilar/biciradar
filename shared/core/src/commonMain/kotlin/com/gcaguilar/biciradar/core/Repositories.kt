@@ -44,12 +44,18 @@ class StationsRepositoryImpl(
   private val biziApi: BiziApi,
   private val appConfiguration: AppConfiguration,
   private val locationProvider: LocationProvider,
+  private val settingsRepository: SettingsRepository,
 ) : StationsRepository {
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
   private var loaded = false
   private val loadMutex = Mutex()
 
   override val state: StateFlow<StationsState> = mutableState.asStateFlow()
+
+  private fun defaultLocation(): GeoPoint {
+    val city = settingsRepository.currentSelectedCity()
+    return GeoPoint(city.defaultLatitude, city.defaultLongitude)
+  }
 
   override suspend fun forceRefresh() {
     loadMutex.withLock { loaded = false }
@@ -64,7 +70,7 @@ class StationsRepositoryImpl(
     val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
       runCatching { locationProvider.currentLocation() }.getOrNull()
     }
-    val origin = currentLocation ?: appConfiguration.defaultLocation()
+    val origin = currentLocation ?: defaultLocation()
     runCatching { biziApi.fetchStations(origin) }
       .onSuccess { stations ->
         mutableState.value = StationsState(

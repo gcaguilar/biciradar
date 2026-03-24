@@ -3,7 +3,7 @@
 
     <style name="Theme.BiciRadar.Splash" parent="Theme.SplashScreen">
         <item name="android:windowBackground">@drawable/bizi_splash_legacy</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/bizi_splash_icon</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="windowSplashScreenAnimationDuration">0</item>
         <item name="windowSplashScreenBackground">@color/bizi_splash_background</item>
         <item name="postSplashScreenTheme">@style/Theme.BiciRadar</item>
