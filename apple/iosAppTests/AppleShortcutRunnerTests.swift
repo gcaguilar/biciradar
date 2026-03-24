@@ -269,8 +269,8 @@ private struct FakeAppleGraph: AppleGraphClient {
     var matchedStation: BiziStationSnapshot?
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
-    var assistantResolution: AssistantResolution = AssistantResolution(
-        spokenResponse: StringDesc.Raw("Unknown station"),
+    var assistantResolution: AssistantResolution = AssistantResolution.raw(
+        spokenResponse: "Unknown station",
         highlightedStationId: "station-1"
     )
 

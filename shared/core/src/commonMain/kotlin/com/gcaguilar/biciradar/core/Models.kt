@@ -77,7 +77,17 @@ sealed interface AssistantAction {
 data class AssistantResolution(
   val spokenResponse: StringDesc,
   val highlightedStationId: String? = null,
-)
+) {
+  companion object {
+    fun raw(
+      spokenResponse: String,
+      highlightedStationId: String? = null
+    ): AssistantResolution = AssistantResolution(
+      spokenResponse = StringDesc.Raw(spokenResponse),
+      highlightedStationId = highlightedStationId
+    )
+  }
+}
 
 @Serializable
 data class StationHourlyPattern(
