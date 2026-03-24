@@ -36,13 +36,18 @@ platform :ios do
 
     install_provisioning_profile(path: profile_path)
 
+    xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
+    if profile_name
+      xcargs += " PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+    end
+
     build_app(
       project: "apple/BiciRadar.xcodeproj",
       scheme: "BiciRadar",
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual",
+      xcargs: xcargs,
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
@@ -76,13 +81,18 @@ platform :ios do
 
     install_provisioning_profile(path: profile_path)
 
+    xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
+    if profile_name
+      xcargs += " PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+    end
+
     build_app(
       project: "apple/BiciRadar.xcodeproj",
       scheme: "BiciRadar",
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual",
+      xcargs: xcargs,
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
       export_options: {
