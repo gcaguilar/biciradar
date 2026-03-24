@@ -177,10 +177,10 @@ struct AppleShortcutRunner {
                 return fallbackMessage
             }
             guard let station = try await graph.station(stationId: stationId) else {
-                return resolution.spokenResponse.localized()
+                return resolution.spokenResponse
             }
             await saveLaunchRequest(MobileLaunchRequestShowStation(stationId: station.id))
-            return resolution.spokenResponse.localized()
+            return resolution.spokenResponse
         } catch {
             return fallbackMessage
         }
