@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-tags: true
 
@@ -118,7 +118,7 @@ jobs:
         run: bundle exec fastlane ios release_to_app_store
 
       - name: Upload signed iOS IPA artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ios-app-store-ipa
           if-no-files-found: error

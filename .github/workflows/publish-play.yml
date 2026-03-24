@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-tags: true
 
@@ -75,7 +75,7 @@ jobs:
             -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
 
       - name: Upload Android release bundle artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: android-release-bundle
           if-no-files-found: error
