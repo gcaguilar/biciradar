@@ -762,7 +762,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.tests;
 				PRODUCT_NAME = "BiciRadar Tests";
 				SDKROOT = iphoneos;
@@ -790,7 +790,7 @@
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.biciradar.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
 				SDKROOT = watchos;
@@ -820,7 +820,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.tests;
 				PRODUCT_NAME = "BiciRadar Watch Tests";
 				SDKROOT = watchos;
@@ -851,7 +851,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziMobileUi -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.tests;
 				PRODUCT_NAME = "BiciRadar Tests";
 				SDKROOT = iphoneos;
@@ -996,7 +996,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -ObjC -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -framework BiziMobileUi -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios;
 				PRODUCT_NAME = BiciRadar;
 				PROVISIONING_PROFILE_SPECIFIER = "48baa5e8-be01-4ff1-b1a3-7345ffba5c67";
@@ -1056,7 +1056,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -ObjC -framework BiziMobileUi";
+				OTHER_LDFLAGS = "$(inherited) -ObjC -framework BiziMobileUi -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios;
 				PRODUCT_NAME = BiciRadar;
 				PROVISIONING_PROFILE_SPECIFIER = "48baa5e8-be01-4ff1-b1a3-7345ffba5c67";
@@ -1086,7 +1086,7 @@
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.biciradar.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
 				SDKROOT = watchos;
@@ -1138,7 +1138,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore";
+				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.tests;
 				PRODUCT_NAME = "BiciRadar Watch Tests";
 				SDKROOT = watchos;
