@@ -65,8 +65,8 @@ final class WatchShortcutRunnerTests: XCTestCase {
     }
 
     func testNearestWithSlotsUsesEmptyFallbackWhenNoStationIsHighlighted() async {
-        let resolution = AssistantResolution.raw(
-            spokenResponse: "Unknown station",
+        let resolution = AssistantResolution(
+            spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
             highlightedStationId: nil
         )
         let runner = WatchShortcutRunner(
@@ -154,8 +154,8 @@ private struct FakeWatchGraph: WatchGraphClient {
     var matchedStation: WatchStationSnapshot?
     var queryMatches: [String: WatchStationSnapshot] = [:]
     var stationById: [String: WatchStationSnapshot] = [:]
-    var assistantResolution: AssistantResolution = AssistantResolution.raw(
-        spokenResponse: "Unknown station",
+    var assistantResolution: AssistantResolution = AssistantResolution(
+        spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
         highlightedStationId: "station-1"
     )
 
