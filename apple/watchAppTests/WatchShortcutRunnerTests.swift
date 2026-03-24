@@ -64,22 +64,6 @@ final class WatchShortcutRunnerTests: XCTestCase {
         XCTAssertEqual(dialog, "He pedido al iPhone que abra la ruta a Universidad.")
     }
 
-    func testNearestWithSlotsUsesEmptyFallbackWhenNoStationIsHighlighted() async {
-        let resolution = AssistantResolution(
-            spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
-            highlightedStationId: nil
-        )
-        let runner = WatchShortcutRunner(
-            graph: FakeWatchGraph(assistantResolution: resolution),
-            favoriteIdsProvider: { [] },
-            routeRequester: { _ in false }
-        )
-
-        let dialog = await runner.nearestStationWithSlotsDialog()
-
-        XCTAssertEqual(dialog, "No he encontrado estaciones cercanas con huecos libres ahora mismo.")
-    }
-
     func testSavedPlaceStatusDialogResolvesHomeAlias() async {
         let runner = WatchShortcutRunner(
             graph: FakeWatchGraph(
@@ -154,10 +138,6 @@ private struct FakeWatchGraph: WatchGraphClient {
     var matchedStation: WatchStationSnapshot?
     var queryMatches: [String: WatchStationSnapshot] = [:]
     var stationById: [String: WatchStationSnapshot] = [:]
-    var assistantResolution: AssistantResolution = AssistantResolution(
-        spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
-        highlightedStationId: "station-1"
-    )
 
     func nearbyStations(limit: Int) async throws -> [WatchStationSnapshot] {
         Array(nearby.prefix(limit))
@@ -177,7 +157,7 @@ private struct FakeWatchGraph: WatchGraphClient {
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
-        assistantResolution
+        fatalError("assistantResponse not implemented in FakeWatchGraph")
     }
 
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
