@@ -28,16 +28,12 @@ kotlin {
   jvm()
   iosArm64()
   iosSimulatorArm64()
-  watchosArm64()
-  val watchosSimulatorTarget = watchosSimulatorArm64()
 
   applyDefaultHierarchyTemplate()
 
   listOf(
     iosArm64(),
     iosSimulatorArm64(),
-    watchosArm64(),
-    watchosSimulatorTarget,
   ).forEach { target ->
     target.binaries.framework {
       baseName = "BiziSharedCore"
@@ -82,18 +78,7 @@ kotlin {
         implementation(libs.sqldelight.native.driver)
       }
     }
-    val watchosMain by getting {
-      dependencies {
-        implementation(libs.ktor.client.darwin)
-        implementation(libs.sqldelight.runtime)
-        implementation(libs.sqldelight.native.driver)
-      }
-    }
   }
-}
-
-tasks.matching { it.name == "watchosSimulatorArm64Test" }.configureEach {
-  enabled = false
 }
 
 sqldelight {
