@@ -977,6 +977,7 @@
 				INFOPLIST_KEY_UIBackgroundModes = (
 					fetch,
 				);
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = (
 					UIInterfaceOrientationPortrait,
@@ -1036,6 +1037,7 @@
 				INFOPLIST_KEY_UIBackgroundModes = (
 					fetch,
 				);
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = (
 					UIInterfaceOrientationPortrait,
