@@ -1,17 +1,33 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
-  alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.google.services) apply false
   alias(libs.plugins.firebase.crashlytics) apply false
+  alias(libs.plugins.google.services) apply false
 }
 
-val googleServicesJson = file("google-services.json")
-if (googleServicesJson.exists()) {
-  apply(plugin = libs.plugins.google.services.get().pluginId)
-  apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
+val localProperties = Properties().apply {
+  val localPropertiesFile = rootProject.file("local.properties")
+  if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use(::load)
+  }
+}
+
+val wearApplicationId = "com.gcaguilar.biciradar"
+val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
+val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
+  firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
+val ciKeystorePath: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orElse("").get()
+val ciKeystorePassword: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").orElse("").get()
+val ciKeyAlias: String = providers.environmentVariable("BIZI_CI_KEY_ALIAS").orElse("").get()
+val ciKeyPassword: String = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").orElse("").get()
+
+if (firebaseCrashlyticsEnabled) {
+  apply(plugin = "com.google.gms.google-services")
+  apply(plugin = "com.google.firebase.crashlytics")
 }
 
 kotlin {
@@ -27,7 +43,7 @@ android {
   compileSdk = 36
 
   defaultConfig {
-    applicationId = "com.gcaguilar.biciradar"
+    applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
     versionCode = 29568076
@@ -39,30 +55,38 @@ android {
     compose = true
   }
 
-  signingConfigs {
-    create("release") {
-      val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
-      val keystorePassword = project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-      val keyAliasEnv = project.findProperty("BIZI_CI_KEY_ALIAS") as? String
-        ?: System.getenv("BIZI_CI_KEY_ALIAS")
-      val keyPassword = project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEY_PASSWORD")
-
-      if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
-        storeFile = file(keystorePath)
-        storePassword = keystorePassword
-        keyAlias = keyAliasEnv
-        this.keyPassword = keyPassword
-      }
-    }
+  lint {
+    // False positive: ComponentActivity ships its own modern FragmentActivity —
+    // the fragment version check does not apply here.
+    disable += "InvalidFragmentVersionForActivityResult"
   }
 
   buildTypes {
     release {
-      isMinifyEnabled = false
-      signingConfig = signingConfigs.getByName("release")
+      isMinifyEnabled = true
+      isShrinkResources = true
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ciRelease") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro",
+      )
+    }
+    debug {
+      if (ciKeystorePath.isNotEmpty()) {
+        signingConfig = signingConfigs.create("ciDebug") {
+          storeFile = file(ciKeystorePath)
+          storePassword = ciKeystorePassword
+          keyAlias = ciKeyAlias
+          keyPassword = ciKeyPassword
+        }
+      }
     }
   }
 
@@ -87,8 +111,9 @@ android {
     implementation(libs.androidx.wear.compose.foundation)
     implementation(libs.androidx.wear.compose.material3)
     implementation(libs.androidx.wear.compose.navigation)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
-    implementation(libs.firebase.crashlytics)
+    if (firebaseCrashlyticsEnabled) {
+      implementation(platform(libs.firebase.bom))
+      implementation(libs.firebase.crashlytics)
+    }
   }
 }

@@ -1,14 +1,12 @@
 [versions]
-agp = "8.13.0"
+agp = "9.1.0"
 composeMultiplatform = "1.10.3"
-composeCompiler = "2.2.20"
 coroutines = "1.10.2"
-kotlin = "2.2.20"
-ktor = "3.3.3"
-metro = "0.9.4"
-mokoResources = "0.26.1"
+kotlin = "2.3.20"
+ktor = "3.4.1"
+metro = "0.11.4"
 okio = "3.17.0"
-serialization = "1.9.0"
+serialization = "1.10.0"
 sqldelight = "2.3.2"
 androidx-activity = "1.13.0"
 androidx-fragment = "1.8.9"
@@ -28,6 +26,7 @@ firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
 
 [libraries]
+compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx-fragment" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
@@ -53,8 +52,6 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
-moko-resources = { module = "dev.icerock.moko:resources", version.ref = "mokoResources" }
-moko-resources-compose = { module = "dev.icerock.moko:resources-compose", version.ref = "mokoResources" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
@@ -69,6 +66,7 @@ sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", ver
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-builtin-kotlin = { id = "com.android.built-in-kotlin", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
@@ -79,5 +77,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
-moko-resources = { id = "dev.icerock.mobile.multiplatform-resources", version.ref = "mokoResources" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
