@@ -152,14 +152,17 @@ import androidx.navigation.compose.rememberNavController
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 
+// --- Light-mode palette raw tokens ---
+private val BiziLight = Color(0xFFF8F6F6)
+private val BiziGrouped = Color(0xFFF2F2F7)
+private val BiziInk = Color(0xFF211111)
+private val BiziMuted = Color(0xFF64748B)
+private val BiziPanel = Color(0xFFF1F5F9)
 private val BiziRed = Color(0xFFD7191F)
-private val BiziDarkRed = Color(0xFFCF6679)
 private val BiziGreen = Color(0xFF167C3C)
 private val BiziBlue = Color(0xFF2563EB)
-private val BiziDarkBlue = Color(0xFF64B5F6)
 private val BiziOrange = Color(0xFFF28000)
 private val BiziPurple = Color(0xFF7C3AED)
-private val BiziDarkPurple = Color(0xFFBB86FC)
 
 // --- Dark-mode palette raw tokens ---
 private val BiziDarkBackground = Color(0xFF121212)
@@ -168,9 +171,10 @@ private val BiziDarkSurface = Color(0xFF1E1E1E)
 private val BiziDarkInk = Color(0xFFF1EDED)
 private val BiziDarkMuted = Color(0xFF94A3B8)
 private val BiziDarkPanel = Color(0xFF2A2A2C)
+private val BiziDarkRed = Color(0xFFEF4444)
 private val BiziDarkGreen = Color(0xFF22C55E)
 private val BiziDarkBlue = Color(0xFF60A5FA)
-private val BiziDarkRed = Color(0xFFEF4444)
+private val BiziDarkPurple = Color(0xFFBB86FC)
 
 /**
  * Semantic color scheme consumed by every composable in the app.
@@ -284,10 +288,11 @@ private const val CURRENT_CHANGELOG_VERSION = 2
 private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
 private val CHANGELOG_ENTRIES = listOf(
-  ChangelogEntry(MR.strings.changelogNewCitiesTitle, MR.strings.changelogNewCitiesDescription),
-  ChangelogEntry(MR.strings.changelogFilterColorsTitle, MR.strings.changelogFilterColorsDescription),
-  ChangelogEntry(MR.strings.changelogDistanceKmTitle, MR.strings.changelogDistanceKmDescription),
-  ChangelogEntry(MR.strings.changelogDarkModeFixesTitle, MR.strings.changelogDarkModeFixesDescription),
+  // TODO: Re-enable these once Moko Resources generation is fixed
+  // ChangelogEntry(MR.strings.changelogNewCitiesTitle, MR.strings.changelogNewCitiesDescription),
+  // ChangelogEntry(MR.strings.changelogFilterColorsTitle, MR.strings.changelogFilterColorsDescription),
+  // ChangelogEntry(MR.strings.changelogDistanceKmTitle, MR.strings.changelogDistanceKmDescription),
+  // ChangelogEntry(MR.strings.changelogDarkModeFixesTitle, MR.strings.changelogDarkModeFixesDescription),
   ChangelogEntry(MR.strings.changelogDarkThemeTitle, MR.strings.changelogDarkThemeDescription),
   ChangelogEntry(MR.strings.changelogDismissibleCardTitle, MR.strings.changelogDismissibleCardDescription),
   ChangelogEntry(MR.strings.changelogMapFiltersTitle, MR.strings.changelogMapFiltersDescription),
