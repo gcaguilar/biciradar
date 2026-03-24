@@ -106,6 +106,7 @@ end
 
     upload_to_app_store(
       api_key: api_key,
+      team_id: team_id,
       platform: "ios",
       app_identifier: ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios"),
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
