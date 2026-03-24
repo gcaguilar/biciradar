@@ -85,12 +85,23 @@ jobs:
           echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision" >> "$GITHUB_ENV"
 
           profile_path="$RUNNER_TEMP/signing-profile.mobileprovision"
-          profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$profile_path" 2>/dev/null)" 2>/dev/null || true)
-          if [[ -z "$profile_name" ]]; then
-            profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          
+          # Try to extract profile name
+          profile_name=""
+          if security cms -D -i "$profile_path" >/dev/null 2>&1; then
+            profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$profile_path" 2>/dev/null)" 2>/dev/null || true)
           fi
-          echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
-          echo "Profile name: $profile_name"
+          
+          if [[ -z "$profile_name" ]]; then
+            profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" 2>/dev/null | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/' || true)
+          fi
+          
+          if [[ -n "$profile_name" ]]; then
+            echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
+            echo "Profile name: $profile_name"
+          else
+            echo "Warning: Could not extract profile name, Xcode will need to find the profile automatically"
+          fi
 
       - name: Set up Ruby and Bundler
         uses: ruby/setup-ruby@v1
