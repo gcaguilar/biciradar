@@ -100,7 +100,6 @@ sqldelight {
   databases {
     create("BiciRadarDatabase") {
       packageName.set("com.gcaguilar.biciradar.core.local")
-      srcDirs.setFrom("src/commonMain/sqldelight")
     }
   }
 }
