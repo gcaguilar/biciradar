@@ -269,10 +269,6 @@ private struct FakeAppleGraph: AppleGraphClient {
     var matchedStation: BiziStationSnapshot?
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
-    var assistantResolution: AssistantResolution = AssistantResolution(
-        spokenResponse: StringDesc.Resource(MR.strings.unknownStation),
-        highlightedStationId: "station-1"
-    )
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
         favorites
@@ -288,7 +284,7 @@ private struct FakeAppleGraph: AppleGraphClient {
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
-        assistantResolution
+        fatalError("assistantResponse not implemented in FakeAppleGraph")
     }
 }
 
