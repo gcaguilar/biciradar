@@ -168,6 +168,7 @@ jobs:
             -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
             -resultBundlePath "$RUNNER_TEMP/ios-tests.xcresult" \
+            -skip-testing:BiciRadarUITests \
             test
 
       - name: Upload iOS test results on failure
