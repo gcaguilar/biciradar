@@ -96,6 +96,9 @@ jobs:
             profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" 2>/dev/null | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/' || true)
           fi
           
+          # Strip any whitespace/carriage returns
+          profile_name=$(echo "$profile_name" | tr -d '\r\n' | xargs)
+          
           if [[ -n "$profile_name" ]]; then
             echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
             echo "Profile name: $profile_name"
