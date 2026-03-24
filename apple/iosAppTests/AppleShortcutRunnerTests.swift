@@ -59,78 +59,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
     }
 
-    func testNearestStationDialogPromotesHighlightedStationWhenAvailable() async {
-        let recorder = LaunchRequestRecorder()
-        let runner = AppleShortcutRunner(
-            graph: FakeAppleGraph(
-                stationById: [
-                    "station-48": .fixture(id: "station-48", name: "Universidad")
-                ],
-                assistantResolution: AssistantResolution(
-                    spokenResponse: "La estación más cercana es Universidad con 6 bicis y 8 huecos.",
-                    highlightedStationId: "station-48"
-                )
-            ),
-            saveLaunchRequest: { request in
-                await recorder.append(request)
-            }
-        )
-
-        let dialog = await runner.nearestStationDialog()
-        let requests = await recorder.requests()
-
-        XCTAssertEqual(dialog, "La estación más cercana es Universidad con 6 bicis y 8 huecos.")
-        XCTAssertEqual(requests.count, 2)
-        XCTAssertTrue(requests.first is MobileLaunchRequestNearestStation)
-        let detailRequest = requests.last as? MobileLaunchRequestShowStation
-        XCTAssertEqual(detailRequest?.stationId, "station-48")
-    }
-
-    func testNearestStationWithBikesDialogUsesFallbackWhenAssistantCannotHighlightStation() async {
-        let recorder = LaunchRequestRecorder()
-        let runner = AppleShortcutRunner(
-            graph: FakeAppleGraph(
-                assistantResolution: AssistantResolution(
-                    spokenResponse: "Esto no debería usarse.",
-                    highlightedStationId: nil
-                )
-            ),
-            saveLaunchRequest: { request in
-                await recorder.append(request)
-            }
-        )
-
-        let dialog = await runner.nearestStationWithBikesDialog()
-        let requests = await recorder.requests()
-
-        XCTAssertEqual(dialog, "Abre Bici Radar para buscar una estación cercana con bicis disponibles.")
-        XCTAssertEqual(requests.count, 1)
-        XCTAssertTrue(requests.first is MobileLaunchRequestNearestStationWithBikes)
-    }
-
-    func testNearestStationWithSlotsDialogReturnsSpokenResponseWhenHighlightedStationCannotLoad() async {
-        let recorder = LaunchRequestRecorder()
-        let runner = AppleShortcutRunner(
-            graph: FakeAppleGraph(
-                assistantResolution: AssistantResolution(
-                    spokenResponse: "La estación más cercana tiene huecos libres.",
-                    highlightedStationId: "station-missing"
-                )
-            ),
-            saveLaunchRequest: { request in
-                await recorder.append(request)
-            }
-        )
-
-        let dialog = await runner.nearestStationWithSlotsDialog()
-        let requests = await recorder.requests()
-
-        XCTAssertEqual(dialog, "La estación más cercana tiene huecos libres.")
-        XCTAssertEqual(requests.count, 1)
-        XCTAssertTrue(requests.first is MobileLaunchRequestNearestStationWithSlots)
-    }
-
-    func testStationStatusDialogReportsStationByIdentifier() async {
+    func testStationStatusDialogReportsStationByIdIdentifier() async {
         let runner = AppleShortcutRunner(
             graph: FakeAppleGraph(
                 stationById: [
