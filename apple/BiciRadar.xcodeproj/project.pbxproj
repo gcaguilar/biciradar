@@ -329,7 +329,6 @@
 				41F7F7FE42272502DB2C070E /* Sources */,
 				8348F136215619D79E7993F5 /* Resources */,
 				436A3FB37274D6D13D34B520 /* Frameworks */,
-				30D8888CC8502ACFBBA7C12D /* Copy moko-resources to app bundle */,
 			);
 			buildRules = (
 			);
@@ -350,7 +349,6 @@
 				077135ECCACDC8FA5106A1C6 /* Sources */,
 				97B3838758FD73B3A9FD7D25 /* Resources */,
 				FD07C8003E3A01C731DD408A /* Frameworks */,
-				DF96EA8A59F78E73EE1ED365 /* Copy moko-resources to app bundle */,
 				F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */,
 			);
 			buildRules = (
@@ -509,25 +507,6 @@
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
 		};
-		30D8888CC8502ACFBBA7C12D /* Copy moko-resources to app bundle */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy moko-resources to app bundle";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\n./gradlew --no-configuration-cache :shared:core:copyFrameworkResourcesToApp \\\n  -Pmoko.resources.PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n  -Pmoko.resources.CONFIGURATION=\"${KOTLIN_FRAMEWORK_BUILD_TYPE:-$CONFIGURATION}\" \\\n  -Pmoko.resources.ARCHS=\"$ARCHS\" \\\n  -Pmoko.resources.BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n  -Pmoko.resources.CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\"\n";
-		};
 		39903177489BA524EB0E421A /* Build KMP iOS test frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -584,25 +563,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatch.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
-		};
-		DF96EA8A59F78E73EE1ED365 /* Copy moko-resources to app bundle */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy moko-resources to app bundle";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\n./gradlew --no-configuration-cache :shared:core:copyFrameworkResourcesToApp \\\n  -Pmoko.resources.PLATFORM_NAME=\"$PLATFORM_NAME\" \\\n  -Pmoko.resources.CONFIGURATION=\"${KOTLIN_FRAMEWORK_BUILD_TYPE:-$CONFIGURATION}\" \\\n  -Pmoko.resources.ARCHS=\"$ARCHS\" \\\n  -Pmoko.resources.BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n  -Pmoko.resources.CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\"\n";
 		};
 		F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */ = {
 			isa = PBXShellScriptBuildPhase;
