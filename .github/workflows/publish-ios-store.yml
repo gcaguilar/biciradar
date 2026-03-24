@@ -84,9 +84,10 @@ jobs:
           echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12" >> "$GITHUB_ENV"
           echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision" >> "$GITHUB_ENV"
 
-          profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i '$RUNNER_TEMP/signing-profile.mobileprovision' 2>/dev/null)" 2>/dev/null || true)
+          profile_path="$RUNNER_TEMP/signing-profile.mobileprovision"
+          profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$profile_path" 2>/dev/null)" 2>/dev/null || true)
           if [[ -z "$profile_name" ]]; then
-            profile_name=$(grep -a -A1 '<key>Name</key>' '$RUNNER_TEMP/signing-profile.mobileprovision' | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+            profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
           fi
           echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
           echo "Profile name: $profile_name"
