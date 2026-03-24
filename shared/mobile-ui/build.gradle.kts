@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-  androidLibrary {
+  android {
     compileSdk = 36
     minSdk = 26
     namespace = "com.gcaguilar.biciradar.shared.mobileui"
@@ -41,7 +41,6 @@ kotlin {
       implementation(libs.metro.runtime)
       implementation(libs.androidx.lifecycle.runtime.compose)
       implementation(libs.navigation.compose)
-      implementation(libs.moko.resources.compose)
     }
     androidMain.dependencies {
       implementation(libs.maps.compose)

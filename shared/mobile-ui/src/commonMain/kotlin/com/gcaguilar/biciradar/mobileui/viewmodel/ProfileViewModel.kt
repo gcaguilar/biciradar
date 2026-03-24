@@ -9,10 +9,8 @@ import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.StationsRepository
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.StringDesc
+
 import com.gcaguilar.biciradar.core.ThemePreference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +22,7 @@ data class ProfileUiState(
   val preferredMapApp: PreferredMapApp = PreferredMapApp.GoogleMaps,
   val themePreference: ThemePreference = ThemePreference.System,
   val selectedCity: City = City.ZARAGOZA,
-  val latestAnswer: StringDesc = StringDesc.Resource(MR.strings.askAboutStationsFavoritesOrRoutes),
+  val latestAnswer: String = "Ask about stations, favorites, or routes",
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
 )
@@ -97,7 +95,7 @@ class ProfileViewModel(
     }
   }
 
-  fun updateLatestAnswer(answer: StringDesc) {
+  fun updateLatestAnswer(answer: String) {
     _uiState.value = _uiState.value.copy(latestAnswer = answer)
   }
 

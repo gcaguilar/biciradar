@@ -4,11 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
-import com.gcaguilar.biciradar.core.MR
 import com.gcaguilar.biciradar.core.TripDestination
-import dev.icerock.moko.resources.desc.Resource
-import dev.icerock.moko.resources.desc.ResourceFormatted
-import dev.icerock.moko.resources.desc.StringDesc
+
+
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
 import com.gcaguilar.biciradar.core.geo.GeoError
@@ -27,7 +25,7 @@ data class TripUiState(
   val query: String = "",
   val suggestions: List<GeoResult> = emptyList(),
   val isLoadingSuggestions: Boolean = false,
-  val suggestionsError: StringDesc? = null,
+  val suggestionsError: String? = null,
   val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
   val mapPickerActive: Boolean = false,
   val isReverseGeocoding: Boolean = false,
@@ -86,14 +84,11 @@ class TripViewModel(
       }
 
       if (_uiState.value.query == newQuery) {
-        val errorMsg: StringDesc? = results.exceptionOrNull()?.let { ex ->
+        val errorMsg: String? = results.exceptionOrNull()?.let { ex ->
           when (ex) {
-            is GeoError.Server -> StringDesc.Resource(MR.strings.tripSearchLocationUnavailable)
-            is GeoError.Network -> StringDesc.Resource(MR.strings.tripLocationServiceUnavailable)
-            else -> StringDesc.ResourceFormatted(
-              MR.strings.searchError,
-              ex.message ?: ex::class.simpleName ?: "",
-            )
+            is GeoError.Server -> "Location service unavailable"
+            is GeoError.Network -> "Network error"
+            else -> "Search error: ${ex.message ?: ex::class.simpleName ?: ""}"
           }
         }
         _uiState.value = _uiState.value.copy(
