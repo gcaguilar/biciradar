@@ -2,14 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>aps-environment</key>
-	<string>production</string>
-	<key>com.apple.developer.location.push</key>
-	<true/>
 	<key>com.apple.developer.team-identifier</key>
 	<string>B87AWPVZWB</string>
-	<key>com.apple.developer.usernotifications.communication</key>
-	<true/>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(TeamIdentifierPrefix)com.gcaguilar.biciradar.ios</string>
