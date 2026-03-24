@@ -48,9 +48,22 @@
 
 # Plan de Migración: moko-resources → compose.components.resources
 
-## Objetivo
+## BLOQUEADO
 
-Migrar la gestión de recursos de strings de moko-resources a compose.components.resources.
+**Razón:** Compose Multiplatform Resources no soporta watchOS en la versión actual (1.10.3).
+
+**Error encontrado:**
+```
+Couldn't resolve dependency 'org.jetbrains.compose.components:components-resources'
+Unresolved platforms: [watchosArm64, watchosSimulatorArm64]
+```
+
+**Posibles soluciones futuras:**
+1. Esperar a una versión de Compose Multiplatform que soporte watchOS
+2. Excluir watchOS del proyecto (no deseado)
+3. Mantener moko-resources indefinidamente
+
+**Decisión:** Mantener moko-resources por ahora. Revisitar cuando Compose Multiplatform 1.11+ esté disponible con soporte watchOS completo.
 
 ## Estado Actual
 
