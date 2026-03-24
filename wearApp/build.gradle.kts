@@ -22,8 +22,8 @@ android {
     applicationId = "com.gcaguilar.biciradar.wear"
     minSdk = 30
     targetSdk = 36
-    versionCode = 29568075
-    versionName = "0.1.0"
+    versionCode = 29568076
+    versionName = "0.14.0"
   }
 
   buildFeatures {
