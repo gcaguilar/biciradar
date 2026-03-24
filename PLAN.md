@@ -43,3 +43,174 @@
 - A public feed/API with enough station and availability data is assumed to be available.
 - Initial language: Spanish, while keeping the base ready for English later.
 - Versions are pinned in `libs.versions.toml` using the latest stable versions compatible with the KMP/Compose/Gradle stack.
+
+---
+
+# Plan de Migración: moko-resources → compose.components.resources
+
+## Objetivo
+
+Migrar la gestión de recursos de strings de moko-resources a compose.components.resources.
+
+## Estado Actual
+
+- **moko-resources versión:** 0.26.1
+- **Ubicación recursos:** `shared/core/src/commonMain/moko-resources/`
+- **Idiomas:** base (castellano), ca (catalán), eu (euskera), gl (gallego), en (inglés)
+- **Referencias en código:** 255+ usos de `MR.strings.*`
+
+## Release
+
+Release dedicada para esta migración (no mezclar con otras features).
+
+---
+
+## Fases de la Migración
+
+### Fase 1: Preparación (Pre-migración)
+
+#### 1.1 Agregar dependencia compose.components.resources
+
+**Archivo:** `shared/core/build.gradle.kts`
+
+```kotlin
+commonMain.dependencies {
+  // Agregar esta línea
+  implementation(libs.compose.components.resources)
+}
+```
+
+**Archivo:** `gradle/libs.versions.toml` (agregar si no existe)
+
+```toml
+[libraries]
+compose-components-resources = { module = "org.jetbrains.compose:components:components-resources", version.ref = "composeMultiplatform" }
+```
+
+---
+
+### Fase 2: Mover Recursos
+
+#### 2.1 Estructura de directorios
+
+Crear: `shared/core/src/commonMain/composeResources/`
+
+```
+composeResources/
+└── values/
+    └── strings.xml        (contenido de moko-resources/base/strings.xml)
+└── values-ca/
+    └── strings.xml        (contenido de moko-resources/ca/strings.xml)
+└── values-eu/
+    └── strings.xml        (contenido de moko-resources/eu/strings.xml)
+└── values-gl/
+    └── strings.xml        (contenido de moko-resources/gl/strings.xml)
+└── values-en/
+    └── strings.xml        (contenido de moko-resources/en/strings.xml)
+```
+
+#### 2.2 Acción
+
+- Copiar archivos de `moko-resources/` a `composeResources/`
+- **NO eliminar** moko-resources todavía (hasta Fase 5)
+
+---
+
+### Fase 3: Actualizar Código
+
+#### 3.1 Actualizar referencias de strings
+
+Buscar y reemplazar todas las ocurrencias (255+):
+
+```kotlin
+// ANTES
+stringResource(MR.strings.nearby)
+
+// DESPUÉS
+stringResource(SharedRes.strings.nearby)
+```
+
+**Scripts de búsqueda:**
+```bash
+# Encontrar todos los usages de MR.strings
+grep -r "MR\.strings\." --include="*.kt" shared/mobile-ui/
+```
+
+---
+
+### Fase 4: Validación
+
+#### 4.1 Compilar todos los targets
+
+```bash
+# Android
+./gradlew :shared:core:compileDebugKotlinAndroid
+
+# iOS
+./gradlew :shared:core:compileKotlinIosArm64
+
+# JVM
+./gradlew :shared:core:compileKotlinJvm
+```
+
+#### 4.2 Test manual
+
+- Verificar que las strings aparecen correctamente en Android
+- Verificar que las strings aparecen correctamente en iOS
+- Verificar cambio de idioma funciona
+
+---
+
+### Fase 5: Limpieza
+
+#### 5.1 Eliminar plugin moko-resources
+
+**Archivo:** `shared/core/build.gradle.kts`
+
+```kotlin
+// ELIMINAR esta línea del bloque plugins
+alias(libs.plugins.moko.resources)
+
+// ELIMINAR el bloque completo
+multiplatformResources {
+  resourcesPackage.set("com.gcaguilar.biciradar.core")
+}
+```
+
+#### 5.2 Eliminar dependencias moko
+
+**Archivo:** `gradle/libs.versions.toml`
+
+```toml
+# ELIMINAR esta línea
+mokoResources = "0.26.1"
+```
+
+#### 5.3 Eliminar directorio moko-resources
+
+```bash
+rm -rf shared/core/src/commonMain/moko-resources/
+```
+
+---
+
+## Tiempo Estimado
+
+- **Preparación:** 15 min
+- **Mover recursos:** 10 min
+- **Actualizar código:** 1-2 horas
+- **Validación:** 30 min
+- **Limpieza:** 15 min
+
+**Total:** ~2-3 horas
+
+---
+
+## Checklist de Ejecución
+
+- [ ] Fase 1: Agregar dependencia compose.components.resources
+- [ ] Fase 2: Mover archivos de moko-resources a composeResources
+- [ ] Fase 3: Actualizar referencias (255+ cambios)
+- [ ] Fase 4: Compilar Android, iOS, JVM
+- [ ] Fase 5: Eliminar plugin moko-resources
+- [ ] Fase 5: Eliminar directorio moko-resources/
