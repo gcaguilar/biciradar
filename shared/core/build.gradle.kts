@@ -20,7 +20,7 @@ kotlin {
   jvm()
   iosArm64()
   iosSimulatorArm64()
-  watchosArm64()
+  watchosDeviceArm64()
   watchosSimulatorArm64()
 
   applyDefaultHierarchyTemplate()
@@ -28,7 +28,7 @@ kotlin {
   listOf(
     iosArm64(),
     iosSimulatorArm64(),
-    watchosArm64(),
+    watchosDeviceArm64(),
     watchosSimulatorArm64(),
   ).forEach { target ->
     target.binaries.framework {
