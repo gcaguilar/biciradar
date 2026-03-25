@@ -235,10 +235,8 @@ targets:
           fi
     settings:
       base:
-        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: B87AWPVZWB
-        CODE_SIGN_IDENTITY: "Apple Distribution"
-        PROVISIONING_PROFILE_SPECIFIER: "Profile"
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FRAMEWORK_SEARCH_PATHS:
