@@ -134,7 +134,8 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar
         INFOPLIST_KEY_LSApplicationQueriesSchemes:
           - comgooglemaps
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bici Radar necesita tu ubicación para mostrar estaciones cercanas.
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared."
+        INFOPLIST_KEY_NSUserNotificationUsageDescription: "The app uses notifications to alert you when a monitored bike station becomes full or when docks become available."
         INFOPLIST_KEY_UIBackgroundModes:
           - fetch
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
