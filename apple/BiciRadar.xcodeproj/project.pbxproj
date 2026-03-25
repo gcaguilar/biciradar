@@ -443,7 +443,7 @@
 					};
 					54F2A93AE922E3FF791E5616 = {
 						DevelopmentTeam = B87AWPVZWB;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 					BCF1240E3C3258E3C8152F54 = {
 						DevelopmentTeam = B87AWPVZWB;
@@ -764,7 +764,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -783,6 +784,7 @@
 				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -1062,7 +1064,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1081,6 +1084,7 @@
 				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;

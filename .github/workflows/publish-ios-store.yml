@@ -68,6 +68,7 @@ jobs:
         env:
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_WATCH_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_WATCH_PROVISIONING_PROFILE_BASE64 }}
         run: |
           if [[ -z "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" ]]; then
             echo "::error::APPLE_SIGNING_CERTIFICATE_P12_BASE64 secret is empty or not available"
@@ -84,26 +85,34 @@ jobs:
           echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12" >> "$GITHUB_ENV"
           echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision" >> "$GITHUB_ENV"
 
-          profile_path="$RUNNER_TEMP/signing-profile.mobileprovision"
-          
-          # Try to extract profile name
-          profile_name=""
-          if security cms -D -i "$profile_path" >/dev/null 2>&1; then
-            profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$profile_path" 2>/dev/null)" 2>/dev/null || true)
-          fi
-          
-          if [[ -z "$profile_name" ]]; then
-            profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" 2>/dev/null | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/' || true)
-          fi
-          
-          # Strip any whitespace/carriage returns
-          profile_name=$(echo "$profile_name" | tr -d '\r\n' | xargs)
-          
+          extract_profile_name() {
+            local profile_path="$1"
+            local profile_name=""
+            if security cms -D -i "$profile_path" >/dev/null 2>&1; then
+              profile_name=$(/usr/libexec/PlistBuddy -c 'Print Name' /dev/stdin <<< "$(security cms -D -i "$profile_path" 2>/dev/null)" 2>/dev/null || true)
+            fi
+            if [[ -z "$profile_name" ]]; then
+              profile_name=$(grep -a -A1 '<key>Name</key>' "$profile_path" 2>/dev/null | grep '<string>' | sed 's/.*<string>\(.*\)<\/string>.*/\1/' || true)
+            fi
+            echo "$profile_name" | tr -d '\r\n' | xargs
+          }
+
+          profile_name=$(extract_profile_name "$RUNNER_TEMP/signing-profile.mobileprovision")
           if [[ -n "$profile_name" ]]; then
             echo "APPLE_PROFILE_NAME=$profile_name" >> "$GITHUB_ENV"
-            echo "Profile name: $profile_name"
+            echo "iOS profile name: $profile_name"
           else
-            echo "Warning: Could not extract profile name, Xcode will need to find the profile automatically"
+            echo "Warning: Could not extract iOS profile name"
+          fi
+
+          if [[ -n "$APPLE_WATCH_PROVISIONING_PROFILE_BASE64" ]]; then
+            printf '%s' "$APPLE_WATCH_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/watch-signing-profile.mobileprovision"
+            echo "APPLE_WATCH_PROFILE_PATH=$RUNNER_TEMP/watch-signing-profile.mobileprovision" >> "$GITHUB_ENV"
+            watch_profile_name=$(extract_profile_name "$RUNNER_TEMP/watch-signing-profile.mobileprovision")
+            if [[ -n "$watch_profile_name" ]]; then
+              echo "APPLE_WATCH_PROFILE_NAME=$watch_profile_name" >> "$GITHUB_ENV"
+              echo "Watch profile name: $watch_profile_name"
+            fi
           fi
 
       - name: Set up Ruby and Bundler
