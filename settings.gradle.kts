@@ -4,13 +4,6 @@ pluginManagement {
     mavenCentral()
     gradlePluginPortal()
   }
-  resolutionStrategy {
-    eachPlugin {
-      if (requested.id.id == "dev.icerock.mobile.multiplatform-resources") {
-        useModule("dev.icerock.moko:resources-generator:${requested.version}")
-      }
-    }
-  }
 }
 
 dependencyResolutionManagement {

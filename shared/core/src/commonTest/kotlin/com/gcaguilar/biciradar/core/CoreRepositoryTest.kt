@@ -290,15 +290,15 @@ class CoreRepositoryTest {
       },
       settingsRepository = object : SettingsRepository {
         override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
-        override val preferredMapApp = MutableStateFlow(PreferredMapApp.Default)
+        override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
         override val lastSeenChangelogVersion = MutableStateFlow(0)
         override val themePreference = MutableStateFlow(ThemePreference.System)
-        override val selectedCity = MutableStateFlow(City.Zaragoza)
+        override val selectedCity = MutableStateFlow(City.ZARAGOZA)
         override val hasCompletedOnboarding = MutableStateFlow(true)
         override suspend fun bootstrap() = Unit
         override fun currentSearchRadiusMeters() = DEFAULT_SEARCH_RADIUS_METERS
-        override fun currentPreferredMapApp() = PreferredMapApp.Default
-        override fun currentSelectedCity() = City.Zaragoza
+        override fun currentPreferredMapApp() = PreferredMapApp.AppleMaps
+        override fun currentSelectedCity() = City.ZARAGOZA
         override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
         override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
         override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
@@ -318,7 +318,7 @@ class CoreRepositoryTest {
   @Test
   fun `stations repository falls back to default location when current location times out`() = runTest {
     var requestedOrigin: GeoPoint? = null
-    val defaultLocation = GeoPoint(41.6488, -0.8891)
+    val defaultLocation = GeoPoint(City.ZARAGOZA.defaultLatitude, City.ZARAGOZA.defaultLongitude)
     val repository = StationsRepositoryImpl(
       biziApi = object : BiziApi {
         override suspend fun fetchStations(origin: GeoPoint): List<Station> {
@@ -347,15 +347,15 @@ class CoreRepositoryTest {
       },
       settingsRepository = object : SettingsRepository {
         override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
-        override val preferredMapApp = MutableStateFlow(PreferredMapApp.Default)
+        override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
         override val lastSeenChangelogVersion = MutableStateFlow(0)
         override val themePreference = MutableStateFlow(ThemePreference.System)
-        override val selectedCity = MutableStateFlow(City.Zaragoza)
+        override val selectedCity = MutableStateFlow(City.ZARAGOZA)
         override val hasCompletedOnboarding = MutableStateFlow(true)
         override suspend fun bootstrap() = Unit
         override fun currentSearchRadiusMeters() = DEFAULT_SEARCH_RADIUS_METERS
-        override fun currentPreferredMapApp() = PreferredMapApp.Default
-        override fun currentSelectedCity() = City.Zaragoza
+        override fun currentPreferredMapApp() = PreferredMapApp.AppleMaps
+        override fun currentSelectedCity() = City.ZARAGOZA
         override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
         override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
         override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
