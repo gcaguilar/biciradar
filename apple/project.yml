@@ -141,7 +141,7 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi
+        OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios
         PRODUCT_NAME: BiciRadar
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
@@ -153,32 +153,8 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: iosAppTests
-      - path: iosApp/AppleLaunchRequestStore.swift
-      - path: iosApp/AppleShortcutRunner.swift
-      - path: iosApp/FavoritesSyncBridge.swift
-      - path: sharedApple/BiziAppleGraph.swift
     dependencies:
-      - sdk: XCTest.framework
-    preBuildScripts:
-      - name: Build KMP iOS test frameworks
-        basedOnDependencyAnalysis: false
-        script: |
-          set -euo pipefail
-          cd "$SRCROOT/.."
-          if [ "$CONFIGURATION" = "Release" ]; then
-            KMP_CONFIGURATION="Release"
-          else
-            KMP_CONFIGURATION="Debug"
-          fi
-          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
-          elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
-            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
-          else
-            echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarTests."
-            echo "Use an iPhone device or an iOS Simulator."
-            exit 1
-          fi
+      - target: BiciRadar
     settings:
       base:
         CODE_SIGN_STYLE: Automatic
@@ -191,7 +167,6 @@ targets:
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziMobileUi
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
         PRODUCT_NAME: BiciRadar Tests
 
@@ -223,6 +198,7 @@ targets:
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: WatchConnectivity.framework
+      - sdk: libsqlite3.tbd
     preBuildScripts:
       - name: Build KMP watchOS framework
         basedOnDependencyAnalysis: false
@@ -261,7 +237,7 @@ targets:
         INFOPLIST_KEY_WKApplication: YES
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.biciradar.ios
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch
         PRODUCT_NAME: BiciRadar Watch
 
@@ -278,6 +254,7 @@ targets:
     dependencies:
       - sdk: XCTest.framework
       - sdk: WatchConnectivity.framework
+      - sdk: libsqlite3.tbd
     preBuildScripts:
       - name: Build KMP watchOS test framework
         basedOnDependencyAnalysis: false
@@ -310,7 +287,7 @@ targets:
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.tests
         PRODUCT_NAME: BiciRadar Watch Tests
 

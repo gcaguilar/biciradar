@@ -1,3 +1,4 @@
+@testable import BiciRadar
 import BiziMobileUi
 import XCTest
 
