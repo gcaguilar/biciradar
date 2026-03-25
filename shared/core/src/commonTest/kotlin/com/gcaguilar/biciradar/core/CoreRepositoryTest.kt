@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 
 
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
@@ -287,6 +288,25 @@ class CoreRepositoryTest {
       locationProvider = object : LocationProvider {
         override suspend fun currentLocation(): GeoPoint = GeoPoint(41.65, -0.88)
       },
+      settingsRepository = object : SettingsRepository {
+        override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
+        override val preferredMapApp = MutableStateFlow(PreferredMapApp.Default)
+        override val lastSeenChangelogVersion = MutableStateFlow(0)
+        override val themePreference = MutableStateFlow(ThemePreference.System)
+        override val selectedCity = MutableStateFlow(City.Zaragoza)
+        override val hasCompletedOnboarding = MutableStateFlow(true)
+        override suspend fun bootstrap() = Unit
+        override fun currentSearchRadiusMeters() = DEFAULT_SEARCH_RADIUS_METERS
+        override fun currentPreferredMapApp() = PreferredMapApp.Default
+        override fun currentSelectedCity() = City.Zaragoza
+        override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+        override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+        override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+        override suspend fun setThemePreference(preference: ThemePreference) = Unit
+        override suspend fun setSelectedCity(city: City) = Unit
+        override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+      },
+      database = null,
     )
 
     repository.loadIfNeeded()
@@ -325,6 +345,25 @@ class CoreRepositoryTest {
           return GeoPoint(41.65, -0.88)
         }
       },
+      settingsRepository = object : SettingsRepository {
+        override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
+        override val preferredMapApp = MutableStateFlow(PreferredMapApp.Default)
+        override val lastSeenChangelogVersion = MutableStateFlow(0)
+        override val themePreference = MutableStateFlow(ThemePreference.System)
+        override val selectedCity = MutableStateFlow(City.Zaragoza)
+        override val hasCompletedOnboarding = MutableStateFlow(true)
+        override suspend fun bootstrap() = Unit
+        override fun currentSearchRadiusMeters() = DEFAULT_SEARCH_RADIUS_METERS
+        override fun currentPreferredMapApp() = PreferredMapApp.Default
+        override fun currentSelectedCity() = City.Zaragoza
+        override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+        override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+        override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+        override suspend fun setThemePreference(preference: ThemePreference) = Unit
+        override suspend fun setSelectedCity(city: City) = Unit
+        override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+      },
+      database = null,
     )
 
     repository.loadIfNeeded()
@@ -375,6 +414,7 @@ class CoreRepositoryTest {
           override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
           override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
         }
+        override val databaseFactory: DatabaseFactory? = null
       },
     )
 
@@ -435,10 +475,10 @@ class CoreRepositoryTest {
     assertEquals("station-2", nearest.highlightedStationId)
     assertEquals("station-1", nearestWithBikes.highlightedStationId)
     assertEquals("station-2", nearestWithSlots.highlightedStationId)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestStation, "Plaza Aragón", 0, 9), nearest.spokenResponse)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithBikes, "Plaza Espana", 7, 4), nearestWithBikes.spokenResponse)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithSlots, "Plaza Aragón", 9, 0), nearestWithSlots.spokenResponse)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.favoriteCount, 2), favorites.spokenResponse)
+    assertEquals("Nearest station: Plaza Aragón. 0 bikes available, 9 slots free", nearest.spokenResponse)
+    assertEquals("Nearest station with bikes: Plaza Espana. 7 bikes available, 4 slots free", nearestWithBikes.spokenResponse)
+    assertEquals("Nearest station with slots: Plaza Aragón. 0 bikes available, 9 slots free", nearestWithSlots.spokenResponse)
+    assertEquals("You have 2 favorite stations", favorites.spokenResponse)
   }
 
   @Test
@@ -451,7 +491,7 @@ class CoreRepositoryTest {
     )
 
     assertNull(resolution.highlightedStationId)
-    assertEquals(StringDesc.Resource(MR.strings.unknownStation), resolution.spokenResponse)
+    assertEquals("Station not found", resolution.spokenResponse)
   }
 
   @Test
@@ -483,8 +523,8 @@ class CoreRepositoryTest {
 
     assertEquals("station-42", bikes.highlightedStationId)
     assertEquals("station-42", slots.highlightedStationId)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.stationBikes, "Plaza Espana", 6), bikes.spokenResponse)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.stationSlots, "Plaza Espana", 8), slots.spokenResponse)
+    assertEquals("Plaza Espana has 6 bikes available", bikes.spokenResponse)
+    assertEquals("Plaza Espana has 8 free slots", slots.spokenResponse)
   }
 
   @Test
@@ -509,7 +549,7 @@ class CoreRepositoryTest {
     )
 
     assertEquals("station-7", resolution.highlightedStationId)
-    assertEquals(StringDesc.ResourceFormatted(MR.strings.nearestWithBikesFallback, 500, 720, "Plaza Aragón", 3, 5), resolution.spokenResponse)
+    assertEquals("No stations with bikes within 500m. Nearest is 720m away: Plaza Aragón. 3 bikes available, 5 slots free", resolution.spokenResponse)
   }
 
   @Test

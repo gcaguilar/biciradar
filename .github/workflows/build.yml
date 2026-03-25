@@ -110,7 +110,7 @@ jobs:
 
   ios:
     name: iOS build
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
@@ -182,7 +182,7 @@ jobs:
 
   watchos:
     name: watchOS build and tests
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
 
     steps:
