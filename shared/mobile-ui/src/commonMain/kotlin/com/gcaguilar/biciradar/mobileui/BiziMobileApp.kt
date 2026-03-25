@@ -1851,6 +1851,18 @@ private fun ProfileScreen(
           }
         }
       }
+      Card(
+        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+      ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
+          Text(
+            stringResource(Res.string.dataSourceDescription),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+        }
+      }
     }
   }
 }
