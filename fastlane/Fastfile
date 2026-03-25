@@ -86,9 +86,6 @@ end
     install_provisioning_profile(path: watch_profile_path) if watch_profile_path
 
     xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
-    if profile_name
-      xcargs += " PROVISIONING_PROFILE_SPECIFIER='#{profile_name.strip}'"
-    end
 
     provisioning_profiles = {}
     provisioning_profiles[bundle_id] = profile_name if profile_name
