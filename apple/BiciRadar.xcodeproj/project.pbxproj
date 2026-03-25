@@ -529,7 +529,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nCONF_LC=$(echo \"$KMP_CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew --no-configuration-cache \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\n  ARM64_32_FW=\"shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  ARM64_FW=\"shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  FAT_DIR=\"shared/core/build/bin/watchosDeviceFat/${CONF_LC}Framework\"\n  rm -rf \"$FAT_DIR\"\n  mkdir -p \"$FAT_DIR\"\n  cp -R \"$ARM64_FW\" \"$FAT_DIR/\"\n  lipo -create \\\n    \"$ARM64_32_FW/BiziSharedCore\" \\\n    \"$ARM64_FW/BiziSharedCore\" \\\n    -output \"$FAT_DIR/BiziSharedCore.framework/BiziSharedCore\"\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
 		};
 		5AD3209B868161148A66BAF5 /* Build KMP iOS frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -586,7 +586,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nCONF_LC=$(echo \"$KMP_CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\nelse\n  ./gradlew --no-configuration-cache \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\n  ARM64_32_FW=\"shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  ARM64_FW=\"shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  FAT_DIR=\"shared/core/build/bin/watchosDeviceFat/${CONF_LC}Framework\"\n  rm -rf \"$FAT_DIR\"\n  mkdir -p \"$FAT_DIR\"\n  cp -R \"$ARM64_FW\" \"$FAT_DIR/\"\n  lipo -create \\\n    \"$ARM64_32_FW/BiziSharedCore\" \\\n    \"$ARM64_FW/BiziSharedCore\" \\\n    -output \"$FAT_DIR/BiziSharedCore.framework/BiziSharedCore\"\nfi\n";
 		};
 		F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -767,15 +767,14 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
-				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
 					"$(inherited)",
@@ -805,15 +804,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
-				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
 					"$(inherited)",
@@ -1081,15 +1079,14 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
-				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
 					"$(inherited)",
@@ -1141,15 +1138,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
-				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
 					"$(inherited)",
