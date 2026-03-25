@@ -225,22 +225,23 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           CONF_LC=$(echo "$KMP_CONFIGURATION" | tr '[:upper:]' '[:lower:]')
+          OUT_DIR="shared/core/build/bin/watchosCurrent/${CONF_LC}Framework"
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
             ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+            cp -R "shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework" "$OUT_DIR/"
           else
             ./gradlew --no-configuration-cache \
               :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \
               :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64
             ARM64_32_FW="shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework"
             ARM64_FW="shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            FAT_DIR="shared/core/build/bin/watchosDeviceFat/${CONF_LC}Framework"
-            rm -rf "$FAT_DIR"
-            mkdir -p "$FAT_DIR"
-            cp -R "$ARM64_FW" "$FAT_DIR/"
+            cp -R "$ARM64_FW" "$OUT_DIR/"
             lipo -create \
               "$ARM64_32_FW/BiziSharedCore" \
               "$ARM64_FW/BiziSharedCore" \
-              -output "$FAT_DIR/BiziSharedCore.framework/BiziSharedCore"
+              -output "$OUT_DIR/BiziSharedCore.framework/BiziSharedCore"
           fi
     settings:
       base:
@@ -253,10 +254,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Watch
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bici Radar necesita tu ubicación para mostrar estaciones cercanas en el reloj.
@@ -293,22 +292,23 @@ targets:
             KMP_CONFIGURATION="Debug"
           fi
           CONF_LC=$(echo "$KMP_CONFIGURATION" | tr '[:upper:]' '[:lower:]')
+          OUT_DIR="shared/core/build/bin/watchosCurrent/${CONF_LC}Framework"
+          rm -rf "$OUT_DIR"
+          mkdir -p "$OUT_DIR"
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
             ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
+            cp -R "shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework" "$OUT_DIR/"
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
             ./gradlew --no-configuration-cache \
               :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \
               :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64
             ARM64_32_FW="shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework"
             ARM64_FW="shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            FAT_DIR="shared/core/build/bin/watchosDeviceFat/${CONF_LC}Framework"
-            rm -rf "$FAT_DIR"
-            mkdir -p "$FAT_DIR"
-            cp -R "$ARM64_FW" "$FAT_DIR/"
+            cp -R "$ARM64_FW" "$OUT_DIR/"
             lipo -create \
               "$ARM64_32_FW/BiziSharedCore" \
               "$ARM64_FW/BiziSharedCore" \
-              -output "$FAT_DIR/BiziSharedCore.framework/BiziSharedCore"
+              -output "$OUT_DIR/BiziSharedCore.framework/BiziSharedCore"
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests."
             echo "Use an Apple Watch device or a watchOS Simulator."
@@ -321,10 +321,8 @@ targets:
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.tests
