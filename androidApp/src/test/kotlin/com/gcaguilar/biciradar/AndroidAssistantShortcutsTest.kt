@@ -120,6 +120,8 @@ class AndroidAssistantShortcutsTest {
 
   private fun shortcutsXmlFile(): File {
     val candidates = listOf(
+      File("src/main/res/xml/shortcuts.xml"),
+      File("androidApp/src/main/res/xml/shortcuts.xml"),
       File("src/androidMain/res/xml/shortcuts.xml"),
       File("androidApp/src/androidMain/res/xml/shortcuts.xml"),
     )
