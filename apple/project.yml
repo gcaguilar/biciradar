@@ -227,7 +227,18 @@ targets:
           if [[ "$PLATFORM_NAME" == *simulator* ]]; then
             ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
           elif [[ "$PLATFORM_NAME" == watchos ]]; then
-            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64
+            ./gradlew --no-configuration-cache \
+              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \
+              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64_32
+            ARM64_FW="shared/core/build/bin/watchosArm64/${KMP_CONFIGURATION,,}Framework/BiziSharedCore.framework"
+            ARM64_32_FW="shared/core/build/bin/watchosArm64_32/${KMP_CONFIGURATION,,}Framework/BiziSharedCore.framework"
+            FAT_FW="shared/core/build/bin/watchosFat/${KMP_CONFIGURATION,,}Framework/BiziSharedCore.framework"
+            mkdir -p "$(dirname $FAT_FW)"
+            cp -R "$ARM64_FW" "$FAT_FW"
+            lipo -create \
+              "$ARM64_FW/BiziSharedCore" \
+              "$ARM64_32_FW/BiziSharedCore" \
+              -output "$FAT_FW/BiziSharedCore"
           else
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatch."
             echo "Use an Apple Watch device or a watchOS Simulator."
@@ -245,8 +256,8 @@ targets:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosArm64/debugFramework
-          - $(SRCROOT)/../shared/core/build/bin/watchosArm64/releaseFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosFat/debugFramework
+          - $(SRCROOT)/../shared/core/build/bin/watchosFat/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Watch
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: Bici Radar necesita tu ubicación para mostrar estaciones cercanas en el reloj.
