@@ -108,12 +108,21 @@ end
       }.compact
     )
 
-    upload_to_testflight(
+    upload_to_app_store(
       api_key: api_key,
+      platform: "ios",
       app_identifier: bundle_id,
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-      skip_waiting_for_build_processing: true,
-      skip_submission: true
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      submission_information: {
+        export_compliance_uses_encryption: required_boolean_env("APP_USES_ENCRYPTION")
+      }
     )
   end
 end
