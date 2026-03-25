@@ -2495,8 +2495,9 @@ private fun CitySelectionScreen(
       modifier = Modifier.weight(1f),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      items(City.entries.size) { index ->
-        val city = City.entries[index]
+      val sortedCities = remember { City.entries.sortedBy { it.displayName } }
+      items(sortedCities.size) { index ->
+        val city = sortedCities[index]
         Card(
           modifier = Modifier
             .fillMaxWidth()
@@ -3949,7 +3950,7 @@ private fun CitySelector(
       onDismissRequest = { expanded = false },
       modifier = Modifier.background(colors.surface),
     ) {
-      City.entries.forEach { city ->
+      City.entries.sortedBy { it.displayName }.forEach { city ->
         DropdownMenuItem(
           text = {
             Text(

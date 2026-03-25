@@ -7,10 +7,10 @@ Greenfield scaffold for `com.gcaguilar.biciradar` with:
 - Compose for Wear OS for Wear.
 - SwiftUI + App Intents shell for iPhone and Apple Watch.
 - Metro DI as the compile-time container.
-- Real location on Android, iOS, and watchOS, with Zaragoza city center as a fallback when permission is denied or no fix is available.
+- Real location on Android, iOS, and watchOS, with city center as a fallback when permission is denied or no fix is available.
 - Favorites sync between Android mobile and Wear OS through Data Layer.
 - Embedded map in mobile Compose with a multiplatform wrapper.
-- Official Zaragoza City Council feed with fallback to CityBikes.
+- 50+ Spanish cities via GBFS-compliant feeds (CityBik.es, Nextbike, publicbikesystem.net and others).
 
 ## Modules
 
