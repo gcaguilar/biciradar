@@ -8,6 +8,12 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
+compose.resources {
+  publicResClass = true
+  packageOfResClass = "com.gcaguilar.biciradar.mobile_ui.generated.resources"
+  generateResClass = always
+}
+
 kotlin {
   android {
     compileSdk = 36
