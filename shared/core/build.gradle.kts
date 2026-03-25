@@ -39,7 +39,6 @@ kotlin {
   }
   sourceSets {
     commonMain.dependencies {
-      implementation(libs.runtime)
       implementation(libs.coroutines.core)
       implementation(libs.ktor.client.content.negotiation)
       implementation(libs.ktor.client.core)
