@@ -1852,6 +1852,7 @@ private fun ProfileScreen(
           }
         }
       }
+      Spacer(modifier = Modifier.height(12.dp))
       Card(
         colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
       ) {
