@@ -48,6 +48,20 @@
                ReferencedContainer = "container:BiciRadar.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "54F2A93AE922E3FF791E5616"
+               BuildableName = "BiciRadar Watch.app"
+               BlueprintName = "BiciRadarWatch"
+               ReferencedContainer = "container:BiciRadar.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

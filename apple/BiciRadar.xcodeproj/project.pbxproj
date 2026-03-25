@@ -36,6 +36,7 @@
 		7FC3AE856AF7139EA6AD5B2C /* WatchDashboardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */; };
 		820C221928C2861F1170BF3E /* BiziWatchGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */; };
 		82CE438F2F4E76FEF88DAE90 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 559060C69B64A00D2139B860 /* Localizable.strings */; };
+		85E5A4C266B63ACA6E262CB2 /* BiciRadarWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = F189CFF421E93B8C23A41D1E /* BiciRadarWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8709E27517E4746DB4B6F6E9 /* StationAvailabilityCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */; };
 		8BAFF5DCEE0BDA01CA19F0A3 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 2C2B77CE801F89004E157228 /* FirebaseCrashlytics */; };
 		A001DF2D53BACE1211D784CE /* AppleShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */; };
@@ -66,6 +67,13 @@
 			remoteGlobalIDString = BCF1240E3C3258E3C8152F54;
 			remoteInfo = BiciRadar;
 		};
+		AFB88228C7E77ED0EEB964F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E6248835368360C0A00F1112 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 54F2A93AE922E3FF791E5616;
+			remoteInfo = BiciRadarWatch;
+		};
 		EA4E616C97C049CDA2945A68 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E6248835368360C0A00F1112 /* Project object */;
@@ -74,6 +82,20 @@
 			remoteInfo = BiciRadar;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2F773E9355639194943A3D51 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				85E5A4C266B63ACA6E262CB2 /* BiciRadarWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00C9F82510DD82F275630FE3 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
@@ -349,12 +371,14 @@
 				077135ECCACDC8FA5106A1C6 /* Sources */,
 				97B3838758FD73B3A9FD7D25 /* Resources */,
 				FD07C8003E3A01C731DD408A /* Frameworks */,
+				2F773E9355639194943A3D51 /* Embed Watch Content */,
 				A33BFC3ECF21E2335240B488 /* Copy Compose Resources to app bundle */,
 				F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				98D49763C4BAF6704EDFE092 /* PBXTargetDependency */,
 			);
 			name = BiciRadar;
 			packageProductDependencies = (
@@ -418,8 +442,8 @@
 						TestTargetID = BCF1240E3C3258E3C8152F54;
 					};
 					54F2A93AE922E3FF791E5616 = {
-						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
+						DevelopmentTeam = B87AWPVZWB;
+						ProvisioningStyle = Manual;
 					};
 					BCF1240E3C3258E3C8152F54 = {
 						DevelopmentTeam = B87AWPVZWB;
@@ -667,6 +691,11 @@
 			target = BCF1240E3C3258E3C8152F54 /* BiciRadar */;
 			targetProxy = 94602171D8264D5D4B726DE9 /* PBXContainerItemProxy */;
 		};
+		98D49763C4BAF6704EDFE092 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 54F2A93AE922E3FF791E5616 /* BiciRadarWatch */;
+			targetProxy = AFB88228C7E77ED0EEB964F6 /* PBXContainerItemProxy */;
+		};
 		995A697E0914D11B31819BAF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BCF1240E3C3258E3C8152F54 /* BiciRadar */;
@@ -735,8 +764,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -754,6 +784,7 @@
 				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
+				PROVISIONING_PROFILE_SPECIFIER = Profile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -854,7 +885,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29568076;
+				CURRENT_PROJECT_VERSION = 29568081;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -873,7 +904,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.15.0;
+				MARKETING_VERSION = 0.17.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1033,8 +1064,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1052,6 +1084,7 @@
 				OTHER_LDFLAGS = "$(inherited) -framework BiziSharedCore -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
+				PROVISIONING_PROFILE_SPECIFIER = Profile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -1145,7 +1178,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 29568076;
+				CURRENT_PROJECT_VERSION = 29568081;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1158,7 +1191,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 0.15.0;
+				MARKETING_VERSION = 0.17.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
