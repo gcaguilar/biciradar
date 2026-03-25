@@ -19,10 +19,6 @@ val wearApplicationId = "com.gcaguilar.biciradar"
 val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
 val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
   firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
-val ciKeystorePath: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PATH").orElse("").get()
-val ciKeystorePassword: String = providers.environmentVariable("BIZI_CI_KEYSTORE_PASSWORD").orElse("").get()
-val ciKeyAlias: String = providers.environmentVariable("BIZI_CI_KEY_ALIAS").orElse("").get()
-val ciKeyPassword: String = providers.environmentVariable("BIZI_CI_KEY_PASSWORD").orElse("").get()
 
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -37,7 +33,7 @@ android {
     applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
-    versionCode = 29568077
+    versionCode = 29568078
     versionName = "0.16.0"
   }
 
@@ -50,32 +46,35 @@ android {
     disable += "InvalidFragmentVersionForActivityResult"
   }
 
+  signingConfigs {
+    create("release") {
+      val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+        ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+      val keystorePassword = project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+        ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+      val keyAliasEnv = project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+        ?: System.getenv("BIZI_CI_KEY_ALIAS")
+      val keyPassword = project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+        ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+
+      if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
+        storeFile = file(keystorePath)
+        storePassword = keystorePassword
+        keyAlias = keyAliasEnv
+        this.keyPassword = keyPassword
+      }
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = true
       isShrinkResources = true
-      if (ciKeystorePath.isNotEmpty()) {
-        signingConfig = signingConfigs.create("ciRelease") {
-          storeFile = file(ciKeystorePath)
-          storePassword = ciKeystorePassword
-          keyAlias = ciKeyAlias
-          keyPassword = ciKeyPassword
-        }
-      }
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-    }
-    debug {
-      if (ciKeystorePath.isNotEmpty()) {
-        signingConfig = signingConfigs.create("ciDebug") {
-          storeFile = file(ciKeystorePath)
-          storePassword = ciKeystorePassword
-          keyAlias = ciKeyAlias
-          keyPassword = ciKeyPassword
-        }
-      }
+      signingConfig = signingConfigs.getByName("release")
     }
   }
 

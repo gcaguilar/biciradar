@@ -89,8 +89,9 @@ if ! [[ "$version_name" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 version_code=$((BASE_VERSION_CODE + build_number))
+wear_version_code=$((version_code + 1))
 
-echo "Bumping version → name=${version_name}  code=${version_code} (build ${build_number})"
+echo "Bumping version → name=${version_name}  code=${version_code} (build ${build_number})  wear_code=${wear_version_code}"
 
 # Update VERSION file
 echo "$version_name" > "$VERSION_FILE"
@@ -128,7 +129,7 @@ fi
 wear_gradle="${REPO_ROOT}/wearApp/build.gradle.kts"
 if [[ -f "$wear_gradle" ]]; then
   sed -i '' \
-    "s/versionCode = .*/versionCode = ${version_code}/" \
+    "s/versionCode = .*/versionCode = ${wear_version_code}/" \
     "$wear_gradle"
   sed -i '' \
     "s/versionName = \".*\"/versionName = \"${version_name}\"/" \
@@ -138,7 +139,9 @@ fi
 
 echo ""
 echo "Version updated successfully!"
-echo "  versionName: ${version_name}"
-echo "  versionCode: ${version_code} (base: ${BASE_VERSION_CODE} + build: ${build_number})"
+echo "  versionName:      ${version_name}"
+echo "  versionCode:      ${version_code} (androidApp)"
+echo "  wear versionCode: ${wear_version_code} (wearApp)"
+echo "  base: ${BASE_VERSION_CODE} + build: ${build_number}"
 echo ""
-echo "Remaining version codes available: $(( 2100000000 - version_code ))"
+echo "Remaining version codes available: $(( 2100000000 - wear_version_code ))"
