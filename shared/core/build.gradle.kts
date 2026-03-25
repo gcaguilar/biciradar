@@ -33,7 +33,7 @@ kotlin {
   ).forEach { target ->
     target.binaries.framework {
       baseName = "BiziSharedCore"
-      isStatic = false
+      isStatic = true
       linkerOpts("-lsqlite3")
     }
   }
