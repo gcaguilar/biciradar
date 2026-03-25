@@ -66,7 +66,8 @@ end
     api_key = app_store_connect_api_key(
       key_id: required_env("APP_STORE_CONNECT_KEY_ID"),
       issuer_id: required_env("APP_STORE_CONNECT_ISSUER_ID"),
-      key_content: required_env("APP_STORE_CONNECT_API_KEY_P8")
+      key_content: required_env("APP_STORE_CONNECT_API_KEY_P8"),
+      is_key_content_base64: true
     )
 
     import_certificate(
