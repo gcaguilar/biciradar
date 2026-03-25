@@ -2469,6 +2469,7 @@ private fun CitySelectionScreen(
   onCitySelected: (City) -> Unit,
 ) {
   val colors = LocalBiziColors.current
+  val sortedCities = remember { City.entries.sortedBy { it.displayName } }
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -2495,7 +2496,6 @@ private fun CitySelectionScreen(
       modifier = Modifier.weight(1f),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      val sortedCities = remember { City.entries.sortedBy { it.displayName } }
       items(sortedCities.size) { index ->
         val city = sortedCities[index]
         Card(
