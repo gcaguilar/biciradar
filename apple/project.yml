@@ -252,12 +252,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-        FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]:
-          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
-        FRAMEWORK_SEARCH_PATHS[sdk=watchos*]:
-          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
@@ -324,12 +320,8 @@ targets:
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-        FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]:
-          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework
-        FRAMEWORK_SEARCH_PATHS[sdk=watchos*]:
-          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework
           - $(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework
         GENERATE_INFOPLIST_FILE: YES

@@ -770,16 +770,10 @@
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
-					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
@@ -807,16 +801,10 @@
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
-					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1082,16 +1070,10 @@
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
-					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
@@ -1141,16 +1123,10 @@
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
-					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceFat/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
