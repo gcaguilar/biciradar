@@ -349,6 +349,7 @@
 				077135ECCACDC8FA5106A1C6 /* Sources */,
 				97B3838758FD73B3A9FD7D25 /* Resources */,
 				FD07C8003E3A01C731DD408A /* Frameworks */,
+				A33BFC3ECF21E2335240B488 /* Copy Compose Resources to app bundle */,
 				F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */,
 			);
 			buildRules = (
@@ -524,6 +525,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == iphoneos ]]; then\n  ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadar.\"\n  echo \"Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'.\"\n  exit 1\nfi\n";
+		};
+		A33BFC3ECF21E2335240B488 /* Copy Compose Resources to app bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Compose Resources to app bundle";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\n./gradlew --no-configuration-cache :shared:mobile-ui:syncComposeResourcesForIos \\\n  -Pcompose.ios.resources.platform=\"$PLATFORM_NAME\" \\\n  -Pcompose.ios.resources.configuration=\"$CONFIGURATION\" \\\n  -Pcompose.ios.resources.archs=\"$ARCHS\" \\\n  -Pkotlin.native.cocoapods.platform=\"$PLATFORM_NAME\" \\\n  -Pkotlin.native.cocoapods.archs=\"$ARCHS\" \\\n  -Pkotlin.native.cocoapods.configuration=\"$CONFIGURATION\"\n";
 		};
 		C6812B37971F85F621B8B4AF /* Build KMP watchOS framework */ = {
 			isa = PBXShellScriptBuildPhase;

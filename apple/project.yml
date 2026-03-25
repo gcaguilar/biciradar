@@ -76,6 +76,18 @@ targets:
             exit 1
           fi
     postBuildScripts:
+      - name: Copy Compose Resources to app bundle
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/.."
+          ./gradlew --no-configuration-cache :shared:mobile-ui:syncComposeResourcesForIos \
+            -Pcompose.ios.resources.platform="$PLATFORM_NAME" \
+            -Pcompose.ios.resources.configuration="$CONFIGURATION" \
+            -Pcompose.ios.resources.archs="$ARCHS" \
+            -Pkotlin.native.cocoapods.platform="$PLATFORM_NAME" \
+            -Pkotlin.native.cocoapods.archs="$ARCHS" \
+            -Pkotlin.native.cocoapods.configuration="$CONFIGURATION"
       - name: Upload Crashlytics dSYMs
         basedOnDependencyAnalysis: false
         inputFiles:
