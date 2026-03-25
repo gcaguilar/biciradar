@@ -23,8 +23,8 @@ android {
     applicationId = "com.gcaguilar.biciradar"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29568076
-    versionName = "0.15.0"
+    versionCode = 29568077
+    versionName = "0.16.0"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
   }
 
