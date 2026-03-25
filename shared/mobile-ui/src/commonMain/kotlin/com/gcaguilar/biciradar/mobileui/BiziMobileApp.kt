@@ -106,7 +106,6 @@ import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.shared.core.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.gcaguilar.biciradar.core.filterStationsByQuery
@@ -149,6 +148,7 @@ import com.gcaguilar.biciradar.core.TripState
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 
