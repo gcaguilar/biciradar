@@ -640,8 +640,9 @@ fun BiziMobileApp(
               settingsRepository.setSelectedCity(city)
               settingsRepository.setHasCompletedOnboarding(true)
               favoritesRepository.clearAll()
+              showCitySelection = false
+              stationsRepository.forceRefresh()
             }
-            showCitySelection = false
           }
         )
       } else AnimatedContent(
