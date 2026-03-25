@@ -767,13 +767,20 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
+					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
@@ -798,13 +805,20 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
+					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1067,13 +1081,20 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
+					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
@@ -1120,13 +1141,20 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
+				"EXCLUDED_ARCHS[sdk=watchos*]" = arm64_32;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
-					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchos*]" = (
+					"$(inherited)",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/debugFramework",
 					"$(SRCROOT)/../shared/core/build/bin/watchosDeviceArm64/releaseFramework",
+				);
+				"FRAMEWORK_SEARCH_PATHS[sdk=watchsimulator*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/core/build/bin/watchosSimulatorArm64/releaseFramework",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
