@@ -153,6 +153,10 @@
     <string name="changelogMapFiltersDescription">Filter stations by availability: bikes + slots, bikes only, or slots only.</string>
     <string name="changelogRefreshIndicatorTitle">Refresh indicator</string>
     <string name="changelogRefreshIndicatorDescription">Visible countdown next to the refresh button (updates every 5 min).</string>
+    <string name="changelogMoreCitiesTitle">More Spanish cities</string>
+    <string name="changelogMoreCitiesDescription">Added over 35 new cities with public bike sharing. Now available in more than 50 cities across Spain.</string>
+    <string name="changelogCitySelectionFixTitle">City selection fixed</string>
+    <string name="changelogCitySelectionFixDescription">Changing city during onboarding or in settings now loads stations correctly.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

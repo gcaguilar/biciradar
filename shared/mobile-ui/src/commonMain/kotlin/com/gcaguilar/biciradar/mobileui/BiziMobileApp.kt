@@ -283,7 +283,7 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
 }
 
-private const val CURRENT_CHANGELOG_VERSION = 2
+private const val CURRENT_CHANGELOG_VERSION = 3
 
 private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
@@ -293,6 +293,8 @@ private val CHANGELOG_ENTRIES = listOf(
   // ChangelogEntry(Res.string.changelogFilterColorsTitle, Res.string.changelogFilterColorsDescription),
   // ChangelogEntry(Res.string.changelogDistanceKmTitle, Res.string.changelogDistanceKmDescription),
   // ChangelogEntry(Res.string.changelogDarkModeFixesTitle, Res.string.changelogDarkModeFixesDescription),
+  ChangelogEntry(Res.string.changelogMoreCitiesTitle, Res.string.changelogMoreCitiesDescription),
+  ChangelogEntry(Res.string.changelogCitySelectionFixTitle, Res.string.changelogCitySelectionFixDescription),
   ChangelogEntry(Res.string.changelogDarkThemeTitle, Res.string.changelogDarkThemeDescription),
   ChangelogEntry(Res.string.changelogDismissibleCardTitle, Res.string.changelogDismissibleCardDescription),
   ChangelogEntry(Res.string.changelogMapFiltersTitle, Res.string.changelogMapFiltersDescription),

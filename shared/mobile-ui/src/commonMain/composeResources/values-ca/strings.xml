@@ -153,6 +153,10 @@
     <string name="changelogMapFiltersDescription">Filtra estacions per disponibilitat: bicis + ancoratges, només bicis o només ancoratges.</string>
     <string name="changelogRefreshIndicatorTitle">Indicador d\'actualització</string>
     <string name="changelogRefreshIndicatorDescription">Compte enrere visible al costat del botó d\'actualització (cada 5 min).</string>
+    <string name="changelogMoreCitiesTitle">Més ciutats espanyoles</string>
+    <string name="changelogMoreCitiesDescription">Afegides més de 35 ciutats noves amb bicicleta pública. Ara disponibles a més de 50 ciutats d\'Espanya.</string>
+    <string name="changelogCitySelectionFixTitle">Selecció de ciutat corregida</string>
+    <string name="changelogCitySelectionFixDescription">Canviar de ciutat a l\'onboarding o als ajustos ara carrega les estacions correctament.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

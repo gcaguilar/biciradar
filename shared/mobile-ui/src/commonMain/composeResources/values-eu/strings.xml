@@ -153,6 +153,10 @@
     <string name="changelogMapFiltersDescription">Iragazi geltokiak erabilgarritasunaren arabera: biziketak + lekuak, biziketak bakarrik edo lekuak bakarrik.</string>
     <string name="changelogRefreshIndicatorTitle">Eguneratze adierazlea</string>
     <string name="changelogRefreshIndicatorDescription">Atzerako kontaketa ikusgai freskatzeko botoiaren ondoan (5 minuturo eguneratzen da).</string>
+    <string name="changelogMoreCitiesTitle">Hiri espainiar gehiago</string>
+    <string name="changelogMoreCitiesDescription">35 hiri berri baino gehiago gehitu dira bizikleta publikoarekin. Orain Espainiako 50 hiri baino gehiagotan erabilgarri.</string>
+    <string name="changelogCitySelectionFixTitle">Hiri hautaketa zuzendua</string>
+    <string name="changelogCitySelectionFixDescription">Onboardingean edo ezarpenetan hiria aldatzean geltokiak behar bezala kargatzen dira orain.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>
