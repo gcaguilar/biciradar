@@ -8,6 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		000628DE335819350E92E9F4 /* FirebaseBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54183542F89617F29EE06161 /* FirebaseBootstrap.swift */; };
+		018F7A1C4B6240B7A2F90011 /* AppleDeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90012 /* AppleDeepLinkParser.swift */; };
+		018F7A1C4B6240B7A2F90021 /* SurfaceMonitoringActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90022 /* SurfaceMonitoringActivityController.swift */; };
+		018F7A1C4B6240B7A2F90031 /* BiziSharedStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90032 /* BiziSharedStorage.swift */; };
+		018F7A1C4B6240B7A2F90041 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90042 /* BiziSurfaceStore.swift */; };
+		018F7A1C4B6240B7A2F90051 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90052 /* BiziMonitoringActivityAttributes.swift */; };
+		018F7A1C4B6240B7A2F90061 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 018F7A1C4B6240B7A2F90062 /* ActivityKit.framework */; };
 		07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */; };
 		098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */; };
 		0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */; };
@@ -92,6 +98,12 @@
 
 /* Begin PBXFileReference section */
 		00C9F82510DD82F275630FE3 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90012 /* AppleDeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleDeepLinkParser.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90022 /* SurfaceMonitoringActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceMonitoringActivityController.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90032 /* BiziSharedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSharedStorage.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90042 /* BiziSurfaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSurfaceStore.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90052 /* BiziMonitoringActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziMonitoringActivityAttributes.swift; sourceTree = "<group>"; };
+		018F7A1C4B6240B7A2F90062 /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
 		05F6FE2989AAE261F81A4893 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
 		1598AA72441D647040F04BB8 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
@@ -179,6 +191,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				018F7A1C4B6240B7A2F90061 /* ActivityKit.framework in Frameworks */,
 				2780AD22C001605C544FD181 /* SwiftUI.framework in Frameworks */,
 				5A0850BAC1A946CA0B672A68 /* UIKit.framework in Frameworks */,
 				B94433123232D8D1DFE29FFF /* BackgroundTasks.framework in Frameworks */,
@@ -239,6 +252,7 @@
 		86D523296F1E0474E9ED061F /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				018F7A1C4B6240B7A2F90012 /* AppleDeepLinkParser.swift */,
 				AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */,
 				E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */,
 				6BF902119A13611BE50A2CD9 /* Assets.xcassets */,
@@ -253,6 +267,7 @@
 				BF381A1EDBC82B7C77CFA601 /* GoogleMapsBootstrap.swift */,
 				FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */,
 				46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */,
+				018F7A1C4B6240B7A2F90022 /* SurfaceMonitoringActivityController.swift */,
 				559060C69B64A00D2139B860 /* Localizable.strings */,
 			);
 			path = iosApp;
@@ -270,7 +285,10 @@
 			isa = PBXGroup;
 			children = (
 				13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */,
+				018F7A1C4B6240B7A2F90052 /* BiziMonitoringActivityAttributes.swift */,
+				018F7A1C4B6240B7A2F90032 /* BiziSharedStorage.swift */,
 				9F2F914614DF298F08D32FB9 /* BiziStationShortcutEntity.swift */,
+				018F7A1C4B6240B7A2F90042 /* BiziSurfaceStore.swift */,
 			);
 			path = sharedApple;
 			sourceTree = "<group>";
@@ -294,6 +312,7 @@
 		E6F65AF91CD20589B1F67CAE /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				018F7A1C4B6240B7A2F90062 /* ActivityKit.framework */,
 				A2D7661C15E89970A172881A /* BackgroundTasks.framework */,
 				AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */,
 				05F6FE2989AAE261F81A4893 /* SwiftUI.framework */,
@@ -612,20 +631,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				018F7A1C4B6240B7A2F90011 /* AppleDeepLinkParser.swift in Sources */,
 				07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */,
 				23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */,
 				197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */,
 				DE5D9DE6223430D70D5C6921 /* BiziAppleGraph.swift in Sources */,
 				7CA48B71A16FECEFF2D3762D /* BiziBackgroundTaskHandler.swift in Sources */,
+				018F7A1C4B6240B7A2F90051 /* BiziMonitoringActivityAttributes.swift in Sources */,
 				54812821FB0752376F5A2AFB /* BiziNotificationService.swift in Sources */,
+				018F7A1C4B6240B7A2F90031 /* BiziSharedStorage.swift in Sources */,
 				0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */,
 				C2B84011CB8B6AD17413F065 /* BiziStationShortcutEntity.swift in Sources */,
+				018F7A1C4B6240B7A2F90041 /* BiziSurfaceStore.swift in Sources */,
 				2DD134646E2E5F04FAD12A72 /* ComposeRootView.swift in Sources */,
 				098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */,
 				000628DE335819350E92E9F4 /* FirebaseBootstrap.swift in Sources */,
 				59C68CDEF53169D19614CEA3 /* GoogleMapsBootstrap.swift in Sources */,
 				BBA2BA3BF4EE51EBB0B3CC70 /* GoogleMapsStationMapFactory.swift in Sources */,
 				8709E27517E4746DB4B6F6E9 /* StationAvailabilityCache.swift in Sources */,
+				018F7A1C4B6240B7A2F90021 /* SurfaceMonitoringActivityController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -947,10 +971,20 @@
 				INFOPLIST_KEY_BiziGoogleMapsApiKey = "$(GOOGLE_MAPS_IOS_API_KEY)";
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = Editor;
+						CFBundleURLName = com.gcaguilar.biciradar;
+						CFBundleURLSchemes = (
+							biciradar,
+						);
+					},
+				);
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
 					comgooglemaps,
 				);
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared.";
 				INFOPLIST_KEY_NSUserNotificationUsageDescription = "The app uses notifications to alert you when a monitored bike station becomes full or when docks become available.";
 				INFOPLIST_KEY_UIBackgroundModes = (
@@ -1008,10 +1042,20 @@
 				INFOPLIST_KEY_BiziGoogleMapsApiKey = "$(GOOGLE_MAPS_IOS_API_KEY)";
 				INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar";
+				INFOPLIST_KEY_CFBundleURLTypes = (
+					{
+						CFBundleTypeRole = Editor;
+						CFBundleURLName = com.gcaguilar.biciradar;
+						CFBundleURLSchemes = (
+							biciradar,
+						);
+					},
+				);
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
 					comgooglemaps,
 				);
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared.";
 				INFOPLIST_KEY_NSUserNotificationUsageDescription = "The app uses notifications to alert you when a monitored bike station becomes full or when docks become available.";
 				INFOPLIST_KEY_UIBackgroundModes = (

@@ -26,9 +26,11 @@ actor BiziAppleGraph {
         if !hasBootstrapped {
             try await bootstrapSettings()
             try await bootstrapFavorites()
+            try await bootstrapSurfaceRepositories()
             hasBootstrapped = true
         }
         try await refreshStations()
+        try await refreshSurfaceSnapshot()
     }
 
     func nearestStation() async throws -> BiziStationSnapshot? {
@@ -202,6 +204,39 @@ actor BiziAppleGraph {
     private func refreshStations() async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             graph.stationsRepository.loadIfNeeded { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    private func bootstrapSurfaceRepositories() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.surfaceSnapshotRepository.bootstrap { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.surfaceMonitoringRepository.bootstrap { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    private func refreshSurfaceSnapshot() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.surfaceSnapshotRepository.refreshSnapshot { error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {

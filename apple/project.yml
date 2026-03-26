@@ -48,6 +48,7 @@ targets:
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: UIKit.framework
+      - sdk: ActivityKit.framework
       - sdk: BackgroundTasks.framework
       - package: Firebase
         product: FirebaseCore
@@ -55,6 +56,8 @@ targets:
         product: FirebaseCrashlytics
       - package: GoogleMaps
         product: GoogleMaps
+      - target: BiciRadarWidgets
+        embed: true
       - target: BiciRadarWatch
         embed: true
     preBuildScripts:
@@ -135,6 +138,11 @@ targets:
         INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
         INFOPLIST_KEY_BiziGoogleMapsApiKey: $(GOOGLE_MAPS_IOS_API_KEY)
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar
+        INFOPLIST_KEY_CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.gcaguilar.biciradar
+            CFBundleURLSchemes:
+              - biciradar
         INFOPLIST_KEY_LSApplicationQueriesSchemes:
           - comgooglemaps
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared."
@@ -142,6 +150,7 @@ targets:
         INFOPLIST_KEY_UIBackgroundModes:
           - fetch
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSSupportsLiveActivities: YES
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers:
           - com.gcaguilar.biciradar.ios.refresh
@@ -160,6 +169,30 @@ targets:
         PRODUCT_NAME: BiciRadar
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         TARGETED_DEVICE_FAMILY: "1,2"
+
+  BiciRadarWidgets:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "16.1"
+    sources:
+      - path: iosWidgets
+      - path: sharedApple
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: WidgetKit.framework
+      - sdk: ActivityKit.framework
+    settings:
+      base:
+        CODE_SIGN_ENTITLEMENTS: iosWidgets/BiciRadarWidgets.entitlements
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Widgets
+        INFOPLIST_KEY_NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.widgets
+        PRODUCT_NAME: BiciRadar Widgets
 
   BiciRadarTests:
     type: bundle.unit-test
@@ -333,6 +366,7 @@ schemes:
     build:
       targets:
         BiciRadar: all
+        BiciRadarWidgets: all
         BiciRadarWatch: all
         BiciRadarTests: [testing]
         BiciRadarUITests: [testing]

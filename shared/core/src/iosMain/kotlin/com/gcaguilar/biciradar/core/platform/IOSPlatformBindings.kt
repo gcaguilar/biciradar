@@ -40,6 +40,7 @@ import okio.FileSystem
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSBundle
 import platform.Foundation.NSClassFromString
+import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
 import platform.MapKit.MKLaunchOptionsDirectionsModeWalking
@@ -60,6 +61,7 @@ import platform.WatchConnectivity.WCSessionActivationStateActivated
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
+private const val IOS_APP_GROUP_IDENTIFIER = "group.com.gcaguilar.biciradar"
 
 class IOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -140,7 +142,15 @@ private class IOSHttpClientFactory : BiziHttpClientFactory {
 }
 
 private class IOSStorageDirectoryProvider : StorageDirectoryProvider {
-  override val rootPath: String = "${NSHomeDirectory()}/Documents/bizi"
+  override val rootPath: String = iosSharedStorageRootPath() ?: "${NSHomeDirectory()}/Documents/bizi"
+}
+
+private fun iosSharedStorageRootPath(): String? {
+  val containerUrl = NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier(
+    IOS_APP_GROUP_IDENTIFIER,
+  ) ?: return null
+  val path = containerUrl.path ?: return null
+  return "$path/bizi"
 }
 
 private class IOSLocationProvider : LocationProvider {

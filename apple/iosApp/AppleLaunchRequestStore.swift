@@ -11,6 +11,8 @@ final class AppleLaunchRequestStore: ObservableObject {
     }
 
     private enum LaunchAction {
+        static let home = "home"
+        static let map = "map"
         static let favoriteStations = "favorite_stations"
         static let legacyFavorites = "favorites"
         static let nearestStation = "nearest_station"
@@ -18,6 +20,8 @@ final class AppleLaunchRequestStore: ObservableObject {
         static let nearestStationWithSlots = "nearest_station_with_slots"
         static let openAssistant = "open_assistant"
         static let stationStatus = "station_status"
+        static let monitorStation = "monitor_station"
+        static let selectCity = "select_city"
         static let routeToStation = "route_to_station"
         static let showStation = "show_station"
     }
@@ -26,7 +30,7 @@ final class AppleLaunchRequestStore: ObservableObject {
     private let actionKey = "bizizaragoza.pendingAction"
     private let stationIdKey = "bizizaragoza.pendingStationId"
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = BiziSharedStorage.sharedDefaults) {
         self.defaults = defaults
     }
 
@@ -48,6 +52,12 @@ final class AppleLaunchRequestStore: ObservableObject {
 
     func save(_ request: any MobileLaunchRequest) {
         switch request {
+        case is MobileLaunchRequestHome:
+            defaults.set(LaunchAction.home, forKey: actionKey)
+            defaults.removeObject(forKey: stationIdKey)
+        case is MobileLaunchRequestMap:
+            defaults.set(LaunchAction.map, forKey: actionKey)
+            defaults.removeObject(forKey: stationIdKey)
         case is MobileLaunchRequestFavorites:
             defaults.set(LaunchAction.favoriteStations, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
@@ -66,6 +76,12 @@ final class AppleLaunchRequestStore: ObservableObject {
         case is MobileLaunchRequestStationStatus:
             defaults.set(LaunchAction.stationStatus, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
+        case let request as MobileLaunchRequestMonitorStation:
+            defaults.set(LaunchAction.monitorStation, forKey: actionKey)
+            defaults.set(request.stationId, forKey: stationIdKey)
+        case let request as MobileLaunchRequestSelectCity:
+            defaults.set(LaunchAction.selectCity, forKey: actionKey)
+            defaults.set(request.cityId, forKey: stationIdKey)
         case let request as MobileLaunchRequestRouteToStation:
             defaults.set(LaunchAction.routeToStation, forKey: actionKey)
             defaults.set(request.stationId, forKey: stationIdKey)
@@ -88,6 +104,10 @@ final class AppleLaunchRequestStore: ObservableObject {
         let stationId = defaults.string(forKey: stationIdKey)
 
         switch action {
+        case LaunchAction.home:
+            return MobileLaunchRequestHome.shared
+        case LaunchAction.map:
+            return MobileLaunchRequestMap.shared
         case LaunchAction.favoriteStations, LaunchAction.legacyFavorites:
             return MobileLaunchRequestFavorites.shared
         case LaunchAction.nearestStation:
@@ -100,6 +120,12 @@ final class AppleLaunchRequestStore: ObservableObject {
             return MobileLaunchRequestOpenAssistant.shared
         case LaunchAction.stationStatus:
             return MobileLaunchRequestStationStatus.shared
+        case LaunchAction.monitorStation:
+            guard let stationId else { return nil }
+            return MobileLaunchRequestMonitorStation(stationId: stationId)
+        case LaunchAction.selectCity:
+            guard let stationId else { return nil }
+            return MobileLaunchRequestSelectCity(cityId: stationId)
         case LaunchAction.routeToStation:
             guard let stationId else { return nil }
             return MobileLaunchRequestRouteToStation(stationId: stationId)

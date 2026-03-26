@@ -42,16 +42,26 @@ struct BiciRadarApp: App {
                 .onAppear {
                     guard !isUITesting else { return }
                     requestNotificationPermission()
+                    SurfaceMonitoringActivityController.shared.startRefreshing()
+                }
+                .onOpenURL { url in
+                    guard let request = AppleDeepLinkParser.parse(url) else { return }
+                    AppleLaunchRequestStore.shared.save(request)
+                    applyPendingLaunchRequest()
                 }
                 .onChange(of: scenePhase) { newPhase in
                     switch newPhase {
                     case .active:
                         applyPendingLaunchRequest()
+                        SurfaceMonitoringActivityController.shared.startRefreshing()
+                        SurfaceMonitoringActivityController.shared.syncNow()
                     case .background:
                         guard !isUITesting else { break }
                         BiziBackgroundTaskHandler.scheduleAppRefresh()
                         handleBackgroundTransitionForMonitoring()
+                        SurfaceMonitoringActivityController.shared.stopRefreshing()
                     default:
+                        SurfaceMonitoringActivityController.shared.stopRefreshing()
                         break
                     }
                 }

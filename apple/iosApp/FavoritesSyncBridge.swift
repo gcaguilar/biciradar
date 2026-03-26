@@ -13,7 +13,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     private let lastRouteRequestAtKey = "bizizaragoza.lastRouteRequestAt"
 
     init(
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults = BiziSharedStorage.sharedDefaults,
         routeRequestStore: AppleLaunchRequestStore? = nil
     ) {
         self.defaults = defaults

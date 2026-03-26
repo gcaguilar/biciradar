@@ -59,6 +59,36 @@ struct FavoriteStationsIntent: AppIntent {
     }
 }
 
+struct OpenFavoriteStationIntent: AppIntent {
+    static var title: LocalizedStringResource = "Abrir favorita"
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().openFavoriteStationDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct OpenNearbyStationsIntent: AppIntent {
+    static var title: LocalizedStringResource = "Ver cercanas"
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().openNearbyStationsDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct MonitorFavoriteStationIntent: AppIntent {
+    static var title: LocalizedStringResource = "Monitorizar favorita"
+    static var openAppWhenRun: Bool = true
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().monitorFavoriteStationDialog()
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
 struct StationStatusIntent: AppIntent {
     static var title: LocalizedStringResource = "Estado de estación"
     static var openAppWhenRun: Bool = false
@@ -212,6 +242,26 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             systemImageName: "parkingsign.circle"
         )
         AppShortcut(
+            intent: OpenFavoriteStationIntent(),
+            phrases: [
+                "Abre mi estación favorita con \(.applicationName)",
+                "Enséñame mi favorita con \(.applicationName)",
+                "Abre favorita con \(.applicationName)"
+            ],
+            shortTitle: "Favorita",
+            systemImageName: "heart.circle"
+        )
+        AppShortcut(
+            intent: OpenNearbyStationsIntent(),
+            phrases: [
+                "Ver estaciones cercanas con \(.applicationName)",
+                "Abre estaciones cercanas con \(.applicationName)",
+                "Enséñame estaciones cerca con \(.applicationName)"
+            ],
+            shortTitle: "Cercanas",
+            systemImageName: "location.circle"
+        )
+        AppShortcut(
             intent: FavoriteStationsIntent(),
             phrases: [
                 "Abre mis favoritas con \(.applicationName)",
@@ -220,6 +270,16 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Favoritas",
             systemImageName: "heart.circle"
+        )
+        AppShortcut(
+            intent: MonitorFavoriteStationIntent(),
+            phrases: [
+                "Monitoriza mi favorita con \(.applicationName)",
+                "Vigila mi estación favorita con \(.applicationName)",
+                "Monitorizar favorita con \(.applicationName)"
+            ],
+            shortTitle: "Monitorizar",
+            systemImageName: "dot.radiowaves.left.and.right"
         )
         AppShortcut(
             intent: StationStatusIntent(),

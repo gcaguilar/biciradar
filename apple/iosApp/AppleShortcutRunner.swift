@@ -67,6 +67,45 @@ struct AppleShortcutRunner {
         }
     }
 
+    func openFavoriteStationDialog() async -> String {
+        do {
+            if let favorite = BiziSurfaceStore.favoriteStation() {
+                await saveLaunchRequest(MobileLaunchRequestShowStation(stationId: favorite.id))
+                return "Abriendo tu estación favorita en Bici Radar."
+            }
+
+            guard let favorite = (try await graph.favoriteStations()).first else {
+                return "Abre Bici Radar. Todavía no tienes una estación favorita configurada."
+            }
+            await saveLaunchRequest(MobileLaunchRequestShowStation(stationId: favorite.id))
+            return "Abriendo tu estación favorita en Bici Radar."
+        } catch {
+            return "Abre Bici Radar para mostrar tu estación favorita."
+        }
+    }
+
+    func openNearbyStationsDialog() async -> String {
+        await saveLaunchRequest(MobileLaunchRequestHome.shared)
+        return "Abriendo estaciones cercanas en Bici Radar."
+    }
+
+    func monitorFavoriteStationDialog() async -> String {
+        do {
+            if let favorite = BiziSurfaceStore.favoriteStation() {
+                await saveLaunchRequest(MobileLaunchRequestMonitorStation(stationId: favorite.id))
+                return "Preparando la monitorización de tu estación favorita en Bici Radar."
+            }
+
+            guard let favorite = (try await graph.favoriteStations()).first else {
+                return "Abre Bici Radar. Necesitas una estación favorita para monitorizarla."
+            }
+            await saveLaunchRequest(MobileLaunchRequestMonitorStation(stationId: favorite.id))
+            return "Preparando la monitorización de tu estación favorita en Bici Radar."
+        } catch {
+            return "No he podido preparar esa monitorización ahora mismo."
+        }
+    }
+
     func stationStatusDialog(stationName: String?) async -> String {
         await stationDetailDialog(
             stationName: stationName,
