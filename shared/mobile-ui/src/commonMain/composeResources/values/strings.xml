@@ -157,6 +157,12 @@
     <string name="changelogMoreCitiesDescription">Añadidas más de 35 ciudades nuevas con bicicleta pública. Ahora disponibles más de 50 ciudades en España.</string>
     <string name="changelogCitySelectionFixTitle">Selección de ciudad corregida</string>
     <string name="changelogCitySelectionFixDescription">Al cambiar de ciudad en el onboarding o los ajustes, las estaciones se cargan correctamente.</string>
+    <string name="changelogBrandRefreshTitle">Nueva identidad visual</string>
+    <string name="changelogBrandRefreshDescription">Renovamos colores y acabados para que mapas, tarjetas y estados se lean mejor.</string>
+    <string name="changelogWatchRefreshTitle">Wear OS y Apple Watch mejorados</string>
+    <string name="changelogWatchRefreshDescription">Las apps de reloj estrenan interfaz más clara, métricas destacadas y acciones rápidas para tus estaciones.</string>
+    <string name="changelogStationLookupFixTitle">Búsqueda de estaciones más fiable</string>
+    <string name="changelogStationLookupFixDescription">Corregida la búsqueda por número para que funcione incluso si escribes ceros iniciales.</string>
     <string name="destinationPlaceholder">Escribe una dirección o lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

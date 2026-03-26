@@ -157,6 +157,12 @@
     <string name="changelogMoreCitiesDescription">Afegides més de 35 ciutats noves amb bicicleta pública. Ara disponibles a més de 50 ciutats d\'Espanya.</string>
     <string name="changelogCitySelectionFixTitle">Selecció de ciutat corregida</string>
     <string name="changelogCitySelectionFixDescription">Canviar de ciutat a l\'onboarding o als ajustos ara carrega les estacions correctament.</string>
+    <string name="changelogBrandRefreshTitle">Nova identitat visual</string>
+    <string name="changelogBrandRefreshDescription">Renovem colors i acabats perquè mapes, targetes i estats es llegeixin millor.</string>
+    <string name="changelogWatchRefreshTitle">Wear OS i Apple Watch millorats</string>
+    <string name="changelogWatchRefreshDescription">Les apps de rellotge estrenen una interfície més clara, mètriques destacades i accions ràpides per a les teves estacions.</string>
+    <string name="changelogStationLookupFixTitle">Cerca d\'estacions més fiable</string>
+    <string name="changelogStationLookupFixDescription">Corregida la cerca per número perquè funcioni fins i tot si escrius zeros inicials.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

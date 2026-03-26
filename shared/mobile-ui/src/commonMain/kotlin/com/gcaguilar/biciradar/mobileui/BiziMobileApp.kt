@@ -283,11 +283,14 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
 }
 
-private const val CURRENT_CHANGELOG_VERSION = 3
+private const val CURRENT_CHANGELOG_VERSION = 4
 
 private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
 private val CHANGELOG_ENTRIES = listOf(
+  ChangelogEntry(Res.string.changelogBrandRefreshTitle, Res.string.changelogBrandRefreshDescription),
+  ChangelogEntry(Res.string.changelogWatchRefreshTitle, Res.string.changelogWatchRefreshDescription),
+  ChangelogEntry(Res.string.changelogStationLookupFixTitle, Res.string.changelogStationLookupFixDescription),
   // TODO: Re-enable these once Moko Resources generation is fixed
   // ChangelogEntry(Res.string.changelogNewCitiesTitle, Res.string.changelogNewCitiesDescription),
   // ChangelogEntry(Res.string.changelogFilterColorsTitle, Res.string.changelogFilterColorsDescription),

@@ -157,6 +157,12 @@
     <string name="changelogMoreCitiesDescription">Added over 35 new cities with public bike sharing. Now available in more than 50 cities across Spain.</string>
     <string name="changelogCitySelectionFixTitle">City selection fixed</string>
     <string name="changelogCitySelectionFixDescription">Changing city during onboarding or in settings now loads stations correctly.</string>
+    <string name="changelogBrandRefreshTitle">Fresh visual identity</string>
+    <string name="changelogBrandRefreshDescription">Updated colors and surfaces so maps, cards, and status states are easier to read.</string>
+    <string name="changelogWatchRefreshTitle">Better Wear OS and Apple Watch apps</string>
+    <string name="changelogWatchRefreshDescription">Watch apps now have a clearer interface, highlighted metrics, and quicker actions for your stations.</string>
+    <string name="changelogStationLookupFixTitle">More reliable station lookup</string>
+    <string name="changelogStationLookupFixDescription">Fixed station-number search so it also works when you type leading zeros.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

@@ -157,6 +157,12 @@
     <string name="changelogMoreCitiesDescription">35 hiri berri baino gehiago gehitu dira bizikleta publikoarekin. Orain Espainiako 50 hiri baino gehiagotan erabilgarri.</string>
     <string name="changelogCitySelectionFixTitle">Hiri hautaketa zuzendua</string>
     <string name="changelogCitySelectionFixDescription">Onboardingean edo ezarpenetan hiria aldatzean geltokiak behar bezala kargatzen dira orain.</string>
+    <string name="changelogBrandRefreshTitle">Identitate bisual berria</string>
+    <string name="changelogBrandRefreshDescription">Koloreak eta akaberak berritu ditugu mapak, txartelak eta egoerak hobeto irakurtzeko.</string>
+    <string name="changelogWatchRefreshTitle">Wear OS eta Apple Watch hobetuak</string>
+    <string name="changelogWatchRefreshDescription">Erlojuetako aplikazioek interfaze argiagoa, neurri nabarmenduak eta zure geltokientzako ekintza azkarrak dituzte orain.</string>
+    <string name="changelogStationLookupFixTitle">Geltokien bilaketa fidagarriagoa</string>
+    <string name="changelogStationLookupFixDescription">Zenbakizko bilaketa zuzendu da, hasierako zeroak idatzita ere funtziona dezan.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>
