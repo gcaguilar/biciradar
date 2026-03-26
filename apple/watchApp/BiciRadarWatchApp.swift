@@ -1,6 +1,33 @@
 import AppIntents
 import SwiftUI
 
+// MARK: - Paleta BiciRadar
+
+private extension Color {
+    // Tema claro
+    static let biziPrimary = Color(hex: 0x1D74BD)
+    static let biziSecondary = Color(hex: 0x64C23A)
+    static let biziTertiary = Color(hex: 0x0D1B2A)
+    static let biziNeutral = Color(hex: 0x64779D)
+    // Tema oscuro (watch siempre oscuro)
+    static let biziDarkPrimary = Color(hex: 0x1070CA)
+    static let biziDarkSecondary = Color(hex: 0x64C832)
+    static let biziDarkTertiary = Color(hex: 0xA05ABA)
+    static let biziDarkNeutral = Color(hex: 0x0F172A)
+    // Semánticos
+    static let biziError = Color(hex: 0xCF6679)
+    static let biziWarning = Color(hex: 0xF28000)
+
+    init(hex: UInt32) {
+        let r = Double((hex >> 16) & 0xFF) / 255
+        let g = Double((hex >> 8) & 0xFF) / 255
+        let b = Double(hex & 0xFF) / 255
+        self.init(red: r, green: g, blue: b)
+    }
+}
+
+// MARK: - App
+
 @main
 struct BiciRadarWatchApp: App {
     init() {
@@ -17,6 +44,8 @@ struct BiciRadarWatchApp: App {
     }
 }
 
+// MARK: - Dashboard
+
 struct WatchDashboardView: View {
     @StateObject private var model = WatchDashboardModel()
     @ObservedObject private var syncBridge = WatchFavoritesSyncBridge.shared
@@ -24,16 +53,31 @@ struct WatchDashboardView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Header
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("BiciRadar")
-                            .font(.headline)
-                        Text("Consulta cercanas, favoritas y abre la ruta más rápido desde el reloj.")
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(Color.biziDarkPrimary)
+                                .frame(width: 8, height: 8)
+                            Text("BiciRadar")
+                                .font(.headline)
+                                .foregroundStyle(Color.biziDarkPrimary)
+                        }
+                        Text("Estaciones cerca y favoritas.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                        HStack(spacing: 8) {
-                            WatchInfoBadge(label: "Cerca", value: "\(model.nearbyStations.count)")
-                            WatchInfoBadge(label: "Fav", value: "\(syncBridge.favoriteIds.count)")
+                        HStack(spacing: 6) {
+                            WatchCountBadge(
+                                label: "Cerca",
+                                count: model.nearbyStations.count,
+                                color: .biziDarkPrimary
+                            )
+                            WatchCountBadge(
+                                label: "Fav",
+                                count: syncBridge.favoriteIds.count,
+                                color: .biziDarkSecondary
+                            )
                         }
                     }
                     .padding(.vertical, 4)
@@ -43,16 +87,22 @@ struct WatchDashboardView: View {
 
                 if let errorMessage = model.errorMessage {
                     Section {
-                        Text(errorMessage)
+                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                             .font(.footnote)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.biziError)
                             .transition(.opacity)
                     }
                 }
 
                 Section("Cerca de ti") {
                     if model.nearbyStations.isEmpty, model.isLoading {
-                        ProgressView()
+                        HStack {
+                            ProgressView()
+                                .tint(Color.biziDarkPrimary)
+                            Text("Cargando…")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     } else {
                         ForEach(model.nearbyStations) { station in
                             NavigationLink {
@@ -70,6 +120,7 @@ struct WatchDashboardView: View {
                              ? "Esperando favoritas del iPhone."
                              : "Todavía no he podido cargar tus favoritas.")
                             .font(.footnote)
+                            .foregroundStyle(.secondary)
                     } else {
                         ForEach(model.favoriteStations) { station in
                             NavigationLink {
@@ -81,11 +132,14 @@ struct WatchDashboardView: View {
                     }
                 }
 
-                Section("Acciones") {
-                    Button("Actualizar") {
+                Section {
+                    Button {
                         Task {
                             await model.refresh(favoriteIds: syncBridge.favoriteIds)
                         }
+                    } label: {
+                        Label("Actualizar", systemImage: "arrow.clockwise")
+                            .foregroundStyle(Color.biziDarkPrimary)
                     }
                 }
             }
@@ -104,11 +158,13 @@ struct WatchDashboardView: View {
     }
 }
 
+// MARK: - Station Row
+
 private struct StationRow: View {
     let station: WatchStationSnapshot
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(station.name)
                 .font(.headline)
                 .lineLimit(2)
@@ -116,10 +172,22 @@ private struct StationRow: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-            HStack(spacing: 6) {
-                WatchInfoBadge(label: "m", value: "\(station.distanceMeters)")
-                WatchInfoBadge(label: "B", value: "\(station.bikesAvailable)")
-                WatchInfoBadge(label: "H", value: "\(station.slotsFree)")
+            HStack(spacing: 5) {
+                WatchInfoBadge(
+                    label: "m",
+                    value: "\(station.distanceMeters)",
+                    tint: .biziNeutral
+                )
+                WatchInfoBadge(
+                    label: "B",
+                    value: "\(station.bikesAvailable)",
+                    tint: station.bikesAvailable > 0 ? .biziDarkPrimary : .biziError
+                )
+                WatchInfoBadge(
+                    label: "H",
+                    value: "\(station.slotsFree)",
+                    tint: station.slotsFree > 0 ? .biziDarkSecondary : .biziError
+                )
             }
         }
         .padding(.vertical, 2)
@@ -128,6 +196,8 @@ private struct StationRow: View {
     }
 }
 
+// MARK: - Detail View
+
 private struct WatchStationDetailView: View {
     let station: WatchStationSnapshot
     @State private var routeStatus: String?
@@ -135,48 +205,66 @@ private struct WatchStationDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text(station.name)
                     .font(.headline)
+                    .foregroundStyle(Color.biziDarkPrimary)
                 Text(station.address)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                HStack(spacing: 8) {
-                    WatchInfoBadge(label: "Dist.", value: "\(station.distanceMeters) m")
-                    WatchInfoBadge(label: "Bicis", value: "\(station.bikesAvailable)")
-                    WatchInfoBadge(label: "Huecos", value: "\(station.slotsFree)")
+
+                // Stats row
+                HStack(spacing: 6) {
+                    WatchStatPill(
+                        systemImage: "location.fill",
+                        value: "\(station.distanceMeters) m",
+                        tint: .biziNeutral
+                    )
+                    WatchStatPill(
+                        systemImage: "bicycle",
+                        value: "\(station.bikesAvailable)",
+                        tint: station.bikesAvailable > 0 ? .biziDarkPrimary : .biziError
+                    )
+                    WatchStatPill(
+                        systemImage: "parkingsign",
+                        value: "\(station.slotsFree)",
+                        tint: station.slotsFree > 0 ? .biziDarkSecondary : .biziError
+                    )
                 }
-                Button("Abrir ruta aquí") {
+
+                Button {
                     Task {
                         do {
                             let launchedStation = try await BiziWatchGraph.shared.openRoute(to: station.id)
                             localRouteStatus = launchedStation == nil
-                                ? "No he encontrado esa estación para abrir la ruta."
+                                ? "No he encontrado esa estación."
                                 : "Abriendo la ruta en el reloj."
                         } catch {
-                            localRouteStatus = "No he podido abrir la ruta ahora mismo."
+                            localRouteStatus = "No se pudo abrir la ruta."
                         }
                     }
+                } label: {
+                    Label("Ruta aquí", systemImage: "figure.walk")
                 }
                 .buttonStyle(.bordered)
-                Button("Abrir ruta en el iPhone") {
+                .tint(Color.biziDarkPrimary)
+
+                Button {
                     let requested = WatchFavoritesSyncBridge.shared.requestRoute(to: station.id)
                     routeStatus = requested
                         ? "He enviado la ruta al iPhone."
                         : "No he podido contactar con el iPhone."
+                } label: {
+                    Label("Ruta en iPhone", systemImage: "iphone")
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Color.biziDarkSecondary)
+
                 if let localRouteStatus {
-                    Text(localRouteStatus)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    StatusMessage(text: localRouteStatus)
                 }
                 if let routeStatus {
-                    Text(routeStatus)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    StatusMessage(text: routeStatus)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -187,21 +275,75 @@ private struct WatchStationDetailView: View {
     }
 }
 
+// MARK: - Reusable Components
+
 private struct WatchInfoBadge: View {
     let label: String
     let value: String
+    var tint: Color = .biziNeutral
 
     var body: some View {
         VStack(spacing: 2) {
             Text(label)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(tint.opacity(0.7))
             Text(value)
                 .font(.footnote.weight(.semibold))
+                .foregroundStyle(tint)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, 7)
+        .padding(.vertical, 5)
+        .background(tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .animation(.spring(response: 0.3, dampingFraction: 0.82), value: value)
+    }
+}
+
+private struct WatchCountBadge: View {
+    let label: String
+    let count: Int
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Text("\(count)")
+                .font(.footnote.weight(.bold))
+                .foregroundStyle(color)
+            Text(label)
+                .font(.caption2)
+                .foregroundStyle(color.opacity(0.7))
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 4)
+        .background(color.opacity(0.15), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct WatchStatPill: View {
+    let systemImage: String
+    let value: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: systemImage)
+                .font(.caption2)
+            Text(value)
+                .font(.caption.weight(.semibold))
+        }
+        .foregroundStyle(tint)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(tint.opacity(0.15), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+}
+
+private struct StatusMessage: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 }
