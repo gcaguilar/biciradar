@@ -51,8 +51,9 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(
           R.id.widget_nearby_empty,
           widgetEmptyMessage(
-            state = widgetEmptyState(snapshot),
+            state = nearbyWidgetEmptyState(snapshot),
             configureFavorite = context.getString(R.string.widget_configure_favorite),
+            noLocationPermission = context.getString(R.string.widget_no_location_permission),
             openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
             dataUnavailable = context.getString(R.string.widget_data_unavailable),
           ),

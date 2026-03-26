@@ -13,6 +13,7 @@
     <string name="widget_favorite_empty_title">Bici Radar</string>
     <string name="widget_open_app_to_refresh">Abre la app para actualizar</string>
     <string name="widget_configure_favorite">Configura una estación favorita</string>
+    <string name="widget_no_location_permission">Sin permiso de ubicación</string>
     <string name="widget_data_unavailable">Datos no disponibles</string>
     <string name="widget_nearby_title">Cerca de ti</string>
     <string name="widget_nearby_description">Estado rápido de las estaciones cercanas</string>

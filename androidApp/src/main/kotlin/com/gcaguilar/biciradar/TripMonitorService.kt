@@ -103,6 +103,11 @@ class TripMonitorService : Service() {
         stationPendingIntent(stationId),
       )
     }
+    builder.addAction(
+      android.R.drawable.ic_dialog_map,
+      "Mapa",
+      appPendingIntent(Uri.parse("biciradar://map")),
+    )
     session?.alternativeStationId?.let { stationId ->
       builder.addAction(
         android.R.drawable.ic_menu_mylocation,

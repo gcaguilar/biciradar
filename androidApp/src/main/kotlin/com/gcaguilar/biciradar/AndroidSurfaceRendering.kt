@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 
 internal enum class AndroidWidgetEmptyState {
   ConfigureFavorite,
+  NoLocationPermission,
   OpenAppToRefresh,
   DataUnavailable,
 }
@@ -19,13 +20,21 @@ internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWi
   else -> AndroidWidgetEmptyState.DataUnavailable
 }
 
+internal fun nearbyWidgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState = when {
+  snapshot.hasLocationPermission == false -> AndroidWidgetEmptyState.NoLocationPermission
+  snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
+  else -> AndroidWidgetEmptyState.DataUnavailable
+}
+
 internal fun widgetEmptyMessage(
   state: AndroidWidgetEmptyState,
   configureFavorite: String,
+  noLocationPermission: String,
   openAppToRefresh: String,
   dataUnavailable: String,
 ): String = when (state) {
   AndroidWidgetEmptyState.ConfigureFavorite -> configureFavorite
+  AndroidWidgetEmptyState.NoLocationPermission -> noLocationPermission
   AndroidWidgetEmptyState.OpenAppToRefresh -> openAppToRefresh
   AndroidWidgetEmptyState.DataUnavailable -> dataUnavailable
 }

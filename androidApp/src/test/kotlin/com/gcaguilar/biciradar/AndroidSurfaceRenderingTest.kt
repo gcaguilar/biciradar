@@ -23,6 +23,27 @@ class AndroidSurfaceRenderingTest {
       widgetEmptyMessage(
         state = widgetEmptyState(snapshot),
         configureFavorite = "Configura una estación favorita",
+        noLocationPermission = "Sin permiso de ubicación",
+        openAppToRefresh = "Abre la app para actualizar",
+        dataUnavailable = "Datos no disponibles",
+      ),
+    )
+  }
+
+  @Test
+  fun `nearby widget empty state prioritizes location permission`() {
+    val snapshot = AndroidSurfaceWidgetSnapshot(
+      hasLocationPermission = false,
+      isDataFresh = false,
+    )
+
+    assertEquals(AndroidWidgetEmptyState.NoLocationPermission, nearbyWidgetEmptyState(snapshot))
+    assertEquals(
+      "Sin permiso de ubicación",
+      widgetEmptyMessage(
+        state = nearbyWidgetEmptyState(snapshot),
+        configureFavorite = "Configura una estación favorita",
+        noLocationPermission = "Sin permiso de ubicación",
         openAppToRefresh = "Abre la app para actualizar",
         dataUnavailable = "Datos no disponibles",
       ),

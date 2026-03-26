@@ -56,6 +56,7 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
           widgetEmptyMessage(
             state = widgetEmptyState(snapshot),
             configureFavorite = context.getString(R.string.widget_configure_favorite),
+            noLocationPermission = context.getString(R.string.widget_no_location_permission),
             openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
             dataUnavailable = context.getString(R.string.widget_data_unavailable),
           ),
@@ -109,6 +110,7 @@ internal data class AndroidSurfaceWidgetSnapshot(
   val nearbyStations: List<AndroidSurfaceNearbyStation> = emptyList(),
   val hasFavoriteStation: Boolean? = null,
   val isDataFresh: Boolean? = null,
+  val hasLocationPermission: Boolean? = null,
 )
 
 internal data class AndroidSurfaceFavoriteStation(
@@ -168,6 +170,7 @@ internal object AndroidSurfaceSnapshotReader {
         nearbyStations = nearbyStations,
         hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
         isDataFresh = state?.optBoolean("isDataFresh"),
+        hasLocationPermission = state?.optBoolean("hasLocationPermission"),
       )
     }
     return AndroidSurfaceWidgetSnapshot(
@@ -182,6 +185,7 @@ internal object AndroidSurfaceSnapshotReader {
       nearbyStations = nearbyStations,
       hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
       isDataFresh = state?.optBoolean("isDataFresh"),
+      hasLocationPermission = state?.optBoolean("hasLocationPermission"),
     )
   }
 }
