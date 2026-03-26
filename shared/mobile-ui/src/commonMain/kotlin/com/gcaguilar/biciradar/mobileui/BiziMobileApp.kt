@@ -155,26 +155,26 @@ import com.gcaguilar.biciradar.mobileui.navigation.Screen
 // --- Light-mode palette raw tokens ---
 private val BiziLight = Color(0xFFF8F6F6)
 private val BiziGrouped = Color(0xFFF2F2F7)
-private val BiziInk = Color(0xFF211111)
-private val BiziMuted = Color(0xFF64748B)
-private val BiziPanel = Color(0xFFF1F5F9)
-private val BiziRed = Color(0xFFD7191F)
-private val BiziGreen = Color(0xFF167C3C)
-private val BiziBlue = Color(0xFF2563EB)
+private val BiziInk = Color(0xFF0D1B2A)
+private val BiziMuted = Color(0xFF64779D)
+private val BiziPanel = Color(0xFFE8EDF4)
+private val BiziPrimary = Color(0xFF1D74BD)
+private val BiziSecondary = Color(0xFF64C23A)
+private val BiziTertiary = Color(0xFF0D1B2A)
 private val BiziOrange = Color(0xFFF28000)
-private val BiziPurple = Color(0xFF7C3AED)
+private val BiziNeutral = Color(0xFF64779D)
 
 // --- Dark-mode palette raw tokens ---
-private val BiziDarkBackground = Color(0xFF121212)
+private val BiziDarkBackground = Color(0xFF0F172A)
 private val BiziDarkGrouped = Color(0xFF1C1C1E)
 private val BiziDarkSurface = Color(0xFF1E1E1E)
 private val BiziDarkInk = Color(0xFFF1EDED)
 private val BiziDarkMuted = Color(0xFF94A3B8)
 private val BiziDarkPanel = Color(0xFF2A2A2C)
-private val BiziDarkRed = Color(0xFFEF4444)
-private val BiziDarkGreen = Color(0xFF22C55E)
-private val BiziDarkBlue = Color(0xFF60A5FA)
-private val BiziDarkPurple = Color(0xFFBB86FC)
+private val BiziDarkPrimary = Color(0xFF1070CA)
+private val BiziDarkSecondary = Color(0xFF64C832)
+private val BiziDarkTertiary = Color(0xFFA05ABA)
+private val BiziDarkNeutral = Color(0xFF0F172A)
 
 /**
  * Semantic color scheme consumed by every composable in the app.
@@ -224,11 +224,11 @@ private val LightBiziColors = BiziColors(
   ink = BiziInk,
   muted = BiziMuted,
   panel = BiziPanel,
-  red = BiziRed,
-  blue = BiziBlue,
-  green = BiziGreen,
+  red = BiziPrimary,
+  blue = BiziTertiary,
+  green = BiziSecondary,
   orange = BiziOrange,
-  purple = BiziPurple,
+  purple = BiziNeutral,
   onAccent = Color.White,
   navBar = Color.White,
   navBarIos = Color.White.copy(alpha = 0.96f),
@@ -244,11 +244,11 @@ private val DarkBiziColors = BiziColors(
   ink = BiziDarkInk,
   muted = BiziDarkMuted,
   panel = BiziDarkPanel,
-  red = BiziDarkRed,
-  blue = BiziDarkBlue,
-  green = BiziDarkGreen,
+  red = BiziDarkPrimary,
+  blue = BiziDarkTertiary,
+  green = BiziDarkSecondary,
   orange = BiziOrange,
-  purple = BiziDarkPurple,
+  purple = BiziDarkNeutral,
   onAccent = Color.White,
   navBar = BiziDarkSurface,
   navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
