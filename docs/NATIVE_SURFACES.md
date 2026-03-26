@@ -40,6 +40,7 @@ The snapshot includes:
 - Snapshot reader: `apple/sharedApple/BiziSurfaceStore.swift`
 - Live Activity controller: `apple/iosApp/SurfaceMonitoringActivityController.swift`
 - Widget extension sources: `apple/iosWidgets`
+- Watch parity checklist: `docs/WATCH_PARITY_CHECKLIST.md`
 
 ## Project generation
 
