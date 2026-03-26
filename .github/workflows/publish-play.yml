@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-tags: true
 
@@ -32,7 +32,7 @@ jobs:
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -79,7 +79,7 @@ jobs:
             -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
 
       - name: Upload Android release bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-release-bundle
           if-no-files-found: error
