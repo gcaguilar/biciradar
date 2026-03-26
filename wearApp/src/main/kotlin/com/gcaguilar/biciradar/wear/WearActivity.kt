@@ -44,6 +44,7 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.ProgressIndicatorDefaults
 import androidx.wear.compose.material3.Text
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -137,7 +138,7 @@ private fun WearRoot(
         )
 
         stationsState.isLoading -> CircularProgressIndicator(
-          indicatorColor = WearPrimary,
+          colors = ProgressIndicatorDefaults.colors(indicatorColor = WearPrimary),
         )
 
         stationsState.errorMessage != null -> WearErrorScreen(

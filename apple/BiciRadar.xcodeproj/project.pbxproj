@@ -67,13 +67,6 @@
 			remoteGlobalIDString = BCF1240E3C3258E3C8152F54;
 			remoteInfo = BiciRadar;
 		};
-		AFB88228C7E77ED0EEB964F6 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E6248835368360C0A00F1112 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 54F2A93AE922E3FF791E5616;
-			remoteInfo = BiciRadarWatch;
-		};
 		EA4E616C97C049CDA2945A68 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E6248835368360C0A00F1112 /* Project object */;
@@ -378,7 +371,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				98D49763C4BAF6704EDFE092 /* PBXTargetDependency */,
 			);
 			name = BiciRadar;
 			packageProductDependencies = (
@@ -690,11 +682,6 @@
 			isa = PBXTargetDependency;
 			target = BCF1240E3C3258E3C8152F54 /* BiciRadar */;
 			targetProxy = 94602171D8264D5D4B726DE9 /* PBXContainerItemProxy */;
-		};
-		98D49763C4BAF6704EDFE092 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 54F2A93AE922E3FF791E5616 /* BiciRadarWatch */;
-			targetProxy = AFB88228C7E77ED0EEB964F6 /* PBXContainerItemProxy */;
 		};
 		995A697E0914D11B31819BAF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
