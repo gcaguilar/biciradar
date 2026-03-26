@@ -76,7 +76,10 @@ internal fun BiziNavHost(
     modifier = modifier.padding(paddingValues),
   ) {
     composable<Screen.Nearby>(
-      deepLinks = listOf(navDeepLink<Screen.Nearby>(basePath = "${DeepLinks.BASE_URI}nearby")),
+      deepLinks = listOf(
+        navDeepLink<Screen.Nearby>(basePath = "${DeepLinks.BASE_URI}nearby"),
+        navDeepLink<Screen.Nearby>(basePath = DeepLinks.HOME_URI),
+      ),
     ) {
       val nearbyViewModel = viewModel(key = "nearby") { nearbyViewModelFactory.create() }
       DisposableEffect(nearbyViewModel) {
@@ -94,7 +97,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Map>(
-      deepLinks = listOf(navDeepLink<Screen.Map>(basePath = "${DeepLinks.BASE_URI}map")),
+      deepLinks = listOf(navDeepLink<Screen.Map>(basePath = DeepLinks.MAP_URI)),
     ) {
       BiziMobileAppContent.MapScreenContent(
         mobilePlatform = mobilePlatform,
@@ -119,7 +122,7 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.Favorites>(
-      deepLinks = listOf(navDeepLink<Screen.Favorites>(basePath = "${DeepLinks.BASE_URI}favorites")),
+      deepLinks = listOf(navDeepLink<Screen.Favorites>(basePath = DeepLinks.FAVORITES_URI)),
     ) {
       val favoritesViewModel = viewModel(key = "favorites") { favoritesViewModelFactory.create() }
       BiziMobileAppContent.FavoritesScreenContent(

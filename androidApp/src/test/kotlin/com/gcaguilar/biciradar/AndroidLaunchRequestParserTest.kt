@@ -250,4 +250,30 @@ class AndroidLaunchRequestParserTest {
       payload?.assistantLaunchRequest,
     )
   }
+
+  @Test
+  fun `parseLaunchPayload resolves native deep link hosts`() {
+    val stationPayload = parseLaunchPayload(
+      source = AndroidLaunchSource(
+        deepLinkHost = "station",
+        deepLinkPathSegment = "station-7",
+      ),
+    )
+    val monitorPayload = parseLaunchPayload(
+      source = AndroidLaunchSource(
+        deepLinkHost = "monitor",
+        deepLinkPathSegment = "station-9",
+      ),
+    )
+    val cityPayload = parseLaunchPayload(
+      source = AndroidLaunchSource(
+        deepLinkHost = "city",
+        deepLinkPathSegment = "zaragoza",
+      ),
+    )
+
+    assertEquals(MobileLaunchRequest.ShowStation("station-7"), stationPayload?.launchRequest)
+    assertEquals(MobileLaunchRequest.MonitorStation("station-9"), monitorPayload?.launchRequest)
+    assertEquals(MobileLaunchRequest.SelectCity("zaragoza"), cityPayload?.launchRequest)
+  }
 }

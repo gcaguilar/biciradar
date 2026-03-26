@@ -9,4 +9,11 @@
     <string name="shortcut_station_bikes">Bicis en estación</string>
     <string name="shortcut_station_slots">Huecos en estación</string>
     <string name="shortcut_show_station">Buscar estación</string>
+    <string name="widget_favorite_description">Estado rápido de tu estación favorita</string>
+    <string name="widget_favorite_empty_title">Bici Radar</string>
+    <string name="widget_open_app_to_refresh">Abre la app para actualizar</string>
+    <string name="widget_configure_favorite">Configura una estación favorita</string>
+    <string name="widget_data_unavailable">Datos no disponibles</string>
+    <string name="widget_nearby_title">Cerca de ti</string>
+    <string name="widget_nearby_description">Estado rápido de las estaciones cercanas</string>
 </resources>

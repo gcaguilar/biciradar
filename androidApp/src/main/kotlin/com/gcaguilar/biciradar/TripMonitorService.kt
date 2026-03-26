@@ -3,18 +3,23 @@ package com.gcaguilar.biciradar
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.gcaguilar.biciradar.core.TripRepository
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
+import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
+import com.gcaguilar.biciradar.core.remainingSeconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -27,11 +32,23 @@ class TripMonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    startForeground(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification("Vigilando estación Bizi..."))
+    startForeground(
+      FOREGROUND_NOTIFICATION_ID,
+      buildForegroundNotification(text = "Preparando monitorizacion..."),
+    )
     observeMonitoringState()
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    when (intent?.action) {
+      ACTION_STOP_MONITORING -> {
+        SurfaceMonitoringRepositoryHolder.repository?.let { repository ->
+          serviceScope.launch { repository.clearMonitoring() }
+        }
+        stopSelf()
+        return START_NOT_STICKY
+      }
+    }
     return START_STICKY
   }
 
@@ -41,50 +58,116 @@ class TripMonitorService : Service() {
   }
 
   private fun observeMonitoringState() {
-    val repo = TripRepositoryHolder.tripRepository ?: return
-
-    repo.state
-      .onEach { state ->
-        if (!state.monitoring.isActive && state.alert == null) {
+    val repository = SurfaceMonitoringRepositoryHolder.repository ?: return
+    repository.state
+      .onEach { session ->
+        if (session == null || !session.isActive) {
+          FavoriteStationWidgetProvider.updateAll(applicationContext)
+          NearbyStationsWidgetProvider.updateAll(applicationContext)
           stopSelf()
           return@onEach
         }
-        val station = state.nearestStationWithSlots
-        if (station != null && state.monitoring.isActive) {
-          val remaining = state.monitoring.remainingSeconds
-          val minutes = remaining / 60
-          val seconds = remaining % 60
-          val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-          val body = "${station.name}: ${station.slotsFree} huecos libres · $timeText restantes"
-          notificationManager.notify(FOREGROUND_NOTIFICATION_ID, buildForegroundNotification(body))
-        }
+        notificationManager.notify(
+          FOREGROUND_NOTIFICATION_ID,
+          buildForegroundNotification(session = session),
+        )
+        FavoriteStationWidgetProvider.updateAll(applicationContext)
+        NearbyStationsWidgetProvider.updateAll(applicationContext)
       }
       .launchIn(serviceScope)
   }
 
-  private fun buildForegroundNotification(text: String): Notification =
-    NotificationCompat.Builder(this, CHANNEL_ID)
+  private fun buildForegroundNotification(
+    session: SurfaceMonitoringSession? = null,
+    text: String = session?.let(::notificationBody).orEmpty(),
+  ): Notification {
+    val openIntent = session?.stationId?.let(::stationPendingIntent)
+      ?: appPendingIntent(Uri.parse("biciradar://favorites"))
+    val builder = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle("Bizi Viaje")
+      .setContentTitle(session?.stationName ?: "BiciRadar")
       .setContentText(text)
+      .setContentIntent(openIntent)
       .setOngoing(true)
+      .setOnlyAlertOnce(true)
       .setPriority(NotificationCompat.PRIORITY_LOW)
-      .build()
+      .addAction(
+        android.R.drawable.ic_menu_close_clear_cancel,
+        "Detener",
+        stopPendingIntent(),
+      )
+
+    session?.stationId?.let { stationId ->
+      builder.addAction(
+        android.R.drawable.ic_menu_view,
+        "Abrir",
+        stationPendingIntent(stationId),
+      )
+    }
+    session?.alternativeStationId?.let { stationId ->
+      builder.addAction(
+        android.R.drawable.ic_menu_mylocation,
+        "Alternativa",
+        stationPendingIntent(stationId),
+      )
+    }
+    return builder.build()
+  }
+
+  private fun notificationBody(session: SurfaceMonitoringSession): String {
+    val remaining = session.remainingSeconds()
+    val minutes = remaining / 60
+    val seconds = remaining % 60
+    val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
+    val base = "${session.bikesAvailable} bicis · ${session.docksAvailable} huecos · $timeText"
+    return session.alternativeStationName?.let { alternativeName ->
+      "$base · Alt: $alternativeName"
+    } ?: base
+  }
+
+  private fun stopPendingIntent(): PendingIntent {
+    val intent = Intent(this, TripMonitorService::class.java).apply {
+      action = ACTION_STOP_MONITORING
+    }
+    return PendingIntent.getService(
+      this,
+      STOP_REQUEST_CODE,
+      intent,
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+  }
+
+  private fun stationPendingIntent(stationId: String): PendingIntent =
+    appPendingIntent(Uri.parse("biciradar://station/$stationId"))
+
+  private fun appPendingIntent(uri: Uri): PendingIntent {
+    val intent = Intent(Intent.ACTION_VIEW, uri, this, MainActivity::class.java).apply {
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    }
+    return PendingIntent.getActivity(
+      this,
+      uri.hashCode(),
+      intent,
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+  }
 
   private fun ensureNotificationChannel() {
     val channel = NotificationChannel(
       CHANNEL_ID,
-      "Bizi Viaje (activo)",
+      "Bici Radar monitorizacion",
       NotificationManager.IMPORTANCE_LOW,
     ).apply {
-      description = "Notificación persistente durante la monitorización de viaje"
+      description = "Notificacion persistente durante la monitorizacion de estaciones"
     }
     notificationManager.createNotificationChannel(channel)
   }
 
   companion object {
-    private const val CHANNEL_ID = "bizi_trip_foreground"
+    private const val ACTION_STOP_MONITORING = "com.gcaguilar.biciradar.action.STOP_MONITORING"
+    private const val CHANNEL_ID = "bizi_station_monitoring"
     private const val FOREGROUND_NOTIFICATION_ID = 1001
+    private const val STOP_REQUEST_CODE = 401
 
     fun start(context: Context) {
       val intent = Intent(context, TripMonitorService::class.java)
@@ -98,7 +181,7 @@ class TripMonitorService : Service() {
   }
 }
 
-object TripRepositoryHolder {
+object SurfaceMonitoringRepositoryHolder {
   @Volatile
-  var tripRepository: TripRepository? = null
+  var repository: SurfaceMonitoringRepository? = null
 }

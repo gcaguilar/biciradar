@@ -17,6 +17,10 @@ internal const val STATION_BIKE_COUNT_ACTION = "station_bike_count"
 internal const val STATION_SLOT_COUNT_ACTION = "station_slot_count"
 internal const val ROUTE_TO_STATION_ACTION = "route_to_station"
 internal const val SHOW_STATION_ACTION = "show_station"
+internal const val HOME_ACTION = "home"
+internal const val MAP_ACTION = "map"
+internal const val MONITOR_STATION_ACTION = "monitor_station"
+internal const val SELECT_CITY_ACTION = "select_city"
 
 internal const val ASSISTANT_ACTION_EXTRA = "assistant_action"
 internal const val FEATURE_EXTRA = "feature"
@@ -31,6 +35,8 @@ internal data class AndroidLaunchPayload(
 internal data class AndroidLaunchSource(
   val assistantAction: String? = null,
   val deepLinkAction: String? = null,
+  val deepLinkHost: String? = null,
+  val deepLinkPathSegment: String? = null,
   val feature: String? = null,
   val deepLinkFeature: String? = null,
   val stationId: String? = null,
@@ -59,12 +65,16 @@ internal fun parseLaunchRequest(
     ?: return null
   val normalizedStationId = stationId?.trim()?.takeIf { it.isNotEmpty() }
   return when (action) {
+    HOME_ACTION -> MobileLaunchRequest.Home
+    MAP_ACTION -> MobileLaunchRequest.Map
     FAVORITE_STATIONS_ACTION -> MobileLaunchRequest.Favorites
     NEAREST_STATION_ACTION -> MobileLaunchRequest.NearestStation
     NEAREST_STATION_WITH_BIKES_ACTION -> MobileLaunchRequest.NearestStationWithBikes
     NEAREST_STATION_WITH_SLOTS_ACTION -> MobileLaunchRequest.NearestStationWithSlots
     OPEN_ASSISTANT_ACTION -> MobileLaunchRequest.OpenAssistant
     STATION_STATUS_ACTION -> MobileLaunchRequest.StationStatus
+    MONITOR_STATION_ACTION -> normalizedStationId?.let(MobileLaunchRequest::MonitorStation)
+    SELECT_CITY_ACTION -> normalizedStationId?.let(MobileLaunchRequest::SelectCity)
     ROUTE_TO_STATION_ACTION -> MobileLaunchRequest.RouteToStation(normalizedStationId)
     SHOW_STATION_ACTION -> normalizedStationId?.let(MobileLaunchRequest::ShowStation)
     else -> null
@@ -155,6 +165,8 @@ internal fun Intent.toLaunchPayload(): AndroidLaunchPayload? = parseLaunchPayloa
   source = AndroidLaunchSource(
     assistantAction = getStringExtra(ASSISTANT_ACTION_EXTRA),
     deepLinkAction = data?.getQueryParameter("action"),
+    deepLinkHost = data?.host,
+    deepLinkPathSegment = data?.pathSegments?.firstOrNull(),
     feature = getStringExtra(FEATURE_EXTRA),
     deepLinkFeature = data?.getQueryParameter("feature"),
     stationId = getStringExtra(STATION_ID_EXTRA),
@@ -175,12 +187,22 @@ internal fun parseLaunchPayload(source: AndroidLaunchSource): AndroidLaunchPaylo
     ?: source.deepLinkAction
     ?: source.searchManagerQuery
     ?: source.textQuery,
-  feature = source.feature ?: source.deepLinkFeature,
-  stationId = source.stationId ?: source.deepLinkStationId ?: source.deepLinkStationIdAlias,
+  feature = source.feature ?: source.deepLinkFeature ?: canonicalDeepLinkAction(source.deepLinkHost),
+  stationId = source.stationId ?: source.deepLinkStationId ?: source.deepLinkStationIdAlias ?: source.deepLinkPathSegment,
   stationQuery = source.stationQuery
     ?: source.deepLinkStationQuery
     ?: source.deepLinkQuery,
 )
+
+private fun canonicalDeepLinkAction(host: String?): String? = when (host?.trim()?.lowercase(Locale.ROOT)) {
+  "home", "nearby" -> HOME_ACTION
+  "map" -> MAP_ACTION
+  "favorites" -> FAVORITE_STATIONS_ACTION
+  "station" -> SHOW_STATION_ACTION
+  "monitor" -> MONITOR_STATION_ACTION
+  "city" -> SELECT_CITY_ACTION
+  else -> null
+}
 
 private fun canonicalAction(rawValue: String?): String? {
   val normalized = rawValue?.let(::normalizeActionToken)?.let(::stripAssistantAppName)?.takeIf { it.isNotEmpty() } ?: return null
@@ -221,6 +243,16 @@ private fun canonicalAction(rawValue: String?): String? {
     "hay huecos cerca",
     "quiero dejar la bici" -> NEAREST_STATION_WITH_SLOTS_ACTION
     OPEN_ASSISTANT_ACTION -> OPEN_ASSISTANT_ACTION
+    HOME_ACTION,
+    "home",
+    "inicio" -> HOME_ACTION
+    MAP_ACTION,
+    "mapa" -> MAP_ACTION
+    MONITOR_STATION_ACTION,
+    "monitorizar estacion",
+    "vigilar estacion" -> MONITOR_STATION_ACTION
+    SELECT_CITY_ACTION,
+    "cambiar ciudad" -> SELECT_CITY_ACTION
     STATION_STATUS_ACTION,
     "estado estacion",
     "como esta una estacion",

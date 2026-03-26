@@ -30,6 +30,11 @@ sealed class Screen {
 
 object DeepLinks {
   const val BASE_URI = "biciradar://"
+  const val HOME_URI = "${BASE_URI}home"
+  const val MAP_URI = "${BASE_URI}map"
+  const val FAVORITES_URI = "${BASE_URI}favorites"
 
   fun stationDetail(stationId: String) = "${BASE_URI}station/$stationId"
+  fun monitor(stationId: String) = "${BASE_URI}monitor/$stationId"
+  fun city(cityId: String) = "${BASE_URI}city/$cityId"
 }

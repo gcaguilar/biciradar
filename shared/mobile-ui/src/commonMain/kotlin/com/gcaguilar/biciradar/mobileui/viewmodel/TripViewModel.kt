@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.TripDestination
 
 
@@ -34,6 +36,7 @@ data class TripUiState(
 
 class TripViewModel(
   private val tripRepository: TripRepository,
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
   private val geoSearchUseCase: GeoSearchUseCase,
   private val reverseGeocodeUseCase: ReverseGeocodeUseCase,
   private val searchRadiusMeters: Int,
@@ -177,12 +180,22 @@ class TripViewModel(
 
   fun onStartMonitoring() {
     viewModelScope.launch {
+      tripState.value.nearestStationWithSlots?.id?.let { stationId ->
+        surfaceMonitoringRepository.startMonitoring(
+          stationId = stationId,
+          durationSeconds = _uiState.value.selectedDurationSeconds,
+          kind = SurfaceMonitoringKind.Docks,
+        )
+      }
       tripRepository.startMonitoring(_uiState.value.selectedDurationSeconds)
     }
   }
 
   fun onStopMonitoring() {
     tripRepository.stopMonitoring()
+    viewModelScope.launch {
+      surfaceMonitoringRepository.clearMonitoring()
+    }
   }
 
   fun onClearTrip() {
@@ -194,6 +207,9 @@ class TripViewModel(
       pickedLocation = null,
     )
     tripRepository.clearTrip()
+    viewModelScope.launch {
+      surfaceMonitoringRepository.clearMonitoring()
+    }
   }
 
   fun onDismissAlert() {

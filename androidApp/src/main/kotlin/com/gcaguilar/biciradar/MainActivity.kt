@@ -15,8 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.gcaguilar.biciradar.core.AppConfiguration
-import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
+import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.mobileui.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
 import com.gcaguilar.biciradar.mobileui.MobileLaunchRequest
@@ -50,8 +51,8 @@ class MainActivity : ComponentActivity() {
   private var refreshNonce by mutableIntStateOf(0)
   private var startupReady by mutableStateOf(false)
 
-  /** Coroutine scope used to observe TripRepository state for foreground service control. */
-  private var tripServiceScope: CoroutineScope? = null
+  /** Coroutine scope used to observe monitoring and surface snapshots. */
+  private var appSurfaceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     installSplashScreen().setKeepOnScreenCondition { !startupReady }
@@ -87,7 +88,8 @@ class MainActivity : ComponentActivity() {
         refreshKey = refreshNonce,
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
-        onTripRepositoryReady = { repo -> wireTripMonitorService(repo) },
+        onSurfaceMonitoringRepositoryReady = { repo -> wireMonitoringService(repo) },
+        onSurfaceSnapshotRepositoryReady = { repo -> wireWidgets(repo) },
         onStartupReadyChanged = { ready -> startupReady = ready },
         useInAppStartupSplash = false,
       )
@@ -97,9 +99,9 @@ class MainActivity : ComponentActivity() {
   }
 
   override fun onDestroy() {
-    tripServiceScope?.cancel()
-    tripServiceScope = null
-    TripRepositoryHolder.tripRepository = null
+    appSurfaceScope?.cancel()
+    appSurfaceScope = null
+    SurfaceMonitoringRepositoryHolder.repository = null
     super.onDestroy()
   }
 
@@ -110,15 +112,15 @@ class MainActivity : ComponentActivity() {
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
   }
 
-  private fun wireTripMonitorService(repo: TripRepository) {
-    TripRepositoryHolder.tripRepository = repo
-    tripServiceScope?.cancel()
+  private fun wireMonitoringService(repo: SurfaceMonitoringRepository) {
+    SurfaceMonitoringRepositoryHolder.repository = repo
+    appSurfaceScope?.cancel()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    tripServiceScope = scope
+    appSurfaceScope = scope
     var serviceRunning = false
     repo.state
       .onEach { state ->
-        val shouldRun = state.monitoring.isActive
+        val shouldRun = state?.isActive == true
         if (shouldRun && !serviceRunning) {
           TripMonitorService.start(applicationContext)
           serviceRunning = true
@@ -126,6 +128,19 @@ class MainActivity : ComponentActivity() {
           TripMonitorService.stop(applicationContext)
           serviceRunning = false
         }
+      }
+      .launchIn(scope)
+  }
+
+  private fun wireWidgets(repo: SurfaceSnapshotRepository) {
+    val scope = appSurfaceScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main).also {
+      appSurfaceScope = it
+    }
+    repo.bundle
+      .onEach { snapshot ->
+        FavoriteStationWidgetProvider.updateAll(applicationContext)
+        NearbyStationsWidgetProvider.updateAll(applicationContext)
+        AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }
       .launchIn(scope)
   }

@@ -31,6 +31,8 @@ interface SharedGraph {
   val reverseGeocodeUseCase: ReverseGeocodeUseCase
   val routeLauncher: RouteLauncher
   val settingsRepository: SettingsRepository
+  val surfaceMonitoringRepository: SurfaceMonitoringRepository
+  val surfaceSnapshotRepository: SurfaceSnapshotRepository
   val stationsRepository: StationsRepository
   val tripRepository: TripRepository
   val watchSyncBridge: WatchSyncBridge
@@ -80,6 +82,14 @@ interface SharedGraph {
   @SingleIn(AppScope::class)
   @Provides
   fun provideSettingsRepository(implementation: SettingsRepositoryImpl): SettingsRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideSurfaceSnapshotRepository(implementation: SurfaceSnapshotRepositoryImpl): SurfaceSnapshotRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideSurfaceMonitoringRepository(implementation: SurfaceMonitoringRepositoryImpl): SurfaceMonitoringRepository = implementation
 
   @SingleIn(AppScope::class)
   @Provides

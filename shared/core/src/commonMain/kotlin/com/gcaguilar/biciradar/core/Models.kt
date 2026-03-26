@@ -29,6 +29,7 @@ data class StationsState(
   val isLoading: Boolean = false,
   val errorMessage: String? = null,
   val userLocation: GeoPoint? = null,
+  val lastUpdatedEpoch: Long? = null,
 )
 
 @Serializable

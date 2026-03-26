@@ -20,7 +20,7 @@ import okio.Path.Companion.toPath
 
 private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
 private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
-private const val CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
+const val STATION_CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
 
 interface StationsRepository {
   val state: StateFlow<StationsState>
@@ -110,11 +110,12 @@ class StationsRepositoryImpl(
       if (isCacheValid && cachedStations!!.isNotEmpty()) {
         // Load from cache (transparent to user)
         val stations = cachedStations.map { it.toDomain(origin) }
-        mutableState.value = StationsState(
-          stations = stations,
-          isLoading = false,
-          userLocation = currentLocation,
-        )
+         mutableState.value = StationsState(
+           stations = stations,
+           isLoading = false,
+           userLocation = currentLocation,
+           lastUpdatedEpoch = metadataLastUpdated(city.id),
+         )
         loadMutex.withLock {
           loaded = true
           lastLoadedCityId = city.id
@@ -128,10 +129,12 @@ class StationsRepositoryImpl(
       .onSuccess { stations ->
         // Save to cache
         saveToCache(city.id, stations)
+        val lastUpdatedEpoch = currentTimeMs()
         mutableState.value = StationsState(
           stations = stations,
           isLoading = false,
           userLocation = currentLocation,
+          lastUpdatedEpoch = lastUpdatedEpoch,
         )
         loadMutex.withLock {
           loaded = true
@@ -144,11 +147,12 @@ class StationsRepositoryImpl(
           val staleStations = loadFromCache(city.id)
           if (staleStations != null && staleStations.isNotEmpty()) {
             val stations = staleStations.map { it.toDomain(origin) }
-            mutableState.value = StationsState(
-              stations = stations,
-              isLoading = false,
-              userLocation = currentLocation,
-            )
+             mutableState.value = StationsState(
+               stations = stations,
+               isLoading = false,
+               userLocation = currentLocation,
+               lastUpdatedEpoch = metadataLastUpdated(city.id),
+             )
             loadMutex.withLock {
               loaded = true
               lastLoadedCityId = city.id
@@ -199,7 +203,7 @@ class StationsRepositoryImpl(
       val metadata = db.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
         val elapsed = currentTimeMs() - metadata.last_updated
-        elapsed < CACHE_REFRESH_INTERVAL_MS
+         elapsed < STATION_CACHE_REFRESH_INTERVAL_MS
       } else {
         false
       }
@@ -217,6 +221,17 @@ class StationsRepositoryImpl(
       }
     } catch (e: Exception) {
       // Silently fail
+    }
+  }
+
+  private fun metadataLastUpdated(cityId: String): Long? {
+    return try {
+      val db = database ?: return null
+      db.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
+        ?.takeIf { it.city_id == cityId }
+        ?.last_updated
+    } catch (e: Exception) {
+      null
     }
   }
 
@@ -257,12 +272,14 @@ class StationsRepositoryImpl(
     if (stationIds.isEmpty()) return
     val availability = runCatching { biziApi.fetchAvailability(stationIds) }.getOrNull() ?: return
     if (availability.isEmpty()) return
+    val refreshedAt = currentTimeMs()
     mutableState.update { current ->
       current.copy(
         stations = current.stations.map { station ->
           val update = availability[station.id] ?: return@map station
           station.copy(bikesAvailable = update.bikesAvailable, slotsFree = update.slotsFree)
         },
+        lastUpdatedEpoch = refreshedAt,
       )
     }
   }

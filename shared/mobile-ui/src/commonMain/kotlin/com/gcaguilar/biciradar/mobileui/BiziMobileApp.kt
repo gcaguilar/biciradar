@@ -136,10 +136,14 @@ import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import com.gcaguilar.biciradar.core.DatosBiziApi
+import com.gcaguilar.biciradar.core.DEFAULT_SURFACE_MONITORING_DURATION_SECONDS
 import com.gcaguilar.biciradar.core.geo.GeoResult
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
+import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.LocalNotifier
@@ -305,12 +309,16 @@ private val CHANGELOG_ENTRIES = listOf(
 )
 
 sealed interface MobileLaunchRequest {
+  data object Home : MobileLaunchRequest
+  data object Map : MobileLaunchRequest
   data object Favorites : MobileLaunchRequest
   data object NearestStation : MobileLaunchRequest
   data object NearestStationWithBikes : MobileLaunchRequest
   data object NearestStationWithSlots : MobileLaunchRequest
   data object OpenAssistant : MobileLaunchRequest
   data object StationStatus : MobileLaunchRequest
+  data class MonitorStation(val stationId: String) : MobileLaunchRequest
+  data class SelectCity(val cityId: String) : MobileLaunchRequest
   data class RouteToStation(val stationId: String? = null) : MobileLaunchRequest
   data class ShowStation(val stationId: String) : MobileLaunchRequest
 }
@@ -360,6 +368,8 @@ fun BiziMobileApp(
   launchRequest: MobileLaunchRequest? = null,
   assistantLaunchRequest: AssistantLaunchRequest? = null,
   onTripRepositoryReady: ((TripRepository) -> Unit)? = null,
+  onSurfaceMonitoringRepositoryReady: ((SurfaceMonitoringRepository) -> Unit)? = null,
+  onSurfaceSnapshotRepositoryReady: ((SurfaceSnapshotRepository) -> Unit)? = null,
   onStartupReadyChanged: (Boolean) -> Unit = {},
   useInAppStartupSplash: Boolean = true,
 ) {
@@ -394,6 +404,10 @@ fun BiziMobileApp(
   LaunchedEffect(graph) {
     platformBindings.onGraphCreated(graph)
     onTripRepositoryReady?.invoke(graph.tripRepository)
+    onSurfaceMonitoringRepositoryReady?.invoke(graph.surfaceMonitoringRepository)
+    onSurfaceSnapshotRepositoryReady?.invoke(graph.surfaceSnapshotRepository)
+    graph.surfaceSnapshotRepository.bootstrap()
+    graph.surfaceMonitoringRepository.bootstrap()
   }
 
   LaunchedEffect(graph) {
@@ -428,6 +442,19 @@ fun BiziMobileApp(
     favoritesBootstrapped = false
     runCatching { favoritesRepository.bootstrap() }
     favoritesBootstrapped = true
+  }
+
+  LaunchedEffect(
+    settingsBootstrapped,
+    favoritesBootstrapped,
+    stationsState.stations,
+    stationsState.lastUpdatedEpoch,
+    stationsState.userLocation,
+    favoriteIds,
+  ) {
+    if (settingsBootstrapped && favoritesBootstrapped) {
+      graph.surfaceSnapshotRepository.refreshSnapshot()
+    }
   }
 
   LaunchedEffect(graph) {
@@ -492,6 +519,14 @@ fun BiziMobileApp(
   LaunchedEffect(startupLaunchReady, appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
     if (!startupLaunchReady) return@LaunchedEffect
     when (val request = appState.pendingLaunchRequest ?: return@LaunchedEffect) {
+      MobileLaunchRequest.Home -> {
+        navController.navigate(Screen.Nearby) { launchSingleTop = true }
+        appState.pendingLaunchRequest = null
+      }
+      MobileLaunchRequest.Map -> {
+        navController.navigate(Screen.Map) { launchSingleTop = true }
+        appState.pendingLaunchRequest = null
+      }
       MobileLaunchRequest.Favorites -> {
         navController.navigate(Screen.Favorites) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
@@ -525,6 +560,24 @@ fun BiziMobileApp(
         val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
         appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
         navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
+        appState.pendingLaunchRequest = null
+      }
+      is MobileLaunchRequest.MonitorStation -> {
+        val station = stationsRepository.stationById(request.stationId)
+          ?: stationsState.stations.firstOrNull { it.id == request.stationId }
+          ?: return@LaunchedEffect
+        graph.surfaceMonitoringRepository.startMonitoring(
+          stationId = station.id,
+          durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+          kind = SurfaceMonitoringKind.Docks,
+        )
+        navController.navigate(Screen.StationDetail(station.id))
+        appState.pendingLaunchRequest = null
+      }
+      is MobileLaunchRequest.SelectCity -> {
+        val city = City.fromId(request.cityId) ?: return@LaunchedEffect
+        settingsRepository.setSelectedCity(city)
+        navController.navigate(Screen.Nearby) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
       is MobileLaunchRequest.RouteToStation -> {
@@ -663,6 +716,7 @@ fun BiziMobileApp(
           val tripViewModelFactory = remember(graph, searchRadiusMeters) {
             com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
               tripRepository = graph.tripRepository,
+              surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
               geoSearchUseCase = graph.geoSearchUseCase,
               reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
               searchRadiusMeters = searchRadiusMeters,

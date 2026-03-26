@@ -19,11 +19,21 @@ class AndroidAppStartupInitializer : Initializer<Unit> {
       description = "Notificaciones de monitorizacion de viaje en Bizi"
     }
     notificationManager.createNotificationChannel(channel)
+
+    val monitoringChannel = NotificationChannel(
+      SURFACE_MONITORING_CHANNEL_ID,
+      "Bici Radar monitorizacion",
+      NotificationManager.IMPORTANCE_LOW,
+    ).apply {
+      description = "Notificacion persistente durante la monitorizacion de estaciones"
+    }
+    notificationManager.createNotificationChannel(monitoringChannel)
   }
 
   override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
 
   private companion object {
     const val TRIP_NOTIFICATION_CHANNEL_ID = "bizi_trip"
+    const val SURFACE_MONITORING_CHANNEL_ID = "bizi_station_monitoring"
   }
 }
