@@ -26,7 +26,7 @@ class DatosBiziApiImpl(
   private val httpClient: HttpClient,
 ) : DatosBiziApi {
   override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> =
-    httpClient.get("https://datosbizi.com/api/patterns?stationId=$stationId").body()
+    httpClient.get("https://datosbizi.com/api/patterns?stationId=${stationId.trimStart('0').ifEmpty { "0" }}").body()
 }
 
 data class StationAvailability(
