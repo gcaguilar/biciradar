@@ -19,7 +19,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -42,9 +41,7 @@ class TripMonitorService : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
-        SurfaceMonitoringRepositoryHolder.repository?.let { repository ->
-          serviceScope.launch { repository.clearMonitoring() }
-        }
+        SurfaceMonitoringRepositoryHolder.repository?.stopMonitoring()
         stopSelf()
         return START_NOT_STICKY
       }

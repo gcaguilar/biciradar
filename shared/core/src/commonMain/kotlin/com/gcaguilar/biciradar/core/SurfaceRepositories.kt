@@ -59,6 +59,7 @@ class SurfaceSnapshotRepositoryImpl(
       )
     }
     val nearbyStations = stations
+      .sortedBy { it.distanceMeters }
       .take(3)
       .map { station ->
         station.toSurfaceSnapshot(

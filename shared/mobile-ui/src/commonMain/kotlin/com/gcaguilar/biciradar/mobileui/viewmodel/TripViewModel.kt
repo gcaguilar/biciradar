@@ -193,9 +193,7 @@ class TripViewModel(
 
   fun onStopMonitoring() {
     tripRepository.stopMonitoring()
-    viewModelScope.launch {
-      surfaceMonitoringRepository.clearMonitoring()
-    }
+    surfaceMonitoringRepository.stopMonitoring()
   }
 
   fun onClearTrip() {

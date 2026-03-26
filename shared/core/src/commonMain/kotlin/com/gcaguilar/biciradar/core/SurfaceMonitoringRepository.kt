@@ -249,21 +249,12 @@ class SurfaceMonitoringRepositoryImpl(
     monitoredStation: Station,
     kind: SurfaceMonitoringKind,
   ): Station? {
-    val radius = settingsRepository.currentSearchRadiusMeters()
-    return stationsRepository.state.value.stations
-      .asSequence()
-      .filter { it.id != monitoredStation.id }
-      .map { candidate ->
-        candidate.copy(distanceMeters = distanceBetween(monitoredStation.location, candidate.location))
-      }
-      .filter { candidate ->
-        candidate.distanceMeters <= radius && when (kind) {
-          SurfaceMonitoringKind.Bikes -> candidate.bikesAvailable > 0
-          SurfaceMonitoringKind.Docks -> candidate.slotsFree > 0
-        }
-      }
-      .sortedBy { it.distanceMeters }
-      .firstOrNull()
+    return selectAlternativeStation(
+      monitoredStation = monitoredStation,
+      candidates = stationsRepository.state.value.stations,
+      kind = kind,
+      maxRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
+    )
   }
 
   private fun monitoringTitle(session: SurfaceMonitoringSession): String = when (session.status) {
@@ -292,3 +283,30 @@ class SurfaceMonitoringRepositoryImpl(
     }
   }
 }
+
+internal fun selectAlternativeStation(
+  monitoredStation: Station,
+  candidates: List<Station>,
+  kind: SurfaceMonitoringKind,
+  maxRadiusMeters: Int,
+): Station? = candidates
+  .asSequence()
+  .filter { it.id != monitoredStation.id }
+  .map { candidate ->
+    candidate.copy(distanceMeters = distanceBetween(monitoredStation.location, candidate.location))
+  }
+  .filter { candidate ->
+    candidate.distanceMeters <= maxRadiusMeters && when (kind) {
+      SurfaceMonitoringKind.Bikes -> candidate.bikesAvailable > 0
+      SurfaceMonitoringKind.Docks -> candidate.slotsFree > 0
+    }
+  }
+  .sortedWith(
+    compareByDescending<Station> {
+      when (kind) {
+        SurfaceMonitoringKind.Bikes -> it.bikesAvailable
+        SurfaceMonitoringKind.Docks -> it.slotsFree
+      }
+    }.thenBy { it.distanceMeters },
+  )
+  .firstOrNull()
