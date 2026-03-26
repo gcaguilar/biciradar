@@ -49,6 +49,13 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         apply(context: applicationContext)
     }
 
+    #if os(iOS)
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+    func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    #endif
+
     func apply(context: [String: Any]) {
         if let ids = context["favorite_ids"] as? [String] {
             favoriteIds = Set(ids)
