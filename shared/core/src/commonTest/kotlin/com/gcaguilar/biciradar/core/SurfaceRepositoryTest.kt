@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.random.Random
@@ -36,6 +37,7 @@ class SurfaceRepositoryTest {
     val repository = SurfaceSnapshotRepositoryImpl(
       fileSystem = FileSystem.SYSTEM,
       json = testJson(),
+      localNotifier = FakeLocalNotifier(permissionGranted = true),
       storageDirectoryProvider = object : StorageDirectoryProvider {
         override val rootPath: String = temporaryRoot
       },
@@ -51,6 +53,43 @@ class SurfaceRepositoryTest {
     assertEquals("home", bundle.favoriteStation?.id)
     assertEquals(listOf("near", "home", "mid"), bundle.nearbyStations.map { it.id })
     assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/surface_snapshot.json".toPath()))
+  }
+
+  @Test
+  fun `surface snapshot hides nearby stations without location permission and preserves notification state`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-nolocation-${Random.nextInt()}"
+    val repository = SurfaceSnapshotRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = testJson(),
+      localNotifier = FakeLocalNotifier(permissionGranted = false),
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      settingsRepository = FakeSettingsRepository(),
+      favoritesRepository = FakeFavoritesRepository(
+        favoriteIds = setOf("home"),
+        homeStationId = "home",
+      ),
+      stationsRepository = FakeStationsRepository(
+        StationsState(
+          stations = listOf(
+            station(id = "home", distanceMeters = 120),
+            station(id = "near", distanceMeters = 60),
+          ),
+          isLoading = false,
+          userLocation = null,
+          lastUpdatedEpoch = 2_000L,
+        ),
+      ),
+    )
+
+    repository.bootstrap()
+    repository.refreshSnapshot()
+
+    val bundle = repository.currentBundle()!!
+    assertEquals(emptyList<String>(), bundle.nearbyStations.map { it.id })
+    assertFalse(bundle.state.hasLocationPermission)
+    assertFalse(bundle.state.hasNotificationPermission)
   }
 
   @Test
@@ -83,6 +122,14 @@ class SurfaceRepositoryTest {
     assertEquals("Ahora", formatRelativeMinutes(lastUpdatedEpoch = 10_000L, nowEpoch = 10_020L))
     assertEquals("Hace 3 min", formatRelativeMinutes(lastUpdatedEpoch = 10_000L, nowEpoch = 190_000L))
   }
+}
+
+private class FakeLocalNotifier(
+  private val permissionGranted: Boolean,
+) : LocalNotifier {
+  override suspend fun hasPermission(): Boolean = permissionGranted
+  override suspend fun requestPermission(): Boolean = permissionGranted
+  override suspend fun notify(title: String, body: String) = Unit
 }
 
 private fun station(

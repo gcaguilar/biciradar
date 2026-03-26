@@ -277,15 +277,23 @@ private class AndroidLocalNotifier(
     ensureChannel()
   }
 
+  override suspend fun hasPermission(): Boolean {
+    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+      notificationManager.areNotificationsEnabled()
+    } else {
+      notificationManager.areNotificationsEnabled() && ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.POST_NOTIFICATIONS,
+      ) == PackageManager.PERMISSION_GRANTED
+    }
+  }
+
   override suspend fun requestPermission(): Boolean {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return hasPermission()
     // If an Activity-backed requester is available, use it to show the system dialog.
     permissionRequester?.let { return it() }
     // Fallback: check current grant state without prompting.
-    return ContextCompat.checkSelfPermission(
-      context,
-      Manifest.permission.POST_NOTIFICATIONS,
-    ) == PackageManager.PERMISSION_GRANTED
+    return hasPermission()
   }
 
   @SuppressLint("MissingPermission")

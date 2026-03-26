@@ -387,6 +387,7 @@ class CoreRepositoryTest {
           override fun create(json: Json): HttpClient = HttpClient()
         }
         override val localNotifier: LocalNotifier = object : LocalNotifier {
+          override suspend fun hasPermission(): Boolean = true
           override suspend fun requestPermission(): Boolean = true
           override suspend fun notify(title: String, body: String) = Unit
         }

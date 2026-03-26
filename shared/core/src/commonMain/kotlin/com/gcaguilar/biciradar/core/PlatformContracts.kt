@@ -39,6 +39,7 @@ interface WatchSyncBridge {
 }
 
 interface LocalNotifier {
+  suspend fun hasPermission(): Boolean = true
   suspend fun requestPermission(): Boolean
   suspend fun notify(title: String, body: String)
 }

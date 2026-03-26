@@ -22,6 +22,7 @@ interface SurfaceSnapshotRepository {
 class SurfaceSnapshotRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
+  private val localNotifier: LocalNotifier,
   private val storageDirectoryProvider: StorageDirectoryProvider,
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
@@ -58,16 +59,22 @@ class SurfaceSnapshotRepositoryImpl(
         isFavorite = true,
       )
     }
-    val nearbyStations = stations
-      .sortedBy { it.distanceMeters }
-      .take(3)
-      .map { station ->
-        station.toSurfaceSnapshot(
-          cityId = city.id,
-          lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs(),
-          isFavorite = station.id == favoriteStationId,
-        )
-      }
+    val hasLocationPermission = stationsState.userLocation != null
+    val nearbyStations = if (hasLocationPermission) {
+      stations
+        .sortedBy { it.distanceMeters }
+        .take(3)
+        .map { station ->
+          station.toSurfaceSnapshot(
+            cityId = city.id,
+            lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs(),
+            isFavorite = station.id == favoriteStationId,
+          )
+        }
+    } else {
+      emptyList()
+    }
+    val hasNotificationPermission = localNotifier.hasPermission()
 
     val previousMonitoring = mutableBundle.value?.monitoringSession
     val mergedFavorite = if (previousMonitoring != null && favoriteStation?.id == previousMonitoring.stationId) {
@@ -91,8 +98,8 @@ class SurfaceSnapshotRepositoryImpl(
       nearbyStations = nearbyStations,
       monitoringSession = previousMonitoring,
       state = SurfaceState(
-        hasLocationPermission = stationsState.userLocation != null,
-        hasNotificationPermission = true,
+        hasLocationPermission = hasLocationPermission,
+        hasNotificationPermission = hasNotificationPermission,
         hasFavoriteStation = mergedFavorite != null,
         isDataFresh = stationsState.lastUpdatedEpoch?.let { currentTimeMs() - it < STATION_CACHE_REFRESH_INTERVAL_MS } == true,
         lastSyncEpoch = stationsState.lastUpdatedEpoch,
@@ -157,7 +164,7 @@ class SurfaceSnapshotRepositoryImpl(
       generatedAtEpoch = currentTimeMs(),
       state = SurfaceState(
         hasLocationPermission = false,
-        hasNotificationPermission = true,
+        hasNotificationPermission = false,
         hasFavoriteStation = false,
         isDataFresh = false,
         lastSyncEpoch = null,
