@@ -76,14 +76,17 @@ class AndroidSurfaceRenderingTest {
           statusText = "Disponible",
           lastUpdatedEpoch = 100L,
         ),
+        hasNotificationPermission = false,
       ),
     )
     val empty = quickActionsState(AndroidSurfaceWidgetSnapshot())
 
     assertEquals("biciradar://monitor/station-9", configured.monitorUri)
     assertFalse(configured.requiresConfiguration)
+    assertTrue(configured.requiresNotificationPermission)
     assertEquals("biciradar://favorites", empty.monitorUri)
     assertTrue(empty.requiresConfiguration)
+    assertFalse(empty.requiresNotificationPermission)
   }
 
   @Test

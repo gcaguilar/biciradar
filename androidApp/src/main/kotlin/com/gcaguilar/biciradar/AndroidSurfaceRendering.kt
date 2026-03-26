@@ -12,6 +12,7 @@ internal enum class AndroidWidgetEmptyState {
 internal data class AndroidQuickActionsState(
   val monitorUri: String,
   val requiresConfiguration: Boolean,
+  val requiresNotificationPermission: Boolean,
 )
 
 internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState = when {
@@ -50,11 +51,13 @@ internal fun quickActionsState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidQ
     AndroidQuickActionsState(
       monitorUri = "biciradar://monitor/$favoriteStationId",
       requiresConfiguration = false,
+      requiresNotificationPermission = snapshot.hasNotificationPermission == false,
     )
   } else {
     AndroidQuickActionsState(
       monitorUri = "biciradar://favorites",
       requiresConfiguration = true,
+      requiresNotificationPermission = false,
     )
   }
 }

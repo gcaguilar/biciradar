@@ -46,10 +46,12 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
     ): RemoteViews {
       val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
       val actionsState = quickActionsState(snapshot)
-      val monitorLabel = if (!actionsState.requiresConfiguration) {
-        context.getString(R.string.widget_action_monitor)
-      } else {
+      val monitorLabel = if (actionsState.requiresConfiguration) {
         context.getString(R.string.widget_action_configure)
+      } else if (actionsState.requiresNotificationPermission) {
+        context.getString(R.string.widget_action_notifications)
+      } else {
+        context.getString(R.string.widget_action_monitor)
       }
 
       views.setTextViewText(R.id.widget_action_monitor_text, monitorLabel)

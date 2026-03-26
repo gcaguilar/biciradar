@@ -566,11 +566,15 @@ fun BiziMobileApp(
         val station = stationsRepository.stationById(request.stationId)
           ?: stationsState.stations.firstOrNull { it.id == request.stationId }
           ?: return@LaunchedEffect
-        graph.surfaceMonitoringRepository.startMonitoring(
-          stationId = station.id,
-          durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-          kind = SurfaceMonitoringKind.Docks,
-        )
+        val notificationsGranted = platformBindings.localNotifier.requestPermission()
+        graph.surfaceSnapshotRepository.refreshSnapshot()
+        if (notificationsGranted) {
+          graph.surfaceMonitoringRepository.startMonitoring(
+            stationId = station.id,
+            durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+            kind = SurfaceMonitoringKind.Docks,
+          )
+        }
         navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
@@ -3063,8 +3067,9 @@ private fun TripScreen(
               onDurationSelected = { viewModel.onDurationSelected(it) },
               onStartMonitoring = {
                 scope.launch {
-                  localNotifier.requestPermission()
-                  viewModel.onStartMonitoring()
+                  if (localNotifier.requestPermission()) {
+                    viewModel.onStartMonitoring()
+                  }
                 }
               },
             )

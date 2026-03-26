@@ -111,6 +111,7 @@ internal data class AndroidSurfaceWidgetSnapshot(
   val hasFavoriteStation: Boolean? = null,
   val isDataFresh: Boolean? = null,
   val hasLocationPermission: Boolean? = null,
+  val hasNotificationPermission: Boolean? = null,
 )
 
 internal data class AndroidSurfaceFavoriteStation(
@@ -171,6 +172,7 @@ internal object AndroidSurfaceSnapshotReader {
         hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
         isDataFresh = state?.optBoolean("isDataFresh"),
         hasLocationPermission = state?.optBoolean("hasLocationPermission"),
+        hasNotificationPermission = state?.optBoolean("hasNotificationPermission"),
       )
     }
     return AndroidSurfaceWidgetSnapshot(
@@ -186,6 +188,7 @@ internal object AndroidSurfaceSnapshotReader {
       hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
       isDataFresh = state?.optBoolean("isDataFresh"),
       hasLocationPermission = state?.optBoolean("hasLocationPermission"),
+      hasNotificationPermission = state?.optBoolean("hasNotificationPermission"),
     )
   }
 }

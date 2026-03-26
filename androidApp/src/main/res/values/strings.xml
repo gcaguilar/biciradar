@@ -20,4 +20,5 @@
     <string name="widget_quick_actions_description">Accesos rápidos a mapa, favoritas y monitorización</string>
     <string name="widget_action_monitor">Monitorizar</string>
     <string name="widget_action_configure">Configurar</string>
+    <string name="widget_action_notifications">Permiso</string>
 </resources>
