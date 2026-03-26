@@ -15,6 +15,17 @@ The snapshot includes:
 - shared freshness and city state
 - active monitoring session when one exists
 
+## Shared use cases
+
+- `GetFavoriteStations`
+- `GetNearestStations`
+- `GetStationStatus`
+- `StartStationMonitoring`
+- `StopStationMonitoring`
+- `GetSuggestedAlternativeStation`
+- `GetCachedStationSnapshot`
+- `RefreshStationDataIfNeeded`
+
 ## Android
 
 - Home widget: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/FavoriteStationWidgetProvider.kt`

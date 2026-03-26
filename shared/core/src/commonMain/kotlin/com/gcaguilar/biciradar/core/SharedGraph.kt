@@ -25,12 +25,20 @@ interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
   val datosBiziApi: DatosBiziApi
   val favoritesRepository: FavoritesRepository
+  val getCachedStationSnapshot: GetCachedStationSnapshot
+  val getFavoriteStations: GetFavoriteStations
+  val getNearestStations: GetNearestStations
+  val getStationStatus: GetStationStatus
+  val getSuggestedAlternativeStation: GetSuggestedAlternativeStation
   val geoApi: GeoApi
   val geoSearchUseCase: GeoSearchUseCase
   val googlePlacesApi: GooglePlacesApi
+  val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
   val reverseGeocodeUseCase: ReverseGeocodeUseCase
   val routeLauncher: RouteLauncher
   val settingsRepository: SettingsRepository
+  val startStationMonitoring: StartStationMonitoring
+  val stopStationMonitoring: StopStationMonitoring
   val surfaceMonitoringRepository: SurfaceMonitoringRepository
   val surfaceSnapshotRepository: SurfaceSnapshotRepository
   val stationsRepository: StationsRepository
