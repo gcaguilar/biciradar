@@ -140,6 +140,7 @@ class MainActivity : ComponentActivity() {
       .onEach { snapshot ->
         FavoriteStationWidgetProvider.updateAll(applicationContext)
         NearbyStationsWidgetProvider.updateAll(applicationContext)
+        QuickActionsWidgetProvider.updateAll(applicationContext)
         AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }
       .launchIn(scope)

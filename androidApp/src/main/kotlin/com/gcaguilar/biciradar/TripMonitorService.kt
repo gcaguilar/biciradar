@@ -61,6 +61,7 @@ class TripMonitorService : Service() {
         if (session == null || !session.isActive) {
           FavoriteStationWidgetProvider.updateAll(applicationContext)
           NearbyStationsWidgetProvider.updateAll(applicationContext)
+          QuickActionsWidgetProvider.updateAll(applicationContext)
           stopSelf()
           return@onEach
         }
@@ -70,6 +71,7 @@ class TripMonitorService : Service() {
         )
         FavoriteStationWidgetProvider.updateAll(applicationContext)
         NearbyStationsWidgetProvider.updateAll(applicationContext)
+        QuickActionsWidgetProvider.updateAll(applicationContext)
       }
       .launchIn(serviceScope)
   }

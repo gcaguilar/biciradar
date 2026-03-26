@@ -18,6 +18,8 @@ The snapshot includes:
 ## Android
 
 - Home widget: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/FavoriteStationWidgetProvider.kt`
+- Nearby widget: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/NearbyStationsWidgetProvider.kt`
+- Quick actions widget: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/QuickActionsWidgetProvider.kt`
 - Ongoing monitoring notification: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/TripMonitorService.kt`
 - Dynamic shortcuts: `androidApp/src/main/kotlin/com/gcaguilar/biciradar/AndroidDynamicShortcuts.kt`
 
