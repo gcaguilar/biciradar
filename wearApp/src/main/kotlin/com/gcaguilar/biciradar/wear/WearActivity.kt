@@ -50,7 +50,10 @@ import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
+import com.gcaguilar.biciradar.core.surfaceStatusLevel
+import com.gcaguilar.biciradar.core.surfaceStatusTextShort
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -104,6 +107,8 @@ private fun WearRoot(
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
   val stationsState by stationsRepository.state.collectAsState()
   val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
+  val homeStationId by favoritesRepository.homeStationId.collectAsState()
+  val workStationId by favoritesRepository.workStationId.collectAsState()
   val scope = rememberCoroutineScope()
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var currentTab by rememberSaveable { mutableStateOf(WearTab.Cercanas) }
@@ -132,6 +137,7 @@ private fun WearRoot(
         selectedStation != null -> WearStationDetail(
           station = selectedStation,
           isFavorite = selectedStation.id in favoriteIds,
+          savedPlaceLabel = wearSavedPlaceLabel(selectedStation.id, homeStationId, workStationId),
           onBack = { selectedStationId = null },
           onToggleFavorite = { scope.launch { favoritesRepository.toggle(selectedStation.id) } },
           onRoute = { graph.routeLauncher.launch(selectedStation) },
@@ -149,6 +155,8 @@ private fun WearRoot(
         else -> WearDashboard(
           stations = stationsState.stations,
           favoriteIds = favoriteIds,
+          homeStationId = homeStationId,
+          workStationId = workStationId,
           currentTab = currentTab,
           onTabSelected = { currentTab = it },
           onStationSelected = { selectedStationId = it.id },
@@ -168,13 +176,19 @@ private fun WearRoot(
 private fun WearDashboard(
   stations: List<Station>,
   favoriteIds: Set<String>,
+  homeStationId: String?,
+  workStationId: String?,
   currentTab: WearTab,
   onTabSelected: (WearTab) -> Unit,
   onStationSelected: (Station) -> Unit,
   onRefresh: () -> Unit,
 ) {
   val nearbyStations = stations.take(8)
-  val favoriteStations = stations.filter { it.id in favoriteIds }
+  val favoriteStations = sortWearFavoriteStations(
+    stations = stations.filter { it.id in favoriteIds },
+    homeStationId = homeStationId,
+    workStationId = workStationId,
+  )
   val listState = rememberScalingLazyListState()
 
   ScalingLazyColumn(
@@ -230,6 +244,7 @@ private fun WearDashboard(
         WearStationRow(
           station = station,
           isFavorite = station.id in favoriteIds,
+          savedPlaceLabel = wearSavedPlaceLabel(station.id, homeStationId, workStationId),
           onClick = { onStationSelected(station) },
         )
       }
@@ -266,6 +281,7 @@ private fun WearAvailabilityDot(available: Int) {
 private fun WearStationRow(
   station: Station,
   isFavorite: Boolean,
+  savedPlaceLabel: String?,
   onClick: () -> Unit,
 ) {
   Card(
@@ -281,6 +297,22 @@ private fun WearStationRow(
         overflow = TextOverflow.Ellipsis,
         color = WearOnSurface,
       )
+      Spacer(Modifier.height(4.dp))
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        WearAvailabilityDot(available = station.bikesAvailable)
+        Text(
+          text = station.surfaceStatusTextShort(),
+          style = MaterialTheme.typography.labelSmall,
+          color = wearStatusColor(station.surfaceStatusLevel()),
+          fontWeight = FontWeight.SemiBold,
+        )
+        savedPlaceLabel?.let { label ->
+          WearChip(label = label, color = WearNeutral)
+        }
+      }
       Spacer(Modifier.height(4.dp))
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -339,6 +371,7 @@ private fun WearStatBadge(label: String, value: Int, positiveColor: Color) {
 private fun WearStationDetail(
   station: Station,
   isFavorite: Boolean,
+  savedPlaceLabel: String?,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onRoute: () -> Unit,
@@ -366,6 +399,22 @@ private fun WearStationDetail(
         color = WearNeutral,
         textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+      )
+    }
+    savedPlaceLabel?.let { label ->
+      item {
+        Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
+          color = WearNeutral,
+        )
+      }
+    }
+    item {
+      Text(
+        text = station.surfaceStatusTextShort(),
+        style = MaterialTheme.typography.bodySmall,
+        color = wearStatusColor(station.surfaceStatusLevel()),
       )
     }
     item {
@@ -426,6 +475,14 @@ private fun WearStationDetail(
       }
     }
   }
+}
+
+private fun wearStatusColor(level: SurfaceStatusLevel): Color = when (level) {
+  SurfaceStatusLevel.Good -> WearSecondary
+  SurfaceStatusLevel.Low -> Color(0xFFF28000)
+  SurfaceStatusLevel.Empty,
+  SurfaceStatusLevel.Full,
+  SurfaceStatusLevel.Unavailable -> WearError
 }
 
 @Composable
