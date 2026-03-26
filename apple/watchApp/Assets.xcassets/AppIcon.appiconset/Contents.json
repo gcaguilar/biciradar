@@ -1,6 +1,13 @@
 {
   "images": [
     {
+      "filename": "watch-marketing-1024.png",
+      "idiom": "universal",
+      "platform": "watchos",
+      "scale": "1x",
+      "size": "1024x1024"
+    },
+    {
       "filename": "watch-notification-24@2x.png",
       "idiom": "watch",
       "role": "notificationCenter",
@@ -117,12 +124,6 @@
       "scale": "2x",
       "size": "129x129",
       "subtype": "49mm"
-    },
-    {
-      "filename": "watch-marketing-1024.png",
-      "idiom": "watch-marketing",
-      "scale": "1x",
-      "size": "1024x1024"
     }
   ],
   "info": {
