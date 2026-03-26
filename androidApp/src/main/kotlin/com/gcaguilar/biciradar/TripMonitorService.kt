@@ -78,7 +78,7 @@ class TripMonitorService : Service() {
 
   private fun buildForegroundNotification(
     session: SurfaceMonitoringSession? = null,
-    text: String = session?.let(::notificationBody).orEmpty(),
+    text: String = session?.let { monitoringNotificationBody(it, it.remainingSeconds()) }.orEmpty(),
   ): Notification {
     val openIntent = session?.stationId?.let(::stationPendingIntent)
       ?: appPendingIntent(Uri.parse("biciradar://favorites"))
@@ -111,17 +111,6 @@ class TripMonitorService : Service() {
       )
     }
     return builder.build()
-  }
-
-  private fun notificationBody(session: SurfaceMonitoringSession): String {
-    val remaining = session.remainingSeconds()
-    val minutes = remaining / 60
-    val seconds = remaining % 60
-    val timeText = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-    val base = "${session.bikesAvailable} bicis · ${session.docksAvailable} huecos · $timeText"
-    return session.alternativeStationName?.let { alternativeName ->
-      "$base · Alt: $alternativeName"
-    } ?: base
   }
 
   private fun stopPendingIntent(): PendingIntent {

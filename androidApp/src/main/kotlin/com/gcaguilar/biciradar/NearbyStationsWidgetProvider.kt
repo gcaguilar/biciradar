@@ -50,7 +50,12 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.widget_nearby_title, context.getString(R.string.widget_nearby_title))
         views.setTextViewText(
           R.id.widget_nearby_empty,
-          snapshot.emptyMessage ?: context.getString(R.string.widget_data_unavailable),
+          widgetEmptyMessage(
+            state = widgetEmptyState(snapshot),
+            configureFavorite = context.getString(R.string.widget_configure_favorite),
+            openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
+            dataUnavailable = context.getString(R.string.widget_data_unavailable),
+          ),
         )
         views.setOnClickPendingIntent(
           R.id.widget_nearby_root,
@@ -59,9 +64,9 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
         return views
       }
 
-      bindStationRow(views, R.id.widget_row_one, R.id.widget_row_one_name, R.id.widget_row_one_meta, stations.getOrNull(0))
-      bindStationRow(views, R.id.widget_row_two, R.id.widget_row_two_name, R.id.widget_row_two_meta, stations.getOrNull(1))
-      bindStationRow(views, R.id.widget_row_three, R.id.widget_row_three_name, R.id.widget_row_three_meta, stations.getOrNull(2))
+      bindStationRow(context, views, R.id.widget_row_one, R.id.widget_row_one_name, R.id.widget_row_one_meta, stations.getOrNull(0))
+      bindStationRow(context, views, R.id.widget_row_two, R.id.widget_row_two_name, R.id.widget_row_two_meta, stations.getOrNull(1))
+      bindStationRow(context, views, R.id.widget_row_three, R.id.widget_row_three_name, R.id.widget_row_three_meta, stations.getOrNull(2))
       views.setTextViewText(R.id.widget_nearby_empty, "")
       views.setOnClickPendingIntent(
         R.id.widget_nearby_root,
@@ -71,6 +76,7 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
     }
 
     private fun bindStationRow(
+      context: Context,
       views: RemoteViews,
       rowId: Int,
       nameId: Int,
@@ -83,12 +89,10 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
       }
       views.setViewVisibility(rowId, android.view.View.VISIBLE)
       views.setTextViewText(nameId, station.name)
-      views.setTextViewText(
-        metaId,
-        buildString {
-          append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
-          station.distanceMeters?.let { append(" · ${it} m") }
-        },
+      views.setTextViewText(metaId, nearbyStationMeta(station))
+      views.setOnClickPendingIntent(
+        rowId,
+        deepLinkPendingIntent(context, Uri.parse("biciradar://station/${station.id}")),
       )
     }
 

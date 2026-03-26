@@ -45,10 +45,8 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
       snapshot: AndroidSurfaceWidgetSnapshot,
     ): RemoteViews {
       val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
-      val favoriteStationId = snapshot.favoriteStation?.id
-      val monitorUri = favoriteStationId?.let { Uri.parse("biciradar://monitor/$it") }
-        ?: Uri.parse("biciradar://favorites")
-      val monitorLabel = if (favoriteStationId != null) {
+      val actionsState = quickActionsState(snapshot)
+      val monitorLabel = if (!actionsState.requiresConfiguration) {
         context.getString(R.string.widget_action_monitor)
       } else {
         context.getString(R.string.widget_action_configure)
@@ -65,7 +63,7 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
       )
       views.setOnClickPendingIntent(
         R.id.widget_action_monitor,
-        deepLinkPendingIntent(context, monitorUri),
+        deepLinkPendingIntent(context, Uri.parse(actionsState.monitorUri)),
       )
       return views
     }

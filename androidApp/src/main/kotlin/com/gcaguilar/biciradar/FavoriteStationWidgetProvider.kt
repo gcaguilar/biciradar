@@ -53,7 +53,12 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.widget_title, context.getString(R.string.widget_favorite_empty_title))
         views.setTextViewText(
           R.id.widget_status,
-          snapshot.emptyMessage ?: context.getString(R.string.widget_data_unavailable),
+          widgetEmptyMessage(
+            state = widgetEmptyState(snapshot),
+            configureFavorite = context.getString(R.string.widget_configure_favorite),
+            openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
+            dataUnavailable = context.getString(R.string.widget_data_unavailable),
+          ),
         )
         views.setTextViewText(R.id.widget_bikes_value, "--")
         views.setTextViewText(R.id.widget_docks_value, "--")
@@ -102,7 +107,8 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
 internal data class AndroidSurfaceWidgetSnapshot(
   val favoriteStation: AndroidSurfaceFavoriteStation? = null,
   val nearbyStations: List<AndroidSurfaceNearbyStation> = emptyList(),
-  val emptyMessage: String? = null,
+  val hasFavoriteStation: Boolean? = null,
+  val isDataFresh: Boolean? = null,
 )
 
 internal data class AndroidSurfaceFavoriteStation(
@@ -129,20 +135,16 @@ internal object AndroidSurfaceSnapshotReader {
   fun read(context: Context): AndroidSurfaceWidgetSnapshot {
     val file = File(context.filesDir, SNAPSHOT_PATH)
     if (!file.exists()) {
-      return AndroidSurfaceWidgetSnapshot(
-        emptyMessage = context.getString(R.string.widget_open_app_to_refresh),
-      )
+      return AndroidSurfaceWidgetSnapshot(isDataFresh = false)
     }
     return runCatching {
-      parse(context, JSONObject(file.readText()))
+      parse(JSONObject(file.readText()))
     }.getOrElse {
-      AndroidSurfaceWidgetSnapshot(
-        emptyMessage = context.getString(R.string.widget_data_unavailable),
-      )
+      AndroidSurfaceWidgetSnapshot()
     }
   }
 
-  private fun parse(context: Context, root: JSONObject): AndroidSurfaceWidgetSnapshot {
+  private fun parse(root: JSONObject): AndroidSurfaceWidgetSnapshot {
     val state = root.optJSONObject("state")
     val favorite = root.optJSONObject("favoriteStation")
     val nearby = root.optJSONArray("nearbyStations")
@@ -164,11 +166,8 @@ internal object AndroidSurfaceSnapshotReader {
     if (favorite == null) {
       return AndroidSurfaceWidgetSnapshot(
         nearbyStations = nearbyStations,
-        emptyMessage = when {
-          state?.optBoolean("hasFavoriteStation") == false -> context.getString(R.string.widget_configure_favorite)
-          state?.optBoolean("isDataFresh") == false -> context.getString(R.string.widget_open_app_to_refresh)
-          else -> context.getString(R.string.widget_data_unavailable)
-        },
+        hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
+        isDataFresh = state?.optBoolean("isDataFresh"),
       )
     }
     return AndroidSurfaceWidgetSnapshot(
@@ -181,6 +180,8 @@ internal object AndroidSurfaceSnapshotReader {
         lastUpdatedEpoch = favorite.optLong("lastUpdatedEpoch").takeIf { it > 0L },
       ),
       nearbyStations = nearbyStations,
+      hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
+      isDataFresh = state?.optBoolean("isDataFresh"),
     )
   }
 }
