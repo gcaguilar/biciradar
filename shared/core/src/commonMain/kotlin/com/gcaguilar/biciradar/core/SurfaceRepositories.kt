@@ -51,14 +51,22 @@ class SurfaceSnapshotRepositoryImpl(
     val city = settingsRepository.currentSelectedCity()
     val stationsState = stationsRepository.state.value
     val stations = stationsState.stations
+    val lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs()
     val favoriteStationId = favoriteStationId(stations)
-    val favoriteStation = favoriteStationId?.let { stationId ->
-      stations.firstOrNull { it.id == stationId }?.toSurfaceSnapshot(
+    val homeStationId = favoritesRepository.currentHomeStationId()
+    val workStationId = favoritesRepository.currentWorkStationId()
+    fun stationSnapshot(stationId: String?): SurfaceStationSnapshot? = stationId?.let { id ->
+      stations.firstOrNull { it.id == id }?.toSurfaceSnapshot(
         cityId = city.id,
-        lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs(),
-        isFavorite = true,
+        lastUpdatedEpoch = lastUpdatedEpoch,
+        isFavorite = favoritesRepository.isFavorite(id),
       )
     }
+    val favoriteStation = stationSnapshot(favoriteStationId)?.copy(isFavorite = true)
+    val homeStation = stationSnapshot(homeStationId)
+    val workStation = workStationId
+      ?.takeIf { it != homeStationId }
+      ?.let(::stationSnapshot)
     val hasLocationPermission = stationsState.userLocation != null
     val nearbyStations = if (hasLocationPermission) {
       stations
@@ -67,7 +75,7 @@ class SurfaceSnapshotRepositoryImpl(
         .map { station ->
           station.toSurfaceSnapshot(
             cityId = city.id,
-            lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs(),
+            lastUpdatedEpoch = lastUpdatedEpoch,
             isFavorite = station.id == favoriteStationId,
           )
         }
@@ -77,24 +85,15 @@ class SurfaceSnapshotRepositoryImpl(
     val hasNotificationPermission = localNotifier.hasPermission()
 
     val previousMonitoring = mutableBundle.value?.monitoringSession
-    val mergedFavorite = if (previousMonitoring != null && favoriteStation?.id == previousMonitoring.stationId) {
-      favoriteStation.copy(
-        bikesAvailable = previousMonitoring.bikesAvailable,
-        docksAvailable = previousMonitoring.docksAvailable,
-        statusLevel = previousMonitoring.statusLevel,
-        statusTextShort = previousMonitoring.status.surfaceTextShort(previousMonitoring.kind),
-        lastUpdatedEpoch = previousMonitoring.lastUpdatedEpoch,
-        alternativeStationId = previousMonitoring.alternativeStationId,
-        alternativeStationName = previousMonitoring.alternativeStationName,
-        alternativeDistanceMeters = previousMonitoring.alternativeDistanceMeters,
-      )
-    } else {
-      favoriteStation
-    }
+    val mergedFavorite = favoriteStation.mergeMonitoring(previousMonitoring)
+    val mergedHome = homeStation.mergeMonitoring(previousMonitoring)
+    val mergedWork = workStation.mergeMonitoring(previousMonitoring)
 
     val snapshot = SurfaceSnapshotBundle(
       generatedAtEpoch = currentTimeMs(),
       favoriteStation = mergedFavorite,
+      homeStation = mergedHome,
+      workStation = mergedWork,
       nearbyStations = nearbyStations,
       monitoringSession = previousMonitoring,
       state = SurfaceState(
@@ -115,26 +114,15 @@ class SurfaceSnapshotRepositoryImpl(
   override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) {
     if (!bootstrapped) bootstrap()
     val current = mutableBundle.value ?: emptyBundle()
-    val updatedFavorite = current.favoriteStation?.let { favorite ->
-      if (session != null && favorite.id == session.stationId) {
-        favorite.copy(
-          bikesAvailable = session.bikesAvailable,
-          docksAvailable = session.docksAvailable,
-          statusLevel = session.statusLevel,
-          statusTextShort = session.status.surfaceTextShort(session.kind),
-          lastUpdatedEpoch = session.lastUpdatedEpoch,
-          alternativeStationId = session.alternativeStationId,
-          alternativeStationName = session.alternativeStationName,
-          alternativeDistanceMeters = session.alternativeDistanceMeters,
-        )
-      } else {
-        favorite
-      }
-    }
+    val updatedFavorite = current.favoriteStation.mergeMonitoring(session)
+    val updatedHome = current.homeStation.mergeMonitoring(session)
+    val updatedWork = current.workStation.mergeMonitoring(session)
     persist(
       current.copy(
         generatedAtEpoch = currentTimeMs(),
         favoriteStation = updatedFavorite,
+        homeStation = updatedHome,
+        workStation = updatedWork,
         monitoringSession = session,
       ),
     )
@@ -175,6 +163,23 @@ class SurfaceSnapshotRepositoryImpl(
   }
 
   private fun snapshotPath() = "${storageDirectoryProvider.rootPath}/surface_snapshot.json".toPath()
+}
+
+private fun SurfaceStationSnapshot?.mergeMonitoring(
+  session: SurfaceMonitoringSession?,
+): SurfaceStationSnapshot? {
+  val station = this ?: return null
+  if (session == null || station.id != session.stationId) return station
+  return station.copy(
+    bikesAvailable = session.bikesAvailable,
+    docksAvailable = session.docksAvailable,
+    statusLevel = session.statusLevel,
+    statusTextShort = session.status.surfaceTextShort(session.kind),
+    lastUpdatedEpoch = session.lastUpdatedEpoch,
+    alternativeStationId = session.alternativeStationId,
+    alternativeStationName = session.alternativeStationName,
+    alternativeDistanceMeters = session.alternativeDistanceMeters,
+  )
 }
 
 private fun SurfaceMonitoringStatus.surfaceTextShort(kind: SurfaceMonitoringKind): String = when (this) {

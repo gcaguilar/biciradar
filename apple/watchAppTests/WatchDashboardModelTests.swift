@@ -13,7 +13,8 @@ final class WatchDashboardModelTests: XCTestCase {
                 .fixture(id: "station-2", name: "Universidad")
             ]
         )
-        let model = WatchDashboardModel(graph: graph)
+        let store = WatchSurfaceSnapshotStoreStub()
+        let model = WatchDashboardModel(graph: graph, surfaceStore: store)
 
         await model.refresh(favoriteIds: ["station-2"])
 
@@ -21,10 +22,34 @@ final class WatchDashboardModelTests: XCTestCase {
         XCTAssertEqual(model.favoriteStations.map(\.id), ["station-2"])
         XCTAssertFalse(model.isLoading)
         XCTAssertNil(model.errorMessage)
+        XCTAssertEqual(store.writtenSnapshots.last?.nearbyStations.map(\.id), ["station-1", "station-2"])
+        XCTAssertEqual(store.writtenSnapshots.last?.favoriteStations.map(\.id), ["station-2"])
+    }
+
+    func testRefreshPrioritizesHomeAndWorkFavorites() async {
+        let graph = DashboardGraphStub(
+            favorites: [
+                .fixture(id: "station-3", name: "Campus Río Ebro", distance: 350),
+                .fixture(id: "station-2", name: "Universidad", distance: 120),
+                .fixture(id: "station-1", name: "Plaza España", distance: 250)
+            ]
+        )
+        let model = WatchDashboardModel(graph: graph, surfaceStore: WatchSurfaceSnapshotStoreStub())
+
+        await model.refresh(
+            favoriteIds: ["station-1", "station-2", "station-3"],
+            homeStationId: "station-1",
+            workStationId: "station-3"
+        )
+
+        XCTAssertEqual(model.favoriteStations.map(\.id), ["station-1", "station-3", "station-2"])
     }
 
     func testRefreshExposesErrors() async {
-        let model = WatchDashboardModel(graph: DashboardGraphStub(error: DashboardGraphStub.StubError.offline))
+        let model = WatchDashboardModel(
+            graph: DashboardGraphStub(error: DashboardGraphStub.StubError.offline),
+            surfaceStore: WatchSurfaceSnapshotStoreStub()
+        )
 
         await model.refresh(favoriteIds: [])
 
@@ -32,6 +57,47 @@ final class WatchDashboardModelTests: XCTestCase {
         XCTAssertEqual(model.favoriteStations, [])
         XCTAssertEqual(model.errorMessage, DashboardGraphStub.StubError.offline.localizedDescription)
         XCTAssertFalse(model.isLoading)
+    }
+
+    func testInitLoadsCachedSnapshot() {
+        let store = WatchSurfaceSnapshotStoreStub(
+            snapshot: WatchSurfaceSnapshotBundle(
+                generatedAtEpoch: 1234,
+                nearbyStations: [.fixture(id: "station-1", name: "Plaza España")],
+                favoriteStations: [.fixture(id: "station-2", name: "Universidad")]
+            )
+        )
+
+        let model = WatchDashboardModel(graph: DashboardGraphStub(), surfaceStore: store)
+
+        XCTAssertEqual(model.nearbyStations.map(\.id), ["station-1"])
+        XCTAssertEqual(model.favoriteStations.map(\.id), ["station-2"])
+    }
+
+    func testRefreshFallsBackToCachedSnapshotOnError() async {
+        let store = WatchSurfaceSnapshotStoreStub(
+            snapshot: WatchSurfaceSnapshotBundle(
+                generatedAtEpoch: 1234,
+                nearbyStations: [.fixture(id: "station-1", name: "Plaza España")],
+                favoriteStations: [
+                    .fixture(id: "station-2", name: "Universidad", distance: 220),
+                    .fixture(id: "station-3", name: "Campus Río Ebro", distance: 140)
+                ]
+            )
+        )
+        let model = WatchDashboardModel(
+            graph: DashboardGraphStub(error: DashboardGraphStub.StubError.offline),
+            surfaceStore: store
+        )
+
+        await model.refresh(
+            favoriteIds: ["station-2", "station-3"],
+            homeStationId: "station-3"
+        )
+
+        XCTAssertEqual(model.nearbyStations.map(\.id), ["station-1"])
+        XCTAssertEqual(model.favoriteStations.map(\.id), ["station-3", "station-2"])
+        XCTAssertEqual(model.errorMessage, DashboardGraphStub.StubError.offline.localizedDescription)
     }
 }
 
@@ -99,5 +165,23 @@ private extension WatchStationSnapshot {
             slotsFree: slots,
             distanceMeters: distance
         )
+    }
+}
+
+private final class WatchSurfaceSnapshotStoreStub: WatchSurfaceSnapshotStoring {
+    private var snapshot: WatchSurfaceSnapshotBundle?
+    private(set) var writtenSnapshots: [WatchSurfaceSnapshotBundle] = []
+
+    init(snapshot: WatchSurfaceSnapshotBundle? = nil) {
+        self.snapshot = snapshot
+    }
+
+    func read() -> WatchSurfaceSnapshotBundle? {
+        snapshot
+    }
+
+    func write(_ snapshot: WatchSurfaceSnapshotBundle) {
+        self.snapshot = snapshot
+        writtenSnapshots.append(snapshot)
     }
 }

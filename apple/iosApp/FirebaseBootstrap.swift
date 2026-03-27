@@ -4,8 +4,8 @@ import FirebaseCrashlytics
 
 enum FirebaseBootstrap {
     static func configureIfAvailable() {
-        guard FirebaseApp.app() == nil else { return }
         guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else { return }
+        guard FirebaseApp.app() == nil else { return }
 
         FirebaseApp.configure()
         Crashlytics.crashlytics().setCustomValue("ios", forKey: "platform")

@@ -1,15 +1,6 @@
 import BiziSharedCore
 import Foundation
 
-struct WatchStationSnapshot: Identifiable, Hashable {
-    let id: String
-    let name: String
-    let address: String
-    let bikesAvailable: Int
-    let slotsFree: Int
-    let distanceMeters: Int
-}
-
 actor BiziWatchGraph {
     static let shared = BiziWatchGraph()
 
@@ -169,13 +160,13 @@ actor BiziWatchGraph {
         return snapshot(from: station)
     }
 
-    private func refreshData() async throws {
+    func refreshData(forceRefresh: Bool = false) async throws {
         if !hasBootstrapped {
             try await bootstrapSettings()
             try await bootstrapFavorites()
             hasBootstrapped = true
         }
-        try await refreshStations()
+        try await refreshStations(forceRefresh: forceRefresh)
     }
 
     private func bootstrapSettings() async throws {
@@ -202,21 +193,32 @@ actor BiziWatchGraph {
         }
     }
 
-    private func refreshStations() async throws {
+    private func refreshStations(forceRefresh: Bool = false) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.stationsRepository.loadIfNeeded { error in
+            let completion: (Error?) -> Void = { error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else {
                     continuation.resume()
                 }
             }
+            if forceRefresh {
+                graph.stationsRepository.forceRefresh { error in completion(error) }
+            } else {
+                graph.stationsRepository.loadIfNeeded { error in completion(error) }
+            }
         }
     }
 
     private func stationsState() -> StationsState {
         guard let state = graph.stationsRepository.state.value as? StationsState else {
-            return StationsState(stations: [], isLoading: false, errorMessage: nil, userLocation: nil)
+            return StationsState(
+                stations: [],
+                isLoading: false,
+                errorMessage: nil,
+                userLocation: nil,
+                lastUpdatedEpoch: nil
+            )
         }
         return state
     }
@@ -299,7 +301,7 @@ private extension Station {
     }
 }
 
-private extension WatchStationSnapshot {
+extension WatchStationSnapshot {
     func searchScore(
         normalizedQuery: String,
         numericQuery: String,

@@ -107,6 +107,8 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
 
 internal data class AndroidSurfaceWidgetSnapshot(
   val favoriteStation: AndroidSurfaceFavoriteStation? = null,
+  val homeStation: AndroidSurfaceSavedPlaceStation? = null,
+  val workStation: AndroidSurfaceSavedPlaceStation? = null,
   val nearbyStations: List<AndroidSurfaceNearbyStation> = emptyList(),
   val hasFavoriteStation: Boolean? = null,
   val isDataFresh: Boolean? = null,
@@ -132,6 +134,14 @@ internal data class AndroidSurfaceNearbyStation(
   val statusText: String,
 )
 
+internal data class AndroidSurfaceSavedPlaceStation(
+  val id: String,
+  val name: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
+  val statusText: String,
+)
+
 internal object AndroidSurfaceSnapshotReader {
   private const val SNAPSHOT_PATH = "bizi/surface_snapshot.json"
 
@@ -150,6 +160,8 @@ internal object AndroidSurfaceSnapshotReader {
   private fun parse(root: JSONObject): AndroidSurfaceWidgetSnapshot {
     val state = root.optJSONObject("state")
     val favorite = root.optJSONObject("favoriteStation")
+    val home = root.optJSONObject("homeStation")
+    val work = root.optJSONObject("workStation")
     val nearby = root.optJSONArray("nearbyStations")
     val nearbyStations = buildList {
       for (index in 0 until (nearby?.length() ?: 0)) {
@@ -168,6 +180,8 @@ internal object AndroidSurfaceSnapshotReader {
     }
     if (favorite == null) {
       return AndroidSurfaceWidgetSnapshot(
+        homeStation = parseSavedPlaceStation(home),
+        workStation = parseSavedPlaceStation(work),
         nearbyStations = nearbyStations,
         hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
         isDataFresh = state?.optBoolean("isDataFresh"),
@@ -184,11 +198,24 @@ internal object AndroidSurfaceSnapshotReader {
         statusText = favorite.optString("statusTextShort"),
         lastUpdatedEpoch = favorite.optLong("lastUpdatedEpoch").takeIf { it > 0L },
       ),
+      homeStation = parseSavedPlaceStation(home),
+      workStation = parseSavedPlaceStation(work),
       nearbyStations = nearbyStations,
       hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
       isDataFresh = state?.optBoolean("isDataFresh"),
       hasLocationPermission = state?.optBoolean("hasLocationPermission"),
       hasNotificationPermission = state?.optBoolean("hasNotificationPermission"),
+    )
+  }
+
+  private fun parseSavedPlaceStation(station: JSONObject?): AndroidSurfaceSavedPlaceStation? {
+    if (station == null) return null
+    return AndroidSurfaceSavedPlaceStation(
+      id = station.optString("id"),
+      name = station.optString("nameShort", station.optString("nameFull")),
+      bikesAvailable = station.optInt("bikesAvailable"),
+      docksAvailable = station.optInt("docksAvailable"),
+      statusText = station.optString("statusTextShort"),
     )
   }
 }

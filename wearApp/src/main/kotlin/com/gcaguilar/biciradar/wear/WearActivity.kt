@@ -1,6 +1,8 @@
 package com.gcaguilar.biciradar.wear
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,8 +53,13 @@ import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
+import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
+import com.gcaguilar.biciradar.core.remainingSeconds
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
 import com.gcaguilar.biciradar.core.surfaceStatusTextShort
 import kotlinx.coroutines.delay
@@ -74,15 +82,23 @@ class WearActivity : ComponentActivity() {
   }
 
   private var refreshNonce by mutableIntStateOf(0)
+  private var launchStationId by mutableStateOf<String?>(null)
+  private var launchStationNonce by mutableIntStateOf(0)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    handleLaunchIntent(intent)
     val platformBindings = AndroidPlatformBindings(
       context = applicationContext,
       appConfiguration = AppConfiguration(),
     )
     setContent {
-      WearRoot(platformBindings, refreshNonce)
+      WearRoot(
+        platformBindings = platformBindings,
+        refreshKey = refreshNonce,
+        launchStationId = launchStationId,
+        launchStationNonce = launchStationNonce,
+      )
     }
     locationPermissionLauncher.launch(
       arrayOf(
@@ -90,6 +106,26 @@ class WearActivity : ComponentActivity() {
         Manifest.permission.ACCESS_FINE_LOCATION,
       ),
     )
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    handleLaunchIntent(intent)
+  }
+
+  private fun handleLaunchIntent(intent: Intent?) {
+    launchStationId = if (intent?.action == ACTION_OPEN_STATION) {
+      intent.getStringExtra(EXTRA_OPEN_STATION_ID)
+    } else {
+      null
+    }
+    launchStationNonce += 1
+  }
+
+  companion object {
+    const val ACTION_OPEN_STATION = "com.gcaguilar.biciradar.wear.action.OPEN_STATION"
+    const val EXTRA_OPEN_STATION_ID = "com.gcaguilar.biciradar.wear.extra.OPEN_STATION_ID"
   }
 }
 
@@ -99,31 +135,55 @@ private enum class WearTab { Cercanas, Favoritas }
 private fun WearRoot(
   platformBindings: PlatformBindings,
   refreshKey: Int,
+  launchStationId: String?,
+  launchStationNonce: Int,
 ) {
+  val context = LocalContext.current.applicationContext
   val graph = remember(platformBindings) {
     SharedGraph.Companion.create(platformBindings)
   }
   val stationsRepository = remember(graph) { graph.stationsRepository }
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
+  val surfaceSnapshotRepository = remember(graph) { graph.surfaceSnapshotRepository }
+  val surfaceMonitoringRepository = remember(graph) { graph.surfaceMonitoringRepository }
+  val startStationMonitoring = remember(graph) { graph.startStationMonitoring }
+  val stopStationMonitoring = remember(graph) { graph.stopStationMonitoring }
   val stationsState by stationsRepository.state.collectAsState()
   val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
   val homeStationId by favoritesRepository.homeStationId.collectAsState()
   val workStationId by favoritesRepository.workStationId.collectAsState()
+  val surfaceBundle by surfaceSnapshotRepository.bundle.collectAsState()
   val scope = rememberCoroutineScope()
   var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var currentTab by rememberSaveable { mutableStateOf(WearTab.Cercanas) }
+  val activeMonitoring = surfaceBundle?.monitoringSession?.takeIf { it.isActive }
 
   LaunchedEffect(graph, refreshKey) {
-    favoritesRepository.bootstrap()
-    stationsRepository.loadIfNeeded()
+    favoritesRepository.syncFromPeer()
+    surfaceSnapshotRepository.bootstrap()
+    surfaceMonitoringRepository.bootstrap()
+    refreshWearSurface(
+      context = context,
+      stationsRepository = stationsRepository,
+      favoritesRepository = favoritesRepository,
+      surfaceSnapshotRepository = surfaceSnapshotRepository,
+    )
   }
 
   LaunchedEffect(graph) {
     while (true) {
       delay(30_000)
-      val ids = stationsRepository.state.value.stations.take(10).map { it.id }
-      stationsRepository.refreshAvailability(ids)
+      refreshWearSurface(
+        context = context,
+        stationsRepository = stationsRepository,
+        favoritesRepository = favoritesRepository,
+        surfaceSnapshotRepository = surfaceSnapshotRepository,
+      )
     }
+  }
+
+  LaunchedEffect(launchStationNonce) {
+    selectedStationId = launchStationId
   }
 
   MaterialTheme {
@@ -138,8 +198,29 @@ private fun WearRoot(
           station = selectedStation,
           isFavorite = selectedStation.id in favoriteIds,
           savedPlaceLabel = wearSavedPlaceLabel(selectedStation.id, homeStationId, workStationId),
+          currentMonitoring = activeMonitoring,
           onBack = { selectedStationId = null },
-          onToggleFavorite = { scope.launch { favoritesRepository.toggle(selectedStation.id) } },
+          onToggleFavorite = {
+            scope.launch {
+              favoritesRepository.toggle(selectedStation.id)
+              refreshWearSurface(
+                context = context,
+                stationsRepository = stationsRepository,
+                favoritesRepository = favoritesRepository,
+                surfaceSnapshotRepository = surfaceSnapshotRepository,
+              )
+            }
+          },
+          onToggleMonitoring = {
+            scope.launch {
+              if (activeMonitoring?.stationId == selectedStation.id) {
+                stopStationMonitoring.execute(clear = true)
+              } else {
+                startStationMonitoring.execute(stationId = selectedStation.id)
+              }
+              FavoriteStationTileService.requestUpdate(context)
+            }
+          },
           onRoute = { graph.routeLauncher.launch(selectedStation) },
         )
 
@@ -157,13 +238,36 @@ private fun WearRoot(
           favoriteIds = favoriteIds,
           homeStationId = homeStationId,
           workStationId = workStationId,
+          surfaceSnapshot = surfaceBundle,
+          activeMonitoring = activeMonitoring,
           currentTab = currentTab,
           onTabSelected = { currentTab = it },
           onStationSelected = { selectedStationId = it.id },
+          onOpenSurfaceStation = { stationId -> selectedStationId = stationId },
           onRefresh = {
             scope.launch {
-              val ids = stationsState.stations.take(10).map { it.id }
-              stationsRepository.refreshAvailability(ids)
+              refreshWearSurface(
+                context = context,
+                stationsRepository = stationsRepository,
+                favoritesRepository = favoritesRepository,
+                surfaceSnapshotRepository = surfaceSnapshotRepository,
+                forceRefresh = true,
+              )
+            }
+          },
+          onStartMonitoringFavorite = { stationId ->
+            scope.launch {
+              startStationMonitoring.execute(stationId = stationId)
+              FavoriteStationTileService.requestUpdate(context)
+            }
+          },
+          onRouteToSavedPlace = { stationId ->
+            stationsRepository.stationById(stationId)?.let(graph.routeLauncher::launch)
+          },
+          onStopMonitoring = {
+            scope.launch {
+              stopStationMonitoring.execute(clear = true)
+              FavoriteStationTileService.requestUpdate(context)
             }
           },
         )
@@ -178,10 +282,16 @@ private fun WearDashboard(
   favoriteIds: Set<String>,
   homeStationId: String?,
   workStationId: String?,
+  surfaceSnapshot: SurfaceSnapshotBundle?,
+  activeMonitoring: SurfaceMonitoringSession?,
   currentTab: WearTab,
   onTabSelected: (WearTab) -> Unit,
   onStationSelected: (Station) -> Unit,
+  onOpenSurfaceStation: (String) -> Unit,
   onRefresh: () -> Unit,
+  onStartMonitoringFavorite: (String) -> Unit,
+  onRouteToSavedPlace: (String) -> Unit,
+  onStopMonitoring: () -> Unit,
 ) {
   val nearbyStations = stations.take(8)
   val favoriteStations = sortWearFavoriteStations(
@@ -190,12 +300,90 @@ private fun WearDashboard(
     workStationId = workStationId,
   )
   val listState = rememberScalingLazyListState()
+  val favoriteSurface = wearFavoriteSurfaceState(surfaceSnapshot)
+  val monitoringSurface = activeMonitoring?.let { wearMonitoringSurfaceState(it, it.remainingSeconds()) }
+  val savedPlaceSurfaces = wearSavedPlaceSurfaceStates(
+    stations = stations,
+    homeStationId = homeStationId,
+    workStationId = workStationId,
+  )
 
   ScalingLazyColumn(
     modifier = Modifier.fillMaxSize(),
     state = listState,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
+    monitoringSurface?.let { monitoring ->
+      item {
+        WearMonitoringSurfaceCard(
+          state = monitoring,
+          onClick = { onOpenSurfaceStation(monitoring.stationId) },
+        )
+      }
+      monitoring.alternativeText?.let {
+        activeMonitoring.alternativeStationId?.let { alternativeStationId ->
+          item {
+            Button(
+              modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+              onClick = { onOpenSurfaceStation(alternativeStationId) },
+              colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+            ) {
+              Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+            }
+          }
+        }
+      }
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onStopMonitoring,
+          colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+        ) {
+          Text("Detener monitorización", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+        }
+      }
+    }
+
+    item {
+      WearFavoriteSurfaceCard(
+        state = favoriteSurface,
+        onClick = { favoriteSurface.stationId?.let(onOpenSurfaceStation) },
+      )
+    }
+
+    if (favoriteSurface.kind == WearFavoriteSurfaceKind.Favorite &&
+      activeMonitoring == null &&
+      favoriteSurface.stationId != null
+    ) {
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = { onStartMonitoringFavorite(favoriteSurface.stationId) },
+          colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
+        ) {
+          Text("Monitorizar favorita", style = MaterialTheme.typography.labelSmall, color = Color.White)
+        }
+      }
+    }
+
+    if (savedPlaceSurfaces.isNotEmpty()) {
+      item {
+        Text(
+          text = "Trayectos",
+          style = MaterialTheme.typography.labelSmall,
+          color = WearPrimary,
+          fontWeight = FontWeight.SemiBold,
+          modifier = Modifier.padding(top = 4.dp),
+        )
+      }
+      items(savedPlaceSurfaces, key = { it.stationId }) { savedPlace ->
+        WearSavedPlaceSurfaceCard(
+          state = savedPlace,
+          onClick = { onRouteToSavedPlace(savedPlace.stationId) },
+        )
+      }
+    }
+
     item {
       Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -368,15 +556,195 @@ private fun WearStatBadge(label: String, value: Int, positiveColor: Color) {
 }
 
 @Composable
+private fun WearFavoriteSurfaceCard(
+  state: WearFavoriteSurfaceState,
+  onClick: () -> Unit,
+) {
+  Card(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+    onClick = onClick,
+  ) {
+    Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+      Text(
+        text = "Favorita",
+        style = MaterialTheme.typography.labelSmall,
+        color = WearPrimary,
+        fontWeight = FontWeight.SemiBold,
+      )
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = state.title,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        color = WearOnSurface,
+      )
+      Spacer(Modifier.height(4.dp))
+      when (state.kind) {
+        WearFavoriteSurfaceKind.Favorite -> {
+          state.statusText?.let { statusText ->
+            Text(
+              text = statusText,
+              style = MaterialTheme.typography.labelSmall,
+              color = wearStatusColor(state.statusLevel ?: SurfaceStatusLevel.Unavailable),
+              fontWeight = FontWeight.SemiBold,
+            )
+          }
+          state.updatedText?.let { updatedText ->
+            Text(
+              text = updatedText,
+              style = MaterialTheme.typography.labelSmall,
+              color = WearNeutral,
+            )
+          }
+          Spacer(Modifier.height(4.dp))
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            state.bikesLabel?.let { WearChip(label = it, color = WearPrimary) }
+            state.docksLabel?.let { WearChip(label = it, color = WearSecondary) }
+          }
+        }
+
+        else -> {
+          Text(
+            text = state.supportingText,
+            style = MaterialTheme.typography.bodySmall,
+            color = WearNeutral,
+          )
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun WearMonitoringSurfaceCard(
+  state: WearMonitoringSurfaceState,
+  onClick: () -> Unit,
+) {
+  Card(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+    onClick = onClick,
+  ) {
+    Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+      Text(
+        text = "Monitorización",
+        style = MaterialTheme.typography.labelSmall,
+        color = WearPrimary,
+        fontWeight = FontWeight.SemiBold,
+      )
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = state.title,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        color = WearOnSurface,
+      )
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = state.statusText,
+        style = MaterialTheme.typography.labelSmall,
+        color = wearStatusColor(state.statusLevel),
+        fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+        text = state.countdownText,
+        style = MaterialTheme.typography.labelSmall,
+        color = WearNeutral,
+      )
+      Spacer(Modifier.height(4.dp))
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        WearChip(label = state.bikesLabel, color = WearPrimary)
+        WearChip(label = state.docksLabel, color = WearSecondary)
+      }
+      state.alternativeText?.let { alternativeText ->
+        Spacer(Modifier.height(4.dp))
+        Text(
+          text = alternativeText,
+          style = MaterialTheme.typography.labelSmall,
+          color = WearNeutral,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun WearSavedPlaceSurfaceCard(
+  state: WearSavedPlaceSurfaceState,
+  onClick: () -> Unit,
+) {
+  Card(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+    onClick = onClick,
+  ) {
+    Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        WearChip(label = state.label, color = WearNeutral)
+        Text(
+          text = "Ruta rápida",
+          style = MaterialTheme.typography.labelSmall,
+          color = WearPrimary,
+          fontWeight = FontWeight.SemiBold,
+        )
+      }
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = state.title,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        color = WearOnSurface,
+      )
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = state.statusText,
+        style = MaterialTheme.typography.labelSmall,
+        color = wearStatusColor(state.statusLevel),
+        fontWeight = FontWeight.SemiBold,
+      )
+      Spacer(Modifier.height(4.dp))
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        WearChip(label = state.bikesLabel, color = WearPrimary)
+        WearChip(label = state.docksLabel, color = WearSecondary)
+      }
+    }
+  }
+}
+
+@Composable
 private fun WearStationDetail(
   station: Station,
   isFavorite: Boolean,
   savedPlaceLabel: String?,
+  currentMonitoring: SurfaceMonitoringSession?,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
+  onToggleMonitoring: () -> Unit,
   onRoute: () -> Unit,
 ) {
   val listState = rememberScalingLazyListState()
+  val isMonitoringThisStation = currentMonitoring?.stationId == station.id && currentMonitoring.isActive
+  val monitoringActionLabel = when {
+    isMonitoringThisStation -> "Detener monitorización"
+    currentMonitoring?.isActive == true -> "Monitorizar aquí"
+    else -> "Monitorizar huecos"
+  }
   ScalingLazyColumn(
     modifier = Modifier.fillMaxSize(),
     state = listState,
@@ -453,6 +821,21 @@ private fun WearStationDetail(
     item {
       Button(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        onClick = onToggleMonitoring,
+        colors = ButtonDefaults.buttonColors(
+          containerColor = if (isMonitoringThisStation) WearSurface else WearPrimary,
+        ),
+      ) {
+        Text(
+          text = monitoringActionLabel,
+          style = MaterialTheme.typography.labelSmall,
+          color = if (isMonitoringThisStation) WearNeutral else Color.White,
+        )
+      }
+    }
+    item {
+      Button(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         onClick = onToggleFavorite,
         colors = ButtonDefaults.buttonColors(
           containerColor = if (isFavorite) WearSurface else WearSecondary.copy(alpha = 0.25f),
@@ -509,4 +892,25 @@ private fun WearErrorScreen(
       Text("Reintentar", color = Color.White)
     }
   }
+}
+
+private suspend fun refreshWearSurface(
+  context: Context,
+  stationsRepository: StationsRepository,
+  favoritesRepository: com.gcaguilar.biciradar.core.FavoritesRepository,
+  surfaceSnapshotRepository: SurfaceSnapshotRepository,
+  forceRefresh: Boolean = false,
+) {
+  favoritesRepository.syncFromPeer()
+  if (forceRefresh) {
+    stationsRepository.forceRefresh()
+  } else {
+    stationsRepository.loadIfNeeded()
+    val stationIds = stationsRepository.state.value.stations.take(10).map { it.id }
+    if (stationIds.isNotEmpty()) {
+      stationsRepository.refreshAvailability(stationIds)
+    }
+  }
+  surfaceSnapshotRepository.refreshSnapshot()
+  FavoriteStationTileService.requestUpdate(context)
 }

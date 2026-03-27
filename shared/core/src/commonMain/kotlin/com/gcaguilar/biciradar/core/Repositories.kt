@@ -35,6 +35,7 @@ interface FavoritesRepository {
   val homeStationId: StateFlow<String?>
   val workStationId: StateFlow<String?>
   suspend fun bootstrap()
+  suspend fun syncFromPeer() = Unit
   suspend fun toggle(stationId: String)
   suspend fun setHomeStationId(stationId: String?)
   suspend fun setWorkStationId(stationId: String?)
@@ -81,21 +82,26 @@ class StationsRepositoryImpl(
   }
 
   override suspend fun forceRefresh() {
-    loadMutex.withLock { loaded = false }
-    loadIfNeeded()
-  }
-
-  override suspend fun loadIfNeeded() {
-    loadMutex.withLock {
-      if (loaded) return
-      mutableState.update { it.copy(isLoading = true, errorMessage = null) }
-    }
-
     val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
       runCatching { locationProvider.currentLocation() }.getOrNull()
     }
     val origin = currentLocation ?: defaultLocation()
     val city = settingsRepository.currentSelectedCity()
+    mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+    refreshStations(origin = origin, currentLocation = currentLocation, city = city)
+  }
+
+  override suspend fun loadIfNeeded() {
+    val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
+      runCatching { locationProvider.currentLocation() }.getOrNull()
+    }
+    val origin = currentLocation ?: defaultLocation()
+    val city = settingsRepository.currentSelectedCity()
+
+    loadMutex.withLock {
+      if (loaded) return
+      mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+    }
 
     // Clear cache if city changed
     if (database != null && lastLoadedCityId != null && lastLoadedCityId != city.id) {
@@ -107,7 +113,7 @@ class StationsRepositoryImpl(
       val cachedStations = loadFromCache(city.id)
       val isCacheValid = cachedStations != null && isCacheFresh(city.id)
 
-      if (isCacheValid && cachedStations!!.isNotEmpty()) {
+      if (isCacheValid && cachedStations.isNotEmpty()) {
         // Load from cache (transparent to user)
         val stations = cachedStations.map { it.toDomain(origin) }
          mutableState.value = StationsState(
@@ -124,6 +130,14 @@ class StationsRepositoryImpl(
       }
     }
 
+    refreshStations(origin = origin, currentLocation = currentLocation, city = city)
+  }
+
+  private suspend fun refreshStations(
+    origin: GeoPoint,
+    currentLocation: GeoPoint?,
+    city: City,
+  ) {
     // Fetch from API and cache
     runCatching { biziApi.fetchStations(origin) }
       .onSuccess { stations ->
@@ -142,7 +156,7 @@ class StationsRepositoryImpl(
         }
       }
       .onFailure { error ->
-        // Try to use stale cache if available
+        // Try to use stale cache if available.
         if (database != null) {
           val staleStations = loadFromCache(city.id)
           if (staleStations != null && staleStations.isNotEmpty()) {
@@ -306,28 +320,16 @@ class FavoritesRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    val snapshotPath = favoritesPath()
-    val localSnapshot = if (fileSystem.exists(snapshotPath)) {
-      json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
-    } else {
-      FavoritesSyncSnapshot()
-    }
-    val remoteSnapshot = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.latestFavorites()
-    } ?: FavoritesSyncSnapshot()
-    val mergedSnapshot = FavoritesSyncSnapshot(
-      favoriteIds = localSnapshot.favoriteIds + remoteSnapshot.favoriteIds,
-      homeStationId = localSnapshot.homeStationId ?: remoteSnapshot.homeStationId,
-      workStationId = localSnapshot.workStationId ?: remoteSnapshot.workStationId,
-    ).deduplicated()
-    applySnapshot(mergedSnapshot)
-    if (mergedSnapshot.hasData()) {
-      persist(mergedSnapshot)
-      withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-        watchSyncBridge.pushFavorites(mergedSnapshot)
-      }
-    }
+    syncMergedSnapshot(readLocalSnapshot(), pushIfChanged = true)
     bootstrapped = true
+  }
+
+  override suspend fun syncFromPeer() {
+    if (!bootstrapped) {
+      bootstrap()
+      return
+    }
+    syncMergedSnapshot(currentSnapshot(), pushIfChanged = false)
   }
 
   override suspend fun toggle(stationId: String) {
@@ -383,11 +385,47 @@ class FavoritesRepositoryImpl(
 
   private fun favoritesPath() = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
 
+  private fun readLocalSnapshot(): FavoritesSyncSnapshot {
+    val snapshotPath = favoritesPath()
+    return if (fileSystem.exists(snapshotPath)) {
+      json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
+    } else {
+      FavoritesSyncSnapshot()
+    }
+  }
+
   private fun currentSnapshot(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
     favoriteIds = mutableFavoriteIds.value,
     homeStationId = mutableHomeStationId.value,
     workStationId = mutableWorkStationId.value,
   )
+
+  private suspend fun syncMergedSnapshot(
+    localSnapshot: FavoritesSyncSnapshot,
+    pushIfChanged: Boolean,
+  ) {
+    val remoteSnapshot = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.latestFavorites()
+    } ?: FavoritesSyncSnapshot()
+    val mergedSnapshot = FavoritesSyncSnapshot(
+      favoriteIds = localSnapshot.favoriteIds + remoteSnapshot.favoriteIds,
+      homeStationId = localSnapshot.homeStationId ?: remoteSnapshot.homeStationId,
+      workStationId = localSnapshot.workStationId ?: remoteSnapshot.workStationId,
+    ).deduplicated()
+    val existingSnapshot = currentSnapshot()
+    val hasChanged = mergedSnapshot != existingSnapshot
+    if (hasChanged) {
+      applySnapshot(mergedSnapshot)
+      persist(mergedSnapshot)
+    } else if (!bootstrapped && mergedSnapshot.hasData()) {
+      persist(mergedSnapshot)
+    }
+    if (mergedSnapshot.hasData() && (hasChanged || !bootstrapped || pushIfChanged)) {
+      withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+        watchSyncBridge.pushFavorites(mergedSnapshot)
+      }
+    }
+  }
 
   private fun applySnapshot(snapshot: FavoritesSyncSnapshot) {
     mutableFavoriteIds.value = snapshot.favoriteIds

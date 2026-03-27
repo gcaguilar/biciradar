@@ -18,6 +18,12 @@
     <string name="widget_nearby_title">Cerca de ti</string>
     <string name="widget_nearby_description">Estado rápido de las estaciones cercanas</string>
     <string name="widget_quick_actions_description">Accesos rápidos a mapa, favoritas y monitorización</string>
+    <string name="widget_commute_title">Casa y trabajo</string>
+    <string name="widget_commute_description">Acceso rápido a tus estaciones de casa y trabajo</string>
+    <string name="widget_saved_place_home">Casa</string>
+    <string name="widget_saved_place_work">Trabajo</string>
+    <string name="widget_saved_place_missing_title">Sin configurar</string>
+    <string name="widget_configure_saved_places">Elige tus estaciones</string>
     <string name="widget_action_monitor">Monitorizar</string>
     <string name="widget_action_configure">Configurar</string>
     <string name="widget_action_notifications">Permiso</string>

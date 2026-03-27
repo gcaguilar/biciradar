@@ -87,6 +87,8 @@ data class SurfaceState(
 data class SurfaceSnapshotBundle(
   val generatedAtEpoch: Long,
   val favoriteStation: SurfaceStationSnapshot? = null,
+  val homeStation: SurfaceStationSnapshot? = null,
+  val workStation: SurfaceStationSnapshot? = null,
   val nearbyStations: List<SurfaceStationSnapshot> = emptyList(),
   val monitoringSession: SurfaceMonitoringSession? = null,
   val state: SurfaceState,

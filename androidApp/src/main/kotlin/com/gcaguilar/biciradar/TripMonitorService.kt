@@ -62,6 +62,7 @@ class TripMonitorService : Service() {
           FavoriteStationWidgetProvider.updateAll(applicationContext)
           NearbyStationsWidgetProvider.updateAll(applicationContext)
           QuickActionsWidgetProvider.updateAll(applicationContext)
+          CommuteWidgetProvider.updateAll(applicationContext)
           stopSelf()
           return@onEach
         }
@@ -72,6 +73,7 @@ class TripMonitorService : Service() {
         FavoriteStationWidgetProvider.updateAll(applicationContext)
         NearbyStationsWidgetProvider.updateAll(applicationContext)
         QuickActionsWidgetProvider.updateAll(applicationContext)
+        CommuteWidgetProvider.updateAll(applicationContext)
       }
       .launchIn(serviceScope)
   }
@@ -84,7 +86,7 @@ class TripMonitorService : Service() {
       ?: appPendingIntent(Uri.parse("biciradar://favorites"))
     val builder = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle(session?.stationName ?: "BiciRadar")
+      .setContentTitle(session?.let(::monitoringNotificationTitle) ?: "BiciRadar")
       .setContentText(text)
       .setContentIntent(openIntent)
       .setOngoing(true)
@@ -114,6 +116,9 @@ class TripMonitorService : Service() {
         "Alternativa",
         stationPendingIntent(stationId),
       )
+    }
+    if (text.isNotBlank()) {
+      builder.setStyle(NotificationCompat.BigTextStyle().bigText(text))
     }
     return builder.build()
   }

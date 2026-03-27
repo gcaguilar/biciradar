@@ -69,6 +69,8 @@ class GetStationStatus(
     surfaceSnapshotRepository.bootstrap()
     val cachedBundle = surfaceSnapshotRepository.currentBundle()
     cachedBundle?.favoriteStation?.takeIf { it.id == stationId }?.let { return it }
+    cachedBundle?.homeStation?.takeIf { it.id == stationId }?.let { return it }
+    cachedBundle?.workStation?.takeIf { it.id == stationId }?.let { return it }
     cachedBundle?.nearbyStations?.firstOrNull { it.id == stationId }?.let { return it }
 
     stationsRepository.loadIfNeeded()

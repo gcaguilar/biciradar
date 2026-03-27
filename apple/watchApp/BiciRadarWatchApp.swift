@@ -33,7 +33,7 @@ struct BiciRadarWatchApp: App {
     init() {
         WatchFavoritesSyncBridge.shared.activate()
         Task {
-            try? await WatchBiziAppShortcuts.updateAppShortcutParameters()
+            WatchBiziAppShortcuts.updateAppShortcutParameters()
         }
     }
 
@@ -49,6 +49,7 @@ struct BiciRadarWatchApp: App {
 struct WatchDashboardView: View {
     @StateObject private var model = WatchDashboardModel()
     @ObservedObject private var syncBridge = WatchFavoritesSyncBridge.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack {
@@ -94,6 +95,12 @@ struct WatchDashboardView: View {
                     }
                 }
 
+                if let monitoringSession = syncBridge.monitoringSession, monitoringSession.isActive {
+                    Section("Monitorización") {
+                        WatchMonitoringCard(session: monitoringSession)
+                    }
+                }
+
                 Section("Cerca de ti") {
                     if model.nearbyStations.isEmpty, model.isLoading {
                         HStack {
@@ -134,9 +141,7 @@ struct WatchDashboardView: View {
 
                 Section {
                     Button {
-                        Task {
-                            await model.refresh(favoriteIds: syncBridge.favoriteIds)
-                        }
+                        refreshDashboard(forceRefresh: true)
                     } label: {
                         Label("Actualizar", systemImage: "arrow.clockwise")
                             .foregroundStyle(Color.biziDarkPrimary)
@@ -147,13 +152,58 @@ struct WatchDashboardView: View {
             .animation(.spring(response: 0.36, dampingFraction: 0.82), value: model.nearbyStations.count)
             .animation(.spring(response: 0.36, dampingFraction: 0.82), value: model.favoriteStations.count)
             .task {
-                await model.refresh(favoriteIds: syncBridge.favoriteIds)
+                await model.refresh(
+                    favoriteIds: syncBridge.favoriteIds,
+                    homeStationId: syncBridge.homeStationId,
+                    workStationId: syncBridge.workStationId,
+                    forceRefresh: true
+                )
+            }
+            .onChange(of: scenePhase) { phase in
+                guard phase == .active else { return }
+                refreshDashboard(forceRefresh: true)
             }
             .onChange(of: syncBridge.favoriteIds) { favoriteIds in
                 Task {
-                    await model.refresh(favoriteIds: favoriteIds)
+                    await model.refresh(
+                        favoriteIds: favoriteIds,
+                        homeStationId: syncBridge.homeStationId,
+                        workStationId: syncBridge.workStationId,
+                        forceRefresh: true
+                    )
                 }
             }
+            .onChange(of: syncBridge.homeStationId) { _ in
+                Task {
+                    await model.refresh(
+                        favoriteIds: syncBridge.favoriteIds,
+                        homeStationId: syncBridge.homeStationId,
+                        workStationId: syncBridge.workStationId,
+                        forceRefresh: true
+                    )
+                }
+            }
+            .onChange(of: syncBridge.workStationId) { _ in
+                Task {
+                    await model.refresh(
+                        favoriteIds: syncBridge.favoriteIds,
+                        homeStationId: syncBridge.homeStationId,
+                        workStationId: syncBridge.workStationId,
+                        forceRefresh: true
+                    )
+                }
+            }
+        }
+    }
+
+    private func refreshDashboard(forceRefresh: Bool = false) {
+        Task {
+            await model.refresh(
+                favoriteIds: syncBridge.favoriteIds,
+                homeStationId: syncBridge.homeStationId,
+                workStationId: syncBridge.workStationId,
+                forceRefresh: forceRefresh
+            )
         }
     }
 }
@@ -172,6 +222,9 @@ private struct StationRow: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            Text(station.statusText)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(watchStatusColor(station.statusLevel))
             HStack(spacing: 5) {
                 WatchInfoBadge(
                     label: "m",
@@ -231,6 +284,9 @@ private struct WatchStationDetailView: View {
                         tint: station.slotsFree > 0 ? .biziDarkSecondary : .biziError
                     )
                 }
+                Text(station.statusText)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(watchStatusColor(station.statusLevel))
 
                 Button {
                     Task {
@@ -272,6 +328,105 @@ private struct WatchStationDetailView: View {
             .animation(.spring(response: 0.32, dampingFraction: 0.84), value: routeStatus)
         }
         .navigationTitle("Detalle")
+    }
+}
+
+private func watchStatusColor(_ statusLevel: WatchStationStatusLevel) -> Color {
+    switch statusLevel {
+    case .good:
+        return .biziDarkSecondary
+    case .low:
+        return .biziWarning
+    case .empty, .full:
+        return .biziError
+    }
+}
+
+private struct WatchMonitoringCard: View {
+    let session: WatchConnectivityMonitoringSession
+    @State private var routeStatus: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(session.stationName)
+                .font(.headline)
+                .lineLimit(2)
+            Text(session.statusText)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(monitoringColor(session.color))
+            HStack(spacing: 5) {
+                WatchInfoBadge(
+                    label: "B",
+                    value: "\(session.bikesAvailable)",
+                    tint: session.bikesAvailable > 0 ? .biziDarkPrimary : .biziError
+                )
+                WatchInfoBadge(
+                    label: "H",
+                    value: "\(session.docksAvailable)",
+                    tint: session.docksAvailable > 0 ? .biziDarkSecondary : .biziError
+                )
+                WatchInfoBadge(
+                    label: "T",
+                    value: session.remainingMinutesText,
+                    tint: .biziNeutral
+                )
+            }
+            if let alternativeStationName = session.alternativeStationName, !alternativeStationName.isEmpty {
+                Text(alternativeText(session))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                if let alternativeStationId = session.alternativeStationId {
+                    Button {
+                        let requested = WatchFavoritesSyncBridge.shared.requestRoute(to: alternativeStationId)
+                        routeStatus = requested
+                            ? "He enviado la alternativa al iPhone."
+                            : "No he podido contactar con el iPhone."
+                    } label: {
+                        Label("Ruta alternativa", systemImage: "arrow.triangle.turn.up.right.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(Color.biziDarkSecondary)
+                }
+            }
+            Button {
+                let requested = WatchFavoritesSyncBridge.shared.requestRoute(to: session.stationId)
+                routeStatus = requested
+                    ? "He enviado la ruta al iPhone."
+                    : "No he podido contactar con el iPhone."
+            } label: {
+                Label("Ruta en iPhone", systemImage: "iphone")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.biziDarkPrimary)
+
+            if let routeStatus {
+                StatusMessage(text: routeStatus)
+            }
+        }
+        .padding(.vertical, 2)
+        .animation(.spring(response: 0.32, dampingFraction: 0.84), value: session.statusText)
+        .animation(.spring(response: 0.32, dampingFraction: 0.84), value: routeStatus)
+    }
+}
+
+private func alternativeText(_ session: WatchConnectivityMonitoringSession) -> String {
+    guard let alternativeStationName = session.alternativeStationName, !alternativeStationName.isEmpty else {
+        return "Alternativa no disponible"
+    }
+    if let alternativeDistanceMeters = session.alternativeDistanceMeters {
+        return "Alternativa: \(alternativeStationName) (\(alternativeDistanceMeters) m)"
+    }
+    return "Alternativa: \(alternativeStationName)"
+}
+
+private func monitoringColor(_ accent: WatchMonitoringAccent) -> Color {
+    switch accent {
+    case .good:
+        return .biziDarkSecondary
+    case .warning:
+        return .biziWarning
+    case .error:
+        return .biziError
     }
 }
 

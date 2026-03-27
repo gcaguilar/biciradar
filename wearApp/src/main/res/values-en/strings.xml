@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Bici Radar Wear</string>
+    <string name="tile_favorite_label">Favorite</string>
+    <string name="tile_favorite_description">Favorite station summary</string>
 </resources>

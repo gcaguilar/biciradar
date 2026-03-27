@@ -65,6 +65,52 @@ class AndroidSurfaceRenderingTest {
   }
 
   @Test
+  fun `saved place meta includes counts and status`() {
+    val station = AndroidSurfaceSavedPlaceStation(
+      id = "station-1",
+      name = "Plaza Espana",
+      bikesAvailable = 5,
+      docksAvailable = 7,
+      statusText = "Disponible",
+    )
+
+    assertEquals("5 bicis · 7 huecos · Disponible", savedPlaceMeta(station))
+  }
+
+  @Test
+  fun `commute place state falls back to refresh or setup copy when place is missing`() {
+    val stale = commutePlaceState(
+      label = "Casa",
+      station = null,
+      snapshot = AndroidSurfaceWidgetSnapshot(isDataFresh = false),
+      configureSavedPlaces = "Elige tus estaciones",
+      openAppToRefresh = "Abre la app para actualizar",
+      missingTitle = "Sin configurar",
+    )
+    val configured = commutePlaceState(
+      label = "Trabajo",
+      station = AndroidSurfaceSavedPlaceStation(
+        id = "station-9",
+        name = "Delicias",
+        bikesAvailable = 4,
+        docksAvailable = 8,
+        statusText = "Disponible",
+      ),
+      snapshot = AndroidSurfaceWidgetSnapshot(),
+      configureSavedPlaces = "Elige tus estaciones",
+      openAppToRefresh = "Abre la app para actualizar",
+      missingTitle = "Sin configurar",
+    )
+
+    assertEquals("Sin configurar", stale.title)
+    assertEquals("Abre la app para actualizar", stale.meta)
+    assertEquals(null, stale.stationId)
+    assertEquals("Delicias", configured.title)
+    assertEquals("4 bicis · 8 huecos · Disponible", configured.meta)
+    assertEquals("station-9", configured.stationId)
+  }
+
+  @Test
   fun `quick actions fall back to favorites when no favorite station exists`() {
     val configured = quickActionsState(
       AndroidSurfaceWidgetSnapshot(
@@ -90,28 +136,79 @@ class AndroidSurfaceRenderingTest {
   }
 
   @Test
-  fun `monitoring notification body appends alternative when present`() {
-    val session = SurfaceMonitoringSession(
-      stationId = "station-1",
-      stationName = "Plaza Espana",
-      cityId = "zaragoza",
-      kind = SurfaceMonitoringKind.Docks,
+  fun `monitoring notification title reflects monitoring state`() {
+    assertEquals(
+      "Plaza Espana",
+      monitoringNotificationTitle(monitoringSession(status = SurfaceMonitoringStatus.Monitoring)),
+    )
+    assertEquals(
+      "Plaza Espana sin huecos",
+      monitoringNotificationTitle(monitoringSession(status = SurfaceMonitoringStatus.ChangedToFull)),
+    )
+    assertEquals(
+      "Alternativa para Plaza Espana",
+      monitoringNotificationTitle(monitoringSession(status = SurfaceMonitoringStatus.AlternativeAvailable)),
+    )
+    assertEquals(
+      "Monitorizacion finalizada",
+      monitoringNotificationTitle(monitoringSession(status = SurfaceMonitoringStatus.Expired)),
+    )
+  }
+
+  @Test
+  fun `monitoring notification body includes state countdown and alternative distance`() {
+    val session = monitoringSession(
       status = SurfaceMonitoringStatus.AlternativeAvailable,
-      bikesAvailable = 3,
-      docksAvailable = 0,
-      statusLevel = SurfaceStatusLevel.Full,
-      startedAtEpoch = 1L,
-      expiresAtEpoch = 60_000L,
-      lastUpdatedEpoch = 1L,
-      isActive = true,
       alternativeStationId = "station-2",
       alternativeStationName = "Paraninfo",
       alternativeDistanceMeters = 120,
     )
 
     assertEquals(
-      "3 bicis · 0 huecos · 1m 5s · Alt: Paraninfo",
+      "Alternativa sugerida · 3 bicis · 0 huecos · 1m 5s · Alt: Paraninfo (120 m)",
       monitoringNotificationBody(session, remainingSeconds = 65),
     )
   }
+
+  @Test
+  fun `monitoring notification body reports final states explicitly`() {
+    assertEquals(
+      "Plaza Espana · Finalizada por el usuario",
+      monitoringNotificationBody(
+        monitoringSession(status = SurfaceMonitoringStatus.Ended, isActive = false),
+        remainingSeconds = 0,
+      ),
+    )
+    assertEquals(
+      "Plaza Espana · Tiempo agotado",
+      monitoringNotificationBody(
+        monitoringSession(status = SurfaceMonitoringStatus.Expired, isActive = false),
+        remainingSeconds = 0,
+      ),
+    )
+  }
+
+  private fun monitoringSession(
+    status: SurfaceMonitoringStatus,
+    isActive: Boolean = true,
+    alternativeStationId: String? = null,
+    alternativeStationName: String? = null,
+    alternativeDistanceMeters: Int? = null,
+  ) = SurfaceMonitoringSession(
+    stationId = "station-1",
+    stationName = "Plaza Espana",
+    cityId = "zaragoza",
+    kind = SurfaceMonitoringKind.Docks,
+    status = status,
+    bikesAvailable = 3,
+    docksAvailable = 0,
+    statusLevel = SurfaceStatusLevel.Full,
+    startedAtEpoch = 1L,
+    expiresAtEpoch = 60_000L,
+    lastUpdatedEpoch = 1L,
+    isActive = isActive,
+    alternativeStationId = alternativeStationId,
+    alternativeStationName = alternativeStationName,
+    alternativeDistanceMeters = alternativeDistanceMeters,
+  )
 }

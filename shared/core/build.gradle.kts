@@ -26,13 +26,16 @@ kotlin {
 
   applyDefaultHierarchyTemplate()
 
-  listOf(
-    iosArm64(),
-    iosSimulatorArm64(),
-    watchosArm64(),
-    watchosDeviceArm64(),
-    watchosSimulatorArm64(),
-  ).forEach { target ->
+  listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+    target.binaries.framework {
+      baseName = "BiziSharedCore"
+      isStatic = true
+      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=16.0"
+      linkerOpts("-lsqlite3")
+    }
+  }
+
+  listOf(watchosArm64(), watchosDeviceArm64(), watchosSimulatorArm64()).forEach { target ->
     target.binaries.framework {
       baseName = "BiziSharedCore"
       isStatic = true

@@ -9,4 +9,22 @@
     <string name="shortcut_station_bikes">Bikes at station</string>
     <string name="shortcut_station_slots">Slots at station</string>
     <string name="shortcut_show_station">Find station</string>
+    <string name="widget_favorite_description">Quick status for your favorite station</string>
+    <string name="widget_favorite_empty_title">Bici Radar</string>
+    <string name="widget_configure_favorite">Set a favorite station</string>
+    <string name="widget_no_location_permission">Location permission required</string>
+    <string name="widget_data_unavailable">Data unavailable</string>
+    <string name="widget_nearby_title">Near you</string>
+    <string name="widget_nearby_description">Quick status for nearby stations</string>
+    <string name="widget_quick_actions_description">Quick access to map, favorites, and monitoring</string>
+    <string name="widget_commute_title">Home and work</string>
+    <string name="widget_commute_description">Quick access to your home and work stations</string>
+    <string name="widget_saved_place_home">Home</string>
+    <string name="widget_saved_place_work">Work</string>
+    <string name="widget_saved_place_missing_title">Not set</string>
+    <string name="widget_configure_saved_places">Choose your stations</string>
+    <string name="widget_open_app_to_refresh">Open the app to refresh</string>
+    <string name="widget_action_monitor">Monitor</string>
+    <string name="widget_action_configure">Configure</string>
+    <string name="widget_action_notifications">Permission</string>
 </resources>

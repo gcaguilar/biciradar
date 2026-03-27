@@ -39,10 +39,15 @@ class FavoritesViewModel(
         favoritesRepository.workStationId,
       ) { stationsState, favoriteIds, homeId, workId ->
         val allStations = stationsState.stations
-        val favoriteStations = allStations.filter { it.id in favoriteIds }
+        val favoriteStations = visibleFavoriteStations(
+          stations = allStations,
+          favoriteIds = favoriteIds,
+          homeStationId = homeId,
+          workStationId = workId,
+        )
         val homeStation = allStations.find { it.id == homeId }
         val workStation = allStations.find { it.id == workId }
-        
+
         _uiState.value.copy(
           allStations = allStations,
           favoriteStations = favoriteStations,

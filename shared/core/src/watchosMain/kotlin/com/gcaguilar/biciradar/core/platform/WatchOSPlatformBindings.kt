@@ -168,6 +168,7 @@ private object WatchOSFavoritesCache {
 }
 
 private class WatchOSLocalNotifier : LocalNotifier {
+  override suspend fun hasPermission(): Boolean = false
   override suspend fun requestPermission(): Boolean = false
   override suspend fun notify(title: String, body: String) = Unit
 }

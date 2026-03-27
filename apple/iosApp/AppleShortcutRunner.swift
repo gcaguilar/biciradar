@@ -5,6 +5,8 @@ protocol AppleGraphClient {
     func favoriteStations() async throws -> [BiziStationSnapshot]
     func station(matching query: String?) async throws -> BiziStationSnapshot?
     func station(stationId: String) async throws -> BiziStationSnapshot?
+    func currentSelectedCity() async throws -> City
+    func setSelectedCity(_ city: City) async throws
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution
 }
 
@@ -103,6 +105,19 @@ struct AppleShortcutRunner {
             return "Preparando la monitorización de tu estación favorita en Bici Radar."
         } catch {
             return "No he podido preparar esa monitorización ahora mismo."
+        }
+    }
+
+    func changeCityDialog(cityId: String) async -> String {
+        guard let city = City.companion.fromId(id: cityId) else {
+            return "No he encontrado esa ciudad en Bici Radar."
+        }
+        do {
+            try await graph.setSelectedCity(city)
+            await saveLaunchRequest(MobileLaunchRequestSelectCity(cityId: city.id))
+            return "Cambiando a \(city.displayName) en Bici Radar."
+        } catch {
+            return "No he podido cambiar de ciudad ahora mismo."
         }
     }
 

@@ -1,5 +1,6 @@
 import BackgroundTasks
 import Foundation
+import WidgetKit
 
 #if !os(macOS)
 
@@ -69,11 +70,12 @@ enum BiziBackgroundTaskHandler {
     private static func performRefresh(task: BGAppRefreshTask) async {
         do {
             // 1. Refresh station data via the shared graph.
-            try await BiziAppleGraph.shared.refreshData()
+            try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
 
             // 2. Fetch favorite stations with their current availability.
             let favorites = try await BiziAppleGraph.shared.favoriteStations()
             guard !favorites.isEmpty else {
+                WidgetCenter.shared.reloadAllTimelines()
                 task.setTaskCompleted(success: true)
                 return
             }
@@ -89,6 +91,8 @@ enum BiziBackgroundTaskHandler {
             if !newlyAvailable.isEmpty {
                 await BiziNotificationService.shared.notifyFavoriteStationsAvailable(newlyAvailable)
             }
+
+            WidgetCenter.shared.reloadAllTimelines()
 
             task.setTaskCompleted(success: true)
         } catch {

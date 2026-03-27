@@ -68,6 +68,36 @@ class SurfaceUseCasesTest {
   }
 
   @Test
+  fun `get station status uses saved place snapshots before loading repository`() = runTest {
+    val stationsRepository = FakeUseCaseStationsRepository(
+      StationsState(
+        stations = listOf(station(id = "station-1")),
+        lastUpdatedEpoch = 5_000L,
+      ),
+    )
+    val cachedSnapshot = station(id = "work", distanceMeters = 55).toSurfaceSnapshot(
+      cityId = City.ZARAGOZA.id,
+      lastUpdatedEpoch = 10_000L,
+    )
+    val useCase = GetStationStatus(
+      settingsRepository = FakeUseCaseSettingsRepository(),
+      stationsRepository = stationsRepository,
+      surfaceSnapshotRepository = FakeSurfaceSnapshotRepository(
+        bundle = SurfaceSnapshotBundle(
+          generatedAtEpoch = 11_000L,
+          workStation = cachedSnapshot,
+          state = defaultSurfaceState(),
+        ),
+      ),
+    )
+
+    val snapshot = useCase.execute("work")
+
+    assertEquals("work", snapshot?.id)
+    assertEquals(0, stationsRepository.loadIfNeededCalls)
+  }
+
+  @Test
   fun `suggested alternative prefers higher availability`() = runTest {
     val useCase = GetSuggestedAlternativeStation(
       settingsRepository = FakeUseCaseSettingsRepository(searchRadiusMetersValue = 500),

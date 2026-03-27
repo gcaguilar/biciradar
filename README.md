@@ -17,7 +17,7 @@ Greenfield scaffold for `com.gcaguilar.biciradar` with:
 - `shared/core`: models, repositories, platform contracts, Metro graph, and Bizi client.
 - `shared/mobile-ui`: shared Compose UI for mobile.
 - `androidApp`: main Android app.
-- `wearApp`: Wear OS app.
+- `wearApp`: Wear OS app with favorites, monitoring, and route actions.
 - `apple/`: base SwiftUI/App Intents sources for iOS/watchOS.
 
 ## Commands
@@ -38,12 +38,12 @@ gradle :shared:mobile-ui:compileKotlinIosSimulatorArm64 :androidApp:compileDebug
 ### Crashlytics setup
 
 1. In Firebase, register the Android app `com.gcaguilar.biciradar` and download `google-services.json`.
-2. Save that file at [androidApp/google-services.json](/Users/guillermo.castella/bizi/androidApp/google-services.json).
+2. Save that file at [androidApp/google-services.json](/Users/guillermo.castella/biciradar/androidApp/google-services.json).
 3. In Firebase, register the Wear OS app `com.gcaguilar.biciradar.wear` and download its `google-services.json`.
-4. Save that file at [wearApp/google-services.json](/Users/guillermo.castella/bizi/wearApp/google-services.json).
+4. Save that file at [wearApp/google-services.json](/Users/guillermo.castella/biciradar/wearApp/google-services.json).
 5. In Firebase, register the iOS app `com.gcaguilar.biciradar.ios` and download `GoogleService-Info.plist`.
-6. Save that file at [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/bizi/apple/iosApp/GoogleService-Info.plist).
-7. Save your local iPhone Google Maps key in [apple/Config/LocalSecrets.xcconfig](/Users/guillermo.castella/bizi/apple/Config/LocalSecrets.xcconfig) using the `GOOGLE_MAPS_IOS_API_KEY` setting.
+6. Save that file at [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/biciradar/apple/iosApp/GoogleService-Info.plist).
+7. Save your local iPhone Google Maps key in [apple/Config/LocalSecrets.xcconfig](/Users/guillermo.castella/biciradar/apple/Config/LocalSecrets.xcconfig) using the `GOOGLE_MAPS_IOS_API_KEY` setting.
 8. Rebuild the apps.
 
 What the repository already does for you:
@@ -52,7 +52,7 @@ What the repository already does for you:
 - Wear OS applies `com.google.gms.google-services` and `com.google.firebase.crashlytics` only when the Firebase config file is present.
 - iOS configures `FirebaseApp` on startup only when `GoogleService-Info.plist` is bundled.
 - The iOS target includes the Crashlytics package and uploads dSYMs during build when the plist is available.
-- The repository only tracks [apple/Config/MapsConfig.xcconfig](/Users/guillermo.castella/bizi/apple/Config/MapsConfig.xcconfig). Your real iOS maps key lives in the ignored local file `apple/Config/LocalSecrets.xcconfig`.
+- The repository only tracks [apple/Config/MapsConfig.xcconfig](/Users/guillermo.castella/biciradar/apple/Config/MapsConfig.xcconfig). Your real iOS maps key lives in the ignored local file `apple/Config/LocalSecrets.xcconfig`.
 
 Quick verification:
 
@@ -129,7 +129,7 @@ Behavior:
 
 ### iPhone with Siri and Shortcuts
 
-Shortcuts published in [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castella/bizi/apple/iosApp/BiziShortcuts.swift):
+Shortcuts published in [apple/iosApp/BiziShortcuts.swift](/Users/guillermo.castella/biciradar/apple/iosApp/BiziShortcuts.swift):
 
 - `Cuál es la estación más cercana con Bici Radar`
 - `Dónde hay bicis cerca con Bici Radar`
@@ -164,7 +164,7 @@ Current behavior:
 
 ### Apple Watch with Siri and Shortcuts
 
-Shortcuts published in [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.castella/bizi/apple/watchApp/BiziWatchShortcuts.swift):
+Shortcuts published in [apple/watchApp/BiziWatchShortcuts.swift](/Users/guillermo.castella/biciradar/apple/watchApp/BiziWatchShortcuts.swift):
 
 - `Cuál es la estación más cercana con Bici Radar`
 - `Dónde hay bicis cerca con Bici Radar`
@@ -185,7 +185,7 @@ Current behavior:
 
 ### Android with Google Assistant
 
-Android exposes actions and shortcuts in [androidApp/src/androidMain/res/xml/shortcuts.xml](/Users/guillermo.castella/bizi/androidApp/src/androidMain/res/xml/shortcuts.xml) and parses launches in [androidApp/src/androidMain/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/bizi/androidApp/src/androidMain/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt).
+Android exposes actions and launch parsing in [androidApp/src/main/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt](/Users/guillermo.castella/biciradar/androidApp/src/main/kotlin/com/gcaguilar/biciradar/AndroidLaunchRequestParser.kt), dynamic shortcuts in [androidApp/src/main/kotlin/com/gcaguilar/biciradar/AndroidDynamicShortcuts.kt](/Users/guillermo.castella/biciradar/androidApp/src/main/kotlin/com/gcaguilar/biciradar/AndroidDynamicShortcuts.kt), widgets under [androidApp/src/main/kotlin/com/gcaguilar/biciradar](/Users/guillermo.castella/biciradar/androidApp/src/main/kotlin/com/gcaguilar/biciradar), and the ongoing monitoring notification in [TripMonitorService.kt](/Users/guillermo.castella/biciradar/androidApp/src/main/kotlin/com/gcaguilar/biciradar/TripMonitorService.kt).
 
 Supported actions:
 
@@ -193,6 +193,8 @@ Supported actions:
 - `nearest_station_with_bikes`
 - `nearest_station_with_slots`
 - `favorite_stations`
+- `monitor_station`
+- `select_city`
 - `station_status`
 - `station_bike_count`
 - `station_slot_count`
@@ -216,6 +218,8 @@ Example target phrases for Assistant:
 - `dónde hay bicis cerca con Bici Radar`
 - `dónde puedo dejar la bici con Bici Radar`
 - `abre mis favoritas con Bici Radar`
+- `monitoriza mi favorita con Bici Radar`
+- `cambia a Zaragoza con Bici Radar`
 - `cómo está una estación con Bici Radar`
 - `cuántas bicis hay en una estación con Bici Radar`
 - `cuántos huecos hay en una estación con Bici Radar`
@@ -246,7 +250,7 @@ adb -s emulator-5554 shell am start -a android.intent.action.VIEW -d 'biciradar:
 
 Android smoke validation:
 
-- Maestro flow: [maestro/android/assistant-smoke.yaml](/Users/guillermo.castella/bizi/maestro/android/assistant-smoke.yaml)
+- Maestro flow: [maestro/android/assistant-smoke.yaml](/Users/guillermo.castella/biciradar/maestro/android/assistant-smoke.yaml)
 - Convenience script: `tooling/project/run_smoke.sh`
 
 Example:
@@ -265,9 +269,9 @@ The generated Xcode project lives at `apple/BiciRadar.xcodeproj`. The SwiftUI/Ap
 
 Apple smoke validation:
 
-- Shortcut logic tests: [apple/iosAppTests/AppleShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleShortcutRunnerTests.swift)
-- Launch-request store tests: [apple/iosAppTests/AppleLaunchRequestStoreTests.swift](/Users/guillermo.castella/bizi/apple/iosAppTests/AppleLaunchRequestStoreTests.swift)
-- UI smoke tests: [apple/iosAppUITests/BiciRadarUITests.swift](/Users/guillermo.castella/bizi/apple/iosAppUITests/BiciRadarUITests.swift)
+- Shortcut logic tests: [apple/iosAppTests/AppleShortcutRunnerTests.swift](/Users/guillermo.castella/biciradar/apple/iosAppTests/AppleShortcutRunnerTests.swift)
+- Launch-request store tests: [apple/iosAppTests/AppleLaunchRequestStoreTests.swift](/Users/guillermo.castella/biciradar/apple/iosAppTests/AppleLaunchRequestStoreTests.swift)
+- UI smoke tests: [apple/iosAppUITests/BiciRadarUITests.swift](/Users/guillermo.castella/biciradar/apple/iosAppUITests/BiciRadarUITests.swift)
 - Convenience script: `tooling/project/run_smoke.sh`
 
 Example:
@@ -278,8 +282,8 @@ Example:
 
 Apple Watch smoke validation:
 
-- Watch shortcut tests: [apple/watchAppTests/WatchShortcutRunnerTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchShortcutRunnerTests.swift)
-- Watch dashboard tests: [apple/watchAppTests/WatchDashboardModelTests.swift](/Users/guillermo.castella/bizi/apple/watchAppTests/WatchDashboardModelTests.swift)
+- Watch shortcut tests: [apple/watchAppTests/WatchShortcutRunnerTests.swift](/Users/guillermo.castella/biciradar/apple/watchAppTests/WatchShortcutRunnerTests.swift)
+- Watch dashboard tests: [apple/watchAppTests/WatchDashboardModelTests.swift](/Users/guillermo.castella/biciradar/apple/watchAppTests/WatchDashboardModelTests.swift)
 - Convenience script: `tooling/project/run_smoke.sh`
 
 Example:

@@ -17,8 +17,9 @@ class SurfaceRepositoryTest {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-${Random.nextInt()}"
     val settingsRepository = FakeSettingsRepository()
     val favoritesRepository = FakeFavoritesRepository(
-      favoriteIds = setOf("home", "other-favorite"),
+      favoriteIds = setOf("home", "mid", "other-favorite"),
       homeStationId = "home",
+      workStationId = "mid",
     )
     val stationsRepository = FakeStationsRepository(
       StationsState(
@@ -51,6 +52,8 @@ class SurfaceRepositoryTest {
 
     val bundle = repository.currentBundle()!!
     assertEquals("home", bundle.favoriteStation?.id)
+    assertEquals("home", bundle.homeStation?.id)
+    assertEquals("mid", bundle.workStation?.id)
     assertEquals(listOf("near", "home", "mid"), bundle.nearbyStations.map { it.id })
     assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/surface_snapshot.json".toPath()))
   }

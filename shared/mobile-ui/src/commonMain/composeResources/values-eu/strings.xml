@@ -115,7 +115,7 @@
     <string name="guideStationStatusExampleHome">Nola dago etxea Bici Radarrekin</string>
     <string name="guideStationStatusExampleHomeBikes">Zenbat bizikleta daude etxean Bici Radarrekin</string>
     <string name="guideStationStatusExampleStationSlots">Zenbat leku daude 48 geltokian Bici Radarrekin</string>
-    <string name="guideFavoritesDescription">Ireki zuzenean zure gogokoen zerrenda, Etxea eta Lana barne konfiguratuta daudenean.</string>
+    <string name="guideFavoritesDescription">Ireki zuzenean zure gogokoen zerrenda. Etxea eta Lana aparte agertzen dira konfiguratuta daudenean.</string>
     <string name="guideFavoritesExampleOpen">Ireki nire gogokoak Bici Radarrekin</string>
     <string name="guideFavoritesExampleWork">Nola dago lana Bici Radarrekin</string>
     <string name="guideRouteToStation">Geltoki baterako ibilbidea</string>
@@ -163,6 +163,14 @@
     <string name="changelogWatchRefreshDescription">Erlojuetako aplikazioek interfaze argiagoa, neurri nabarmenduak eta zure geltokientzako ekintza azkarrak dituzte orain.</string>
     <string name="changelogStationLookupFixTitle">Geltokien bilaketa fidagarriagoa</string>
     <string name="changelogStationLookupFixDescription">Zenbakizko bilaketa zuzendu da, hasierako zeroak idatzita ere funtziona dezan.</string>
+    <string name="changelogUiImprovementsTitle">Interfaze hobekuntzak</string>
+    <string name="changelogUiImprovementsDescription">Pantailak, txartelak eta egoerak findu ditugu eguneroko nabigazioa argiagoa eta arinagoa izan dadin.</string>
+    <string name="changelogPerformanceImprovementsTitle">Errendimendu hobea</string>
+    <string name="changelogPerformanceImprovementsDescription">Itxaronaldiak murriztu eta erantzun orokorra hobetu dugu geltokiak kargatzean eta aplikazioan mugitzean.</string>
+    <string name="changelogLocalCacheTitle">Tokiko cache adimenduna</string>
+    <string name="changelogLocalCacheDescription">Orain geltokien datuak aldi baterako gordetzen dira zure gailuan sare gutxiago erabiltzeko eta azkarrago irekitzeko.</string>
+    <string name="changelogDataSourcesTitle">Bizikleta publikoaren sare gehiago</string>
+    <string name="changelogDataSourcesDescription">Datu iturri publiko berriak eta bizikleta partekatuaren sistema bateragarri gehiago gehitu ditugu.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

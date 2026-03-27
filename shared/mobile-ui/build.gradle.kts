@@ -53,6 +53,10 @@ kotlin {
       implementation(libs.androidx.lifecycle.runtime.compose)
       implementation(libs.navigation.compose)
     }
+    commonTest.dependencies {
+      implementation(libs.coroutines.test)
+      implementation(libs.kotlin.test)
+    }
     androidMain.dependencies {
       implementation(libs.maps.compose)
       implementation(libs.play.services.maps)

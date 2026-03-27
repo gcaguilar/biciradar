@@ -1,5 +1,7 @@
 <resources>
-    <style name="Theme.BiciRadar" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar" />
+    <style name="Theme.BiciRadar" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/bizi_splash_background</item>
+    </style>
 
     <style name="Theme.BiciRadar.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>

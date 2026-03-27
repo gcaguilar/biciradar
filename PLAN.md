@@ -1,229 +1,724 @@
-# BiciRadar Plan
+## Objetivo
 
-## Summary
-- Greenfield project with base `package` `com.gcaguilar.biciradar`.
-- `stitch` is used only as the initial visual inspiration.
-- v1 scope: nearby stations, availability, station detail, favorites, map, routes delegated to native maps, Android shortcuts/App Actions, and iOS/watchOS App Intents/App Shortcuts.
-- Targets: Android mobile with Compose Multiplatform, iOS mobile with Compose Multiplatform, Wear OS with Compose for Wear OS, and Apple Watch with SwiftUI plus shared KMP logic.
-- Baseline: Android 26+, Wear OS 3+, iOS 16+, watchOS 9+.
-- Out of current scope: system voice search.
+Implementar en BiciRadar un conjunto de superficies nativas orientadas a disponibilidad rápida de estaciones:
 
-## Implementation Changes
-- Create KMP modules for domain, networking, local storage, favorites, assistant/intents, mobile-watch sync, and platform utilities.
-- Consume public BiciRadar data directly from shared code with Ktor and normalize it into internal models for stations, availability, favorites, and nearby queries. The primary source is the official Zaragoza City Council feed, with CityBikes as fallback.
-- Persist favorites locally and sync them between mobile and watch through pairing.
-- Resolve routes with deep links/intents to Google Maps and Apple Maps.
-- Implement Metro DI as the main container with shared bindings and native adapters.
-- Build a native UI per platform inspired by `stitch`, without reproducing layouts literally.
+* **iOS**
 
-## Public APIs and Interfaces
-- `StationsRepository`
-- `FavoritesRepository`
-- `RouteLauncher`
-- `AssistantIntentResolver`
-- `WatchSyncBridge`
+  * Home Screen Widgets
+  * Lock Screen Widgets
+  * Live Activities
+  * App Intents / Shortcuts
+  * Integración con Apple Watch existente
+* **Android**
 
-## Cross-Platform Intents and Actions
-- `nearest_station`
-- `station_status`
-- `favorite_stations`
-- `route_to_station`
+  * Home Screen Widgets
+  * Notificación persistente de monitorización
+  * Atajos equivalentes si aplica
+  * Integración con wearables solo si la arquitectura ya lo permite
 
-## Test Plan
-- KMP unit tests for feed parsing, nearby calculation, cache, favorites, and intent resolution.
-- Integration tests for the Ktor client and public feed consumption.
-- Platform tests for App Actions/App Shortcuts on Android.
-- Platform tests for App Intents/App Shortcuts on iOS/watchOS.
-- Favorite sync tests between mobile and watch.
-- Native maps route launch tests.
-- Visual QA based on design-system consistency, not pixel parity with `stitch`.
+La prioridad funcional debe centrarse en el caso de uso principal:
 
-## Assumptions and Defaults
-- `stitch` only inspires the design; it does not define functionality.
-- A public feed/API with enough station and availability data is assumed to be available.
-- Initial language: Spanish, while keeping the base ready for English later.
-- Versions are pinned in `libs.versions.toml` using the latest stable versions compatible with the KMP/Compose/Gradle stack.
+1. Ver el estado de una estación favorita sin abrir la app
+2. Monitorizar una estación y recibir cambios en tiempo real o casi real
+3. Ver una sugerencia rápida de estación alternativa cuando una estación no tenga bicis o huecos
 
 ---
 
-# Plan de Migración: moko-resources → compose.components.resources
+# Requisitos funcionales comunes
 
-## BLOQUEADO
+## Modelo común
 
-**Razón:** Compose Multiplatform Resources no soporta watchOS en la versión actual (1.10.3).
+Crear o consolidar un modelo compartido para representar el estado de una estación:
 
-**Error encontrado:**
-```
-Couldn't resolve dependency 'org.jetbrains.compose.components:components-resources'
-Unresolved platforms: [watchosArm64, watchosSimulatorArm64]
-```
+* `stationId`
+* `stationName`
+* `cityId`
+* `latitude`
+* `longitude`
+* `bikesAvailable`
+* `docksAvailable`
+* `isInstalled`
+* `isRenting`
+* `isReturning`
+* `lastUpdated`
+* `distanceFromUser` si existe contexto local
+* `isFavorite`
+* `monitoringStatus`
+* `statusLevel`:
 
-**Posibles soluciones futuras:**
-1. Esperar a una versión de Compose Multiplatform que soporte watchOS
-2. Excluir watchOS del proyecto (no deseado)
-3. Mantener moko-resources indefinidamente
+  * `good`
+  * `low`
+  * `empty`
+  * `full`
+  * `unavailable`
 
-**Decisión:** Mantener moko-resources por ahora. Revisitar cuando Compose Multiplatform 1.11+ esté disponible con soporte watchOS completo.
+## Casos de uso comunes
 
-## Estado Actual
+Implementar estos casos de uso reutilizables:
 
-- **moko-resources versión:** 0.26.1
-- **Ubicación recursos:** `shared/core/src/commonMain/moko-resources/`
-- **Idiomas:** base (castellano), ca (catalán), eu (euskera), gl (gallego), en (inglés)
-- **Referencias en código:** 255+ usos de `MR.strings.*`
+* `GetFavoriteStations`
+* `GetNearestStations`
+* `GetStationStatus`
+* `StartStationMonitoring`
+* `StopStationMonitoring`
+* `GetSuggestedAlternativeStation`
+* `GetCachedStationSnapshot`
+* `RefreshStationDataIfNeeded`
 
-## Release
+## Reglas de negocio
 
-Release dedicada para esta migración (no mezclar con otras features).
+Definir reglas unificadas:
 
----
+* Una estación está **vacía** si `bikesAvailable == 0`
+* Una estación está **llena** si `docksAvailable == 0`
+* Una estación está **low** si bicis o huecos están por debajo de un umbral configurable
+* La sugerencia alternativa debe:
 
-## Fases de la Migración
+  * estar dentro de un radio configurable
+  * priorizar disponibilidad
+  * luego cercanía
 
-### Fase 1: Preparación (Pre-migración)
+## Caché local
 
-#### 1.1 Agregar dependencia compose.components.resources
+El agente debe reutilizar la caché local ya existente y exponer lecturas rápidas para widgets y actividades.
+Evitar llamadas de red directas desde la UI del widget si no son necesarias.
 
-**Archivo:** `shared/core/build.gradle.kts`
+Debe existir una capa de lectura rápida con:
 
-```kotlin
-commonMain.dependencies {
-  // Agregar esta línea
-  implementation(libs.compose.components.resources)
-}
-```
-
-**Archivo:** `gradle/libs.versions.toml` (agregar si no existe)
-
-```toml
-[libraries]
-compose-components-resources = { module = "org.jetbrains.compose:components:components-resources", version.ref = "composeMultiplatform" }
-```
-
----
-
-### Fase 2: Mover Recursos
-
-#### 2.1 Estructura de directorios
-
-Crear: `shared/core/src/commonMain/composeResources/`
-
-```
-composeResources/
-└── values/
-    └── strings.xml        (contenido de moko-resources/base/strings.xml)
-└── values-ca/
-    └── strings.xml        (contenido de moko-resources/ca/strings.xml)
-└── values-eu/
-    └── strings.xml        (contenido de moko-resources/eu/strings.xml)
-└── values-gl/
-    └── strings.xml        (contenido de moko-resources/gl/strings.xml)
-└── values-en/
-    └── strings.xml        (contenido de moko-resources/en/strings.xml)
-```
-
-#### 2.2 Acción
-
-- Copiar archivos de `moko-resources/` a `composeResources/`
-- **NO eliminar** moko-resources todavía (hasta Fase 5)
+* snapshot actual
+* fecha de última actualización
+* fallback cuando no haya red
 
 ---
 
-### Fase 3: Actualizar Código
+# Fase 1 — Preparación de arquitectura
 
-#### 3.1 Actualizar referencias de strings
+## Tareas
 
-Buscar y reemplazar todas las ocurrencias (255+):
+1. Revisar la arquitectura actual y localizar:
 
-```kotlin
-// ANTES
-stringResource(MR.strings.nearby)
+   * capa de datos
+   * capa de dominio
+   * sistema de favoritos
+   * sistema de monitorización
+   * sistema de notificaciones locales
+2. Crear una API interna estable para superficies externas:
 
-// DESPUÉS
-stringResource(SharedRes.strings.nearby)
-```
+   * widgets
+   * live activities
+   * shortcuts
+3. Asegurar que el estado de estación puede serializarse fácilmente
+4. Crear una capa de `Widget/Surface DTOs` desacoplada del dominio
 
-**Scripts de búsqueda:**
-```bash
-# Encontrar todos los usages de MR.strings
-grep -r "MR\.strings\." --include="*.kt" shared/mobile-ui/
-```
+## Entregables
 
----
+* DTO de estación simplificado
+* repositorio de snapshots compartido
+* helpers de formateo:
 
-### Fase 4: Validación
-
-#### 4.1 Compilar todos los targets
-
-```bash
-# Android
-./gradlew :shared:core:compileDebugKotlinAndroid
-
-# iOS
-./gradlew :shared:core:compileKotlinIosArm64
-
-# JVM
-./gradlew :shared:core:compileKotlinJvm
-```
-
-#### 4.2 Test manual
-
-- Verificar que las strings aparecen correctamente en Android
-- Verificar que las strings aparecen correctamente en iOS
-- Verificar cambio de idioma funciona
+  * texto corto
+  * estado semafórico
+  * fecha relativa
 
 ---
 
-### Fase 5: Limpieza
+# iOS — Plan por bloques
 
-#### 5.1 Eliminar plugin moko-resources
+## Fase 2 iOS — Widgets de Home Screen
 
-**Archivo:** `shared/core/build.gradle.kts`
+### Objetivo
 
-```kotlin
-// ELIMINAR esta línea del bloque plugins
-alias(libs.plugins.moko.resources)
+Mostrar información útil sin abrir la app.
 
-// ELIMINAR el bloque completo
-multiplatformResources {
-  resourcesPackage.set("com.gcaguilar.biciradar.core")
-}
-```
+## Widgets a implementar
 
-#### 5.2 Eliminar dependencias moko
+### 1. Favorite Station Widget
 
-**Archivo:** `gradle/libs.versions.toml`
+Mostrar:
 
-```toml
-# ELIMINAR esta línea
-mokoResources = "0.26.1"
-```
+* nombre de la estación
+* bicis disponibles
+* huecos libres
+* estado
+* última actualización
 
-#### 5.3 Eliminar directorio moko-resources
+Tamaños:
 
-```bash
-rm -rf shared/core/src/commonMain/moko-resources/
-```
+* Small
+* Medium
+
+### 2. Nearby Stations Widget
+
+Mostrar:
+
+* 2 o 3 estaciones cercanas
+* distancia
+* bicis disponibles o huecos
+
+Tamaño:
+
+* Medium
+* opcional Large
+
+### 3. Commute / Quick Access Widget
+
+Opcional posterior:
+
+* estación de salida favorita
+* estación de destino favorita
+
+## Tareas técnicas
+
+* Crear extensión WidgetKit
+* Definir `TimelineProvider`
+* Leer snapshots desde almacenamiento compartido
+* Configuración por usuario con App Intent si aplica
+* Soportar estados:
+
+  * loading
+  * empty
+  * no permission
+  * stale data
+
+## Requisitos UX
+
+* No saturar de texto
+* Priorizar números grandes
+* Usar estado visual consistente
+* Mostrar “Actualizado hace X min” solo si cabe
+
+## Entregables
+
+* widget small favorito
+* widget medium favorito
+* widget medium cercanas
+* placeholders y previews
 
 ---
 
-## Tiempo Estimado
+## Fase 3 iOS — Lock Screen Widgets
 
-- **Preparación:** 15 min
-- **Mover recursos:** 10 min
-- **Actualizar código:** 1-2 horas
-- **Validación:** 30 min
-- **Limpieza:** 15 min
+### Objetivo
 
-**Total:** ~2-3 horas
+Permitir consulta ultrarrápida desde pantalla bloqueada.
+
+## Widgets a implementar
+
+### 1. Bikes Count Widget
+
+* icono bici
+* número de bicis de estación favorita
+
+### 2. Docks Count Widget
+
+* icono dock/hueco
+* número de huecos libres
+
+### 3. Station Status Widget
+
+* nombre corto
+* estado:
+
+  * Disponible
+  * Sin bicis
+  * Sin huecos
+
+## Tareas técnicas
+
+* Añadir accesorios Lock Screen en WidgetKit
+* Diseñar versiones:
+
+  * inline
+  * circular
+  * rectangular
+* Optimizar texto corto
+* Fallback si no hay estación favorita configurada
+
+## Entregables
+
+* 3 lock screen widgets
+* mapeo de contenido compacto
+* previews por estado
 
 ---
 
-## Checklist de Ejecución
+## Fase 4 iOS — Live Activities
 
-- [ ] Fase 1: Agregar dependencia compose.components.resources
-- [ ] Fase 2: Mover archivos de moko-resources a composeResources
-- [ ] Fase 3: Actualizar referencias (255+ cambios)
-- [ ] Fase 4: Compilar Android, iOS, JVM
-- [ ] Fase 5: Eliminar plugin moko-resources
-- [ ] Fase 5: Eliminar directorio moko-resources/
+### Objetivo
+
+Representar una monitorización activa de estación.
+
+## Live Activity principal
+
+### Station Monitoring Activity
+
+Mostrar:
+
+* nombre estación
+* bicis disponibles
+* huecos libres
+* estado de monitorización
+* sugerencia alternativa si la estación queda vacía o llena
+
+## Estados
+
+* monitoring
+* changed_to_empty
+* changed_to_full
+* alternative_available
+* ended
+* expired
+
+## Dynamic Island
+
+Diseñar:
+
+* compact leading: icono + número bicis
+* compact trailing: huecos
+* minimal: estado resumido
+* expanded:
+
+  * nombre estación
+  * bicis
+  * huecos
+  * sugerencia alternativa
+
+## Tareas técnicas
+
+* Crear ActivityAttributes
+* Crear ContentState
+* Mapear monitorización actual a una única Live Activity por estación
+* Decidir si solo se permite una Live Activity activa al mismo tiempo
+* Actualización mediante:
+
+  * timers locales
+  * refresh basado en monitorización existente
+* Finalizar actividad al acabar el periodo de monitorización
+
+## Reglas
+
+* No iniciar una nueva activity si ya existe una equivalente para la misma estación
+* Finalizar la activity si:
+
+  * usuario detiene monitorización
+  * tiempo expira
+  * estación deja de estar disponible
+  * app decide fallback por datos obsoletos
+
+## Entregables
+
+* Live Activity básica
+* Dynamic Island compact/expanded
+* update cycle
+* finalización limpia
+
+---
+
+## Fase 5 iOS — App Intents / Siri Shortcuts
+
+### Objetivo
+
+Exponer acciones rápidas del sistema.
+
+## Shortcuts a implementar
+
+* “Abrir estación favorita”
+* “Ver estaciones cercanas”
+* “Monitorizar estación favorita”
+* “Buscar bicis cerca”
+* “Buscar huecos cerca”
+
+## App Intents
+
+Crear intents parametrizables:
+
+* ciudad
+* estación
+* tipo:
+
+  * bicis
+  * huecos
+
+## Entregables
+
+* app intents registrados
+* frases sugeridas para Siri
+* deep links a pantallas concretas
+
+---
+
+## Fase 6 iOS — Integración con Apple Watch existente
+
+### Objetivo
+
+Reforzar consistencia con lo que ya existe.
+
+## Tareas
+
+* Revisar la app Watch actual
+* Compartir los mismos DTOs
+* Alinear nombres de estado y formatos
+* Añadir acceso rápido desde Live Activity o deep link si aplica
+* Evaluar complication si no existe:
+
+  * bicis disponibles en favorita
+  * estado semáforo
+
+## Entregables
+
+* checklist de paridad entre iPhone y Watch
+* complication opcional si no está hecha
+
+---
+
+# Android — Plan por bloques
+
+## Fase 2 Android — Home Screen Widgets
+
+### Objetivo
+
+Replicar el acceso rápido principal en Android.
+
+## Widgets a implementar
+
+### 1. Favorite Station Widget
+
+Mostrar:
+
+* nombre estación
+* bicis
+* huecos
+* última actualización
+
+Tamaños:
+
+* 2x1
+* 4x2 o adaptables
+
+### 2. Nearby Stations Widget
+
+Mostrar:
+
+* top 3 cercanas
+* distancia
+* disponibilidad
+
+### 3. Quick Action Widget
+
+Botones:
+
+* abrir mapa
+* ver favoritas
+* monitorizar favorita
+
+## Tareas técnicas
+
+* Crear App Widgets
+* Leer desde caché local
+* Añadir acciones clickables por item
+* Gestionar actualización programada y manual
+* Diseñar estado vacío y error
+
+## Entregables
+
+* widget favorito
+* widget cercanas
+* widget acciones rápidas opcional
+
+---
+
+## Fase 3 Android — Notificación persistente de monitorización
+
+### Objetivo
+
+Equivalente práctico a Live Activity.
+
+## Notification Surface
+
+Cuando se monitoriza una estación, mostrar una notificación ongoing con:
+
+* nombre estación
+* bicis
+* huecos
+* estado
+* tiempo restante de monitorización
+* acción “Detener”
+* acción “Abrir mapa”
+
+## Estados
+
+* monitorizando
+* sin bicis
+* sin huecos
+* alternativa sugerida
+* finalizada
+
+## Tareas técnicas
+
+* Crear canal de notificaciones específico
+* Implementar foreground-like monitoring solo si es necesario
+* Si no es necesario, usar actualización periódica discreta con notificación ongoing
+* Añadir acciones:
+
+  * stop
+  * open station
+  * open alternative
+
+## Entregables
+
+* plantilla notificación ongoing
+* flujo start/stop
+* mensaje de alternativa
+
+---
+
+## Fase 4 Android — Shortcuts y accesos rápidos
+
+### Objetivo
+
+Dar acceso rápido desde launcher o sistema.
+
+## Implementar
+
+* shortcut dinámica:
+
+  * estaciones cercanas
+  * favorita
+  * monitorizar favorita
+* deep links internos
+
+## Entregables
+
+* dynamic shortcuts
+* iconos y labels
+* navegación interna resuelta
+
+---
+
+## Fase 5 Android — Wear OS o extensibilidad futura
+
+### Solo si la base lo permite
+
+No forzar esta fase si no existe infraestructura.
+
+## Posibles acciones
+
+* tile de estación favorita
+* complication con bicis/huecos
+* acceso rápido a estaciones cercanas
+
+## Entregables
+
+* evaluación técnica
+* propuesta solo si coste es razonable
+
+---
+
+# Diseño de datos compartidos entre superficies
+
+## Shared station snapshot
+
+Crear una representación compacta lista para widgets:
+
+* `id`
+* `nameShort`
+* `nameFull`
+* `bikesAvailable`
+* `docksAvailable`
+* `statusTextShort`
+* `statusLevel`
+* `lastUpdatedEpoch`
+* `distanceMeters`
+* `isFavorite`
+* `alternativeStationId`
+* `alternativeStationName`
+* `alternativeDistanceMeters`
+
+## Shared surface state
+
+* `hasLocationPermission`
+* `hasNotificationPermission`
+* `hasFavoriteStation`
+* `isDataFresh`
+* `lastSyncEpoch`
+* `cityName`
+
+---
+
+# Deep links requeridos
+
+El agente debe añadir o revisar deep links para que widgets, notificaciones y shortcuts abran pantallas concretas:
+
+* `biciradar://home`
+* `biciradar://map`
+* `biciradar://station/{id}`
+* `biciradar://favorites`
+* `biciradar://monitor/{id}`
+* `biciradar://city/{id}`
+
+---
+
+# Estados de error y fallback
+
+El agente debe contemplar obligatoriamente:
+
+* sin permiso de localización
+* sin permiso de notificaciones
+* sin favorita configurada
+* datos stale
+* sin conexión
+* estación eliminada o no disponible
+* ciudad sin datos actuales
+
+Cada superficie debe tener mensaje corto de fallback.
+
+Ejemplos:
+
+* “Configura una estación favorita”
+* “Abre la app para actualizar”
+* “Sin permiso de ubicación”
+* “Datos no disponibles”
+
+---
+
+# Telemetría local y depuración
+
+Como la app no usa analytics, el agente no debe añadir tracking.
+Sí puede añadir logs de depuración internos solo para desarrollo.
+
+## Permitido
+
+* logs de render de widget
+* logs de refresh
+* logs de actualización de Live Activity
+* logs de errores de extensión
+
+## No permitido
+
+* tracking de uso
+* eventos analíticos remotos
+* perfilado de usuario
+
+---
+
+# Prioridades de implementación
+
+## MVP recomendado
+
+### iOS
+
+1. Favorite Station Home Widget
+2. Lock Screen bikes widget
+3. Live Activity de monitorización
+4. Shortcuts básicos
+
+### Android
+
+1. Favorite Station Widget
+2. Notificación ongoing de monitorización
+3. Shortcut dinámica a favorita
+
+## Fase 2
+
+### iOS
+
+* Nearby Stations Widget
+* Lock Screen docks widget
+* alternativa en Live Activity
+
+### Android
+
+* Nearby Stations Widget
+* quick actions widget
+
+## Fase 3
+
+* Commute widget
+* wearables extra
+* configuraciones avanzadas
+
+---
+
+# Criterios de aceptación
+
+## Widgets
+
+* Cargan desde caché local en menos de un tiempo razonable
+* No requieren abrir la app para ver datos recientes
+* Abren la pantalla correcta al pulsar
+* Soportan estado vacío y error
+
+## Live Activity / ongoing notification
+
+* Se inicia desde la acción de monitorización
+* Refleja el estado actual de estación
+* Se actualiza durante el periodo de monitorización
+* Finaliza correctamente
+* Sugiere alternativa cuando toca
+
+## Shortcuts
+
+* Ejecutan navegación o acción real
+* No abren pantallas inconsistentes
+* Usan lenguaje claro y mantenible
+
+---
+
+# Restricciones para el agente
+
+* No introducir nuevas dependencias pesadas salvo necesidad real
+* Reutilizar la lógica de monitorización existente
+* Reutilizar la caché local existente
+* No duplicar lógica de negocio en widgets
+* Centralizar umbrales y reglas de disponibilidad
+* Mantener consistencia visual con la app actual
+* No añadir analytics
+* No enviar la ubicación fuera del dispositivo
+
+---
+
+# Entrega esperada por plataforma
+
+## iOS
+
+* Widget extension
+* Live Activity / ActivityKit implementation
+* App Intents
+* deep links
+* tests básicos de mapping y state rendering
+* documentación breve de configuración
+
+## Android
+
+* AppWidget implementation
+* monitoring notification
+* deep links / shortcuts
+* tests básicos de mapping y rendering state
+* documentación breve de configuración
+
+---
+
+# Prompt breve para darle directamente al agente
+
+Puedes pasarle esto tal cual:
+
+> Implementa en BiciRadar superficies nativas por plataforma para acceso rápido al estado de estaciones:
+>
+> **iOS**
+>
+> * Home Screen Widget de estación favorita
+> * Home Screen Widget de estaciones cercanas
+> * Lock Screen Widgets para bicis y huecos
+> * Live Activity para monitorización de estación con Dynamic Island
+> * App Intents / Siri Shortcuts para abrir favorita, ver cercanas y monitorizar favorita
+>
+> **Android**
+>
+> * Widget de estación favorita
+> * Widget de estaciones cercanas
+> * Notificación persistente de monitorización como equivalente a Live Activity
+> * Shortcuts dinámicos a favorita, cercanas y monitorización
+>
+> Reutiliza la caché local existente y la lógica actual de monitorización. No añadas analytics ni tracking. No envíes ubicación fuera del dispositivo. Implementa deep links a home, map, station, favorites y monitor. Cada superficie debe soportar estados vacíos, error, falta de permisos y datos stale. Prioriza un MVP con favorita + monitorización antes de expandir a cercanas y commute.
+>
+> Entrega código por fases, empezando por modelo compartido, snapshots reutilizables y luego implementación nativa por plataforma.

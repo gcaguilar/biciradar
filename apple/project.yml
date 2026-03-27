@@ -66,6 +66,11 @@ targets:
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
+          mkdir -p \
+            "shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework" \
+            "shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework" \
+            "shared/mobile-ui/build/bin/iosArm64/debugFramework" \
+            "shared/mobile-ui/build/bin/iosArm64/releaseFramework"
           if [ "$CONFIGURATION" = "Release" ]; then
             KMP_CONFIGURATION="Release"
           else
@@ -125,45 +130,19 @@ targets:
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: B87AWPVZWB
         CODE_SIGN_IDENTITY: "Apple Distribution"
-        PROVISIONING_PROFILE_SPECIFIER: "48baa5e8-be01-4ff1-b1a3-7345ffba5c67"
+        PROVISIONING_PROFILE_SPECIFIER: "BiciRadarProfile"
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        FRAMEWORK_SEARCH_PATHS:
+        FRAMEWORK_SEARCH_PATHS[config=Debug]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release]:
+          - $(inherited)
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
-        INFOPLIST_KEY_BiziGoogleMapsApiKey: $(GOOGLE_MAPS_IOS_API_KEY)
-        INFOPLIST_KEY_CFBundleDisplayName: Bici Radar
-        INFOPLIST_KEY_CFBundleURLTypes:
-          - CFBundleTypeRole: Editor
-            CFBundleURLName: com.gcaguilar.biciradar
-            CFBundleURLSchemes:
-              - biciradar
-        INFOPLIST_KEY_LSApplicationQueriesSchemes:
-          - comgooglemaps
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared."
-        INFOPLIST_KEY_NSUserNotificationUsageDescription: "The app uses notifications to alert you when a monitored bike station becomes full or when docks become available."
-        INFOPLIST_KEY_UIBackgroundModes:
-          - fetch
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_NSSupportsLiveActivities: YES
-        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
-        INFOPLIST_KEY_BGTaskSchedulerPermittedIdentifiers:
-          - com.gcaguilar.biciradar.ios.refresh
-        INFOPLIST_KEY_UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        INFOPLIST_KEY_UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: iosApp/Info.plist
         OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios
         PRODUCT_NAME: BiciRadar
@@ -176,7 +155,9 @@ targets:
     deploymentTarget: "16.1"
     sources:
       - path: iosWidgets
-      - path: sharedApple
+      - path: sharedApple/BiziMonitoringActivityAttributes.swift
+      - path: sharedApple/BiziSharedStorage.swift
+      - path: sharedApple/BiziSurfaceStore.swift
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: WidgetKit.framework
@@ -184,13 +165,13 @@ targets:
     settings:
       base:
         CODE_SIGN_ENTITLEMENTS: iosWidgets/BiciRadarWidgets.entitlements
-        CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Apple Distribution"
+        DEVELOPMENT_TEAM: B87AWPVZWB
+        PROVISIONING_PROFILE_SPECIFIER: "BiciRadarWidgetProfile"
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Widgets
-        INFOPLIST_KEY_NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: iosWidgets/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.widgets
         PRODUCT_NAME: BiciRadar Widgets
 
@@ -207,11 +188,13 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
-        FRAMEWORK_SEARCH_PATHS:
+        FRAMEWORK_SEARCH_PATHS[config=Debug]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release]:
+          - $(inherited)
+          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
@@ -242,16 +225,22 @@ targets:
     deploymentTarget: "9.0"
     sources:
       - path: watchApp
+      - path: watchShared
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: WatchConnectivity.framework
       - sdk: libsqlite3.tbd
+      - target: BiciRadarWatchWidgets
+        embed: true
     preBuildScripts:
       - name: Build KMP watchOS framework
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
+          mkdir -p \
+            "shared/core/build/bin/watchosCurrent/debugFramework" \
+            "shared/core/build/bin/watchosCurrent/releaseFramework"
           if [ "$CONFIGURATION" = "Release" ]; then
             KMP_CONFIGURATION="Release"
           else
@@ -278,6 +267,7 @@ targets:
           fi
     settings:
       base:
+        CODE_SIGN_ENTITLEMENTS: watchApp/BiciRadarWatch.entitlements
         CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: B87AWPVZWB
         CODE_SIGN_IDENTITY: "Apple Distribution"
@@ -285,9 +275,11 @@ targets:
         ARCHS[sdk=watchos*]: "arm64 arm64_32"
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        FRAMEWORK_SEARCH_PATHS:
+        FRAMEWORK_SEARCH_PATHS[config=Debug]:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release]:
+          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Watch
@@ -295,9 +287,35 @@ targets:
         INFOPLIST_KEY_WKApplication: YES
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.biciradar.ios
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -lsqlite3
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch
         PRODUCT_NAME: BiciRadar Watch
+
+  BiciRadarWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "9.0"
+    sources:
+      - path: watchWidgets
+      - path: watchShared
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: WidgetKit.framework
+    settings:
+      base:
+        AD_HOC_CODE_SIGNING_ALLOWED[sdk=watchsimulator*]: NO
+        CODE_SIGN_ENTITLEMENTS: watchWidgets/BiciRadarWatchWidgets.entitlements
+        CODE_SIGNING_ALLOWED[sdk=watchsimulator*]: NO
+        CODE_SIGNING_REQUIRED[sdk=watchsimulator*]: NO
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Apple Distribution"
+        DEVELOPMENT_TEAM: B87AWPVZWB
+        PROVISIONING_PROFILE_SPECIFIER: "BiciRadarWatchWidgetProfile"
+        EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: watchWidgets/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.widgets
+        PRODUCT_NAME: BiciRadar Watch Widgets
 
   BiciRadarWatchTests:
     type: bundle.unit-test
@@ -305,11 +323,13 @@ targets:
     deploymentTarget: "9.0"
     sources:
       - path: watchAppTests
+      - path: watchShared
       - path: watchApp/WatchFavoritesSyncBridge.swift
       - path: watchApp/BiziWatchGraph.swift
       - path: watchApp/WatchShortcutRunner.swift
       - path: watchApp/WatchDashboardModel.swift
     dependencies:
+      - target: BiciRadarWatch
       - sdk: XCTest.framework
       - sdk: WatchConnectivity.framework
       - sdk: libsqlite3.tbd
@@ -319,6 +339,9 @@ targets:
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
+          mkdir -p \
+            "shared/core/build/bin/watchosCurrent/debugFramework" \
+            "shared/core/build/bin/watchosCurrent/releaseFramework"
           if [ "$CONFIGURATION" = "Release" ]; then
             KMP_CONFIGURATION="Release"
           else
@@ -349,17 +372,21 @@ targets:
           fi
     settings:
       base:
+        BUNDLE_LOADER: "$(TEST_HOST)"
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
-        FRAMEWORK_SEARCH_PATHS:
+        FRAMEWORK_SEARCH_PATHS[config=Debug]:
           - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release]:
+          - $(inherited)
           - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore -lsqlite3
+        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.tests
         PRODUCT_NAME: BiciRadar Watch Tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/BiciRadar Watch.app/BiciRadar Watch"
 
 schemes:
   BiciRadar:
@@ -381,6 +408,7 @@ schemes:
     build:
       targets:
         BiciRadarWatch: all
+        BiciRadarWatchWidgets: all
         BiciRadarWatchTests: [testing]
     test:
       config: Debug

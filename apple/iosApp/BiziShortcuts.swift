@@ -19,6 +19,19 @@ enum SavedPlaceShortcut: String, AppEnum {
     }
 }
 
+enum StationAvailabilityShortcut: String, AppEnum {
+    case status
+    case bikes
+    case slots
+
+    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Consulta")
+    static var caseDisplayRepresentations: [StationAvailabilityShortcut: DisplayRepresentation] = [
+        .status: DisplayRepresentation(title: "Estado"),
+        .bikes: DisplayRepresentation(title: "Bicis"),
+        .slots: DisplayRepresentation(title: "Huecos")
+    ]
+}
+
 struct NearestStationIntent: AppIntent {
     static var title: LocalizedStringResource = "Estación más cercana"
     static var openAppWhenRun: Bool = true
@@ -89,6 +102,26 @@ struct MonitorFavoriteStationIntent: AppIntent {
     }
 }
 
+struct ChangeCityIntent: AppIntent {
+    static var title: LocalizedStringResource = "Cambiar ciudad"
+    static var openAppWhenRun: Bool = true
+
+    @Parameter(
+        title: "Ciudad",
+        requestValueDialog: IntentDialog("¿Qué ciudad quieres abrir?")
+    )
+    var city: BiziCityShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Abrir \(\.$city)")
+    }
+
+    func perform() async throws -> some IntentResult {
+        let dialog = await AppleShortcutRunner().changeCityDialog(cityId: city.id)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
 struct StationStatusIntent: AppIntent {
     static var title: LocalizedStringResource = "Estado de estación"
     static var openAppWhenRun: Bool = false
@@ -105,6 +138,41 @@ struct StationStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         let dialog = await AppleShortcutRunner().stationStatusDialog(stationId: station.id)
+        return .result(dialog: IntentDialog(stringLiteral: dialog))
+    }
+}
+
+struct StationAvailabilityIntent: AppIntent {
+    static var title: LocalizedStringResource = "Disponibilidad de estación"
+    static var openAppWhenRun: Bool = false
+
+    @Parameter(
+        title: "Consulta",
+        requestValueDialog: IntentDialog("¿Quieres ver el estado, las bicis o los huecos?")
+    )
+    var availabilityType: StationAvailabilityShortcut
+
+    @Parameter(
+        title: "Estación",
+        requestValueDialog: IntentDialog("¿Qué estación quieres consultar?")
+    )
+    var station: BiziStationShortcutEntity
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Consultar \(\.$availabilityType) en \(\.$station)")
+    }
+
+    func perform() async throws -> some IntentResult {
+        let runner = AppleShortcutRunner()
+        let dialog: String
+        switch availabilityType {
+        case .status:
+            dialog = await runner.stationStatusDialog(stationId: station.id)
+        case .bikes:
+            dialog = await runner.stationBikeCountDialog(stationId: station.id)
+        case .slots:
+            dialog = await runner.stationSlotCountDialog(stationId: station.id)
+        }
         return .result(dialog: IntentDialog(stringLiteral: dialog))
     }
 }
@@ -211,6 +279,7 @@ struct SavedPlaceRouteIntent: AppIntent {
 
 struct BiziAppShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
+        // iOS only allows up to 10 surfaced App Shortcuts per app.
         AppShortcut(
             intent: NearestStationIntent(),
             phrases: [
@@ -262,16 +331,6 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             systemImageName: "location.circle"
         )
         AppShortcut(
-            intent: FavoriteStationsIntent(),
-            phrases: [
-                "Abre mis favoritas con \(.applicationName)",
-                "Enséñame mis favoritas con \(.applicationName)",
-                "Mis favoritas con \(.applicationName)"
-            ],
-            shortTitle: "Favoritas",
-            systemImageName: "heart.circle"
-        )
-        AppShortcut(
             intent: MonitorFavoriteStationIntent(),
             phrases: [
                 "Monitoriza mi favorita con \(.applicationName)",
@@ -306,30 +365,12 @@ struct BiziAppShortcuts: AppShortcutsProvider {
             phrases: [
                 "Cómo está \(\.$savedPlace) con \(.applicationName)",
                 "Qué tal está \(\.$savedPlace) con \(.applicationName)",
-                "Cuál es el estado de \(\.$savedPlace) en \(.applicationName)"
+                "Cuál es el estado de \(\.$savedPlace) en \(.applicationName)",
+                "Cuántas bicis hay en \(\.$savedPlace) con \(.applicationName)",
+                "Cuántos huecos hay en \(\.$savedPlace) con \(.applicationName)"
             ],
             shortTitle: "Casa/Trabajo",
             systemImageName: "house.circle"
-        )
-        AppShortcut(
-            intent: SavedPlaceBikeCountIntent(),
-            phrases: [
-                "Cuántas bicis hay en \(\.$savedPlace) con \(.applicationName)",
-                "Bicis disponibles en \(\.$savedPlace) con \(.applicationName)",
-                "Cuántas bicis tiene \(\.$savedPlace) con \(.applicationName)"
-            ],
-            shortTitle: "Bicis casa",
-            systemImageName: "bicycle.circle"
-        )
-        AppShortcut(
-            intent: SavedPlaceSlotCountIntent(),
-            phrases: [
-                "Cuántos huecos hay en \(\.$savedPlace) con \(.applicationName)",
-                "Huecos libres en \(\.$savedPlace) con \(.applicationName)",
-                "Cuántos anclajes libres hay en \(\.$savedPlace) con \(.applicationName)"
-            ],
-            shortTitle: "Huecos casa",
-            systemImageName: "parkingsign.circle"
         )
         AppShortcut(
             intent: SavedPlaceRouteIntent(),

@@ -16,6 +16,8 @@ androidx-core = "1.18.0"
 androidx-core-splashscreen = "1.2.0"
 androidx-startup = "1.2.0"
 androidx-wear-compose = "1.5.6"
+androidx-wear-protolayout = "1.4.0-rc02"
+androidx-wear-tiles = "1.6.0-rc02"
 maps-compose = "8.2.2"
 play-services-location = "21.3.0"
 play-services-maps = "20.0.0"
@@ -25,6 +27,7 @@ junit = "4.13.2"
 firebase-bom = "34.11.0"
 firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
+material-components = "1.13.0"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -37,6 +40,9 @@ androidx-startup-runtime = { module = "androidx.startup:startup-runtime", versio
 androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "androidx-wear-compose" }
 androidx-wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "androidx-wear-compose" }
 androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "androidx-wear-compose" }
+androidx-wear-protolayout = { module = "androidx.wear.protolayout:protolayout", version.ref = "androidx-wear-protolayout" }
+androidx-wear-protolayout-material3 = { module = "androidx.wear.protolayout:protolayout-material3", version.ref = "androidx-wear-protolayout" }
+androidx-wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "androidx-wear-tiles" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -54,6 +60,7 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
+google-material = { module = "com.google.android.material:material", version.ref = "material-components" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }

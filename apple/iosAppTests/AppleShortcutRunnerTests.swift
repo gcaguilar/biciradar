@@ -60,6 +60,85 @@ final class AppleShortcutRunnerTests: XCTestCase {
         XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
     }
 
+    func testOpenFavoriteStationDialogFallsBackToFavoriteListAndStoresRequest() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                favorites: [
+                    .fixture(id: "station-1", name: "Plaza España")
+                ]
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.openFavoriteStationDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Abriendo tu estación favorita en Bici Radar.")
+        XCTAssertEqual((requests.last as? MobileLaunchRequestShowStation)?.stationId, "station-1")
+    }
+
+    func testOpenNearbyStationsDialogStoresHomeRequest() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.openNearbyStationsDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Abriendo estaciones cercanas en Bici Radar.")
+        XCTAssertTrue(requests.last is MobileLaunchRequestHome)
+    }
+
+    func testMonitorFavoriteStationDialogStoresMonitorRequest() async {
+        let recorder = LaunchRequestRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                favorites: [
+                    .fixture(id: "station-2", name: "Universidad")
+                ]
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.monitorFavoriteStationDialog()
+        let requests = await recorder.requests()
+
+        XCTAssertEqual(dialog, "Preparando la monitorización de tu estación favorita en Bici Radar.")
+        XCTAssertEqual((requests.last as? MobileLaunchRequestMonitorStation)?.stationId, "station-2")
+    }
+
+    func testChangeCityDialogStoresSelectionAndUpdatesGraph() async {
+        let recorder = LaunchRequestRecorder()
+        let cityRecorder = CitySelectionRecorder()
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                onSetSelectedCity: { city in
+                    await cityRecorder.record(city)
+                }
+            ),
+            saveLaunchRequest: { request in
+                await recorder.append(request)
+            }
+        )
+
+        let dialog = await runner.changeCityDialog(cityId: "madrid")
+        let requests = await recorder.requests()
+        let selectedCityIds = await cityRecorder.selectedCityIds()
+
+        XCTAssertEqual(dialog, "Cambiando a Madrid en Bici Radar.")
+        XCTAssertEqual(selectedCityIds, ["madrid"])
+        XCTAssertEqual((requests.last as? MobileLaunchRequestSelectCity)?.cityId, "madrid")
+    }
+
     func testStationStatusDialogReportsStationByIdIdentifier() async {
         let runner = AppleShortcutRunner(
             graph: FakeAppleGraph(
@@ -73,6 +152,36 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let dialog = await runner.stationStatusDialog(stationId: "station-7")
 
         XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles y 5 huecos libres.")
+    }
+
+    func testStationBikeCountDialogReportsStationByIdIdentifier() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                stationById: [
+                    "station-7": .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.stationBikeCountDialog(stationId: "station-7")
+
+        XCTAssertEqual(dialog, "Universidad tiene 7 bicis disponibles.")
+    }
+
+    func testStationSlotCountDialogReportsStationByIdIdentifier() async {
+        let runner = AppleShortcutRunner(
+            graph: FakeAppleGraph(
+                stationById: [
+                    "station-7": .fixture(id: "station-7", name: "Universidad", bikes: 7, slots: 5)
+                ]
+            ),
+            saveLaunchRequest: { _ in }
+        )
+
+        let dialog = await runner.stationSlotCountDialog(stationId: "station-7")
+
+        XCTAssertEqual(dialog, "Universidad tiene 5 huecos libres.")
     }
 
     func testRouteDialogStoresRouteLaunchRequest() async {
@@ -194,11 +303,25 @@ private actor LaunchRequestRecorder {
     }
 }
 
+private actor CitySelectionRecorder {
+    private var selectedIds: [String] = []
+
+    func record(_ city: City) {
+        selectedIds.append(city.id)
+    }
+
+    func selectedCityIds() -> [String] {
+        selectedIds
+    }
+}
+
 private struct FakeAppleGraph: AppleGraphClient {
     var favorites: [BiziStationSnapshot] = []
     var matchedStation: BiziStationSnapshot?
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
+    var currentCity: City = City.companion.defaultCity()
+    var onSetSelectedCity: ((City) async -> Void)?
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
         favorites
@@ -211,6 +334,14 @@ private struct FakeAppleGraph: AppleGraphClient {
 
     func station(stationId: String) async throws -> BiziStationSnapshot? {
         stationById[stationId]
+    }
+
+    func currentSelectedCity() async throws -> City {
+        currentCity
+    }
+
+    func setSelectedCity(_ city: City) async throws {
+        await onSetSelectedCity?(city)
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {

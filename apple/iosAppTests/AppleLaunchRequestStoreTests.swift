@@ -32,6 +32,14 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertNil(store.takePendingRequest())
     }
 
+    func testHomeAndMapRequestsRoundTrip() {
+        store.save(MobileLaunchRequestHome.shared)
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestHome)
+
+        store.save(MobileLaunchRequestMap.shared)
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestMap)
+    }
+
     func testLegacyFavoritesActionStillLoads() {
         defaults.set("favorites", forKey: "bizizaragoza.pendingAction")
 
@@ -87,6 +95,22 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
 
         let request = store.takePendingRequest() as? MobileLaunchRequestShowStation
         XCTAssertEqual(request?.stationId, "station-9")
+        XCTAssertNil(store.takePendingRequest())
+    }
+
+    func testMonitorStationRequestPreservesStationIdentifier() {
+        store.save(MobileLaunchRequestMonitorStation(stationId: "station-9"))
+
+        let request = store.takePendingRequest() as? MobileLaunchRequestMonitorStation
+        XCTAssertEqual(request?.stationId, "station-9")
+        XCTAssertNil(store.takePendingRequest())
+    }
+
+    func testSelectCityRequestPreservesCityIdentifier() {
+        store.save(MobileLaunchRequestSelectCity(cityId: "zaragoza"))
+
+        let request = store.takePendingRequest() as? MobileLaunchRequestSelectCity
+        XCTAssertEqual(request?.cityId, "zaragoza")
         XCTAssertNil(store.takePendingRequest())
     }
 

@@ -52,6 +52,7 @@ import platform.UIKit.UIDevice
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
+import platform.UserNotifications.UNAuthorizationStatusAuthorized
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNTimeIntervalNotificationTrigger
@@ -298,6 +299,12 @@ private object IOSFavoritesCache {
 @OptIn(ExperimentalForeignApi::class)
 private class IOSLocalNotifier : LocalNotifier {
   private val center = UNUserNotificationCenter.currentNotificationCenter()
+
+  override suspend fun hasPermission(): Boolean = suspendCoroutine { cont ->
+    center.getNotificationSettingsWithCompletionHandler { settings ->
+      cont.resume(settings?.authorizationStatus == UNAuthorizationStatusAuthorized)
+    }
+  }
 
   override suspend fun requestPermission(): Boolean = suspendCoroutine { cont ->
     center.requestAuthorizationWithOptions(

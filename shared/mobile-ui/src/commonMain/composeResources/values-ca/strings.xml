@@ -115,7 +115,7 @@
     <string name="guideStationStatusExampleHome">Com està casa amb Bici Radar</string>
     <string name="guideStationStatusExampleHomeBikes">Quantes bicis hi ha a casa amb Bici Radar</string>
     <string name="guideStationStatusExampleStationSlots">Quants ancoratges hi ha a l\'estació 48 amb Bici Radar</string>
-    <string name="guideFavoritesDescription">Obre directament la teva llista de favorites, amb Casa i Feina incloses quan estiguin configurades.</string>
+    <string name="guideFavoritesDescription">Obre directament la teva llista de favorites. Casa i Feina apareixen a part quan estan configurades.</string>
     <string name="guideFavoritesExampleOpen">Obre les meves favorites amb Bici Radar</string>
     <string name="guideFavoritesExampleWork">Com està feina amb Bici Radar</string>
     <string name="guideRouteToStation">Ruta a una estació</string>
@@ -163,6 +163,14 @@
     <string name="changelogWatchRefreshDescription">Les apps de rellotge estrenen una interfície més clara, mètriques destacades i accions ràpides per a les teves estacions.</string>
     <string name="changelogStationLookupFixTitle">Cerca d\'estacions més fiable</string>
     <string name="changelogStationLookupFixDescription">Corregida la cerca per número perquè funcioni fins i tot si escrius zeros inicials.</string>
+    <string name="changelogUiImprovementsTitle">Millores d\'interfície</string>
+    <string name="changelogUiImprovementsDescription">Hem refinat pantalles, targetes i estats perquè la navegació diària sigui més clara i fluida.</string>
+    <string name="changelogPerformanceImprovementsTitle">Més rendiment</string>
+    <string name="changelogPerformanceImprovementsDescription">Hem reduït esperes i millorat la resposta general en carregar estacions i moure\'t per l\'app.</string>
+    <string name="changelogLocalCacheTitle">Cau local intel·ligent</string>
+    <string name="changelogLocalCacheDescription">Ara guardem temporalment les dades de les estacions al teu dispositiu per gastar menys xarxa i obrir més ràpid.</string>
+    <string name="changelogDataSourcesTitle">Més xarxes de bici pública</string>
+    <string name="changelogDataSourcesDescription">Afegim noves fonts públiques de dades i més sistemes de bicicleta compartida compatibles.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

@@ -23,6 +23,9 @@ apple-cert/
 *.iml
 DerivedData/
 xcuserdata/
+.xcode-home/
+.xcodebuild/
+SourcePackages/
 pepk.jar
 encryption_public_key.pem
 play/

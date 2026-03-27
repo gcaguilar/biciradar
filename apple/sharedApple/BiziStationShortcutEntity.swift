@@ -1,4 +1,5 @@
 import AppIntents
+import BiziMobileUi
 
 struct BiziStationShortcutEntity: AppEntity, Identifiable, Hashable {
     static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Estación")
@@ -52,4 +53,63 @@ private extension BiziStationShortcutEntity {
             slotsFree: station.slotsFree
         )
     }
+}
+
+struct BiziCityShortcutEntity: AppEntity, Identifiable, Hashable {
+    static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Ciudad")
+    static var defaultQuery = BiziCityShortcutEntityQuery()
+
+    let id: String
+    let name: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: .init(stringLiteral: name))
+    }
+}
+
+struct BiziCityShortcutEntityQuery: EntityStringQuery {
+    func entities(for identifiers: [String]) async throws -> [BiziCityShortcutEntity] {
+        identifiers
+            .compactMap { City.companion.fromId(id: $0) }
+            .map(BiziCityShortcutEntity.init(from:))
+    }
+
+    func entities(matching string: String) async throws -> [BiziCityShortcutEntity] {
+        let normalizedQuery = normalizeShortcutSearchText(string)
+        guard !normalizedQuery.isEmpty else {
+            return try await suggestedEntities()
+        }
+        return City.entries
+            .filter { city in
+                normalizeShortcutSearchText(city.displayName).contains(normalizedQuery) || city.id.contains(normalizedQuery)
+            }
+            .sorted { lhs, rhs in
+                lhs.displayName.localizedCaseInsensitiveCompare(rhs.displayName) == .orderedAscending
+            }
+            .map(BiziCityShortcutEntity.init(from:))
+    }
+
+    func suggestedEntities() async throws -> [BiziCityShortcutEntity] {
+        let currentCityId = (try? await BiziAppleGraph.shared.currentSelectedCity())?.id
+        return City.entries
+            .sorted { lhs, rhs in
+                if lhs.id == currentCityId { return true }
+                if rhs.id == currentCityId { return false }
+                return lhs.displayName.localizedCaseInsensitiveCompare(rhs.displayName) == .orderedAscending
+            }
+            .map(BiziCityShortcutEntity.init(from:))
+    }
+}
+
+private extension BiziCityShortcutEntity {
+    init(from city: City) {
+        self.init(id: city.id, name: city.displayName)
+    }
+}
+
+private func normalizeShortcutSearchText(_ text: String) -> String {
+    text
+        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased()
 }

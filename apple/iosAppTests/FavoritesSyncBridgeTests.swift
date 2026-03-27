@@ -102,4 +102,52 @@ final class FavoritesSyncBridgeTests: XCTestCase {
             Set(["101", "202"])
         )
     }
+
+    func testSyncWatchContextFromAppGroupLoadsFavoritesSnapshotAndSavedPlaces() throws {
+        let tempDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("favorites-sync-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDirectory) }
+
+        let snapshotURL = tempDirectory.appendingPathComponent("favorites.json")
+        let snapshotData = """
+        {"favoriteIds":["101","202"],"homeStationId":"home-1","workStationId":"work-2"}
+        """.data(using: .utf8)!
+        try snapshotData.write(to: snapshotURL, options: .atomic)
+
+        bridge.syncWatchContextFromAppGroup(favoritesURL: snapshotURL)
+
+        XCTAssertEqual(bridge.favoriteIds, Set(["101", "202"]))
+        XCTAssertEqual(bridge.homeStationId, "home-1")
+        XCTAssertEqual(bridge.workStationId, "work-2")
+        XCTAssertEqual(
+            Set(defaults.stringArray(forKey: FavoritesSyncBridge.favoritesCacheKey) ?? []),
+            Set(["101", "202"])
+        )
+        XCTAssertEqual(defaults.string(forKey: FavoritesSyncBridge.homeStationCacheKey), "home-1")
+        XCTAssertEqual(defaults.string(forKey: FavoritesSyncBridge.workStationCacheKey), "work-2")
+    }
+
+    func testApplyClearsSavedPlacesWhenApplicationContextSendsEmptyStrings() {
+        defaults.set(["101", "202"], forKey: FavoritesSyncBridge.favoritesCacheKey)
+        defaults.set("home-1", forKey: FavoritesSyncBridge.homeStationCacheKey)
+        defaults.set("work-2", forKey: FavoritesSyncBridge.workStationCacheKey)
+        bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)
+
+        bridge.apply(context: [
+            "favorite_ids": ["101", "202"],
+            "home_station_id": "",
+            "work_station_id": "",
+        ])
+
+        XCTAssertEqual(bridge.favoriteIds, Set(["101", "202"]))
+        XCTAssertNil(bridge.homeStationId)
+        XCTAssertNil(bridge.workStationId)
+        XCTAssertEqual(
+            Set(defaults.stringArray(forKey: FavoritesSyncBridge.favoritesCacheKey) ?? []),
+            Set(["101", "202"])
+        )
+        XCTAssertNil(defaults.string(forKey: FavoritesSyncBridge.homeStationCacheKey))
+        XCTAssertNil(defaults.string(forKey: FavoritesSyncBridge.workStationCacheKey))
+    }
 }

@@ -37,6 +37,7 @@ final class SurfaceMonitoringActivityController {
     private func syncFromSurfaceSnapshot() async {
         let session = BiziSurfaceStore.activeMonitoringSession()
         let activities = Activity<BiziMonitoringActivityAttributes>.activities
+        FavoritesSyncBridge.shared.syncMonitoringFromSurfaceSnapshot()
 
         guard let session else {
             for activity in activities {
@@ -45,14 +46,7 @@ final class SurfaceMonitoringActivityController {
             return
         }
 
-        let contentState = BiziMonitoringActivityAttributes.ContentState(
-            bikesAvailable: session.bikesAvailable,
-            docksAvailable: session.docksAvailable,
-            statusText: sessionDisplayText(session),
-            alternativeName: session.alternativeStationName,
-            isActive: session.isActive,
-            expiresAtEpoch: session.expiresAtEpoch
-        )
+        let contentState = monitoringContentState(from: session)
 
         if let activity = activities.first(where: { $0.attributes.stationId == session.stationId }) {
             await activity.update(using: contentState)
@@ -73,21 +67,39 @@ final class SurfaceMonitoringActivityController {
         )
     }
 
-    private func sessionDisplayText(_ session: AppleSurfaceMonitoringSession) -> String {
-        switch session.status {
-        case .monitoring:
-            return "Monitorizando"
-        case .changedToEmpty:
-            return "Sin bicis"
-        case .changedToFull:
-            return "Sin huecos"
-        case .alternativeAvailable:
-            return "Alternativa"
-        case .ended:
-            return "Finalizada"
-        case .expired:
-            return "Expirada"
-        }
+}
+
+@available(iOS 16.1, *)
+internal func monitoringContentState(
+    from session: AppleSurfaceMonitoringSession
+) -> BiziMonitoringActivityAttributes.ContentState {
+    BiziMonitoringActivityAttributes.ContentState(
+        bikesAvailable: session.bikesAvailable,
+        docksAvailable: session.docksAvailable,
+        statusText: monitoringSessionDisplayText(session),
+        alternativeStationId: session.alternativeStationId,
+        alternativeName: session.alternativeStationName,
+        alternativeDistanceMeters: session.alternativeDistanceMeters,
+        isActive: session.isActive,
+        expiresAtEpoch: session.expiresAtEpoch
+    )
+}
+
+@available(iOS 16.1, *)
+internal func monitoringSessionDisplayText(_ session: AppleSurfaceMonitoringSession) -> String {
+    switch session.status {
+    case .monitoring:
+        return "Monitorizando"
+    case .changedToEmpty:
+        return "Sin bicis"
+    case .changedToFull:
+        return "Sin huecos"
+    case .alternativeAvailable:
+        return "Alternativa disponible"
+    case .ended:
+        return "Finalizada"
+    case .expired:
+        return "Expirada"
     }
 }
 

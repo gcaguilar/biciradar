@@ -141,6 +141,7 @@ class MainActivity : ComponentActivity() {
         FavoriteStationWidgetProvider.updateAll(applicationContext)
         NearbyStationsWidgetProvider.updateAll(applicationContext)
         QuickActionsWidgetProvider.updateAll(applicationContext)
+        CommuteWidgetProvider.updateAll(applicationContext)
         AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }
       .launchIn(scope)
@@ -171,11 +172,5 @@ class MainActivity : ComponentActivity() {
     val payload = intent.toLaunchPayload()
     launchRequest = payload?.launchRequest
     assistantLaunchRequest = payload?.assistantLaunchRequest
-    ShortcutAnalytics.trackLaunch(
-      context = applicationContext,
-      intent = intent,
-      launchRequest = launchRequest,
-      assistantLaunchRequest = assistantLaunchRequest,
-    )
   }
 }

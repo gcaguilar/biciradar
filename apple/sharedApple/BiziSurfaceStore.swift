@@ -25,12 +25,57 @@ enum BiziSurfaceStore {
     }
 }
 
+enum AppleSurfaceSnapshotSlot: String, CaseIterable {
+    case favorite
+    case home
+    case work
+
+    var widgetTitle: String {
+        switch self {
+        case .favorite:
+            return "Favorita"
+        case .home:
+            return "Casa"
+        case .work:
+            return "Trabajo"
+        }
+    }
+
+    func widgetFallbackMessage(state: AppleSurfaceState?) -> String {
+        guard let state else { return "Abre la app para actualizar" }
+        if !state.isDataFresh {
+            return "Abre la app para actualizar"
+        }
+        switch self {
+        case .favorite:
+            return state.hasFavoriteStation ? "Datos no disponibles" : "Configura una estación favorita"
+        case .home:
+            return "Elige tu estación de casa"
+        case .work:
+            return "Elige tu estación de trabajo"
+        }
+    }
+}
+
 struct AppleSurfaceSnapshotBundle: Decodable {
     let generatedAtEpoch: Int64
     let favoriteStation: AppleSurfaceStationSnapshot?
+    let homeStation: AppleSurfaceStationSnapshot?
+    let workStation: AppleSurfaceStationSnapshot?
     let nearbyStations: [AppleSurfaceStationSnapshot]
     let monitoringSession: AppleSurfaceMonitoringSession?
     let state: AppleSurfaceState
+
+    func station(for slot: AppleSurfaceSnapshotSlot) -> AppleSurfaceStationSnapshot? {
+        switch slot {
+        case .favorite:
+            return favoriteStation
+        case .home:
+            return homeStation
+        case .work:
+            return workStation
+        }
+    }
 }
 
 struct AppleSurfaceStationSnapshot: Decodable, Hashable, Identifiable {

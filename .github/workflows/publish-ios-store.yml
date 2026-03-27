@@ -68,7 +68,9 @@ jobs:
         env:
           APPLE_SIGNING_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_SIGNING_CERTIFICATE_P12_BASE64 }}
           APPLE_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_WIDGET_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_WIDGET_PROVISIONING_PROFILE_BASE64 }}
           APPLE_WATCH_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_WATCH_PROVISIONING_PROFILE_BASE64 }}
+          APPLE_WATCH_WIDGET_PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_WATCH_WIDGET_PROVISIONING_PROFILE_BASE64 }}
         run: |
           if [[ -z "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" ]]; then
             echo "::error::APPLE_SIGNING_CERTIFICATE_P12_BASE64 secret is empty or not available"
@@ -78,12 +80,22 @@ jobs:
             echo "::error::APPLE_PROVISIONING_PROFILE_BASE64 secret is empty or not available"
             exit 1
           fi
+          if [[ -z "$APPLE_WIDGET_PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "::error::APPLE_WIDGET_PROVISIONING_PROFILE_BASE64 secret is empty or not available"
+            exit 1
+          fi
+          if [[ -z "$APPLE_WATCH_WIDGET_PROVISIONING_PROFILE_BASE64" ]]; then
+            echo "::error::APPLE_WATCH_WIDGET_PROVISIONING_PROFILE_BASE64 secret is empty or not available"
+            exit 1
+          fi
 
           printf '%s' "$APPLE_SIGNING_CERTIFICATE_P12_BASE64" | base64 -D > "$RUNNER_TEMP/signing-certificate.p12"
           printf '%s' "$APPLE_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/signing-profile.mobileprovision"
+          printf '%s' "$APPLE_WIDGET_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/widget-signing-profile.mobileprovision"
 
           echo "APPLE_CERTIFICATE_PATH=$RUNNER_TEMP/signing-certificate.p12" >> "$GITHUB_ENV"
           echo "APPLE_PROFILE_PATH=$RUNNER_TEMP/signing-profile.mobileprovision" >> "$GITHUB_ENV"
+          echo "APPLE_WIDGET_PROFILE_PATH=$RUNNER_TEMP/widget-signing-profile.mobileprovision" >> "$GITHUB_ENV"
 
           extract_profile_name() {
             local profile_path="$1"
@@ -105,6 +117,15 @@ jobs:
             echo "Warning: Could not extract iOS profile name"
           fi
 
+          widget_profile_name=$(extract_profile_name "$RUNNER_TEMP/widget-signing-profile.mobileprovision")
+          if [[ -n "$widget_profile_name" ]]; then
+            echo "APPLE_WIDGET_PROFILE_NAME=$widget_profile_name" >> "$GITHUB_ENV"
+            echo "iOS widget profile name: $widget_profile_name"
+          else
+            echo "::error::Could not extract iOS widget profile name"
+            exit 1
+          fi
+
           if [[ -n "$APPLE_WATCH_PROVISIONING_PROFILE_BASE64" ]]; then
             printf '%s' "$APPLE_WATCH_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/watch-signing-profile.mobileprovision"
             echo "APPLE_WATCH_PROFILE_PATH=$RUNNER_TEMP/watch-signing-profile.mobileprovision" >> "$GITHUB_ENV"
@@ -113,6 +134,17 @@ jobs:
               echo "APPLE_WATCH_PROFILE_NAME=$watch_profile_name" >> "$GITHUB_ENV"
               echo "Watch profile name: $watch_profile_name"
             fi
+          fi
+
+          printf '%s' "$APPLE_WATCH_WIDGET_PROVISIONING_PROFILE_BASE64" | base64 -D > "$RUNNER_TEMP/watch-widget-signing-profile.mobileprovision"
+          echo "APPLE_WATCH_WIDGET_PROFILE_PATH=$RUNNER_TEMP/watch-widget-signing-profile.mobileprovision" >> "$GITHUB_ENV"
+          watch_widget_profile_name=$(extract_profile_name "$RUNNER_TEMP/watch-widget-signing-profile.mobileprovision")
+          if [[ -n "$watch_widget_profile_name" ]]; then
+            echo "APPLE_WATCH_WIDGET_PROFILE_NAME=$watch_widget_profile_name" >> "$GITHUB_ENV"
+            echo "Watch widget profile name: $watch_widget_profile_name"
+          else
+            echo "::error::Could not extract watch widget profile name"
+            exit 1
           fi
 
       - name: Set up Ruby and Bundler

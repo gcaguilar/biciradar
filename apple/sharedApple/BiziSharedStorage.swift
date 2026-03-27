@@ -20,4 +20,8 @@ enum BiziSharedStorage {
     static func surfaceSnapshotURL() -> URL? {
         snapshotsDirectoryURL()?.appendingPathComponent(snapshotFileName)
     }
+
+    static func favoritesSnapshotURL() -> URL? {
+        snapshotsDirectoryURL()?.appendingPathComponent("favorites.json")
+    }
 }

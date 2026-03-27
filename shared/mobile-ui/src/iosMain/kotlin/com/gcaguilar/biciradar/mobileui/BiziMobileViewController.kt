@@ -35,6 +35,7 @@ class BiziMainViewControllerWrapper(
     value = initialLaunchRequest,
     policy = neverEqualPolicy(),
   )
+  private var refreshNonce by mutableStateOf(0)
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private var tripRepository: TripRepository? = null
 
@@ -45,6 +46,7 @@ class BiziMainViewControllerWrapper(
       BiziMobileApp(
         platformBindings = IOSPlatformBindings(),
         launchRequest = currentLaunchRequest,
+        refreshKey = refreshNonce,
         onTripRepositoryReady = { repo ->
           tripRepository = repo
         },
@@ -54,6 +56,11 @@ class BiziMainViewControllerWrapper(
 
   fun updateLaunchRequest(request: MobileLaunchRequest?) {
     currentLaunchRequest = request
+  }
+
+  /** Called by Swift when the app returns to the foreground and should pull fresh station data. */
+  fun requestRefresh() {
+    refreshNonce += 1
   }
 
   /** Called by Swift when the app enters background with active monitoring. */

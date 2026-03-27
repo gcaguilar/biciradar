@@ -146,6 +146,52 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `favorites repository syncFromPeer pulls newer wearable ids`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-sync-peer-${Random.nextInt()}"
+    val watchBridge = object : WatchSyncBridge {
+      val pushedSnapshots = mutableListOf<FavoritesSyncSnapshot>()
+      var remoteSnapshot: FavoritesSyncSnapshot? = FavoritesSyncSnapshot(
+        favoriteIds = setOf("station-watch"),
+      )
+
+      override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
+        pushedSnapshots += snapshot
+      }
+
+      override suspend fun latestFavorites(): FavoritesSyncSnapshot? = remoteSnapshot
+    }
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = watchBridge,
+    )
+
+    repository.bootstrap()
+    watchBridge.remoteSnapshot = FavoritesSyncSnapshot(
+      favoriteIds = setOf("station-watch", "station-remote"),
+      homeStationId = "station-home",
+    )
+
+    repository.syncFromPeer()
+
+    assertEquals(setOf("station-watch", "station-remote"), repository.favoriteIds.value)
+    assertEquals("station-home", repository.currentHomeStationId())
+    assertEquals(
+      listOf(
+        FavoritesSyncSnapshot(favoriteIds = setOf("station-watch")),
+        FavoritesSyncSnapshot(
+          favoriteIds = setOf("station-watch", "station-remote"),
+          homeStationId = "station-home",
+        ),
+      ),
+      watchBridge.pushedSnapshots,
+    )
+  }
+
+  @Test
   fun `favorites repository pushes updated ids on toggle`() = runTest {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-toggle-${Random.nextInt()}"
     val watchBridge = RecordingWatchSyncBridge()

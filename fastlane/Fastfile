@@ -33,14 +33,29 @@ end
     profile_name = ENV.fetch("APPLE_PROFILE_NAME", nil)&.strip
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")&.strip
     team_id = required_env("APPLE_TEAM_ID")&.strip
+    widget_profile_path = ENV.fetch("APPLE_WIDGET_PROFILE_PATH", nil)&.strip
+    widget_profile_name = ENV.fetch("APPLE_WIDGET_PROFILE_NAME", nil)&.strip
+    watch_profile_path = ENV.fetch("APPLE_WATCH_PROFILE_PATH", nil)&.strip
+    watch_profile_name = ENV.fetch("APPLE_WATCH_PROFILE_NAME", nil)&.strip
+    watch_widget_profile_path = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_PATH", nil)&.strip
+    watch_widget_profile_name = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_NAME", nil)&.strip
 
     install_provisioning_profile(path: profile_path)
+    install_provisioning_profile(path: widget_profile_path) if widget_profile_path
+    install_provisioning_profile(path: watch_profile_path) if watch_profile_path
+    install_provisioning_profile(path: watch_widget_profile_path) if watch_widget_profile_path
 
     xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
     if profile_name
       profile_name_clean = profile_name.strip
       xcargs += " PROVISIONING_PROFILE_SPECIFIER='#{profile_name_clean}'"
     end
+
+    provisioning_profiles = {}
+    provisioning_profiles[bundle_id.strip] = profile_name.strip if profile_name
+    provisioning_profiles["com.gcaguilar.biciradar.ios.widgets"] = widget_profile_name if widget_profile_name
+    provisioning_profiles["com.gcaguilar.biciradar.ios.watch"] = watch_profile_name if watch_profile_name
+    provisioning_profiles["com.gcaguilar.biciradar.ios.watch.widgets"] = watch_widget_profile_name if watch_widget_profile_name
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -54,7 +69,7 @@ end
       export_options: {
         signingStyle: "manual",
         teamID: team_id,
-        provisioningProfiles: profile_name ? { bundle_id.strip => profile_name.strip } : nil
+        provisioningProfiles: provisioning_profiles.empty? ? nil : provisioning_profiles
       }.compact
     )
   end
@@ -80,17 +95,25 @@ end
     profile_name = ENV.fetch("APPLE_PROFILE_NAME", nil)&.strip
     bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")&.strip
     team_id = required_env("APPLE_TEAM_ID")&.strip
+    widget_profile_path = ENV.fetch("APPLE_WIDGET_PROFILE_PATH", nil)&.strip
+    widget_profile_name = ENV.fetch("APPLE_WIDGET_PROFILE_NAME", nil)&.strip
     watch_profile_path = ENV.fetch("APPLE_WATCH_PROFILE_PATH", nil)&.strip
     watch_profile_name = ENV.fetch("APPLE_WATCH_PROFILE_NAME", nil)&.strip
+    watch_widget_profile_path = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_PATH", nil)&.strip
+    watch_widget_profile_name = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_NAME", nil)&.strip
 
     install_provisioning_profile(path: profile_path)
+    install_provisioning_profile(path: widget_profile_path) if widget_profile_path
     install_provisioning_profile(path: watch_profile_path) if watch_profile_path
+    install_provisioning_profile(path: watch_widget_profile_path) if watch_widget_profile_path
 
     xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
 
     provisioning_profiles = {}
     provisioning_profiles[bundle_id] = profile_name if profile_name
+    provisioning_profiles["com.gcaguilar.biciradar.ios.widgets"] = widget_profile_name if widget_profile_name
     provisioning_profiles["com.gcaguilar.biciradar.ios.watch"] = watch_profile_name if watch_profile_name
+    provisioning_profiles["com.gcaguilar.biciradar.ios.watch.widgets"] = watch_widget_profile_name if watch_widget_profile_name
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",

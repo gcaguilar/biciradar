@@ -287,25 +287,15 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
 }
 
-private const val CURRENT_CHANGELOG_VERSION = 4
+private const val CURRENT_CHANGELOG_VERSION = 5
 
 private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
 
 private val CHANGELOG_ENTRIES = listOf(
-  ChangelogEntry(Res.string.changelogBrandRefreshTitle, Res.string.changelogBrandRefreshDescription),
-  ChangelogEntry(Res.string.changelogWatchRefreshTitle, Res.string.changelogWatchRefreshDescription),
-  ChangelogEntry(Res.string.changelogStationLookupFixTitle, Res.string.changelogStationLookupFixDescription),
-  // TODO: Re-enable these once Moko Resources generation is fixed
-  // ChangelogEntry(Res.string.changelogNewCitiesTitle, Res.string.changelogNewCitiesDescription),
-  // ChangelogEntry(Res.string.changelogFilterColorsTitle, Res.string.changelogFilterColorsDescription),
-  // ChangelogEntry(Res.string.changelogDistanceKmTitle, Res.string.changelogDistanceKmDescription),
-  // ChangelogEntry(Res.string.changelogDarkModeFixesTitle, Res.string.changelogDarkModeFixesDescription),
-  ChangelogEntry(Res.string.changelogMoreCitiesTitle, Res.string.changelogMoreCitiesDescription),
-  ChangelogEntry(Res.string.changelogCitySelectionFixTitle, Res.string.changelogCitySelectionFixDescription),
-  ChangelogEntry(Res.string.changelogDarkThemeTitle, Res.string.changelogDarkThemeDescription),
-  ChangelogEntry(Res.string.changelogDismissibleCardTitle, Res.string.changelogDismissibleCardDescription),
-  ChangelogEntry(Res.string.changelogMapFiltersTitle, Res.string.changelogMapFiltersDescription),
-  ChangelogEntry(Res.string.changelogRefreshIndicatorTitle, Res.string.changelogRefreshIndicatorDescription),
+  ChangelogEntry(Res.string.changelogUiImprovementsTitle, Res.string.changelogUiImprovementsDescription),
+  ChangelogEntry(Res.string.changelogPerformanceImprovementsTitle, Res.string.changelogPerformanceImprovementsDescription),
+  ChangelogEntry(Res.string.changelogLocalCacheTitle, Res.string.changelogLocalCacheDescription),
+  ChangelogEntry(Res.string.changelogDataSourcesTitle, Res.string.changelogDataSourcesDescription),
 )
 
 sealed interface MobileLaunchRequest {
@@ -440,7 +430,7 @@ fun BiziMobileApp(
 
   LaunchedEffect(graph) {
     favoritesBootstrapped = false
-    runCatching { favoritesRepository.bootstrap() }
+    runCatching { favoritesRepository.syncFromPeer() }
     favoritesBootstrapped = true
   }
 
@@ -463,9 +453,12 @@ fun BiziMobileApp(
     minimumSplashElapsed = true
   }
 
-  LaunchedEffect(graph, refreshKey) {
-    stationsRepository.loadIfNeeded()
-    initialLoadAttemptFinished = true
+  LaunchedEffect(graph, refreshKey, settingsBootstrapped, favoritesBootstrapped) {
+    if (settingsBootstrapped && favoritesBootstrapped) {
+      runCatching { favoritesRepository.syncFromPeer() }
+      stationsRepository.forceRefresh()
+      initialLoadAttemptFinished = true
+    }
   }
 
   LaunchedEffect(
@@ -581,6 +574,7 @@ fun BiziMobileApp(
       is MobileLaunchRequest.SelectCity -> {
         val city = City.fromId(request.cityId) ?: return@LaunchedEffect
         settingsRepository.setSelectedCity(city)
+        stationsRepository.forceRefresh()
         navController.navigate(Screen.Nearby) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
@@ -1675,7 +1669,7 @@ private fun FavoritesScreen(
       }
     }
     if (stations.isNotEmpty()) {
-      items(stations, key = { it.id }) { station ->
+      items(stations.distinctBy { it.id }, key = { it.id }) { station ->
         DismissibleFavoriteStationRow(
           mobilePlatform = mobilePlatform,
           station = station,

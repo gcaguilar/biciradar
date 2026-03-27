@@ -15,11 +15,14 @@
 
 ## Pending or explicitly deferred
 
-- [ ] WidgetKit complication for favorite station status
-- [ ] Dedicated watch surface snapshot reader from App Group storage
-- [ ] Live Activity handoff from iPhone to watch surface
+- [x] WidgetKit complication for favorite station status
+- [x] Dedicated watch surface snapshot reader from App Group storage
+- [x] Live Activity handoff from iPhone to watch surface
 
 ## Notes
 
-- The existing watch app already covers quick lookup and routing, so the optional complication remains deferred.
+- The existing watch app already covers quick lookup and routing, and now also includes a favorite-status complication for at-a-glance checks.
+- The watch dashboard now persists a compact local snapshot in the shared App Group container and reuses it as an offline fallback.
+- The watch complication reads that same App Group snapshot to show favorite bikes, docks and stale-state fallback without extra network calls.
+- Active monitoring from iPhone is mirrored onto the watch dashboard through `WatchConnectivity`, including a quick route handoff back to the phone.
 - Home/work ordering and short status text now match the native surface rules used on iPhone and Android.
