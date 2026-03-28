@@ -27,11 +27,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -58,12 +60,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.OutlinedTextField
@@ -74,6 +80,9 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -96,6 +105,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -155,6 +165,7 @@ import androidx.navigation.compose.rememberNavController
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
+import androidx.window.core.layout.WindowSizeClass
 
 // --- Light-mode palette raw tokens ---
 private val BiziLight = Color(0xFFF8F6F6)
@@ -262,6 +273,14 @@ private val DarkBiziColors = BiziColors(
 )
 
 internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
+
+internal enum class BiziWindowLayout {
+  Compact,
+  Medium,
+  Expanded,
+}
+
+internal val LocalBiziWindowLayout = staticCompositionLocalOf { BiziWindowLayout.Compact }
 
 private enum class MobileTab(val labelKey: StringResource) {
   Cerca(Res.string.nearby),
@@ -675,112 +694,111 @@ fun BiziMobileApp(
   }
 
   BiziTheme(mobilePlatform, themePreference) {
-    Surface(
-      modifier = modifier.fillMaxSize(),
-      color = pageBackgroundColor(mobilePlatform),
-    ) {
-      if (showChangelog) {
-        val onChangelogDismiss = remember {
-          {
-            showChangelog = false
-            scope.launch { settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION) }
-            Unit
-          }
-        }
-        ChangelogDialog(onDismiss = onChangelogDismiss)
-      }
-      if (showCitySelection) {
-        CitySelectionScreen(
-          onCitySelected = { city ->
-            scope.launch {
-              settingsRepository.setSelectedCity(city)
-              settingsRepository.setHasCompletedOnboarding(true)
-              favoritesRepository.clearAll()
-              showCitySelection = false
-              stationsRepository.forceRefresh()
+    val windowLayout = rememberBiziWindowLayout()
+    CompositionLocalProvider(LocalBiziWindowLayout provides windowLayout) {
+      Surface(
+        modifier = modifier.fillMaxSize(),
+        color = pageBackgroundColor(mobilePlatform),
+      ) {
+        if (showChangelog) {
+          val onChangelogDismiss = remember {
+            {
+              showChangelog = false
+              scope.launch { settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION) }
+              Unit
             }
           }
-        )
-      } else AnimatedContent(
-        targetState = showStartupSplash,
-        transitionSpec = {
-          fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))
-        },
-        label = "startup-splash-transition",
-      ) { splashVisible ->
-        if (splashVisible) {
-          StartupSplashScreen(mobilePlatform = mobilePlatform)
-        } else {
-          val tripViewModelFactory = remember(graph, searchRadiusMeters) {
-            com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
-              tripRepository = graph.tripRepository,
-              surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-              geoSearchUseCase = graph.geoSearchUseCase,
-              reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
-              searchRadiusMeters = searchRadiusMeters,
-            )
-          }
-          val nearbyViewModelFactory = remember(graph, searchRadiusMeters) {
-            com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
-              stationsRepository = graph.stationsRepository,
-              favoritesRepository = graph.favoritesRepository,
-              routeLauncher = graph.routeLauncher,
-              searchRadiusMeters = searchRadiusMeters,
-            )
-          }
-          val favoritesViewModelFactory = remember(graph) {
-            com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
-              favoritesRepository = graph.favoritesRepository,
-              stationsRepository = graph.stationsRepository,
-              routeLauncher = graph.routeLauncher,
-            )
-          }
-          val profileViewModelFactory = remember(graph, searchRadiusMeters) {
-            com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
-              settingsRepository = graph.settingsRepository,
-              stationsRepository = graph.stationsRepository,
-              favoritesRepository = graph.favoritesRepository,
-              searchRadiusMeters = searchRadiusMeters,
-            )
-          }
-          Scaffold(
-            containerColor = pageBackgroundColor(mobilePlatform),
-            bottomBar = {
-              MobileBottomNavigationBar(
-                mobilePlatform = mobilePlatform,
-                navController = navController,
+          ChangelogDialog(onDismiss = onChangelogDismiss)
+        }
+        if (showCitySelection) {
+          CitySelectionScreen(
+            onCitySelected = { city ->
+              scope.launch {
+                settingsRepository.setSelectedCity(city)
+                settingsRepository.setHasCompletedOnboarding(true)
+                favoritesRepository.clearAll()
+                showCitySelection = false
+                stationsRepository.forceRefresh()
+              }
+            }
+          )
+        } else AnimatedContent(
+          targetState = showStartupSplash,
+          transitionSpec = {
+            fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))
+          },
+          label = "startup-splash-transition",
+        ) { splashVisible ->
+          if (splashVisible) {
+            StartupSplashScreen(mobilePlatform = mobilePlatform)
+          } else {
+            val tripViewModelFactory = remember(graph, searchRadiusMeters) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
+                tripRepository = graph.tripRepository,
+                surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+                geoSearchUseCase = graph.geoSearchUseCase,
+                reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
+                searchRadiusMeters = searchRadiusMeters,
               )
-            },
-          ) { innerPadding ->
-            BiziNavHost(
-              navController = navController,
+            }
+            val nearbyViewModelFactory = remember(graph, searchRadiusMeters) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
+                stationsRepository = graph.stationsRepository,
+                favoritesRepository = graph.favoritesRepository,
+                routeLauncher = graph.routeLauncher,
+                searchRadiusMeters = searchRadiusMeters,
+              )
+            }
+            val favoritesViewModelFactory = remember(graph) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
+                favoritesRepository = graph.favoritesRepository,
+                stationsRepository = graph.stationsRepository,
+                routeLauncher = graph.routeLauncher,
+              )
+            }
+            val profileViewModelFactory = remember(graph, searchRadiusMeters) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
+                settingsRepository = graph.settingsRepository,
+                stationsRepository = graph.stationsRepository,
+                favoritesRepository = graph.favoritesRepository,
+                searchRadiusMeters = searchRadiusMeters,
+              )
+            }
+            BiziNavigationShell(
               mobilePlatform = mobilePlatform,
-              tripViewModelFactory = tripViewModelFactory,
-              nearbyViewModelFactory = nearbyViewModelFactory,
-              favoritesViewModelFactory = favoritesViewModelFactory,
-              profileViewModelFactory = profileViewModelFactory,
-              stations = filteredStations,
-              favoriteIds = favoriteIds,
-              loading = stationsState.isLoading,
-              errorMessage = stationsState.errorMessage,
-              nearestSelection = nearestSelection,
-              userLocation = stationsState.userLocation,
-              searchQuery = appState.searchQuery,
-              searchRadiusMeters = searchRadiusMeters,
-              isMapReady = isMapReady,
-              onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-              onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-              onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-              onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-              onOpenAssistant = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
-              localNotifier = platformBindings.localNotifier,
-              routeLauncher = graph.routeLauncher,
-              graph = graph,
-              stationsRepository = stationsRepository,
-              initialAssistantAction = appState.pendingAssistantAction,
-              onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-              paddingValues = innerPadding,
-            )
+              navController = navController,
+              windowLayout = windowLayout,
+            ) { innerPadding ->
+              BiziNavHost(
+                navController = navController,
+                mobilePlatform = mobilePlatform,
+                tripViewModelFactory = tripViewModelFactory,
+                nearbyViewModelFactory = nearbyViewModelFactory,
+                favoritesViewModelFactory = favoritesViewModelFactory,
+                profileViewModelFactory = profileViewModelFactory,
+                stations = filteredStations,
+                favoriteIds = favoriteIds,
+                loading = stationsState.isLoading,
+                errorMessage = stationsState.errorMessage,
+                nearestSelection = nearestSelection,
+                userLocation = stationsState.userLocation,
+                searchQuery = appState.searchQuery,
+                searchRadiusMeters = searchRadiusMeters,
+                isMapReady = isMapReady,
+                onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+                onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
+                onOpenAssistant = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
+                localNotifier = platformBindings.localNotifier,
+                routeLauncher = graph.routeLauncher,
+                graph = graph,
+                stationsRepository = stationsRepository,
+                initialAssistantAction = appState.pendingAssistantAction,
+                onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+                paddingValues = innerPadding,
+              )
+            }
           }
         }
       }
@@ -788,6 +806,7 @@ fun BiziMobileApp(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BiziTheme(
   mobilePlatform: MobileUiPlatform,
@@ -802,17 +821,111 @@ private fun BiziTheme(
   val colors = if (isDark) DarkBiziColors else LightBiziColors
   CompositionLocalProvider(LocalBiziColors provides colors) {
     MaterialTheme(
-      colorScheme = MaterialTheme.colorScheme.copy(
-        primary = colors.red,
-        background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
-        surface = colors.surface,
-        onSurface = colors.ink,
-        onBackground = colors.ink,
-        surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+      colorScheme = biziColorScheme(
+        isDark = isDark,
+        colors = colors,
+        mobilePlatform = mobilePlatform,
       ),
+      motionScheme = MotionScheme.expressive(),
       content = content,
     )
   }
+}
+
+@Composable
+private fun BiziNavigationShell(
+  mobilePlatform: MobileUiPlatform,
+  navController: NavHostController,
+  windowLayout: BiziWindowLayout,
+  content: @Composable (PaddingValues) -> Unit,
+) {
+  if (windowLayout == BiziWindowLayout.Compact) {
+    Scaffold(
+      containerColor = pageBackgroundColor(mobilePlatform),
+      bottomBar = {
+        MobileBottomNavigationBar(
+          mobilePlatform = mobilePlatform,
+          navController = navController,
+        )
+      },
+    ) { innerPadding ->
+      content(innerPadding)
+    }
+    return
+  }
+
+  Row(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(pageBackgroundColor(mobilePlatform)),
+  ) {
+    MobileNavigationRail(
+      mobilePlatform = mobilePlatform,
+      navController = navController,
+    )
+    VerticalDivider(color = LocalBiziColors.current.panel)
+    Box(
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxHeight(),
+    ) {
+      content(PaddingValues())
+    }
+  }
+}
+
+@Composable
+private fun rememberBiziWindowLayout(): BiziWindowLayout {
+  val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+  return when {
+    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) &&
+      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Expanded
+    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
+      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Medium
+    else -> BiziWindowLayout.Compact
+  }
+}
+
+private fun biziColorScheme(
+  isDark: Boolean,
+  colors: BiziColors,
+  mobilePlatform: MobileUiPlatform,
+) = if (isDark) {
+  darkColorScheme(
+    primary = colors.red,
+    onPrimary = colors.onAccent,
+    secondary = colors.green,
+    onSecondary = colors.onAccent,
+    tertiary = colors.blue,
+    onTertiary = colors.onAccent,
+    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
+    onBackground = colors.ink,
+    surface = colors.surface,
+    onSurface = colors.ink,
+    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+    onSurfaceVariant = colors.muted,
+    outline = colors.panel,
+    inverseSurface = colors.ink,
+    inverseOnSurface = colors.surface,
+  )
+} else {
+  lightColorScheme(
+    primary = colors.red,
+    onPrimary = colors.onAccent,
+    secondary = colors.green,
+    onSecondary = colors.onAccent,
+    tertiary = colors.blue,
+    onTertiary = colors.onAccent,
+    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
+    onBackground = colors.ink,
+    surface = colors.surface,
+    onSurface = colors.ink,
+    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+    onSurfaceVariant = colors.muted,
+    outline = colors.panel,
+    inverseSurface = colors.ink,
+    inverseOnSurface = colors.surface,
+  )
 }
 
 @Composable
@@ -890,7 +1003,67 @@ private fun MobileBottomNavigationBar(
       val screen = tab.screen()
       NavigationBarItem(
         selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
-        onClick = { navController.navigate(screen) { launchSingleTop = true; restoreState = true; popUpTo(Screen.Nearby) { saveState = true } } },
+        onClick = { navController.navigateToPrimaryDestination(screen) },
+        icon = {
+          Icon(
+            imageVector = tab.icon(),
+            contentDescription = stringResource(tab.labelKey),
+          )
+        },
+        label = { Text(stringResource(tab.labelKey)) },
+      )
+    }
+  }
+}
+
+@Composable
+private fun MobileNavigationRail(
+  mobilePlatform: MobileUiPlatform,
+  navController: NavHostController,
+) {
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentRoute = navBackStackEntry?.destination?.route
+  val colors = LocalBiziColors.current
+
+  NavigationRail(
+    modifier = Modifier
+      .fillMaxHeight()
+      .padding(vertical = 12.dp),
+    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
+      colors.navBarIos
+    } else {
+      colors.navBar
+    },
+    header = {
+      Column(
+        modifier = Modifier.padding(bottom = 18.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        Surface(
+          shape = CircleShape,
+          color = colors.red,
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
+            contentDescription = null,
+            tint = colors.onAccent,
+            modifier = Modifier.padding(12.dp).size(20.dp),
+          )
+        }
+        Text(
+          text = stringResource(Res.string.appName),
+          style = MaterialTheme.typography.labelSmall,
+          color = colors.muted,
+        )
+      }
+    },
+  ) {
+    MobileTabs.forEach { tab ->
+      val screen = tab.screen()
+      NavigationRailItem(
+        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
+        onClick = { navController.navigateToPrimaryDestination(screen) },
         icon = {
           Icon(
             imageVector = tab.icon(),
@@ -1126,162 +1299,166 @@ private fun NearbyScreen(
     selectNearbyStation(stations, searchRadiusMeters) { station -> station.slotsFree > 0 }
   }
 
-  Column(
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
+    contentAlignment = Alignment.TopCenter,
   ) {
-    // Header + quick-action cards — always visible, never scroll away
     Column(
-      modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
+      modifier = Modifier.responsivePageWidth(),
     ) {
-      if (mobilePlatform == MobileUiPlatform.IOS) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.Top,
-        ) {
-          Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.nearby),
-              style = MaterialTheme.typography.headlineMedium,
-              fontWeight = FontWeight.Bold,
-            )
-            Text(
-              text = stringResource(Res.string.nearbyQuickActionsDescription),
-              style = MaterialTheme.typography.bodyMedium,
-              color = LocalBiziColors.current.muted,
-            )
-          }
-          RefreshButtonWithCountdown(
-            countdown = refreshCountdownSeconds,
-            loading = loading,
-            onRefresh = onRefresh,
-          )
-        }
-      } else {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.Top,
-        ) {
-          Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.nearbyNearYou),
-              style = MaterialTheme.typography.headlineMedium,
-              fontWeight = FontWeight.Bold,
-              color = LocalBiziColors.current.red,
-            )
-            Text(
-              text = stringResource(Res.string.nearbyStationsSortedDescription),
-              style = MaterialTheme.typography.bodyMedium,
-              color = LocalBiziColors.current.muted,
-            )
-          }
-          RefreshButtonWithCountdown(
-            countdown = refreshCountdownSeconds,
-            loading = loading,
-            onRefresh = onRefresh,
-          )
-        }
-      }
-      Row(
-        modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+      // Header + quick-action cards — always visible, never scroll away
+      Column(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        QuickRouteActionCard(
-          modifier = Modifier.weight(1f),
-          title = stringResource(Res.string.nearbyNearestWithBikes),
-          emptyTitle = stringResource(Res.string.nearbyNoBikesNearby),
-          selection = nearestWithBikesSelection,
-          icon = Icons.AutoMirrored.Filled.DirectionsBike,
-          tint = LocalBiziColors.current.red,
-          mobilePlatform = mobilePlatform,
-          onRoute = onQuickRoute,
-        )
-        QuickRouteActionCard(
-          modifier = Modifier.weight(1f),
-          title = stringResource(Res.string.nearbyNearestWithSlots),
-          emptyTitle = stringResource(Res.string.nearbyNoSlotsNearby),
-          selection = nearestWithSlotsSelection,
-          icon = Icons.Filled.LocalParking,
-          tint = LocalBiziColors.current.blue,
-          mobilePlatform = mobilePlatform,
-          onRoute = onQuickRoute,
-        )
-      }
-    }
-    // Scrollable list below
-    LazyColumn(
-      modifier = Modifier.fillMaxSize(),
-      contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-      item {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = if (loading) stringResource(Res.string.nearbyUpdatingStations) else stringResource(Res.string.nearbyStations),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-          )
-          Text(
-            text = if (nearestSelection.usesFallback) {
-              stringResource(Res.string.nearbyRadiusFallbackHint)
-            } else {
-              stringResource(Res.string.nearbyCardActionsHint)
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          AnimatedVisibility(
-            visible = errorMessage != null,
-            enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
-            exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-            label = "nearby-error",
+        if (mobilePlatform == MobileUiPlatform.IOS) {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
           ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(errorMessage.orEmpty(), color = LocalBiziColors.current.red)
-              OutlinedButton(onClick = onRetry) {
-                Icon(Icons.Filled.Sync, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(Res.string.retry))
+            Column(
+              modifier = Modifier.weight(1f),
+              verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+              Text(
+                text = stringResource(Res.string.nearby),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+              )
+              Text(
+                text = stringResource(Res.string.nearbyQuickActionsDescription),
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalBiziColors.current.muted,
+              )
+            }
+            RefreshButtonWithCountdown(
+              countdown = refreshCountdownSeconds,
+              loading = loading,
+              onRefresh = onRefresh,
+            )
+          }
+        } else {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+          ) {
+            Column(
+              modifier = Modifier.weight(1f),
+              verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              Text(
+                text = stringResource(Res.string.nearbyNearYou),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = LocalBiziColors.current.red,
+              )
+              Text(
+                text = stringResource(Res.string.nearbyStationsSortedDescription),
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalBiziColors.current.muted,
+              )
+            }
+            RefreshButtonWithCountdown(
+              countdown = refreshCountdownSeconds,
+              loading = loading,
+              onRefresh = onRefresh,
+            )
+          }
+        }
+        Row(
+          modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          QuickRouteActionCard(
+            modifier = Modifier.weight(1f),
+            title = stringResource(Res.string.nearbyNearestWithBikes),
+            emptyTitle = stringResource(Res.string.nearbyNoBikesNearby),
+            selection = nearestWithBikesSelection,
+            icon = Icons.AutoMirrored.Filled.DirectionsBike,
+            tint = LocalBiziColors.current.red,
+            mobilePlatform = mobilePlatform,
+            onRoute = onQuickRoute,
+          )
+          QuickRouteActionCard(
+            modifier = Modifier.weight(1f),
+            title = stringResource(Res.string.nearbyNearestWithSlots),
+            emptyTitle = stringResource(Res.string.nearbyNoSlotsNearby),
+            selection = nearestWithSlotsSelection,
+            icon = Icons.Filled.LocalParking,
+            tint = LocalBiziColors.current.blue,
+            mobilePlatform = mobilePlatform,
+            onRoute = onQuickRoute,
+          )
+        }
+      }
+      LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        item {
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+              text = if (loading) stringResource(Res.string.nearbyUpdatingStations) else stringResource(Res.string.nearbyStations),
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+              text = if (nearestSelection.usesFallback) {
+                stringResource(Res.string.nearbyRadiusFallbackHint)
+              } else {
+                stringResource(Res.string.nearbyCardActionsHint)
+              },
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            AnimatedVisibility(
+              visible = errorMessage != null,
+              enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
+              exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+              label = "nearby-error",
+            ) {
+              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(errorMessage.orEmpty(), color = LocalBiziColors.current.red)
+                OutlinedButton(onClick = onRetry) {
+                  Icon(Icons.Filled.Sync, contentDescription = null)
+                  Spacer(Modifier.width(8.dp))
+                  Text(stringResource(Res.string.retry))
+                }
               }
             }
           }
         }
-      }
-      item {
-        AnimatedVisibility(
-          visible = !loading && stations.isEmpty(),
-          enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
-          exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-          label = "nearby-empty",
-        ) {
-          EmptyStateCard(
-            title = stringResource(Res.string.mapNoStationsOnScreen),
-            description = stringResource(Res.string.mapLocationFallbackDescription),
-            primaryAction = stringResource(Res.string.loadStations),
-            onPrimaryAction = onRetry,
+        item {
+          AnimatedVisibility(
+            visible = !loading && stations.isEmpty(),
+            enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+            label = "nearby-empty",
+          ) {
+            EmptyStateCard(
+              title = stringResource(Res.string.mapNoStationsOnScreen),
+              description = stringResource(Res.string.mapLocationFallbackDescription),
+              primaryAction = stringResource(Res.string.loadStations),
+              onPrimaryAction = onRetry,
+            )
+          }
+        }
+        items(stations.take(12), key = { it.id }) { station ->
+          StationRow(
+            mobilePlatform = mobilePlatform,
+            station = station,
+            isFavorite = station.id in favoriteIds,
+            onClick = { onStationSelected(station) },
+            onFavoriteToggle = { onFavoriteToggle(station) },
+            onQuickRoute = { onQuickRoute(station) },
           )
         }
-      }
-      items(stations.take(12), key = { it.id }) { station ->
-        StationRow(
-          mobilePlatform = mobilePlatform,
-          station = station,
-          isFavorite = station.id in favoriteIds,
-          onClick = { onStationSelected(station) },
-          onFavoriteToggle = { onFavoriteToggle(station) },
-          onQuickRoute = { onQuickRoute(station) },
-        )
       }
     }
   }
@@ -1586,101 +1763,106 @@ private fun FavoritesScreen(
       .takeIf { it.isNotBlank() }
       ?.let { query -> findStationMatchingQuery(allStations, query) }
   }
-  LazyColumn(
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+    contentAlignment = Alignment.TopCenter,
   ) {
-    item {
-      if (mobilePlatform == MobileUiPlatform.IOS) {
-        MobilePageHeader(
-          title = stringResource(Res.string.favorites),
-          subtitle = stringResource(Res.string.favoritesSubtitle),
-          onOpenAssistant = onOpenAssistant,
-        )
-      } else {
-        Text(
-          text = stringResource(Res.string.myStations),
-          style = MaterialTheme.typography.headlineSmall,
-          fontWeight = FontWeight.Bold,
-        )
+    LazyColumn(
+      modifier = Modifier.responsivePageWidth(),
+      contentPadding = PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      item {
+        if (mobilePlatform == MobileUiPlatform.IOS) {
+          MobilePageHeader(
+            title = stringResource(Res.string.favorites),
+            subtitle = stringResource(Res.string.favoritesSubtitle),
+            onOpenAssistant = onOpenAssistant,
+          )
+        } else {
+          Text(
+            text = stringResource(Res.string.myStations),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+          )
+        }
       }
-    }
-    item {
-      StationSearchField(
-        mobilePlatform = mobilePlatform,
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        label = stringResource(Res.string.favoritesSearchStation),
-      )
-    }
-    item {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-          text = stringResource(Res.string.homeAndWork),
-          style = MaterialTheme.typography.titleLarge,
-          fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-          text = stringResource(Res.string.homeAndWorkDescription),
-          style = MaterialTheme.typography.bodySmall,
-          color = LocalBiziColors.current.muted,
-        )
-      }
-    }
-    item {
-      SavedPlaceCard(
-        mobilePlatform = mobilePlatform,
-        title = stringResource(Res.string.home),
-        station = homeStation,
-        assignmentCandidate = assignmentCandidate,
-        onAssignCandidate = onAssignHomeStation,
-        onClear = onClearHomeStation,
-        onOpenStationDetails = onStationSelected,
-        onQuickRoute = onQuickRoute,
-      )
-    }
-    item {
-      SavedPlaceCard(
-        mobilePlatform = mobilePlatform,
-        title = stringResource(Res.string.work),
-        station = workStation,
-        assignmentCandidate = assignmentCandidate,
-        onAssignCandidate = onAssignWorkStation,
-        onClear = onClearWorkStation,
-        onOpenStationDetails = onStationSelected,
-        onQuickRoute = onQuickRoute,
-      )
-    }
-    item {
-      AnimatedVisibility(
-        visible = stations.isEmpty() && homeStation == null && workStation == null,
-        enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
-        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-        label = "favorites-empty",
-      ) {
-        EmptyStateCard(
-          title = stringResource(Res.string.favoritesEmptyTitle),
-          description = stringResource(Res.string.favoritesEmptyDescription),
-        )
-      }
-    }
-    if (stations.isNotEmpty()) {
-      items(stations.distinctBy { it.id }, key = { it.id }) { station ->
-        DismissibleFavoriteStationRow(
+      item {
+        StationSearchField(
           mobilePlatform = mobilePlatform,
-          station = station,
-          canAssignHome = homeStation == null,
-          canAssignWork = workStation == null,
-          onClick = { onStationSelected(station) },
-          onAssignHome = { onAssignHomeStation(station) },
-          onAssignWork = { onAssignWorkStation(station) },
-          onQuickRoute = { onQuickRoute(station) },
-          onRemoveFavorite = { onRemoveFavorite(station) },
+          value = searchQuery,
+          onValueChange = onSearchQueryChange,
+          label = stringResource(Res.string.favoritesSearchStation),
         )
+      }
+      item {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = stringResource(Res.string.homeAndWork),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+          )
+          Text(
+            text = stringResource(Res.string.homeAndWorkDescription),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+        }
+      }
+      item {
+        SavedPlaceCard(
+          mobilePlatform = mobilePlatform,
+          title = stringResource(Res.string.home),
+          station = homeStation,
+          assignmentCandidate = assignmentCandidate,
+          onAssignCandidate = onAssignHomeStation,
+          onClear = onClearHomeStation,
+          onOpenStationDetails = onStationSelected,
+          onQuickRoute = onQuickRoute,
+        )
+      }
+      item {
+        SavedPlaceCard(
+          mobilePlatform = mobilePlatform,
+          title = stringResource(Res.string.work),
+          station = workStation,
+          assignmentCandidate = assignmentCandidate,
+          onAssignCandidate = onAssignWorkStation,
+          onClear = onClearWorkStation,
+          onOpenStationDetails = onStationSelected,
+          onQuickRoute = onQuickRoute,
+        )
+      }
+      item {
+        AnimatedVisibility(
+          visible = stations.isEmpty() && homeStation == null && workStation == null,
+          enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
+          exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+          label = "favorites-empty",
+        ) {
+          EmptyStateCard(
+            title = stringResource(Res.string.favoritesEmptyTitle),
+            description = stringResource(Res.string.favoritesEmptyDescription),
+          )
+        }
+      }
+      if (stations.isNotEmpty()) {
+        items(stations.distinctBy { it.id }, key = { it.id }) { station ->
+          DismissibleFavoriteStationRow(
+            mobilePlatform = mobilePlatform,
+            station = station,
+            canAssignHome = homeStation == null,
+            canAssignWork = workStation == null,
+            onClick = { onStationSelected(station) },
+            onAssignHome = { onAssignHomeStation(station) },
+            onAssignWork = { onAssignWorkStation(station) },
+            onQuickRoute = { onQuickRoute(station) },
+            onRemoveFavorite = { onRemoveFavorite(station) },
+          )
+        }
       }
     }
   }
@@ -1700,226 +1882,231 @@ private fun ProfileScreen(
   onThemePreferenceSelected: (ThemePreference) -> Unit,
   onCitySelected: (City) -> Unit,
 ) {
-  LazyColumn(
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+    contentAlignment = Alignment.TopCenter,
   ) {
-    item {
-      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-          text = stringResource(Res.string.settings),
-          style = MaterialTheme.typography.headlineSmall,
-          fontWeight = FontWeight.Bold,
-        )
-        Text(
-          text = stringResource(Res.string.profileSubtitle),
-          style = MaterialTheme.typography.bodyMedium,
-          color = LocalBiziColors.current.muted,
-        )
-      }
-    }
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
+    LazyColumn(
+      modifier = Modifier.responsivePageWidth(),
+      contentPadding = PaddingValues(16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      item {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
           Text(
-            stringResource(Res.string.nearbyStationRadiusDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
+            text = stringResource(Res.string.settings),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
           )
-          SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-              rowOptions.forEach { radiusMeters ->
-                RadiusSelectionButton(
-                  modifier = Modifier.weight(1f),
-                  selected = radiusMeters == searchRadiusMeters,
-                  label = if (radiusMeters == searchRadiusMeters) formatDistance(radiusMeters) else formatDistance(radiusMeters),
-                  onClick = { onSearchRadiusSelected(radiusMeters) },
-                )
-              }
-              if (rowOptions.size == 1) {
-                Spacer(Modifier.weight(1f))
-              }
-            }
-          }
-        }
-      }
-    }
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text(stringResource(Res.string.selectedCity), fontWeight = FontWeight.SemiBold)
           Text(
-            stringResource(Res.string.citySelectionSubtitle),
-            style = MaterialTheme.typography.bodySmall,
+            text = stringResource(Res.string.profileSubtitle),
+            style = MaterialTheme.typography.bodyMedium,
             color = LocalBiziColors.current.muted,
-          )
-          CitySelector(
-            selectedCity = selectedCity,
-            onCitySelected = onCitySelected,
           )
         }
       }
-    }
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-          Text(stringResource(Res.string.shortcuts), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.assistantDisplayName()),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          OutlinedButton(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onOpenShortcuts,
-            border = BorderStroke(1.dp, LocalBiziColors.current.red.copy(alpha = 0.24f)),
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = LocalBiziColors.current.red.copy(alpha = 0.04f),
-            ),
-          ) {
-            Icon(Icons.Filled.KeyboardVoice, contentDescription = null, tint = LocalBiziColors.current.red)
-            Spacer(Modifier.width(8.dp))
-            Text(
-              stringResource(Res.string.openShortcutsGuide),
-              color = LocalBiziColors.current.red,
-              fontWeight = FontWeight.SemiBold,
-            )
-          }
-        }
-      }
-    }
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-          Text(stringResource(Res.string.appearance), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.appearanceDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            RadiusSelectionButton(
-              modifier = Modifier.weight(1f),
-              selected = themePreference == ThemePreference.System,
-              label = stringResource(Res.string.system),
-              onClick = { onThemePreferenceSelected(ThemePreference.System) },
-            )
-            RadiusSelectionButton(
-              modifier = Modifier.weight(1f),
-              selected = themePreference == ThemePreference.Light,
-              label = stringResource(Res.string.light),
-              onClick = { onThemePreferenceSelected(ThemePreference.Light) },
-            )
-            RadiusSelectionButton(
-              modifier = Modifier.weight(1f),
-              selected = themePreference == ThemePreference.Dark,
-              label = stringResource(Res.string.dark),
-              onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
-            )
-          }
-        }
-      }
-    }
-    if (mobilePlatform == MobileUiPlatform.IOS) {
       item {
         Card(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
             Text(
-              stringResource(Res.string.iPhoneRouteAppDescription),
+              stringResource(Res.string.nearbyStationRadiusDescription),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
+              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                rowOptions.forEach { radiusMeters ->
+                  RadiusSelectionButton(
+                    modifier = Modifier.weight(1f),
+                    selected = radiusMeters == searchRadiusMeters,
+                    label = if (radiusMeters == searchRadiusMeters) formatDistance(radiusMeters) else formatDistance(radiusMeters),
+                    onClick = { onSearchRadiusSelected(radiusMeters) },
+                  )
+                }
+                if (rowOptions.size == 1) {
+                  Spacer(Modifier.weight(1f))
+                }
+              }
+            }
+          }
+        }
+      }
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(stringResource(Res.string.selectedCity), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.citySelectionSubtitle),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            CitySelector(
+              selectedCity = selectedCity,
+              onCitySelected = onCitySelected,
+            )
+          }
+        }
+      }
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(Res.string.shortcuts), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.assistantDisplayName()),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            OutlinedButton(
+              modifier = Modifier.fillMaxWidth(),
+              onClick = onOpenShortcuts,
+              border = BorderStroke(1.dp, LocalBiziColors.current.red.copy(alpha = 0.24f)),
+              colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = LocalBiziColors.current.red.copy(alpha = 0.04f),
+              ),
+            ) {
+              Icon(Icons.Filled.KeyboardVoice, contentDescription = null, tint = LocalBiziColors.current.red)
+              Spacer(Modifier.width(8.dp))
+              Text(
+                stringResource(Res.string.openShortcutsGuide),
+                color = LocalBiziColors.current.red,
+                fontWeight = FontWeight.SemiBold,
+              )
+            }
+          }
+        }
+      }
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Text(stringResource(Res.string.appearance), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.appearanceDescription),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
-                selected = preferredMapApp == PreferredMapApp.AppleMaps,
-                label = "Apple Maps",
-                onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
+                selected = themePreference == ThemePreference.System,
+                label = stringResource(Res.string.system),
+                onClick = { onThemePreferenceSelected(ThemePreference.System) },
               )
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
-                selected = preferredMapApp == PreferredMapApp.GoogleMaps,
-                label = "Google Maps",
-                onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
+                selected = themePreference == ThemePreference.Light,
+                label = stringResource(Res.string.light),
+                onClick = { onThemePreferenceSelected(ThemePreference.Light) },
+              )
+              RadiusSelectionButton(
+                modifier = Modifier.weight(1f),
+                selected = themePreference == ThemePreference.Dark,
+                label = stringResource(Res.string.dark),
+                onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
               )
             }
+          }
+        }
+      }
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        item {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+              Text(stringResource(Res.string.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
+              Text(
+                stringResource(Res.string.iPhoneRouteAppDescription),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                RadiusSelectionButton(
+                  modifier = Modifier.weight(1f),
+                  selected = preferredMapApp == PreferredMapApp.AppleMaps,
+                  label = "Apple Maps",
+                  onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
+                )
+                RadiusSelectionButton(
+                  modifier = Modifier.weight(1f),
+                  selected = preferredMapApp == PreferredMapApp.GoogleMaps,
+                  label = "Google Maps",
+                  onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
+                )
+              }
+              Text(
+                 stringResource(Res.string.iPhoneRouteAppFallback),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+            }
+          }
+        }
+      }
+      item {
+        val uriHandler = LocalUriHandler.current
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
             Text(
-               stringResource(Res.string.iPhoneRouteAppFallback),
+              stringResource(Res.string.feedbackDescription),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            TextButton(
+              onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
+              contentPadding = PaddingValues(0.dp),
+            ) {
+              Text(stringResource(Res.string.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
+            }
+          }
+        }
+      }
+      item {
+        val uriHandler = LocalUriHandler.current
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.privacyAndData), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.privacyDescription),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            TextButton(
+              onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
+              contentPadding = PaddingValues(0.dp),
+            ) {
+              Text(stringResource(Res.string.openPrivacyPolicy), style = MaterialTheme.typography.bodySmall)
+            }
+          }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.dataSourceDescription),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
           }
-        }
-      }
-    }
-    item {
-      val uriHandler = LocalUriHandler.current
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text(stringResource(Res.string.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.feedbackDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          TextButton(
-            onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
-            contentPadding = PaddingValues(0.dp),
-          ) {
-            Text(stringResource(Res.string.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
-          }
-        }
-      }
-    }
-    item {
-      val uriHandler = LocalUriHandler.current
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text(stringResource(Res.string.privacyAndData), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.privacyDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          TextButton(
-            onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
-            contentPadding = PaddingValues(0.dp),
-          ) {
-            Text(stringResource(Res.string.openPrivacyPolicy), style = MaterialTheme.typography.bodySmall)
-          }
-        }
-      }
-      Spacer(modifier = Modifier.height(12.dp))
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-          Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.dataSourceDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
         }
       }
     }
@@ -1978,84 +2165,89 @@ private fun ShortcutsScreen(
     },
     containerColor = pageBackgroundColor(mobilePlatform),
   ) { innerPadding ->
-    LazyColumn(
+    Box(
       modifier = Modifier
         .fillMaxSize()
         .background(pageBackgroundColor(mobilePlatform)),
-      contentPadding = PaddingValues(
-        start = 16.dp,
-        top = innerPadding.calculateTopPadding() + 16.dp,
-        end = 16.dp,
-        bottom = innerPadding.calculateBottomPadding() + 16.dp,
-      ),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
+      contentAlignment = Alignment.TopCenter,
     ) {
-      if (mobilePlatform == MobileUiPlatform.IOS) {
-        item {
-          Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.shortcuts),
-              style = MaterialTheme.typography.headlineMedium,
-              fontWeight = FontWeight.Bold,
-            )
-            Text(
-              text = stringResource(Res.string.shortcutsIosSubtitle),
-              style = MaterialTheme.typography.bodyMedium,
-              color = LocalBiziColors.current.muted,
-            )
+      LazyColumn(
+        modifier = Modifier.responsivePageWidth(),
+        contentPadding = PaddingValues(
+          start = 16.dp,
+          top = innerPadding.calculateTopPadding() + 16.dp,
+          end = 16.dp,
+          bottom = innerPadding.calculateBottomPadding() + 16.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        if (mobilePlatform == MobileUiPlatform.IOS) {
+          item {
+            Column(
+              verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+              Text(
+                text = stringResource(Res.string.shortcuts),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+              )
+              Text(
+                text = stringResource(Res.string.shortcutsIosSubtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalBiziColors.current.muted,
+              )
+            }
           }
         }
-      }
-      item {
-        Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-          Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-          ) {
-            Text(stringResource(Res.string.howToInvoke), fontWeight = FontWeight.SemiBold)
-            Text(
-              if (mobilePlatform == MobileUiPlatform.IOS) {
-                stringResource(Res.string.shortcutsAvailableOnIos)
-              } else {
-                stringResource(Res.string.shortcutsAvailableWithAssistant, mobilePlatform.assistantDisplayName())
-              },
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Text(
-              if (mobilePlatform == MobileUiPlatform.IOS) {
-                stringResource(Res.string.shortcutsIosInvocationHint)
-              } else {
-                stringResource(Res.string.shortcutsAndroidInvocationHint)
-              },
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Text(
-              stringResource(Res.string.shortcutsCurrentRadius, searchRadiusMeters),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.ink,
-            )
-          }
-        }
-      }
-      latestAnswer?.let { answer ->
         item {
           Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
             Column(
               modifier = Modifier.padding(18.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              Text(stringResource(Res.string.latestAnswer), fontWeight = FontWeight.SemiBold)
-              Text(answer)
+              Text(stringResource(Res.string.howToInvoke), fontWeight = FontWeight.SemiBold)
+              Text(
+                if (mobilePlatform == MobileUiPlatform.IOS) {
+                  stringResource(Res.string.shortcutsAvailableOnIos)
+                } else {
+                  stringResource(Res.string.shortcutsAvailableWithAssistant, mobilePlatform.assistantDisplayName())
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+              Text(
+                if (mobilePlatform == MobileUiPlatform.IOS) {
+                  stringResource(Res.string.shortcutsIosInvocationHint)
+                } else {
+                  stringResource(Res.string.shortcutsAndroidInvocationHint)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+              Text(
+                stringResource(Res.string.shortcutsCurrentRadius, searchRadiusMeters),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.ink,
+              )
             }
           }
         }
-      }
-      items(shortcutGuides, key = { it.title }) { guide ->
-        ShortcutGuideCard(guide = guide)
+        latestAnswer?.let { answer ->
+          item {
+            Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+              Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+              ) {
+                Text(stringResource(Res.string.latestAnswer), fontWeight = FontWeight.SemiBold)
+                Text(answer)
+              }
+            }
+          }
+        }
+        items(shortcutGuides, key = { it.title }) { guide ->
+          ShortcutGuideCard(guide = guide)
+        }
       }
     }
   }
@@ -2119,164 +2311,169 @@ private fun StationDetailScreen(
       }
     },
   ) { innerPadding ->
-  LazyColumn(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(pageBackgroundColor(mobilePlatform)),
-    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = innerPadding.calculateTopPadding() + 16.dp, bottom = 16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(pageBackgroundColor(mobilePlatform)),
+      contentAlignment = Alignment.TopCenter,
+    ) {
+      LazyColumn(
+        modifier = Modifier.responsivePageWidth(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = innerPadding.calculateTopPadding() + 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        Column(
-          modifier = Modifier.padding(18.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        item {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
           ) {
-            Text(
-              station.name,
-              style = MaterialTheme.typography.headlineSmall,
-              fontWeight = FontWeight.Bold,
-              modifier = Modifier.weight(1f),
-            )
-            FavoritePill(
-              active = isFavorite,
-              onClick = onToggleFavorite,
-              label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
+            Column(
+              modifier = Modifier.padding(18.dp),
+              verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                  station.name,
+                  style = MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.weight(1f),
+                )
+                FavoritePill(
+                  active = isFavorite,
+                  onClick = onToggleFavorite,
+                  label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
+                )
+              }
+              Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
+              Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                StationMetricPill(
+                  modifier = Modifier.weight(1f),
+                  label = stringResource(Res.string.distance),
+                  value = "${station.distanceMeters} m",
+                  tint = LocalBiziColors.current.blue,
+                )
+                StationMetricPill(
+                  modifier = Modifier.weight(1f),
+                  label = stringResource(Res.string.source),
+                  value = station.sourceLabel,
+                  tint = LocalBiziColors.current.muted,
+                )
+              }
+            }
+          }
+        }
+        item {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            Column(
+              modifier = Modifier.padding(18.dp),
+              verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+              Text(stringResource(Res.string.saveThisStation), fontWeight = FontWeight.SemiBold)
+              Text(
+                stringResource(Res.string.saveThisStationDescription),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FavoritePill(
+                  active = isFavorite,
+                  onClick = onToggleFavorite,
+                  label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
+                )
+                SavedPlacePill(
+                  active = isHomeStation,
+                  label = stringResource(Res.string.home),
+                  onClick = onToggleHome,
+                )
+                SavedPlacePill(
+                  active = isWorkStation,
+                  label = stringResource(Res.string.work),
+                  onClick = onToggleWork,
+                )
+              }
+              Text(
+                when {
+                  isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
+                  isHomeStation -> stringResource(Res.string.stationMarkedHome)
+                  isWorkStation -> stringResource(Res.string.stationMarkedWork)
+                  else -> stringResource(Res.string.tapHomeOrWorkToAssign)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+            }
+          }
+        }
+        item {
+          Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            PlatformStationMap(
+              modifier = Modifier.fillMaxWidth().height(200.dp),
+              stations = listOf(station),
+              userLocation = userLocation,
+              highlightedStationId = station.id,
+              isMapReady = isMapReady,
+              onStationSelected = {},
             )
           }
-          Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
-          Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            StationMetricPill(
+        }
+        item {
+          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            AvailabilityCard(
               modifier = Modifier.weight(1f),
-              label = stringResource(Res.string.distance),
-              value = "${station.distanceMeters} m",
+              label = stringResource(Res.string.bikes),
+              value = station.bikesAvailable.toString(),
+              icon = Icons.AutoMirrored.Filled.DirectionsBike,
+              tint = LocalBiziColors.current.red,
+              mobilePlatform = mobilePlatform,
+            )
+            AvailabilityCard(
+              modifier = Modifier.weight(1f),
+              label = stringResource(Res.string.slots),
+              value = station.slotsFree.toString(),
+              icon = Icons.Filled.LocalParking,
               tint = LocalBiziColors.current.blue,
+              mobilePlatform = mobilePlatform,
             )
-            StationMetricPill(
-              modifier = Modifier.weight(1f),
-              label = stringResource(Res.string.source),
-              value = station.sourceLabel,
-              tint = LocalBiziColors.current.muted,
+          }
+        }
+        if (supportsUsagePatterns) {
+          item {
+            StationPatternCard(
+              patterns = patterns,
+              isLoading = patternsLoading,
+              isError = patternsError,
+              showWeekend = showWeekend,
+              onToggleDayType = { showWeekend = !showWeekend },
             )
+          }
+        }
+        item {
+          Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.Directions, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(Res.string.openRoute))
+          }
+        }
+        item {
+          OutlinedButton(onClick = onToggleFavorite, modifier = Modifier.fillMaxWidth()) {
+            Icon(
+              if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+              contentDescription = null,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(if (isFavorite) stringResource(Res.string.removeFromFavorites) else stringResource(Res.string.saveToFavorites))
           }
         }
       }
     }
-    item {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        Column(
-          modifier = Modifier.padding(18.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-          Text(stringResource(Res.string.saveThisStation), fontWeight = FontWeight.SemiBold)
-          Text(
-            stringResource(Res.string.saveThisStationDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FavoritePill(
-              active = isFavorite,
-              onClick = onToggleFavorite,
-              label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
-            )
-            SavedPlacePill(
-              active = isHomeStation,
-              label = stringResource(Res.string.home),
-              onClick = onToggleHome,
-            )
-            SavedPlacePill(
-              active = isWorkStation,
-              label = stringResource(Res.string.work),
-              onClick = onToggleWork,
-            )
-          }
-          Text(
-            when {
-              isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
-              isHomeStation -> stringResource(Res.string.stationMarkedHome)
-              isWorkStation -> stringResource(Res.string.stationMarkedWork)
-              else -> stringResource(Res.string.tapHomeOrWorkToAssign)
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-          )
-        }
-      }
-    }
-    item {
-      Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-      ) {
-        PlatformStationMap(
-          modifier = Modifier.fillMaxWidth().height(200.dp),
-          stations = listOf(station),
-          userLocation = userLocation,
-          highlightedStationId = station.id,
-          isMapReady = isMapReady,
-          onStationSelected = {},
-        )
-      }
-    }
-    item {
-      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        AvailabilityCard(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.bikes),
-          value = station.bikesAvailable.toString(),
-          icon = Icons.AutoMirrored.Filled.DirectionsBike,
-          tint = LocalBiziColors.current.red,
-          mobilePlatform = mobilePlatform,
-        )
-        AvailabilityCard(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.slots),
-          value = station.slotsFree.toString(),
-          icon = Icons.Filled.LocalParking,
-          tint = LocalBiziColors.current.blue,
-          mobilePlatform = mobilePlatform,
-        )
-      }
-    }
-    if (supportsUsagePatterns) {
-      item {
-        StationPatternCard(
-          patterns = patterns,
-          isLoading = patternsLoading,
-          isError = patternsError,
-          showWeekend = showWeekend,
-          onToggleDayType = { showWeekend = !showWeekend },
-        )
-      }
-    }
-    item {
-      Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Filled.Directions, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(Res.string.openRoute))
-      }
-    }
-    item {
-      OutlinedButton(onClick = onToggleFavorite, modifier = Modifier.fillMaxWidth()) {
-        Icon(
-          if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-          contentDescription = null,
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(if (isFavorite) stringResource(Res.string.removeFromFavorites) else stringResource(Res.string.saveToFavorites))
-      }
-    }
-  }
   }
 }
 
@@ -2626,75 +2823,80 @@ private fun TripScreen(
   val tripState by viewModel.tripState.collectAsState()
 
   // ---------- layout ----------
-  Column(
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
+    contentAlignment = Alignment.TopCenter,
   ) {
-    // Map picker — hoisted out of LazyColumn so the native map view is never
-    // disposed / recreated by lazy-item recycling on scroll.
-    AnimatedVisibility(
-      visible = tripState.destination == null && uiState.mapPickerActive,
-      enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
-      exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
+    Column(
+      modifier = Modifier.responsivePageWidth(),
     ) {
-      Card(
-        colors = CardDefaults.cardColors(containerColor = c.surface),
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp)
-          .padding(top = 16.dp)
-          .height(300.dp),
+      // Map picker — hoisted out of LazyColumn so the native map view is never
+      // disposed / recreated by lazy-item recycling on scroll.
+      AnimatedVisibility(
+        visible = tripState.destination == null && uiState.mapPickerActive,
+        enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
+        exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
       ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-          PlatformStationMap(
-            modifier = Modifier.fillMaxSize(),
-            stations = stations,
-            userLocation = userLocation,
-            highlightedStationId = null,
-            isMapReady = isMapReady,
-            onStationSelected = { station ->
-              viewModel.onStationPickedFromMap(station)
-            },
-            onMapClick = { tappedLocation ->
-              viewModel.onLocationPicked(tappedLocation)
-            },
-            pinLocation = uiState.pickedLocation,
-          )
-          if (uiState.isReverseGeocoding) {
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .background(c.background.copy(alpha = 0.55f)),
-              contentAlignment = Alignment.Center,
-            ) {
-              CircularProgressIndicator(color = c.red, modifier = Modifier.size(32.dp))
-            }
-          } else {
-            Surface(
-              modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 10.dp),
-              shape = RoundedCornerShape(20.dp),
-              color = c.surface.copy(alpha = 0.92f),
-            ) {
-              Text(
-                stringResource(Res.string.tapMapToPickDestination),
-                style = MaterialTheme.typography.labelMedium,
-                color = c.muted,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-              )
+        Card(
+          colors = CardDefaults.cardColors(containerColor = c.surface),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp)
+            .height(300.dp),
+        ) {
+          Box(modifier = Modifier.fillMaxSize()) {
+            PlatformStationMap(
+              modifier = Modifier.fillMaxSize(),
+              stations = stations,
+              userLocation = userLocation,
+              highlightedStationId = null,
+              isMapReady = isMapReady,
+              onStationSelected = { station ->
+                viewModel.onStationPickedFromMap(station)
+              },
+              onMapClick = { tappedLocation ->
+                viewModel.onLocationPicked(tappedLocation)
+              },
+              pinLocation = uiState.pickedLocation,
+            )
+            if (uiState.isReverseGeocoding) {
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .background(c.background.copy(alpha = 0.55f)),
+                contentAlignment = Alignment.Center,
+              ) {
+                CircularProgressIndicator(color = c.red, modifier = Modifier.size(32.dp))
+              }
+            } else {
+              Surface(
+                modifier = Modifier
+                  .align(Alignment.TopCenter)
+                  .padding(top = 10.dp),
+                shape = RoundedCornerShape(20.dp),
+                color = c.surface.copy(alpha = 0.92f),
+              ) {
+                Text(
+                  stringResource(Res.string.tapMapToPickDestination),
+                  style = MaterialTheme.typography.labelMedium,
+                  color = c.muted,
+                  modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                )
+              }
             }
           }
         }
       }
-    }
-    LazyColumn(
-      modifier = Modifier.weight(1f),
-      contentPadding = PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+      LazyColumn(
+        modifier = Modifier
+          .weight(1f),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
     // ---------- ALERT card (State 7) — shown above everything when active ----------
     if (tripState.alert != null) {
       val alert = tripState.alert!!
@@ -3069,6 +3271,7 @@ private fun TripScreen(
             )
           }
         }
+      }
       }
     }
   }
@@ -4223,6 +4426,28 @@ private fun SavedPlacePill(
 private fun pageBackgroundColor(platform: MobileUiPlatform): Color {
   val c = LocalBiziColors.current
   return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
+}
+
+@Composable
+private fun Modifier.responsivePageWidth(): Modifier {
+  val maxWidth = when (LocalBiziWindowLayout.current) {
+    BiziWindowLayout.Compact -> null
+    BiziWindowLayout.Medium -> 760.dp
+    BiziWindowLayout.Expanded -> 920.dp
+  }
+  return if (maxWidth == null) {
+    fillMaxSize()
+  } else {
+    fillMaxSize().widthIn(max = maxWidth)
+  }
+}
+
+private fun NavHostController.navigateToPrimaryDestination(screen: Screen) {
+  navigate(screen) {
+    launchSingleTop = true
+    restoreState = true
+    popUpTo(Screen.Nearby) { saveState = true }
+  }
 }
 
 private fun MobileTab.screen(): Screen = when (this) {

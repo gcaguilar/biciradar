@@ -28,6 +28,8 @@ firebase-bom = "34.11.0"
 firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
 material-components = "1.13.0"
+jetbrains-compose-material3 = "1.10.0-alpha05"
+jetbrains-compose-material3-adaptive = "1.3.0-alpha02"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -61,6 +63,8 @@ metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" 
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigation-compose" }
 google-material = { module = "com.google.android.material:material", version.ref = "material-components" }
+jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrains-compose-material3" }
+jetbrains-compose-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "jetbrains-compose-material3-adaptive" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
