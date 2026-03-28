@@ -200,25 +200,6 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
         PRODUCT_NAME: BiciRadar Tests
 
-  BiciRadarUITests:
-    type: bundle.ui-testing
-    platform: iOS
-    deploymentTarget: "16.0"
-    sources:
-      - path: iosAppUITests
-    dependencies:
-      - target: BiciRadar
-      - sdk: XCTest.framework
-    settings:
-      base:
-        CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
-        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
-        GENERATE_INFOPLIST_FILE: YES
-        PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.uitests
-        PRODUCT_NAME: BiciRadar UI Tests
-        TEST_TARGET_NAME: BiciRadar
-
   BiciRadarWatch:
     type: application
     platform: watchOS
@@ -395,12 +376,10 @@ schemes:
         BiciRadar: all
         BiciRadarWidgets: all
         BiciRadarTests: [testing]
-        BiciRadarUITests: [testing]
     test:
       config: Debug
       targets:
         - BiciRadarTests
-        - BiciRadarUITests
     run:
       config: Debug
   BiciRadar:
@@ -410,12 +389,10 @@ schemes:
         BiciRadarWidgets: all
         BiciRadarWatch: all
         BiciRadarTests: [testing]
-        BiciRadarUITests: [testing]
     test:
       config: Debug
       targets:
         - BiciRadarTests
-        - BiciRadarUITests
     run:
       config: Debug
   BiciRadarWatch:

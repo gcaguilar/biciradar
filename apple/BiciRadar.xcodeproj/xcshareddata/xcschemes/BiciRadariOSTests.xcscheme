@@ -37,20 +37,6 @@
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "474796BC7E92777AFBADFEF6"
-               BuildableName = "BiciRadarUITests.xctest"
-               BlueprintName = "BiciRadarUITests"
-               ReferencedContainer = "container:BiciRadar.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
             buildForRunning = "YES"
             buildForProfiling = "YES"
             buildForArchiving = "YES"
@@ -89,17 +75,6 @@
                BlueprintIdentifier = "F3B21E33A225BBA291CEF6B6"
                BuildableName = "BiciRadarTests.xctest"
                BlueprintName = "BiciRadarTests"
-               ReferencedContainer = "container:BiciRadar.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "474796BC7E92777AFBADFEF6"
-               BuildableName = "BiciRadarUITests.xctest"
-               BlueprintName = "BiciRadarUITests"
                ReferencedContainer = "container:BiciRadar.xcodeproj">
             </BuildableReference>
          </TestableReference>

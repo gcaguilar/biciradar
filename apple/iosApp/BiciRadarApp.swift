@@ -8,7 +8,6 @@ import WidgetKit
 @main
 struct BiciRadarApp: App {
     @Environment(\.scenePhase) private var scenePhase
-    private let isUITesting = UITestConfiguration.isEnabled
 
     /// Single long-lived wrapper — the Compose tree is never torn down on navigation.
     private let composeWrapper: BiziMainViewControllerWrapper = {
@@ -22,8 +21,6 @@ struct BiciRadarApp: App {
     }()
 
     init() {
-        AppleLaunchRequestStore.shared.seedFromLaunchEnvironment()
-        guard !UITestConfiguration.isEnabled else { return }
         FavoritesSyncBridge.shared.activate()
         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
         FirebaseBootstrap.configureIfAvailable()
@@ -42,7 +39,6 @@ struct BiciRadarApp: App {
                 .ignoresSafeArea()
                 .onAppear(perform: applyPendingLaunchRequest)
                 .onAppear {
-                    guard !isUITesting else { return }
                     requestNotificationPermission()
                     SurfaceMonitoringActivityController.shared.startRefreshing()
                     WidgetTimelineReloadScheduler.shared.scheduleReloads()
@@ -62,7 +58,6 @@ struct BiciRadarApp: App {
                         WidgetTimelineReloadScheduler.shared.scheduleReloads()
                         SurfaceMonitoringActivityController.shared.syncNow()
                     case .background:
-                        guard !isUITesting else { break }
                         BiziBackgroundTaskHandler.scheduleAppRefresh()
                         handleBackgroundTransitionForMonitoring()
                         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
@@ -130,13 +125,5 @@ struct IOSAssistantShortcutsView: View {
             Label("Ruta a estación", systemImage: "map.circle")
         }
         .navigationTitle("Atajos")
-    }
-}
-
-private enum UITestConfiguration {
-    static let enabledKey = "BIZI_UI_TEST_MODE"
-
-    static var isEnabled: Bool {
-        ProcessInfo.processInfo.environment[enabledKey] == "1"
     }
 }

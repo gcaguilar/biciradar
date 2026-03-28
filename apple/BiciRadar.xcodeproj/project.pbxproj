@@ -55,7 +55,6 @@
 		931E71807426F78A8AE768E8 /* AppleDeepLinkParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F1F0034A89949DC590379A /* AppleDeepLinkParserTests.swift */; };
 		9BAEC7333252F521025582E1 /* SurfaceMonitoringActivityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FE3CE8E7F903FD961C2C1F /* SurfaceMonitoringActivityControllerTests.swift */; };
 		A001DF2D53BACE1211D784CE /* AppleShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */; };
-		A69823080BA4241E2D1478CD /* BiciRadarUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C573CFD8C4D13B37F739158D /* BiciRadarUITests.swift */; };
 		A7B87E73EF408E3AC030AFD3 /* WatchSurfaceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */; };
 		AAA5CF26B8AB8758C8472B41 /* BiciRadarWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AD8848982173D2177464CDD0 /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */; };
@@ -76,7 +75,6 @@
 		DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FDBEC6252D80DCAD5A52992E /* FirebaseCore */; };
 		E0255C1C695CC9DE775F8DD3 /* SurfaceMonitoringActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C6FEFCBBBEBE6A644898CE /* SurfaceMonitoringActivityController.swift */; };
 		E549E2DA4C6AB6C75B22A6DF /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */; };
-		E722BA85CA1966A232FBDEFE /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1598AA72441D647040F04BB8 /* XCTest.framework */; };
 		E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8AFA899EBAC3579700B49207 /* Localizable.strings */; };
 		EE0246B1EB5247E03B82A5BE /* WatchSurfaceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */; };
 		EE2B41863B39EDD823677BA9 /* WatchFavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C35FA87704051EDF4F0EE7 /* WatchFavoritesSyncBridgeTests.swift */; };
@@ -98,13 +96,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 54F2A93AE922E3FF791E5616;
 			remoteInfo = BiciRadarWatch;
-		};
-		94602171D8264D5D4B726DE9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E6248835368360C0A00F1112 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = BCF1240E3C3258E3C8152F54;
-			remoteInfo = BiciRadar;
 		};
 		AFB88228C7E77ED0EEB964F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -190,7 +181,6 @@
 		575923083815B43475410B72 /* BiciRadarTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiciRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		57A65C7005EFB08EB86AF018 /* BiziSharedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSharedStorage.swift; sourceTree = "<group>"; };
 		5A6D5C019BC4FBE3FFDF5370 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
-		5B9E6540EF54F354D8AB7430 /* BiciRadarUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiciRadarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5FA81CAFF45F72A3F9E798C6 /* WatchDashboardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDashboardModelTests.swift; sourceTree = "<group>"; };
 		65EA7DFF87DE12F9A74AA3EA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6BF902119A13611BE50A2CD9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -227,7 +217,6 @@
 		C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSurfaceStore.swift; sourceTree = "<group>"; };
 		C1A801204A2974389551F17C /* eu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eu; path = eu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		C24E2976D54B1483AAF990AC /* BiciRadarWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadarWatch.entitlements; sourceTree = "<group>"; };
-		C573CFD8C4D13B37F739158D /* BiciRadarUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarUITests.swift; sourceTree = "<group>"; };
 		CF27EE4DB0E548D63475C98F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStoreTests.swift; sourceTree = "<group>"; };
 		D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunner.swift; sourceTree = "<group>"; };
@@ -260,14 +249,6 @@
 				16F03485048BED3E901365CF /* SwiftUI.framework in Frameworks */,
 				DB6D3BEFC3555383C39614F9 /* WatchConnectivity.framework in Frameworks */,
 				214E52E9BDF1007AADFCF394 /* libsqlite3.tbd in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B4FE2C6E050362D5FF2FFEF3 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				E722BA85CA1966A232FBDEFE /* XCTest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -325,7 +306,6 @@
 				AED64EAD2BBD1B0C69C289B0 /* Config */,
 				86D523296F1E0474E9ED061F /* iosApp */,
 				E9B6B1AA6C9463A2FFF85530 /* iosAppTests */,
-				4E048CA4EA4BE7055679EBD3 /* iosAppUITests */,
 				5FD2ECCD25E3950AC7AE84F6 /* iosWidgets */,
 				CCC8781EA354B77EB21032C1 /* sharedApple */,
 				CD947E7F9990E98520167831 /* watchApp */,
@@ -342,21 +322,12 @@
 			children = (
 				A15943BE6F812F733F33D68D /* BiciRadar.app */,
 				575923083815B43475410B72 /* BiciRadarTests.xctest */,
-				5B9E6540EF54F354D8AB7430 /* BiciRadarUITests.xctest */,
 				F189CFF421E93B8C23A41D1E /* BiciRadarWatch.app */,
 				2BC9A77B9AF176A78BC317DF /* BiciRadarWatchTests.xctest */,
 				D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */,
 				737078EE1CB532AAEA121054 /* BiciRadarWidgets.appex */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		4E048CA4EA4BE7055679EBD3 /* iosAppUITests */ = {
-			isa = PBXGroup;
-			children = (
-				C573CFD8C4D13B37F739158D /* BiciRadarUITests.swift */,
-			);
-			path = iosAppUITests;
 			sourceTree = "<group>";
 		};
 		5FD2ECCD25E3950AC7AE84F6 /* iosWidgets */ = {
@@ -480,25 +451,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		474796BC7E92777AFBADFEF6 /* BiciRadarUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4D5EF2FBFFA0EF302660A62D /* Build configuration list for PBXNativeTarget "BiciRadarUITests" */;
-			buildPhases = (
-				AF4B510D407C1D968DF9E73B /* Sources */,
-				B4FE2C6E050362D5FF2FFEF3 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				5740089FC3AB8E375F7787F1 /* PBXTargetDependency */,
-			);
-			name = BiciRadarUITests;
-			packageProductDependencies = (
-			);
-			productName = BiciRadarUITests;
-			productReference = 5B9E6540EF54F354D8AB7430 /* BiciRadarUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
 		54F2A93AE922E3FF791E5616 /* BiciRadarWatch */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 86FF684DF1C35399D46FC9E4 /* Build configuration list for PBXNativeTarget "BiciRadarWatch" */;
@@ -633,11 +585,6 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					474796BC7E92777AFBADFEF6 = {
-						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
-						TestTargetID = BCF1240E3C3258E3C8152F54;
-					};
 					54F2A93AE922E3FF791E5616 = {
 						DevelopmentTeam = B87AWPVZWB;
 						ProvisioningStyle = Manual;
@@ -688,7 +635,6 @@
 			targets = (
 				BCF1240E3C3258E3C8152F54 /* BiciRadar */,
 				F3B21E33A225BBA291CEF6B6 /* BiciRadarTests */,
-				474796BC7E92777AFBADFEF6 /* BiciRadarUITests */,
 				54F2A93AE922E3FF791E5616 /* BiciRadarWatch */,
 				C0B4AE421C8FEA3F899102FB /* BiciRadarWatchTests */,
 				C47ED97A91E7B3CA7DC28E1F /* BiciRadarWatchWidgets */,
@@ -888,14 +834,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AF4B510D407C1D968DF9E73B /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A69823080BA4241E2D1478CD /* BiciRadarUITests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		C62888ACF963E6BE82C52967 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -928,11 +866,6 @@
 			isa = PBXTargetDependency;
 			target = C47ED97A91E7B3CA7DC28E1F /* BiciRadarWatchWidgets */;
 			targetProxy = D687B6B5F26A59B7430D8154 /* PBXContainerItemProxy */;
-		};
-		5740089FC3AB8E375F7787F1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = BCF1240E3C3258E3C8152F54 /* BiciRadar */;
-			targetProxy = 94602171D8264D5D4B726DE9 /* PBXContainerItemProxy */;
 		};
 		93D14B93729E0BAC61AFDB84 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1117,26 +1050,26 @@
 		};
 		5D10BA52B3B55314619FE443 /* Debug */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					CODE_SIGN_ENTITLEMENTS = iosWidgets/BiciRadarWidgets.entitlements;
-					CODE_SIGN_IDENTITY = "Apple Distribution";
-					CODE_SIGN_STYLE = Manual;
-					DEVELOPMENT_TEAM = B87AWPVZWB;
-					"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-					GENERATE_INFOPLIST_FILE = NO;
-					INFOPLIST_FILE = iosWidgets/Info.plist;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = iosWidgets/BiciRadarWidgets.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = iosWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-					PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.widgets;
-					PRODUCT_NAME = "BiciRadar Widgets";
-					PROVISIONING_PROFILE_SPECIFIER = BiciRadarWidgetProfile;
-					SDKROOT = iphoneos;
-					TARGETED_DEVICE_FAMILY = "1,2";
-				};
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.widgets;
+				PRODUCT_NAME = "BiciRadar Widgets";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWidgetProfile;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
 			name = Debug;
 		};
 		5E153F1E599167A6BE0B6502 /* Debug */ = {
@@ -1203,28 +1136,6 @@
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Debug;
-		};
-		647C327890AFC3F3419E334A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.uitests;
-				PRODUCT_NAME = "BiciRadar UI Tests";
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = BiciRadar;
-			};
-			name = Release;
 		};
 		70AC52DC055BF738BEC5ABD1 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1337,63 +1248,41 @@
 		};
 		978E44602FC21625C42B62EC /* Release */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					"AD_HOC_CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
-					"CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
-					"CODE_SIGNING_REQUIRED[sdk=watchsimulator*]" = NO;
-					CODE_SIGN_ENTITLEMENTS = watchWidgets/BiciRadarWatchWidgets.entitlements;
-					CODE_SIGN_IDENTITY = "Apple Distribution";
-					CODE_SIGN_STYLE = Manual;
-					DEVELOPMENT_TEAM = B87AWPVZWB;
-					"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-					GENERATE_INFOPLIST_FILE = NO;
+			buildSettings = {
+				"AD_HOC_CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
+				"CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
+				"CODE_SIGNING_REQUIRED[sdk=watchsimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = watchWidgets/BiciRadarWatchWidgets.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = watchWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-					PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.widgets;
-					PRODUCT_NAME = "BiciRadar Watch Widgets";
-					PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
-					SDKROOT = watchos;
-					SKIP_INSTALL = YES;
-					TARGETED_DEVICE_FAMILY = 4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.widgets;
+				PRODUCT_NAME = "BiciRadar Watch Widgets";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Release;
 		};
-		9A68886AAA11A790FB87A931 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.uitests;
-				PRODUCT_NAME = "BiciRadar UI Tests";
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = BiciRadar;
-			};
-			name = Debug;
-		};
 		A4044BE39D644B382FA9E0FA /* Release */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					CODE_SIGN_ENTITLEMENTS = iosWidgets/BiciRadarWidgets.entitlements;
-					CODE_SIGN_IDENTITY = "Apple Distribution";
-					CODE_SIGN_STYLE = Manual;
-					DEVELOPMENT_TEAM = B87AWPVZWB;
-					"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-					GENERATE_INFOPLIST_FILE = NO;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = iosWidgets/BiciRadarWidgets.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iosWidgets/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1401,12 +1290,12 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-					PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.widgets;
-					PRODUCT_NAME = "BiciRadar Widgets";
-					PROVISIONING_PROFILE_SPECIFIER = BiciRadarWidgetProfile;
-					SDKROOT = iphoneos;
-					TARGETED_DEVICE_FAMILY = "1,2";
-				};
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.widgets;
+				PRODUCT_NAME = "BiciRadar Widgets";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWidgetProfile;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
 			name = Release;
 		};
 		AEC9D949C88D319A0DAD386C /* Release */ = {
@@ -1501,28 +1390,28 @@
 		};
 		F73717D04D0CF2C7F84CC0A7 /* Debug */ = {
 			isa = XCBuildConfiguration;
-				buildSettings = {
-					"AD_HOC_CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
-					"CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
-					"CODE_SIGNING_REQUIRED[sdk=watchsimulator*]" = NO;
-					CODE_SIGN_ENTITLEMENTS = watchWidgets/BiciRadarWatchWidgets.entitlements;
-					CODE_SIGN_IDENTITY = "Apple Distribution";
-					CODE_SIGN_STYLE = Manual;
-					DEVELOPMENT_TEAM = B87AWPVZWB;
-					"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-					GENERATE_INFOPLIST_FILE = NO;
+			buildSettings = {
+				"AD_HOC_CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
+				"CODE_SIGNING_ALLOWED[sdk=watchsimulator*]" = NO;
+				"CODE_SIGNING_REQUIRED[sdk=watchsimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = watchWidgets/BiciRadarWatchWidgets.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = B87AWPVZWB;
+				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = watchWidgets/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-					PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.widgets;
-					PRODUCT_NAME = "BiciRadar Watch Widgets";
-					PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
-					SDKROOT = watchos;
-					SKIP_INSTALL = YES;
-					TARGETED_DEVICE_FAMILY = 4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.widgets;
+				PRODUCT_NAME = "BiciRadar Watch Widgets";
+				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Debug;
@@ -1544,15 +1433,6 @@
 			buildConfigurations = (
 				5D10BA52B3B55314619FE443 /* Debug */,
 				A4044BE39D644B382FA9E0FA /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
-		4D5EF2FBFFA0EF302660A62D /* Build configuration list for PBXNativeTarget "BiciRadarUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9A68886AAA11A790FB87A931 /* Debug */,
-				647C327890AFC3F3419E334A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

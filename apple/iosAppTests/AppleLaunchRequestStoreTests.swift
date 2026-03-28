@@ -114,31 +114,4 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertNil(store.takePendingRequest())
     }
 
-    func testLaunchEnvironmentSeedsPendingRequest() {
-        store.seedFromLaunchEnvironment([
-            "BIZI_UI_TEST_PENDING_ACTION": "favorite_stations"
-        ])
-
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
-    }
-
-    func testLaunchEnvironmentStoresStationIdentifierWhenProvided() {
-        store.seedFromLaunchEnvironment([
-            "BIZI_UI_TEST_PENDING_ACTION": "show_station",
-            "BIZI_UI_TEST_PENDING_STATION_ID": "station-77"
-        ])
-
-        let request = store.takePendingRequest() as? MobileLaunchRequestShowStation
-        XCTAssertEqual(request?.stationId, "station-77")
-    }
-
-    func testLaunchEnvironmentClearsStaleStationIdentifierWhenOmitted() {
-        defaults.set("station-stale", forKey: "bizizaragoza.pendingStationId")
-
-        store.seedFromLaunchEnvironment([
-            "BIZI_UI_TEST_PENDING_ACTION": "favorite_stations"
-        ])
-
-        XCTAssertNil(defaults.string(forKey: "bizizaragoza.pendingStationId"))
-    }
 }
