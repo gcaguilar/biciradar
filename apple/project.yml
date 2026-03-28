@@ -389,6 +389,20 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/BiciRadar Watch.app/BiciRadar Watch"
 
 schemes:
+  BiciRadariOSTests:
+    build:
+      targets:
+        BiciRadar: all
+        BiciRadarWidgets: all
+        BiciRadarTests: [testing]
+        BiciRadarUITests: [testing]
+    test:
+      config: Debug
+      targets:
+        - BiciRadarTests
+        - BiciRadarUITests
+    run:
+      config: Debug
   BiciRadar:
     build:
       targets:

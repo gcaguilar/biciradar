@@ -163,7 +163,7 @@ jobs:
         run: |
           xcodebuild \
             -project apple/BiciRadar.xcodeproj \
-            -scheme BiciRadar \
+            -scheme BiciRadariOSTests \
             -sdk iphonesimulator \
             -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
