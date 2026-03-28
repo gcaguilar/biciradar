@@ -164,7 +164,6 @@ jobs:
           xcodebuild \
             -project apple/BiciRadar.xcodeproj \
             -scheme BiciRadariOSTests \
-            -sdk iphonesimulator \
             -destination "$IOS_DESTINATION" \
             -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
             -resultBundlePath "$RUNNER_TEMP/ios-tests.xcresult" \
