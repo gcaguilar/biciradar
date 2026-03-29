@@ -8,7 +8,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "npm run build && npx gh-pages -d dist -t"
+    "deploy": "npm run build && npx gh-pages -d dist -t",
+    "preview:gh": "npm run build && npx serve dist"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
