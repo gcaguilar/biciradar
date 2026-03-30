@@ -4,5 +4,7 @@ import react from '@astrojs/react';
 export default defineConfig({
   integrations: [react()],
   output: 'static',
-  base: '/biciradar'
+  site: process.env.PUBLIC_SITE_URL ?? 'https://gcaguilar.github.io',
+  // Serve and build from root path.
+  base: '/',
 });
