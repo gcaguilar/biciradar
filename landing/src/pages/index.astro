@@ -1,0 +1,11 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Landing from '../components/Landing.tsx';
+---
+
+<Layout
+  title="BiciRadar | Tu ciudad en tu radar"
+  description="Consulta disponibilidad de bicis y huecos en tiempo real, guarda estaciones favoritas y recibe avisos cuando cambie la disponibilidad."
+>
+  <Landing client:only="react" />
+</Layout>

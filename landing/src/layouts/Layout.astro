@@ -1,0 +1,64 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+}
+
+const {
+  title,
+  description = 'Consulta en tiempo real la disponibilidad de bicis y huecos en estaciones de tu ciudad con BiciRadar.',
+  image = '/og-image.svg',
+} = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(image, Astro.site).toString();
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BiciRadar" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content="es_ES" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: 'BiciRadar',
+      applicationCategory: 'TravelApplication',
+      operatingSystem: 'iOS, Android, Wear OS',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'EUR',
+      },
+      url: canonical,
+      sameAs: [
+        'https://apps.apple.com/es/app/biciradar/id6760931316',
+        'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
+      ],
+    })} />
+  </head>
+  <body class="bg-background font-body text-on-surface antialiased overflow-x-hidden">
+    <slot />
+  </body>
+</html>
