@@ -15,18 +15,18 @@ actor BiziWatchGraph {
 
     func nearbyStations(limit: Int = 5) async throws -> [WatchStationSnapshot] {
         try await refreshData()
-        return Array(stationsState().stations.prefix(limit).map(snapshot(from:)))
+        return Array(try stationsState().stations.prefix(limit).map(snapshot(from:)))
     }
 
     func nearestStation() async throws -> WatchStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters())
     }
 
     func nearestStationWithBikes() async throws -> WatchStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
             station.bikesAvailable > 0
         }
@@ -34,7 +34,7 @@ actor BiziWatchGraph {
 
     func nearestStationWithSlots() async throws -> WatchStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestWatchSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
             station.slotsFree > 0
         }
@@ -43,14 +43,14 @@ actor BiziWatchGraph {
     func favoriteStations(favoriteIds: Set<String>) async throws -> [WatchStationSnapshot] {
         try await refreshData()
         guard !favoriteIds.isEmpty else { return [] }
-        return stationsState().stations
+        return try stationsState().stations
             .filter { favoriteIds.contains($0.id) }
             .map(snapshot(from:))
     }
 
     func suggestedStations(limit: Int = 8) async throws -> [WatchStationSnapshot] {
         try await refreshData()
-        let state = stationsState()
+        let state = try stationsState()
         let favoriteIds = Set(
             state.stations
                 .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
@@ -82,7 +82,7 @@ actor BiziWatchGraph {
 
     func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [WatchStationSnapshot] {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         let normalizedQuery = normalizeWatchStationSearchText(query)
         guard !normalizedQuery.isEmpty else {
             return try await suggestedStations(limit: limit)
@@ -127,7 +127,7 @@ actor BiziWatchGraph {
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         try await refreshData()
-        let state = stationsState()
+        let state = try stationsState()
         let favoriteIds = Set(
             state.stations
                 .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
@@ -210,15 +210,9 @@ actor BiziWatchGraph {
         }
     }
 
-    private func stationsState() -> StationsState {
+    private func stationsState() throws -> StationsState {
         guard let state = graph.stationsRepository.state.value as? StationsState else {
-            return StationsState(
-                stations: [],
-                isLoading: false,
-                errorMessage: nil,
-                userLocation: nil,
-                lastUpdatedEpoch: nil
-            )
+            throw WatchGraphError.invalidStationsState
         }
         return state
     }
@@ -261,11 +255,14 @@ private func selectNearestWatchSnapshot(
 
 enum WatchGraphError: LocalizedError {
     case emptyAssistantResponse
+    case invalidStationsState
 
     var errorDescription: String? {
         switch self {
         case .emptyAssistantResponse:
             return "No se recibió respuesta del asistente del reloj."
+        case .invalidStationsState:
+            return "No se pudo leer el estado de estaciones del repositorio."
         }
     }
 }

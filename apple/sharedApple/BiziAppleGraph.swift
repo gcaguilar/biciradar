@@ -51,13 +51,13 @@ actor BiziAppleGraph {
 
     func nearestStation() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters())
     }
 
     func nearestStationWithBikes() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
             station.bikesAvailable > 0
         }
@@ -65,7 +65,7 @@ actor BiziAppleGraph {
 
     func nearestStationWithSlots() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
             station.slotsFree > 0
         }
@@ -73,7 +73,7 @@ actor BiziAppleGraph {
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let state = stationsState()
+        let state = try stationsState()
         return state.stations
             .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
             .map(snapshot(from:))
@@ -81,7 +81,7 @@ actor BiziAppleGraph {
 
     func suggestedStations(limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let state = stationsState()
+        let state = try stationsState()
         let favoriteIds = Set(
             state.stations
                 .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
@@ -113,7 +113,7 @@ actor BiziAppleGraph {
 
     func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let snapshots = stationsState().stations.map(snapshot(from:))
+        let snapshots = try stationsState().stations.map(snapshot(from:))
         let normalizedQuery = normalizeStationSearchText(query)
         guard !normalizedQuery.isEmpty else {
             return try await suggestedStations(limit: limit)
@@ -158,7 +158,7 @@ actor BiziAppleGraph {
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         try await refreshData()
-        let state = stationsState()
+        let state = try stationsState()
         let favoriteIds = Set(
             state.stations
                 .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
@@ -239,7 +239,54 @@ actor BiziAppleGraph {
             try await bootstrapSettings()
             try await bootstrapFavorites()
             try await bootstrapSurfaceRepositories()
+            try await bootstrapSavedPlaceAlerts()
             hasBootstrapped = true
+        }
+    }
+
+    private func bootstrapSavedPlaceAlerts() async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.savedPlaceAlertsRepository.bootstrap { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+    }
+
+    /// After a fresh [StationsState], evaluate saved-place rules and fire notifications (BG task / extensions).
+    func deliverSavedPlaceAlertNotificationsIfNeeded() async throws {
+        try await ensureBootstrapped()
+        let rules = graph.savedPlaceAlertsRepository.currentRules()
+        guard !rules.isEmpty else { return }
+
+        let state = try stationsState()
+        let evaluation = graph.savedPlaceAlertsEvaluator.evaluate(
+            rules: rules,
+            stationsState: state
+        )
+
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.savedPlaceAlertsRepository.replaceAll(rules: evaluation.updatedRules) { error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            }
+        }
+
+        guard await bindings.localNotifier.hasPermission() else { return }
+        for trigger in evaluation.triggers {
+            await MainActor.run {
+                BiziNotificationService.shared.postSavedPlaceAlert(
+                    title: trigger.notificationTitle(),
+                    body: trigger.notificationBody(),
+                    ruleId: trigger.ruleId
+                )
+            }
         }
     }
 
@@ -276,15 +323,9 @@ actor BiziAppleGraph {
         }
     }
 
-    private func stationsState() -> StationsState {
+    private func stationsState() throws -> StationsState {
         guard let state = graph.stationsRepository.state.value as? StationsState else {
-            return StationsState(
-                stations: [],
-                isLoading: false,
-                errorMessage: nil,
-                userLocation: nil,
-                lastUpdatedEpoch: nil
-            )
+            throw AppleGraphError.invalidStationsState
         }
         return state
     }
@@ -327,11 +368,14 @@ private func selectNearestSnapshot(
 
 enum AppleGraphError: LocalizedError {
     case emptyAssistantResponse
+    case invalidStationsState
 
     var errorDescription: String? {
         switch self {
         case .emptyAssistantResponse:
             return "No se recibió respuesta del asistente."
+        case .invalidStationsState:
+            return "No se pudo leer el estado de estaciones del repositorio."
         }
     }
 }

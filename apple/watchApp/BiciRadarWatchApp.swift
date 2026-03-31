@@ -88,10 +88,19 @@ struct WatchDashboardView: View {
 
                 if let errorMessage = model.errorMessage {
                     Section {
-                        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                            .font(.footnote)
-                            .foregroundStyle(Color.biziError)
-                            .transition(.opacity)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                                .font(.footnote)
+                                .foregroundStyle(Color.biziError)
+                                .transition(.opacity)
+                            Button {
+                                refreshDashboard(forceRefresh: true)
+                            } label: {
+                                Label("Reintentar", systemImage: "arrow.clockwise.circle")
+                                    .foregroundStyle(Color.biziDarkPrimary)
+                            }
+                            .buttonStyle(.bordered)
+                        }
                     }
                 }
 

@@ -58,7 +58,7 @@ final class WatchDashboardModel: ObservableObject {
         } catch {
             let cachedSnapshot = surfaceStore.read()
             withAnimation(.easeOut(duration: 0.18)) {
-                errorMessage = error.localizedDescription
+                errorMessage = friendlyMessage(for: error)
                 nearbyStations = cachedSnapshot?.nearbyStations ?? []
                 favoriteStations = orderedFavoriteStations(
                     cachedSnapshot?.favoriteStations.filter { favoriteIds.contains($0.id) } ?? [],
@@ -88,6 +88,13 @@ final class WatchDashboardModel: ObservableObject {
             }
             return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
         }
+    }
+
+    private func friendlyMessage(for error: Error) -> String {
+        if let graphError = error as? WatchGraphError, graphError == .invalidStationsState {
+            return "No hemos podido cargar el estado de estaciones. Pulsa Actualizar para reintentar."
+        }
+        return error.localizedDescription
     }
 }
 
