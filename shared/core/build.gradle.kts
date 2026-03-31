@@ -63,6 +63,8 @@ kotlin {
       implementation(libs.ktor.client.okhttp)
       implementation(libs.play.services.location)
       implementation(libs.play.services.wearable)
+      implementation(libs.play.review.ktx)
+      implementation(libs.play.app.update.ktx)
       implementation(libs.sqldelight.runtime)
       implementation(libs.sqldelight.android.driver)
     }

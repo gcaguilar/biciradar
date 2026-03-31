@@ -24,6 +24,7 @@ import kotlinx.serialization.json.Json
 interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
   val datosBiziApi: DatosBiziApi
+  val engagementRepository: EngagementRepository
   val favoritesRepository: FavoritesRepository
   val getCachedStationSnapshot: GetCachedStationSnapshot
   val getFavoriteStations: GetFavoriteStations
@@ -35,6 +36,8 @@ interface SharedGraph {
   val googlePlacesApi: GooglePlacesApi
   val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
   val reverseGeocodeUseCase: ReverseGeocodeUseCase
+  val savedPlaceAlertsRepository: SavedPlaceAlertsRepository
+  val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator
   val routeLauncher: RouteLauncher
   val settingsRepository: SettingsRepository
   val startStationMonitoring: StartStationMonitoring
@@ -86,6 +89,15 @@ interface SharedGraph {
   @SingleIn(AppScope::class)
   @Provides
   fun provideFavoritesRepository(implementation: FavoritesRepositoryImpl): FavoritesRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideEngagementRepository(implementation: EngagementRepositoryImpl): EngagementRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideSavedPlaceAlertsRepository(implementation: SavedPlaceAlertsRepositoryImpl): SavedPlaceAlertsRepository =
+    implementation
 
   @SingleIn(AppScope::class)
   @Provides

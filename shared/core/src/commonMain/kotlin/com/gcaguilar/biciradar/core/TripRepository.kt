@@ -58,6 +58,7 @@ class TripRepositoryImpl(
   private val stationsRepository: StationsRepository,
   private val localNotifier: LocalNotifier,
   private val appConfiguration: AppConfiguration,
+  private val engagementRepository: EngagementRepository,
   private val scope: CoroutineScope,
 ) : TripRepository {
   private val mutableState = MutableStateFlow(TripState())
@@ -148,6 +149,9 @@ class TripRepositoryImpl(
         mutableState.update { it.copy(monitoring = it.monitoring.copy(remainingSeconds = remaining)) }
       }
       if (mutableState.value.monitoring.isActive) {
+        if (remaining == 0) {
+          scope.launch { engagementRepository.markMonitoringCompleted() }
+        }
         stopMonitoring()
       }
     }
@@ -178,6 +182,7 @@ class TripRepositoryImpl(
             alternativeStation = alternative,
             alternativeDistanceMeters = alternative?.distanceMeters,
           )
+          scope.launch { engagementRepository.markMonitoringCompleted() }
           stopMonitoring()
           mutableState.update { it.copy(alert = alert) }
           val altText = if (alternative != null) " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)." else ""

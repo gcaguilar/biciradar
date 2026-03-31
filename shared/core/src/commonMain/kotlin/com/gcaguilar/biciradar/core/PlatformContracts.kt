@@ -69,6 +69,10 @@ interface PlatformBindings {
   val secureKeyStore: SecureKeyStore
   val storageDirectoryProvider: StorageDirectoryProvider
   val watchSyncBridge: WatchSyncBridge
+  val permissionPrompter: PermissionPrompter get() = NoOpPermissionPrompter
+  val externalLinks: ExternalLinks get() = NoOpExternalLinks
+  val reviewPrompter: ReviewPrompter get() = NoOpReviewPrompter
+  val appUpdatePrompter: AppUpdatePrompter get() = NoOpAppUpdatePrompter
 
   /** Called once after the [SharedGraph] has been created. Implementations may use this to wire
    *  graph-provided dependencies (e.g. [SettingsRepository]) into platform-specific objects that

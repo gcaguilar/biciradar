@@ -35,6 +35,7 @@ class SurfaceMonitoringRepositoryImpl(
   private val biziApi: BiziApi,
   private val favoritesRepository: FavoritesRepository,
   private val localNotifier: LocalNotifier,
+  private val engagementRepository: EngagementRepository,
   private val scope: CoroutineScope,
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
@@ -233,6 +234,7 @@ class SurfaceMonitoringRepositoryImpl(
     )
     mutableState.value = finished
     surfaceSnapshotRepository.saveMonitoringSession(finished)
+    engagementRepository.markMonitoringCompleted()
   }
 
   private fun stopInternal(updateState: Boolean) {

@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.platform
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -14,6 +15,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.AppConfiguration
+import com.gcaguilar.biciradar.core.AppUpdatePrompter
+import com.gcaguilar.biciradar.core.ExternalLinks
+import com.gcaguilar.biciradar.core.PermissionPrompter
+import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.DatabaseFactory
@@ -55,6 +60,19 @@ class AndroidPlatformBindings(
   private val context: Context,
   override val appConfiguration: AppConfiguration = AppConfiguration(),
 ) : PlatformBindings {
+  /** Activity used for in-app review / flexible updates; set from [attachExperienceActivity]. */
+  var experienceActivity: Activity? = null
+
+  private val androidPermissionPrompter = AndroidPermissionPrompter(context)
+  private val androidExternalLinks = AndroidExternalLinks(context, appConfiguration)
+  private val androidReviewPrompter = AndroidReviewPrompter(context) { experienceActivity }
+  private val androidAppUpdatePrompter = AndroidAppUpdatePrompter(context) { experienceActivity }
+
+  override val permissionPrompter: PermissionPrompter get() = androidPermissionPrompter
+  override val externalLinks: ExternalLinks get() = androidExternalLinks
+  override val reviewPrompter: ReviewPrompter get() = androidReviewPrompter
+  override val appUpdatePrompter: AppUpdatePrompter get() = androidAppUpdatePrompter
+
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
   override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
     private var database: BiciRadarDatabase? = null
@@ -94,6 +112,14 @@ class AndroidPlatformBindings(
    *  [androidx.activity.ComponentActivity] after registering your [ActivityResultLauncher]. */
   fun bindNotificationPermissionRequester(requester: suspend () -> Boolean) {
     androidLocalNotifier.permissionRequester = requester
+  }
+
+  fun bindLocationPermissionRequester(requester: suspend () -> Boolean) {
+    androidPermissionPrompter.locationPermissionRequester = requester
+  }
+
+  fun attachExperienceActivity(activity: Activity?) {
+    experienceActivity = activity
   }
 }
 

@@ -1,7 +1,17 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
+/** Age &lt; this since [StationsState.lastUpdatedEpoch] counts as [DataFreshness.Fresh] when data is trusted. */
+const val STATION_SNAPSHOT_FRESH_MS = 5 * 60 * 1000L
+
+/** Beyond this age, cached data is [DataFreshness.Expired]. */
+const val STATION_SNAPSHOT_STALE_MAX_MS = 60 * 60 * 1000L
+
+/** Wall-clock millis for UI copy such as “updated N min ago” (same clock as freshness). */
+fun epochMillisForUi(): Long = currentTimeMs()
 
 @Serializable
 data class GeoPoint(
@@ -30,7 +40,35 @@ data class StationsState(
   val errorMessage: String? = null,
   val userLocation: GeoPoint? = null,
   val lastUpdatedEpoch: Long? = null,
+  val dataSource: StationDataSource = StationDataSource.Network,
+  val freshness: DataFreshness = DataFreshness.Fresh,
+  val lastRefreshAttemptEpoch: Long? = null,
+  val lastRefreshFailureEpoch: Long? = null,
 )
+
+/**
+ * Derive [DataFreshness] from [lastUpdatedEpoch] age. When [servingCacheAfterFailure] is true,
+ * offline copy rules apply (no [DataFreshness.Fresh] — still usable cache shows as [DataFreshness.StaleUsable]).
+ */
+fun computeStationsFreshness(
+  lastUpdatedEpoch: Long?,
+  nowEpoch: Long = currentTimeMs(),
+  servingCacheAfterFailure: Boolean,
+  stationsEmpty: Boolean,
+  hardFailure: Boolean,
+): DataFreshness {
+  if (hardFailure && stationsEmpty) return DataFreshness.Unavailable
+  val updated = lastUpdatedEpoch ?: return if (stationsEmpty) DataFreshness.Unavailable else DataFreshness.Fresh
+  val age = nowEpoch - updated
+  if (servingCacheAfterFailure) {
+    return if (age <= STATION_SNAPSHOT_STALE_MAX_MS) DataFreshness.StaleUsable else DataFreshness.Expired
+  }
+  return when {
+    age < STATION_SNAPSHOT_FRESH_MS -> DataFreshness.Fresh
+    age <= STATION_SNAPSHOT_STALE_MAX_MS -> DataFreshness.StaleUsable
+    else -> DataFreshness.Expired
+  }
+}
 
 @Serializable
 data class FavoritesSyncSnapshot(

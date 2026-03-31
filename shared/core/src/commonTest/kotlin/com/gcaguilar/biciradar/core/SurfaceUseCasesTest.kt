@@ -3,9 +3,9 @@ package com.gcaguilar.biciradar.core
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class SurfaceUseCasesTest {
   @Test
@@ -224,20 +224,29 @@ private class FakeUseCaseSettingsRepository(
   override val searchRadiusMeters = MutableStateFlow(searchRadiusMetersValue)
   override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
   override val lastSeenChangelogVersion = MutableStateFlow(0)
+  override val lastSeenChangelogAppVersion = MutableStateFlow<String?>(null)
   override val themePreference = MutableStateFlow(ThemePreference.System)
   override val selectedCity = MutableStateFlow(city)
   override val hasCompletedOnboarding = MutableStateFlow(true)
+  override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot(completedAtEpoch = 1L))
+  override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
 
   override suspend fun bootstrap() = Unit
   override fun currentSearchRadiusMeters(): Int = searchRadiusMetersValue
   override fun currentPreferredMapApp(): PreferredMapApp = PreferredMapApp.AppleMaps
   override fun currentSelectedCity(): City = city
+  override fun currentLastSeenChangelogAppVersion(): String? = null
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+  override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+  override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
   override suspend fun setSelectedCity(city: City) = Unit
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+  override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
+  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
+  override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
 }
 
 private class FakeSurfaceSnapshotRepository(

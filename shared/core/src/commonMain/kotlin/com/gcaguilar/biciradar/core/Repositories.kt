@@ -87,7 +87,14 @@ class StationsRepositoryImpl(
     }
     val origin = currentLocation ?: defaultLocation()
     val city = settingsRepository.currentSelectedCity()
-    mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+    val attemptAt = currentTimeMs()
+    mutableState.update {
+      it.copy(
+        isLoading = true,
+        errorMessage = null,
+        lastRefreshAttemptEpoch = attemptAt,
+      )
+    }
     refreshStations(origin = origin, currentLocation = currentLocation, city = city)
   }
 
@@ -100,7 +107,14 @@ class StationsRepositoryImpl(
 
     loadMutex.withLock {
       if (loaded) return
-      mutableState.update { it.copy(isLoading = true, errorMessage = null) }
+      val attemptAt = currentTimeMs()
+      mutableState.update {
+        it.copy(
+          isLoading = true,
+          errorMessage = null,
+          lastRefreshAttemptEpoch = attemptAt,
+        )
+      }
     }
 
     // Clear cache if city changed
@@ -116,12 +130,22 @@ class StationsRepositoryImpl(
       if (isCacheValid && cachedStations.isNotEmpty()) {
         // Load from cache (transparent to user)
         val stations = cachedStations.map { it.toDomain(origin) }
-         mutableState.value = StationsState(
-           stations = stations,
-           isLoading = false,
-           userLocation = currentLocation,
-           lastUpdatedEpoch = metadataLastUpdated(city.id),
-         )
+        val lastUp = metadataLastUpdated(city.id)
+        val now = currentTimeMs()
+        mutableState.value = StationsState(
+          stations = stations,
+          isLoading = false,
+          userLocation = currentLocation,
+          lastUpdatedEpoch = lastUp,
+          dataSource = StationDataSource.Cache,
+          freshness = computeStationsFreshness(
+            lastUpdatedEpoch = lastUp,
+            nowEpoch = now,
+            servingCacheAfterFailure = false,
+            stationsEmpty = false,
+            hardFailure = false,
+          ),
+        )
         loadMutex.withLock {
           loaded = true
           lastLoadedCityId = city.id
@@ -149,6 +173,10 @@ class StationsRepositoryImpl(
           isLoading = false,
           userLocation = currentLocation,
           lastUpdatedEpoch = lastUpdatedEpoch,
+          dataSource = StationDataSource.Network,
+          freshness = DataFreshness.Fresh,
+          lastRefreshAttemptEpoch = lastUpdatedEpoch,
+          lastRefreshFailureEpoch = null,
         )
         loadMutex.withLock {
           loaded = true
@@ -161,12 +189,25 @@ class StationsRepositoryImpl(
           val staleStations = loadFromCache(city.id)
           if (staleStations != null && staleStations.isNotEmpty()) {
             val stations = staleStations.map { it.toDomain(origin) }
-             mutableState.value = StationsState(
-               stations = stations,
-               isLoading = false,
-               userLocation = currentLocation,
-               lastUpdatedEpoch = metadataLastUpdated(city.id),
-             )
+            val lastUp = metadataLastUpdated(city.id)
+            val now = currentTimeMs()
+            mutableState.value = StationsState(
+              stations = stations,
+              isLoading = false,
+              errorMessage = null,
+              userLocation = currentLocation,
+              lastUpdatedEpoch = lastUp,
+              dataSource = StationDataSource.Cache,
+              freshness = computeStationsFreshness(
+                lastUpdatedEpoch = lastUp,
+                nowEpoch = now,
+                servingCacheAfterFailure = true,
+                stationsEmpty = false,
+                hardFailure = false,
+              ),
+              lastRefreshAttemptEpoch = now,
+              lastRefreshFailureEpoch = now,
+            )
             loadMutex.withLock {
               loaded = true
               lastLoadedCityId = city.id
@@ -174,11 +215,18 @@ class StationsRepositoryImpl(
             return@onFailure
           }
         }
+        val now = currentTimeMs()
         mutableState.update {
           it.copy(
             isLoading = false,
             errorMessage = error.message ?: "No se pudo cargar BiciRadar.",
             userLocation = currentLocation,
+            stations = emptyList(),
+            lastUpdatedEpoch = null,
+            dataSource = StationDataSource.Unavailable,
+            freshness = DataFreshness.Unavailable,
+            lastRefreshAttemptEpoch = now,
+            lastRefreshFailureEpoch = now,
           )
         }
       }
@@ -294,6 +342,10 @@ class StationsRepositoryImpl(
           station.copy(bikesAvailable = update.bikesAvailable, slotsFree = update.slotsFree)
         },
         lastUpdatedEpoch = refreshedAt,
+        dataSource = StationDataSource.Network,
+        freshness = DataFreshness.Fresh,
+        lastRefreshAttemptEpoch = refreshedAt,
+        lastRefreshFailureEpoch = null,
       )
     }
   }

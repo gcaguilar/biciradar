@@ -1,6 +1,10 @@
 package com.gcaguilar.biciradar.core.platform
 
 import com.gcaguilar.biciradar.core.AppConfiguration
+import com.gcaguilar.biciradar.core.AppUpdatePrompter
+import com.gcaguilar.biciradar.core.ExternalLinks
+import com.gcaguilar.biciradar.core.PermissionPrompter
+import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.EmbeddedMapProvider
@@ -75,12 +79,27 @@ class IOSPlatformBindings(
   }
 
   private val iosRouteLauncher = IOSRouteLauncher()
+  private val iosExperienceJson = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
+  private val iosUpdateHttpClient = IOSHttpClientFactory().create(iosExperienceJson)
 
   override val appVersion: String = NSBundle.mainBundle
     .objectForInfoDictionaryKey("CFBundleShortVersionString")
     ?.toString()
     ?.trim()
     ?.takeIf { it.isNotBlank() } ?: "unknown"
+
+  override val permissionPrompter: PermissionPrompter = IOSPermissionPrompterImpl()
+  override val externalLinks: ExternalLinks = IOSExternalLinksImpl(appConfiguration)
+  override val reviewPrompter: ReviewPrompter = IOSReviewPrompterImpl(appConfiguration)
+  override val appUpdatePrompter: AppUpdatePrompter = IOSAppUpdatePrompterImpl(
+    appConfiguration = appConfiguration,
+    httpClient = iosUpdateHttpClient,
+    json = iosExperienceJson,
+    currentAppVersion = appVersion,
+  )
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   private var database: BiciRadarDatabase? = null
   override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
