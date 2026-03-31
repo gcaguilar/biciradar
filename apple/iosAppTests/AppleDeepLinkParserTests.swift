@@ -8,6 +8,7 @@ final class AppleDeepLinkParserTests: XCTestCase {
         XCTAssertTrue(AppleDeepLinkParser.parse(URL(string: "biciradar://nearby")!) is MobileLaunchRequestHome)
         XCTAssertTrue(AppleDeepLinkParser.parse(URL(string: "biciradar://map")!) is MobileLaunchRequestMap)
         XCTAssertTrue(AppleDeepLinkParser.parse(URL(string: "biciradar://favorites")!) is MobileLaunchRequestFavorites)
+        XCTAssertTrue(AppleDeepLinkParser.parse(URL(string: "biciradar://alerts")!) is MobileLaunchRequestSavedPlaceAlerts)
     }
 
     func testParsesStationAndMonitoringDeepLinks() {

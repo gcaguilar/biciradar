@@ -275,5 +275,19 @@ class AndroidLaunchRequestParserTest {
     assertEquals(MobileLaunchRequest.ShowStation("station-7"), stationPayload?.launchRequest)
     assertEquals(MobileLaunchRequest.MonitorStation("station-9"), monitorPayload?.launchRequest)
     assertEquals(MobileLaunchRequest.SelectCity("zaragoza"), cityPayload?.launchRequest)
+    val alertsPayload = parseLaunchPayload(
+      source = AndroidLaunchSource(
+        deepLinkHost = "alerts",
+      ),
+    )
+    assertEquals(MobileLaunchRequest.SavedPlaceAlerts, alertsPayload?.launchRequest)
+  }
+
+  @Test
+  fun `parseLaunchRequest resolves saved place alerts action`() {
+    assertEquals(
+      MobileLaunchRequest.SavedPlaceAlerts,
+      parseLaunchRequest(feature = SAVED_PLACE_ALERTS_ACTION),
+    )
   }
 }

@@ -21,6 +21,7 @@ internal const val HOME_ACTION = "home"
 internal const val MAP_ACTION = "map"
 internal const val MONITOR_STATION_ACTION = "monitor_station"
 internal const val SELECT_CITY_ACTION = "select_city"
+internal const val SAVED_PLACE_ALERTS_ACTION = "saved_place_alerts"
 
 internal const val ASSISTANT_ACTION_EXTRA = "assistant_action"
 internal const val FEATURE_EXTRA = "feature"
@@ -77,6 +78,7 @@ internal fun parseLaunchRequest(
     SELECT_CITY_ACTION -> normalizedStationId?.let(MobileLaunchRequest::SelectCity)
     ROUTE_TO_STATION_ACTION -> MobileLaunchRequest.RouteToStation(normalizedStationId)
     SHOW_STATION_ACTION -> normalizedStationId?.let(MobileLaunchRequest::ShowStation)
+    SAVED_PLACE_ALERTS_ACTION -> MobileLaunchRequest.SavedPlaceAlerts
     else -> null
   }
 }
@@ -198,6 +200,7 @@ private fun canonicalDeepLinkAction(host: String?): String? = when (host?.trim()
   "home", "nearby" -> HOME_ACTION
   "map" -> MAP_ACTION
   "favorites" -> FAVORITE_STATIONS_ACTION
+  "alerts" -> SAVED_PLACE_ALERTS_ACTION
   "station" -> SHOW_STATION_ACTION
   "monitor" -> MONITOR_STATION_ACTION
   "city" -> SELECT_CITY_ACTION
@@ -274,6 +277,9 @@ private fun canonicalAction(rawValue: String?): String? {
     "como llego a una estacion",
     "quiero ir a una estacion" -> ROUTE_TO_STATION_ACTION
     SHOW_STATION_ACTION -> SHOW_STATION_ACTION
+    SAVED_PLACE_ALERTS_ACTION,
+    "alerts",
+    "alertas" -> SAVED_PLACE_ALERTS_ACTION
     else -> null
   }
 }

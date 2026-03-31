@@ -30,6 +30,10 @@ class AndroidAssistantShortcutsTest {
       SHOW_STATION_ACTION,
       shortcutIdFor(MobileLaunchRequest.ShowStation(stationId = "48"), null),
     )
+    assertEquals(
+      SAVED_PLACE_ALERTS_ACTION,
+      shortcutIdFor(MobileLaunchRequest.SavedPlaceAlerts, null),
+    )
   }
 
   @Test

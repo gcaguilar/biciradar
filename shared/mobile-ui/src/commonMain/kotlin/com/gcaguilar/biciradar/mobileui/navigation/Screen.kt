@@ -22,6 +22,9 @@ sealed class Screen {
   data object Shortcuts : Screen()
 
   @Serializable
+  data object SavedPlaceAlerts : Screen()
+
+  @Serializable
   data class StationDetail(val stationId: String) : Screen()
 
   @Serializable
@@ -33,6 +36,7 @@ object DeepLinks {
   const val HOME_URI = "${BASE_URI}home"
   const val MAP_URI = "${BASE_URI}map"
   const val FAVORITES_URI = "${BASE_URI}favorites"
+  const val SAVED_PLACE_ALERTS_URI = "${BASE_URI}alerts"
 
   fun stationDetail(stationId: String) = "${BASE_URI}station/$stationId"
   fun monitor(stationId: String) = "${BASE_URI}monitor/$stationId"

@@ -114,4 +114,11 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
         XCTAssertNil(store.takePendingRequest())
     }
 
+    func testSavedPlaceAlertsRequestRoundTrip() {
+        store.save(MobileLaunchRequestSavedPlaceAlerts.shared)
+
+        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestSavedPlaceAlerts)
+        XCTAssertNil(store.takePendingRequest())
+    }
+
 }

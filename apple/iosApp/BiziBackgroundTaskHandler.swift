@@ -72,25 +72,8 @@ enum BiziBackgroundTaskHandler {
             // 1. Refresh station data via the shared graph.
             try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
 
-            // 2. Fetch favorite stations with their current availability.
-            let favorites = try await BiziAppleGraph.shared.favoriteStations()
-            guard !favorites.isEmpty else {
-                WidgetCenter.shared.reloadAllTimelines()
-                task.setTaskCompleted(success: true)
-                return
-            }
-
-            // 3. Determine which favorites newly have bikes (0 → >0 transition).
-            let cache = StationAvailabilityCache()
-            let newlyAvailable = cache.newlyAvailableStations(from: favorites)
-
-            // 4. Persist updated counts for next comparison.
-            cache.persist(favorites)
-
-            // 5. Fire local notifications for newly-available stations.
-            if !newlyAvailable.isEmpty {
-                await BiziNotificationService.shared.notifyFavoriteStationsAvailable(newlyAvailable)
-            }
+            // 2. Evaluate saved-place alert rules (Casa/Trabajo/favoritas) with shared Kotlin evaluator.
+            try await BiziAppleGraph.shared.deliverSavedPlaceAlertNotificationsIfNeeded()
 
             WidgetCenter.shared.reloadAllTimelines()
 

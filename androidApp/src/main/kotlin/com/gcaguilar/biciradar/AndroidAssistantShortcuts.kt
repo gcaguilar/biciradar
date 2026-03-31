@@ -36,6 +36,7 @@ internal fun shortcutIdFor(
       MobileLaunchRequest.StationStatus -> STATION_STATUS_ACTION
       is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
       is MobileLaunchRequest.ShowStation -> SHOW_STATION_ACTION
+      MobileLaunchRequest.SavedPlaceAlerts -> SAVED_PLACE_ALERTS_ACTION
       else -> null
     }
   }

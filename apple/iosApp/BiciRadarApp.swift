@@ -39,7 +39,6 @@ struct BiciRadarApp: App {
                 .ignoresSafeArea()
                 .onAppear(perform: applyPendingLaunchRequest)
                 .onAppear {
-                    requestNotificationPermission()
                     SurfaceMonitoringActivityController.shared.startRefreshing()
                     WidgetTimelineReloadScheduler.shared.scheduleReloads()
                 }

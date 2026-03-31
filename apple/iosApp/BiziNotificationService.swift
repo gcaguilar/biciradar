@@ -23,6 +23,26 @@ final class BiziNotificationService {
 
     // MARK: - Posting
 
+    /// Immediate local notification (used by background saved-place alert evaluation).
+    func postSavedPlaceAlert(title: String, body: String, ruleId: String) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.userInfo = ["rule_id": ruleId]
+
+        let request = UNNotificationRequest(
+            identifier: "bizi.savedplace.\(ruleId)",
+            content: content,
+            trigger: nil
+        )
+        center.add(request) { error in
+            if let error {
+                print("[BiziNotifications] Saved-place alert failed: \(error)")
+            }
+        }
+    }
+
     /// Fires a local notification for each favorite station that newly has bikes available.
     /// - Parameter newlyAvailable: stations that transitioned from 0 → >0 bikes since last check.
     func notifyFavoriteStationsAvailable(_ newlyAvailable: [BiziStationSnapshot]) {

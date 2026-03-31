@@ -265,7 +265,8 @@ actor BiziAppleGraph {
         let state = try stationsState()
         let evaluation = graph.savedPlaceAlertsEvaluator.evaluate(
             rules: rules,
-            stationsState: state
+            stationsState: state,
+            nowEpoch: Int64(Date().timeIntervalSince1970 * 1000)
         )
 
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -278,7 +279,8 @@ actor BiziAppleGraph {
             }
         }
 
-        guard await bindings.localNotifier.hasPermission() else { return }
+        let hasNotificationPermission = try await bindings.localNotifier.hasPermission().boolValue
+        guard hasNotificationPermission else { return }
         for trigger in evaluation.triggers {
             await MainActor.run {
                 BiziNotificationService.shared.postSavedPlaceAlert(

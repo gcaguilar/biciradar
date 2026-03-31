@@ -14,6 +14,8 @@ enum AppleDeepLinkParser {
             return MobileLaunchRequestMap.shared
         case "favorites":
             return MobileLaunchRequestFavorites.shared
+        case "alerts":
+            return MobileLaunchRequestSavedPlaceAlerts.shared
         case "station":
             guard let stationId = pathComponent, !stationId.isEmpty else { return nil }
             return MobileLaunchRequestShowStation(stationId: stationId)

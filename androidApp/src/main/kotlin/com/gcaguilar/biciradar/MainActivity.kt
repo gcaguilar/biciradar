@@ -31,10 +31,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 class MainActivity : ComponentActivity() {
+  private lateinit var platformBindings: AndroidPlatformBindings
+
+  private var locationPermissionContinuation: kotlin.coroutines.Continuation<Boolean>? = null
   private val locationPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions(),
-  ) {
+  ) { results ->
     refreshNonce += 1
+    val granted = results.values.any { it }
+    locationPermissionContinuation?.resume(granted)
+    locationPermissionContinuation = null
   }
 
   // Coroutine continuation resumed when the user responds to the POST_NOTIFICATIONS dialog.
@@ -58,10 +64,25 @@ class MainActivity : ComponentActivity() {
     installSplashScreen().setKeepOnScreenCondition { !startupReady }
     super.onCreate(savedInstanceState)
 
-    val platformBindings = AndroidPlatformBindings(
+    platformBindings = AndroidPlatformBindings(
       context = applicationContext,
       appConfiguration = AppConfiguration(),
     )
+
+    platformBindings.bindLocationPermissionRequester {
+      if (hasLocationPermission()) {
+        return@bindLocationPermissionRequester true
+      }
+      suspendCoroutine { cont ->
+        locationPermissionContinuation = cont
+        locationPermissionLauncher.launch(
+          arrayOf(
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+          ),
+        )
+      }
+    }
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       platformBindings.bindNotificationPermissionRequester {
@@ -95,7 +116,17 @@ class MainActivity : ComponentActivity() {
       )
     }
 
-    ensureLocationPermissions()
+    SavedPlaceAlertsWorker.schedule(applicationContext)
+  }
+
+  override fun onStart() {
+    super.onStart()
+    platformBindings.attachExperienceActivity(this)
+  }
+
+  override fun onStop() {
+    platformBindings.attachExperienceActivity(null)
+    super.onStop()
   }
 
   override fun onDestroy() {
@@ -145,16 +176,6 @@ class MainActivity : ComponentActivity() {
         AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }
       .launchIn(scope)
-  }
-
-  private fun ensureLocationPermissions() {
-    if (hasLocationPermission()) return
-    locationPermissionLauncher.launch(
-      arrayOf(
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-        Manifest.permission.ACCESS_FINE_LOCATION,
-      ),
-    )
   }
 
   private fun hasLocationPermission(): Boolean {

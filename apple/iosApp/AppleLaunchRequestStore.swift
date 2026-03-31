@@ -19,6 +19,7 @@ final class AppleLaunchRequestStore: ObservableObject {
         static let selectCity = "select_city"
         static let routeToStation = "route_to_station"
         static let showStation = "show_station"
+        static let savedPlaceAlerts = "saved_place_alerts"
     }
 
     private let defaults: UserDefaults
@@ -67,6 +68,9 @@ final class AppleLaunchRequestStore: ObservableObject {
         case let request as MobileLaunchRequestShowStation:
             defaults.set(LaunchAction.showStation, forKey: actionKey)
             defaults.set(request.stationId, forKey: stationIdKey)
+        case is MobileLaunchRequestSavedPlaceAlerts:
+            defaults.set(LaunchAction.savedPlaceAlerts, forKey: actionKey)
+            defaults.removeObject(forKey: stationIdKey)
         default:
             defaults.removeObject(forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
@@ -111,6 +115,8 @@ final class AppleLaunchRequestStore: ObservableObject {
         case LaunchAction.showStation:
             guard let stationId else { return nil }
             return MobileLaunchRequestShowStation(stationId: stationId)
+        case LaunchAction.savedPlaceAlerts:
+            return MobileLaunchRequestSavedPlaceAlerts.shared
         default:
             return nil
         }
