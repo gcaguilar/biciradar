@@ -33,7 +33,11 @@ internal class IOSExternalLinksImpl(
 ) : ExternalLinks {
   override fun openFeedbackForm() {
     val url = NSURL.URLWithString(appConfiguration.feedbackFormUrl) ?: return
-    UIApplication.sharedApplication.openURL(url)
+    UIApplication.sharedApplication.openURL(
+      url = url,
+      options = emptyMap<Any?, Any>(),
+      completionHandler = null,
+    )
   }
 }
 
@@ -59,7 +63,13 @@ internal class IOSReviewPrompterImpl(
 
   override fun openStoreWriteReview() {
     val urlString = appConfiguration.iosAppStoreUrl ?: return
-    NSURL.URLWithString(urlString)?.let { UIApplication.sharedApplication.openURL(it) }
+    NSURL.URLWithString(urlString)?.let { url ->
+      UIApplication.sharedApplication.openURL(
+        url = url,
+        options = emptyMap<Any?, Any>(),
+        completionHandler = null,
+      )
+    }
   }
 }
 
@@ -101,6 +111,12 @@ internal class IOSAppUpdatePrompterImpl(
   override fun openStoreListing() {
     val url = appConfiguration.iosAppStoreUrl
       ?: "https://apps.apple.com/app/id${appConfiguration.iosAppStoreId}"
-    NSURL.URLWithString(url)?.let { UIApplication.sharedApplication.openURL(it) }
+    NSURL.URLWithString(url)?.let { storeUrl ->
+      UIApplication.sharedApplication.openURL(
+        url = storeUrl,
+        options = emptyMap<Any?, Any>(),
+        completionHandler = null,
+      )
+    }
   }
 }

@@ -211,7 +211,11 @@ private class IOSRouteLauncher : RouteLauncher {
       "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
     )
     if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
-      UIApplication.sharedApplication.openURL(fallbackUrl)
+      UIApplication.sharedApplication.openURL(
+        url = fallbackUrl,
+        options = emptyMap<Any?, Any>(),
+        completionHandler = null,
+      )
     }
   }
 
@@ -222,7 +226,11 @@ private class IOSRouteLauncher : RouteLauncher {
     ) ?: return false
     val application = UIApplication.sharedApplication
     if (!application.canOpenURL(googleMapsUrl)) return false
-    application.openURL(googleMapsUrl)
+    application.openURL(
+      url = googleMapsUrl,
+      options = emptyMap<Any?, Any>(),
+      completionHandler = null,
+    )
     return true
   }
 
@@ -233,7 +241,11 @@ private class IOSRouteLauncher : RouteLauncher {
       )
       val application = UIApplication.sharedApplication
       if (googleMapsUrl != null && application.canOpenURL(googleMapsUrl)) {
-        application.openURL(googleMapsUrl)
+        application.openURL(
+          url = googleMapsUrl,
+          options = emptyMap<Any?, Any>(),
+          completionHandler = null,
+        )
         return
       }
     }
@@ -254,7 +266,11 @@ private class IOSRouteLauncher : RouteLauncher {
         "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w",
       )
       if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
-        UIApplication.sharedApplication.openURL(fallbackUrl)
+        UIApplication.sharedApplication.openURL(
+          url = fallbackUrl,
+          options = emptyMap<Any?, Any>(),
+          completionHandler = null,
+        )
       }
     }
   }
