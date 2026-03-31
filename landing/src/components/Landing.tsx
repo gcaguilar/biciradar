@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 
 type Language = 'ES' | 'EN' | 'CA' | 'EU' | 'GL';
 
+declare global {
+  interface Window {
+    umami?: {
+      track: (eventName: string, eventData?: Record<string, string>) => void;
+    };
+  }
+}
+
 const translations = {
   ES: {
     heroTitle: 'Tu ciudad en tu',
@@ -249,6 +257,7 @@ const languageNames: Record<Language, string> = {
 };
 
 export default function Landing() {
+  const baseUrl = import.meta.env.BASE_URL;
   const [isDark, setIsDark] = useState(false);
   const [lang, setLang] = useState<Language>('ES');
   const currentYear = new Date().getFullYear();
@@ -283,6 +292,9 @@ export default function Landing() {
   };
 
   const t = translations[lang];
+  const trackDownloadClick = (store: 'app_store' | 'play_store' | 'android_testers') => {
+    window.umami?.track('download_click', { store, lang });
+  };
 
   const cities = [
     { name: t.madrid, service: t.bicimad },
@@ -346,6 +358,7 @@ export default function Landing() {
                   href="https://apps.apple.com/es/app/biciradar/id6760931316"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDownloadClick('app_store')}
                   className="flex items-center gap-3 bg-on-surface text-surface-container-lowest px-8 py-4 rounded-xl font-bold hover:bg-primary transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>ios</span>
@@ -358,6 +371,7 @@ export default function Landing() {
                   href="https://groups.google.com/g/testers-biciradar"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDownloadClick('android_testers')}
                   className="flex items-center gap-3 bg-surface-container-high border-2 border-outline-variant/20 text-on-surface px-8 py-4 rounded-xl font-bold hover:bg-secondary-container dark:hover:bg-secondary transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined">android</span>
@@ -370,6 +384,7 @@ export default function Landing() {
                   href="https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDownloadClick('play_store')}
                   className="flex items-center gap-3 bg-surface-container-high border-2 border-outline-variant/20 text-on-surface px-8 py-4 rounded-xl font-bold hover:bg-secondary-container dark:hover:bg-secondary transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined">download</span>
@@ -386,7 +401,12 @@ export default function Landing() {
                 <img 
                   alt="BiciRadar App" 
                   className={`w-full max-w-[500px] object-contain drop-shadow-2xl ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ7AhtxbTmQQlAEICBi1RcN8wjpc9bWynvTTGpTyDPSxjBkF8kBo6JJ0xxcEWyzsAdF7EeO8_OHbFHaQ2Kehq690ONWxhlsW1mDssUlH74cpY8_S4I3pOCnKglYSYF8Cz-8Mr0IaEhFhuTWxLsF1ZYSWgOxBjD9IiKSzx_NnYMnNjpm41RyhsOJbKawwEW4LKNeWevYuIXT9dvI0IayWE3cBY_EbX4-88A5PpU65hNqlG-iRq3eN2edn8A2cxksnxo80wu7yZaC0DV"
+                  src={`${baseUrl}images/hero.jpg`}
+                  width={500}
+                  height={1000}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                 />
                 <div className={`absolute top-1/4 -left-10 bg-white/90 dark:bg-surface-container/90 backdrop-blur-xl p-4 rounded-2xl shadow-xl hidden md:block border border-outline-variant/10 dark:border-white/10`}>
                   <div className="flex items-center gap-3">
@@ -430,7 +450,11 @@ export default function Landing() {
                 <img 
                   alt="Consulta disponibilidad" 
                   className={`rounded-2xl shadow-2xl ${isDark ? 'brightness-75' : ''}`}
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBegatPdPmVWr6VsTNfs6258zy4n09XiXdO8BSPMFIltGqS-eSU-NmLy60H4ZBwjCrlxbnQ30iBCtybC2CMjaLC82EB9a9w5QDNQLADbCtbzgIKB5VRF6jKkDl2tCRF8OzI_HfgVVVzbb3qJakVtWWGEJJSLkuNgG4e_REN4auWh5qA08jeT11Zu_whp45h9ronRAdDlEUe6zDLyrcYqQ3Tjc4_iSeJARogiTrTxqQvweTp_l-zoQXd11Wvlq7BgfOuOHCnx98CqE8P"
+                  src={`${baseUrl}images/feature-availability.jpg`}
+                  width={1080}
+                  height={2340}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -446,7 +470,11 @@ export default function Landing() {
               <img 
                 alt="Estaciones favoritas" 
                 className={`rounded-xl w-full object-cover h-40 group-hover:opacity-90 transition-opacity ${isDark ? 'brightness-75' : ''}`}
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuz0qfVRqzYOOEpa2RGA9TcI5JWaGomrnHftQRfT_phAg96z3QhuNxBwWXBFQggv-KmVxKJJ3EZf67sPr26YhocMg_sO4hhH2uQR_AORvnZhcCt-0f5omH4YpHxQTYcnJbVZrlvfArcbz7Kr0yz19a5SUpnpOfQ8L03Z8Gd1N4HimjII07-qYVbNaonBgXe4tj-OuyAN0Q6NYJrbjx2LUEiGHoxk3OnFmHNikcT9QqDYICQpCuT0O-k6-lS7NXwnjTxaakK03R-wnQ"
+                src={`${baseUrl}images/feature-favorites.jpg`}
+                width={1080}
+                height={720}
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -474,7 +502,11 @@ export default function Landing() {
                 <img 
                   alt="Widgets y reloj" 
                   className={`rounded-2xl shadow-xl transform group-hover:rotate-2 transition-transform ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXXyNdx345trBP-lVa1tIOJPv5TVvFUXy_LU_CDodgwfmOjQMdlN0agPli1X9hPbvar4gbCfG2XYJdBuPb_DFX0Sr-qKYVCJnTaSz-6VsZL69XSeOnL842u3dAZktnv-SoN5mZZ02JyiPxjCGYTO9BDxCYzlYBwnRrfdmiRa-CczdTn_T0NHZNgYz_vvS_qppaiCMFR1sHYZwQsNv9UUflF15A-N7RQkDIhWg-eZgteFpf1VnKiSmwc1NMYo9-TT70lSgYSK7sYuGU"
+                  src={`${baseUrl}images/feature-widgets.jpg`}
+                  width={1080}
+                  height={2340}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="flex-1 order-1 md:order-2">
@@ -537,7 +569,11 @@ export default function Landing() {
             <img 
               alt="Map background" 
               className={`w-full h-full object-cover ${isDark ? 'invert' : ''}`}
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrZhR050XMfen-kCIHA0mgiuYfUehHIRI0Sb2duYm0BMmFDWsqV3BGznT74qwAKhFpSR_SiQW-L4s24EakURHhCNbKp2roG3F92vHfVmrtoYAHfbKJJd5e8OlfVagWJR0p7TVl7uQbkXbNRBWWd7q2QT58T6x8wWb1OVtzqT4AuvEl14bS_5gYQ1J-uPIdV6b8lJW4M8XiZIHQapsRlF3tJE5kdtdkbp5YwyAHJXyvwlwbw0ZMwE0XQK0E_io0TE9MnJhyP1sS9nX4"
+              src={`${baseUrl}images/map-bg.jpg`}
+              width={1920}
+              height={1080}
+              loading="lazy"
+              decoding="async"
             />
           </div>
         </section>
