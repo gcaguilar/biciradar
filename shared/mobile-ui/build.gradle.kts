@@ -26,6 +26,11 @@ kotlin {
       enable = true
     }
   }
+  jvm {
+    compilerOptions {
+      jvmTarget.set(JvmTarget.JVM_17)
+    }
+  }
   iosArm64()
   iosSimulatorArm64()
 
@@ -52,6 +57,7 @@ kotlin {
       implementation(libs.compose.resources)
       implementation(libs.metro.runtime)
       implementation(libs.androidx.lifecycle.runtime.compose)
+      implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
       implementation(libs.navigation.compose)
     }
     commonTest.dependencies {

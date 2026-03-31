@@ -20,12 +20,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -55,7 +57,9 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -89,6 +93,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -106,16 +111,24 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.core.epochMillisForUi
+import com.gcaguilar.biciradar.core.pendingChangelogVersion
 import com.gcaguilar.biciradar.core.GeoPoint
-import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.SharedGraph
+import com.gcaguilar.biciradar.core.PlatformBindings
+import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
+import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
+import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -164,6 +177,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
+import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
+import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 import androidx.window.core.layout.WindowSizeClass
@@ -307,21 +323,11 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
 }
 
-private const val CURRENT_CHANGELOG_VERSION = 5
-
-private data class ChangelogEntry(val titleKey: StringResource, val descriptionKey: StringResource)
-
-private val CHANGELOG_ENTRIES = listOf(
-  ChangelogEntry(Res.string.changelogUiImprovementsTitle, Res.string.changelogUiImprovementsDescription),
-  ChangelogEntry(Res.string.changelogPerformanceImprovementsTitle, Res.string.changelogPerformanceImprovementsDescription),
-  ChangelogEntry(Res.string.changelogLocalCacheTitle, Res.string.changelogLocalCacheDescription),
-  ChangelogEntry(Res.string.changelogDataSourcesTitle, Res.string.changelogDataSourcesDescription),
-)
-
 sealed interface MobileLaunchRequest {
   data object Home : MobileLaunchRequest
   data object Map : MobileLaunchRequest
   data object Favorites : MobileLaunchRequest
+  data object SavedPlaceAlerts : MobileLaunchRequest
   data object NearestStation : MobileLaunchRequest
   data object NearestStationWithBikes : MobileLaunchRequest
   data object NearestStationWithSlots : MobileLaunchRequest
@@ -357,6 +363,18 @@ sealed interface AssistantLaunchRequest {
     val stationId: String? = null,
     val stationQuery: String? = null,
   ) : AssistantLaunchRequest
+}
+
+private sealed interface TopUpdateBanner {
+  data object Hidden : TopUpdateBanner
+
+  data class Available(
+    val version: String,
+    val flexible: Boolean,
+    val storeUrl: String?,
+  ) : TopUpdateBanner
+
+  data class Downloaded(val version: String) : TopUpdateBanner
 }
 
 @androidx.compose.runtime.Stable
@@ -405,11 +423,17 @@ fun BiziMobileApp(
   var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
   var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
-  val lastSeenChangelog by settingsRepository.lastSeenChangelogVersion.collectAsState()
+  val onboardingChecklist by settingsRepository.onboardingChecklist.collectAsState()
   val hasCompletedOnboarding by settingsRepository.hasCompletedOnboarding.collectAsState()
+  val homeStationId by favoritesRepository.homeStationId.collectAsState()
+  val workStationId by favoritesRepository.workStationId.collectAsState()
   var showChangelog by remember(graph) { mutableStateOf(false) }
-  var showCitySelection by remember(graph) { mutableStateOf(false) }
+  var changelogDialogEntries by remember(graph) { mutableStateOf<List<ChangelogCatalogEntry>>(emptyList()) }
   var currentCity by remember(graph) { mutableStateOf(City.ZARAGOZA) }
+  val engagementSnap by settingsRepository.engagementSnapshot.collectAsState()
+  var topUpdateBanner by remember { mutableStateOf<TopUpdateBanner>(TopUpdateBanner.Hidden) }
+  var showFeedbackNudge by remember { mutableStateOf(false) }
+  var updatePollToken by remember { mutableIntStateOf(0) }
 
   LaunchedEffect(graph) {
     platformBindings.onGraphCreated(graph)
@@ -426,27 +450,68 @@ fun BiziMobileApp(
     settingsBootstrapped = true
   }
 
-  LaunchedEffect(settingsBootstrapped, lastSeenChangelog) {
-    if (settingsBootstrapped && lastSeenChangelog in 1 until CURRENT_CHANGELOG_VERSION) {
+  LaunchedEffect(settingsBootstrapped, platformBindings.appVersion) {
+    if (!settingsBootstrapped) return@LaunchedEffect
+    settingsRepository.ensureChangelogStringBaseline(platformBindings.appVersion)
+    val lastSeen = settingsRepository.currentLastSeenChangelogAppVersion() ?: return@LaunchedEffect
+    val pending = pendingChangelogVersion(
+      platformBindings.appVersion,
+      lastSeen,
+      ChangelogCatalog.catalogVersionSet(),
+    )
+    val entries = pending?.let { ChangelogCatalog.entriesFor(it) }.orEmpty()
+    if (entries.isNotEmpty()) {
+      changelogDialogEntries = entries
       showChangelog = true
-    } else if (settingsBootstrapped && lastSeenChangelog == 0) {
-      // First install — silently mark as seen so the dialog only appears on future updates.
-      settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION)
     }
   }
 
-  LaunchedEffect(settingsBootstrapped) {
-    if (settingsBootstrapped) {
+  LaunchedEffect(settingsBootstrapped, onboardingChecklist.cityConfirmed) {
+    if (settingsBootstrapped && onboardingChecklist.cityConfirmed) {
       currentCity = runCatching { settingsRepository.selectedCity.value }.getOrNull() ?: City.ZARAGOZA
-      showCitySelection = !hasCompletedOnboarding
     }
   }
 
-  LaunchedEffect(showCitySelection) {
-    if (!showCitySelection && hasCompletedOnboarding) {
-      currentCity = runCatching { settingsRepository.selectedCity.value }.getOrNull() ?: City.ZARAGOZA
+  LaunchedEffect(
+    settingsBootstrapped,
+    favoriteIds,
+    onboardingChecklist.cityConfirmed,
+    onboardingChecklist.firstStationSaved,
+  ) {
+    if (!settingsBootstrapped || !onboardingChecklist.cityConfirmed || onboardingChecklist.firstStationSaved) return@LaunchedEffect
+    if (favoriteIds.isNotEmpty()) {
+      settingsRepository.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
     }
   }
+
+  LaunchedEffect(settingsBootstrapped, homeStationId, workStationId, onboardingChecklist.savedPlacesConfigured) {
+    if (!settingsBootstrapped || onboardingChecklist.savedPlacesConfigured) return@LaunchedEffect
+    if (homeStationId != null && workStationId != null) {
+      settingsRepository.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
+    }
+  }
+
+  LaunchedEffect(settingsBootstrapped, graph) {
+    if (!settingsBootstrapped) return@LaunchedEffect
+    runCatching { graph.savedPlaceAlertsRepository.bootstrap() }
+    graph.engagementRepository.bootstrap()
+    graph.engagementRepository.markSessionStarted()
+    graph.engagementRepository.markUsefulSession()
+  }
+
+  LaunchedEffect(stationsState.freshness, graph) {
+    graph.engagementRepository.markDataFreshnessObserved(stationsState.freshness)
+  }
+
+  var previousFavoriteCount by remember(graph) { mutableStateOf(favoriteIds.size) }
+  LaunchedEffect(favoriteIds.size, graph) {
+    if (favoriteIds.size > previousFavoriteCount) {
+      graph.engagementRepository.markFavoriteCreated()
+    }
+    previousFavoriteCount = favoriteIds.size
+  }
+
+  var inAppReviewRequested by remember(graph) { mutableStateOf(false) }
 
   LaunchedEffect(graph) {
     favoritesBootstrapped = false
@@ -529,6 +594,86 @@ fun BiziMobileApp(
     onStartupReadyChanged(startupLaunchReady)
   }
 
+  LaunchedEffect(
+    settingsBootstrapped,
+    startupLaunchReady,
+    engagementSnap.lastUpdateCheckAtEpoch,
+    engagementSnap.dismissedUpdateVersion,
+  ) {
+    if (!settingsBootstrapped || !startupLaunchReady) return@LaunchedEffect
+    val day = 24L * 60 * 60 * 1000
+    val now = epochMillisForUi()
+    val last = engagementSnap.lastUpdateCheckAtEpoch
+    if (last != null && now - last < day) return@LaunchedEffect
+    graph.engagementRepository.markUpdateChecked(nowEpoch = now)
+    when (val u = platformBindings.appUpdatePrompter.checkForUpdate()) {
+      is UpdateAvailabilityState.Available -> {
+        if (u.versionName == engagementSnap.dismissedUpdateVersion) return@LaunchedEffect
+        topUpdateBanner = TopUpdateBanner.Available(u.versionName, u.isFlexibleAllowed, u.storeUrl)
+      }
+      is UpdateAvailabilityState.Downloaded -> {
+        topUpdateBanner = TopUpdateBanner.Downloaded(u.versionName)
+      }
+      else -> {}
+    }
+  }
+
+  LaunchedEffect(updatePollToken) {
+    if (updatePollToken == 0) return@LaunchedEffect
+    repeat(10) {
+      delay(8_000)
+      when (val u = platformBindings.appUpdatePrompter.checkForUpdate()) {
+        is UpdateAvailabilityState.Downloaded -> {
+          topUpdateBanner = TopUpdateBanner.Downloaded(u.versionName)
+          return@LaunchedEffect
+        }
+        else -> {}
+      }
+    }
+  }
+
+  LaunchedEffect(
+    startupLaunchReady,
+    hasCompletedOnboarding,
+    onboardingChecklist,
+    platformBindings.appVersion,
+  ) {
+    if (!startupLaunchReady) return@LaunchedEffect
+    if (!onboardingChecklist.isCompleted() && !hasCompletedOnboarding) return@LaunchedEffect
+    if (!graph.engagementRepository.shouldShowFeedbackNudge(platformBindings.appVersion)) return@LaunchedEffect
+    showFeedbackNudge = true
+    graph.engagementRepository.markFeedbackNudgeShown(platformBindings.appVersion)
+  }
+
+  LaunchedEffect(
+    startupLaunchReady,
+    settingsBootstrapped,
+    onboardingChecklist,
+    hasCompletedOnboarding,
+    stationsState.freshness,
+    graph,
+    platformBindings.appVersion,
+  ) {
+    if (!startupLaunchReady || !settingsBootstrapped || inAppReviewRequested) {
+      return@LaunchedEffect
+    }
+    if (!onboardingChecklist.isCompleted() && !hasCompletedOnboarding) return@LaunchedEffect
+    if (stationsState.freshness == DataFreshness.Unavailable) return@LaunchedEffect
+    val eligibility = graph.engagementRepository.reviewEligibility(
+      appVersion = platformBindings.appVersion,
+      onboardingCompleted = onboardingChecklist.isCompleted() || hasCompletedOnboarding,
+      currentFreshness = stationsState.freshness,
+    )
+    if (eligibility.isEligible) {
+      inAppReviewRequested = true
+      scope.launch {
+        delay(4_000)
+        graph.engagementRepository.markReviewPrompted(platformBindings.appVersion)
+        platformBindings.reviewPrompter.requestInAppReview()
+      }
+    }
+  }
+
   LaunchedEffect(startupLaunchReady, appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
     if (!startupLaunchReady) return@LaunchedEffect
     when (val request = appState.pendingLaunchRequest ?: return@LaunchedEffect) {
@@ -542,6 +687,10 @@ fun BiziMobileApp(
       }
       MobileLaunchRequest.Favorites -> {
         navController.navigate(Screen.Favorites) { launchSingleTop = true }
+        appState.pendingLaunchRequest = null
+      }
+      MobileLaunchRequest.SavedPlaceAlerts -> {
+        navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true }
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStation -> {
@@ -701,38 +850,56 @@ fun BiziMobileApp(
         modifier = modifier.fillMaxSize(),
         color = pageBackgroundColor(mobilePlatform),
       ) {
-        if (showChangelog) {
-          val onChangelogDismiss = remember {
-            {
-              showChangelog = false
-              scope.launch { settingsRepository.setLastSeenChangelogVersion(CURRENT_CHANGELOG_VERSION) }
-              Unit
-            }
+        when {
+          !onboardingChecklist.isCompleted() && !onboardingChecklist.cityConfirmed -> {
+            CitySelectionScreen(
+              onCitySelected = { city ->
+                scope.launch {
+                  settingsRepository.setSelectedCity(city)
+                  settingsRepository.updateOnboardingChecklist { it.copy(cityConfirmed = true) }
+                  favoritesRepository.clearAll()
+                  stationsRepository.forceRefresh()
+                }
+              },
+            )
           }
-          ChangelogDialog(onDismiss = onChangelogDismiss)
-        }
-        if (showCitySelection) {
-          CitySelectionScreen(
-            onCitySelected = { city ->
-              scope.launch {
-                settingsRepository.setSelectedCity(city)
-                settingsRepository.setHasCompletedOnboarding(true)
-                favoritesRepository.clearAll()
-                showCitySelection = false
-                stationsRepository.forceRefresh()
+          !onboardingChecklist.isCompleted() -> {
+            GuidedOnboardingFlow(
+              checklist = onboardingChecklist,
+              platformBindings = platformBindings,
+              scope = scope,
+              settingsRepository = settingsRepository,
+              onOpenFavorites = {
+                runCatching {
+                  navController.navigate(Screen.Favorites) { launchSingleTop = true }
+                }
+              },
+            )
+          }
+          else -> {
+            Box(Modifier.fillMaxSize()) {
+              if (showChangelog && changelogDialogEntries.isNotEmpty()) {
+                val onChangelogDismiss = remember(changelogDialogEntries) {
+                  {
+                    showChangelog = false
+                    scope.launch {
+                      settingsRepository.setLastSeenChangelogAppVersion(platformBindings.appVersion)
+                    }
+                    Unit
+                  }
+                }
+                ChangelogDialog(entries = changelogDialogEntries, onDismiss = onChangelogDismiss)
               }
-            }
-          )
-        } else AnimatedContent(
-          targetState = showStartupSplash,
-          transitionSpec = {
-            fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))
-          },
-          label = "startup-splash-transition",
-        ) { splashVisible ->
-          if (splashVisible) {
-            StartupSplashScreen(mobilePlatform = mobilePlatform)
-          } else {
+              AnimatedContent(
+                targetState = showStartupSplash,
+                transitionSpec = {
+                  fadeIn(animationSpec = tween(220)).togetherWith(fadeOut(animationSpec = tween(140)))
+                },
+                label = "startup-splash-transition",
+              ) { splashVisible ->
+                if (splashVisible) {
+                  StartupSplashScreen(mobilePlatform = mobilePlatform)
+                } else {
             val tripViewModelFactory = remember(graph, searchRadiusMeters) {
               com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
                 tripRepository = graph.tripRepository,
@@ -765,40 +932,106 @@ fun BiziMobileApp(
                 searchRadiusMeters = searchRadiusMeters,
               )
             }
-            BiziNavigationShell(
-              mobilePlatform = mobilePlatform,
-              navController = navController,
-              windowLayout = windowLayout,
-            ) { innerPadding ->
-              BiziNavHost(
-                navController = navController,
+            val onRefreshStations = remember(scope, stationsRepository) {
+              {
+                scope.launch { stationsRepository.forceRefresh() }
+                Unit
+              }
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
+              BiziNavigationShell(
                 mobilePlatform = mobilePlatform,
-                tripViewModelFactory = tripViewModelFactory,
-                nearbyViewModelFactory = nearbyViewModelFactory,
-                favoritesViewModelFactory = favoritesViewModelFactory,
-                profileViewModelFactory = profileViewModelFactory,
-                stations = filteredStations,
-                favoriteIds = favoriteIds,
-                loading = stationsState.isLoading,
-                errorMessage = stationsState.errorMessage,
-                nearestSelection = nearestSelection,
-                userLocation = stationsState.userLocation,
-                searchQuery = appState.searchQuery,
-                searchRadiusMeters = searchRadiusMeters,
-                isMapReady = isMapReady,
-                onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-                onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                onQuickRoute = remember(graph) { { station -> graph.routeLauncher.launch(station) } },
-                onOpenAssistant = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
-                localNotifier = platformBindings.localNotifier,
-                routeLauncher = graph.routeLauncher,
-                graph = graph,
-                stationsRepository = stationsRepository,
-                initialAssistantAction = appState.pendingAssistantAction,
-                onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-                paddingValues = innerPadding,
+                navController = navController,
+                windowLayout = windowLayout,
+              ) { innerPadding ->
+                BiziNavHost(
+                  navController = navController,
+                  mobilePlatform = mobilePlatform,
+                  tripViewModelFactory = tripViewModelFactory,
+                  nearbyViewModelFactory = nearbyViewModelFactory,
+                  favoritesViewModelFactory = favoritesViewModelFactory,
+                  profileViewModelFactory = profileViewModelFactory,
+                  stations = filteredStations,
+                  favoriteIds = favoriteIds,
+                  loading = stationsState.isLoading,
+                  errorMessage = stationsState.errorMessage,
+                  stationsFreshness = stationsState.freshness,
+                  stationsLastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+                  onRefreshStations = onRefreshStations,
+                  nearestSelection = nearestSelection,
+                  userLocation = stationsState.userLocation,
+                  searchQuery = appState.searchQuery,
+                  searchRadiusMeters = searchRadiusMeters,
+                  isMapReady = isMapReady,
+                  onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+                  onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                  onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                  onQuickRoute = remember(graph, scope) {
+                    { station ->
+                      scope.launch {
+                        graph.engagementRepository.markRouteOpened()
+                        graph.routeLauncher.launch(station)
+                      }
+                    }
+                  },
+                  onOpenAssistant = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
+                  localNotifier = platformBindings.localNotifier,
+                  routeLauncher = graph.routeLauncher,
+                  platformBindings = platformBindings,
+                  graph = graph,
+                  stationsRepository = stationsRepository,
+                  initialAssistantAction = appState.pendingAssistantAction,
+                  onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+                  onShowChangelogManual = {
+                    val entries = ChangelogCatalog.entriesFor(platformBindings.appVersion)
+                    if (entries.isNotEmpty()) {
+                      changelogDialogEntries = entries
+                      showChangelog = true
+                    }
+                  },
+                  paddingValues = innerPadding,
+                )
+              }
+              EngagementTopOverlays(
+                updateBanner = topUpdateBanner,
+                showFeedbackNudge = showFeedbackNudge,
+                onDismissAvailableUpdate = { version ->
+                  scope.launch {
+                    graph.engagementRepository.markUpdateBannerDismissed(version, epochMillisForUi())
+                  }
+                  topUpdateBanner = TopUpdateBanner.Hidden
+                },
+                onDismissDownloadedUpdate = { topUpdateBanner = TopUpdateBanner.Hidden },
+                onStartUpdate = {
+                  scope.launch {
+                    val banner = topUpdateBanner as? TopUpdateBanner.Available ?: return@launch
+                    if (banner.flexible) {
+                      if (platformBindings.appUpdatePrompter.startFlexibleUpdate()) {
+                        updatePollToken++
+                      }
+                    } else {
+                      platformBindings.appUpdatePrompter.openStoreListing()
+                    }
+                  }
+                },
+                onRestartToUpdate = {
+                  scope.launch {
+                    platformBindings.appUpdatePrompter.completeFlexibleUpdateIfReady()
+                  }
+                },
+                onFeedbackSend = {
+                  scope.launch { graph.engagementRepository.markFeedbackOpened() }
+                  platformBindings.externalLinks.openFeedbackForm()
+                  showFeedbackNudge = false
+                },
+                onFeedbackDismiss = {
+                  scope.launch { graph.engagementRepository.markFeedbackDismissed() }
+                  showFeedbackNudge = false
+                },
               )
+            }
+                }
+              }
             }
           }
         }
@@ -837,6 +1070,118 @@ private fun BiziTheme(
       motionScheme = MotionScheme.expressive(),
       content = content,
     )
+  }
+}
+
+@Composable
+private fun BoxScope.EngagementTopOverlays(
+  updateBanner: TopUpdateBanner,
+  showFeedbackNudge: Boolean,
+  onDismissAvailableUpdate: (String) -> Unit,
+  onDismissDownloadedUpdate: () -> Unit,
+  onStartUpdate: () -> Unit,
+  onRestartToUpdate: () -> Unit,
+  onFeedbackSend: () -> Unit,
+  onFeedbackDismiss: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Column(
+    modifier = Modifier
+      .align(Alignment.TopCenter)
+      .fillMaxWidth()
+      .statusBarsPadding()
+      .padding(horizontal = 12.dp, vertical = 8.dp)
+      .zIndex(4f),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    when (val b = updateBanner) {
+      TopUpdateBanner.Hidden -> Unit
+      is TopUpdateBanner.Available -> {
+        Surface(
+          color = c.blue.copy(alpha = 0.12f),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            Text(
+              text = stringResource(Res.string.updateAvailableTitle),
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.SemiBold,
+              color = c.ink,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+              TextButton(onClick = onStartUpdate) {
+                Text(stringResource(Res.string.updateNow))
+              }
+              TextButton(onClick = { onDismissAvailableUpdate(b.version) }) {
+                Text(stringResource(Res.string.updateDismiss))
+              }
+            }
+          }
+        }
+      }
+      is TopUpdateBanner.Downloaded -> {
+        Surface(
+          color = c.green.copy(alpha = 0.12f),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier.fillMaxWidth(),
+        ) {
+          Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            Text(
+              text = stringResource(Res.string.restartToUpdate),
+              style = MaterialTheme.typography.bodyMedium,
+              color = c.ink,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+              TextButton(onClick = onRestartToUpdate) {
+                Text(stringResource(Res.string.restartToUpdate))
+              }
+              TextButton(onClick = onDismissDownloadedUpdate) {
+                Text(stringResource(Res.string.close))
+              }
+            }
+          }
+        }
+      }
+    }
+    if (showFeedbackNudge) {
+      Surface(
+        color = c.surface,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, c.panel),
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Column(
+          modifier = Modifier.padding(12.dp),
+          verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+          Text(
+            text = stringResource(Res.string.feedbackNudgeTitle),
+            fontWeight = FontWeight.SemiBold,
+            color = c.ink,
+          )
+          Text(
+            text = stringResource(Res.string.feedbackNudgeBody),
+            style = MaterialTheme.typography.bodySmall,
+            color = c.muted,
+          )
+          Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = onFeedbackSend) {
+              Text(stringResource(Res.string.feedbackNudgeAction))
+            }
+            TextButton(onClick = onFeedbackDismiss) {
+              Text(stringResource(Res.string.updateDismiss))
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1115,6 +1460,9 @@ private fun MapScreen(
   favoriteIds: Set<String>,
   loading: Boolean,
   errorMessage: String?,
+  dataFreshness: DataFreshness,
+  lastUpdatedEpoch: Long?,
+  onRefreshStations: () -> Unit,
   nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
   searchQuery: String,
   searchRadiusMeters: Int,
@@ -1225,6 +1573,12 @@ private fun MapScreen(
           activeFilters = if (filter in activeFilters) emptySet() else setOf(filter)
         },
       )
+      DataFreshnessBanner(
+        freshness = dataFreshness,
+        lastUpdatedEpoch = lastUpdatedEpoch,
+        loading = loading,
+        onRefresh = onRefreshStations,
+      )
     }
 
     AnimatedVisibility(
@@ -1314,6 +1668,8 @@ private fun NearbyScreen(
   favoriteIds: Set<String>,
   loading: Boolean,
   errorMessage: String?,
+  dataFreshness: DataFreshness,
+  lastUpdatedEpoch: Long?,
   nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
   searchRadiusMeters: Int,
   onStationSelected: (Station) -> Unit,
@@ -1428,9 +1784,16 @@ private fun NearbyScreen(
           )
         }
       }
+      DataFreshnessBanner(
+        freshness = dataFreshness,
+        lastUpdatedEpoch = lastUpdatedEpoch,
+        loading = loading,
+        onRefresh = onRefresh,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+      )
       LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
         item {
@@ -1788,8 +2151,38 @@ private fun FavoritesScreen(
   onClearWorkStation: () -> Unit,
   onRemoveFavorite: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  dataFreshness: DataFreshness,
+  lastUpdatedEpoch: Long?,
+  stationsLoading: Boolean,
+  onRefreshStations: () -> Unit,
   paddingValues: PaddingValues,
+  savedPlaceAlertsCityId: String,
+  savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+  onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)?,
+  onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)?,
 ) {
+  fun ruleFor(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
+    savedPlaceAlertRules.firstOrNull { it.target.identityKey() == target.identityKey() }
+  var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
+  val upsertAlert = onUpsertSavedPlaceAlert
+  val removeAlertForTarget = onRemoveSavedPlaceAlertForTarget
+  if (upsertAlert != null && removeAlertForTarget != null) {
+    alertEditor?.let { (target, rule) ->
+      SavedPlaceAlertEditorSheet(
+        target = target,
+        existingRule = rule,
+        onDismiss = { alertEditor = null },
+        onSave = { cond ->
+          upsertAlert(target, cond)
+          alertEditor = null
+        },
+        onRemove = {
+          removeAlertForTarget(target)
+          alertEditor = null
+        },
+      )
+    }
+  }
   val assignmentCandidate = remember(allStations, searchQuery) {
     searchQuery
       .takeIf { it.isNotBlank() }
@@ -1831,6 +2224,14 @@ private fun FavoritesScreen(
         )
       }
       item {
+        DataFreshnessBanner(
+          freshness = dataFreshness,
+          lastUpdatedEpoch = lastUpdatedEpoch,
+          loading = stationsLoading,
+          onRefresh = onRefreshStations,
+        )
+      }
+      item {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Text(
             text = stringResource(Res.string.homeAndWork),
@@ -1854,6 +2255,20 @@ private fun FavoritesScreen(
           onClear = onClearHomeStation,
           onOpenStationDetails = onStationSelected,
           onQuickRoute = onQuickRoute,
+          onSavedPlaceAlertClick = run {
+            val s = homeStation
+            if (s != null && upsertAlert != null) {
+              {
+                val t = SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name)
+                alertEditor = t to ruleFor(t)
+              }
+            } else {
+              null
+            }
+          },
+          savedPlaceAlertActive = homeStation?.let { s ->
+            ruleFor(SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name)) != null
+          } == true,
         )
       }
       item {
@@ -1866,6 +2281,20 @@ private fun FavoritesScreen(
           onClear = onClearWorkStation,
           onOpenStationDetails = onStationSelected,
           onQuickRoute = onQuickRoute,
+          onSavedPlaceAlertClick = run {
+            val s = workStation
+            if (s != null && upsertAlert != null) {
+              {
+                val t = SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name)
+                alertEditor = t to ruleFor(t)
+              }
+            } else {
+              null
+            }
+          },
+          savedPlaceAlertActive = workStation?.let { s ->
+            ruleFor(SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name)) != null
+          } == true,
         )
       }
       item {
@@ -1893,6 +2322,17 @@ private fun FavoritesScreen(
             onAssignWork = { onAssignWorkStation(station) },
             onQuickRoute = { onQuickRoute(station) },
             onRemoveFavorite = { onRemoveFavorite(station) },
+            onSavedPlaceAlertClick = if (upsertAlert != null) {
+              {
+                val t = SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name)
+                alertEditor = t to ruleFor(t)
+              }
+            } else {
+              null
+            },
+            savedPlaceAlertActive = ruleFor(
+              SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name),
+            ) != null,
           )
         }
       }
@@ -1913,6 +2353,11 @@ private fun ProfileScreen(
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
   onThemePreferenceSelected: (ThemePreference) -> Unit,
   onCitySelected: (City) -> Unit,
+  showProfileSetupCard: Boolean,
+  onShowChangelog: () -> Unit,
+  onOpenSavedPlaceAlerts: () -> Unit,
+  onOpenFeedback: () -> Unit,
+  onRateApp: () -> Unit,
 ) {
   Box(
     modifier = Modifier
@@ -1938,6 +2383,51 @@ private fun ProfileScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = LocalBiziColors.current.muted,
           )
+        }
+      }
+      if (showProfileSetupCard) {
+        item {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(stringResource(Res.string.profileSetupCardTitle), fontWeight = FontWeight.SemiBold)
+              Text(
+                stringResource(Res.string.profileSetupCardBody),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+            }
+          }
+        }
+      }
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.viewWhatsNew), fontWeight = FontWeight.SemiBold)
+            TextButton(onClick = onShowChangelog, contentPadding = PaddingValues(0.dp)) {
+              Text(stringResource(Res.string.viewWhatsNew), style = MaterialTheme.typography.bodySmall)
+            }
+          }
+        }
+      }
+      item {
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.savedPlaceAlertsProfileSubtitle),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            TextButton(onClick = onOpenSavedPlaceAlerts, contentPadding = PaddingValues(0.dp)) {
+              Text(stringResource(Res.string.savedPlaceAlertsProfileAction), style = MaterialTheme.typography.bodySmall)
+            }
+          }
         }
       }
       item {
@@ -2087,7 +2577,18 @@ private fun ProfileScreen(
         }
       }
       item {
-        val uriHandler = LocalUriHandler.current
+        Card(
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.rateApp), fontWeight = FontWeight.SemiBold)
+            TextButton(onClick = onRateApp, contentPadding = PaddingValues(0.dp)) {
+              Text(stringResource(Res.string.rateApp), style = MaterialTheme.typography.bodySmall)
+            }
+          }
+        }
+      }
+      item {
         Card(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
@@ -2099,7 +2600,7 @@ private fun ProfileScreen(
               color = LocalBiziColors.current.muted,
             )
             TextButton(
-              onClick = { uriHandler.openUri("https://forms.gle/j6hMxPQypzhqXp5v5") },
+              onClick = onOpenFeedback,
               contentPadding = PaddingValues(0.dp),
             ) {
               Text(stringResource(Res.string.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
@@ -2297,13 +2798,24 @@ private fun StationDetailScreen(
   userLocation: GeoPoint?,
   isMapReady: Boolean,
   supportsUsagePatterns: Boolean,
+  dataFreshness: DataFreshness,
+  lastUpdatedEpoch: Long?,
+  stationsLoading: Boolean,
+  onRefreshStations: () -> Unit,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onToggleHome: () -> Unit,
   onToggleWork: () -> Unit,
   onRoute: () -> Unit,
+  savedPlaceAlertsCityId: String,
+  savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+  onUpsertSavedPlaceAlert: (SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit,
+  onRemoveSavedPlaceAlertForTarget: (SavedPlaceAlertTarget) -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
+  fun ruleFor(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
+    savedPlaceAlertRules.firstOrNull { it.target.identityKey() == target.identityKey() }
+  var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   var patterns by remember { mutableStateOf<List<StationHourlyPattern>>(emptyList()) }
   var patternsLoading by remember { mutableStateOf(true) }
   var patternsError by remember { mutableStateOf(false) }
@@ -2318,7 +2830,9 @@ private fun StationDetailScreen(
     }
     patternsLoading = false
   }
+  Box(Modifier.fillMaxSize()) {
   Scaffold(
+    modifier = Modifier.fillMaxSize(),
     topBar = {
       Row(
         modifier = Modifier
@@ -2380,6 +2894,13 @@ private fun StationDetailScreen(
                 )
               }
               Text(station.address, style = MaterialTheme.typography.bodyMedium, color = LocalBiziColors.current.muted)
+              DataFreshnessBanner(
+                freshness = dataFreshness,
+                lastUpdatedEpoch = lastUpdatedEpoch,
+                loading = stationsLoading,
+                onRefresh = onRefreshStations,
+                modifier = Modifier.padding(top = 8.dp),
+              )
               Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 StationMetricPill(
                   modifier = Modifier.weight(1f),
@@ -2438,6 +2959,54 @@ private fun StationDetailScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = LocalBiziColors.current.muted,
               )
+            }
+          }
+        }
+        if (isFavorite || isHomeStation || isWorkStation) {
+          item {
+            val homeTarget = SavedPlaceAlertTarget.Home(station.id, savedPlaceAlertsCityId, station.name)
+            val workTarget = SavedPlaceAlertTarget.Work(station.id, savedPlaceAlertsCityId, station.name)
+            val favoriteTarget = SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name)
+            Card(
+              colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+            ) {
+              Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+              ) {
+                Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
+                Text(
+                  stringResource(Res.string.savedPlaceAlertsStationDetailHint),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = LocalBiziColors.current.muted,
+                )
+                Row(
+                  horizontalArrangement = Arrangement.spacedBy(12.dp),
+                  verticalAlignment = Alignment.Top,
+                ) {
+                  if (isHomeStation) {
+                    StationDetailAlertBellColumn(
+                      label = stringResource(Res.string.home),
+                      active = ruleFor(homeTarget) != null,
+                      onClick = { alertEditor = homeTarget to ruleFor(homeTarget) },
+                    )
+                  }
+                  if (isWorkStation) {
+                    StationDetailAlertBellColumn(
+                      label = stringResource(Res.string.work),
+                      active = ruleFor(workTarget) != null,
+                      onClick = { alertEditor = workTarget to ruleFor(workTarget) },
+                    )
+                  }
+                  if (isFavorite) {
+                    StationDetailAlertBellColumn(
+                      label = stringResource(Res.string.favorite),
+                      active = ruleFor(favoriteTarget) != null,
+                      onClick = { alertEditor = favoriteTarget to ruleFor(favoriteTarget) },
+                    )
+                  }
+                }
+              }
             }
           }
         }
@@ -2506,6 +3075,51 @@ private fun StationDetailScreen(
         }
       }
     }
+  }
+  if (isFavorite || isHomeStation || isWorkStation) {
+    alertEditor?.let { (target, rule) ->
+      SavedPlaceAlertEditorSheet(
+        target = target,
+        existingRule = rule,
+        onDismiss = { alertEditor = null },
+        onSave = { cond ->
+          onUpsertSavedPlaceAlert(target, cond)
+          alertEditor = null
+        },
+        onRemove = {
+          onRemoveSavedPlaceAlertForTarget(target)
+          alertEditor = null
+        },
+      )
+    }
+  }
+  }
+}
+
+@Composable
+private fun StationDetailAlertBellColumn(
+  label: String,
+  active: Boolean,
+  onClick: () -> Unit,
+) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(4.dp),
+  ) {
+    IconButton(onClick = onClick, modifier = Modifier.size(44.dp)) {
+      Icon(
+        imageVector = if (active) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+        contentDescription = stringResource(Res.string.savedPlaceAlertsBell),
+        tint = if (active) LocalBiziColors.current.blue else LocalBiziColors.current.muted,
+      )
+    }
+    Text(
+      label,
+      style = MaterialTheme.typography.labelSmall,
+      color = LocalBiziColors.current.muted,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+    )
   }
 }
 
@@ -2714,7 +3328,10 @@ private fun PatternHintPill(
 }
 
 @Composable
-private fun ChangelogDialog(onDismiss: () -> Unit) {
+private fun ChangelogDialog(
+  entries: List<ChangelogCatalogEntry>,
+  onDismiss: () -> Unit,
+) {
   val colors = LocalBiziColors.current
   androidx.compose.material3.AlertDialog(
     onDismissRequest = onDismiss,
@@ -2726,8 +3343,8 @@ private fun ChangelogDialog(onDismiss: () -> Unit) {
       LazyColumn(
         verticalArrangement = Arrangement.spacedBy(14.dp),
       ) {
-        items(CHANGELOG_ENTRIES.size) { index ->
-          val entry = CHANGELOG_ENTRIES[index]
+        items(entries.size) { index ->
+          val entry = entries[index]
           Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
               stringResource(entry.titleKey),
@@ -2847,6 +3464,10 @@ private fun TripScreen(
   userLocation: GeoPoint?,
   stations: List<Station>,
   isMapReady: Boolean,
+  dataFreshness: DataFreshness,
+  lastUpdatedEpoch: Long?,
+  stationsLoading: Boolean,
+  onRefreshStations: () -> Unit,
   paddingValues: PaddingValues,
 ) {
   val c = LocalBiziColors.current
@@ -2929,6 +3550,14 @@ private fun TripScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
+        item(key = "data-freshness") {
+          DataFreshnessBanner(
+            freshness = dataFreshness,
+            lastUpdatedEpoch = lastUpdatedEpoch,
+            loading = stationsLoading,
+            onRefresh = onRefreshStations,
+          )
+        }
     // ---------- ALERT card (State 7) — shown above everything when active ----------
     if (tripState.alert != null) {
       val alert = tripState.alert!!
@@ -3555,6 +4184,7 @@ private fun StationRow(
   onClick: () -> Unit,
   onFavoriteToggle: () -> Unit,
   onQuickRoute: (() -> Unit)? = null,
+  savedPlaceAlertSlot: @Composable (() -> Unit)? = null,
   extraActions: @Composable (() -> Unit)? = null,
   showFavoriteCta: Boolean = true,
 ) {
@@ -3608,6 +4238,7 @@ private fun StationRow(
               onClick = quickRoute,
             )
           }
+          savedPlaceAlertSlot?.invoke()
           if (showFavoriteCta) {
             FavoritePill(
               active = isFavorite,
@@ -3666,6 +4297,8 @@ private fun DismissibleFavoriteStationRow(
   onAssignWork: () -> Unit,
   onQuickRoute: () -> Unit,
   onRemoveFavorite: () -> Unit,
+  onSavedPlaceAlertClick: (() -> Unit)?,
+  savedPlaceAlertActive: Boolean,
 ) {
   val dismissState = rememberSwipeToDismissBoxState()
   LaunchedEffect(dismissState.currentValue) {
@@ -3691,6 +4324,22 @@ private fun DismissibleFavoriteStationRow(
         onClick = onClick,
         onFavoriteToggle = {},
         onQuickRoute = onQuickRoute,
+        savedPlaceAlertSlot = if (onSavedPlaceAlertClick != null) {
+          {
+            IconButton(
+              onClick = onSavedPlaceAlertClick,
+              modifier = Modifier.size(40.dp),
+            ) {
+              Icon(
+                imageVector = if (savedPlaceAlertActive) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+                contentDescription = stringResource(Res.string.savedPlaceAlertsBell),
+                tint = if (savedPlaceAlertActive) LocalBiziColors.current.blue else LocalBiziColors.current.muted,
+              )
+            }
+          }
+        } else {
+          null
+        },
         extraActions = {
           if (canAssignHome) {
             SavedPlaceQuickAction(
@@ -3793,6 +4442,8 @@ private fun SavedPlaceCard(
   onClear: () -> Unit,
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  onSavedPlaceAlertClick: (() -> Unit)? = null,
+  savedPlaceAlertActive: Boolean = false,
 ) {
   val assignableCandidate = assignmentCandidate?.takeIf { it.id != station?.id }
   Card(
@@ -3886,6 +4537,18 @@ private fun SavedPlaceCard(
             borderTint = LocalBiziColors.current.panel,
             onClick = onClear,
           )
+        }
+        if (station != null && onSavedPlaceAlertClick != null) {
+          IconButton(
+            onClick = onSavedPlaceAlertClick,
+            modifier = Modifier.size(40.dp),
+          ) {
+            Icon(
+              imageVector = if (savedPlaceAlertActive) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+              contentDescription = stringResource(Res.string.savedPlaceAlertsBell),
+              tint = if (savedPlaceAlertActive) LocalBiziColors.current.blue else LocalBiziColors.current.muted,
+            )
+          }
         }
       }
       if (assignableCandidate != null) {
@@ -4275,6 +4938,7 @@ private fun CitySelector(
 private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
   MobileUiPlatform.Android -> "Google Assistant"
   MobileUiPlatform.IOS -> "Siri"
+  MobileUiPlatform.Desktop -> "Asistente"
 }
 
 @Composable
@@ -4455,7 +5119,7 @@ private fun SavedPlacePill(
 }
 
 @Composable
-private fun pageBackgroundColor(platform: MobileUiPlatform): Color {
+internal fun pageBackgroundColor(platform: MobileUiPlatform): Color {
   val c = LocalBiziColors.current
   return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
 }
@@ -4551,6 +5215,10 @@ internal object BiziMobileAppContent {
     userLocation: GeoPoint?,
     stations: List<Station>,
     isMapReady: Boolean,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    stationsLoading: Boolean,
+    onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
   ) = TripScreen(
     viewModel = viewModel,
@@ -4560,6 +5228,10 @@ internal object BiziMobileAppContent {
     userLocation = userLocation,
     stations = stations,
     isMapReady = isMapReady,
+    dataFreshness = dataFreshness,
+    lastUpdatedEpoch = lastUpdatedEpoch,
+    stationsLoading = stationsLoading,
+    onRefreshStations = onRefreshStations,
     paddingValues = paddingValues,
   )
 
@@ -4570,6 +5242,8 @@ internal object BiziMobileAppContent {
     favoriteIds: Set<String>,
     loading: Boolean,
     errorMessage: String?,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
     nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
     searchRadiusMeters: Int,
     onStationSelected: (Station) -> Unit,
@@ -4585,6 +5259,8 @@ internal object BiziMobileAppContent {
     favoriteIds = favoriteIds,
     loading = loading,
     errorMessage = errorMessage,
+    dataFreshness = dataFreshness,
+    lastUpdatedEpoch = lastUpdatedEpoch,
     nearestSelection = nearestSelection,
     searchRadiusMeters = searchRadiusMeters,
     onStationSelected = onStationSelected,
@@ -4604,12 +5280,15 @@ internal object BiziMobileAppContent {
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
+    val stationsState by viewModel.stationsState.collectAsState()
     NearbyScreen(
       mobilePlatform = mobilePlatform,
       stations = uiState.stations,
       favoriteIds = uiState.favoriteIds,
       loading = uiState.isLoading,
       errorMessage = uiState.errorMessage,
+      dataFreshness = stationsState.freshness,
+      lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
       nearestSelection = uiState.nearestSelection
         ?: com.gcaguilar.biciradar.core.NearbyStationSelection(null, null, uiState.searchRadiusMeters),
       searchRadiusMeters = uiState.searchRadiusMeters,
@@ -4640,7 +5319,15 @@ internal object BiziMobileAppContent {
     onClearWorkStation: () -> Unit,
     onRemoveFavorite: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    stationsLoading: Boolean,
+    onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
+    savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
+    savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
+    onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)? = null,
+    onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)? = null,
   ) = FavoritesScreen(
     mobilePlatform = mobilePlatform,
     onOpenAssistant = onOpenAssistant,
@@ -4657,7 +5344,15 @@ internal object BiziMobileAppContent {
     onClearWorkStation = onClearWorkStation,
     onRemoveFavorite = onRemoveFavorite,
     onQuickRoute = onQuickRoute,
+    dataFreshness = dataFreshness,
+    lastUpdatedEpoch = lastUpdatedEpoch,
+    stationsLoading = stationsLoading,
+    onRefreshStations = onRefreshStations,
     paddingValues = paddingValues,
+    savedPlaceAlertsCityId = savedPlaceAlertsCityId,
+    savedPlaceAlertRules = savedPlaceAlertRules,
+    onUpsertSavedPlaceAlert = onUpsertSavedPlaceAlert,
+    onRemoveSavedPlaceAlertForTarget = onRemoveSavedPlaceAlertForTarget,
   )
 
   @Composable
@@ -4666,9 +5361,17 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     onOpenAssistant: () -> Unit,
     onStationSelected: (Station) -> Unit,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    stationsLoading: Boolean,
+    onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
+    graph: SharedGraph,
   ) {
     val uiState by viewModel.uiState.collectAsState()
+    val savedPlaceAlertRules by graph.savedPlaceAlertsRepository.rules.collectAsState()
+    val selectedCity by graph.settingsRepository.selectedCity.collectAsState()
+    val scope = rememberCoroutineScope()
     FavoritesScreen(
       mobilePlatform = mobilePlatform,
       onOpenAssistant = onOpenAssistant,
@@ -4685,7 +5388,15 @@ internal object BiziMobileAppContent {
       onClearWorkStation = viewModel::onClearWorkStation,
       onRemoveFavorite = viewModel::onRemoveFavorite,
       onQuickRoute = viewModel::onQuickRoute,
+      dataFreshness = dataFreshness,
+      lastUpdatedEpoch = lastUpdatedEpoch,
+      stationsLoading = stationsLoading,
+      onRefreshStations = onRefreshStations,
       paddingValues = paddingValues,
+      savedPlaceAlertsCityId = selectedCity.id,
+      savedPlaceAlertRules = savedPlaceAlertRules,
+      onUpsertSavedPlaceAlert = { t, c -> scope.launch { graph.savedPlaceAlertsRepository.upsertRule(t, c) } },
+      onRemoveSavedPlaceAlertForTarget = { t -> scope.launch { graph.savedPlaceAlertsRepository.removeRuleForTarget(t) } },
     )
   }
 
@@ -4702,6 +5413,11 @@ internal object BiziMobileAppContent {
     onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
     onThemePreferenceSelected: (ThemePreference) -> Unit,
     onCitySelected: (City) -> Unit,
+    showProfileSetupCard: Boolean = false,
+    onShowChangelog: () -> Unit = {},
+    onOpenSavedPlaceAlerts: () -> Unit = {},
+    onOpenFeedback: () -> Unit = {},
+    onRateApp: () -> Unit = {},
   ) = ProfileScreen(
     mobilePlatform = mobilePlatform,
     paddingValues = paddingValues,
@@ -4714,6 +5430,11 @@ internal object BiziMobileAppContent {
     onPreferredMapAppSelected = onPreferredMapAppSelected,
     onThemePreferenceSelected = onThemePreferenceSelected,
     onCitySelected = onCitySelected,
+    showProfileSetupCard = showProfileSetupCard,
+    onShowChangelog = onShowChangelog,
+    onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+    onOpenFeedback = onOpenFeedback,
+    onRateApp = onRateApp,
   )
 
   @Composable
@@ -4722,8 +5443,29 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
     onOpenShortcuts: () -> Unit,
+    onOpenSavedPlaceAlerts: () -> Unit,
+    graph: SharedGraph,
+    platformBindings: PlatformBindings,
+    favoriteIds: Set<String>,
+    onShowChangelogManual: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
+    val checklist by graph.settingsRepository.onboardingChecklist.collectAsState()
+    var hasLocation by remember { mutableStateOf(false) }
+    var hasNotif by remember { mutableStateOf(false) }
+    LaunchedEffect(checklist) {
+      hasLocation = platformBindings.permissionPrompter.hasLocationPermission()
+      hasNotif = platformBindings.localNotifier.hasPermission()
+    }
+    val homeStationId by graph.favoritesRepository.homeStationId.collectAsState()
+    val workStationId by graph.favoritesRepository.workStationId.collectAsState()
+    val showSetup = checklist.needsProfileSetupCard(
+      hasLocationPermission = hasLocation,
+      hasNotificationPermission = hasNotif,
+      hasFavoriteStations = favoriteIds.isNotEmpty(),
+      hasHomeStation = homeStationId != null,
+      hasWorkStation = workStationId != null,
+    )
     ProfileScreen(
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
@@ -4736,6 +5478,11 @@ internal object BiziMobileAppContent {
       onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
       onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
       onCitySelected = viewModel::onCitySelected,
+      showProfileSetupCard = showSetup,
+      onShowChangelog = onShowChangelogManual,
+      onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+      onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
+      onRateApp = { platformBindings.reviewPrompter.openStoreWriteReview() },
     )
   }
 
@@ -4779,6 +5526,9 @@ internal object BiziMobileAppContent {
     onRetry: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
   ) = MapScreen(
     mobilePlatform = mobilePlatform,
@@ -4786,6 +5536,9 @@ internal object BiziMobileAppContent {
     favoriteIds = favoriteIds,
     loading = loading,
     errorMessage = errorMessage,
+    dataFreshness = dataFreshness,
+    lastUpdatedEpoch = lastUpdatedEpoch,
+    onRefreshStations = onRefreshStations,
     nearestSelection = nearestSelection,
     searchQuery = searchQuery,
     searchRadiusMeters = searchRadiusMeters,
@@ -4807,6 +5560,10 @@ internal object BiziMobileAppContent {
     favoriteIds: Set<String>,
     userLocation: GeoPoint?,
     isMapReady: Boolean,
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    stationsLoading: Boolean,
+    onRefreshStations: () -> Unit,
     onBack: () -> Unit,
     stationsRepository: StationsRepository,
   ) {
@@ -4815,6 +5572,7 @@ internal object BiziMobileAppContent {
     val homeStationId by favoritesRepository.homeStationId.collectAsState()
     val workStationId by favoritesRepository.workStationId.collectAsState()
     val selectedCity by graph.settingsRepository.selectedCity.collectAsState()
+    val savedPlaceAlertRules by graph.savedPlaceAlertsRepository.rules.collectAsState()
     StationDetailScreen(
       mobilePlatform = mobilePlatform,
       station = station,
@@ -4825,6 +5583,10 @@ internal object BiziMobileAppContent {
       userLocation = userLocation,
       isMapReady = isMapReady,
       supportsUsagePatterns = selectedCity.supportsUsagePatterns,
+      dataFreshness = dataFreshness,
+      lastUpdatedEpoch = lastUpdatedEpoch,
+      stationsLoading = stationsLoading,
+      onRefreshStations = onRefreshStations,
       onBack = onBack,
       onToggleFavorite = { scope.launch { favoritesRepository.toggle(station.id) } },
       onToggleHome = {
@@ -4838,6 +5600,10 @@ internal object BiziMobileAppContent {
         }
       },
       onRoute = { graph.routeLauncher.launch(station) },
+      savedPlaceAlertsCityId = selectedCity.id,
+      savedPlaceAlertRules = savedPlaceAlertRules,
+      onUpsertSavedPlaceAlert = { t, c -> scope.launch { graph.savedPlaceAlertsRepository.upsertRule(t, c) } },
+      onRemoveSavedPlaceAlertForTarget = { t -> scope.launch { graph.savedPlaceAlertsRepository.removeRuleForTarget(t) } },
     )
   }
 }

@@ -25,6 +25,10 @@ play-services-wearable = "19.0.0"
 navigation-compose = "2.9.2"
 junit = "4.13.2"
 firebase-bom = "34.11.0"
+play-review = "2.0.2"
+play-app-update = "2.1.0"
+androidx-work = "2.10.0"
+slf4j = "2.0.17"
 firebase-crashlytics-plugin = "3.0.6"
 google-services-plugin = "4.4.4"
 material-components = "1.13.0"
@@ -48,6 +52,7 @@ androidx-wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "and
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
@@ -76,6 +81,10 @@ sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", 
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "play-review" }
+play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
+androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
