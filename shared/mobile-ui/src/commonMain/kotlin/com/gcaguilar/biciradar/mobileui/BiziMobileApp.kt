@@ -933,36 +933,53 @@ fun BiziMobileApp(
                 if (splashVisible) {
                   StartupSplashScreen(mobilePlatform = mobilePlatform)
                 } else {
-            val tripViewModelFactory = remember(graph, searchRadiusMeters) {
+            val tripViewModelFactory = remember(graph) {
               com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
                 tripRepository = graph.tripRepository,
                 surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
                 geoSearchUseCase = graph.geoSearchUseCase,
                 reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
-                searchRadiusMeters = searchRadiusMeters,
+                settingsRepository = graph.settingsRepository,
               )
             }
-            val nearbyViewModelFactory = remember(graph, searchRadiusMeters) {
+            val nearbyViewModelFactory = remember(graph) {
               com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
                 stationsRepository = graph.stationsRepository,
                 favoritesRepository = graph.favoritesRepository,
                 routeLauncher = graph.routeLauncher,
-                searchRadiusMeters = searchRadiusMeters,
+                settingsRepository = graph.settingsRepository,
               )
             }
             val favoritesViewModelFactory = remember(graph) {
               com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
                 favoritesRepository = graph.favoritesRepository,
                 stationsRepository = graph.stationsRepository,
+                settingsRepository = graph.settingsRepository,
+                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
                 routeLauncher = graph.routeLauncher,
               )
             }
-            val profileViewModelFactory = remember(graph, searchRadiusMeters) {
+            val profileViewModelFactory = remember(graph, platformBindings) {
               com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
                 settingsRepository = graph.settingsRepository,
                 stationsRepository = graph.stationsRepository,
                 favoritesRepository = graph.favoritesRepository,
-                searchRadiusMeters = searchRadiusMeters,
+                permissionPrompter = platformBindings.permissionPrompter,
+                localNotifier = platformBindings.localNotifier,
+              )
+            }
+            val savedPlaceAlertsViewModelFactory = remember(graph) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
+                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+              )
+            }
+            val stationDetailViewModelFactory = remember(graph) {
+              com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
+                favoritesRepository = graph.favoritesRepository,
+                settingsRepository = graph.settingsRepository,
+                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+                datosBiziApi = graph.datosBiziApi,
+                routeLauncher = graph.routeLauncher,
               )
             }
             val onRefreshStations = remember(scope, stationsRepository) {
@@ -984,6 +1001,8 @@ fun BiziMobileApp(
                   nearbyViewModelFactory = nearbyViewModelFactory,
                   favoritesViewModelFactory = favoritesViewModelFactory,
                   profileViewModelFactory = profileViewModelFactory,
+                  savedPlaceAlertsViewModelFactory = savedPlaceAlertsViewModelFactory,
+                  stationDetailViewModelFactory = stationDetailViewModelFactory,
                   stations = filteredStations,
                   favoriteIds = favoriteIds,
                   loading = stationsState.isLoading,
@@ -3287,7 +3306,6 @@ private fun ShortcutsScreen(
 private fun StationDetailScreen(
   mobilePlatform: MobileUiPlatform,
   station: Station,
-  datosBiziApi: DatosBiziApi,
   isFavorite: Boolean,
   isHomeStation: Boolean,
   isWorkStation: Boolean,
@@ -3307,25 +3325,15 @@ private fun StationDetailScreen(
   savedPlaceAlertRules: List<SavedPlaceAlertRule>,
   onUpsertSavedPlaceAlert: (SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit,
   onRemoveSavedPlaceAlertForTarget: (SavedPlaceAlertTarget) -> Unit,
+  patterns: List<StationHourlyPattern>,
+  patternsLoading: Boolean,
+  patternsError: Boolean,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
   fun ruleFor(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
     savedPlaceAlertRules.firstOrNull { it.target.identityKey() == target.identityKey() }
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
-  var patterns by remember { mutableStateOf<List<StationHourlyPattern>>(emptyList()) }
-  var patternsLoading by remember { mutableStateOf(true) }
-  var patternsError by remember { mutableStateOf(false) }
   var showWeekend by rememberSaveable { mutableStateOf(false) }
-  LaunchedEffect(station.id) {
-    patternsLoading = true
-    patternsError = false
-    try {
-      patterns = datosBiziApi.fetchPatterns(station.id)
-    } catch (_: Exception) {
-      patternsError = true
-    }
-    patternsLoading = false
-  }
   Box(Modifier.fillMaxSize()) {
   Scaffold(
     modifier = Modifier.fillMaxSize(),
@@ -5785,17 +5793,15 @@ internal object BiziMobileAppContent {
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    val stationsState by viewModel.stationsState.collectAsState()
     NearbyScreen(
       mobilePlatform = mobilePlatform,
       stations = uiState.stations,
       favoriteIds = uiState.favoriteIds,
       loading = uiState.isLoading,
       errorMessage = uiState.errorMessage,
-      dataFreshness = stationsState.freshness,
-      lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
-      nearestSelection = uiState.nearestSelection
-        ?: com.gcaguilar.biciradar.core.NearbyStationSelection(null, null, uiState.searchRadiusMeters),
+      dataFreshness = uiState.dataFreshness,
+      lastUpdatedEpoch = uiState.lastUpdatedEpoch,
+      nearestSelection = uiState.nearestSelection,
       searchRadiusMeters = uiState.searchRadiusMeters,
       onStationSelected = onStationSelected,
       onRetry = viewModel::onRetry,
@@ -5874,12 +5880,8 @@ internal object BiziMobileAppContent {
     onRefreshStations: () -> Unit,
     onOpenSavedPlaceAlerts: () -> Unit,
     paddingValues: PaddingValues,
-    graph: SharedGraph,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    val savedPlaceAlertRules by graph.savedPlaceAlertsRepository.rules.collectAsState()
-    val selectedCity by graph.settingsRepository.selectedCity.collectAsState()
-    val scope = rememberCoroutineScope()
     FavoritesScreen(
       mobilePlatform = mobilePlatform,
       onOpenAssistant = onOpenAssistant,
@@ -5902,10 +5904,10 @@ internal object BiziMobileAppContent {
       onRefreshStations = onRefreshStations,
       onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
       paddingValues = paddingValues,
-      savedPlaceAlertsCityId = selectedCity.id,
-      savedPlaceAlertRules = savedPlaceAlertRules,
-      onUpsertSavedPlaceAlert = { t, c -> scope.launch { graph.savedPlaceAlertsRepository.upsertRule(t, c) } },
-      onRemoveSavedPlaceAlertForTarget = { t -> scope.launch { graph.savedPlaceAlertsRepository.removeRuleForTarget(t) } },
+      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
+      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
+      onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
+      onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
     )
   }
 
@@ -5953,29 +5955,13 @@ internal object BiziMobileAppContent {
     paddingValues: PaddingValues,
     onOpenShortcuts: () -> Unit,
     onOpenOnboarding: () -> Unit,
-    graph: SharedGraph,
     platformBindings: PlatformBindings,
-    favoriteIds: Set<String>,
     onShowChangelogManual: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    val checklist by graph.settingsRepository.onboardingChecklist.collectAsState()
-    val scope = rememberCoroutineScope()
-    var hasLocation by remember { mutableStateOf(false) }
-    var hasNotif by remember { mutableStateOf(false) }
-    LaunchedEffect(checklist) {
-      hasLocation = platformBindings.permissionPrompter.hasLocationPermission()
-      hasNotif = platformBindings.localNotifier.hasPermission()
+    LaunchedEffect(viewModel) {
+      viewModel.refreshSetupRequirements()
     }
-    val homeStationId by graph.favoritesRepository.homeStationId.collectAsState()
-    val workStationId by graph.favoritesRepository.workStationId.collectAsState()
-    val showSetup = !checklist.isCompleted() && checklist.needsProfileSetupCard(
-      hasLocationPermission = hasLocation,
-      hasNotificationPermission = hasNotif,
-      hasFavoriteStations = favoriteIds.isNotEmpty(),
-      hasHomeStation = homeStationId != null,
-      hasWorkStation = workStationId != null,
-    )
     ProfileScreen(
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
@@ -5988,7 +5974,7 @@ internal object BiziMobileAppContent {
       onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
       onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
       onCitySelected = viewModel::onCitySelected,
-      showProfileSetupCard = showSetup,
+      showProfileSetupCard = uiState.showProfileSetupCard,
       onShowChangelog = onShowChangelogManual,
       onOpenOnboarding = onOpenOnboarding,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
@@ -5996,6 +5982,25 @@ internal object BiziMobileAppContent {
         // Manual CTA should open the store review page directly.
         platformBindings.reviewPrompter.openStoreWriteReview()
       },
+    )
+  }
+
+  @Composable
+  fun SavedPlaceAlertsScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModel,
+    mobilePlatform: MobileUiPlatform,
+    paddingValues: PaddingValues,
+    onBack: () -> Unit,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    SavedPlaceAlertsListScreen(
+      mobilePlatform = mobilePlatform,
+      rules = uiState.rules,
+      paddingValues = paddingValues,
+      onBack = onBack,
+      onSetEnabled = viewModel::onSetEnabled,
+      onUpsert = viewModel::onUpsert,
+      onRemoveRule = viewModel::onRemoveRule,
     )
   }
 
@@ -6069,10 +6074,9 @@ internal object BiziMobileAppContent {
 
   @Composable
   fun StationDetailScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel,
     mobilePlatform: MobileUiPlatform,
     station: Station,
-    graph: SharedGraph,
-    favoriteIds: Set<String>,
     userLocation: GeoPoint?,
     isMapReady: Boolean,
     dataFreshness: DataFreshness,
@@ -6080,45 +6084,33 @@ internal object BiziMobileAppContent {
     stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
     onBack: () -> Unit,
-    stationsRepository: StationsRepository,
   ) {
-    val scope = rememberCoroutineScope()
-    val favoritesRepository = graph.favoritesRepository
-    val homeStationId by favoritesRepository.homeStationId.collectAsState()
-    val workStationId by favoritesRepository.workStationId.collectAsState()
-    val selectedCity by graph.settingsRepository.selectedCity.collectAsState()
-    val savedPlaceAlertRules by graph.savedPlaceAlertsRepository.rules.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     StationDetailScreen(
       mobilePlatform = mobilePlatform,
       station = station,
-      datosBiziApi = graph.datosBiziApi,
-      isFavorite = station.id in favoriteIds,
-      isHomeStation = homeStationId == station.id,
-      isWorkStation = workStationId == station.id,
+      isFavorite = uiState.isFavorite,
+      isHomeStation = uiState.isHomeStation,
+      isWorkStation = uiState.isWorkStation,
       userLocation = userLocation,
       isMapReady = isMapReady,
-      supportsUsagePatterns = selectedCity.supportsUsagePatterns,
+      supportsUsagePatterns = uiState.supportsUsagePatterns,
       dataFreshness = dataFreshness,
       lastUpdatedEpoch = lastUpdatedEpoch,
       stationsLoading = stationsLoading,
       onRefreshStations = onRefreshStations,
       onBack = onBack,
-      onToggleFavorite = { scope.launch { favoritesRepository.toggle(station.id) } },
-      onToggleHome = {
-        scope.launch {
-          favoritesRepository.setHomeStationId(if (homeStationId == station.id) null else station.id)
-        }
-      },
-      onToggleWork = {
-        scope.launch {
-          favoritesRepository.setWorkStationId(if (workStationId == station.id) null else station.id)
-        }
-      },
-      onRoute = { graph.routeLauncher.launch(station) },
-      savedPlaceAlertsCityId = selectedCity.id,
-      savedPlaceAlertRules = savedPlaceAlertRules,
-      onUpsertSavedPlaceAlert = { t, c -> scope.launch { graph.savedPlaceAlertsRepository.upsertRule(t, c) } },
-      onRemoveSavedPlaceAlertForTarget = { t -> scope.launch { graph.savedPlaceAlertsRepository.removeRuleForTarget(t) } },
+      onToggleFavorite = viewModel::onToggleFavorite,
+      onToggleHome = viewModel::onToggleHome,
+      onToggleWork = viewModel::onToggleWork,
+      onRoute = { viewModel.onRoute(station) },
+      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
+      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
+      onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
+      onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
+      patterns = uiState.patterns,
+      patternsLoading = uiState.patternsLoading,
+      patternsError = uiState.patternsError,
     )
   }
 }

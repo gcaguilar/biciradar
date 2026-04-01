@@ -2,21 +2,21 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.TripDestination
-
-
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
 import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +32,7 @@ data class TripUiState(
   val mapPickerActive: Boolean = false,
   val isReverseGeocoding: Boolean = false,
   val pickedLocation: GeoPoint? = null,
+  val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
 )
 
 class TripViewModel(
@@ -39,7 +40,7 @@ class TripViewModel(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
   private val geoSearchUseCase: GeoSearchUseCase,
   private val reverseGeocodeUseCase: ReverseGeocodeUseCase,
-  private val searchRadiusMeters: Int,
+  private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(TripUiState())
@@ -48,6 +49,14 @@ class TripViewModel(
   val tripState: StateFlow<TripState> = tripRepository.state
 
   private var debounceJob: Job? = null
+
+  init {
+    viewModelScope.launch {
+      settingsRepository.searchRadiusMeters.collect { radius ->
+        _uiState.value = _uiState.value.copy(searchRadiusMeters = radius)
+      }
+    }
+  }
 
   fun onQueryChange(newQuery: String) {
     _uiState.value = _uiState.value.copy(query = newQuery)
@@ -68,8 +77,6 @@ class TripViewModel(
       if (_uiState.value.query != newQuery) return@launch
 
       _uiState.value = _uiState.value.copy(isLoadingSuggestions = true, suggestionsError = null)
-
-      val userLocation: GeoPoint? = null
 
       val results = try {
         Result.success(geoSearchUseCase.execute(newQuery))
@@ -120,7 +127,7 @@ class TripViewModel(
           name = result.tripDisplayLabel(),
           location = GeoPoint(result.latitude, result.longitude),
         ),
-        searchRadiusMeters = searchRadiusMeters,
+        searchRadiusMeters = _uiState.value.searchRadiusMeters,
       )
     }
   }
@@ -146,7 +153,7 @@ class TripViewModel(
 
       tripRepository.setDestination(
         destination = TripDestination(name = name, location = location),
-        searchRadiusMeters = searchRadiusMeters,
+        searchRadiusMeters = _uiState.value.searchRadiusMeters,
       )
     }
   }
@@ -162,7 +169,7 @@ class TripViewModel(
     viewModelScope.launch {
       tripRepository.setDestination(
         destination = TripDestination(name = station.name, location = station.location),
-        searchRadiusMeters = searchRadiusMeters,
+        searchRadiusMeters = _uiState.value.searchRadiusMeters,
       )
     }
   }

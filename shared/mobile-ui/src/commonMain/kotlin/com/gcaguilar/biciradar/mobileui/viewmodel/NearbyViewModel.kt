@@ -2,12 +2,14 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
+import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.NearbyStationSelection
 import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
-import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,71 +24,106 @@ data class NearbyUiState(
   val isLoading: Boolean = false,
   val errorMessage: String? = null,
   val refreshCountdownSeconds: Int = 0,
-  val nearestSelection: NearbyStationSelection? = null,
-  val searchRadiusMeters: Int = 500,
+  val nearestSelection: NearbyStationSelection = NearbyStationSelection(
+    withinRadiusStation = null,
+    fallbackStation = null,
+    radiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
+  ),
+  val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
+  val dataFreshness: DataFreshness = DataFreshness.Unavailable,
+  val lastUpdatedEpoch: Long? = null,
 )
 
 class NearbyViewModel(
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
+  private val settingsRepository: SettingsRepository,
   private val routeLauncher: RouteLauncher,
-  private val searchRadiusMeters: Int,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(NearbyUiState())
   val uiState: StateFlow<NearbyUiState> = _uiState.asStateFlow()
 
-  val stationsState: StateFlow<StationsState> = stationsRepository.state
-
   /** Set to true while the Nearby screen is visible; false when it goes off-screen. */
   private val _isActive = MutableStateFlow(false)
+  private val _refreshCountdownSeconds = MutableStateFlow(0)
+
+  private var latestStations: List<Station> = emptyList()
+  private var latestFavoriteIds: Set<String> = emptySet()
+  private var latestSearchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS
+  private var latestIsLoading: Boolean = false
+  private var latestErrorMessage: String? = null
+  private var latestDataFreshness: DataFreshness = DataFreshness.Unavailable
+  private var latestLastUpdatedEpoch: Long? = null
 
   init {
     viewModelScope.launch {
       stationsRepository.state.collect { state ->
-        _uiState.value = _uiState.value.copy(
-          stations = state.stations,
-          isLoading = state.isLoading,
-          errorMessage = state.errorMessage,
-          nearestSelection = selectNearbyStation(state.stations, searchRadiusMeters),
-        )
+        latestStations = state.stations
+        latestIsLoading = state.isLoading
+        latestErrorMessage = state.errorMessage
+        latestDataFreshness = state.freshness
+        latestLastUpdatedEpoch = state.lastUpdatedEpoch
+        publishUiState()
       }
     }
 
     viewModelScope.launch {
       favoritesRepository.favoriteIds.collect { ids ->
-        _uiState.value = _uiState.value.copy(favoriteIds = ids)
+        latestFavoriteIds = ids
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      settingsRepository.searchRadiusMeters.collect { radius ->
+        latestSearchRadiusMeters = radius
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      _refreshCountdownSeconds.collect {
+        publishUiState()
       }
     }
 
     viewModelScope.launch {
       val intervalSeconds = 300
       while (true) {
-        // Suspend until the screen becomes active
         _isActive.first { it }
         for (remaining in intervalSeconds downTo 1) {
-          // If screen goes inactive mid-countdown, break and wait again
           if (!_isActive.value) break
-          _uiState.value = _uiState.value.copy(refreshCountdownSeconds = remaining)
+          _refreshCountdownSeconds.value = remaining
           delay(1_000)
         }
         if (!_isActive.value) {
-          _uiState.value = _uiState.value.copy(refreshCountdownSeconds = 0)
+          _refreshCountdownSeconds.value = 0
           continue
         }
-        _uiState.value = _uiState.value.copy(refreshCountdownSeconds = 0)
+        _refreshCountdownSeconds.value = 0
         val ids = stationsRepository.state.value.stations.take(20).map { it.id }
         stationsRepository.refreshAvailability(ids)
       }
     }
   }
 
-  /** Called by the composable when the Nearby screen enters/leaves the composition. */
-  fun setActive(active: Boolean) {
-    _isActive.value = active
+  private fun publishUiState() {
+    _uiState.value = NearbyUiState(
+      stations = latestStations,
+      favoriteIds = latestFavoriteIds,
+      isLoading = latestIsLoading,
+      errorMessage = latestErrorMessage,
+      refreshCountdownSeconds = _refreshCountdownSeconds.value,
+      nearestSelection = selectNearbyStation(latestStations, latestSearchRadiusMeters),
+      searchRadiusMeters = latestSearchRadiusMeters,
+      dataFreshness = latestDataFreshness,
+      lastUpdatedEpoch = latestLastUpdatedEpoch,
+    )
   }
 
-  fun onStationSelected(station: Station) {
+  fun setActive(active: Boolean) {
+    _isActive.value = active
   }
 
   fun onRetry() {
@@ -111,4 +148,3 @@ class NearbyViewModel(
     routeLauncher.launch(station)
   }
 }
-

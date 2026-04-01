@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
@@ -11,35 +12,36 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationHourlyPattern
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class FavoritesUiState(
-  val allStations: List<Station> = emptyList(),
-  val favoriteStations: List<Station> = emptyList(),
-  val homeStation: Station? = null,
-  val workStation: Station? = null,
-  val searchQuery: String = "",
-  val assignmentCandidate: Station? = null,
+data class StationDetailUiState(
+  val isFavorite: Boolean = false,
+  val isHomeStation: Boolean = false,
+  val isWorkStation: Boolean = false,
+  val supportsUsagePatterns: Boolean = false,
   val savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
   val savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
+  val patterns: List<StationHourlyPattern> = emptyList(),
+  val patternsLoading: Boolean = true,
+  val patternsError: Boolean = false,
 )
 
-class FavoritesViewModel(
+class StationDetailViewModel(
+  private val stationId: String,
   private val favoritesRepository: FavoritesRepository,
-  private val stationsRepository: StationsRepository,
   private val settingsRepository: SettingsRepository,
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
+  private val datosBiziApi: DatosBiziApi,
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(FavoritesUiState())
-  val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
+  private val _uiState = MutableStateFlow(StationDetailUiState())
+  val uiState: StateFlow<StationDetailUiState> = _uiState.asStateFlow()
 
-  private var latestAllStations: List<Station> = emptyList()
   private var latestFavoriteIds: Set<String> = emptySet()
   private var latestHomeStationId: String? = null
   private var latestWorkStationId: String? = null
@@ -48,15 +50,8 @@ class FavoritesViewModel(
 
   init {
     viewModelScope.launch {
-      stationsRepository.state.collect { stationsState ->
-        latestAllStations = stationsState.stations
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      favoritesRepository.favoriteIds.collect { ids ->
-        latestFavoriteIds = ids
+      favoritesRepository.favoriteIds.collect { favoriteIds ->
+        latestFavoriteIds = favoriteIds
         publishUiState()
       }
     }
@@ -88,63 +83,58 @@ class FavoritesViewModel(
         publishUiState()
       }
     }
+
+    refreshPatterns()
   }
 
-  private fun publishUiState() {
-    val query = _uiState.value.searchQuery
-    _uiState.value = FavoritesUiState(
-      allStations = latestAllStations,
-      favoriteStations = visibleFavoriteStations(
-        stations = latestAllStations,
-        favoriteIds = latestFavoriteIds,
-        homeStationId = latestHomeStationId,
-        workStationId = latestWorkStationId,
-      ),
-      homeStation = latestAllStations.find { it.id == latestHomeStationId },
-      workStation = latestAllStations.find { it.id == latestWorkStationId },
-      searchQuery = query,
-      assignmentCandidate = latestAllStations.find { it.name.contains(query, ignoreCase = true) },
+  private fun publishUiState(baseState: StationDetailUiState = _uiState.value) {
+    _uiState.value = baseState.copy(
+      isFavorite = stationId in latestFavoriteIds,
+      isHomeStation = latestHomeStationId == stationId,
+      isWorkStation = latestWorkStationId == stationId,
+      supportsUsagePatterns = latestSelectedCity.supportsUsagePatterns,
       savedPlaceAlertsCityId = latestSelectedCity.id,
       savedPlaceAlertRules = latestSavedPlaceAlertRules,
     )
   }
 
-  fun onSearchQueryChange(query: String) {
-    _uiState.value = _uiState.value.copy(searchQuery = query)
-    publishUiState()
-  }
-
-  fun onAssignHomeStation(station: Station) {
+  fun refreshPatterns() {
     viewModelScope.launch {
-      favoritesRepository.setHomeStationId(station.id)
+      publishUiState(_uiState.value.copy(patternsLoading = true, patternsError = false))
+      val patterns = runCatching { datosBiziApi.fetchPatterns(stationId) }.getOrNull()
+      publishUiState(
+        _uiState.value.copy(
+          patterns = patterns.orEmpty(),
+          patternsLoading = false,
+          patternsError = patterns == null,
+        ),
+      )
     }
   }
 
-  fun onAssignWorkStation(station: Station) {
+  fun onToggleFavorite() {
     viewModelScope.launch {
-      favoritesRepository.setWorkStationId(station.id)
+      favoritesRepository.toggle(stationId)
     }
   }
 
-  fun onClearHomeStation() {
+  fun onToggleHome() {
     viewModelScope.launch {
-      favoritesRepository.setHomeStationId(null)
+      favoritesRepository.setHomeStationId(
+        if (latestHomeStationId == stationId) null else stationId,
+      )
     }
   }
 
-  fun onClearWorkStation() {
+  fun onToggleWork() {
     viewModelScope.launch {
-      favoritesRepository.setWorkStationId(null)
+      favoritesRepository.setWorkStationId(
+        if (latestWorkStationId == stationId) null else stationId,
+      )
     }
   }
 
-  fun onRemoveFavorite(station: Station) {
-    viewModelScope.launch {
-      favoritesRepository.toggle(station.id)
-    }
-  }
-
-  fun onQuickRoute(station: Station) {
+  fun onRoute(station: Station) {
     routeLauncher.launch(station)
   }
 

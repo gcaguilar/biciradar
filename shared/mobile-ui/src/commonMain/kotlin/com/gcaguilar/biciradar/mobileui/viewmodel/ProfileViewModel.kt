@@ -4,13 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.LocalNotifier
+import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
-import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
-
 import com.gcaguilar.biciradar.core.ThemePreference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +24,7 @@ data class ProfileUiState(
   val latestAnswer: String = "Ask about stations, favorites, or routes",
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
+  val showProfileSetupCard: Boolean = false,
 )
 
 data class ShortcutGuide(
@@ -37,36 +37,89 @@ class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
-  private val searchRadiusMeters: Int,
+  private val permissionPrompter: PermissionPrompter,
+  private val localNotifier: LocalNotifier,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(ProfileUiState())
   val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+  private var latestChecklist = settingsRepository.onboardingChecklist.value
+  private var latestFavoriteIds: Set<String> = favoritesRepository.favoriteIds.value
+  private var latestHomeStationId: String? = favoritesRepository.homeStationId.value
+  private var latestWorkStationId: String? = favoritesRepository.workStationId.value
+  private var latestHasLocationPermission: Boolean? = null
+  private var latestHasNotificationPermission: Boolean? = null
+
   init {
     viewModelScope.launch {
       settingsRepository.searchRadiusMeters.collect { radius ->
-        _uiState.value = _uiState.value.copy(searchRadiusMeters = radius)
+        publishUiState(_uiState.value.copy(searchRadiusMeters = radius))
       }
     }
 
     viewModelScope.launch {
       settingsRepository.preferredMapApp.collect { app ->
-        _uiState.value = _uiState.value.copy(preferredMapApp = app)
+        publishUiState(_uiState.value.copy(preferredMapApp = app))
       }
     }
 
     viewModelScope.launch {
       settingsRepository.themePreference.collect { theme ->
-        _uiState.value = _uiState.value.copy(themePreference = theme)
+        publishUiState(_uiState.value.copy(themePreference = theme))
       }
     }
 
     viewModelScope.launch {
       settingsRepository.selectedCity.collect { city ->
-        _uiState.value = _uiState.value.copy(selectedCity = city)
+        publishUiState(_uiState.value.copy(selectedCity = city))
       }
     }
+
+    viewModelScope.launch {
+      settingsRepository.onboardingChecklist.collect { checklist ->
+        latestChecklist = checklist
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      favoritesRepository.favoriteIds.collect { favoriteIds ->
+        latestFavoriteIds = favoriteIds
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      favoritesRepository.homeStationId.collect { homeStationId ->
+        latestHomeStationId = homeStationId
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      favoritesRepository.workStationId.collect { workStationId ->
+        latestWorkStationId = workStationId
+        publishUiState()
+      }
+    }
+
+    refreshSetupRequirements()
+  }
+
+  private fun publishUiState(baseState: ProfileUiState = _uiState.value) {
+    val hasLocationPermission = latestHasLocationPermission
+    val hasNotificationPermission = latestHasNotificationPermission
+    val showProfileSetupCard = hasLocationPermission != null &&
+      hasNotificationPermission != null &&
+      latestChecklist.needsProfileSetupCard(
+        hasLocationPermission = hasLocationPermission,
+        hasNotificationPermission = hasNotificationPermission,
+        hasFavoriteStations = latestFavoriteIds.isNotEmpty(),
+        hasHomeStation = latestHomeStationId != null,
+        hasWorkStation = latestWorkStationId != null,
+      )
+    _uiState.value = baseState.copy(showProfileSetupCard = showProfileSetupCard)
   }
 
   fun onSearchRadiusSelected(radius: Int) {
@@ -92,18 +145,27 @@ class ProfileViewModel(
       settingsRepository.setSelectedCity(city)
       favoritesRepository.clearAll()
       stationsRepository.forceRefresh()
+      refreshSetupRequirements()
     }
   }
 
   fun updateLatestAnswer(answer: String) {
-    _uiState.value = _uiState.value.copy(latestAnswer = answer)
+    publishUiState(_uiState.value.copy(latestAnswer = answer))
   }
 
   fun setAssistantSuggestions(suggestions: List<AssistantAction>) {
-    _uiState.value = _uiState.value.copy(assistantSuggestions = suggestions)
+    publishUiState(_uiState.value.copy(assistantSuggestions = suggestions))
   }
 
   fun setShortcutGuides(guides: List<ShortcutGuide>) {
-    _uiState.value = _uiState.value.copy(shortcutGuides = guides)
+    publishUiState(_uiState.value.copy(shortcutGuides = guides))
+  }
+
+  fun refreshSetupRequirements() {
+    viewModelScope.launch {
+      latestHasLocationPermission = permissionPrompter.hasLocationPermission()
+      latestHasNotificationPermission = localNotifier.hasPermission()
+      publishUiState()
+    }
   }
 }

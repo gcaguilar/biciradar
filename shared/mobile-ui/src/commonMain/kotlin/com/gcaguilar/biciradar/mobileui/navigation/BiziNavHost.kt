@@ -8,16 +8,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,12 +33,12 @@ import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.mobileui.BiziMobileAppContent
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertsListScreen
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory
+import com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory
+import com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun BiziNavHost(
@@ -50,6 +48,8 @@ internal fun BiziNavHost(
   nearbyViewModelFactory: NearbyViewModelFactory,
   favoritesViewModelFactory: FavoritesViewModelFactory,
   profileViewModelFactory: ProfileViewModelFactory,
+  savedPlaceAlertsViewModelFactory: SavedPlaceAlertsViewModelFactory,
+  stationDetailViewModelFactory: StationDetailViewModelFactory,
   // Shared state (still needed by Map / StationDetail / Trip)
   stations: List<Station>,
   favoriteIds: Set<String>,
@@ -156,7 +156,6 @@ internal fun BiziNavHost(
         stationsLoading = loading,
         onRefreshStations = onRefreshStations,
         paddingValues = PaddingValues(),
-        graph = graph,
       )
     }
 
@@ -165,11 +164,11 @@ internal fun BiziNavHost(
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.Trip>()
       val viewModel = viewModel(key = "trip") { tripViewModelFactory.create() }
-      var prefilledApplied by rememberSaveable { mutableStateOf(false) }
-      if (route.prefilledQuery != null && !prefilledApplied) {
-        LaunchedEffect(Unit) {
+      var lastAppliedPrefilledQuery by rememberSaveable { mutableStateOf<String?>(null) }
+      if (route.prefilledQuery != null && route.prefilledQuery != lastAppliedPrefilledQuery) {
+        LaunchedEffect(route.prefilledQuery) {
           viewModel.onQueryChange(route.prefilledQuery)
-          prefilledApplied = true
+          lastAppliedPrefilledQuery = route.prefilledQuery
         }
       }
       BiziMobileAppContent.TripScreenContent(
@@ -198,9 +197,7 @@ internal fun BiziNavHost(
         paddingValues = PaddingValues(),
         onOpenShortcuts = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
         onOpenOnboarding = onOpenOnboarding,
-        graph = graph,
         platformBindings = platformBindings,
-        favoriteIds = favoriteIds,
         onShowChangelogManual = onShowChangelogManual,
       )
     }
@@ -208,22 +205,12 @@ internal fun BiziNavHost(
     composable<Screen.SavedPlaceAlerts>(
       deepLinks = listOf(navDeepLink<Screen.SavedPlaceAlerts>(basePath = DeepLinks.SAVED_PLACE_ALERTS_URI)),
     ) {
-      val rules by graph.savedPlaceAlertsRepository.rules.collectAsState()
-      val scope = rememberCoroutineScope()
-      SavedPlaceAlertsListScreen(
+      val viewModel = viewModel(key = "saved-place-alerts") { savedPlaceAlertsViewModelFactory.create() }
+      BiziMobileAppContent.SavedPlaceAlertsScreenContent(
+        viewModel = viewModel,
         mobilePlatform = mobilePlatform,
-        rules = rules,
         paddingValues = PaddingValues(),
         onBack = remember(navController) { { navController.popBackStack() } },
-        onSetEnabled = { id, enabled ->
-          scope.launch { graph.savedPlaceAlertsRepository.setRuleEnabled(id, enabled) }
-        },
-        onUpsert = { target, condition ->
-          scope.launch { graph.savedPlaceAlertsRepository.upsertRule(target, condition) }
-        },
-        onRemoveRule = { id ->
-          scope.launch { graph.savedPlaceAlertsRepository.removeRule(id) }
-        },
       )
     }
 
@@ -253,6 +240,9 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink<Screen.StationDetail>(basePath = "${DeepLinks.BASE_URI}station")),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.StationDetail>()
+      val viewModel = viewModel(key = "station-detail-${route.stationId}") {
+        stationDetailViewModelFactory.create(route.stationId)
+      }
       val station = stations.firstOrNull { it.id == route.stationId }
       if (station == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -261,10 +251,9 @@ internal fun BiziNavHost(
         return@composable
       }
       BiziMobileAppContent.StationDetailScreenContent(
+        viewModel = viewModel,
         mobilePlatform = mobilePlatform,
         station = station,
-        graph = graph,
-        favoriteIds = favoriteIds,
         userLocation = userLocation,
         isMapReady = isMapReady,
         dataFreshness = stationsFreshness,
@@ -272,7 +261,6 @@ internal fun BiziNavHost(
         stationsLoading = loading,
         onRefreshStations = onRefreshStations,
         onBack = remember(navController) { { navController.popBackStack() } },
-        stationsRepository = stationsRepository,
       )
     }
   }
