@@ -193,8 +193,8 @@
     <string name="useSearchToAssignStation">Fes servir el cercador de dalt per escollir una estació i assignar-la.</string>
     <string name="clearSearch">Esborra cerca</string>
     <string name="refreshStationsToOpenRoute">Actualitza estacions per poder obrir la ruta.</string>
-    <string name="quickRouteFallbackSummary">No n\'hi ha dins de %1$s m. La más propera és a %2$s m.</string>
-    <string name="quickRouteDistanceSummary">%1$s m · %2$s bicis · %3$s ancoratges</string>
+    <string name="quickRouteFallbackSummary">No n\'hi ha dins de %1$s. La más propera és a %2$s.</string>
+    <string name="quickRouteDistanceSummary">%1$s · %2$s bicis · %3$s ancoratges</string>
     <string name="myFavorites">Les meves favorites</string>
     <string name="assistantLabelNearestWithBikes">Propera amb bicis</string>
     <string name="assistantLabelNearestWithSlots">Propera amb ancoratges</string>
@@ -204,8 +204,8 @@
     <string name="stationStatusLabel">Estat de l\'estació</string>
     <string name="clearField">Esborra</string>
     <string name="mapNoStationsWithinRadius">No n\'hi ha dins de %1$s m</string>
-    <string name="mapNearestFallbackSummary">La més propera és a %1$s m · %2$s bicis · %3$s lliures</string>
-    <string name="mapStationDistanceSummary">%1$s m · %2$s bicis · %3$s lliures</string>
+    <string name="mapNearestFallbackSummary">La més propera és a %1$s · %2$s bicis · %3$s lliures</string>
+    <string name="mapStationDistanceSummary">%1$s · %2$s bicis · %3$s lliures</string>
     <string name="radiusActive">%1$s m actiu</string>
     <string name="vigilandoEstacionBizi">Vigilant estació Bizi...</string>
     <string name="biziViaje">Bizi Viatge</string>
@@ -213,6 +213,16 @@
     <string name="notificacionPersistenteViaje">Notificació persistent durant la monitorització del viatge</string>
     <string name="mapFilterOnlyEbikes">Només elèctriques</string>
     <string name="mapFilterOnlyRegularBikes">Només mecàniques</string>
+    <string name="mapFilterAirQuality">Qualitat de l'aire</string>
+    <string name="mapFilterPollen">Pol·len</string>
+    <string name="mapEnvironmentalLayerHint">Vista ambiental per zones. Prem “Treure capa” per tornar al mapa normal.</string>
+    <string name="mapClearEnvironmentalLayer">Treure capa</string>
+    <string name="environmentalLegendGood">Bo</string>
+    <string name="environmentalLegendModerate">Moderat</string>
+    <string name="environmentalLegendPoor">Dolent</string>
+    <string name="environmentalLegendLow">Baix</string>
+    <string name="environmentalLegendMedium">Mitjà</string>
+    <string name="environmentalLegendHigh">Alt</string>
     <string name="loadingStationsFavoritesShortcuts">Carregant estacions, favorites i dreceres…</string>
     <string name="preparingIphoneExperience">Preparant l\'experiència a l\'iPhone…</string>
     <string name="preparingAndroidExperience">Preparant l\'experiència a Android…</string>
@@ -227,6 +237,9 @@
     <string name="citySelectionTitle">On ets?</string>
     <string name="dataSourceTitle">Font de dades</string>
     <string name="dataSourceDescription">Les dades de les estacions provenen de serveis de dades obertes (GBFS) dels operadors de bicicletes compartides. Aquesta app no està afiliada a cap empresa oficial de bicicletes compartides.</string>
+    <string name="dataSourceDetailsAction">Veure detall de fonts</string>
+    <string name="dataSourceGbfsDetail">Estacions: usem els feeds GBFS públics de cada operador (station_information i station_status), amb refresc periòdic i normalització per ciutat.</string>
+    <string name="dataSourceEnvironmentalDetail">Qualitat de l’aire i pol·len: usem l’API d’Open-Meteo Air Quality/Pollen segons coordenades de la zona, amb memòria cau temporal per evitar peticions excessives.</string>
     <string name="onboardingAllow">Permetre</string>
     <string name="onboardingLater">Més tard</string>
     <string name="onboardingLocationTitle">Ubicació aproximada</string>
@@ -243,6 +256,7 @@
     <string name="onboardingFinish">Començar</string>
     <string name="profileSetupCardTitle">Completa la configuració</string>
     <string name="profileSetupCardBody">Et falta algun pas útil.</string>
+    <string name="profileSetupCardAction">Continuar onboarding</string>
     <string name="viewWhatsNew">Novetats</string>
     <string name="rateApp">Valorar l\'app</string>
     <string name="updateAvailableTitle">Actualització disponible</string>

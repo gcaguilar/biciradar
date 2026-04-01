@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar
 
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
+import com.gcaguilar.biciradar.core.formatDistance
 
 internal enum class AndroidWidgetEmptyState {
   ConfigureFavorite,
@@ -50,7 +51,7 @@ internal fun widgetEmptyMessage(
 
 internal fun nearbyStationMeta(station: AndroidSurfaceNearbyStation): String = buildString {
   append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
-  station.distanceMeters?.let { append(" · ${it} m") }
+  station.distanceMeters?.let { append(" · ${formatDistance(it)}") }
 }
 
 internal fun savedPlaceMeta(station: AndroidSurfaceSavedPlaceStation): String = buildString {
@@ -140,6 +141,6 @@ private fun monitoringNotificationTimeText(remainingSeconds: Int): String {
 
 private fun monitoringNotificationAlternativeText(session: SurfaceMonitoringSession): String? {
   val alternativeName = session.alternativeStationName ?: return null
-  val distance = session.alternativeDistanceMeters?.let { " (${it} m)" }.orEmpty()
+  val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
   return "Alt: $alternativeName$distance"
 }

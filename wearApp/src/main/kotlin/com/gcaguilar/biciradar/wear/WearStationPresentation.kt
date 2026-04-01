@@ -6,6 +6,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.formatRelativeMinutes
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
 import com.gcaguilar.biciradar.core.surfaceStatusTextShort
@@ -128,7 +129,7 @@ internal fun wearFavoriteTileState(
       val favorite = snapshot?.favoriteStation
       val metrics = listOfNotNull(surface.bikesLabel, surface.docksLabel).joinToString("  ")
       val alternative = favorite?.alternativeStationName?.let { name ->
-        val distance = favorite.alternativeDistanceMeters?.let { " (${it} m)" }.orEmpty()
+        val distance = favorite.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
         "Alt: $name$distance"
       }
       WearFavoriteTileState(
@@ -163,7 +164,7 @@ internal fun wearMonitoringSurfaceState(
   bikesLabel = "🚲 ${session.bikesAvailable}",
   docksLabel = "🅿 ${session.docksAvailable}",
   alternativeText = session.alternativeStationName?.let { name ->
-    val distance = session.alternativeDistanceMeters?.let { " (${it} m)" }.orEmpty()
+    val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
     "Alt: $name$distance"
   },
 )

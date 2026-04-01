@@ -77,6 +77,7 @@ internal fun BiziNavHost(
   stationsRepository: StationsRepository,
   initialAssistantAction: AssistantAction?,
   onInitialActionConsumed: () -> Unit,
+  onOpenOnboarding: () -> Unit,
   onShowChangelogManual: () -> Unit,
   paddingValues: PaddingValues,
   modifier: Modifier = Modifier,
@@ -131,6 +132,7 @@ internal fun BiziNavHost(
         onRetry = onRetry,
         onFavoriteToggle = onFavoriteToggle,
         onQuickRoute = onQuickRoute,
+        environmentalRepository = graph.environmentalRepository,
         paddingValues = PaddingValues(),
       )
     }
@@ -195,9 +197,7 @@ internal fun BiziNavHost(
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
         onOpenShortcuts = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
-        onOpenSavedPlaceAlerts = remember(navController) {
-          { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
-        },
+        onOpenOnboarding = onOpenOnboarding,
         graph = graph,
         platformBindings = platformBindings,
         favoriteIds = favoriteIds,

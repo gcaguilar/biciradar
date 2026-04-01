@@ -193,8 +193,8 @@
     <string name="useSearchToAssignStation">Erabili goiko bilatzailea geltoki bat aukeratu eta esleitzeko.</string>
     <string name="clearSearch">Garbitu bilaketa</string>
     <string name="refreshStationsToOpenRoute">Eguneratu geltokiak ibilbidea ireki ahal izateko.</string>
-    <string name="quickRouteFallbackSummary">Ez dago %1$s m barruan. Hurbilena %2$s m-ra dago.</string>
-    <string name="quickRouteDistanceSummary">%1$s m · %2$s bizikleta · %3$s leku</string>
+    <string name="quickRouteFallbackSummary">Ez dago %1$s barruan. Hurbilena %2$s-ra dago.</string>
+    <string name="quickRouteDistanceSummary">%1$s · %2$s bizikleta · %3$s leku</string>
     <string name="myFavorites">Nire gogokoak</string>
     <string name="assistantLabelNearestWithBikes">Bizikletadun gertukoa</string>
     <string name="assistantLabelNearestWithSlots">Lekuak dituen gertukoa</string>
@@ -204,8 +204,8 @@
     <string name="stationStatusLabel">Geltokiaren egoera</string>
     <string name="clear_field">Garbitu</string>
     <string name="mapNoStationsWithinRadius">Ez dago %1$s m barruan</string>
-    <string name="mapNearestFallbackSummary">Hurbilena %1$s m-ra dago · %2$s bizikleta · %3$s libre</string>
-    <string name="mapStationDistanceSummary">%1$s m · %2$s bizikleta · %3$s libre</string>
+    <string name="mapNearestFallbackSummary">Hurbilena %1$s-ra dago · %2$s bizikleta · %3$s libre</string>
+    <string name="mapStationDistanceSummary">%1$s · %2$s bizikleta · %3$s libre</string>
     <string name="radiusActive">%1$s m aktibo</string>
     <string name="vigilandoEstacionBizi">Bizi geltokia zaintzen...</string>
     <string name="biziViaje">Bizi Bidaia</string>
@@ -213,6 +213,16 @@
     <string name="notificacionPersistenteViaje">Jakinarazpen iraunkorra bidaia monitorizatzen den bitartean</string>
     <string name="mapFilterOnlyEbikes">Elektrikoak bakarrik</string>
     <string name="mapFilterOnlyRegularBikes">Mekanikoak bakarrik</string>
+    <string name="mapFilterAirQuality">Airearen kalitatea</string>
+    <string name="mapFilterPollen">Polena</string>
+    <string name="mapEnvironmentalLayerHint">Ingurumen ikuspegia zonaka. Sakatu “Geruza kendu” mapa arruntera itzultzeko.</string>
+    <string name="mapClearEnvironmentalLayer">Geruza kendu</string>
+    <string name="environmentalLegendGood">Ona</string>
+    <string name="environmentalLegendModerate">Ertaina</string>
+    <string name="environmentalLegendPoor">Txarra</string>
+    <string name="environmentalLegendLow">Baxua</string>
+    <string name="environmentalLegendMedium">Ertaina</string>
+    <string name="environmentalLegendHigh">Altua</string>
     <string name="loadingStationsFavoritesShortcuts">Geltokiak, gogokoak eta lasterbideak kargatzen…</string>
     <string name="preparingIphoneExperience">iPhone esperientzia prestatzen…</string>
     <string name="preparingAndroidExperience">Android esperientzia prestatzen…</string>
@@ -227,6 +237,9 @@
     <string name="citySelectionTitle">Non zaude?</string>
     <string name="dataSourceTitle">Datuen iturria</string>
     <string name="dataSourceDescription">Geltokien datuak hiri-bizikleta operadoreek emandako datu ireki zerbitzuetatik (GBFS) datoz. Aplikazio hau ez dago bizikleta konpainia ofizial batzuekin afiliatuta.</string>
+    <string name="dataSourceDetailsAction">Ikusi iturrien xehetasuna</string>
+    <string name="dataSourceGbfsDetail">Geltokiak: operadore bakoitzaren GBFS feed publikoak erabiltzen ditugu (station_information eta station_status), aldizkako eguneraketarekin eta hiriaren araberako normalizazioarekin.</string>
+    <string name="dataSourceEnvironmentalDetail">Airearen kalitatea eta polena: Open-Meteo Air Quality/Pollen APIa erabiltzen dugu zonako koordenatuen arabera, eskaera gehiegi saihesteko aldi baterako cachearekin.</string>
     <string name="onboardingAllow">Baimendu</string>
     <string name="onboardingLater">Geroago</string>
     <string name="onboardingLocationTitle">Kokapen hurbila</string>
@@ -243,6 +256,7 @@
     <string name="onboardingFinish">Hasi</string>
     <string name="profileSetupCardTitle">Osatu konfigurazioa</string>
     <string name="profileSetupCardBody">Urrats erabilgarri bat falta zaizu.</string>
+    <string name="profileSetupCardAction">Onboardingarekin jarraitu</string>
     <string name="viewWhatsNew">Berriak</string>
     <string name="rateApp">Baloratu aplikazioa</string>
     <string name="updateAvailableTitle">Eguneratzea eskuragarri</string>

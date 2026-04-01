@@ -285,7 +285,7 @@ private struct NearbyStationsWidgetView: View {
                                 Text(station.nameShort)
                                     .font(.caption.weight(.semibold))
                                     .lineLimit(1)
-                                Text(station.distanceMeters.map { "\($0) m" } ?? station.statusTextShort)
+                                Text(station.distanceMeters.map(formatWidgetDistance) ?? station.statusTextShort)
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                             }
@@ -307,6 +307,18 @@ private struct NearbyStationsWidgetView: View {
         }
         return content.widgetURL(URL(string: "biciradar://home"))
     }
+}
+
+private func formatWidgetDistance(_ meters: Int) -> String {
+    if meters >= 1000 {
+        let km = Double(meters) / 1000.0
+        let rounded = (km * 10).rounded(.towardZero) / 10
+        if rounded.truncatingRemainder(dividingBy: 1) == 0 {
+            return "\(Int(rounded)) km"
+        }
+        return "\(rounded) km"
+    }
+    return "\(meters) m"
 }
 
 private struct CommuteStationsWidgetView: View {

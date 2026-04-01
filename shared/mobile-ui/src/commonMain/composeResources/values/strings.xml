@@ -193,8 +193,8 @@
     <string name="useSearchToAssignStation">Usa el buscador de arriba para elegir una estación y asignarla.</string>
     <string name="clearSearch">Limpiar búsqueda</string>
     <string name="refreshStationsToOpenRoute">Actualiza estaciones para poder abrir la ruta.</string>
-    <string name="quickRouteFallbackSummary">No hay dentro de %1$s m. La más cercana está a %2$s m.</string>
-    <string name="quickRouteDistanceSummary">%1$s m · %2$s bicis · %3$s huecos</string>
+    <string name="quickRouteFallbackSummary">No hay dentro de %1$s. La más cercana está a %2$s.</string>
+    <string name="quickRouteDistanceSummary">%1$s · %2$s bicis · %3$s huecos</string>
     <string name="myFavorites">Mis favoritas</string>
     <string name="assistantLabelNearestWithBikes">Cercana con bicis</string>
     <string name="assistantLabelNearestWithSlots">Cercana con huecos</string>
@@ -204,8 +204,8 @@
     <string name="stationStatusLabel">Estado de estação</string>
     <string name="clear_field">Limpiar</string>
     <string name="mapNoStationsWithinRadius">No hay dentro de %1$s m</string>
-    <string name="mapNearestFallbackSummary">La más cercana está a %1$s m · %2$s bicis · %3$s libres</string>
-    <string name="mapStationDistanceSummary">%1$s m · %2$s bicis · %3$s libres</string>
+    <string name="mapNearestFallbackSummary">La más cercana está a %1$s · %2$s bicis · %3$s libres</string>
+    <string name="mapStationDistanceSummary">%1$s · %2$s bicis · %3$s libres</string>
     <string name="radiusActive">%1$s m activo</string>
     <string name="vigilandoEstacionBizi">Vigilando estación Bizi...</string>
     <string name="biziViaje">Bizi Viaje</string>
@@ -213,6 +213,16 @@
     <string name="notificacionPersistenteViaje">Notificación persistente durante la monitorización de viaje</string>
     <string name="mapFilterOnlyEbikes">Solo eléctricas</string>
     <string name="mapFilterOnlyRegularBikes">Solo mecánicas</string>
+    <string name="mapFilterAirQuality">Calidad del aire</string>
+    <string name="mapFilterPollen">Polen</string>
+    <string name="mapEnvironmentalLayerHint">Vista ambiental estimada por zonas. Pulsa “Quitar capa” para volver al mapa normal.</string>
+    <string name="mapClearEnvironmentalLayer">Quitar capa</string>
+    <string name="environmentalLegendGood">Bueno</string>
+    <string name="environmentalLegendModerate">Moderado</string>
+    <string name="environmentalLegendPoor">Malo</string>
+    <string name="environmentalLegendLow">Bajo</string>
+    <string name="environmentalLegendMedium">Medio</string>
+    <string name="environmentalLegendHigh">Alto</string>
     <string name="loadingStationsFavoritesShortcuts">Cargando estaciones, favoritas y atajos…</string>
     <string name="preparingIphoneExperience">Preparando la experiencia en iPhone…</string>
     <string name="preparingAndroidExperience">Preparando la experiencia en Android…</string>
@@ -227,6 +237,9 @@
     <string name="citySelectionTitle">¿Dónde estás?</string>
     <string name="dataSourceTitle">Fuente de datos</string>
     <string name="dataSourceDescription">Los datos de estaciones proceden de servicios de datos abiertos (GBFS) proporcionados por los operadores de bicicletas compartidas. Esta app no está afiliada con ninguna empresa oficial de bicicletas compartidas.</string>
+    <string name="dataSourceDetailsAction">Ver detalle de fuentes</string>
+    <string name="dataSourceGbfsDetail">Estaciones: usamos feeds GBFS públicos de cada operador (station_information y station_status), con refresco periódico y normalización por ciudad.</string>
+    <string name="dataSourceEnvironmentalDetail">Calidad del aire y polen: usamos Open-Meteo Air Quality/Pollen API según coordenadas de la zona, con caché temporal para evitar peticiones excesivas.</string>
     <string name="onboardingAllow">Permitir</string>
     <string name="onboardingLater">Más tarde</string>
     <string name="onboardingLocationTitle">Ubicación aproximada</string>
@@ -243,6 +256,7 @@
     <string name="onboardingFinish">Empezar</string>
     <string name="profileSetupCardTitle">Completa tu configuración</string>
     <string name="profileSetupCardBody">Te falta algún paso útil (permisos, favoritas o Casa/Trabajo).</string>
+    <string name="profileSetupCardAction">Continuar onboarding</string>
     <string name="viewWhatsNew">Ver novedades</string>
     <string name="rateApp">Valorar app</string>
     <string name="updateAvailableTitle">Actualización disponible</string>

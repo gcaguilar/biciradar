@@ -15,6 +15,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,6 +72,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -89,6 +91,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -117,6 +120,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.EnvironmentalRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
@@ -323,6 +327,8 @@ private enum class MapFilter(val labelKey: StringResource) {
   ONLY_SLOTS(Res.string.mapFilterOnlySlots),
   ONLY_EBIKES(Res.string.mapFilterOnlyEbikes),
   ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
+  AIR_QUALITY(Res.string.mapFilterAirQuality),
+  POLLEN(Res.string.mapFilterPollen),
 }
 
 sealed interface MobileLaunchRequest {
@@ -379,6 +385,19 @@ private sealed interface TopUpdateBanner {
   data class Downloaded(val version: String) : TopUpdateBanner
 }
 
+private enum class EnvironmentalLayer {
+  AirQuality,
+  Pollen,
+}
+
+private data class ZoneEnvironmentalSnapshot(
+  val centerLatitude: Double,
+  val centerLongitude: Double,
+  val zoneLabel: String,
+  val airQualityScore: Int? = null,
+  val pollenScore: Int? = null,
+)
+
 @androidx.compose.runtime.Stable
 private class AppState {
   var searchQuery by mutableStateOf("")
@@ -419,8 +438,12 @@ fun BiziMobileApp(
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
   val themePreference by settingsRepository.themePreference.collectAsState()
-  val isMapReady = mapSupportStatus.isGoogleMapsReady() &&
-    (mobilePlatform != MobileUiPlatform.IOS || preferredMapApp == PreferredMapApp.GoogleMaps)
+  val isMapReady = when {
+    mobilePlatform == MobileUiPlatform.IOS && preferredMapApp == PreferredMapApp.GoogleMaps ->
+      mapSupportStatus.googleMapsSdkLinked
+    mobilePlatform == MobileUiPlatform.IOS -> false
+    else -> mapSupportStatus.isGoogleMapsReady()
+  }
   var settingsBootstrapped by remember(graph) { mutableStateOf(false) }
   var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
   var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
@@ -436,6 +459,7 @@ fun BiziMobileApp(
   var topUpdateBanner by remember { mutableStateOf<TopUpdateBanner>(TopUpdateBanner.Hidden) }
   var showFeedbackNudge by remember { mutableStateOf(false) }
   var showFeedbackDialog by remember { mutableStateOf(false) }
+  var showOnboardingFromProfile by rememberSaveable { mutableStateOf(false) }
   var updatePollToken by remember { mutableIntStateOf(0) }
 
   LaunchedEffect(graph) {
@@ -991,6 +1015,7 @@ fun BiziMobileApp(
                   stationsRepository = stationsRepository,
                   initialAssistantAction = appState.pendingAssistantAction,
                   onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+                  onOpenOnboarding = { showOnboardingFromProfile = true },
                   onShowChangelogManual = {
                     val entries = ChangelogCatalog.entriesFor(platformBindings.appVersion)
                     if (entries.isNotEmpty()) {
@@ -1055,6 +1080,7 @@ fun BiziMobileApp(
         }
       }
     }
+
   }
 }
 
@@ -1508,6 +1534,7 @@ private fun MobileNavigationRail(
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 private fun MapScreen(
   mobilePlatform: MobileUiPlatform,
   stations: List<Station>,
@@ -1527,30 +1554,66 @@ private fun MapScreen(
   onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  environmentalRepository: EnvironmentalRepository,
   paddingValues: PaddingValues,
 ) {
   val nearestStation = nearestSelection.highlightedStation
   var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
   var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
   var isCardDismissed by rememberSaveable { mutableStateOf(false) }
+  var showEnvironmentalSheet by rememberSaveable { mutableStateOf(false) }
   var activeFilters by remember { mutableStateOf(emptySet<MapFilter>()) }
   var recenterRequestToken by rememberSaveable { mutableStateOf(0) }
+  val activeEnvironmentalLayer = remember(activeFilters) {
+    when {
+      MapFilter.AIR_QUALITY in activeFilters -> EnvironmentalLayer.AirQuality
+      MapFilter.POLLEN in activeFilters -> EnvironmentalLayer.Pollen
+      else -> null
+    }
+  }
+  val stationAvailabilityFilters = remember(activeFilters) {
+    activeFilters.filterNot { it == MapFilter.AIR_QUALITY || it == MapFilter.POLLEN }.toSet()
+  }
 
-  val mapStations = remember(stations, activeFilters) {
-    if (activeFilters.isEmpty()) {
+  val mapStations = remember(stations, stationAvailabilityFilters) {
+    if (stationAvailabilityFilters.isEmpty()) {
       stations
     } else {
       stations.filter { station ->
-        activeFilters.any { filter ->
+        stationAvailabilityFilters.any { filter ->
           when (filter) {
             MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
             MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
             MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
             MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
             MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
+            MapFilter.AIR_QUALITY,
+            MapFilter.POLLEN -> true
           }
         }
       }
+    }
+  }
+  val estimatedEnvironmentalSnapshots = remember(stations, activeEnvironmentalLayer) {
+    if (activeEnvironmentalLayer == null) {
+      emptyList()
+    } else {
+      buildEnvironmentalZoneSnapshots(stations)
+    }
+  }
+  var environmentalSnapshots by remember { mutableStateOf<List<ZoneEnvironmentalSnapshot>>(emptyList()) }
+  LaunchedEffect(estimatedEnvironmentalSnapshots, activeEnvironmentalLayer) {
+    if (activeEnvironmentalLayer == null) {
+      environmentalSnapshots = emptyList()
+      showEnvironmentalSheet = false
+      return@LaunchedEffect
+    }
+    environmentalSnapshots = estimatedEnvironmentalSnapshots.map { zone ->
+      val reading = environmentalRepository.readingAt(zone.centerLatitude, zone.centerLongitude)
+      zone.copy(
+        airQualityScore = reading?.airQualityIndex,
+        pollenScore = reading?.pollenIndex,
+      )
     }
   }
 
@@ -1595,6 +1658,27 @@ private fun MapScreen(
       .padding(paddingValues)
       .background(pageBackgroundColor(mobilePlatform)),
   ) {
+    val platformEnvironmentalOverlay = activeEnvironmentalLayer?.let { layer ->
+      EnvironmentalOverlayData(
+        layer = when (layer) {
+          EnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
+          EnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
+        },
+        zones = environmentalSnapshots
+          .ifEmpty { estimatedEnvironmentalSnapshots }
+          .mapNotNull { zone ->
+            val value = when (layer) {
+              EnvironmentalLayer.AirQuality -> zone.airQualityScore
+              EnvironmentalLayer.Pollen -> zone.pollenScore
+            } ?: return@mapNotNull null
+            EnvironmentalOverlayZone(
+              center = GeoPoint(zone.centerLatitude, zone.centerLongitude),
+              value = value,
+            )
+          },
+      )
+    }
+
     PlatformStationMap(
       modifier = Modifier.fillMaxSize(),
       stations = mapStations,
@@ -1606,6 +1690,7 @@ private fun MapScreen(
         selectedMapStationId = station.id
       },
       recenterRequestToken = recenterRequestToken,
+      environmentalOverlay = platformEnvironmentalOverlay,
     )
 
     Column(
@@ -1625,7 +1710,9 @@ private fun MapScreen(
         MapFilterChipRow(
           activeFilters = activeFilters,
           onToggleFilter = { filter ->
-            activeFilters = if (filter in activeFilters) emptySet() else setOf(filter)
+            val next = if (filter in activeFilters) emptySet<MapFilter>() else setOf(filter)
+            activeFilters = next
+            showEnvironmentalSheet = filter == MapFilter.AIR_QUALITY || filter == MapFilter.POLLEN
           },
         )
       }
@@ -1634,6 +1721,7 @@ private fun MapScreen(
         lastUpdatedEpoch = lastUpdatedEpoch,
         loading = loading,
         onRefresh = onRefreshStations,
+        modifier = Modifier.padding(bottom = 8.dp),
       )
     }
 
@@ -1671,11 +1759,12 @@ private fun MapScreen(
       }
     }
 
-    Box(
+    Column(
       modifier = Modifier
         .align(Alignment.BottomCenter)
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1706,15 +1795,40 @@ private fun MapScreen(
             }
           }
           if (mobilePlatform != MobileUiPlatform.Desktop) {
-            MapRecenterButton(
-              enabled = userLocation != null || stations.isNotEmpty(),
-              onClick = {
-                recenterRequestToken += 1
-                isCardDismissed = false
-              },
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              activeEnvironmentalLayer?.let {
+                MapEnvironmentalSheetButton(
+                  onClick = { showEnvironmentalSheet = true },
+                )
+              }
+              MapRecenterButton(
+                enabled = userLocation != null || stations.isNotEmpty(),
+                onClick = {
+                  recenterRequestToken += 1
+                  isCardDismissed = false
+                },
+              )
+            }
           }
         }
+      }
+    }
+
+    if (activeEnvironmentalLayer != null && showEnvironmentalSheet) {
+      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+      ModalBottomSheet(
+        onDismissRequest = { showEnvironmentalSheet = false },
+        sheetState = sheetState,
+        containerColor = LocalBiziColors.current.surface,
+      ) {
+        EnvironmentalLayerCard(
+          layer = activeEnvironmentalLayer,
+          zones = if (environmentalSnapshots.isNotEmpty()) environmentalSnapshots else estimatedEnvironmentalSnapshots,
+          onClear = {
+            showEnvironmentalSheet = false
+            activeFilters = emptySet()
+          },
+        )
       }
     }
   }
@@ -1847,7 +1961,7 @@ private fun NearbyScreen(
         lastUpdatedEpoch = lastUpdatedEpoch,
         loading = loading,
         onRefresh = onRefresh,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 10.dp),
       )
       LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -1914,7 +2028,214 @@ private fun NearbyScreen(
         }
       }
     }
+
   }
+}
+
+private fun buildEnvironmentalZoneSnapshots(stations: List<Station>): List<ZoneEnvironmentalSnapshot> {
+  if (stations.isEmpty()) return emptyList()
+  val averageLatitude = stations.map { it.location.latitude }.average()
+  val averageLongitude = stations.map { it.location.longitude }.average()
+  val grouped = stations.groupBy { station ->
+    val north = station.location.latitude >= averageLatitude
+    val east = station.location.longitude >= averageLongitude
+    when {
+      north && east -> "Noreste"
+      north && !east -> "Noroeste"
+      !north && east -> "Sureste"
+      else -> "Suroeste"
+    }
+  }
+  return grouped.entries.sortedBy { it.key }.map { (zone, zoneStations) ->
+    val centerLatitude = zoneStations.map { it.location.latitude }.average()
+    val centerLongitude = zoneStations.map { it.location.longitude }.average()
+    ZoneEnvironmentalSnapshot(
+      centerLatitude = centerLatitude,
+      centerLongitude = centerLongitude,
+      zoneLabel = zone,
+    )
+  }
+}
+
+@Composable
+private fun EnvironmentalLayerSummaryCard(
+  layer: EnvironmentalLayer,
+  onOpenDetails: () -> Unit,
+  onClear: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(containerColor = c.surface),
+  ) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 14.dp, vertical = 10.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+          text = when (layer) {
+            EnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
+            EnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
+          },
+          fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+          text = stringResource(Res.string.mapEnvironmentalLayerHint),
+          style = MaterialTheme.typography.bodySmall,
+          color = c.muted,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+      }
+      Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        TextButton(onClick = onOpenDetails, contentPadding = PaddingValues(0.dp)) {
+          Text(stringResource(Res.string.details))
+        }
+        TextButton(onClick = onClear, contentPadding = PaddingValues(0.dp)) {
+          Text(stringResource(Res.string.mapClearEnvironmentalLayer))
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun EnvironmentalLayerCard(
+  layer: EnvironmentalLayer,
+  zones: List<ZoneEnvironmentalSnapshot>,
+  onClear: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    colors = CardDefaults.cardColors(containerColor = c.surface),
+  ) {
+    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Text(
+        text = when (layer) {
+          EnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
+          EnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
+        },
+        fontWeight = FontWeight.SemiBold,
+      )
+      Text(
+        text = stringResource(Res.string.mapEnvironmentalLayerHint),
+        style = MaterialTheme.typography.bodySmall,
+        color = c.muted,
+      )
+      EnvironmentalLegendRow(layer = layer)
+      zones.take(4).forEach { zone ->
+        val score = when (layer) {
+          EnvironmentalLayer.AirQuality -> zone.airQualityScore
+          EnvironmentalLayer.Pollen -> zone.pollenScore
+        }
+        val tone = environmentalToneForLayer(layer = layer, score = score, muted = c.muted)
+        val valueText = when {
+          score == null -> "--"
+          layer == EnvironmentalLayer.AirQuality -> "AQI $score"
+          else -> "$score gr/m3"
+        }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(zone.zoneLabel, style = MaterialTheme.typography.bodySmall, color = c.ink)
+          Text(
+            valueText,
+            style = MaterialTheme.typography.bodySmall,
+            color = tone,
+            fontWeight = FontWeight.SemiBold,
+          )
+        }
+      }
+      TextButton(onClick = onClear, contentPadding = PaddingValues(0.dp)) {
+        Text(stringResource(Res.string.mapClearEnvironmentalLayer))
+      }
+    }
+  }
+}
+
+@Composable
+private fun EnvironmentalLegendRow(layer: EnvironmentalLayer) {
+  val c = LocalBiziColors.current
+  val labels = when (layer) {
+    EnvironmentalLayer.AirQuality -> listOf(
+      stringResource(Res.string.environmentalLegendGood),
+      stringResource(Res.string.environmentalLegendModerate),
+      stringResource(Res.string.environmentalLegendPoor),
+    )
+    EnvironmentalLayer.Pollen -> listOf(
+      stringResource(Res.string.environmentalLegendLow),
+      stringResource(Res.string.environmentalLegendMedium),
+      stringResource(Res.string.environmentalLegendHigh),
+    )
+  }
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.spacedBy(10.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    listOf(c.green, c.orange, c.red).forEachIndexed { index, color ->
+      Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        MapColorDot(color = color)
+        Text(labels[index], style = MaterialTheme.typography.labelSmall, color = c.muted)
+      }
+    }
+  }
+}
+
+@Composable
+private fun EnvironmentalMapOverlay(
+  modifier: Modifier,
+  layer: EnvironmentalLayer,
+  zones: List<ZoneEnvironmentalSnapshot>,
+  stations: List<Station>,
+) {
+  if (zones.isEmpty() || stations.isEmpty()) return
+  val minLat = stations.minOfOrNull { it.location.latitude } ?: return
+  val maxLat = stations.maxOfOrNull { it.location.latitude } ?: return
+  val minLon = stations.minOfOrNull { it.location.longitude } ?: return
+  val maxLon = stations.maxOfOrNull { it.location.longitude } ?: return
+  val latRange = (maxLat - minLat).takeIf { it > 0.00001 } ?: return
+  val lonRange = (maxLon - minLon).takeIf { it > 0.00001 } ?: return
+  val c = LocalBiziColors.current
+
+  Canvas(modifier = modifier) {
+    zones.forEach { zone ->
+      val value = when (layer) {
+        EnvironmentalLayer.AirQuality -> zone.airQualityScore
+        EnvironmentalLayer.Pollen -> zone.pollenScore
+      } ?: return@forEach
+
+      val tone = environmentalToneForLayer(layer = layer, score = value, muted = c.muted)
+      val intensity = when (layer) {
+        EnvironmentalLayer.AirQuality -> (value.coerceIn(0, 200) / 200f)
+        EnvironmentalLayer.Pollen -> (value.coerceIn(0, 80) / 80f)
+      }
+      val x = (((zone.centerLongitude - minLon) / lonRange).toFloat() * size.width).coerceIn(0f, size.width)
+      val y = (size.height - (((zone.centerLatitude - minLat) / latRange).toFloat() * size.height)).coerceIn(0f, size.height)
+      drawCircle(
+        color = tone.copy(alpha = 0.14f + (0.20f * intensity)),
+        radius = size.minDimension * (0.10f + (0.14f * intensity)),
+        center = androidx.compose.ui.geometry.Offset(x, y),
+      )
+    }
+  }
+}
+
+private fun environmentalToneForLayer(layer: EnvironmentalLayer, score: Int?, muted: Color): Color = when {
+  score == null -> muted
+  layer == EnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
+  layer == EnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
+  layer == EnvironmentalLayer.AirQuality -> Color(0xFFD84315)
+  layer == EnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
+  layer == EnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
+  else -> Color(0xFFC2185B)
 }
 
 @Composable
@@ -2014,6 +2335,8 @@ private fun MapFilterChip(
     MapFilter.ONLY_SLOTS -> c.red
     MapFilter.ONLY_EBIKES -> c.orange
     MapFilter.ONLY_REGULAR_BIKES -> c.purple
+    MapFilter.AIR_QUALITY -> c.green
+    MapFilter.POLLEN -> c.orange
   }
   val backgroundColor by animateColorAsState(
     targetValue = if (selected) c.surface else c.surface,
@@ -2076,6 +2399,27 @@ private fun MapRecenterButton(
       imageVector = Icons.Filled.MyLocation,
       contentDescription = stringResource(Res.string.mapMyLocation),
       tint = if (enabled) c.green else c.muted,
+      modifier = Modifier.padding(14.dp).size(22.dp),
+    )
+  }
+}
+
+@Composable
+private fun MapEnvironmentalSheetButton(
+  onClick: () -> Unit,
+) {
+  val c = LocalBiziColors.current
+  Surface(
+    modifier = Modifier.clickable(onClick = onClick),
+    shape = CircleShape,
+    color = c.surface.copy(alpha = 0.96f),
+    tonalElevation = 4.dp,
+    shadowElevation = 6.dp,
+  ) {
+    Icon(
+      imageVector = Icons.Filled.Tune,
+      contentDescription = stringResource(Res.string.details),
+      tint = c.blue,
       modifier = Modifier.padding(14.dp).size(22.dp),
     )
   }
@@ -2152,9 +2496,19 @@ private fun MapSelectedStationCard(
       }
       Text(
         text = if (isFallbackSelection) {
-          stringResource(Res.string.mapNearestFallbackSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
+          stringResource(
+            Res.string.mapNearestFallbackSummary,
+            formatDistance(station.distanceMeters),
+            station.bikesAvailable,
+            station.slotsFree,
+          )
         } else {
-          stringResource(Res.string.mapStationDistanceSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
+          stringResource(
+            Res.string.mapStationDistanceSummary,
+            formatDistance(station.distanceMeters),
+            station.bikesAvailable,
+            station.slotsFree,
+          )
         },
         color = overlayBody,
       )
@@ -2441,11 +2795,12 @@ private fun ProfileScreen(
   onCitySelected: (City) -> Unit,
   showProfileSetupCard: Boolean,
   onShowChangelog: () -> Unit,
-  onOpenSavedPlaceAlerts: () -> Unit,
+  onOpenOnboarding: () -> Unit,
   onOpenFeedback: () -> Unit,
   onRateApp: () -> Unit,
 ) {
   var showFeedbackDialog by remember { mutableStateOf(false) }
+  var showDataSourcesDialog by remember { mutableStateOf(false) }
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -2484,6 +2839,12 @@ private fun ProfileScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = LocalBiziColors.current.muted,
               )
+              TextButton(
+                onClick = onOpenOnboarding,
+                contentPadding = PaddingValues(0.dp),
+              ) {
+                Text(stringResource(Res.string.profileSetupCardAction), style = MaterialTheme.typography.bodySmall)
+              }
             }
           }
         }
@@ -2506,24 +2867,6 @@ private fun ProfileScreen(
           modifier = Modifier.fillMaxWidth(),
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.savedPlaceAlertsProfileSubtitle),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(onClick = onOpenSavedPlaceAlerts, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.savedPlaceAlertsProfileAction), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
             Text(
@@ -2531,21 +2874,10 @@ private fun ProfileScreen(
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
-            SEARCH_RADIUS_OPTIONS_METERS.chunked(2).forEach { rowOptions ->
-              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                rowOptions.forEach { radiusMeters ->
-                  RadiusSelectionButton(
-                    modifier = Modifier.weight(1f),
-                    selected = radiusMeters == searchRadiusMeters,
-                    label = if (radiusMeters == searchRadiusMeters) formatDistance(radiusMeters) else formatDistance(radiusMeters),
-                    onClick = { onSearchRadiusSelected(radiusMeters) },
-                  )
-                }
-                if (rowOptions.size == 1) {
-                  Spacer(Modifier.weight(1f))
-                }
-              }
-            }
+            SearchRadiusSelector(
+              selectedRadiusMeters = searchRadiusMeters,
+              onSearchRadiusSelected = onSearchRadiusSelected,
+            )
           }
         }
       }
@@ -2564,37 +2896,6 @@ private fun ProfileScreen(
               selectedCity = selectedCity,
               onCitySelected = onCitySelected,
             )
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.savedPlaceAlertsStationDetailHint),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            OutlinedButton(
-              modifier = Modifier.fillMaxWidth(),
-              onClick = onOpenSavedPlaceAlerts,
-              border = BorderStroke(1.dp, LocalBiziColors.current.red.copy(alpha = 0.24f)),
-              colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = LocalBiziColors.current.red.copy(alpha = 0.04f),
-              ),
-            ) {
-              Icon(Icons.Filled.Notifications, contentDescription = null, tint = LocalBiziColors.current.red)
-              Spacer(Modifier.width(8.dp))
-              Text(
-                stringResource(Res.string.savedPlaceAlertsProfileAction),
-                color = LocalBiziColors.current.red,
-                fontWeight = FontWeight.SemiBold,
-              )
-            }
           }
         }
       }
@@ -2736,15 +3037,106 @@ private fun ProfileScreen(
         Card(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable { showDataSourcesDialog = true }
+              .padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+          ) {
             Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
             Text(
               stringResource(Res.string.dataSourceDescription),
               style = MaterialTheme.typography.bodySmall,
               color = LocalBiziColors.current.muted,
             )
+            Text(
+              text = stringResource(Res.string.dataSourceDetailsAction),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.blue,
+              fontWeight = FontWeight.SemiBold,
+            )
           }
         }
+      }
+    }
+  }
+
+  if (showDataSourcesDialog) {
+    AlertDialog(
+      onDismissRequest = { showDataSourcesDialog = false },
+      title = { Text(stringResource(Res.string.dataSourceTitle)) },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = stringResource(Res.string.dataSourceGbfsDetail),
+            style = MaterialTheme.typography.bodySmall,
+          )
+          Text(
+            text = stringResource(Res.string.dataSourceEnvironmentalDetail),
+            style = MaterialTheme.typography.bodySmall,
+          )
+        }
+      },
+      confirmButton = {
+        TextButton(onClick = { showDataSourcesDialog = false }) {
+          Text(stringResource(Res.string.close))
+        }
+      },
+    )
+  }
+}
+
+@Composable
+private fun SearchRadiusSelector(
+  selectedRadiusMeters: Int,
+  onSearchRadiusSelected: (Int) -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  var expanded by remember { mutableStateOf(false) }
+  Box {
+    OutlinedButton(
+      onClick = { expanded = true },
+      modifier = Modifier.fillMaxWidth(),
+      border = BorderStroke(1.dp, colors.panel),
+      colors = ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = formatDistance(selectedRadiusMeters),
+          color = colors.ink,
+        )
+        Icon(
+          imageVector = Icons.Filled.Navigation,
+          contentDescription = null,
+          tint = colors.red,
+        )
+      }
+    }
+
+    DropdownMenu(
+      expanded = expanded,
+      onDismissRequest = { expanded = false },
+      modifier = Modifier.background(colors.surface),
+    ) {
+      SEARCH_RADIUS_OPTIONS_METERS.forEach { radius ->
+        DropdownMenuItem(
+          text = {
+            Text(
+              text = formatDistance(radius),
+              color = if (radius == selectedRadiusMeters) colors.red else colors.ink,
+              fontWeight = if (radius == selectedRadiusMeters) FontWeight.SemiBold else FontWeight.Normal,
+            )
+          },
+          onClick = {
+            expanded = false
+            onSearchRadiusSelected(radius)
+          },
+        )
       }
     }
   }
@@ -3009,7 +3401,7 @@ private fun StationDetailScreen(
                 StationMetricPill(
                   modifier = Modifier.weight(1f),
                   label = stringResource(Res.string.distance),
-                  value = "${station.distanceMeters} m",
+                  value = formatDistance(station.distanceMeters),
                   tint = LocalBiziColors.current.blue,
                 )
                 StationMetricPill(
@@ -4090,7 +4482,7 @@ private fun TripStationCard(
         if (distanceMeters != null) {
           StationMetricPill(
             label = stringResource(Res.string.distance),
-            value = "${distanceMeters} m",
+            value = formatDistance(distanceMeters),
             tint = c.green,
           )
         }
@@ -4374,7 +4766,7 @@ private fun StationRow(
         StationMetricPill(
           modifier = Modifier.weight(1f),
           label = stringResource(Res.string.distance),
-          value = "${station.distanceMeters} m",
+          value = formatDistance(station.distanceMeters),
           tint = LocalBiziColors.current.green,
         )
       }
@@ -4598,7 +4990,7 @@ private fun SavedPlaceCard(
           StationMetricPill(
             modifier = Modifier.weight(1f),
             label = stringResource(Res.string.distance),
-            value = "${station.distanceMeters} m",
+            value = formatDistance(station.distanceMeters),
             tint = LocalBiziColors.current.green,
           )
         }
@@ -4846,9 +5238,18 @@ private fun QuickRouteActionCard(
         )
         Text(
           if (selection.usesFallback) {
-            stringResource(Res.string.quickRouteFallbackSummary, selection.radiusMeters, station.distanceMeters)
+            stringResource(
+              Res.string.quickRouteFallbackSummary,
+              formatDistance(selection.radiusMeters),
+              formatDistance(station.distanceMeters),
+            )
           } else {
-            stringResource(Res.string.quickRouteDistanceSummary, station.distanceMeters, station.bikesAvailable, station.slotsFree)
+            stringResource(
+              Res.string.quickRouteDistanceSummary,
+              formatDistance(station.distanceMeters),
+              station.bikesAvailable,
+              station.slotsFree,
+            )
           },
           style = MaterialTheme.typography.bodySmall,
           color = LocalBiziColors.current.muted,
@@ -5523,8 +5924,8 @@ internal object BiziMobileAppContent {
     onCitySelected: (City) -> Unit,
     showProfileSetupCard: Boolean = false,
     onShowChangelog: () -> Unit = {},
-    onOpenSavedPlaceAlerts: () -> Unit = {},
     onOpenFeedback: () -> Unit = {},
+    onOpenOnboarding: () -> Unit = {},
     onRateApp: () -> Unit = {},
   ) = ProfileScreen(
     mobilePlatform = mobilePlatform,
@@ -5540,7 +5941,7 @@ internal object BiziMobileAppContent {
     onCitySelected = onCitySelected,
     showProfileSetupCard = showProfileSetupCard,
     onShowChangelog = onShowChangelog,
-    onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+    onOpenOnboarding = onOpenOnboarding,
     onOpenFeedback = onOpenFeedback,
     onRateApp = onRateApp,
   )
@@ -5551,7 +5952,7 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
     onOpenShortcuts: () -> Unit,
-    onOpenSavedPlaceAlerts: () -> Unit,
+    onOpenOnboarding: () -> Unit,
     graph: SharedGraph,
     platformBindings: PlatformBindings,
     favoriteIds: Set<String>,
@@ -5559,6 +5960,7 @@ internal object BiziMobileAppContent {
   ) {
     val uiState by viewModel.uiState.collectAsState()
     val checklist by graph.settingsRepository.onboardingChecklist.collectAsState()
+    val scope = rememberCoroutineScope()
     var hasLocation by remember { mutableStateOf(false) }
     var hasNotif by remember { mutableStateOf(false) }
     LaunchedEffect(checklist) {
@@ -5567,7 +5969,7 @@ internal object BiziMobileAppContent {
     }
     val homeStationId by graph.favoritesRepository.homeStationId.collectAsState()
     val workStationId by graph.favoritesRepository.workStationId.collectAsState()
-    val showSetup = checklist.needsProfileSetupCard(
+    val showSetup = !checklist.isCompleted() && checklist.needsProfileSetupCard(
       hasLocationPermission = hasLocation,
       hasNotificationPermission = hasNotif,
       hasFavoriteStations = favoriteIds.isNotEmpty(),
@@ -5588,9 +5990,12 @@ internal object BiziMobileAppContent {
       onCitySelected = viewModel::onCitySelected,
       showProfileSetupCard = showSetup,
       onShowChangelog = onShowChangelogManual,
-      onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+      onOpenOnboarding = onOpenOnboarding,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
-      onRateApp = { platformBindings.reviewPrompter.openStoreWriteReview() },
+      onRateApp = {
+        // Manual CTA should open the store review page directly.
+        platformBindings.reviewPrompter.openStoreWriteReview()
+      },
     )
   }
 
@@ -5634,6 +6039,7 @@ internal object BiziMobileAppContent {
     onRetry: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
+    environmentalRepository: EnvironmentalRepository,
     dataFreshness: DataFreshness,
     lastUpdatedEpoch: Long?,
     onRefreshStations: () -> Unit,
@@ -5657,6 +6063,7 @@ internal object BiziMobileAppContent {
     onRetry = onRetry,
     onFavoriteToggle = onFavoriteToggle,
     onQuickRoute = onQuickRoute,
+    environmentalRepository = environmentalRepository,
     paddingValues = paddingValues,
   )
 

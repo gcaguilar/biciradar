@@ -236,8 +236,8 @@ private struct StationRow: View {
                 .foregroundStyle(watchStatusColor(station.statusLevel))
             HStack(spacing: 5) {
                 WatchInfoBadge(
-                    label: "m",
-                    value: "\(station.distanceMeters)",
+                    label: "Dist",
+                    value: watchDistanceText(station.distanceMeters),
                     tint: .biziNeutral
                 )
                 WatchInfoBadge(
@@ -279,7 +279,7 @@ private struct WatchStationDetailView: View {
                 HStack(spacing: 6) {
                     WatchStatPill(
                         systemImage: "location.fill",
-                        value: "\(station.distanceMeters) m",
+                        value: watchDistanceText(station.distanceMeters),
                         tint: .biziNeutral
                     )
                     WatchStatPill(
@@ -423,9 +423,21 @@ private func alternativeText(_ session: WatchConnectivityMonitoringSession) -> S
         return "Alternativa no disponible"
     }
     if let alternativeDistanceMeters = session.alternativeDistanceMeters {
-        return "Alternativa: \(alternativeStationName) (\(alternativeDistanceMeters) m)"
+        return "Alternativa: \(alternativeStationName) (\(watchDistanceText(alternativeDistanceMeters)))"
     }
     return "Alternativa: \(alternativeStationName)"
+}
+
+private func watchDistanceText(_ meters: Int) -> String {
+    if meters >= 1000 {
+        let km = Double(meters) / 1000.0
+        let rounded = (km * 10).rounded(.towardZero) / 10
+        if rounded.truncatingRemainder(dividingBy: 1) == 0 {
+            return "\(Int(rounded)) km"
+        }
+        return "\(rounded) km"
+    }
+    return "\(meters) m"
 }
 
 private func monitoringColor(_ accent: WatchMonitoringAccent) -> Color {

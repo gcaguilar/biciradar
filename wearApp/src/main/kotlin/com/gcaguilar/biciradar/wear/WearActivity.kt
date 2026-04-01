@@ -58,6 +58,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 import com.gcaguilar.biciradar.core.remainingSeconds
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
@@ -506,7 +507,7 @@ private fun WearStationRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        WearChip(label = "${station.distanceMeters} m", color = WearNeutral)
+        WearChip(label = formatDistance(station.distanceMeters), color = WearNeutral)
         WearChip(label = "🚲 ${station.bikesAvailable}", color = WearPrimary)
         WearChip(label = "🅿 ${station.slotsFree}", color = WearSecondary)
       }
@@ -787,7 +788,7 @@ private fun WearStationDetail(
     }
     item {
       Text(
-        text = "${station.distanceMeters} m",
+        text = formatDistance(station.distanceMeters),
         style = MaterialTheme.typography.bodySmall,
         color = WearNeutral,
       )
