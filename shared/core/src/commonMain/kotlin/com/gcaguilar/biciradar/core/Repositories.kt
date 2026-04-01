@@ -360,7 +360,7 @@ class FavoritesRepositoryImpl(
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
   private val watchSyncBridge: WatchSyncBridge,
-  private val database: BiciRadarDatabase?,
+  private val database: BiciRadarDatabase? = null,
 ) : FavoritesRepository {
   private val mutableFavoriteIds = MutableStateFlow(emptySet<String>())
   private val mutableHomeStationId = MutableStateFlow<String?>(null)

@@ -31,7 +31,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
-  private val database: BiciRadarDatabase?,
+  private val database: BiciRadarDatabase? = null,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
   private var bootstrapped = false
