@@ -34,6 +34,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
@@ -131,6 +134,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Make scripts executable
         run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
@@ -201,6 +207,9 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
+          build-scan-terms-of-use-agree: "yes"
 
       - name: Make scripts executable
         run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
