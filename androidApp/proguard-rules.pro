@@ -80,6 +80,11 @@
 -keep class androidx.compose.runtime.** { *; }
 -dontwarn androidx.compose.**
 
+# WorkManager/Room reflection safety.
+# WorkManager initializes its internal Room database via Startup and
+# resolves generated impl classes/constructors reflectively.
+-keep class androidx.work.impl.WorkDatabase_Impl { <init>(); *; }
+
 # ============================================================
 # Google Maps / Play Services
 # These ship their own consumer proguard rules via AAR, but
