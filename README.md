@@ -1,42 +1,42 @@
 # BiciRadar
 
-Aplicacion multiplataforma para consultar disponibilidad de bicicletas publicas en ciudades de Espana.
+Multiplatform app to check public bike availability across Spanish cities.
 
-Este README esta orientado a desarrolladores: arquitectura, setup local, comandos y CI/CD.
-La documentacion orientada a usuarios finales vive en `docs/wiki/` (formato GitHub Wiki).
+This README is developer-oriented: architecture, local setup, commands, and CI/CD.
+End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 
-## Stack tecnico
+## Technical stack
 
-- Kotlin Multiplatform para dominio, datos y contratos compartidos.
-- Compose Multiplatform para UI movil compartida (Android + iOS).
-- Compose para Wear OS.
-- SwiftUI + App Intents para iOS y watchOS.
-- Metro DI para inyeccion de dependencias en compilacion.
-- Integracion de mapas y geolocalizacion en Android, iOS y watchOS.
+- Kotlin Multiplatform for domain, data, and shared contracts.
+- Compose Multiplatform for shared mobile UI (Android + iOS).
+- Compose for Wear OS.
+- SwiftUI + App Intents for iOS and watchOS.
+- Metro DI for compile-time dependency injection.
+- Maps and geolocation integration on Android, iOS, and watchOS.
 
-## Estructura del repositorio
+## Repository structure
 
-- `shared/core`: modelos, repositorios, contratos de plataforma, grafo Metro y cliente Bizi.
-- `shared/mobile-ui`: UI compartida para apps moviles.
-- `androidApp`: aplicacion Android principal.
-- `wearApp`: aplicacion Wear OS.
-- `apple`: shell SwiftUI/App Intents para iOS y watchOS.
-- `docs`: planes tecnicos y documentacion interna.
-- `docs/wiki`: documentacion funcional orientada a usuario final.
+- `shared/core`: models, repositories, platform contracts, Metro graph, and Bizi client.
+- `shared/mobile-ui`: shared UI for mobile apps.
+- `androidApp`: main Android app.
+- `wearApp`: Wear OS app.
+- `apple`: SwiftUI/App Intents shell for iOS and watchOS.
+- `docs`: technical plans and internal documentation.
+- `docs/wiki`: end-user functional documentation.
 
-## Primer arranque local
+## Local setup
 
-1. Instala JDK y toolchains moviles (Android SDK y Xcode en macOS para targets Apple).
-2. Clona el repositorio y abre la raiz del proyecto.
-3. Ejecuta una compilacion basica para verificar toolchain.
+1. Install JDK and mobile toolchains (Android SDK and Xcode on macOS for Apple targets).
+2. Clone the repository and open the project root.
+3. Run a baseline build to verify toolchains.
 
 ```bash
 ./gradlew build
 ```
 
-## Comandos de desarrollo
+## Development commands
 
-### Build y tests
+### Build and tests
 
 ```bash
 ./gradlew :shared:core:jvmTest
@@ -46,15 +46,15 @@ La documentacion orientada a usuarios finales vive en `docs/wiki/` (formato GitH
 ./gradlew build
 ```
 
-### Smokes rapidos
+### Quick smoke tests
 
-Script unificado:
+Unified script:
 
 ```bash
 ./tooling/project/run_smoke.sh
 ```
 
-Ejemplos:
+Examples:
 
 ```bash
 ./tooling/project/run_smoke.sh android-assistant emulator-5554
@@ -62,65 +62,65 @@ Ejemplos:
 ./tooling/project/run_smoke.sh watchos "platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.2"
 ```
 
-## Configuracion local
+## Local configuration
 
-- `GOOGLE_MAPS_API_KEY`: opcional en local; habilita tiles reales de mapas en Android. Tambien lo usan workflows iOS en CI.
-- Android Crashlytics se habilita automaticamente si existe `androidApp/google-services.json`.
-- Wear OS Crashlytics se habilita automaticamente si existe `wearApp/google-services.json`.
-- iOS Crashlytics se habilita automaticamente si existe `apple/iosApp/GoogleService-Info.plist`.
+- `GOOGLE_MAPS_API_KEY`: optional in local development; enables real map tiles on Android. iOS CI workflows also use it.
+- Android Crashlytics is enabled automatically when `androidApp/google-services.json` exists.
+- Wear OS Crashlytics is enabled automatically when `wearApp/google-services.json` exists.
+- iOS Crashlytics is enabled automatically when `apple/iosApp/GoogleService-Info.plist` exists.
 
 ### Firebase/Crashlytics
 
-1. Registra apps en Firebase:
+1. Register apps in Firebase:
    - Android: `com.gcaguilar.biciradar`
    - Wear OS: `com.gcaguilar.biciradar.wear`
    - iOS: `com.gcaguilar.biciradar.ios`
-2. Coloca los archivos de configuracion:
+2. Place configuration files:
    - `androidApp/google-services.json`
    - `wearApp/google-services.json`
    - `apple/iosApp/GoogleService-Info.plist`
-3. Configura clave local de mapas iOS en `apple/Config/LocalSecrets.xcconfig` con `GOOGLE_MAPS_IOS_API_KEY`.
-4. Recompila.
+3. Configure local iOS maps key in `apple/Config/LocalSecrets.xcconfig` using `GOOGLE_MAPS_IOS_API_KEY`.
+4. Rebuild.
 
-El repositorio ya contempla fallback seguro cuando faltan archivos de Firebase, tanto en Android/Wear como en iOS.
+The repository already includes safe fallbacks when Firebase files are missing on Android/Wear and iOS.
 
 ## CI/CD
 
-Workflow principal: `.github/workflows/build.yml`.
+Main workflow: `.github/workflows/build.yml`.
 
-Se ejecuta en `push` a `main`, `pull_request` y ejecucion manual, con jobs en paralelo:
+It runs on `push` to `main`, `pull_request`, and manual dispatch, with parallel jobs:
 
-- `android`: tests JVM compartidos, tests unitarios Android y build de APKs debug (phone + wear).
-- `ios`: tests iPhone y artefacto `.app` para simulador.
-- `watchos`: tests Apple Watch y artefacto `.app` para simulador.
+- `android`: shared JVM tests, Android unit tests, and debug APK builds (phone + wear).
+- `ios`: iPhone tests and simulator `.app` artifact.
+- `watchos`: Apple Watch tests and simulator `.app` artifact.
 
-Artefactos publicados:
+Published artifacts:
 
 - `android-debug-apks`
 - `ios-simulator-app`
 - `watchos-simulator-app`
-- `ios-device-ipa` (cuando hay secretos de firma Apple)
+- `ios-device-ipa` (when Apple signing secrets are configured)
 
-### Distribucion opcional con Firebase App Distribution
+### Optional Firebase App Distribution
 
-El mismo workflow distribuye builds internas si estan definidos los secretos/variables requeridos para Firebase y firma Apple.
+The same workflow can distribute internal builds when required Firebase and Apple signing secrets/variables are present.
 
-Revisa y gestiona estos valores en GitHub Secrets/Variables:
+Review and manage these values in GitHub Secrets/Variables:
 
 - Firebase: `FIREBASE_SERVICE_ACCOUNT_JSON`, `FIREBASE_ANDROID_APP_ID`, `FIREBASE_WEAR_ANDROID_APP_ID`, `FIREBASE_IOS_APP_ID`.
 - Apple signing: `APPLE_TEAM_ID`, `APPLE_SIGNING_CERTIFICATE_P12_BASE64`, `APPLE_SIGNING_CERTIFICATE_PASSWORD`, `APPLE_PROVISIONING_PROFILE_BASE64`, `APPLE_KEYCHAIN_PASSWORD`.
 - App Store Connect: `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_API_KEY_P8`.
-- Maps/config review: `GOOGLE_MAPS_API_KEY`, `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`, `APP_REVIEW_NOTES`.
+- Maps/review config: `GOOGLE_MAPS_API_KEY`, `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`, `APP_REVIEW_NOTES`.
 
-Workflow de publicacion App Store: `.github/workflows/publish-ios-store.yml` (manual).
+App Store publishing workflow: `.github/workflows/publish-ios-store.yml` (manual).
 
 ## Release
 
-Checklist de build y release en `RELEASE.md`.
+Build and release checklist: `RELEASE.md`.
 
-## Wiki de usuario
+## User wiki
 
-Contenido orientado a personas usuarias:
+End-user content:
 
-- `docs/wiki/Home.md`: portada de la wiki (recomendada).
-- `docs/wiki/GUIA_USUARIO.md`: guia consolidada en una sola pagina.
+- `docs/wiki/Home.md`: wiki homepage (recommended).
+- `docs/wiki/GUIA_USUARIO.md`: consolidated one-page guide.
