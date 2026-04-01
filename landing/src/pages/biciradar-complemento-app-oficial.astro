@@ -1,0 +1,198 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const title = 'BiciRadar, el complemento inteligente para tu app oficial';
+const description =
+  'Consulta antes, decide antes y pedalea antes. BiciRadar complementa la app oficial con acceso rápido, voz y reloj.';
+const canonical = new URL('/biciradar-complemento-app-oficial', Astro.site).toString();
+
+const content = {
+  ES: {
+    languageName: 'Español',
+    heroTitle: 'BiciRadar, el complemento inteligente para tu app oficial',
+    heroSub: 'Consulta antes. Decide antes. Pedalea antes.',
+    p1: 'Ya tienes la app oficial. BiciRadar viene a hacerte la vida más fácil.',
+    p2: 'Cuando sales con prisa, no quieres perder tiempo navegando entre pantallas. Quieres saber rápido si hay bicis, si quedan anclajes libres y cuál es la mejor estación para ti en ese momento.',
+    p3: 'BiciRadar te da esa respuesta al instante, de forma más directa, más cómoda y más práctica.',
+    whyTitle: '¿Por qué usar BiciRadar además de la app oficial?',
+    whySub: 'Porque te ayuda a llegar antes a lo que importa',
+    quickTitle: 'Tu acceso rápido a la red de bici pública',
+    quickText: 'La app oficial sigue siendo la referencia institucional. BiciRadar la complementa con una experiencia más ágil para el día a día.',
+    comfortTitle: 'Más cómoda cuando vas con prisa',
+    comfortText: 'Consulta disponibilidad de bicis y anclajes de forma rápida, accede a tus estaciones favoritas y encuentra la mejor opción cerca de ti cuando cada minuto cuenta.',
+    summaryTitle: 'BiciRadar',
+    summaryText: 'La forma más rápida de saber dónde coger o dejar tu bici.',
+    questions: [
+      ['¿Dónde tengo una estación cerca?', 'Encuentra la estación más cercana al instante.'],
+      ['¿Hay bicis disponibles?', 'Consulta disponibilidad en segundos.'],
+      ['¿Quedan huecos libres para devolverla?', 'Evita llegar a una estación completa.'],
+      ['¿Cuál es mi estación favorita?', 'Abre rápido tus favoritas y su estado.'],
+      ['¿Cómo llego hasta ella?', 'Inicia ruta en pocos toques.']
+    ]
+  },
+  EN: {
+    languageName: 'English',
+    heroTitle: 'BiciRadar, the smart companion for your official app',
+    heroSub: 'Check sooner. Decide sooner. Ride sooner.',
+    p1: 'You already have the official app. BiciRadar is here to make daily use easier.',
+    p2: 'When you are in a hurry, you do not want to navigate multiple screens. You want to know quickly if bikes are available, if free docks remain, and which station is best right now.',
+    p3: 'BiciRadar gives you that answer instantly, in a more direct and practical way.',
+    whyTitle: 'Why use BiciRadar in addition to the official app?',
+    whySub: 'Because it helps you reach what matters faster',
+    quickTitle: 'Fast access to the public bike network',
+    quickText: 'The official app remains the institutional reference. BiciRadar complements it with a faster day-to-day experience.',
+    comfortTitle: 'More convenient when you are in a hurry',
+    comfortText: 'Check bike and dock availability quickly, access favorite stations, and choose the best option nearby when every minute matters.',
+    summaryTitle: 'BiciRadar',
+    summaryText: 'The fastest way to know where to pick up or drop off your bike.',
+    questions: [
+      ['Where is the nearest station?', 'Find the closest station instantly.'],
+      ['Are bikes available?', 'Check availability in seconds.'],
+      ['Are there free docks to return it?', 'Avoid arriving at a full station.'],
+      ['Which is my favorite station?', 'Open favorites and check status quickly.'],
+      ['How do I get there?', 'Start navigation in a few taps.']
+    ]
+  },
+  CA: {
+    languageName: 'Català',
+    heroTitle: 'BiciRadar, el complement intel·ligent per a la teva app oficial',
+    heroSub: 'Consulta abans. Decideix abans. Pedala abans.',
+    p1: 'Ja tens l’app oficial. BiciRadar et facilita el dia a dia.',
+    p2: 'Quan vas amb pressa, no vols perdre temps navegant pantalles. Vols saber ràpid si hi ha bicis, si queden ancoratges lliures i quina estació et convé més.',
+    p3: 'BiciRadar et dona aquesta resposta a l’instant, de manera més directa, còmoda i pràctica.',
+    whyTitle: 'Per què fer servir BiciRadar a més de l’app oficial?',
+    whySub: 'Perquè t’ajuda a arribar abans al que importa',
+    quickTitle: 'Accés ràpid a la xarxa de bici pública',
+    quickText: 'L’app oficial continua sent la referència institucional. BiciRadar la complementa amb una experiència més àgil.',
+    comfortTitle: 'Més còmoda quan vas amb pressa',
+    comfortText: 'Consulta disponibilitat de bicis i ancoratges, accedeix a favorites i tria millor opció propera quan cada minut compta.',
+    summaryTitle: 'BiciRadar',
+    summaryText: 'La manera més ràpida de saber on agafar o deixar la bici.',
+    questions: [
+      ['On tinc una estació a prop?', 'Troba l’estació més propera a l’instant.'],
+      ['Hi ha bicis disponibles?', 'Consulta disponibilitat en segons.'],
+      ['Queden ancoratges lliures?', 'Evita arribar a una estació plena.'],
+      ['Quina és la meva estació preferida?', 'Obre preferides i estat ràpidament.'],
+      ['Com hi arribo?', 'Inicia ruta amb pocs tocs.']
+    ]
+  },
+  EU: {
+    languageName: 'Euskara',
+    heroTitle: 'BiciRadar, zure app ofizialerako osagarri adimenduna',
+    heroSub: 'Kontsultatu lehenago. Erabaki lehenago. Pedaleatu lehenago.',
+    p1: 'App ofiziala baduzu jada. BiciRadar-ek egunerokoa errazten du.',
+    p2: 'Presaka zoazenean, ez duzu pantaila artean galdu nahi. Azkar jakin nahi duzu bizikletarik badagoen, ainguraleku librerik dagoen eta zein den estazio onena.',
+    p3: 'BiciRadar-ek erantzun hori berehala ematen dizu, modu zuzen, eroso eta praktikoan.',
+    whyTitle: 'Zergatik erabili BiciRadar app ofizialaz gain?',
+    whySub: 'Garrantzitsuenera lehenago iristen laguntzen dizulako',
+    quickTitle: 'Bizikleta sare publikora sarbide azkarra',
+    quickText: 'App ofiziala erreferentzia instituzionala da. BiciRadar-ek eguneroko esperientzia arinagoarekin osatzen du.',
+    comfortTitle: 'Erosoagoa presaka zoazenean',
+    comfortText: 'Bizikleta eta ainguralekuen erabilgarritasuna azkar kontsultatu, gogokoak ireki eta aukerarik onena hautatu minutu bakoitza garrantzitsua denean.',
+    summaryTitle: 'BiciRadar',
+    summaryText: 'Bizikleta non hartu edo utzi jakiteko modurik azkarrena.',
+    questions: [
+      ['Non daukat estazio hurbil bat?', 'Estazio hurbilena berehala aurkitu.'],
+      ['Bizikletak badaude?', 'Erabilgarritasuna segundo gutxitan ikusi.'],
+      ['Lekurik libre geratzen da?', 'Estazio betera iristea saihestu.'],
+      ['Zein da nire gogoko estazioa?', 'Gogokoak eta egoera azkar ireki.'],
+      ['Nola iritsi?', 'Nabigazioa ukitu gutxitan hasi.']
+    ]
+  },
+  GL: {
+    languageName: 'Galego',
+    heroTitle: 'BiciRadar, o complemento intelixente para a túa app oficial',
+    heroSub: 'Consulta antes. Decide antes. Pedalea antes.',
+    p1: 'Xa tes a app oficial. BiciRadar vén facerche o día a día máis fácil.',
+    p2: 'Cando vas con présa, non queres perder tempo entre pantallas. Queres saber rápido se hai bicis, se quedan ancoraxes libres e cal é a mellor estación.',
+    p3: 'BiciRadar dáche esa resposta ao instante, de maneira máis directa, cómoda e práctica.',
+    whyTitle: 'Por que usar BiciRadar ademais da app oficial?',
+    whySub: 'Porque che axuda a chegar antes ao importante',
+    quickTitle: 'Acceso rápido á rede de bici pública',
+    quickText: 'A app oficial segue sendo a referencia institucional. BiciRadar complétaa cunha experiencia máis áxil no día a día.',
+    comfortTitle: 'Máis cómoda cando vas con présa',
+    comfortText: 'Consulta dispoñibilidade de bicis e ancoraxes, accede ás favoritas e escolle a mellor opción preto de ti cando cada minuto conta.',
+    summaryTitle: 'BiciRadar',
+    summaryText: 'A forma máis rápida de saber onde coller ou deixar a bici.',
+    questions: [
+      ['Onde teño unha estación preto?', 'Atopa a estación máis próxima ao instante.'],
+      ['Hai bicis dispoñibles?', 'Consulta dispoñibilidade en segundos.'],
+      ['Quedan ocos libres para devolvela?', 'Evita chegar a unha estación completa.'],
+      ['Cal é a miña estación favorita?', 'Abre favoritas e estado rapidamente.'],
+      ['Como chego ata ela?', 'Inicia ruta en poucos toques.']
+    ]
+  }
+} as const;
+---
+
+<Layout title={title} description={description}>
+  <main class="min-h-screen pt-24 pb-16 px-8 max-w-4xl mx-auto">
+    <div class="mb-8 flex flex-wrap gap-2">
+      <a href="#es" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">ES</a>
+      <a href="#en" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EN</a>
+      <a href="#ca" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">CA</a>
+      <a href="#eu" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EU</a>
+      <a href="#gl" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">GL</a>
+    </div>
+
+    {Object.entries(content).map(([lang, c]) => (
+      <article id={lang.toLowerCase()} class="bg-surface-container-low dark:bg-surface-container rounded-3xl p-8 md:p-12 border border-outline-variant/20 dark:border-white/10 mb-8">
+        <p class="text-xs uppercase tracking-widest font-bold text-primary mb-4">{c.languageName}</p>
+        <h1 class="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">{c.heroTitle}</h1>
+        <h2 class="text-2xl font-headline font-bold mb-6">{c.heroSub}</h2>
+        <p class="text-on-surface-variant mb-3">{c.p1}</p>
+        <p class="text-on-surface-variant mb-3">{c.p2}</p>
+        <p class="text-on-surface-variant mb-10">{c.p3}</p>
+
+        <h2 class="text-2xl font-headline font-bold mb-2">{c.whyTitle}</h2>
+        <p class="text-on-surface-variant mb-6">{c.whySub}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+          {c.questions.map(([q, a]) => (
+            <section class="p-5 rounded-2xl bg-surface-container border border-outline-variant/20 dark:border-white/10">
+              <h3 class="font-headline font-bold mb-2">{q}</h3>
+              <p class="text-on-surface-variant text-sm">{a}</p>
+            </section>
+          ))}
+        </div>
+
+        <h2 class="text-2xl font-headline font-bold mb-3">{c.quickTitle}</h2>
+        <p class="text-on-surface-variant mb-8">{c.quickText}</p>
+
+        <h2 class="text-2xl font-headline font-bold mb-3">{c.comfortTitle}</h2>
+        <p class="text-on-surface-variant mb-10">{c.comfortText}</p>
+
+        <section class="p-6 rounded-2xl bg-primary text-on-primary">
+          <h2 class="text-2xl font-headline font-bold mb-2">{c.summaryTitle}</h2>
+          <p>{c.summaryText}</p>
+        </section>
+      </article>
+    ))}
+  </main>
+
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: content.ES.questions.map(([q, a]) => ({
+      '@type': 'Question',
+      name: q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: a
+      }
+    }))
+  })} />
+  <script type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    description,
+    url: canonical,
+    inLanguage: 'es',
+    about: 'BiciRadar como complemento a apps oficiales de bici pública',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'BiciRadar',
+      url: Astro.site?.toString() ?? ''
+    }
+  })} />
+</Layout>
