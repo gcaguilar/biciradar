@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,7 @@ class SettingsRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
+  private val database: BiciRadarDatabase? = null,
 ) : SettingsRepository {
   private val mutableSearchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
   private val mutablePreferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
@@ -73,14 +75,7 @@ class SettingsRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    val path = settingsPath()
-    val snapshot = if (fileSystem.exists(path)) {
-      runCatching {
-        json.decodeFromString<SettingsSnapshot>(fileSystem.read(path) { readUtf8() })
-      }.getOrNull()
-    } else {
-      null
-    }
+    val snapshot = readPersistedSnapshot()
     mutableSearchRadiusMeters.value = normalizeSearchRadiusMeters(
       snapshot?.searchRadiusMeters ?: DEFAULT_SEARCH_RADIUS_METERS,
     )
@@ -194,25 +189,86 @@ class SettingsRepositoryImpl(
   private fun settingsPath() = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
 
   private suspend fun persistCurrentSnapshot() {
+    val snapshot = SettingsSnapshot(
+      searchRadiusMeters = mutableSearchRadiusMeters.value,
+      preferredMapApp = mutablePreferredMapApp.value,
+      lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
+      lastSeenChangelogAppVersion = mutableLastSeenChangelogAppVersion.value,
+      themePreference = mutableThemePreference.value,
+      selectedCityId = mutableSelectedCity.value.id,
+      hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
+      onboardingChecklist = mutableOnboardingChecklist.value,
+      engagementSnapshot = mutableEngagementSnapshot.value,
+    )
+    if (database != null) {
+      val persisted = persistToDatabase(snapshot)
+      if (persisted) {
+        deleteLegacyFile()
+      } else {
+        persistToFile(snapshot)
+      }
+      return
+    }
+    persistToFile(snapshot)
+  }
+
+  private fun readPersistedSnapshot(): SettingsSnapshot? {
+    if (database == null) return readFromFile()
+    val dbSnapshot = readFromDatabase()
+    val legacySnapshot = readFromFile()
+    if (legacySnapshot == null) return dbSnapshot
+    if (dbSnapshot != null) {
+      if (dbSnapshot == legacySnapshot) {
+        deleteLegacyFile()
+      }
+      return dbSnapshot
+    }
+    val migrated = persistToDatabase(legacySnapshot)
+    if (migrated) {
+      deleteLegacyFile()
+      return legacySnapshot
+    }
+    return legacySnapshot
+  }
+
+  private fun readFromDatabase(): SettingsSnapshot? {
+    val db = database ?: return null
+    return runCatching {
+      val row = db.biciradarQueries.getSettingsSnapshot().executeAsOneOrNull() ?: return@runCatching null
+      json.decodeFromString<SettingsSnapshot>(row)
+    }.getOrNull()
+  }
+
+  private fun readFromFile(): SettingsSnapshot? {
+    val path = settingsPath()
+    if (!fileSystem.exists(path)) return null
+    return runCatching {
+      json.decodeFromString<SettingsSnapshot>(fileSystem.read(path) { readUtf8() })
+    }.getOrNull()
+  }
+
+  private fun persistToDatabase(snapshot: SettingsSnapshot): Boolean {
+    val db = database ?: return false
+    return runCatching {
+      db.biciradarQueries.upsertSettingsSnapshot(
+        snapshotJson = json.encodeToString(snapshot),
+      )
+    }.isSuccess
+  }
+
+  private fun persistToFile(snapshot: SettingsSnapshot) {
     val path = settingsPath()
     val dir = path.parent ?: return
     fileSystem.createDirectories(dir)
     fileSystem.write(path) {
-      writeUtf8(
-        json.encodeToString(
-          SettingsSnapshot(
-            searchRadiusMeters = mutableSearchRadiusMeters.value,
-            preferredMapApp = mutablePreferredMapApp.value,
-            lastSeenChangelogVersion = mutableLastSeenChangelogVersion.value,
-            lastSeenChangelogAppVersion = mutableLastSeenChangelogAppVersion.value,
-            themePreference = mutableThemePreference.value,
-            selectedCityId = mutableSelectedCity.value.id,
-            hasCompletedOnboarding = mutableHasCompletedOnboarding.value,
-            onboardingChecklist = mutableOnboardingChecklist.value,
-            engagementSnapshot = mutableEngagementSnapshot.value,
-          ),
-        ),
-      )
+      writeUtf8(json.encodeToString(snapshot))
+    }
+  }
+
+  private fun deleteLegacyFile() {
+    val path = settingsPath()
+    if (fileSystem.exists(path)) {
+      runCatching { fileSystem.delete(path) }
     }
   }
 }

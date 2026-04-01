@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +28,7 @@ class SurfaceSnapshotRepositoryImpl(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
   private val stationsRepository: StationsRepository,
+  private val database: BiciRadarDatabase? = null,
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
   private var bootstrapped = false
@@ -35,14 +37,7 @@ class SurfaceSnapshotRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    val path = snapshotPath()
-    mutableBundle.value = if (fileSystem.exists(path)) {
-      runCatching {
-        json.decodeFromString<SurfaceSnapshotBundle>(fileSystem.read(path) { readUtf8() })
-      }.getOrNull()
-    } else {
-      null
-    }
+    mutableBundle.value = readPersistedBundle()
     bootstrapped = true
   }
 
@@ -137,11 +132,15 @@ class SurfaceSnapshotRepositoryImpl(
   }
 
   private fun persist(snapshot: SurfaceSnapshotBundle) {
-    val path = snapshotPath()
-    val parent = path.parent ?: return
-    fileSystem.createDirectories(parent)
-    fileSystem.write(path) {
-      writeUtf8(json.encodeToString(snapshot))
+    if (database != null) {
+      val persisted = persistToDatabase(snapshot)
+      if (persisted) {
+        deleteLegacyFile()
+      } else {
+        persistToFile(snapshot)
+      }
+    } else {
+      persistToFile(snapshot)
     }
     mutableBundle.value = snapshot
   }
@@ -163,6 +162,66 @@ class SurfaceSnapshotRepositoryImpl(
   }
 
   private fun snapshotPath() = "${storageDirectoryProvider.rootPath}/surface_snapshot.json".toPath()
+
+  private fun readPersistedBundle(): SurfaceSnapshotBundle? {
+    if (database == null) return readFromFile()
+    val dbBundle = readFromDatabase()
+    val legacyBundle = readFromFile()
+    if (legacyBundle == null) return dbBundle
+    if (dbBundle != null) {
+      if (dbBundle == legacyBundle) {
+        deleteLegacyFile()
+      }
+      return dbBundle
+    }
+    val migrated = persistToDatabase(legacyBundle)
+    if (migrated) {
+      deleteLegacyFile()
+      return legacyBundle
+    }
+    return legacyBundle
+  }
+
+  private fun readFromDatabase(): SurfaceSnapshotBundle? {
+    val db = database ?: return null
+    return runCatching {
+      val row = db.biciradarQueries.getSurfaceSnapshotBundle().executeAsOneOrNull() ?: return@runCatching null
+      json.decodeFromString<SurfaceSnapshotBundle>(row)
+    }.getOrNull()
+  }
+
+  private fun readFromFile(): SurfaceSnapshotBundle? {
+    val path = snapshotPath()
+    if (!fileSystem.exists(path)) return null
+    return runCatching {
+      json.decodeFromString<SurfaceSnapshotBundle>(fileSystem.read(path) { readUtf8() })
+    }.getOrNull()
+  }
+
+  private fun persistToDatabase(snapshot: SurfaceSnapshotBundle): Boolean {
+    val db = database ?: return false
+    return runCatching {
+      db.biciradarQueries.upsertSurfaceSnapshotBundle(
+        bundleJson = json.encodeToString(snapshot),
+      )
+    }.isSuccess
+  }
+
+  private fun persistToFile(snapshot: SurfaceSnapshotBundle) {
+    val path = snapshotPath()
+    val parent = path.parent ?: return
+    fileSystem.createDirectories(parent)
+    fileSystem.write(path) {
+      writeUtf8(json.encodeToString(snapshot))
+    }
+  }
+
+  private fun deleteLegacyFile() {
+    val path = snapshotPath()
+    if (fileSystem.exists(path)) {
+      runCatching { fileSystem.delete(path) }
+    }
+  }
 }
 
 private fun SurfaceStationSnapshot?.mergeMonitoring(

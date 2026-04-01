@@ -18,6 +18,43 @@ CREATE TABLE cache_metadata (
   last_updated INTEGER NOT NULL
 );
 
+-- Environmental cache per rounded zone coordinate
+CREATE TABLE environmental_cache (
+  zone_key TEXT PRIMARY KEY NOT NULL,
+  air_quality_index INTEGER,
+  pollen_index INTEGER,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE favorite_ids (
+  station_id TEXT PRIMARY KEY NOT NULL
+);
+
+CREATE TABLE favorite_roles (
+  id INTEGER PRIMARY KEY NOT NULL,
+  home_station_id TEXT,
+  work_station_id TEXT
+);
+
+CREATE TABLE saved_place_alert_rules (
+  id TEXT PRIMARY KEY NOT NULL,
+  target_json TEXT NOT NULL,
+  condition_json TEXT NOT NULL,
+  is_enabled INTEGER NOT NULL,
+  last_triggered_epoch INTEGER,
+  last_condition_matched INTEGER NOT NULL
+);
+
+CREATE TABLE settings_snapshot (
+  id INTEGER PRIMARY KEY NOT NULL,
+  snapshot_json TEXT NOT NULL
+);
+
+CREATE TABLE surface_snapshot_bundle (
+  id INTEGER PRIMARY KEY NOT NULL,
+  bundle_json TEXT NOT NULL
+);
+
 -- Queries
 getAllStations:
 SELECT * FROM stations;
@@ -38,3 +75,100 @@ VALUES (:cityId, :lastUpdated);
 
 deleteAllCacheMetadata:
 DELETE FROM cache_metadata;
+
+getEnvironmentalReadingByZoneKey:
+SELECT * FROM environmental_cache
+WHERE zone_key = :zoneKey
+LIMIT 1;
+
+upsertEnvironmentalReading:
+INSERT OR REPLACE INTO environmental_cache (zone_key, air_quality_index, pollen_index, updated_at)
+VALUES (:zoneKey, :airQualityIndex, :pollenIndex, :updatedAt);
+
+deleteExpiredEnvironmentalReadings:
+DELETE FROM environmental_cache
+WHERE updated_at < :cutoffEpoch;
+
+getAllFavoriteIds:
+SELECT station_id FROM favorite_ids;
+
+insertFavoriteId:
+INSERT OR REPLACE INTO favorite_ids (station_id)
+VALUES (:stationId);
+
+deleteFavoriteId:
+DELETE FROM favorite_ids
+WHERE station_id = :stationId;
+
+deleteAllFavoriteIds:
+DELETE FROM favorite_ids;
+
+getFavoriteRoles:
+SELECT home_station_id, work_station_id
+FROM favorite_roles
+WHERE id = 1
+LIMIT 1;
+
+upsertFavoriteRoles:
+INSERT OR REPLACE INTO favorite_roles (id, home_station_id, work_station_id)
+VALUES (1, :homeStationId, :workStationId);
+
+clearFavoriteRoles:
+DELETE FROM favorite_roles
+WHERE id = 1;
+
+getAllSavedPlaceAlertRules:
+SELECT * FROM saved_place_alert_rules;
+
+upsertSavedPlaceAlertRule:
+INSERT OR REPLACE INTO saved_place_alert_rules (
+  id,
+  target_json,
+  condition_json,
+  is_enabled,
+  last_triggered_epoch,
+  last_condition_matched
+)
+VALUES (
+  :id,
+  :targetJson,
+  :conditionJson,
+  :isEnabled,
+  :lastTriggeredEpoch,
+  :lastConditionMatched
+);
+
+deleteSavedPlaceAlertRule:
+DELETE FROM saved_place_alert_rules
+WHERE id = :id;
+
+deleteAllSavedPlaceAlertRules:
+DELETE FROM saved_place_alert_rules;
+
+getSettingsSnapshot:
+SELECT snapshot_json
+FROM settings_snapshot
+WHERE id = 1
+LIMIT 1;
+
+upsertSettingsSnapshot:
+INSERT OR REPLACE INTO settings_snapshot (id, snapshot_json)
+VALUES (1, :snapshotJson);
+
+clearSettingsSnapshot:
+DELETE FROM settings_snapshot
+WHERE id = 1;
+
+getSurfaceSnapshotBundle:
+SELECT bundle_json
+FROM surface_snapshot_bundle
+WHERE id = 1
+LIMIT 1;
+
+upsertSurfaceSnapshotBundle:
+INSERT OR REPLACE INTO surface_snapshot_bundle (id, bundle_json)
+VALUES (1, :bundleJson);
+
+clearSurfaceSnapshotBundle:
+DELETE FROM surface_snapshot_bundle
+WHERE id = 1;

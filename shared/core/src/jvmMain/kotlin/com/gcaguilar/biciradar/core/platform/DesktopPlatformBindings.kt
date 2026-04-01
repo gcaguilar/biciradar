@@ -146,7 +146,9 @@ private class DesktopReviewPrompter(
   override suspend fun requestInAppReview() = Unit
 
   override fun openStoreWriteReview() {
-    browse(appConfiguration.iosAppStoreUrl ?: appConfiguration.feedbackFormUrl)
+    val reviewUrl = appConfiguration.iosAppStoreUrl
+      ?: "https://apps.apple.com/us/search?term=BiciRadar"
+    browse(reviewUrl)
   }
 }
 

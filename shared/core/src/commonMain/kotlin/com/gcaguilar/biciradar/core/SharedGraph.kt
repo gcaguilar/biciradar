@@ -24,6 +24,7 @@ import kotlinx.serialization.json.Json
 interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
   val datosBiziApi: DatosBiziApi
+  val environmentalRepository: EnvironmentalRepository
   val engagementRepository: EngagementRepository
   val favoritesRepository: FavoritesRepository
   val getCachedStationSnapshot: GetCachedStationSnapshot
@@ -93,6 +94,10 @@ interface SharedGraph {
   @SingleIn(AppScope::class)
   @Provides
   fun provideEngagementRepository(implementation: EngagementRepositoryImpl): EngagementRepository = implementation
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideEnvironmentalRepository(implementation: EnvironmentalRepositoryImpl): EnvironmentalRepository = implementation
 
   @SingleIn(AppScope::class)
   @Provides

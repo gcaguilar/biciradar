@@ -12,6 +12,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import platform.StoreKit.SKStoreReviewController
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
@@ -58,7 +59,9 @@ internal class IOSReviewPrompterImpl(
   private val appConfiguration: AppConfiguration,
 ) : ReviewPrompter {
   override suspend fun requestInAppReview() {
-    // StoreKit scene-based prompt is invoked from Swift if needed; silent no-op here avoids brittle objc interop.
+    runCatching {
+      SKStoreReviewController.requestReview()
+    }
   }
 
   override fun openStoreWriteReview() {

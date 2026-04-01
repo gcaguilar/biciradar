@@ -360,6 +360,7 @@ class FavoritesRepositoryImpl(
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
   private val watchSyncBridge: WatchSyncBridge,
+  private val database: BiciRadarDatabase?,
 ) : FavoritesRepository {
   private val mutableFavoriteIds = MutableStateFlow(emptySet<String>())
   private val mutableHomeStationId = MutableStateFlow<String?>(null)
@@ -372,7 +373,7 @@ class FavoritesRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    syncMergedSnapshot(readLocalSnapshot(), pushIfChanged = true)
+    syncMergedSnapshot(readPersistedSnapshot(), pushIfChanged = true)
     bootstrapped = true
   }
 
@@ -437,6 +438,30 @@ class FavoritesRepositoryImpl(
 
   private fun favoritesPath() = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
 
+  private fun readPersistedSnapshot(): FavoritesSyncSnapshot {
+    if (database == null) return readLocalSnapshot()
+    val dbSnapshot = readDatabaseSnapshot() ?: FavoritesSyncSnapshot()
+    val legacySnapshot = readLocalSnapshot()
+    val dbHasData = dbSnapshot.hasData()
+    val legacyHasData = legacySnapshot.hasData()
+
+    if (!legacyHasData) return dbSnapshot
+    if (dbHasData) {
+      if (dbSnapshot == legacySnapshot) {
+        deleteLegacyFile()
+      }
+      return dbSnapshot
+    }
+
+    // One-time migration: legacy JSON -> DB. Delete legacy only if write succeeded.
+    val migrated = persistToDatabase(legacySnapshot)
+    if (migrated) {
+      deleteLegacyFile()
+      return legacySnapshot
+    }
+    return legacySnapshot
+  }
+
   private fun readLocalSnapshot(): FavoritesSyncSnapshot {
     val snapshotPath = favoritesPath()
     return if (fileSystem.exists(snapshotPath)) {
@@ -486,11 +511,61 @@ class FavoritesRepositoryImpl(
   }
 
   private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
+    if (database != null) {
+      val persisted = persistToDatabase(snapshot)
+      if (persisted) {
+        deleteLegacyFile()
+      } else {
+        persistToLocalFile(snapshot)
+      }
+      return
+    }
+    persistToLocalFile(snapshot)
+  }
+
+  private fun readDatabaseSnapshot(): FavoritesSyncSnapshot? {
+    val db = database ?: return null
+    return runCatching {
+      val ids = db.biciradarQueries.getAllFavoriteIds().executeAsList().toSet()
+      val roles = db.biciradarQueries.getFavoriteRoles().executeAsOneOrNull()
+      FavoritesSyncSnapshot(
+        favoriteIds = ids,
+        homeStationId = roles?.home_station_id,
+        workStationId = roles?.work_station_id,
+      )
+    }.getOrNull()
+  }
+
+  private fun persistToDatabase(snapshot: FavoritesSyncSnapshot): Boolean {
+    val db = database ?: return false
+    return runCatching {
+      db.transaction {
+        db.biciradarQueries.deleteAllFavoriteIds()
+        snapshot.favoriteIds.forEach { stationId ->
+          db.biciradarQueries.insertFavoriteId(stationId)
+        }
+        if (snapshot.homeStationId == null && snapshot.workStationId == null) {
+          db.biciradarQueries.clearFavoriteRoles()
+        } else {
+          db.biciradarQueries.upsertFavoriteRoles(snapshot.homeStationId, snapshot.workStationId)
+        }
+      }
+    }.isSuccess
+  }
+
+  private fun persistToLocalFile(snapshot: FavoritesSyncSnapshot) {
     val path = favoritesPath()
     val dir = path.parent ?: return
     fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(snapshot))
+    }
+  }
+
+  private fun deleteLegacyFile() {
+    val path = favoritesPath()
+    if (fileSystem.exists(path)) {
+      runCatching { fileSystem.delete(path) }
     }
   }
 }

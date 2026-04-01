@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
+import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
+  private val database: BiciRadarDatabase?,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
   private var bootstrapped = false
@@ -38,14 +40,7 @@ class SavedPlaceAlertsRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    val path = alertsPath()
-    mutableRules.value = if (fileSystem.exists(path)) {
-      runCatching {
-        json.decodeFromString<SavedPlaceAlertsSnapshot>(fileSystem.read(path) { readUtf8() }).rules
-      }.getOrDefault(emptyList())
-    } else {
-      emptyList()
-    }
+    mutableRules.value = readPersistedRules()
     bootstrapped = true
   }
 
@@ -96,13 +91,109 @@ class SavedPlaceAlertsRepositoryImpl(
   private fun alertsPath() = "${storageDirectoryProvider.rootPath}/saved_place_alerts.json".toPath()
 
   private fun persist(rules: List<SavedPlaceAlertRule>) {
+    if (database != null) {
+      val persisted = persistToDatabase(rules)
+      if (persisted) {
+        deleteLegacyFile()
+      } else {
+        persistToFile(rules)
+      }
+    } else {
+      persistToFile(rules)
+    }
+    mutableRules.value = rules
+  }
+
+  private fun readPersistedRules(): List<SavedPlaceAlertRule> {
+    if (database == null) return readFromFile()
+    val dbRules = readFromDatabase().orEmpty()
+    val legacyRules = readFromFile()
+    val dbHasData = dbRules.isNotEmpty()
+    val legacyHasData = legacyRules.isNotEmpty()
+
+    if (!legacyHasData) return dbRules
+    if (dbHasData) {
+      if (dbRules == legacyRules) {
+        deleteLegacyFile()
+      }
+      return dbRules
+    }
+
+    // One-time migration: legacy JSON -> DB. Delete legacy only after successful write.
+    val migrated = persistToDatabase(legacyRules)
+    if (migrated) {
+      deleteLegacyFile()
+      return legacyRules
+    }
+    return legacyRules
+  }
+
+  private fun readFromFile(): List<SavedPlaceAlertRule> {
+    val path = alertsPath()
+    return if (fileSystem.exists(path)) {
+      runCatching {
+        json.decodeFromString<SavedPlaceAlertsSnapshot>(fileSystem.read(path) { readUtf8() }).rules
+      }.getOrDefault(emptyList())
+    } else {
+      emptyList()
+    }
+  }
+
+  private fun readFromDatabase(): List<SavedPlaceAlertRule>? {
+    val db = database ?: return null
+    return runCatching {
+      db.biciradarQueries.getAllSavedPlaceAlertRules().executeAsList().mapNotNull { row ->
+        val target = runCatching { json.decodeFromString<SavedPlaceAlertTarget>(row.target_json) }.getOrNull()
+        val condition = runCatching { json.decodeFromString<SavedPlaceAlertCondition>(row.condition_json) }.getOrNull()
+        if (target == null || condition == null) {
+          null
+        } else {
+          SavedPlaceAlertRule(
+            id = row.id,
+            target = target,
+            condition = condition,
+            isEnabled = row.is_enabled != 0L,
+            lastTriggeredEpoch = row.last_triggered_epoch,
+            lastConditionMatched = row.last_condition_matched != 0L,
+          )
+        }
+      }
+    }.getOrNull()
+  }
+
+  private fun persistToDatabase(rules: List<SavedPlaceAlertRule>): Boolean {
+    val db = database ?: return false
+    return runCatching {
+      db.transaction {
+        db.biciradarQueries.deleteAllSavedPlaceAlertRules()
+        rules.forEach { rule ->
+          db.biciradarQueries.upsertSavedPlaceAlertRule(
+            id = rule.id,
+            targetJson = json.encodeToString(rule.target),
+            conditionJson = json.encodeToString(rule.condition),
+            isEnabled = if (rule.isEnabled) 1L else 0L,
+            lastTriggeredEpoch = rule.lastTriggeredEpoch,
+            lastConditionMatched = if (rule.lastConditionMatched) 1L else 0L,
+          )
+        }
+      }
+    }.isSuccess
+  }
+
+  private fun persistToFile(rules: List<SavedPlaceAlertRule>) {
     val path = alertsPath()
     val dir = path.parent ?: return
     fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(SavedPlaceAlertsSnapshot(rules = rules)))
     }
-    mutableRules.value = rules
+  }
+
+  private fun deleteLegacyFile() {
+    val path = alertsPath()
+    if (fileSystem.exists(path)) {
+      runCatching { fileSystem.delete(path) }
+    }
   }
 }
 
