@@ -574,9 +574,9 @@ export default function Landing() {
             <h2 className="text-4xl lg:text-5xl font-headline font-bold tracking-tight mb-4">{t.experience}</h2>
             <div className="h-1.5 w-24 bg-secondary-container dark:bg-accent rounded-full"></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:items-start">
             <div className="md:col-span-8 bg-surface-container dark:bg-surface-container rounded-3xl overflow-hidden p-12 flex flex-col md:flex-row items-center gap-8 group dark:border dark:border-white/5">
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <span className="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">{t.feature1Title}</span>
                 <h3 className="text-3xl font-headline font-bold mb-6">{t.feature1Title}</h3>
                 <p className="text-on-surface-variant mb-8">{t.feature1Desc}</p>
@@ -591,10 +591,10 @@ export default function Landing() {
                   </li>
                 </ul>
               </div>
-              <div className="flex-1 transform group-hover:scale-105 transition-transform duration-500">
+              <div className="flex-1 min-w-0 w-full transform group-hover:scale-105 transition-transform duration-500">
                 <img 
                   alt="Consulta disponibilidad" 
-                  className={`rounded-2xl shadow-2xl ${isDark ? 'brightness-75' : ''}`}
+                  className={`w-full max-h-[min(36rem,70vh)] object-contain rounded-2xl shadow-2xl ${isDark ? 'brightness-75' : ''}`}
                   src={`${baseUrl}images/feature-availability.jpg`}
                   width={1080}
                   height={2340}
@@ -604,7 +604,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="md:col-span-4 bg-surface-container-high dark:bg-surface-container-high rounded-3xl p-8 flex flex-col justify-between group dark:border dark:border-white/5">
+            <div className="md:col-span-4 bg-surface-container-high dark:bg-surface-container-high rounded-3xl p-8 flex flex-col justify-between group self-stretch dark:border dark:border-white/5">
               <div className="mb-8">
                 <div className="w-14 h-14 bg-white dark:bg-background rounded-2xl flex items-center justify-center mb-6 shadow-sm dark:border dark:border-white/10">
                   <span className="material-symbols-outlined text-primary text-3xl">star</span>
@@ -623,7 +623,7 @@ export default function Landing() {
               />
             </div>
 
-            <div className="md:col-span-4 bg-primary text-on-primary rounded-3xl p-8 flex flex-col justify-between group relative overflow-hidden">
+            <div className="md:col-span-4 bg-primary text-on-primary rounded-3xl p-8 flex flex-col justify-between group relative overflow-hidden self-start">
               <div className="absolute top-0 right-0 p-8 opacity-10 dark:opacity-20">
                 <span className="material-symbols-outlined text-9xl">notifications_active</span>
               </div>
@@ -643,10 +643,10 @@ export default function Landing() {
             </div>
 
             <div className="md:col-span-8 bg-surface-container-low dark:bg-surface-container-low rounded-3xl p-12 flex flex-col md:flex-row gap-12 items-center group dark:border dark:border-white/5">
-              <div className="flex-1 order-2 md:order-1">
+              <div className="flex-1 min-w-0 w-full order-2 md:order-1">
                 <img 
                   alt="Widgets y reloj" 
-                  className={`rounded-2xl shadow-xl transform group-hover:rotate-2 transition-transform ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
+                  className={`w-full max-h-[min(36rem,70vh)] object-contain rounded-2xl shadow-xl transform group-hover:rotate-2 transition-transform ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
                   src={`${baseUrl}images/feature-widgets.jpg`}
                   width={1080}
                   height={2340}
@@ -654,7 +654,7 @@ export default function Landing() {
                   decoding="async"
                 />
               </div>
-              <div className="flex-1 order-1 md:order-2">
+              <div className="flex-1 min-w-0 order-1 md:order-2">
                 <h3 className="text-3xl font-headline font-bold mb-6">{t.feature4Title}</h3>
                 <p className="text-on-surface-variant mb-6">{t.feature4Desc}</p>
                 <div className="flex flex-wrap gap-2">
