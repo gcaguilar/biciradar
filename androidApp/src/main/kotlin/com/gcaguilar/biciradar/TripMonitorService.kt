@@ -55,7 +55,11 @@ class TripMonitorService : Service() {
   }
 
   private fun observeMonitoringState() {
-    val repository = SurfaceMonitoringRepositoryHolder.repository ?: return
+    val repository = SurfaceMonitoringRepositoryHolder.repository
+    if (repository == null) {
+      stopSelf()
+      return
+    }
     repository.state
       .onEach { session ->
         if (session == null || !session.isActive) {
