@@ -43,3 +43,6 @@ landing/dev.output
 landing/dev.pid
 landing/lighthouse-*.json
 landing/src/pages/*.backup
+**/node_modules/
+landing/dist/_astro/
+eminent-ellipse/.vscode/
