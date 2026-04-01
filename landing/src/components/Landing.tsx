@@ -37,6 +37,7 @@ const translations = {
     feature4Desc: 'Consulta estaciones desde widgets o tu reloj sin abrir la app.',
     feature4Tag1: 'Widgets',
     feature4Tag2: 'Wear OS',
+    feature4Tag3: 'Apple Watch',
     openDataEngine: 'Open Data Engine',
     basedOnGBFS: 'Basado en el estándar mundial GBFS',
     gbfsDescription: 'BiciRadar se integra directamente con las API abiertas de las ciudades, garantizando transparencia y fidelidad absoluta en los datos. No usamos estimaciones; usamos la fuente oficial.',
@@ -87,6 +88,7 @@ const translations = {
     feature4Desc: 'Check stations from widgets or your watch without opening the app.',
     feature4Tag1: 'Widgets',
     feature4Tag2: 'Wear OS',
+    feature4Tag3: 'Apple Watch',
     openDataEngine: 'Open Data Engine',
     basedOnGBFS: 'Based on the global GBFS standard',
     gbfsDescription: 'BiciRadar integrates directly with city open APIs, guaranteeing absolute transparency and fidelity in the data. We don\'t use estimates; we use the official source.',
@@ -137,6 +139,7 @@ const translations = {
     feature4Desc: 'Consulta estacions des de widgets o el teu rellotge sense obrir l\'app.',
     feature4Tag1: 'Widgets',
     feature4Tag2: 'Wear OS',
+    feature4Tag3: 'Apple Watch',
     openDataEngine: 'Open Data Engine',
     basedOnGBFS: 'Basat en l\'estàndard mundial GBFS',
     gbfsDescription: 'BiciRadar s\'integra directament amb les API obertes de les ciutats, garantint transparència i fidelitat absolutes en les dades. No fem estimacions; fem servir la font oficial.',
@@ -187,6 +190,7 @@ const translations = {
     feature4Desc: 'Kontsultatu estazioak widget-etatik edo zure erlojutik app-a ireki gabe.',
     feature4Tag1: 'Widget-ak',
     feature4Tag2: 'Wear OS',
+    feature4Tag3: 'Apple Watch',
     openDataEngine: 'Open Data Engine',
     basedOnGBFS: 'GBFS munduko estandarrean oinarritua',
     gbfsDescription: 'BiciRadar hirien API irekiekin zuzenean integratzen da, datuetan gardentasun eta fidelitate absolutua bermatuz. Ez dugu estimazioak erabiltzen; iturri ofiziala erabiltzen dugu.',
@@ -237,6 +241,7 @@ const translations = {
     feature4Desc: 'Consulta estacións desde widgets ou o teu reloxo sen abrir a app.',
     feature4Tag1: 'Widgets',
     feature4Tag2: 'Wear OS',
+    feature4Tag3: 'Apple Watch',
     openDataEngine: 'Open Data Engine',
     basedOnGBFS: 'Baseado no estándar mundial GBFS',
     gbfsDescription: 'BiciRadar intégrase directamente coas API abertas das cidades, garantindo transparencia e fidelidade absoluta nos datos. Non usamos estimacións; usamos a fonte oficial.',
@@ -655,6 +660,7 @@ export default function Landing() {
                 <div className="flex flex-wrap gap-2">
                   <span className="px-4 py-2 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-white rounded-full text-xs font-bold uppercase tracking-widest">{t.feature4Tag1}</span>
                   <span className="px-4 py-2 bg-surface-container-highest text-on-surface dark:bg-surface-container-highest dark:text-on-surface rounded-full text-xs font-bold uppercase tracking-widest">{t.feature4Tag2}</span>
+                  <span className="px-4 py-2 bg-surface-container-highest text-on-surface dark:bg-surface-container-highest dark:text-on-surface rounded-full text-xs font-bold uppercase tracking-widest">{t.feature4Tag3}</span>
                 </div>
               </div>
             </div>

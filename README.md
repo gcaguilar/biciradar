@@ -5,6 +5,10 @@ Multiplatform app to check public bike availability across Spanish cities.
 This README is developer-oriented: architecture, local setup, commands, and CI/CD.
 End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 
+## Download
+
+[![Download on the App Store](https://img.shields.io/badge/Download-App%20Store-0D96F6?style=for-the-badge&logo=apple&logoColor=white)](https://apps.apple.com/es/app/biciradar/id6760931316)
+
 ## Technical stack
 
 - Kotlin Multiplatform for domain, data, and shared contracts.
