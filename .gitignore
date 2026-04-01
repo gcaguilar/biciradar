@@ -20,6 +20,7 @@ apple/iosApp/GoogleService-Info.plist
 github-secrets.txt
 apple/Config/LocalSecrets.xcconfig
 apple-cert/
+android-cert/
 *.iml
 DerivedData/
 xcuserdata/
@@ -35,3 +36,10 @@ fastlane/report.xml
 fastlane/test_output/
 .bundle/
 vendor/bundle/
+landing/node_modules/
+landing/dist/
+landing/dev.log
+landing/dev.output
+landing/dev.pid
+landing/lighthouse-*.json
+landing/src/pages/*.backup
