@@ -16,10 +16,14 @@ import kotlinx.cinterop.ObjCSignatureOverride
 import kotlinx.cinterop.useContents
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.MapKit.MKAnnotationProtocol
+import platform.MapKit.MKCircle
+import platform.MapKit.MKCircleRenderer
 import platform.MapKit.MKCoordinateRegionMakeWithDistance
 import platform.MapKit.MKMapViewDelegateProtocol
 import platform.MapKit.MKMapView
 import platform.MapKit.MKMarkerAnnotationView
+import platform.MapKit.MKOverlayProtocol
+import platform.MapKit.MKOverlayRenderer
 import platform.MapKit.MKPointAnnotation
 import platform.UIKit.UIColor
 import platform.UIKit.UITapGestureRecognizer
@@ -37,6 +41,7 @@ internal actual fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  environmentalOverlay: EnvironmentalOverlayData?,
   stationSnippet: (Station) -> String,
   pinTitle: String,
 ) {
@@ -55,6 +60,7 @@ internal actual fun PlatformStationMap(
           highlightedStationId = highlightedStationId,
           onStationSelected = onStationSelected,
           recenterRequestToken = recenterRequestToken,
+          environmentalOverlay = environmentalOverlay,
         )
       },
     )
@@ -68,6 +74,7 @@ internal actual fun PlatformStationMap(
       onMapClick = onMapClick,
       pinLocation = pinLocation,
       recenterRequestToken = recenterRequestToken,
+      environmentalOverlay = environmentalOverlay,
       stationSnippet = stationSnippet,
       pinTitle = pinTitle,
     )
@@ -85,6 +92,7 @@ private fun AppleMapKitView(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  environmentalOverlay: EnvironmentalOverlayData?,
   stationSnippet: (Station) -> String,
   pinTitle: String,
 ) {
@@ -106,6 +114,7 @@ private fun AppleMapKitView(
         highlightedStationId = highlightedStationId,
         pinLocation = pinLocation,
         recenterRequestToken = recenterRequestToken,
+        environmentalOverlay = environmentalOverlay,
       )
     },
   )
@@ -137,6 +146,9 @@ private class IOSStationMapCoordinator(
   private var lastStations: List<Station> = emptyList()
   private var lastHighlightedStationId: String? = null
   private var pinAnnotation: MKPointAnnotation? = null
+  private val environmentalOverlays = mutableListOf<MKCircle>()
+  private val environmentalOverlayValues = mutableMapOf<MKCircle, Int>()
+  private var currentEnvironmentalLayer: EnvironmentalOverlayLayer? = null
 
   private val stationAnnotations = mutableMapOf<MKPointAnnotation, Station>()
   // Reverse map to update annotation views by station id
@@ -144,6 +156,8 @@ private class IOSStationMapCoordinator(
   private val delegate = StationMapDelegate(
     stationForAnnotation = { annotation -> stationAnnotations[annotation] },
     highlightedStationId = { highlightedStationId },
+    currentEnvironmentalLayer = { currentEnvironmentalLayer },
+    overlayValueForCircle = { circle -> environmentalOverlayValues[circle] },
     onStationSelected = { station -> selectionHandler(station) },
   )
   private val tapRecognizer = MapTapRecognizer { point ->
@@ -164,8 +178,10 @@ private class IOSStationMapCoordinator(
     highlightedStationId: String?,
     pinLocation: GeoPoint?,
     recenterRequestToken: Int,
+    environmentalOverlay: EnvironmentalOverlayData?,
   ) {
     this.highlightedStationId = highlightedStationId
+    currentEnvironmentalLayer = environmentalOverlay?.layer
     tapRecognizer.mapView = mapView
 
     // Zoom to user location only on first load
@@ -224,6 +240,27 @@ private class IOSStationMapCoordinator(
     }
 
     lastHighlightedStationId = highlightedStationId
+
+    environmentalOverlays.forEach { overlay ->
+      mapView.performSelector(
+        aSelector = platform.objc.sel_registerName("removeOverlay:"),
+        withObject = overlay,
+      )
+    }
+    environmentalOverlays.clear()
+    environmentalOverlayValues.clear()
+    environmentalOverlay?.zones?.forEach { zone ->
+      val circle = MKCircle.circleWithCenterCoordinate(
+        coord = CLLocationCoordinate2DMake(zone.center.latitude, zone.center.longitude),
+        radius = 450.0,
+      )
+      environmentalOverlays += circle
+      environmentalOverlayValues[circle] = zone.value
+      mapView.performSelector(
+        aSelector = platform.objc.sel_registerName("addOverlay:"),
+        withObject = circle,
+      )
+    }
 
     // Update destination pin
     val currentPin = pinAnnotation
@@ -297,6 +334,8 @@ private class MapTapRecognizer(
 private class StationMapDelegate(
   private val stationForAnnotation: (MKPointAnnotation) -> Station?,
   private val highlightedStationId: () -> String?,
+  private val currentEnvironmentalLayer: () -> EnvironmentalOverlayLayer?,
+  private val overlayValueForCircle: (MKCircle) -> Int?,
   private val onStationSelected: (Station) -> Unit,
 ) : NSObject(), MKMapViewDelegateProtocol {
   @ObjCSignatureOverride
@@ -318,4 +357,28 @@ private class StationMapDelegate(
     val pointAnnotation = didSelectAnnotation as? MKPointAnnotation ?: return
     stationForAnnotation(pointAnnotation)?.let(onStationSelected)
   }
+
+  @ObjCSignatureOverride
+  override fun mapView(mapView: MKMapView, rendererForOverlay: MKOverlayProtocol): MKOverlayRenderer {
+    val circle = rendererForOverlay as? MKCircle ?: return MKOverlayRenderer(rendererForOverlay)
+    val renderer = MKCircleRenderer(circle)
+    val value = overlayValueForCircle(circle) ?: return renderer
+    val tone = environmentalTone(
+      layer = currentEnvironmentalLayer(),
+      value = value,
+    )
+    renderer.fillColor = tone.colorWithAlphaComponent(0.22)
+    renderer.strokeColor = tone.colorWithAlphaComponent(0.45)
+    renderer.lineWidth = 1.0
+    return renderer
+  }
+}
+
+private fun environmentalTone(layer: EnvironmentalOverlayLayer?, value: Int): UIColor = when {
+  layer == EnvironmentalOverlayLayer.AirQuality && value <= 50 -> UIColor.colorWithRed(0.20, 0.72, 0.20, 1.0)
+  layer == EnvironmentalOverlayLayer.AirQuality && value <= 100 -> UIColor.colorWithRed(0.95, 0.50, 0.00, 1.0)
+  layer == EnvironmentalOverlayLayer.AirQuality -> UIColor.colorWithRed(0.84, 0.10, 0.12, 1.0)
+  layer == EnvironmentalOverlayLayer.Pollen && value <= 10 -> UIColor.colorWithRed(0.20, 0.72, 0.20, 1.0)
+  layer == EnvironmentalOverlayLayer.Pollen && value <= 30 -> UIColor.colorWithRed(0.95, 0.50, 0.00, 1.0)
+  else -> UIColor.colorWithRed(0.84, 0.10, 0.12, 1.0)
 }

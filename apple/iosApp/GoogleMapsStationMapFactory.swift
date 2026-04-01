@@ -11,11 +11,13 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     private var lastStations: [Station] = []
     private var lastHighlightedStationId: String? = nil
     private var lastRecenterRequestToken: Int32 = 0
+    private var environmentalCircles: [GMSCircle] = []
 
     func createView() -> UIView {
         // Reset per-view state so a second call doesn't inherit stale markers/zoom
         hasZoomed = false
         markersByStationId.removeAll()
+        environmentalCircles.removeAll()
         lastStations = []
         lastHighlightedStationId = nil
         lastRecenterRequestToken = 0
@@ -45,7 +47,8 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         userLocation: GeoPoint?,
         highlightedStationId: String?,
         onStationSelected: @escaping (Station) -> Void,
-        recenterRequestToken: Int32
+        recenterRequestToken: Int32,
+        environmentalOverlay: EnvironmentalOverlayData?
     ) {
         guard let mapView = view as? GMSMapView else { return }
         self.onStationSelected = onStationSelected
@@ -77,10 +80,26 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
                 $0.bikesAvailable != $1.bikesAvailable || $0.slotsFree != $1.slotsFree
             })
 
+        environmentalCircles.forEach { $0.map = nil }
+        environmentalCircles.removeAll()
+        if let overlay = environmentalOverlay {
+            for zone in overlay.zones {
+                let center = CLLocationCoordinate2DMake(zone.center.latitude, zone.center.longitude)
+                let circle = GMSCircle(position: center, radius: 450)
+                let tone = environmentalTone(layer: overlay.layer, value: Int(zone.value))
+                circle.fillColor = tone.withAlphaComponent(0.22)
+                circle.strokeColor = tone.withAlphaComponent(0.45)
+                circle.strokeWidth = 1
+                circle.map = mapView
+                environmentalCircles.append(circle)
+            }
+        }
+
         if stationsChanged {
             // Full redraw: station list or state changed
             mapView.clear()
             markersByStationId.removeAll()
+            environmentalCircles.forEach { $0.map = mapView }
 
             for station in stations {
                 let marker = GMSMarker()
@@ -113,6 +132,18 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         }
 
         lastHighlightedStationId = highlightedStationId
+    }
+
+    private func environmentalTone(layer: EnvironmentalOverlayLayer, value: Int) -> UIColor {
+        let layerName = String(describing: layer).lowercased()
+        if layerName.contains("air") || layerName.contains("aqi") {
+            if value <= 50 { return UIColor(red: 0.20, green: 0.72, blue: 0.20, alpha: 1) }
+            if value <= 100 { return UIColor(red: 0.95, green: 0.50, blue: 0.00, alpha: 1) }
+            return UIColor(red: 0.84, green: 0.10, blue: 0.12, alpha: 1)
+        }
+        if value <= 10 { return UIColor(red: 0.20, green: 0.72, blue: 0.20, alpha: 1) }
+        if value <= 30 { return UIColor(red: 0.95, green: 0.50, blue: 0.00, alpha: 1) }
+        return UIColor(red: 0.84, green: 0.10, blue: 0.12, alpha: 1)
     }
 
     private func camera(for point: GeoPoint, _ prefersTightZoom: Bool) -> GMSCameraPosition {

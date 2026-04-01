@@ -34,6 +34,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerInfoWindowContent
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.rememberCameraPositionState
 
 private fun stationMarkerHue(station: Station, highlighted: Boolean): Float {
@@ -63,6 +64,7 @@ internal actual fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  environmentalOverlay: EnvironmentalOverlayData?,
   stationSnippet: (Station) -> String,
   pinTitle: String,
 ) {
@@ -121,6 +123,24 @@ internal actual fun PlatformStationMap(
       { latLng -> onMapClick(GeoPoint(latLng.latitude, latLng.longitude)) }
     } else null,
   ) {
+    environmentalOverlay?.zones?.forEach { zone ->
+      val tone = when {
+        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 50 -> Color(0xFF2E7D32)
+        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 100 -> Color(0xFFEF6C00)
+        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality -> Color(0xFFC62828)
+        environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 10 -> Color(0xFF2E7D32)
+        environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 30 -> Color(0xFFEF6C00)
+        else -> Color(0xFFC62828)
+      }
+      Circle(
+        center = LatLng(zone.center.latitude, zone.center.longitude),
+        radius = 450.0,
+        fillColor = tone.copy(alpha = 0.22f),
+        strokeColor = tone.copy(alpha = 0.45f),
+        strokeWidth = 1f,
+      )
+    }
+
     stations.forEach { station ->
       key(station.id) {
         val markerState = remember(station.location.latitude, station.location.longitude) {

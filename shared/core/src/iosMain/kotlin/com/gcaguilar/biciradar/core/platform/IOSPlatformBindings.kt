@@ -184,7 +184,11 @@ private class IOSRouteLauncher : RouteLauncher {
   var settingsRepository: SettingsRepository? = null
 
   override fun launch(station: Station) {
-    if (preferredMapApp() == PreferredMapApp.GoogleMaps && launchGoogleMaps(station)) {
+    if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
+      launchGoogleMapsWithFallback(
+        destination = station.location,
+        onAllGoogleFallbacksFailed = { launchAppleMaps(station) },
+      )
       return
     }
     launchAppleMaps(station)
@@ -219,37 +223,44 @@ private class IOSRouteLauncher : RouteLauncher {
     }
   }
 
-  private fun launchGoogleMaps(station: Station): Boolean {
-    val googleMapsUrl = NSURL.URLWithString(
-      "comgooglemaps://?daddr=${station.location.latitude},${station.location.longitude}" +
-        "&directionsmode=walking&q=${station.name}",
-    ) ?: return false
-    val application = UIApplication.sharedApplication
-    if (!application.canOpenURL(googleMapsUrl)) return false
-    application.openURL(
-      url = googleMapsUrl,
-      options = emptyMap<Any?, Any>(),
-      completionHandler = null,
-    )
-    return true
-  }
-
   override fun launchWalkToLocation(destination: GeoPoint) {
     if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
-      val googleMapsUrl = NSURL.URLWithString(
-        "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=walking",
+      launchGoogleMapsWithFallback(
+        destination = destination,
+        onAllGoogleFallbacksFailed = {
+          launchAppleMapsToLocation(destination)
+        },
       )
-      val application = UIApplication.sharedApplication
-      if (googleMapsUrl != null && application.canOpenURL(googleMapsUrl)) {
-        application.openURL(
-          url = googleMapsUrl,
-          options = emptyMap<Any?, Any>(),
-          completionHandler = null,
-        )
-        return
-      }
+      return
     }
-    // Apple Maps fallback
+    launchAppleMapsToLocation(destination)
+  }
+
+  private fun launchGoogleMapsWithFallback(
+    destination: GeoPoint,
+    onAllGoogleFallbacksFailed: () -> Unit,
+  ) {
+    val googleMapsUrl = NSURL.URLWithString(
+      "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=walking",
+    )
+    val app = UIApplication.sharedApplication
+    if (googleMapsUrl == null) {
+      if (!launchGoogleMapsWeb(destination)) onAllGoogleFallbacksFailed()
+      return
+    }
+    app.openURL(
+      url = googleMapsUrl,
+      options = emptyMap<Any?, Any>(),
+      completionHandler = { opened ->
+        if (!opened) {
+          val openedWeb = launchGoogleMapsWeb(destination)
+          if (!openedWeb) onAllGoogleFallbacksFailed()
+        }
+      },
+    )
+  }
+
+  private fun launchAppleMapsToLocation(destination: GeoPoint) {
     val mapItem = MKMapItem(
       placemark = MKPlacemark(
         coordinate = destination.toCoordinate(),
@@ -277,6 +288,20 @@ private class IOSRouteLauncher : RouteLauncher {
 
   private fun preferredMapApp(): PreferredMapApp =
     settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
+
+  private fun launchGoogleMapsWeb(destination: GeoPoint): Boolean {
+    val url = NSURL.URLWithString(
+      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=walking",
+    ) ?: return false
+    val app = UIApplication.sharedApplication
+    if (!app.canOpenURL(url)) return false
+    app.openURL(
+      url = url,
+      options = emptyMap<Any?, Any>(),
+      completionHandler = null,
+    )
+    return true
+  }
 }
 
 private class IOSWatchSyncBridge : WatchSyncBridge {

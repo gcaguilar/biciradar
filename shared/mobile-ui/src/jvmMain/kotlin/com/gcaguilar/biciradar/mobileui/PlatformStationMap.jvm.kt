@@ -43,6 +43,7 @@ internal actual fun PlatformStationMap(
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
   recenterRequestToken: Int,
+  environmentalOverlay: EnvironmentalOverlayData?,
   stationSnippet: (Station) -> String,
   pinTitle: String,
 ) {

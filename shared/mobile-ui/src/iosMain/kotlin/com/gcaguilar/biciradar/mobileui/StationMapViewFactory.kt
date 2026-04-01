@@ -14,6 +14,7 @@ interface StationMapViewFactory {
     highlightedStationId: String?,
     onStationSelected: (Station) -> Unit,
     recenterRequestToken: Int,
+    environmentalOverlay: EnvironmentalOverlayData?,
   )
 }
 
