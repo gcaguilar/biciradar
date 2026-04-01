@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BiciRadar | Tu ciudad en tu radar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-container": "#8def61",
+              "on-surface": "#1a2e50",
+              "inverse-on-surface": "#8a9dc5",
+              "outline": "#64779d",
+              "surface-container-high": "#d7e2ff",
+              "on-primary-fixed-variant": "#003055",
+              "error": "#b31b25",
+              "background": "#f5f6ff",
+              "tertiary": "#4f5d6e",
+              "primary-fixed-dim": "#509ae5",
+              "surface-container-low": "#ecf0ff",
+              "tertiary-dim": "#435162",
+              "surface-tint": "#005ea0",
+              "on-secondary-fixed": "#134100",
+              "on-secondary-container": "#1c5700",
+              "secondary": "#246900",
+              "error-dim": "#9f0519",
+              "on-error-container": "#570008",
+              "primary-dim": "#00528c",
+              "surface-container-lowest": "#ffffff",
+              "surface-bright": "#f5f6ff",
+              "error-container": "#fb5151",
+              "on-tertiary-container": "#475466",
+              "on-tertiary": "#edf3ff",
+              "on-primary": "#edf3ff",
+              "on-error": "#ffefee",
+              "primary-container": "#5fa7f4",
+              "on-tertiary-fixed": "#354253",
+              "secondary-fixed-dim": "#80e054",
+              "on-secondary": "#d5ffbb",
+              "inverse-surface": "#000e26",
+              "on-background": "#1a2e50",
+              "primary-fixed": "#5fa7f4",
+              "tertiary-fixed-dim": "#cad8ed",
+              "primary": "#005ea0",
+              "surface": "#f5f6ff",
+              "tertiary-fixed": "#d8e6fc",
+              "tertiary-container": "#d8e6fc",
+              "secondary-dim": "#1f5c00",
+              "outline-variant": "#9aadd6",
+              "surface-variant": "#ceddff",
+              "secondary-fixed": "#8def61",
+              "inverse-primary": "#5fa7f4",
+              "surface-dim": "#c1d5ff",
+              "surface-container-highest": "#ceddff",
+              "on-primary-container": "#002746",
+              "on-primary-fixed": "#000001",
+              "on-secondary-fixed-variant": "#216100",
+              "on-tertiary-fixed-variant": "#515e70",
+              "on-surface-variant": "#485c80",
+              "surface-container": "#e0e8ff"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-nav {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .asymmetric-shape {
+        clip-path: polygon(0 0, 100% 0, 100% 85%, 0% 100%);
+      }
+    </style>
+<script defer src="https://cloud.umami.is/script.js" data-website-id="f6f1d487-ffc6-43d8-a627-fb6c43c601e4"></script>
+</head>
+<body class="bg-background font-body text-on-surface antialiased overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm dark:shadow-none">
+<nav class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<span class="text-2xl font-black text-blue-800 dark:text-blue-300 tracking-tighter font-headline">BiciRadar</span>
+</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1 font-headline" href="#">Features</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-colors font-headline" href="#">Cities</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-colors font-headline" href="#">Pricing</a>
+<a class="text-slate-600 dark:text-slate-400 font-medium hover:text-blue-600 dark:hover:text-blue-300 transition-colors font-headline" href="#">Support</a>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold tracking-tight active:scale-95 duration-200 transition-all hover:shadow-lg hover:shadow-primary/20">
+                Download App
+            </button>
+</nav>
+</header>
+<main class="pt-20">
+<!-- Hero Section -->
+<section class="relative min-h-[921px] flex items-center px-8 max-w-7xl mx-auto">
+<div class="grid lg:grid-cols-2 gap-12 items-center w-full">
+<div class="z-10">
+<div class="inline-flex items-center px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold tracking-widest uppercase mb-6">
+                        VELOCITY NEON ENGINE
+                    </div>
+<h1 class="text-6xl lg:text-8xl font-headline font-bold text-on-surface leading-[0.9] tracking-tighter mb-8">
+                        Tu ciudad en tu <span class="text-primary">radar</span>
+</h1>
+<p class="text-xl text-on-surface-variant max-w-lg mb-10 leading-relaxed">
+                        Gestiona tu movilidad urbana con precisión quirúrgica. Accede a datos en tiempo real de todos los sistemas de bicicletas compartidas en una sola interfaz premium.
+                    </p>
+<div class="flex flex-wrap gap-4">
+<button class="flex items-center gap-3 bg-on-surface text-surface-container-lowest px-8 py-4 rounded-xl font-bold hover:bg-primary transition-all active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">ios</span>
+<div class="text-left leading-none">
+<p class="text-[10px] uppercase opacity-70">Download on the</p>
+<p class="text-lg">App Store</p>
+</div>
+</button>
+<button class="flex items-center gap-3 bg-surface-container-high border-2 border-outline-variant/20 text-on-surface px-8 py-4 rounded-xl font-bold hover:bg-secondary-container transition-all active:scale-95">
+<span class="material-symbols-outlined">android</span>
+<div class="text-left leading-none">
+<p class="text-[10px] uppercase opacity-70">Get the Beta</p>
+<p class="text-lg">Android App</p>
+</div>
+</button>
+</div>
+</div>
+<div class="relative">
+<div class="absolute inset-0 bg-primary/10 rounded-full blur-[120px] -z-10"></div>
+<div class="relative flex justify-center lg:justify-end">
+<img alt="BiciRadar App" class="w-full max-w-[500px] object-contain drop-shadow-2xl" data-alt="Modern smartphone displaying a high-tech bike tracking app with neon blue map interface and green status icons" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ7AhtxbTmQQlAEICBi1RcN8wjpc9bWynvTTGpTyDPSxjBkF8kBo6JJ0xxcEWyzsAdF7EeO8_OHbFHaQ2Kehq690ONWxhlsW1mDssUlH74cpY8_S4I3pOCnKglYSYF8Cz-8Mr0IaEhFhuTWxLsF1ZYSWgOxBjD9IiKSzx_NnYMnNjpm41RyhsOJbKawwEW4LKNeWevYuIXT9dvI0IayWE3cBY_EbX4-88A5PpU65hNqlG-iRq3eN2edn8A2cxksnxo80wu7yZaC0DV"/>
+<!-- Floating HUD Elements -->
+<div class="absolute top-1/4 -left-10 bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-xl hidden md:block border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">directions_bike</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface-variant">BICIMAD DISPONIBLE</p>
+<p class="text-lg font-black font-headline text-on-surface">12 Unidades</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Showcase (Bento Grid) -->
+<section class="py-24 px-8 max-w-7xl mx-auto">
+<div class="mb-16">
+<h2 class="text-4xl lg:text-5xl font-headline font-bold tracking-tight mb-4">Experiencia <span class="text-primary italic">Kinetic</span></h2>
+<div class="h-1.5 w-24 bg-secondary rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+<!-- Main Showcase Card -->
+<div class="md:col-span-8 bg-surface-container rounded-3xl overflow-hidden p-12 flex flex-col md:flex-row items-center gap-8 group">
+<div class="flex-1">
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-4 block">Visualización Avanzada</span>
+<h3 class="text-3xl font-headline font-bold mb-6">Mapa en Tiempo Real</h3>
+<p class="text-on-surface-variant mb-8">Nuestra tecnología radar escanea cada estación cada 15 segundos para garantizar que nunca llegues a una base vacía.</p>
+<ul class="space-y-3 mb-8">
+<li class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-secondary">check_circle</span> Latencia zero en actualizaciones</li>
+<li class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-secondary">check_circle</span> Mapas vectoriales de alta precisión</li>
+</ul>
+</div>
+<div class="flex-1 transform group-hover:scale-105 transition-transform duration-500">
+<img alt="Real-time map" class="rounded-2xl shadow-2xl" data-alt="Close up of a mobile app showing a detailed dark mode city map with glowing blue cycling paths and neon green dots" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBegatPdPmVWr6VsTNfs6258zy4n09XiXdO8BSPMFIltGqS-eSU-NmLy60H4ZBwjCrlxbnQ30iBCtybC2CMjaLC82EB9a9w5QDNQLADbCtbzgIKB5VRF6jKkDl2tCRF8OzI_HfgVVVzbb3qJakVtWWGEJJSLkuNgG4e_REN4auWh5qA08jeT11Zu_whp45h9ronRAdDlEUe6zDLyrcYqQ3Tjc4_iSeJARogiTrTxqQvweTp_l-zoQXd11Wvlq7BgfOuOHCnx98CqE8P"/>
+</div>
+</div>
+<!-- Secondary Card -->
+<div class="md:col-span-4 bg-surface-container-high rounded-3xl p-8 flex flex-col justify-between group">
+<div class="mb-8">
+<div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">notifications_active</span>
+</div>
+<h3 class="text-2xl font-headline font-bold mb-4">Notificaciones Inteligentes</h3>
+<p class="text-on-surface-variant">Alertas predictivas basadas en tu historial de rutas y disponibilidad futura.</p>
+</div>
+<img alt="Notifications" class="rounded-xl w-full object-cover h-40 group-hover:opacity-90 transition-opacity" data-alt="Smartphone display showing a clean notification banner with a cycling icon and status text on a blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuz0qfVRqzYOOEpa2RGA9TcI5JWaGomrnHftQRfT_phAg96z3QhuNxBwWXBFQggv-KmVxKJJ3EZf67sPr26YhocMg_sO4hhH2uQR_AORvnZhcCt-0f5omH4YpHxQTYcnJbVZrlvfArcbz7Kr0yz19a5SUpnpOfQ8L03Z8Gd1N4HimjII07-qYVbNaonBgXe4tj-OuyAN0Q6NYJrbjx2LUEiGHoxk3OnFmHNikcT9QqDYICQpCuT0O-k6-lS7NXwnjTxaakK03R-wnQ"/>
+</div>
+<!-- Third Card -->
+<div class="md:col-span-4 bg-primary text-on-primary rounded-3xl p-8 flex flex-col justify-between group relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-10">
+<span class="material-symbols-outlined text-9xl">favorite</span>
+</div>
+<div class="relative z-10">
+<h3 class="text-2xl font-headline font-bold mb-4">Favoritos por Distancia</h3>
+<p class="opacity-80">Organizamos tus estaciones preferidas automáticamente según tu ubicación actual.</p>
+</div>
+<div class="mt-12 bg-white/10 p-4 rounded-xl backdrop-blur-md border border-white/20">
+<div class="flex justify-between items-center mb-2">
+<span class="font-bold">Casa</span>
+<span class="text-secondary-container font-black">200m</span>
+</div>
+<div class="h-1.5 w-full bg-white/20 rounded-full">
+<div class="h-full w-4/5 bg-secondary-container rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Fourth Card -->
+<div class="md:col-span-8 bg-surface-container-low rounded-3xl p-12 flex flex-col md:flex-row gap-12 items-center group">
+<div class="flex-1 order-2 md:order-1">
+<img alt="Advanced Filters" class="rounded-2xl shadow-xl transform group-hover:rotate-2 transition-transform" data-alt="Conceptual image of high-end mountain bike components against a minimalist grey background with clean lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXXyNdx345trBP-lVa1tIOJPv5TVvFUXy_LU_CDodgwfmOjQMdlN0agPli1X9hPbvar4gbCfG2XYJdBuPb_DFX0Sr-qKYVCJnTaSz-6VsZL69XSeOnL842u3dAZktnv-SoN5mZZ02JyiPxjCGYTO9BDxCYzlYBwnRrfdmiRa-CczdTn_T0NHZNgYz_vvS_qppaiCMFR1sHYZwQsNv9UUflF15A-N7RQkDIhWg-eZgteFpf1VnKiSmwc1NMYo9-TT70lSgYSK7sYuGU"/>
+</div>
+<div class="flex-1 order-1 md:order-2">
+<h3 class="text-3xl font-headline font-bold mb-6">Filtros Avanzados</h3>
+<p class="text-on-surface-variant mb-6">¿Buscas una bici eléctrica con más del 80% de batería? ¿O una estación con anclajes libres para tu llegada? Tú pones las reglas.</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold uppercase tracking-widest">E-Bikes Only</span>
+<span class="px-4 py-2 bg-surface-container-highest text-on-surface rounded-full text-xs font-bold uppercase tracking-widest">High Battery</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Open Data Section -->
+<section class="py-24 bg-surface text-on-surface relative overflow-hidden">
+<div class="max-w-7xl mx-auto px-8 relative z-10">
+<div class="grid lg:grid-cols-2 gap-16 items-center">
+<div>
+<div class="inline-flex items-center gap-2 text-primary font-bold mb-6">
+<span class="material-symbols-outlined">dataset</span>
+<span class="uppercase tracking-widest text-sm">Open Data Engine</span>
+</div>
+<h2 class="text-4xl lg:text-6xl font-headline font-bold mb-8 leading-tight">
+                            Basado en el estándar mundial <span class="text-primary italic">GBFS</span>
+</h2>
+<p class="text-lg text-on-surface-variant leading-relaxed mb-10">
+                            BiciRadar se integra directamente con las API abiertas de las ciudades, garantizando transparencia y fidelidad absoluta en los datos. No usamos estimaciones; usamos la fuente oficial.
+                        </p>
+<div class="grid grid-cols-2 gap-6">
+<div class="p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/10">
+<p class="text-3xl font-headline font-black text-primary mb-1">99.9%</p>
+<p class="text-sm font-bold opacity-60 uppercase tracking-tighter">Uptime de Datos</p>
+</div>
+<div class="p-6 bg-white rounded-2xl shadow-sm border border-outline-variant/10">
+<p class="text-3xl font-headline font-black text-secondary mb-1">15s</p>
+<p class="text-sm font-bold opacity-60 uppercase tracking-tighter">Refresh Rate</p>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- City Cards -->
+<div class="bg-surface-container-lowest p-8 rounded-3xl hover:bg-secondary-container transition-colors group">
+<h4 class="text-2xl font-headline font-bold mb-2">Madrid</h4>
+<p class="text-on-surface-variant group-hover:text-on-secondary-container font-bold mb-4">BiciMAD</p>
+<span class="material-symbols-outlined text-4xl opacity-20 group-hover:opacity-100 transition-opacity">location_on</span>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl hover:bg-secondary-container transition-colors group mt-8">
+<h4 class="text-2xl font-headline font-bold mb-2">Barcelona</h4>
+<p class="text-on-surface-variant group-hover:text-on-secondary-container font-bold mb-4">Bicing</p>
+<span class="material-symbols-outlined text-4xl opacity-20 group-hover:opacity-100 transition-opacity">location_on</span>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl hover:bg-secondary-container transition-colors group">
+<h4 class="text-2xl font-headline font-bold mb-2">Zaragoza</h4>
+<p class="text-on-surface-variant group-hover:text-on-secondary-container font-bold mb-4">Bizi</p>
+<span class="material-symbols-outlined text-4xl opacity-20 group-hover:opacity-100 transition-opacity">location_on</span>
+</div>
+<div class="bg-surface-container-lowest p-8 rounded-3xl hover:bg-secondary-container transition-colors group mt-8">
+<h4 class="text-2xl font-headline font-bold mb-2">Valencia</h4>
+<p class="text-on-surface-variant group-hover:text-on-secondary-container font-bold mb-4">Valenbisi</p>
+<span class="material-symbols-outlined text-4xl opacity-20 group-hover:opacity-100 transition-opacity">location_on</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative Map Background Element -->
+<div class="absolute top-0 right-0 -mr-20 w-1/2 h-full opacity-5 pointer-events-none" data-location="Madrid" style="">
+<img alt="Map background" class="w-full h-full object-cover" data-alt="Monochrome aerial map view of a city grid with clean geometric street patterns and soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrZhR050XMfen-kCIHA0mgiuYfUehHIRI0Sb2duYm0BMmFDWsqV3BGznT74qwAKhFpSR_SiQW-L4s24EakURHhCNbKp2roG3F92vHfVmrtoYAHfbKJJd5e8OlfVagWJR0p7TVl7uQbkXbNRBWWd7q2QT58T6x8wWb1OVtzqT4AuvEl14bS_5gYQ1J-uPIdV6b8lJW4M8XiZIHQapsRlF3tJE5kdtdkbp5YwyAHJXyvwlwbw0ZMwE0XQK0E_io0TE9MnJhyP1sS9nX4"/>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="py-24 px-8 max-w-7xl mx-auto text-center">
+<div class="bg-inverse-surface text-surface-container-lowest rounded-[3rem] p-16 relative overflow-hidden">
+<div class="relative z-10">
+<h2 class="text-5xl lg:text-7xl font-headline font-bold mb-8">Únete a la revolución cinética</h2>
+<p class="text-xl opacity-70 mb-12 max-w-2xl mx-auto">La aplicación definitiva para el ciclista urbano moderno. Descarga BiciRadar hoy y toma el control de tu ruta.</p>
+<div class="flex flex-wrap justify-center gap-6">
+<button class="bg-primary text-on-primary px-10 py-5 rounded-2xl font-bold text-lg hover:bg-primary-container transition-all">Empieza Gratis</button>
+<button class="bg-white/10 backdrop-blur-md border border-white/20 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/20 transition-all">Ver Vídeo Demo</button>
+</div>
+</div>
+<!-- Abstract gradients -->
+<div class="absolute top-0 left-0 w-64 h-64 bg-primary/20 blur-[100px]"></div>
+<div class="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 blur-[120px]"></div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 bg-slate-50 dark:bg-slate-950 font-body text-sm">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-8 max-w-7xl mx-auto border-t border-slate-200 dark:border-slate-800 pt-8">
+<div class="space-y-4">
+<p class="text-lg font-bold text-slate-900 dark:text-slate-100">BiciRadar</p>
+<p class="text-slate-500 dark:text-slate-500">© 2024 BiciRadar. Engineered for the Urban Kinetic.</p>
+<div class="flex flex-wrap gap-2 pt-4">
+<span class="px-2 py-1 bg-surface-container text-[10px] font-bold rounded">ESPAÑOL</span>
+<span class="px-2 py-1 bg-transparent text-slate-400 text-[10px] font-bold rounded hover:bg-surface-container cursor-pointer transition-colors">ENGLISH</span>
+<span class="px-2 py-1 bg-transparent text-slate-400 text-[10px] font-bold rounded hover:bg-surface-container cursor-pointer transition-colors">CATALÀ</span>
+<span class="px-2 py-1 bg-transparent text-slate-400 text-[10px] font-bold rounded hover:bg-surface-container cursor-pointer transition-colors">EUSKARA</span>
+<span class="px-2 py-1 bg-transparent text-slate-400 text-[10px] font-bold rounded hover:bg-surface-container cursor-pointer transition-colors">GALEGO</span>
+</div>
+</div>
+<div class="space-y-4">
+<p class="font-bold text-on-surface uppercase tracking-widest text-xs">Producto</p>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Features</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">API Open Data</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Ciudades</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<p class="font-bold text-on-surface uppercase tracking-widest text-xs">Legal</p>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Privacy Policy</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Terms of Service</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Cookie Settings</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<p class="font-bold text-on-surface uppercase tracking-widest text-xs">Compañía</p>
+<ul class="space-y-2">
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Press Kit</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Careers</a></li>
+<li><a class="text-slate-500 hover:text-blue-600 transition-colors hover:underline" href="#">Contact</a></li>
+</ul>
+</div>
+</div>
+</footer>
+</body></html>
