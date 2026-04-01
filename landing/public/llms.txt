@@ -1,0 +1,18 @@
+# BiciRadar
+
+> Official public landing content for BiciRadar.
+
+## Canonical site
+- https://gcaguilar.github.io/biciradar/
+
+## Key pages
+- Home: https://gcaguilar.github.io/biciradar/
+- BiciRadar as official-app complement:
+  https://gcaguilar.github.io/biciradar/biciradar-complemento-app-oficial/
+
+## Scope
+- Public product messaging and feature overview.
+- Public FAQ-style content for end users.
+
+## Source of truth
+- https://github.com/gcaguilar/biciradar
