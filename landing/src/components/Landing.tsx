@@ -56,7 +56,10 @@ const translations = {
     contact: 'Contacto',
     cities: 'Ciudades',
     copyright: 'BiciRadar',
-    features: 'Funciones'
+    features: 'Funciones',
+    faqs: 'FAQs',
+    faqTitle: 'Preguntas frecuentes',
+    faqSubtitle: 'Respuestas claras para saber cuándo usar BiciRadar como complemento a la app oficial.'
   },
   EN: {
     heroTitle: 'Your city on your',
@@ -103,7 +106,10 @@ const translations = {
     contact: 'Contact',
     cities: 'Cities',
     copyright: 'BiciRadar',
-    features: 'Features'
+    features: 'Features',
+    faqs: 'FAQs',
+    faqTitle: 'Frequently asked questions',
+    faqSubtitle: 'Clear answers about when BiciRadar works best as a complement to the official app.'
   },
   CA: {
     heroTitle: 'La teva ciutat al teu',
@@ -150,7 +156,10 @@ const translations = {
     contact: 'Contacte',
     cities: 'Ciutats',
     copyright: 'BiciRadar',
-    features: 'Funcions'
+    features: 'Funcions',
+    faqs: 'FAQs',
+    faqTitle: 'Preguntes frequents',
+    faqSubtitle: "Respostes clares sobre quan BiciRadar funciona millor com a complement de l'app oficial."
   },
   EU: {
     heroTitle: 'Zure hiria zure',
@@ -197,7 +206,10 @@ const translations = {
     contact: 'Kontaktua',
     cities: 'Hiriak',
     copyright: 'BiciRadar',
-    features: 'Ezaugarriak'
+    features: 'Ezaugarriak',
+    faqs: 'FAQs',
+    faqTitle: 'Ohiko galderak',
+    faqSubtitle: 'Erantzun argiak BiciRadar noiz den app ofizialaren osagarri hoberena ulertzeko.'
   },
   GL: {
     heroTitle: 'A túa cidade no teu',
@@ -244,7 +256,10 @@ const translations = {
     contact: 'Contacto',
     cities: 'Cidades',
     copyright: 'BiciRadar',
-    features: 'Funcions'
+    features: 'Funcions',
+    faqs: 'FAQs',
+    faqTitle: 'Preguntas frecuentes',
+    faqSubtitle: 'Respostas claras para entender cando BiciRadar funciona mellor como complemento da app oficial.'
   }
 };
 
@@ -254,6 +269,127 @@ const languageNames: Record<Language, string> = {
   CA: 'CATALÀ',
   EU: 'EUSKARA',
   GL: 'GALEGO'
+};
+
+const faqByLanguage: Record<Language, { question: string; answer: string }[]> = {
+  ES: [
+    {
+      question: '¿Si ya tengo la app oficial, qué me aporta BiciRadar?',
+      answer: 'Rapidez para lo que más miras al salir: estación más cercana, bicis disponibles, huecos libres, favoritos, estado y ruta.'
+    },
+    {
+      question: '¿Me ahorra tiempo de verdad?',
+      answer: 'Sí. Incluye voz y atajos en iPhone, Apple Watch y Android para resolver consultas en menos pasos, a veces sin abrir la app.'
+    },
+    {
+      question: '¿Solo sirve en el móvil?',
+      answer: 'No. Está pensado para móvil y reloj: Android, iOS, Wear OS y Apple Watch.'
+    },
+    {
+      question: '¿Los datos son fiables?',
+      answer: 'Usa fuentes oficiales de open data de las ciudades. Puede haber pequeños desfases normales en sistemas en tiempo real.'
+    },
+    {
+      question: '¿Por qué usar BiciRadar como complemento?',
+      answer: 'La app oficial es el canal institucional; BiciRadar está optimizado para consultar más rápido y con menos fricción.'
+    }
+  ],
+  EN: [
+    {
+      question: 'If I already use the official app, what does BiciRadar add?',
+      answer: 'Speed for what matters most: nearest station, available bikes, free docks, favorites, station status, and route.'
+    },
+    {
+      question: 'Does it really save time?',
+      answer: 'Yes. It includes voice and shortcuts on iPhone, Apple Watch, and Android to solve queries in fewer steps, sometimes without opening the app.'
+    },
+    {
+      question: 'Is it only for mobile?',
+      answer: 'No. It is designed for phone and watch: Android, iOS, Wear OS, and Apple Watch.'
+    },
+    {
+      question: 'Is the data reliable?',
+      answer: 'It uses official city open-data sources. Small delays can happen as in any real-time system.'
+    },
+    {
+      question: 'Why use BiciRadar as a complement?',
+      answer: 'The official app is the institutional channel; BiciRadar is optimized for faster, lower-friction daily checks.'
+    }
+  ],
+  CA: [
+    {
+      question: 'Si ja tinc l’app oficial, què m’aporta BiciRadar?',
+      answer: 'Rapidesa per al que més consultes: estació més propera, bicis disponibles, ancoratges lliures, preferides, estat i ruta.'
+    },
+    {
+      question: 'Realment estalvia temps?',
+      answer: 'Sí. Inclou veu i dreceres a iPhone, Apple Watch i Android per resoldre consultes amb menys passos.'
+    },
+    {
+      question: 'Només serveix al mòbil?',
+      answer: 'No. Està pensada per a mòbil i rellotge: Android, iOS, Wear OS i Apple Watch.'
+    },
+    {
+      question: 'Les dades són fiables?',
+      answer: 'Fa servir fonts oficials d’open data de les ciutats. Pot haver-hi petits desfasaments típics del temps real.'
+    },
+    {
+      question: 'Per què fer servir BiciRadar com a complement?',
+      answer: 'L’app oficial és el canal institucional; BiciRadar està optimitzada per consultar més ràpid i amb menys fricció.'
+    }
+  ],
+  EU: [
+    {
+      question: 'App ofiziala badut, zer ematen dit BiciRadar-ek?',
+      answer: 'Abiadura: gertuko estazioa, bizikletak, ainguraleku libreak, gogokoak, egoera eta ibilbidea azkar ikusteko.'
+    },
+    {
+      question: 'Benetan denbora aurrezten du?',
+      answer: 'Bai. Ahotsa eta lasterbideak ditu iPhone, Apple Watch eta Android-en, kontsultak urrats gutxiagotan egiteko.'
+    },
+    {
+      question: 'Mugikorrerako bakarrik da?',
+      answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.'
+    },
+    {
+      question: 'Datuak fidagarriak dira?',
+      answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.'
+    },
+    {
+      question: 'Zergatik erabili osagarri gisa?',
+      answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.'
+    }
+  ],
+  GL: [
+    {
+      question: 'Se xa teño a app oficial, que me aporta BiciRadar?',
+      answer: 'Rapidez para o importante: estación máis próxima, bicis dispoñibles, ocos libres, favoritas, estado e ruta.'
+    },
+    {
+      question: 'Aforra tempo de verdade?',
+      answer: 'Si. Inclúe voz e atallos en iPhone, Apple Watch e Android para resolver consultas con menos pasos.'
+    },
+    {
+      question: 'Só serve no móbil?',
+      answer: 'Non. Está pensada para móbil e reloxo: Android, iOS, Wear OS e Apple Watch.'
+    },
+    {
+      question: 'Os datos son fiables?',
+      answer: 'Usa fontes oficiais de open data das cidades. Pode haber pequenos desfases normais en sistemas en tempo real.'
+    },
+    {
+      question: 'Por que usar BiciRadar como complemento?',
+      answer: 'A app oficial é a canle institucional; BiciRadar está optimizada para consultar máis rápido e con menos fricción.'
+    }
+  ]
+};
+
+const seoPageCtaByLanguage: Record<Language, string> = {
+  ES: 'Leer explicación completa',
+  EN: 'Read full explanation',
+  CA: 'Llegir explicació completa',
+  EU: 'Irakurri azalpen osoa',
+  GL: 'Ler explicación completa'
 };
 
 export default function Landing() {
@@ -303,6 +439,7 @@ export default function Landing() {
     { name: t.valencia, service: t.valenbisi },
     { name: t.sevilla, service: 'Sevici' },
   ];
+  const faqItems = faqByLanguage[lang];
 
   return (
     <div className="min-h-screen">
@@ -319,6 +456,9 @@ export default function Landing() {
             </a>
             <a className="text-blue-700 dark:text-on-surface hover:text-primary pb-1 font-headline" href="#cities">
               {t.cities}
+            </a>
+            <a className="text-blue-700 dark:text-on-surface hover:text-primary pb-1 font-headline" href="#faqs">
+              {t.faqs}
             </a>
             <a className="text-blue-700 dark:text-on-surface hover:text-primary pb-1 font-headline" href="#">
               {t.contact}
@@ -575,6 +715,30 @@ export default function Landing() {
               loading="lazy"
               decoding="async"
             />
+          </div>
+        </section>
+
+        <section id="faqs" className="py-24 px-8 max-w-7xl mx-auto">
+          <div className="mb-12">
+            <h2 className="text-4xl lg:text-5xl font-headline font-bold tracking-tight mb-4">{t.faqTitle}</h2>
+            <p className="text-on-surface-variant max-w-3xl">{t.faqSubtitle}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {faqItems.map((item) => (
+              <article key={item.question} className="bg-surface-container-low dark:bg-surface-container rounded-3xl p-8 border border-outline-variant/20 dark:border-white/10">
+                <h3 className="text-xl font-headline font-bold mb-3">{item.question}</h3>
+                <p className="text-on-surface-variant leading-relaxed">{item.answer}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-10">
+            <a
+              href={`${baseUrl}biciradar-complemento-app-oficial`}
+              className="inline-flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-primary/20 transition-all"
+            >
+              {seoPageCtaByLanguage[lang]}
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </a>
           </div>
         </section>
 
