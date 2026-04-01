@@ -85,6 +85,9 @@
 # resolves generated impl classes/constructors reflectively.
 -keep class androidx.work.impl.WorkDatabase_Impl { <init>(); *; }
 
+# Keep app Worker subclasses — WorkManager instantiates them by class name.
+-keep class com.gcaguilar.biciradar.SavedPlaceAlertsWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }
+
 # ============================================================
 # Google Maps / Play Services
 # These ship their own consumer proguard rules via AAR, but
