@@ -13,6 +13,17 @@ interface Props {
 const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = Astro.props;
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
+
+const betaFormMessages = {
+  required: content.validation.required,
+  email: content.validation.email,
+  consent: content.validation.consent,
+  turnstile: content.validation.turnstile,
+  server: content.validation.server,
+  loading: content.loadingLabel,
+  success: content.successMessage,
+  submit: content.submitLabel,
+};
 ---
 
 <section class="marketing-form-card" id="beta-form" aria-labelledby="beta-form-title">
@@ -48,7 +59,6 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
           autocomplete="email"
           inputmode="email"
           maxlength="254"
-          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
         />
       </label>
 
@@ -180,26 +190,11 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
   </form>
 </section>
 
-<script
-  is:inline
-  define:vars={{
-    messages: {
-      required: content.validation.required,
-      email: content.validation.email,
-      consent: content.validation.consent,
-      turnstile: content.validation.turnstile,
-      server: content.validation.server,
-      loading: content.loadingLabel,
-      success: content.successMessage,
-      submit: content.submitLabel,
-    },
-    turnstileSiteKey,
-  }}
->
-  (() => {
-    const form = document.querySelector('[data-beta-form]');
-    if (!(form instanceof HTMLFormElement)) return;
+<script define:vars={{ messages: betaFormMessages, turnstileSiteKey }}>
+  import { isValidEmail } from '../../lib/is-valid-email';
 
+  const form = document.querySelector('[data-beta-form]');
+  if (form instanceof HTMLFormElement) {
     const statusNode = form.querySelector('[data-form-status]');
     const submitButton = form.querySelector('[data-beta-submit]');
     const consentCheckbox = form.querySelector('[data-beta-consent]');
@@ -266,7 +261,26 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
       document.head.appendChild(script);
     };
 
-    loadTurnstile();
+    const scheduleTurnstileLoad = () => {
+      if (!turnstileOn || !(turnstileContainer instanceof HTMLElement)) return;
+      const observeTarget = form.closest('section') ?? form;
+      if (!('IntersectionObserver' in window)) {
+        loadTurnstile();
+        return;
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            observer.disconnect();
+            loadTurnstile();
+          }
+        },
+        { rootMargin: '280px 0px', threshold: 0.01 },
+      );
+      observer.observe(observeTarget);
+    };
+
+    scheduleTurnstileLoad();
     syncSubmitEnabled();
     if (consentCheckbox instanceof HTMLInputElement) {
       consentCheckbox.addEventListener('change', syncSubmitEnabled);
@@ -302,14 +316,19 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
       }
 
       if (field.type === 'email' && field.value) {
-        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
-        if (!valid) {
+        const trimmed = field.value.trim();
+        if (!isValidEmail(trimmed)) {
           field.setCustomValidity(messages.email);
         }
       }
     };
 
     form.querySelectorAll('input, select').forEach((field) => {
+      if (field instanceof HTMLInputElement && field.name === 'email') {
+        field.addEventListener('blur', () => {
+          field.value = field.value.trim();
+        });
+      }
       field.addEventListener('input', () => clearCustomValidity(field));
       field.addEventListener('change', () => clearCustomValidity(field));
       field.addEventListener('invalid', () => validateField(field));
@@ -328,6 +347,11 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       syncUtm();
+
+      const emailInput = form.querySelector('input[name="email"]');
+      if (emailInput instanceof HTMLInputElement) {
+        emailInput.value = emailInput.value.trim();
+      }
 
       let valid = true;
       form.querySelectorAll('input, select').forEach((field) => {
@@ -416,5 +440,5 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
         }
       }
     });
-  })();
+  }
 </script>
