@@ -52,7 +52,7 @@ export const es = {
         { id: 'ciudades', label: 'Ciudades' },
         { id: 'faq', label: 'FAQ' },
       ],
-      primaryCta: 'Entrar en la beta',
+      primaryCta: 'Descarga la app',
       languageLabel: 'Idioma',
     },
     hero: {
@@ -61,7 +61,7 @@ export const es = {
         'BiciRadar te ayuda a ver disponibilidad en sistemas de bici compartida como BiciMAD, Bicing, Sevici y más. Guarda favoritos, recibe alertas y accede rápido desde widgets.',
       primaryCta: 'Descargar en App Store',
       secondaryCta: 'Solicitar acceso beta',
-      microcopy: 'Solicita acceso indicando plataforma y ciudad; priorizamos la beta según la demanda en cada sistema.',
+      microcopy: '',
       primaryBadge: 'iPhone · Disponible ahora',
       secondaryBadge: 'Android · Beta cerrada',
       mockup: {
@@ -185,10 +185,8 @@ export const es = {
       },
     },
     betaForm: {
-      title: 'Solicitud de acceso a la beta',
-      description:
-        'Indica tu sistema operativo y la ciudad donde usas bici pública. Con tu consentimiento gestionamos tu interés en la beta.',
-      helper: 'Cada ciudad va ligada a su sistema: Madrid · BiciMAD, Barcelona · Bicing, Sevilla · Sevici, Valencia · Valenbisi, Zaragoza · Bizi.',
+      title: 'Acceso Android beta',
+      description: 'Usaremos tu email para enviarte los pasos y enlaces de la beta.',
       honeypotLabel: 'Empresa',
       consentLabel:
         'Acepto que BiciRadar use estos datos para gestionar mi acceso a la beta y contactar conmigo sobre esta solicitud.',
@@ -200,23 +198,17 @@ export const es = {
       errorMessage: 'No hemos podido enviar tu solicitud. Inténtalo de nuevo en unos segundos.',
       options: {
         operatingSystems,
-        cities: [
-          { value: 'madrid', label: 'Madrid · BiciMAD' },
-          { value: 'barcelona', label: 'Barcelona · Bicing' },
-          { value: 'sevilla', label: 'Sevilla · Sevici' },
-          { value: 'valencia', label: 'Valencia · Valenbisi' },
-          { value: 'zaragoza', label: 'Zaragoza · Bizi' },
-        ],
       },
       fields: {
+        email: { label: 'Email', placeholder: 'tu@email.com' },
         operatingSystem: {
           label: 'Sistema operativo',
           placeholder: 'Selecciona tu sistema operativo',
         },
-        city: { label: 'Ciudad y sistema', placeholder: 'Selecciona ciudad y sistema' },
       },
       validation: {
         required: 'Completa este campo.',
+        email: 'Introduce un email válido.',
         consent: 'Necesitamos tu consentimiento para gestionar la beta.',
         turnstile: 'Completa la verificación de seguridad e inténtalo de nuevo.',
         server: 'Ha habido un problema al enviar tu solicitud.',
@@ -253,14 +245,14 @@ export const es = {
         {
           question: '¿Qué vais a hacer con los datos del formulario?',
           answer:
-            'Usamos sistema operativo y ciudad para gestionar el interés en la beta y priorizar por demanda. No almacenamos la solicitud en un fichero local; el equipo recibe un aviso interno para dar seguimiento.',
+            'Usaremos tu email para enviarte los pasos y enlaces de la beta (grupo de testers en Google y descarga en Play o App Store). No lo usaremos para otros fines fuera de este proceso.',
         },
       ],
     },
     footer: {
-      tagline: 'Beta de bici compartida orientada a conversión, SEO local y escalado por ciudad.',
+      tagline: '',
       links: [
-        { label: 'Privacidad', href: 'mailto:hola@biciradar.es?subject=Privacidad%20beta' },
+        { label: 'Privacidad', href: 'https://gcaguilar.github.io/biciradar-privacy-policy/' },
         { label: 'Contacto', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20beta' },
         { label: 'Soporte', href: 'mailto:soporte@biciradar.es?subject=Soporte%20BiciRadar' },
       ],

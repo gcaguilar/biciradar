@@ -52,7 +52,7 @@ export const en = {
         { id: 'cities', label: 'Cities' },
         { id: 'faq', label: 'FAQ' },
       ],
-      primaryCta: 'Join the beta',
+      primaryCta: 'Download the app',
       languageLabel: 'Language',
     },
     hero: {
@@ -61,7 +61,7 @@ export const en = {
         'BiciRadar helps you see availability across bike-share systems like BiciMAD, Bicing, Sevici, and more. Save favorites, get alerts, and open them fast from widgets.',
       primaryCta: 'Download on the App Store',
       secondaryCta: 'Request beta access',
-      microcopy: 'Request access with your platform and city; we prioritize the beta by demand in each system.',
+      microcopy: '',
       primaryBadge: 'iPhone · Available now',
       secondaryBadge: 'Android · Closed beta',
       mockup: {
@@ -185,11 +185,8 @@ export const en = {
       },
     },
     betaForm: {
-      title: 'Beta access request',
-      description:
-        'Tell us your operating system and the city where you ride. With your consent we can manage your interest in the beta.',
-      helper:
-        'Each city maps to its system: Madrid · BiciMAD, Barcelona · Bicing, Seville · Sevici, Valencia · Valenbisi, Zaragoza · Bizi.',
+      title: 'Android beta access request',
+      description: 'We will use your email to send beta steps and links.',
       honeypotLabel: 'Company',
       consentLabel:
         'I agree that BiciRadar can use these details to manage beta access and contact me about this request.',
@@ -201,23 +198,17 @@ export const en = {
       errorMessage: 'We could not send your request. Please try again in a few seconds.',
       options: {
         operatingSystems,
-        cities: [
-          { value: 'madrid', label: 'Madrid · BiciMAD' },
-          { value: 'barcelona', label: 'Barcelona · Bicing' },
-          { value: 'sevilla', label: 'Seville · Sevici' },
-          { value: 'valencia', label: 'Valencia · Valenbisi' },
-          { value: 'zaragoza', label: 'Zaragoza · Bizi' },
-        ],
       },
       fields: {
+        email: { label: 'Email', placeholder: 'you@email.com' },
         operatingSystem: {
           label: 'Operating system',
           placeholder: 'Choose your operating system',
         },
-        city: { label: 'City and system', placeholder: 'Choose city and system' },
       },
       validation: {
         required: 'Please complete this field.',
+        email: 'Enter a valid email address.',
         consent: 'We need your consent to manage the beta.',
         turnstile: 'Complete the security verification and try again.',
         server: 'There was a problem sending your request.',
@@ -254,14 +245,14 @@ export const en = {
         {
           question: 'What will you do with the data from the form?',
           answer:
-            'We use operating system and city to manage beta interest and prioritize demand. We do not store submissions in a local file; the team gets an internal notification to follow up.',
+            'We will use your email to send beta steps and links (Google testers group and download on Play or the App Store). We will not use it for anything outside that process.',
         },
       ],
     },
     footer: {
-      tagline: 'Shared-bike beta built for conversion, local SEO, and city-by-city scale.',
+      tagline: '',
       links: [
-        { label: 'Privacy', href: 'mailto:hola@biciradar.es?subject=Beta%20privacy' },
+        { label: 'Privacy', href: 'https://gcaguilar.github.io/biciradar-privacy-policy/' },
         { label: 'Contact', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20beta' },
         { label: 'Support', href: 'mailto:soporte@biciradar.es?subject=BiciRadar%20support' },
       ],

@@ -16,6 +16,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 
 const betaFormMessages = {
   required: content.validation.required,
+  email: content.validation.email,
   consent: content.validation.consent,
   turnstile: content.validation.turnstile,
   server: content.validation.server,
@@ -33,7 +34,6 @@ const betaFormMessages = {
     <p class="max-w-3xl text-sm leading-6 text-emerald-900/80">
       {content.description}
     </p>
-    <p class="text-sm text-emerald-900/70">{content.helper}</p>
   </div>
 
   <form
@@ -48,21 +48,24 @@ const betaFormMessages = {
     data-turnstile-active={turnstileSiteKey ? 'true' : 'false'}
   >
     <div class="grid gap-4 md:grid-cols-2">
-      <label class="marketing-field">
+      <label class="marketing-field md:col-span-2">
+        <span>{content.fields.email.label}</span>
+        <input
+          name="email"
+          type="email"
+          placeholder={content.fields.email.placeholder}
+          required
+          autocomplete="email"
+          inputmode="email"
+          maxlength="254"
+        />
+      </label>
+
+      <label class="marketing-field md:col-span-2">
         <span>{content.fields.operatingSystem.label}</span>
         <select name="operatingSystem" required>
           <option value="">{content.fields.operatingSystem.placeholder}</option>
           {content.options.operatingSystems.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.city.label}</span>
-        <select name="city" required>
-          <option value="">{content.fields.city.placeholder}</option>
-          {content.options.cities.map((option) => (
             <option value={option.value}>{option.label}</option>
           ))}
         </select>
