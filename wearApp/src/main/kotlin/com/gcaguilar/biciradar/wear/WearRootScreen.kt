@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.wear
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,11 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -42,21 +38,16 @@ import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ProgressIndicatorDefaults
 import androidx.wear.compose.material3.Text
-import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
-import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.remainingSeconds
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
 import com.gcaguilar.biciradar.core.surfaceStatusTextShort
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 private val WearPrimary = Color(0xFF1D74BD)
 private val WearSecondary = Color(0xFF64C23A)
@@ -64,8 +55,6 @@ private val WearNeutral = Color(0xFF64779D)
 private val WearError = Color(0xFFCF6679)
 private val WearSurface = Color(0xFF1A1A2E)
 private val WearOnSurface = Color(0xFFE8EDF4)
-
-private enum class WearTab { Cercanas, Favoritas }
 
 @Composable
 internal fun WearRoot(
@@ -78,48 +67,17 @@ internal fun WearRoot(
   val graph = remember(platformBindings) {
     SharedGraph.Companion.create(platformBindings)
   }
-  val stationsRepository = remember(graph) { graph.stationsRepository }
-  val favoritesRepository = remember(graph) { graph.favoritesRepository }
-  val surfaceSnapshotRepository = remember(graph) { graph.surfaceSnapshotRepository }
-  val surfaceMonitoringRepository = remember(graph) { graph.surfaceMonitoringRepository }
-  val startStationMonitoring = remember(graph) { graph.startStationMonitoring }
-  val stopStationMonitoring = remember(graph) { graph.stopStationMonitoring }
-  val stationsState by stationsRepository.state.collectAsState()
-  val favoriteIds by favoritesRepository.favoriteIds.collectAsState()
-  val homeStationId by favoritesRepository.homeStationId.collectAsState()
-  val workStationId by favoritesRepository.workStationId.collectAsState()
-  val surfaceBundle by surfaceSnapshotRepository.bundle.collectAsState()
-  val scope = rememberCoroutineScope()
-  var selectedStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var currentTab by rememberSaveable { mutableStateOf(WearTab.Cercanas) }
-  val activeMonitoring = surfaceBundle?.monitoringSession?.takeIf { it.isActive }
+  val factory = remember(graph, context) { WearViewModelFactory(appContext = context, graph = graph) }
+  val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }
+  val uiState by viewModel.uiState.collectAsState()
+  val activeMonitoring = uiState.activeMonitoring
 
-  LaunchedEffect(graph, refreshKey) {
-    favoritesRepository.syncFromPeer()
-    surfaceSnapshotRepository.bootstrap()
-    surfaceMonitoringRepository.bootstrap()
-    refreshWearSurface(
-      context = context,
-      stationsRepository = stationsRepository,
-      favoritesRepository = favoritesRepository,
-      surfaceSnapshotRepository = surfaceSnapshotRepository,
-    )
-  }
-
-  LaunchedEffect(graph) {
-    while (true) {
-      delay(30_000)
-      refreshWearSurface(
-        context = context,
-        stationsRepository = stationsRepository,
-        favoritesRepository = favoritesRepository,
-        surfaceSnapshotRepository = surfaceSnapshotRepository,
-      )
-    }
+  LaunchedEffect(refreshKey) {
+    viewModel.onPermissionRefresh(refreshKey)
   }
 
   LaunchedEffect(launchStationNonce) {
-    selectedStationId = launchStationId
+    viewModel.onLaunchStationRequested(launchStationId)
   }
 
   MaterialTheme {
@@ -127,85 +85,47 @@ internal fun WearRoot(
       modifier = Modifier.fillMaxSize().background(Color.Black),
       contentAlignment = Alignment.Center,
     ) {
-      val selectedStation = selectedStationId?.let { stationsRepository.stationById(it) }
+      val selectedStation = uiState.selectedStationId?.let { stationId ->
+        uiState.stations.firstOrNull { it.id == stationId }
+      }
+      val errorMessage = uiState.errorMessage
 
       when {
         selectedStation != null -> WearStationDetail(
           station = selectedStation,
-          isFavorite = selectedStation.id in favoriteIds,
-          savedPlaceLabel = wearSavedPlaceLabel(selectedStation.id, homeStationId, workStationId),
+          isFavorite = selectedStation.id in uiState.favoriteIds,
+          savedPlaceLabel = wearSavedPlaceLabel(selectedStation.id, uiState.homeStationId, uiState.workStationId),
           currentMonitoring = activeMonitoring,
-          onBack = { selectedStationId = null },
-          onToggleFavorite = {
-            scope.launch {
-              favoritesRepository.toggle(selectedStation.id)
-              refreshWearSurface(
-                context = context,
-                stationsRepository = stationsRepository,
-                favoritesRepository = favoritesRepository,
-                surfaceSnapshotRepository = surfaceSnapshotRepository,
-              )
-            }
-          },
-          onToggleMonitoring = {
-            scope.launch {
-              if (activeMonitoring?.stationId == selectedStation.id) {
-                stopStationMonitoring.execute(clear = true)
-              } else {
-                startStationMonitoring.execute(stationId = selectedStation.id)
-              }
-              FavoriteStationTileService.requestUpdate(context)
-            }
-          },
-          onRoute = { graph.routeLauncher.launch(selectedStation) },
+          onBack = viewModel::onBackFromStationDetail,
+          onToggleFavorite = { viewModel.onToggleFavorite(selectedStation.id) },
+          onToggleMonitoring = { viewModel.onToggleMonitoring(selectedStation.id) },
+          onRoute = { viewModel.onRoute(selectedStation.id) },
         )
 
-        stationsState.isLoading -> CircularProgressIndicator(
+        uiState.isLoading -> CircularProgressIndicator(
           colors = ProgressIndicatorDefaults.colors(indicatorColor = WearPrimary),
         )
 
-        stationsState.errorMessage != null -> WearErrorScreen(
-          message = stationsState.errorMessage!!,
-          onRetry = { scope.launch { stationsRepository.loadIfNeeded() } },
+        errorMessage != null -> WearErrorScreen(
+          message = errorMessage,
+          onRetry = viewModel::onRetry,
         )
 
         else -> WearDashboard(
-          stations = stationsState.stations,
-          favoriteIds = favoriteIds,
-          homeStationId = homeStationId,
-          workStationId = workStationId,
-          surfaceSnapshot = surfaceBundle,
+          stations = uiState.stations,
+          favoriteIds = uiState.favoriteIds,
+          homeStationId = uiState.homeStationId,
+          workStationId = uiState.workStationId,
+          surfaceSnapshot = uiState.surfaceBundle,
           activeMonitoring = activeMonitoring,
-          currentTab = currentTab,
-          onTabSelected = { currentTab = it },
-          onStationSelected = { selectedStationId = it.id },
-          onOpenSurfaceStation = { stationId -> selectedStationId = stationId },
-          onRefresh = {
-            scope.launch {
-              refreshWearSurface(
-                context = context,
-                stationsRepository = stationsRepository,
-                favoritesRepository = favoritesRepository,
-                surfaceSnapshotRepository = surfaceSnapshotRepository,
-                forceRefresh = true,
-              )
-            }
-          },
-          onStartMonitoringFavorite = { stationId ->
-            scope.launch {
-              startStationMonitoring.execute(stationId = stationId)
-              FavoriteStationTileService.requestUpdate(context)
-            }
-          },
-          onRouteToSavedPlace = { stationId ->
-            stationsRepository.stationById(stationId)?.let(graph.routeLauncher::launch)
-          },
-          onStopMonitoring = {
-            scope.launch {
-              stopStationMonitoring.execute(clear = true)
-              FavoriteStationTileService.requestUpdate(context)
-            }
-          },
+          currentTab = uiState.currentTab,
+          onTabSelected = viewModel::onTabSelected,
+          onStationSelected = { viewModel.onStationSelected(it.id) },
+          onOpenSurfaceStation = viewModel::onStationSelected,
+          onRefresh = viewModel::onRefresh,
+          onStartMonitoringFavorite = viewModel::onStartMonitoringFavorite,
+          onRouteToSavedPlace = viewModel::onRoute,
+          onStopMonitoring = viewModel::onStopMonitoring,
         )
       }
     }
@@ -828,25 +748,4 @@ private fun WearErrorScreen(
       Text("Reintentar", color = Color.White)
     }
   }
-}
-
-private suspend fun refreshWearSurface(
-  context: Context,
-  stationsRepository: StationsRepository,
-  favoritesRepository: FavoritesRepository,
-  surfaceSnapshotRepository: SurfaceSnapshotRepository,
-  forceRefresh: Boolean = false,
-) {
-  favoritesRepository.syncFromPeer()
-  if (forceRefresh) {
-    stationsRepository.forceRefresh()
-  } else {
-    stationsRepository.loadIfNeeded()
-    val stationIds = stationsRepository.state.value.stations.take(10).map { it.id }
-    if (stationIds.isNotEmpty()) {
-      stationsRepository.refreshAvailability(stationIds)
-    }
-  }
-  surfaceSnapshotRepository.refreshSnapshot()
-  FavoriteStationTileService.requestUpdate(context)
 }
