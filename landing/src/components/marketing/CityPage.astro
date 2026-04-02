@@ -5,7 +5,7 @@ import PageHeader from './PageHeader.astro';
 import FaqList from './FaqList.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
-import { siteConfig } from '../../lib/site-config';
+import { appStoreUrlForLocale } from '../../lib/site-config';
 
 interface LanguageLink {
   href: string;
@@ -24,6 +24,7 @@ interface Props {
 
 const { content, cityKey, languageLinks, homeHref, betaHref } = Astro.props;
 const city = content.cityPages[cityKey];
+const appStoreHref = appStoreUrlForLocale(content.locale);
 ---
 
 <PageHeader
@@ -59,7 +60,7 @@ const city = content.cityPages[cityKey];
           </a>
           <a
             class="marketing-secondary-button"
-            href={siteConfig.appStoreUrl}
+            href={appStoreHref}
             target="_blank"
             rel="noreferrer"
             data-track-event="hero_secondary_cta_click"
@@ -136,7 +137,7 @@ const city = content.cityPages[cityKey];
       <div class="grid gap-4 md:grid-cols-2">
         <a
           class="marketing-dark-action marketing-dark-action-primary"
-          href={siteConfig.appStoreUrl}
+          href={appStoreHref}
           target="_blank"
           rel="noreferrer"
           data-track-event="hero_secondary_cta_click"

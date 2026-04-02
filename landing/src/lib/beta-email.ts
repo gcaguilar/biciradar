@@ -1,8 +1,8 @@
 import { Resend } from 'resend';
 import { betaUserEmailContent } from '../content/marketing/beta-email-content';
 import type { BetaLeadRecord } from './beta-form';
-import { localeToHtmlLang } from './i18n';
-import { siteConfig } from './site-config';
+import { localeToHtmlLang, normalizeLocale } from './i18n';
+import { appStoreUrlForLocale, playStoreUrlForLocale, siteConfig } from './site-config';
 import betaUserEmailTemplateRaw from './beta-user-email.template.html?raw';
 
 function getResendClient() {
@@ -55,7 +55,8 @@ function isAndroidFlow(record: BetaLeadRecord) {
 }
 
 function buildUserEmail(record: BetaLeadRecord) {
-  const content = betaUserEmailContent[record.locale];
+  const locale = normalizeLocale(record.locale);
+  const content = betaUserEmailContent[locale];
   const androidFlow = isAndroidFlow(record);
   const subject =
     record.operatingSystem === 'ios'
@@ -81,10 +82,10 @@ function buildUserEmail(record: BetaLeadRecord) {
     links.push({ href: siteConfig.googleTestersGroupUrl, label: content.googleGroupLabel });
   }
   if (record.operatingSystem !== 'android') {
-    links.push({ href: siteConfig.appStoreUrl, label: content.appStoreLabel });
+    links.push({ href: appStoreUrlForLocale(locale), label: content.appStoreLabel });
   }
   if (androidFlow) {
-    links.push({ href: siteConfig.playStoreUrl, label: content.playStoreLabel });
+    links.push({ href: playStoreUrlForLocale(locale), label: content.playStoreLabel });
   }
 
   const hintHtml = androidFlow
@@ -92,7 +93,7 @@ function buildUserEmail(record: BetaLeadRecord) {
     : '';
 
   const html = fillBetaUserEmailTemplate({
-    LOCALE: escapeHtml(record.locale),
+    LOCALE: escapeHtml(localeToHtmlLang[locale]),
     GREETING: escapeHtml(content.greeting),
     HEADLINE: escapeHtml(headline),
     INTRO: escapeHtml(intro),
@@ -145,7 +146,7 @@ export async function sendBetaSignupEmails(record: BetaLeadRecord) {
       html: userEmail.html,
       text: userEmail.text,
       headers: {
-        'Content-Language': localeToHtmlLang[record.locale],
+        'Content-Language': localeToHtmlLang[normalizeLocale(record.locale)],
       },
     });
   } catch (error) {

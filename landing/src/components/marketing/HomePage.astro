@@ -7,7 +7,7 @@ import HeroMockup from './HeroMockup.astro';
 import PageHeader from './PageHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
-import { siteConfig } from '../../lib/site-config';
+import { appStoreUrlForLocale } from '../../lib/site-config';
 
 interface LanguageLink {
   href: string;
@@ -30,6 +30,7 @@ interface Props {
 }
 
 const { content, languageLinks, homeHref, thankYouPath, cityLinks } = Astro.props;
+const appStoreHref = appStoreUrlForLocale(content.locale);
 const sectionIds = content.home.header.sections.map((item) => item.id);
 const [problemId, solutionId, howId, citiesId, faqId] = sectionIds;
 const cityHrefByKey = new Map(cityLinks.map((item) => [item.key, item.href]));
@@ -64,7 +65,7 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
         <div class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)]">
           <a
             class="marketing-platform-card marketing-platform-card-ios"
-            href={siteConfig.appStoreUrl}
+            href={appStoreHref}
             target="_blank"
             rel="noreferrer"
             data-track-event="hero_secondary_cta_click"
@@ -188,7 +189,7 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
       <div class="grid gap-4 md:grid-cols-2">
         <a
           class="marketing-dark-action marketing-dark-action-primary"
-          href={siteConfig.appStoreUrl}
+          href={appStoreHref}
           target="_blank"
           rel="noreferrer"
           data-track-event="hero_secondary_cta_click"
@@ -247,7 +248,7 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
 <div class="marketing-sticky-bar md:hidden">
   <a
     class="marketing-sticky-bar__ios"
-    href={siteConfig.appStoreUrl}
+    href={appStoreHref}
     target="_blank"
     rel="noreferrer"
     data-track-event="hero_secondary_cta_click"

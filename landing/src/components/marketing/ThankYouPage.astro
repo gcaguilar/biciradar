@@ -3,7 +3,7 @@ import type { CityKey, LocaleContent } from '../../content/marketing/types';
 import PageHeader from './PageHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
-import { siteConfig } from '../../lib/site-config';
+import { appStoreUrlForLocale, playStoreUrlForLocale, siteConfig } from '../../lib/site-config';
 import Icon from '../Icon.astro';
 
 interface LanguageLink {
@@ -31,6 +31,8 @@ interface Props {
 const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
 
 const thankYouCopy = content.thankYou;
+const appStoreHref = appStoreUrlForLocale(content.locale);
+const playStoreHref = playStoreUrlForLocale(content.locale);
 ---
 
 <PageHeader
@@ -108,7 +110,7 @@ const thankYouCopy = content.thankYou;
         </a>
         <a
           class="marketing-primary-button hidden"
-          href={siteConfig.playStoreUrl}
+          href={playStoreHref}
           target="_blank"
           rel="noreferrer"
           data-thank-you-play-store
@@ -119,7 +121,7 @@ const thankYouCopy = content.thankYou;
         </a>
         <a
           class="marketing-primary-button"
-          href={siteConfig.appStoreUrl}
+          href={appStoreHref}
           target="_blank"
           rel="noreferrer"
           data-thank-you-app-store

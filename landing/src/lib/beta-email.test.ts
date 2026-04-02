@@ -88,4 +88,15 @@ describe('sendBetaSignupEmails', () => {
     expect(payload.html).toContain('lang="ca"');
     expect(payload.headers['Content-Language']).toBe('ca');
   });
+
+  it('uses locale-matched store links (e.g. US App Store and hl=en for English)', async () => {
+    const resendModule = await import('resend');
+    const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
+
+    await sendBetaSignupEmails(buildRecord('both', 'en'));
+
+    const payload = resendSend.mock.calls[0][0] as { html: string };
+    expect(payload.html).toContain('apps.apple.com/us/app/biciradar/');
+    expect(payload.html).toContain('hl=en');
+  });
 });
