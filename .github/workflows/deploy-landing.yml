@@ -41,6 +41,9 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          PUBLIC_SITE_URL: https://gcaguilar.github.io
+          PUBLIC_BASE_PATH: /biciradar
         run: npm run build
 
       - name: Upload artifact
