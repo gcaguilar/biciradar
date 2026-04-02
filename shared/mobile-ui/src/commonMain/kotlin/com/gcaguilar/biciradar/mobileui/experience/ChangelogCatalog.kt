@@ -35,6 +35,11 @@ object ChangelogCatalog {
       ChangelogCatalogEntry(Res.string.changelogDataSourcesTitle, Res.string.changelogDataSourcesDescription),
       ChangelogCatalogEntry(Res.string.changelogSavedPlaceAlertsTitle, Res.string.changelogSavedPlaceAlertsDescription),
     ),
+    "0.21.0" to listOf(
+      ChangelogCatalogEntry(Res.string.changelogSavedPlaceAlertsTitle, Res.string.changelogSavedPlaceAlertsDescription),
+      ChangelogCatalogEntry(Res.string.changelogEnvironmentalLayersTitle, Res.string.changelogEnvironmentalLayersDescription),
+      ChangelogCatalogEntry(Res.string.changelogDistanceKmTitle, Res.string.changelogDistanceKmDescription),
+    ),
   )
 
   fun catalogVersionSet(): Set<String> = entriesByVersion.keys

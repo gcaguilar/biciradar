@@ -173,6 +173,8 @@
     <string name="changelogDataSourcesDescription">Added new public data sources and more supported bike sharing systems.</string>
     <string name="changelogSavedPlaceAlertsTitle">Alerts for Home, Work, and favorites</string>
     <string name="changelogSavedPlaceAlertsDescription">Set local notifications when bikes or docks match a condition you pick. Manage from Favorites, station detail, and Profile; open with biciradar://alerts.</string>
+    <string name="changelogEnvironmentalLayersTitle">Environmental map layers</string>
+    <string name="changelogEnvironmentalLayersDescription">Turn on air-quality and pollen overlays with a clear legend and quick access to data-source details.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

@@ -173,6 +173,8 @@
     <string name="changelogDataSourcesDescription">Afegim noves fonts públiques de dades i més sistemes de bicicleta compartida compatibles.</string>
     <string name="changelogSavedPlaceAlertsTitle">Alertes a Casa, Feina i favorits</string>
     <string name="changelogSavedPlaceAlertsDescription">Configura avisos locals quan hi hagi bicis o forats segons la condició que triïs. Gestiona-ho des de Favorits, el detall de l'estació i el Perfil; enllaç biciradar://alerts.</string>
+    <string name="changelogEnvironmentalLayersTitle">Capes ambientals al mapa</string>
+    <string name="changelogEnvironmentalLayersDescription">Activa les vistes de qualitat de l'aire i pol·len amb una llegenda clara i accés ràpid al detall de la font de dades.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

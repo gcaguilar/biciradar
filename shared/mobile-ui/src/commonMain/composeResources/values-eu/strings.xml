@@ -173,6 +173,8 @@
     <string name="changelogDataSourcesDescription">Datu iturri publiko berriak eta bizikleta partekatuaren sistema bateragarri gehiago gehitu ditugu.</string>
     <string name="changelogSavedPlaceAlertsTitle">Alertak Etxea, Lana eta gogokoetan</string>
     <string name="changelogSavedPlaceAlertsDescription">Tokiko jakinarazpenak ezarri bizikletak edo leku askeko baldintza bat betetzen denean. Kudeatu Gogokoetatik, geltokiaren xehetasunetik eta Profilatik; biciradar://alerts esteka.</string>
+    <string name="changelogEnvironmentalLayersTitle">Ingurumen geruzak mapan</string>
+    <string name="changelogEnvironmentalLayersDescription">Aktibatu airearen kalitatearen eta polenaren geruzak legenda argi batekin eta datu-iturriaren xehetasunetara sarbide azkarrarekin.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>
