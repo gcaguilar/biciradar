@@ -1,13 +1,16 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { withBase } from '../utils/paths';
+import { absolutePageUrl, resolveSiteUrl } from '../utils/site';
 
 const title = 'BiciRadar, el complemento inteligente para tu app oficial';
 const description =
   'Consulta antes, decide antes y pedalea antes. BiciRadar complementa la app oficial con acceso rápido, voz y reloj.';
-const site = Astro.site ?? Astro.url;
-const canonicalPath = withBase('/biciradar-complemento-app-oficial', import.meta.env.BASE_URL);
-const canonical = new URL(canonicalPath, site).toString();
+const site = resolveSiteUrl(Astro.site);
+const canonical = absolutePageUrl(
+  '/biciradar-complemento-app-oficial',
+  site,
+  import.meta.env.BASE_URL,
+);
 
 const content = {
   ES: {
@@ -126,65 +129,21 @@ const content = {
     ]
   }
 } as const;
----
 
-<Layout title={title} description={description}>
-  <main class="min-h-screen pt-24 pb-16 px-8 max-w-4xl mx-auto">
-    <div class="mb-8 flex flex-wrap gap-2">
-      <a href="#es" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">ES</a>
-      <a href="#en" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EN</a>
-      <a href="#ca" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">CA</a>
-      <a href="#eu" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EU</a>
-      <a href="#gl" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">GL</a>
-    </div>
-
-    {Object.entries(content).map(([lang, c]) => (
-      <article id={lang.toLowerCase()} class="bg-surface-container-low dark:bg-surface-container rounded-3xl p-8 md:p-12 border border-outline-variant/20 dark:border-white/10 mb-8">
-        <p class="text-xs uppercase tracking-widest font-bold text-primary mb-4">{c.languageName}</p>
-        <h1 class="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">{c.heroTitle}</h1>
-        <h2 class="text-2xl font-headline font-bold mb-6">{c.heroSub}</h2>
-        <p class="text-on-surface-variant mb-3">{c.p1}</p>
-        <p class="text-on-surface-variant mb-3">{c.p2}</p>
-        <p class="text-on-surface-variant mb-10">{c.p3}</p>
-
-        <h2 class="text-2xl font-headline font-bold mb-2">{c.whyTitle}</h2>
-        <p class="text-on-surface-variant mb-6">{c.whySub}</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-          {c.questions.map(([q, a]) => (
-            <section class="p-5 rounded-2xl bg-surface-container border border-outline-variant/20 dark:border-white/10">
-              <h3 class="font-headline font-bold mb-2">{q}</h3>
-              <p class="text-on-surface-variant text-sm">{a}</p>
-            </section>
-          ))}
-        </div>
-
-        <h2 class="text-2xl font-headline font-bold mb-3">{c.quickTitle}</h2>
-        <p class="text-on-surface-variant mb-8">{c.quickText}</p>
-
-        <h2 class="text-2xl font-headline font-bold mb-3">{c.comfortTitle}</h2>
-        <p class="text-on-surface-variant mb-10">{c.comfortText}</p>
-
-        <section class="p-6 rounded-2xl bg-primary text-on-primary">
-          <h2 class="text-2xl font-headline font-bold mb-2">{c.summaryTitle}</h2>
-          <p>{c.summaryText}</p>
-        </section>
-      </article>
-    ))}
-  </main>
-
-  <script type="application/ld+json" set:html={JSON.stringify({
+const structuredData = [
+  {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: content.ES.questions.map(([q, a]) => ({
+    mainEntity: content.ES.questions.map(([question, answer]) => ({
       '@type': 'Question',
-      name: q,
+      name: question,
       acceptedAnswer: {
         '@type': 'Answer',
-        text: a
-      }
-    }))
-  })} />
-  <script type="application/ld+json" set:html={JSON.stringify({
+        text: answer,
+      },
+    })),
+  },
+  {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: title,
@@ -195,7 +154,59 @@ const content = {
     isPartOf: {
       '@type': 'WebSite',
       name: 'BiciRadar',
-      url: site.toString()
-    }
-  })} />
+      url: site.toString(),
+    },
+  },
+];
+---
+
+<Layout title={title} description={description} structuredData={structuredData}>
+  <main class="min-h-screen pt-24 pb-16 px-8 max-w-4xl mx-auto">
+    <div class="mb-8 flex flex-wrap gap-2">
+      <a href="#es" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">ES</a>
+      <a href="#en" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EN</a>
+      <a href="#ca" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">CA</a>
+      <a href="#eu" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">EU</a>
+      <a href="#gl" class="px-3 py-1 rounded bg-surface-container text-on-surface text-xs font-bold">GL</a>
+    </div>
+
+    {Object.entries(content).map(([lang, c], index) => {
+      const HeroHeading = index === 0 ? 'h1' : 'h2';
+      const SectionHeading = index === 0 ? 'h2' : 'h3';
+      const CardHeading = index === 0 ? 'h3' : 'h4';
+
+      return (
+        <article id={lang.toLowerCase()} class="bg-surface-container-low dark:bg-surface-container rounded-3xl p-8 md:p-12 border border-outline-variant/20 dark:border-white/10 mb-8">
+          <p class="text-xs uppercase tracking-widest font-bold text-primary mb-4">{c.languageName}</p>
+          <HeroHeading class="text-4xl md:text-5xl font-headline font-bold tracking-tight mb-4">{c.heroTitle}</HeroHeading>
+          <SectionHeading class="text-2xl font-headline font-bold mb-6">{c.heroSub}</SectionHeading>
+          <p class="text-on-surface-variant mb-3">{c.p1}</p>
+          <p class="text-on-surface-variant mb-3">{c.p2}</p>
+          <p class="text-on-surface-variant mb-10">{c.p3}</p>
+
+          <SectionHeading class="text-2xl font-headline font-bold mb-2">{c.whyTitle}</SectionHeading>
+          <p class="text-on-surface-variant mb-6">{c.whySub}</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+            {c.questions.map(([q, a]) => (
+              <section class="p-5 rounded-2xl bg-surface-container border border-outline-variant/20 dark:border-white/10">
+                <CardHeading class="font-headline font-bold mb-2">{q}</CardHeading>
+                <p class="text-on-surface-variant text-sm">{a}</p>
+              </section>
+            ))}
+          </div>
+
+          <SectionHeading class="text-2xl font-headline font-bold mb-3">{c.quickTitle}</SectionHeading>
+          <p class="text-on-surface-variant mb-8">{c.quickText}</p>
+
+          <SectionHeading class="text-2xl font-headline font-bold mb-3">{c.comfortTitle}</SectionHeading>
+          <p class="text-on-surface-variant mb-10">{c.comfortText}</p>
+
+          <section class="p-6 rounded-2xl bg-primary text-on-primary">
+            <SectionHeading class="text-2xl font-headline font-bold mb-2">{c.summaryTitle}</SectionHeading>
+            <p>{c.summaryText}</p>
+          </section>
+        </article>
+      );
+    })}
+  </main>
 </Layout>

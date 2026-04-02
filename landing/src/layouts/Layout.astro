@@ -1,29 +1,59 @@
 ---
 import '../styles/global.css';
 import { withBase } from '../utils/paths';
+import { absolutePageUrl, absoluteUrl, resolveSiteUrl } from '../utils/site';
 
 interface Props {
   title: string;
   description?: string;
   image?: string;
+  lang?: string;
+  structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const {
   title,
   description = 'Consulta en tiempo real la disponibilidad de bicis y huecos en estaciones de tu ciudad con BiciRadar.',
   image = '/og-image.svg',
+  lang = 'es',
+  structuredData = [],
 } = Astro.props;
-const site = Astro.site ?? Astro.url;
+const site = resolveSiteUrl(Astro.site);
 const canonical = new URL(Astro.url.pathname, site).toString();
-const ogImage = new URL(withBase(image, import.meta.env.BASE_URL), site).toString();
+const ogImage = absoluteUrl(image, site, import.meta.env.BASE_URL);
 const faviconPath = withBase('/favicon.svg', import.meta.env.BASE_URL);
+const homeUrl = absolutePageUrl('/', site, import.meta.env.BASE_URL);
+const structuredDataEntries = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'MobileApplication',
+    name: 'BiciRadar',
+    applicationCategory: 'TravelApplication',
+    operatingSystem: 'iOS, Android, Wear OS, Apple Watch',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'EUR',
+    },
+    url: homeUrl,
+    inLanguage: 'es',
+    sameAs: [
+      'https://apps.apple.com/es/app/biciradar/id6760931316',
+      'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
+    ],
+  },
+  ...(Array.isArray(structuredData) ? structuredData : [structuredData]).filter(Boolean),
+];
+const fontStylesheetHref =
+  'https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Space+Grotesk:wght@500;700&display=swap';
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#005ea0" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
@@ -40,28 +70,50 @@ const faviconPath = withBase('/favicon.svg', import.meta.env.BASE_URL);
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" type="image/svg+xml" href={faviconPath} />
+    <script is:inline>
+      (() => {
+        try {
+          const savedTheme = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+          document.documentElement.classList.toggle('dark', shouldUseDark);
+        } catch {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="f6f1d487-ffc6-43d8-a627-fb6c43c601e4"></script>
-    <script type="application/ld+json" set:html={JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      name: 'BiciRadar',
-      applicationCategory: 'TravelApplication',
-      operatingSystem: 'iOS, Android, Wear OS',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'EUR',
-      },
-      url: canonical,
-      sameAs: [
-        'https://apps.apple.com/es/app/biciradar/id6760931316',
-        'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
-      ],
-    })} />
+    <link rel="preload" href={fontStylesheetHref} as="style" />
+    <link
+      href={fontStylesheetHref}
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript><link rel="stylesheet" href={fontStylesheetHref} /></noscript>
+    <script is:inline>
+      (() => {
+        const loadAnalytics = () => {
+          if (document.querySelector('script[data-website-id="f6f1d487-ffc6-43d8-a627-fb6c43c601e4"]')) {
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://cloud.umami.is/script.js';
+          script.defer = true;
+          script.setAttribute('data-website-id', 'f6f1d487-ffc6-43d8-a627-fb6c43c601e4');
+          document.head.append(script);
+        };
+
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadAnalytics, { timeout: 3000 });
+        } else {
+          window.addEventListener('load', () => window.setTimeout(loadAnalytics, 1), { once: true });
+        }
+      })();
+    </script>
+    {structuredDataEntries.map((entry) => (
+      <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+    ))}
   </head>
   <body class="bg-background font-body text-on-surface antialiased overflow-x-hidden">
     <slot />

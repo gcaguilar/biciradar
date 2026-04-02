@@ -1,11 +1,79 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Landing from '../components/Landing.tsx';
+import Landing from '../components/Landing.astro';
+import { faqByLanguage } from '../data/landing';
+import { absolutePageUrl, absoluteUrl, resolveSiteUrl } from '../utils/site';
+
+const site = resolveSiteUrl(Astro.site);
+const basePath = import.meta.env.BASE_URL;
+const homeUrl = absolutePageUrl('/', site, basePath);
+const complementUrl = absolutePageUrl('/biciradar-complemento-app-oficial', site, basePath);
+const description =
+  'Consulta disponibilidad de bicis y huecos en tiempo real, guarda estaciones favoritas y recibe avisos con datos oficiales GBFS desde móvil y reloj.';
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'BiciRadar',
+    url: homeUrl,
+    inLanguage: 'es',
+    description,
+    publisher: {
+      '@type': 'Organization',
+      name: 'BiciRadar',
+      url: homeUrl,
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'BiciRadar',
+    url: homeUrl,
+    logo: absoluteUrl('/og-image.svg', site, basePath),
+    sameAs: [
+      'https://github.com/gcaguilar/biciradar',
+      'https://apps.apple.com/es/app/biciradar/id6760931316',
+      'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqByLanguage.ES.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'BiciRadar key pages',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        url: homeUrl,
+        name: 'BiciRadar home',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        url: complementUrl,
+        name: 'BiciRadar como complemento a la app oficial',
+      },
+    ],
+  },
+];
 ---
 
 <Layout
   title="BiciRadar | Tu ciudad en tu radar"
-  description="Consulta disponibilidad de bicis y huecos en tiempo real, guarda estaciones favoritas y recibe avisos cuando cambie la disponibilidad."
+  description={description}
+  structuredData={structuredData}
 >
-  <Landing client:idle />
+  <Landing />
 </Layout>

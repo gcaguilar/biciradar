@@ -127,6 +127,16 @@ body {
   font-family: 'Space Grotesk', sans-serif;
 }
 
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+@layer components {
+  .lang-button {
+    @apply rounded px-2 py-1 text-[10px] font-bold transition-colors;
+  }
+
+  .lang-button[data-active='true'] {
+    @apply bg-secondary-container text-on-secondary-container dark:text-white;
+  }
+
+  .lang-button[data-active='false'] {
+    @apply bg-transparent text-slate-400 hover:bg-surface-container dark:text-on-surface-variant dark:hover:bg-surface-container;
+  }
 }
