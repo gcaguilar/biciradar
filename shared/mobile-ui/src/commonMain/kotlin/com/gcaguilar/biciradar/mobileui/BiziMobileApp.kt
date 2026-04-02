@@ -241,7 +241,7 @@ sealed interface AssistantLaunchRequest {
 }
 
 @androidx.compose.runtime.Stable
-private class AppState {
+internal class AppState {
   var searchQuery by mutableStateOf("")
   var pendingAssistantAction by mutableStateOf<AssistantAction?>(null)
   var pendingLaunchRequest by mutableStateOf<MobileLaunchRequest?>(null)
@@ -440,14 +440,6 @@ fun BiziMobileApp(
     selectNearbyStation(stationsState.stations, searchRadiusMeters)
   }
 
-  LaunchedEffect(launchRequest) {
-    appState.pendingLaunchRequest = launchRequest
-  }
-
-  LaunchedEffect(assistantLaunchRequest) {
-    appState.pendingAssistantLaunchRequest = assistantLaunchRequest
-  }
-
   val startupLaunchReady = remember(
     minimumSplashElapsed,
     settingsBootstrapped,
@@ -464,9 +456,21 @@ fun BiziMobileApp(
       !(stationsState.isLoading && stationsState.stations.isEmpty())
   }
 
-  LaunchedEffect(startupLaunchReady) {
-    onStartupReadyChanged(startupLaunchReady)
-  }
+  BiziLaunchEffects(
+    startupLaunchReady = startupLaunchReady,
+    onStartupReadyChanged = onStartupReadyChanged,
+    appState = appState,
+    launchRequest = launchRequest,
+    assistantLaunchRequest = assistantLaunchRequest,
+    stationsState = stationsState,
+    searchRadiusMeters = searchRadiusMeters,
+    nearestSelection = nearestSelection,
+    graph = graph,
+    stationsRepository = stationsRepository,
+    settingsRepository = settingsRepository,
+    navController = navController,
+    platformBindings = platformBindings,
+  )
 
   LaunchedEffect(
     settingsBootstrapped,
@@ -546,165 +550,6 @@ fun BiziMobileApp(
         platformBindings.reviewPrompter.requestInAppReview()
       }
     }
-  }
-
-  LaunchedEffect(startupLaunchReady, appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
-    if (!startupLaunchReady) return@LaunchedEffect
-    when (val request = appState.pendingLaunchRequest ?: return@LaunchedEffect) {
-      MobileLaunchRequest.Home -> {
-        navController.navigate(Screen.Nearby) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.Map -> {
-        navController.navigate(Screen.Map) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.Favorites -> {
-        navController.navigate(Screen.Favorites) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.SavedPlaceAlerts -> {
-        navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.NearestStation -> {
-        val station = nearestSelection.highlightedStation ?: return@LaunchedEffect
-        navController.navigate(Screen.StationDetail(station.id))
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.NearestStationWithBikes -> {
-        val station = selectNearbyStation(
-          stationsState.stations,
-          searchRadiusMeters,
-        ) { station -> station.bikesAvailable > 0 }.highlightedStation ?: return@LaunchedEffect
-        navController.navigate(Screen.StationDetail(station.id))
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.NearestStationWithSlots -> {
-        val station = selectNearbyStation(
-          stationsState.stations,
-          searchRadiusMeters,
-        ) { station -> station.slotsFree > 0 }.highlightedStation ?: return@LaunchedEffect
-        navController.navigate(Screen.StationDetail(station.id))
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.OpenAssistant -> {
-        navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      MobileLaunchRequest.StationStatus -> {
-        val station = stationsState.stations.firstOrNull() ?: return@LaunchedEffect
-        appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-        navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      is MobileLaunchRequest.MonitorStation -> {
-        val station = stationsRepository.stationById(request.stationId)
-          ?: stationsState.stations.firstOrNull { it.id == request.stationId }
-          ?: return@LaunchedEffect
-        val notificationsGranted = platformBindings.localNotifier.requestPermission()
-        graph.surfaceSnapshotRepository.refreshSnapshot()
-        if (notificationsGranted) {
-          graph.surfaceMonitoringRepository.startMonitoring(
-            stationId = station.id,
-            durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-            kind = SurfaceMonitoringKind.Docks,
-          )
-        }
-        navController.navigate(Screen.StationDetail(station.id))
-        appState.pendingLaunchRequest = null
-      }
-      is MobileLaunchRequest.SelectCity -> {
-        val city = City.fromId(request.cityId) ?: return@LaunchedEffect
-        settingsRepository.setSelectedCity(city)
-        stationsRepository.forceRefresh()
-        navController.navigate(Screen.Nearby) { launchSingleTop = true }
-        appState.pendingLaunchRequest = null
-      }
-      is MobileLaunchRequest.RouteToStation -> {
-        val station = request.stationId?.let(stationsRepository::stationById)
-          ?: stationsState.stations.firstOrNull()
-          ?: return@LaunchedEffect
-        graph.routeLauncher.launch(station)
-        appState.pendingLaunchRequest = null
-      }
-      is MobileLaunchRequest.ShowStation -> {
-        if (stationsRepository.stationById(request.stationId) == null) return@LaunchedEffect
-        navController.navigate(Screen.StationDetail(request.stationId))
-        appState.pendingLaunchRequest = null
-      }
-    }
-  }
-
-  LaunchedEffect(startupLaunchReady, appState.pendingAssistantLaunchRequest, stationsState.stations) {
-    if (!startupLaunchReady) return@LaunchedEffect
-    val request = appState.pendingAssistantLaunchRequest ?: return@LaunchedEffect
-    val station = resolveLaunchStation(
-      stations = stationsState.stations,
-      graph = graph,
-      stationId = when (request) {
-        is AssistantLaunchRequest.RouteToStation -> request.stationId
-        is AssistantLaunchRequest.SearchStation -> null
-        is AssistantLaunchRequest.StationBikeCount -> request.stationId
-        is AssistantLaunchRequest.StationSlotCount -> request.stationId
-        is AssistantLaunchRequest.StationStatus -> request.stationId
-      },
-      stationQuery = when (request) {
-        is AssistantLaunchRequest.RouteToStation -> request.stationQuery
-        is AssistantLaunchRequest.SearchStation -> request.stationQuery
-        is AssistantLaunchRequest.StationBikeCount -> request.stationQuery
-        is AssistantLaunchRequest.StationSlotCount -> request.stationQuery
-        is AssistantLaunchRequest.StationStatus -> request.stationQuery
-      },
-    )
-
-    when (request) {
-      is AssistantLaunchRequest.SearchStation -> {
-        appState.searchQuery = request.stationQuery
-        if (station != null) {
-          navController.navigate(Screen.StationDetail(station.id))
-        } else {
-          navController.navigate(Screen.Map) { launchSingleTop = true }
-        }
-      }
-      is AssistantLaunchRequest.StationStatus -> {
-        if (station != null) {
-          appState.pendingAssistantAction = AssistantAction.StationStatus(station.id)
-          navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
-        } else {
-          appState.searchQuery = request.stationQuery.orEmpty()
-          navController.navigate(Screen.Map) { launchSingleTop = true }
-        }
-      }
-      is AssistantLaunchRequest.StationBikeCount -> {
-        if (station != null) {
-          appState.pendingAssistantAction = AssistantAction.StationBikeCount(station.id)
-          navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
-        } else {
-          appState.searchQuery = request.stationQuery.orEmpty()
-          navController.navigate(Screen.Map) { launchSingleTop = true }
-        }
-      }
-      is AssistantLaunchRequest.StationSlotCount -> {
-        if (station != null) {
-          appState.pendingAssistantAction = AssistantAction.StationSlotCount(station.id)
-          navController.navigate(Screen.Shortcuts) { launchSingleTop = true }
-        } else {
-          appState.searchQuery = request.stationQuery.orEmpty()
-          navController.navigate(Screen.Map) { launchSingleTop = true }
-        }
-      }
-      is AssistantLaunchRequest.RouteToStation -> {
-        if (station != null) {
-          graph.routeLauncher.launch(station)
-        } else {
-          appState.searchQuery = request.stationQuery.orEmpty()
-          navController.navigate(Screen.Map) { launchSingleTop = true }
-        }
-      }
-    }
-
-    appState.pendingAssistantLaunchRequest = null
   }
 
   val filteredStations = remember(stationsState.stations, appState.searchQuery) {
@@ -3601,7 +3446,7 @@ private fun filterStations(
   searchQuery: String,
 ): List<Station> = filterStationsByQuery(stations, searchQuery)
 
-private fun resolveLaunchStation(
+internal fun resolveLaunchStation(
   stations: List<Station>,
   graph: SharedGraph,
   stationId: String?,
