@@ -73,26 +73,39 @@ function buildTeamNotification(record: BetaLeadRecord) {
   return { subject, html, text };
 }
 
-export async function sendBetaSignupEmails(record: BetaLeadRecord) {
+export type SendBetaSignupEmailResult =
+  | { ok: true; skipped: true }
+  | { ok: true; skipped?: false }
+  | { ok: false; reason: string };
+
+/** When `RESEND_API_KEY` is unset, skips send and returns ok (local/dev). Otherwise requires from, to, and a successful Resend response (`error` is checked — the SDK does not throw). */
+export async function sendBetaSignupEmails(record: BetaLeadRecord): Promise<SendBetaSignupEmailResult> {
+  const apiKeyConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
   const resend = getResendClient();
   const from = getFromAddress();
   const to = getNotifyTo();
 
+  if (!apiKeyConfigured) {
+    return { ok: true, skipped: true };
+  }
+
   if (!resend || !from) {
-    console.error('Beta notify email skipped because RESEND_API_KEY or RESEND_FROM is missing.');
-    return;
+    const reason = 'Email notify misconfigured: RESEND_FROM is missing or invalid.';
+    console.error(reason);
+    return { ok: false, reason };
   }
 
   if (!to) {
-    console.error('Beta notify email skipped because RESEND_BETA_NOTIFY_TO is missing.');
-    return;
+    const reason = 'Email notify misconfigured: RESEND_BETA_NOTIFY_TO is missing.';
+    console.error(reason);
+    return { ok: false, reason };
   }
 
   const { subject, html, text } = buildTeamNotification(record);
   const locale = normalizeLocale(record.locale);
 
   try {
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from,
       to: [to],
       subject,
@@ -102,7 +115,18 @@ export async function sendBetaSignupEmails(record: BetaLeadRecord) {
         'Content-Language': localeToHtmlLang[locale],
       },
     });
+
+    if (error) {
+      console.error('Resend rejected beta notify email', error);
+      return { ok: false, reason: error.message || 'Email provider rejected the message.' };
+    }
+
+    return { ok: true };
   } catch (error) {
     console.error('Failed to send beta notify email', error);
+    return {
+      ok: false,
+      reason: error instanceof Error ? error.message : 'Unexpected error while sending email.',
+    };
   }
 }

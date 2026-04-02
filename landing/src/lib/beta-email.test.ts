@@ -45,7 +45,8 @@ describe('sendBetaSignupEmails', () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
-    await sendBetaSignupEmails(buildRecord('android'));
+    const outcome = await sendBetaSignupEmails(buildRecord('android'));
+    expect(outcome.ok).toBe(true);
 
     expect(resendSend).toHaveBeenCalledTimes(1);
     expect(resendSend).toHaveBeenCalledWith(
@@ -64,9 +65,26 @@ describe('sendBetaSignupEmails', () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
-    await sendBetaSignupEmails(buildRecord('ios', 'ca'));
+    const outcome = await sendBetaSignupEmails(buildRecord('ios', 'ca'));
+    expect(outcome.ok).toBe(true);
 
     const payload = resendSend.mock.calls[0][0] as { headers: Record<string, string> };
     expect(payload.headers['Content-Language']).toBe('ca');
+  });
+
+  it('returns ok: false when Resend responds with error (SDK does not throw)', async () => {
+    const resendModule = await import('resend');
+    const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
+    resendSend.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Domain not verified', name: 'validation_error', statusCode: 403 },
+    });
+
+    const outcome = await sendBetaSignupEmails(buildRecord('both'));
+
+    expect(outcome.ok).toBe(false);
+    if (!outcome.ok) {
+      expect(outcome.reason).toContain('Domain not verified');
+    }
   });
 });

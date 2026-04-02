@@ -64,6 +64,7 @@ describe('POST /api/beta-signup', () => {
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(body.redirectPath).toMatch(/beta-thanks/);
+    expect(body.redirectPath).toMatch(/os=android/);
     expect(resendSend).toHaveBeenCalledTimes(1);
     const payload = resendSend.mock.calls[0][0] as { to: string[]; subject: string };
     expect(payload.to).toEqual(['ops@biciradar.app']);
@@ -95,8 +96,25 @@ describe('POST /api/beta-signup', () => {
 
     expect(response.status).toBe(200);
     expect(body.ok).toBe(true);
+    expect(body.redirectPath).toMatch(/os=ios/);
     const payload = resendSend.mock.calls[0][0] as { subject: string };
     expect(payload.subject).toBe('BiciRadar beta · home@example.com · iOS');
     expect(payload.subject).not.toContain('BiciMAD');
+  });
+
+  it('returns 502 when Resend reports an error so the client can show a failure', async () => {
+    const resendModule = await import('resend');
+    const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
+    resendSend.mockResolvedValueOnce({
+      data: null,
+      error: { message: 'Invalid API key', name: 'api_error', statusCode: 401 },
+    });
+
+    const response = await POST({ request: buildRequest('ios') } as any);
+    const body = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(body.ok).toBe(false);
+    expect(String(body.message)).toContain('Invalid API key');
   });
 });
