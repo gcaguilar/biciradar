@@ -40,7 +40,7 @@ const alternateOgLocales = alternates
   .map((hreflang) => localeToOgLocale[hreflang as keyof typeof localeToOgLocale])
   .filter(Boolean);
 const fontStylesheetHref =
-  'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap';
+  'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap';
 ---
 
 <!doctype html>
@@ -72,7 +72,7 @@ const fontStylesheetHref =
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href={fontStylesheetHref} as="style" />
-    <link href={fontStylesheetHref} rel="stylesheet" />
+    <link rel="stylesheet" href={fontStylesheetHref} media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href={fontStylesheetHref} /></noscript>
     <script is:inline>
       (() => {
