@@ -58,6 +58,24 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
       </p>
 
       <ol class="space-y-3 text-sm leading-6 text-slate-700">
+        <li class="hidden gap-3" data-thank-install data-os="ios">
+          <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+            <Icon class="size-3" name="check" />
+          </span>
+          <span>{thankYouCopy.installStepByOs.ios}</span>
+        </li>
+        <li class="hidden gap-3" data-thank-install data-os="android">
+          <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+            <Icon class="size-3" name="check" />
+          </span>
+          <span>{thankYouCopy.installStepByOs.android}</span>
+        </li>
+        <li class="hidden gap-3" data-thank-install data-os="both">
+          <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+            <Icon class="size-3" name="check" />
+          </span>
+          <span>{thankYouCopy.installStepByOs.both}</span>
+        </li>
         {thankYouCopy.steps.map((step) => (
           <li class="flex gap-3">
             <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
@@ -68,25 +86,29 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
         ))}
       </ol>
 
-      <div class="flex flex-col flex-wrap gap-3 sm:flex-row">
+      <div class="flex flex-col flex-wrap gap-3 sm:flex-row" data-thank-store-row>
         <a class="marketing-secondary-button" href="#available-cities">
           {thankYouCopy.primaryCta}
         </a>
         <a
-          class="marketing-primary-button"
+          class="marketing-primary-button hidden"
           href={appStoreHref}
           target="_blank"
           rel="noreferrer"
+          data-thank-store
+          data-show-for="ios both"
           data-track-event="hero_secondary_cta_click"
           data-track-placement="thank_you"
         >
           {thankYouCopy.appStoreCta}
         </a>
         <a
-          class="marketing-primary-button"
+          class="marketing-primary-button hidden"
           href={playStoreHref}
           target="_blank"
           rel="noreferrer"
+          data-thank-store
+          data-show-for="android both"
           data-track-event="hero_play_store_click"
           data-track-placement="thank_you"
         >
@@ -137,6 +159,29 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
   />
 </main>
 
+<script is:inline>
+  (() => {
+    const allowed = new Set(['ios', 'android', 'both']);
+    const params = new URLSearchParams(window.location.search);
+    let os = params.get('os') || 'both';
+    if (!allowed.has(os)) os = 'both';
+
+    document.querySelectorAll('[data-thank-install]').forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      const match = el.dataset.os === os;
+      el.classList.toggle('hidden', !match);
+      el.classList.toggle('flex', match);
+    });
+
+    document.querySelectorAll('[data-thank-store]').forEach((el) => {
+      if (!(el instanceof HTMLElement)) return;
+      const forAttr = el.dataset.showFor || '';
+      const tokens = forAttr.split(/\s+/).filter(Boolean);
+      const show = tokens.includes(os);
+      el.classList.toggle('hidden', !show);
+    });
+  })();
+</script>
 <script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback }}>
   (() => {
     const button = document.querySelector('[data-share-button]');

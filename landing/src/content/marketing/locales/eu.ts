@@ -177,8 +177,13 @@ export const eu = {
     title: 'Eskerrik asko, jaso dugu zure eskaera',
     description:
       'Beta interesa erregistratuta dago. BiciRadar instalatu dezakezu orain edo hiri bakoitzeko tokiko orriak arakatu.',
+    installStepByOs: {
+      ios: 'iPhone-an: deskargatu BiciRadar App Store-tik orain probatzeko.',
+      android:
+        'Android-en: begiratu bidaliko dizugun emaila Google Play estekarekin eta testers taldearekin.',
+      both: 'Mugikoruaren arabera: App Store (iPhone) edo Android betarako email bidezko urratsak.',
+    },
     steps: [
-      'Deskargatu BiciRadar App Store-tik edo Google Play-tik orain probatu nahi baduzu.',
       'Arakatu tokiko orriak erabilgarritasuna denbora errealean ikusteko.',
       'Zalantzarik baduzu, idatzi hola@biciradar.es helbidera.',
     ],

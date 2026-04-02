@@ -177,8 +177,13 @@ export const gl = {
     title: 'Grazas, recibimos a túa solicitude',
     description:
       'O teu interese na beta queda rexistrado. Podes instalar BiciRadar xa ou explorar as páxinas locais de cada cidade.',
+    installStepByOs: {
+      ios: 'No iPhone: descarga BiciRadar na App Store para probala xa.',
+      android:
+        'En Android: revisa o email que che enviaremos co enlace a Google Play e o grupo de testers.',
+      both: 'Segundo o móbil: App Store (iPhone) ou as instrucións por email para a beta en Android.',
+    },
     steps: [
-      'Descarga BiciRadar na App Store ou en Google Play se queres probala agora.',
       'Explora as páxinas locais para ver dispoñibilidade en tempo real.',
       'Para dúbidas, escribe a hola@biciradar.es.',
     ],

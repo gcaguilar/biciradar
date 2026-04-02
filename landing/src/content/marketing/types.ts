@@ -167,6 +167,12 @@ export interface ThankYouContent {
   badge: string;
   title: string;
   description: string;
+  /** First checklist line; the matching entry is chosen via `?os=` on the thank-you URL. */
+  installStepByOs: {
+    ios: string;
+    android: string;
+    both: string;
+  };
   steps: string[];
   cityLinksTitle: string;
   cityCardCtaPrefix: string;
