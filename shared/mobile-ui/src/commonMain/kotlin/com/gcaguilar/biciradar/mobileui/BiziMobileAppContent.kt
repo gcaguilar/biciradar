@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.EnvironmentalRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -17,9 +16,7 @@ import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
-import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 
 internal object BiziMobileAppContent {
@@ -305,29 +302,39 @@ internal object BiziMobileAppContent {
 
   @Composable
   fun ShortcutsScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModel,
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
-    graph: SharedGraph,
-    stationsRepository: StationsRepository,
+    stations: List<Station>,
     favoriteIds: Set<String>,
     searchRadiusMeters: Int,
     initialAction: AssistantAction?,
     onInitialActionConsumed: () -> Unit,
     onBack: () -> Unit,
-  ) = ShortcutsScreen(
-    mobilePlatform = mobilePlatform,
-    paddingValues = paddingValues,
-    graph = graph,
-    stationsRepository = stationsRepository,
-    favoriteIds = favoriteIds,
-    searchRadiusMeters = searchRadiusMeters,
-    initialAction = initialAction,
-    onInitialActionConsumed = onInitialActionConsumed,
-    onBack = onBack,
-  )
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(viewModel, initialAction, stations, favoriteIds, searchRadiusMeters) {
+      val action = initialAction ?: return@LaunchedEffect
+      viewModel.resolveInitialAction(
+        action = action,
+        stations = stations,
+        favoriteIds = favoriteIds,
+        searchRadiusMeters = searchRadiusMeters,
+      )
+      onInitialActionConsumed()
+    }
+    ShortcutsScreen(
+      mobilePlatform = mobilePlatform,
+      paddingValues = paddingValues,
+      searchRadiusMeters = searchRadiusMeters,
+      latestAnswer = uiState.latestAnswer,
+      onBack = onBack,
+    )
+  }
 
   @Composable
   fun MapScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModel,
     mobilePlatform: MobileUiPlatform,
     stations: List<Station>,
     favoriteIds: Set<String>,
@@ -343,33 +350,39 @@ internal object BiziMobileAppContent {
     onRetry: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
-    environmentalRepository: EnvironmentalRepository,
     dataFreshness: DataFreshness,
     lastUpdatedEpoch: Long?,
     onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
-  ) = MapScreen(
-    mobilePlatform = mobilePlatform,
-    stations = stations,
-    favoriteIds = favoriteIds,
-    loading = loading,
-    errorMessage = errorMessage,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    onRefreshStations = onRefreshStations,
-    nearestSelection = nearestSelection,
-    searchQuery = searchQuery,
-    searchRadiusMeters = searchRadiusMeters,
-    userLocation = userLocation,
-    isMapReady = isMapReady,
-    onSearchQueryChange = onSearchQueryChange,
-    onStationSelected = onStationSelected,
-    onRetry = onRetry,
-    onFavoriteToggle = onFavoriteToggle,
-    onQuickRoute = onQuickRoute,
-    environmentalRepository = environmentalRepository,
-    paddingValues = paddingValues,
-  )
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(viewModel, stations) {
+      viewModel.onStationsChanged(stations)
+    }
+    MapScreen(
+      mobilePlatform = mobilePlatform,
+      stations = stations,
+      favoriteIds = favoriteIds,
+      loading = loading,
+      errorMessage = errorMessage,
+      dataFreshness = dataFreshness,
+      lastUpdatedEpoch = lastUpdatedEpoch,
+      onRefreshStations = onRefreshStations,
+      nearestSelection = nearestSelection,
+      searchQuery = searchQuery,
+      searchRadiusMeters = searchRadiusMeters,
+      userLocation = userLocation,
+      isMapReady = isMapReady,
+      onSearchQueryChange = onSearchQueryChange,
+      onStationSelected = onStationSelected,
+      onRetry = onRetry,
+      onFavoriteToggle = onFavoriteToggle,
+      onQuickRoute = onQuickRoute,
+      environmentalSnapshots = uiState.zones,
+      onEnvironmentalLayerChanged = viewModel::onEnvironmentalLayerChanged,
+      paddingValues = paddingValues,
+    )
+  }
 
   @Composable
   fun StationDetailScreenContent(

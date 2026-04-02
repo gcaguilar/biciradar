@@ -825,6 +825,16 @@ fun BiziMobileApp(
                       settingsRepository = graph.settingsRepository,
                     )
                   }
+                  val mapEnvironmentalViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
+                      environmentalRepository = graph.environmentalRepository,
+                    )
+                  }
+                  val shortcutsViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
+                      assistantIntentResolver = graph.assistantIntentResolver,
+                    )
+                  }
                   val favoritesViewModelFactory = remember(graph) {
                     com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
                       favoritesRepository = graph.favoritesRepository,
@@ -874,6 +884,8 @@ fun BiziMobileApp(
                         mobilePlatform = mobilePlatform,
                         tripViewModelFactory = tripViewModelFactory,
                         nearbyViewModelFactory = nearbyViewModelFactory,
+                        mapEnvironmentalViewModelFactory = mapEnvironmentalViewModelFactory,
+                        shortcutsViewModelFactory = shortcutsViewModelFactory,
                         favoritesViewModelFactory = favoritesViewModelFactory,
                         profileViewModelFactory = profileViewModelFactory,
                         savedPlaceAlertsViewModelFactory = savedPlaceAlertsViewModelFactory,
@@ -907,8 +919,6 @@ fun BiziMobileApp(
                         localNotifier = platformBindings.localNotifier,
                         routeLauncher = graph.routeLauncher,
                         platformBindings = platformBindings,
-                        graph = graph,
-                        stationsRepository = stationsRepository,
                         initialAssistantAction = appState.pendingAssistantAction,
                         onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
                         onOpenOnboarding = { showOnboardingFromProfile = true },

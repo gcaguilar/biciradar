@@ -39,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,12 +49,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
-import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
@@ -427,29 +423,12 @@ private fun SearchRadiusSelector(
 internal fun ShortcutsScreen(
   mobilePlatform: MobileUiPlatform,
   paddingValues: PaddingValues,
-  graph: SharedGraph,
-  stationsRepository: StationsRepository,
-  favoriteIds: Set<String>,
   searchRadiusMeters: Int,
-  initialAction: AssistantAction?,
-  onInitialActionConsumed: () -> Unit,
+  latestAnswer: String?,
   onBack: () -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
-  var latestAnswer by remember { mutableStateOf<String?>(null) }
   val shortcutGuides = shortcutGuidesFor(mobilePlatform)
-
-  LaunchedEffect(initialAction, favoriteIds, searchRadiusMeters) {
-    val action = initialAction ?: return@LaunchedEffect
-    val resolution = graph.assistantIntentResolver.resolve(
-      action = action,
-      stationsState = stationsRepository.state.value,
-      favoriteIds = favoriteIds,
-      searchRadiusMeters = searchRadiusMeters,
-    )
-    latestAnswer = resolution.spokenResponse
-    onInitialActionConsumed()
-  }
 
   Scaffold(
     modifier = Modifier

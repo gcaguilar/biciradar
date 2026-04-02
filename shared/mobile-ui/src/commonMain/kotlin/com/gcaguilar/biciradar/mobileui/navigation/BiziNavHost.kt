@@ -27,16 +27,16 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.NearbyStationSelection
 import com.gcaguilar.biciradar.core.RouteLauncher
-import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.mobileui.BiziMobileAppContent
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory
+import com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory
+import com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory
 
@@ -46,6 +46,8 @@ internal fun BiziNavHost(
   mobilePlatform: MobileUiPlatform,
   tripViewModelFactory: TripViewModelFactory,
   nearbyViewModelFactory: NearbyViewModelFactory,
+  mapEnvironmentalViewModelFactory: MapEnvironmentalViewModelFactory,
+  shortcutsViewModelFactory: ShortcutsViewModelFactory,
   favoritesViewModelFactory: FavoritesViewModelFactory,
   profileViewModelFactory: ProfileViewModelFactory,
   savedPlaceAlertsViewModelFactory: SavedPlaceAlertsViewModelFactory,
@@ -73,8 +75,6 @@ internal fun BiziNavHost(
   localNotifier: LocalNotifier,
   routeLauncher: RouteLauncher,
   platformBindings: PlatformBindings,
-  graph: SharedGraph,
-  stationsRepository: StationsRepository,
   initialAssistantAction: AssistantAction?,
   onInitialActionConsumed: () -> Unit,
   onOpenOnboarding: () -> Unit,
@@ -111,7 +111,9 @@ internal fun BiziNavHost(
     composable<Screen.Map>(
       deepLinks = listOf(navDeepLink<Screen.Map>(basePath = DeepLinks.MAP_URI)),
     ) {
+      val mapEnvironmentalViewModel = viewModel(key = "map-environment") { mapEnvironmentalViewModelFactory.create() }
       BiziMobileAppContent.MapScreenContent(
+        viewModel = mapEnvironmentalViewModel,
         mobilePlatform = mobilePlatform,
         stations = stations,
         favoriteIds = favoriteIds,
@@ -132,7 +134,6 @@ internal fun BiziNavHost(
         onRetry = onRetry,
         onFavoriteToggle = onFavoriteToggle,
         onQuickRoute = onQuickRoute,
-        environmentalRepository = graph.environmentalRepository,
         paddingValues = PaddingValues(),
       )
     }
@@ -216,12 +217,13 @@ internal fun BiziNavHost(
     composable<Screen.Shortcuts>(
       deepLinks = listOf(navDeepLink<Screen.Shortcuts>(basePath = "${DeepLinks.BASE_URI}shortcuts")),
     ) {
+      val shortcutsViewModel = viewModel(key = "shortcuts") { shortcutsViewModelFactory.create() }
       BiziMobileAppContent.ShortcutsScreenContent(
+        viewModel = shortcutsViewModel,
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
+        stations = stations,
         searchRadiusMeters = searchRadiusMeters,
-        graph = graph,
-        stationsRepository = stationsRepository,
         favoriteIds = favoriteIds,
         initialAction = initialAssistantAction,
         onInitialActionConsumed = onInitialActionConsumed,

@@ -55,25 +55,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.EnvironmentalRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-
-private enum class EnvironmentalLayer {
-  AirQuality,
-  Pollen,
-}
-
-private data class ZoneEnvironmentalSnapshot(
-  val centerLatitude: Double,
-  val centerLongitude: Double,
-  val zoneLabel: String,
-  val airQualityScore: Int? = null,
-  val pollenScore: Int? = null,
-)
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +82,8 @@ internal fun MapScreen(
   onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
-  environmentalRepository: EnvironmentalRepository,
+  environmentalSnapshots: List<MapEnvironmentalZoneSnapshot>,
+  onEnvironmentalLayerChanged: (MapEnvironmentalLayer?) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val nearestStation = nearestSelection.highlightedStation
@@ -107,11 +94,7 @@ internal fun MapScreen(
   var activeFilters by rememberSaveable(stateSaver = MapFilterSetSaver) { mutableStateOf(emptySet<MapFilter>()) }
   var recenterRequestToken by rememberSaveable { mutableStateOf(0) }
   val activeEnvironmentalLayer = remember(activeFilters) {
-    when {
-      MapFilter.AIR_QUALITY in activeFilters -> EnvironmentalLayer.AirQuality
-      MapFilter.POLLEN in activeFilters -> EnvironmentalLayer.Pollen
-      else -> null
-    }
+    activeEnvironmentalLayerForFilters(activeFilters)
   }
 
   val mapStations = remember(stations, activeFilters) {
@@ -121,23 +104,14 @@ internal fun MapScreen(
     if (activeEnvironmentalLayer == null) {
       emptyList()
     } else {
-      buildEnvironmentalZoneSnapshots(stations)
+      buildMapEnvironmentalZoneSnapshots(stations)
     }
   }
-  var environmentalSnapshots by remember { mutableStateOf<List<ZoneEnvironmentalSnapshot>>(emptyList()) }
-  LaunchedEffect(estimatedEnvironmentalSnapshots, activeEnvironmentalLayer) {
+  LaunchedEffect(activeEnvironmentalLayer) {
     if (activeEnvironmentalLayer == null) {
-      environmentalSnapshots = emptyList()
       showEnvironmentalSheet = false
-      return@LaunchedEffect
     }
-    environmentalSnapshots = estimatedEnvironmentalSnapshots.map { zone ->
-      val reading = environmentalRepository.readingAt(zone.centerLatitude, zone.centerLongitude)
-      zone.copy(
-        airQualityScore = reading?.airQualityIndex,
-        pollenScore = reading?.pollenIndex,
-      )
-    }
+    onEnvironmentalLayerChanged(activeEnvironmentalLayer)
   }
 
   LaunchedEffect(selectedMapStationId) {
@@ -183,15 +157,15 @@ internal fun MapScreen(
     val platformEnvironmentalOverlay = activeEnvironmentalLayer?.let { layer ->
       EnvironmentalOverlayData(
         layer = when (layer) {
-          EnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
-          EnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
+          MapEnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
+          MapEnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
         },
         zones = environmentalSnapshots
           .ifEmpty { estimatedEnvironmentalSnapshots }
           .mapNotNull { zone ->
             val value = when (layer) {
-              EnvironmentalLayer.AirQuality -> zone.airQualityScore
-              EnvironmentalLayer.Pollen -> zone.pollenScore
+              MapEnvironmentalLayer.AirQuality -> zone.airQualityScore
+              MapEnvironmentalLayer.Pollen -> zone.pollenScore
             } ?: return@mapNotNull null
             EnvironmentalOverlayZone(
               center = GeoPoint(zone.centerLatitude, zone.centerLongitude),
@@ -357,35 +331,10 @@ internal fun MapScreen(
   }
 }
 
-private fun buildEnvironmentalZoneSnapshots(stations: List<Station>): List<ZoneEnvironmentalSnapshot> {
-  if (stations.isEmpty()) return emptyList()
-  val averageLatitude = stations.map { it.location.latitude }.average()
-  val averageLongitude = stations.map { it.location.longitude }.average()
-  val grouped = stations.groupBy { station ->
-    val north = station.location.latitude >= averageLatitude
-    val east = station.location.longitude >= averageLongitude
-    when {
-      north && east -> "Noreste"
-      north && !east -> "Noroeste"
-      !north && east -> "Sureste"
-      else -> "Suroeste"
-    }
-  }
-  return grouped.entries.sortedBy { it.key }.map { (zone, zoneStations) ->
-    val centerLatitude = zoneStations.map { it.location.latitude }.average()
-    val centerLongitude = zoneStations.map { it.location.longitude }.average()
-    ZoneEnvironmentalSnapshot(
-      centerLatitude = centerLatitude,
-      centerLongitude = centerLongitude,
-      zoneLabel = zone,
-    )
-  }
-}
-
 @Composable
 private fun EnvironmentalLayerCard(
-  layer: EnvironmentalLayer,
-  zones: List<ZoneEnvironmentalSnapshot>,
+  layer: MapEnvironmentalLayer,
+  zones: List<MapEnvironmentalZoneSnapshot>,
   onClear: () -> Unit,
 ) {
   val c = LocalBiziColors.current
@@ -396,8 +345,8 @@ private fun EnvironmentalLayerCard(
     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
       Text(
         text = when (layer) {
-          EnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
-          EnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
+          MapEnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
+          MapEnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
         },
         fontWeight = FontWeight.SemiBold,
       )
@@ -409,13 +358,13 @@ private fun EnvironmentalLayerCard(
       EnvironmentalLegendRow(layer = layer)
       zones.take(4).forEach { zone ->
         val score = when (layer) {
-          EnvironmentalLayer.AirQuality -> zone.airQualityScore
-          EnvironmentalLayer.Pollen -> zone.pollenScore
+          MapEnvironmentalLayer.AirQuality -> zone.airQualityScore
+          MapEnvironmentalLayer.Pollen -> zone.pollenScore
         }
         val tone = environmentalToneForLayer(layer = layer, score = score, muted = c.muted)
         val valueText = when {
           score == null -> "--"
-          layer == EnvironmentalLayer.AirQuality -> "AQI $score"
+          layer == MapEnvironmentalLayer.AirQuality -> "AQI $score"
           else -> "$score gr/m3"
         }
         Row(
@@ -440,15 +389,15 @@ private fun EnvironmentalLayerCard(
 }
 
 @Composable
-private fun EnvironmentalLegendRow(layer: EnvironmentalLayer) {
+private fun EnvironmentalLegendRow(layer: MapEnvironmentalLayer) {
   val c = LocalBiziColors.current
   val labels = when (layer) {
-    EnvironmentalLayer.AirQuality -> listOf(
+    MapEnvironmentalLayer.AirQuality -> listOf(
       stringResource(Res.string.environmentalLegendGood),
       stringResource(Res.string.environmentalLegendModerate),
       stringResource(Res.string.environmentalLegendPoor),
     )
-    EnvironmentalLayer.Pollen -> listOf(
+    MapEnvironmentalLayer.Pollen -> listOf(
       stringResource(Res.string.environmentalLegendLow),
       stringResource(Res.string.environmentalLegendMedium),
       stringResource(Res.string.environmentalLegendHigh),
@@ -468,13 +417,13 @@ private fun EnvironmentalLegendRow(layer: EnvironmentalLayer) {
   }
 }
 
-private fun environmentalToneForLayer(layer: EnvironmentalLayer, score: Int?, muted: Color): Color = when {
+private fun environmentalToneForLayer(layer: MapEnvironmentalLayer, score: Int?, muted: Color): Color = when {
   score == null -> muted
-  layer == EnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
-  layer == EnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
-  layer == EnvironmentalLayer.AirQuality -> Color(0xFFD84315)
-  layer == EnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
-  layer == EnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
+  layer == MapEnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
+  layer == MapEnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
+  layer == MapEnvironmentalLayer.AirQuality -> Color(0xFFD84315)
+  layer == MapEnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
+  layer == MapEnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
   else -> Color(0xFFC2185B)
 }
 
