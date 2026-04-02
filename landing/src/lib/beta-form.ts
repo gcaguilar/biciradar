@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { normalizeLocale, type Locale } from './i18n';
+import { isValidEmail } from './is-valid-email';
 
 export interface BetaLeadRecord {
   id: string;
@@ -62,14 +63,6 @@ function readValue(formData: FormData, key: string) {
 
 function getClientIp(headers: Headers) {
   return headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '';
-}
-
-function isValidEmail(email: string) {
-  if (!email || email.length > 254) {
-    return false;
-  }
-
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export function validateBetaLead(formData: FormData, headers: Headers): ValidationResult {

@@ -7,24 +7,26 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
+    "start": "node ./dist/server/entry.mjs",
     "build": "astro build",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "astro preview",
     "astro": "astro",
-    "deploy": "npm run build && npx gh-pages -d dist -t",
-    "preview:gh": "npm run build && npx serve dist"
+    "deploy": "npm run build && npx gh-pages -d dist/client -t",
+    "preview:gh": "npm run build && npx serve dist/client"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.8",
     "@astrojs/node": "^10.0.4",
     "astro": "^6.1.2",
     "resend": "^6.10.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "validator": "^13.15.26"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/validator": "^13.15.10",
     "autoprefixer": "^10.4.27",
     "gh-pages": "^6.3.0",
     "postcss": "^8.5.8",
