@@ -26,6 +26,10 @@ function getInternalRecipients() {
     .filter(Boolean);
 }
 
+function getInternalMessageSecret() {
+  return process.env.BETA_NOTIFY_SECRET?.trim() || '';
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll('&', '&amp;')
@@ -125,6 +129,7 @@ function buildUserEmail(record: BetaLeadRecord) {
 function buildInternalNotification(record: BetaLeadRecord) {
   const androidFlow = isAndroidFlow(record);
   const recipients = getInternalRecipients();
+  const secret = getInternalMessageSecret();
   const payload = {
     kind: 'biciradar_beta_lead',
     version: 1,
@@ -149,6 +154,7 @@ function buildInternalNotification(record: BetaLeadRecord) {
     utm: record.utm,
     n8nAction: androidFlow ? 'add_google_group' : 'none',
     scheduledUserEmail: androidFlow ? 'scheduled_2m' : 'immediate',
+    ...(secret ? { secret } : {}),
   };
 
   const subject = `[BiciRadar Beta Lead] ${record.operatingSystem.toUpperCase()} · ${record.email}`;

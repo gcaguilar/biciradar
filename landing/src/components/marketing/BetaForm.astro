@@ -43,6 +43,9 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
           placeholder={content.fields.email.placeholder}
           required
           autocomplete="email"
+          inputmode="email"
+          maxlength="254"
+          pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
         />
       </label>
 

@@ -65,6 +65,10 @@ function getClientIp(headers: Headers) {
 }
 
 function isValidEmail(email: string) {
+  if (!email || email.length > 254) {
+    return false;
+  }
+
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
