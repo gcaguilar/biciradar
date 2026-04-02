@@ -139,7 +139,6 @@ import com.gcaguilar.biciradar.core.Station
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.gcaguilar.biciradar.core.filterStationsByQuery
-import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.isGoogleMapsReady
 import com.gcaguilar.biciradar.core.selectNearbyStation
@@ -268,6 +267,17 @@ fun BiziMobileApp(
   val stationsRepository = remember(graph) { graph.stationsRepository }
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
   val settingsRepository = remember(graph) { graph.settingsRepository }
+  val launchCoordinator = remember(graph, platformBindings) {
+    LaunchCoordinator(
+      changeCityUseCase = graph.changeCityUseCase,
+      favoritesRepository = graph.favoritesRepository,
+      localNotifier = platformBindings.localNotifier,
+      routeLauncher = graph.routeLauncher,
+      stationsRepository = graph.stationsRepository,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
+    )
+  }
   val appRootViewModelFactory = remember(graph, platformBindings) {
     AppRootViewModelFactory(
       settingsRepository = graph.settingsRepository,
@@ -325,12 +335,8 @@ fun BiziMobileApp(
     assistantLaunchRequest = assistantLaunchRequest,
     stationsState = stationsState,
     searchRadiusMeters = searchRadiusMeters,
-    nearestSelection = nearestSelection,
-    graph = graph,
-    stationsRepository = stationsRepository,
-    settingsRepository = settingsRepository,
+    launchCoordinator = launchCoordinator,
     navController = navController,
-    platformBindings = platformBindings,
   )
 
   val filteredStations = remember(stationsState.stations, appState.searchQuery) {
@@ -356,10 +362,10 @@ fun BiziMobileApp(
             CitySelectionScreen(
               onCitySelected = { city ->
                 scope.launch {
-                  settingsRepository.setSelectedCity(city)
-                  settingsRepository.updateOnboardingChecklist { it.copy(cityConfirmed = true) }
-                  favoritesRepository.clearAll()
-                  stationsRepository.forceRefresh()
+                  graph.changeCityUseCase.execute(
+                    city = city,
+                    markCityConfirmed = true,
+                  )
                 }
               },
             )
@@ -3190,18 +3196,3 @@ private fun filterStations(
   stations: List<Station>,
   searchQuery: String,
 ): List<Station> = filterStationsByQuery(stations, searchQuery)
-
-internal fun resolveLaunchStation(
-  stations: List<Station>,
-  graph: SharedGraph,
-  stationId: String?,
-  stationQuery: String?,
-): Station? {
-  val stationsRepository = graph.stationsRepository
-  return stationId?.let(stationsRepository::stationById) ?: findStationMatchingQueryOrPinnedAlias(
-    stations = stations,
-    query = stationQuery,
-    homeStationId = graph.favoritesRepository.currentHomeStationId(),
-    workStationId = graph.favoritesRepository.currentWorkStationId(),
-  )
-}
