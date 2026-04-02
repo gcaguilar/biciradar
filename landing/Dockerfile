@@ -14,13 +14,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 COPY package.json package-lock.json ./
-RUN apk add --no-cache curl
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
+# Last layer: curl for Coolify probes. Prefer health check URL http://127.0.0.1:<PORT>/ (not localhost) to avoid ::1 vs IPv4 "connection refused".
+RUN apk add --no-cache curl wget ca-certificates \
+  && test -x /usr/bin/curl \
+  && /usr/bin/curl --version
 EXPOSE 3000
-# 127.0.0.1 avoids localhost → ::1 (IPv6) while Node listens on 0.0.0.0 (IPv4) → connection refused.
-# Coolify: set health check URL to http://127.0.0.1:<PORT>/ (match PORT; curl is installed for Coolify's probe).
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=5 \
   CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000)+'/',r=>process.exit(r.statusCode>=200&&r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["node", "./dist/server/entry.mjs"]
