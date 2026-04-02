@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { withBase } from '../utils/paths';
 
 type Language = 'ES' | 'EN' | 'CA' | 'EU' | 'GL';
 
@@ -399,6 +400,12 @@ const seoPageCtaByLanguage: Record<Language, string> = {
 
 export default function Landing() {
   const baseUrl = import.meta.env.BASE_URL;
+  const heroImagePath = withBase('/images/hero.jpg', baseUrl);
+  const featureAvailabilityPath = withBase('/images/feature-availability.jpg', baseUrl);
+  const featureFavoritesPath = withBase('/images/feature-favorites.jpg', baseUrl);
+  const featureWidgetsPath = withBase('/images/feature-widgets.jpg', baseUrl);
+  const mapBackgroundPath = withBase('/images/map-bg.jpg', baseUrl);
+  const seoPagePath = withBase('/biciradar-complemento-app-oficial', baseUrl);
   const [isDark, setIsDark] = useState(false);
   const [lang, setLang] = useState<Language>('ES');
   const currentYear = new Date().getFullYear();
@@ -546,7 +553,7 @@ export default function Landing() {
                 <img 
                   alt="BiciRadar App" 
                   className={`w-full max-w-[500px] object-contain drop-shadow-2xl ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
-                  src={`${baseUrl}images/hero.jpg`}
+                  src={heroImagePath}
                   width={500}
                   height={1000}
                   loading="eager"
@@ -595,7 +602,7 @@ export default function Landing() {
                 <img 
                   alt="Consulta disponibilidad" 
                   className={`w-full max-h-[min(36rem,70vh)] object-contain rounded-2xl shadow-2xl ${isDark ? 'brightness-75' : ''}`}
-                  src={`${baseUrl}images/feature-availability.jpg`}
+                  src={featureAvailabilityPath}
                   width={1080}
                   height={2340}
                   loading="lazy"
@@ -615,7 +622,7 @@ export default function Landing() {
               <img 
                 alt="Estaciones favoritas" 
                 className={`rounded-xl w-full object-cover h-40 group-hover:opacity-90 transition-opacity ${isDark ? 'brightness-75' : ''}`}
-                src={`${baseUrl}images/feature-favorites.jpg`}
+                src={featureFavoritesPath}
                 width={1080}
                 height={720}
                 loading="lazy"
@@ -647,7 +654,7 @@ export default function Landing() {
                 <img 
                   alt="Widgets y reloj" 
                   className={`w-full max-h-[min(36rem,70vh)] object-contain rounded-2xl shadow-xl transform group-hover:rotate-2 transition-transform ${isDark ? 'brightness-90 grayscale-[0.2]' : ''}`}
-                  src={`${baseUrl}images/feature-widgets.jpg`}
+                  src={featureWidgetsPath}
                   width={1080}
                   height={2340}
                   loading="lazy"
@@ -715,7 +722,7 @@ export default function Landing() {
             <img 
               alt="Map background" 
               className={`w-full h-full object-cover ${isDark ? 'invert' : ''}`}
-              src={`${baseUrl}images/map-bg.jpg`}
+              src={mapBackgroundPath}
               width={1920}
               height={1080}
               loading="lazy"
@@ -739,7 +746,7 @@ export default function Landing() {
           </div>
           <div className="mt-10">
             <a
-              href={`${baseUrl}biciradar-complemento-app-oficial`}
+              href={seoPagePath}
               className="inline-flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-primary/20 transition-all"
             >
               {seoPageCtaByLanguage[lang]}

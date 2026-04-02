@@ -1,10 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { withBase } from '../utils/paths';
 
 const title = 'BiciRadar, el complemento inteligente para tu app oficial';
 const description =
   'Consulta antes, decide antes y pedalea antes. BiciRadar complementa la app oficial con acceso rápido, voz y reloj.';
-const canonical = new URL('/biciradar-complemento-app-oficial', Astro.site).toString();
+const site = Astro.site ?? Astro.url;
+const canonicalPath = withBase('/biciradar-complemento-app-oficial', import.meta.env.BASE_URL);
+const canonical = new URL(canonicalPath, site).toString();
 
 const content = {
   ES: {
@@ -192,7 +195,7 @@ const content = {
     isPartOf: {
       '@type': 'WebSite',
       name: 'BiciRadar',
-      url: Astro.site?.toString() ?? ''
+      url: site.toString()
     }
   })} />
 </Layout>
