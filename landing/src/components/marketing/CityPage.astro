@@ -5,6 +5,7 @@ import PageHeader from './PageHeader.astro';
 import FaqList from './FaqList.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
+import BetaForm from './BetaForm.astro';
 import { appStoreUrlForLocale } from '../../lib/site-config';
 
 interface LanguageLink {
@@ -20,9 +21,11 @@ interface Props {
   languageLinks: LanguageLink[];
   homeHref: string;
   betaHref: string;
+  thankYouPath: string;
+  formPagePath: string;
 }
 
-const { content, cityKey, languageLinks, homeHref, betaHref } = Astro.props;
+const { content, cityKey, languageLinks, homeHref, betaHref, thankYouPath, formPagePath } = Astro.props;
 const city = content.cityPages[cityKey];
 const appStoreHref = appStoreUrlForLocale(content.locale);
 ---
@@ -32,8 +35,8 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
   homeHref={homeHref}
   languageLabel={content.home.header.languageLabel}
   languageLinks={languageLinks}
-  primaryCtaLabel={content.common.heroCta}
-  primaryCtaHref={betaHref}
+  primaryCtaLabel={content.home.header.primaryCta}
+  primaryCtaHref={appStoreHref}
   primaryEvent="hero_cta_click"
   githubAriaLabel={content.common.githubAriaLabel}
 />
@@ -124,6 +127,17 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
     <div class="mt-8">
       <FaqList items={city.faq} />
     </div>
+  </section>
+
+  <section class="marketing-shell">
+    <BetaForm
+      locale={content.locale}
+      content={content.home.betaForm}
+      pageKind="city"
+      pagePath={formPagePath}
+      thankYouPath={thankYouPath}
+      cityPageKey={cityKey}
+    />
   </section>
 
   <section class="marketing-shell">

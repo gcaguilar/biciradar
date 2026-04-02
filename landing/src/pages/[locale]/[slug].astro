@@ -8,7 +8,7 @@ import { getLanguageSwitchLinks, getLocalizedCityLinks } from '../../lib/marketi
 import { cityDefinitions } from '../../content/marketing/cities';
 import type { FaqItemContent } from '../../content/marketing/types';
 import { defaultLocale } from '../../lib/i18n';
-import { getHomePath, getLocalizedStaticSlug, resolveRouteContext } from '../../lib/routes';
+import { getHomePath, getLocalizedStaticSlug, getThankYouPath, resolveRouteContext } from '../../lib/routes';
 import { resolveSiteUrl } from '../../utils/site';
 
 export function getStaticPaths() {
@@ -37,9 +37,11 @@ const content = getLocaleContent(locale);
 const site = resolveSiteUrl(Astro.site);
 const alternates = buildAlternateLinks(route, site, import.meta.env.BASE_URL);
 const homeHref = getHomePath(locale);
-const betaHref = `${homeHref}#beta-form`;
-const cityLinks = getLocalizedCityLinks(locale);
 const cityKey = route.kind === 'city' ? route.cityKey : null;
+const betaHref = cityKey ? '#beta-form' : `${homeHref}#beta-form`;
+const thankYouPath = getThankYouPath(locale);
+const formPagePath = `/${locale}/${slug}/`;
+const cityLinks = getLocalizedCityLinks(locale);
 
 const pageContent =
   cityKey ? content.cityPages[cityKey] : content.thankYou;
@@ -92,6 +94,8 @@ const structuredData =
       languageLinks={getLanguageSwitchLinks(route)}
       homeHref={homeHref}
       betaHref={betaHref}
+      thankYouPath={thankYouPath}
+      formPagePath={formPagePath}
     />
   ) : (
     <ThankYouPage
