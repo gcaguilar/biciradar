@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CityPage from '../components/marketing/CityPage.astro';
+import ThankYouPage from '../components/marketing/ThankYouPage.astro';
+import { getLocaleContent, orderedCityKeys } from '../content/marketing';
+import { buildAlternateLinks } from '../lib/seo';
+import { getLanguageSwitchLinks, getLocalizedCityLinks } from '../lib/marketing-pages';
+import { cityDefinitions } from '../content/marketing/cities';
+import type { FaqItemContent } from '../content/marketing/types';
+import { getHomePath, resolveRouteContext } from '../lib/routes';
+import { resolveSiteUrl } from '../utils/site';
+
+export function getStaticPaths() {
+  return [
+    {
+      params: { slug: 'gracias-beta' },
+      props: { slug: 'gracias-beta' },
+    },
+    ...orderedCityKeys.map((cityKey) => ({
+      params: { slug: cityDefinitions[cityKey].slug },
+      props: { slug: cityDefinitions[cityKey].slug },
+    })),
+  ];
+}
+
+const locale = 'es';
+const { slug } = Astro.props as { slug: string };
+const route = resolveRouteContext(locale, slug);
+
+if (!route) {
+  throw new Error(`Unknown route for slug "${slug}"`);
+}
+
+const content = getLocaleContent(locale);
+const site = resolveSiteUrl(Astro.site);
+const alternates = buildAlternateLinks(route, site, import.meta.env.BASE_URL);
+const homeHref = getHomePath(locale);
+const betaHref = `${homeHref}#beta-form`;
+const cityLinks = getLocalizedCityLinks(locale);
+const cityKey = route.kind === 'city' ? route.cityKey : null;
+
+const pageContent =
+  cityKey ? content.cityPages[cityKey] : content.thankYou;
+
+const structuredData =
+  cityKey
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: pageContent.seo.title,
+          description: pageContent.seo.description,
+          inLanguage: locale,
+        },
+        {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: content.cityPages[cityKey].faq.map((item: FaqItemContent) => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: { '@type': 'Answer', text: item.answer },
+          })),
+        },
+      ]
+    : [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: content.thankYou.seo.title,
+          description: content.thankYou.seo.description,
+          inLanguage: locale,
+        },
+      ];
+---
+
+<Layout
+  title={pageContent.seo.title}
+  description={pageContent.seo.description}
+  lang={locale}
+  canonicalPath={`/${slug}/`}
+  alternates={alternates}
+  skipLinkLabel={content.common.skipToContent}
+  robots={route.kind === 'thank-you' ? 'noindex,follow' : 'index,follow'}
+  structuredData={structuredData}
+>
+  {cityKey ? (
+    <CityPage
+      content={content}
+      cityKey={cityKey}
+      languageLinks={getLanguageSwitchLinks(route)}
+      homeHref={homeHref}
+      betaHref={betaHref}
+    />
+  ) : (
+    <ThankYouPage
+      content={content}
+      languageLinks={getLanguageSwitchLinks(route)}
+      homeHref={homeHref}
+      betaHref={betaHref}
+      cityLinks={cityLinks}
+    />
+  )}
+</Layout>

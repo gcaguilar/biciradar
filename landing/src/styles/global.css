@@ -3,140 +3,316 @@
 @tailwind utilities;
 
 :root {
-  --accent: #246900;
-  --secondary-container: #8def61;
-  --on-surface: #1a2e50;
-  --inverse-on-surface: #8a9dc5;
-  --outline: #64779d;
-  --surface-container-high: #d7e2ff;
-  --on-primary-fixed-variant: #003055;
-  --error: #b31b25;
-  --background: #f5f6ff;
-  --tertiary: #4f5d6e;
-  --primary-fixed-dim: #509ae5;
-  --surface-container-low: #ecf0ff;
-  --tertiary-dim: #435162;
-  --surface-tint: #005ea0;
-  --on-secondary-fixed: #134100;
-  --on-secondary-container: #1c5700;
-  --secondary: #246900;
-  --error-dim: #9f0519;
-  --on-error-container: #570008;
-  --primary-dim: #00528c;
-  --surface-container-lowest: #ffffff;
-  --surface-bright: #f5f6ff;
-  --error-container: #fb5151;
-  --on-tertiary-container: #475466;
-  --on-tertiary: #edf3ff;
-  --on-primary: #edf3ff;
-  --on-error: #ffefee;
-  --primary-container: #5fa7f4;
-  --on-tertiary-fixed: #354253;
-  --secondary-fixed-dim: #80e054;
-  --on-secondary: #d5ffbb;
-  --inverse-surface: #000e26;
-  --on-background: #1a2e50;
-  --primary-fixed: #5fa7f4;
-  --tertiary-fixed-dim: #cad8ed;
-  --primary: #005ea0;
-  --surface: #f5f6ff;
-  --tertiary-fixed: #d8e6fc;
-  --tertiary-container: #d8e6fc;
-  --secondary-dim: #1f5c00;
-  --outline-variant: #9aadd6;
-  --surface-variant: #ceddff;
-  --secondary-fixed: #8def61;
-  --inverse-primary: #5fa7f4;
-  --surface-dim: #c1d5ff;
-  --surface-container-highest: #ceddff;
-  --on-primary-container: #002746;
-  --on-primary-fixed: #000001;
-  --on-secondary-fixed-variant: #216100;
-  --on-tertiary-fixed-variant: #515e70;
-  --on-surface-variant: #485c80;
-  --surface-container: #e0e8ff;
-}
-
-.dark {
-  --secondary-container: #ad0057;
-  --accent: #7fff00;
-  --on-surface: #e0e0e0;
-  --inverse-on-surface: #121212;
-  --outline: #4a4a4a;
-  --surface-container-high: #3d3d3d;
-  --on-primary-fixed-variant: #002020;
-  --error: #ff4d4d;
-  --background: #121212;
-  --tertiary: #7fff00;
-  --primary-fixed-dim: #006666;
-  --surface-container-low: #222222;
-  --tertiary-dim: #5ab300;
-  --surface-tint: #008080;
-  --on-secondary-fixed: #330019;
-  --on-secondary-container: #ffffff;
-  --secondary: #ad0057;
-  --error-dim: #cc0000;
-  --on-error-container: #ffeaea;
-  --primary-dim: #1a9b9b;
-  --surface-container-lowest: #1a1a1a;
-  --surface-bright: #2c2c2c;
-  --error-container: #660000;
-  --on-tertiary-container: #000000;
-  --on-tertiary: #000000;
-  --on-primary: #002222;
-  --on-error: #ffffff;
-  --primary-container: #1f6f6f;
-  --on-tertiary-fixed: #1a3300;
-  --secondary-fixed-dim: #99004d;
-  --on-secondary: #ffffff;
-  --inverse-surface: #e0e0e0;
-  --on-background: #e0e0e0;
-  --primary-fixed: #00b3b3;
-  --tertiary-fixed-dim: #a2ff4d;
-  --primary: #33cccc;
-  --surface: #121212;
-  --tertiary-fixed: #7fff00;
-  --tertiary-container: #2c2c2c;
-  --secondary-dim: #8a0044;
-  --outline-variant: #333333;
-  --surface-variant: #2c2c2c;
-  --secondary-fixed: #c21a72;
-  --inverse-primary: #00b3b3;
-  --surface-dim: #1a1a1a;
-  --surface-container-highest: #444444;
-  --on-primary-container: #d6ffff;
-  --on-primary-fixed: #000001;
-  --on-secondary-fixed-variant: #ffd1e7;
-  --on-tertiary-fixed-variant: #336600;
-  --on-surface-variant: #b5b5b5;
-  --surface-container: #2c2c2c;
+  --marketing-bg: #f8fafc;
+  --marketing-surface: #ffffff;
+  --marketing-surface-soft: #eff6ff;
+  --marketing-surface-mint: #f0fdf4;
+  --marketing-border: #cbd5e1;
+  --marketing-border-strong: #0f172a;
+  --marketing-text: #0f172a;
+  --marketing-text-soft: #475569;
+  --marketing-blue: #2563eb;
+  --marketing-blue-strong: #1d4ed8;
+  --marketing-green: #16a34a;
+  --marketing-green-strong: #166534;
+  --marketing-dark: #0f172a;
 }
 
 html {
-  color-scheme: light dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Manrope', sans-serif;
-  background-color: var(--background);
-  color: var(--on-surface);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(191, 219, 254, 0.42), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #f8fafc 60%, #eef2f7 100%);
+  color: var(--marketing-text);
+  font-family: 'IBM Plex Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-.font-headline {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Space Grotesk', sans-serif;
 }
 
+a,
+button,
+input,
+select,
+textarea,
+summary {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px rgba(37, 99, 235, 0.65);
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.18);
+}
+
 @layer components {
-  .lang-button {
-    @apply rounded px-2 py-1 text-[10px] font-bold transition-colors;
+  .marketing-shell {
+    @apply mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14;
   }
 
-  .lang-button[data-active='true'] {
-    @apply bg-secondary-container text-on-secondary-container dark:text-white;
+  .marketing-section-kicker {
+    @apply text-sm font-semibold uppercase tracking-[0.18em] text-sky-700;
   }
 
-  .lang-button[data-active='false'] {
-    @apply bg-transparent text-slate-400 hover:bg-surface-container dark:text-on-surface-variant dark:hover:bg-surface-container;
+  .marketing-section-kicker-dark {
+    @apply text-emerald-300;
+  }
+
+  .marketing-section-title {
+    @apply text-3xl font-black tracking-tight text-slate-950 sm:text-4xl;
+  }
+
+  .marketing-chip {
+    @apply inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold;
+  }
+
+  .marketing-chip-primary {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .marketing-chip-secondary {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .marketing-chip-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .marketing-primary-button {
+    @apply inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600;
+  }
+
+  .marketing-primary-button:disabled {
+    @apply cursor-not-allowed opacity-70;
+  }
+
+  .marketing-secondary-button {
+    @apply inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:border-slate-900 hover:bg-slate-50;
+  }
+
+  .marketing-hero-panel {
+    @apply rounded-[28px] border border-sky-200 bg-gradient-to-br from-white to-sky-50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-8;
+  }
+
+  .marketing-platform-card {
+    @apply flex h-full flex-col items-start gap-3 rounded-2xl p-4 transition sm:p-5;
+  }
+
+  .marketing-platform-card-ios {
+    background: #e0ecff;
+  }
+
+  .marketing-platform-card-android {
+    background: #dcfce7;
+  }
+
+  .marketing-platform-card__button {
+    @apply inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(15,23,42,0.12)];
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .marketing-platform-card__button-ios {
+    background: linear-gradient(180deg, #1d4ed8 0%, #2563eb 100%);
+  }
+
+  .marketing-platform-card__button-android {
+    background: linear-gradient(180deg, #166534 0%, #16a34a 100%);
+  }
+
+  .marketing-platform-card__note {
+    @apply text-sm leading-6 text-emerald-900/90;
+  }
+
+  .marketing-value-pill {
+    @apply inline-flex items-center rounded-full bg-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-900;
+  }
+
+  .marketing-card {
+    @apply rounded-3xl border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .marketing-card-title {
+    @apply text-lg font-bold tracking-tight text-slate-950;
+  }
+
+  .marketing-card-copy {
+    @apply mt-2 text-sm leading-6 text-slate-600;
+  }
+
+  .marketing-step-card {
+    @apply rounded-3xl border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .marketing-step-number {
+    @apply mb-4 inline-flex size-9 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white;
+  }
+
+  .marketing-city-card {
+    @apply flex h-full flex-col justify-between gap-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-900 hover:shadow-lg;
+  }
+
+  .marketing-dark-band {
+    @apply rounded-[24px] bg-slate-950 px-5 py-6 shadow-[0_24px_60px_rgba(15,23,42,0.22)] md:px-8 md:py-8;
+  }
+
+  .marketing-dark-band {
+    background:
+      radial-gradient(circle at top right, rgba(37, 99, 235, 0.28), transparent 30%),
+      linear-gradient(180deg, #0b1220 0%, #111827 100%);
+  }
+
+  .marketing-dark-action {
+    @apply flex flex-col gap-1 rounded-2xl px-4 py-4 text-left transition;
+  }
+
+  .marketing-dark-action strong {
+    @apply text-base font-semibold;
+  }
+
+  .marketing-dark-action span {
+    @apply text-sm;
+  }
+
+  .marketing-dark-action-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-500;
+  }
+
+  .marketing-dark-action-secondary {
+    @apply bg-emerald-500 text-white hover:bg-emerald-400;
+  }
+
+  .marketing-form-card {
+    @apply rounded-[24px] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-lime-50 p-5 shadow-sm md:p-8;
+  }
+
+  .marketing-field {
+    @apply flex flex-col gap-2 text-sm font-semibold text-slate-700;
+  }
+
+  .marketing-field input,
+  .marketing-field select {
+    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-normal text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-900;
+  }
+
+  .marketing-thank-you-card {
+    @apply space-y-6 rounded-[24px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm md:p-10;
+  }
+
+  .marketing-city-hero {
+    @apply grid gap-8 rounded-[28px] border border-sky-200 bg-gradient-to-br from-white to-sky-50 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:grid-cols-[1.2fr_0.8fr] lg:items-center;
+  }
+
+  .marketing-city-badge {
+    @apply inline-flex w-fit rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700;
+  }
+
+  .marketing-sticky-bar {
+    @apply fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-slate-800 bg-slate-950 p-2 shadow-2xl;
+  }
+
+  .marketing-sticky-bar__ios {
+    @apply inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-3 text-center text-sm font-semibold text-white;
+  }
+
+  .marketing-sticky-bar__beta {
+    @apply inline-flex items-center justify-center rounded-xl bg-emerald-500 px-3 py-3 text-center text-sm font-semibold text-white;
+  }
+
+  .marketing-mockup {
+    @apply mx-auto flex max-w-[380px] flex-col gap-4 rounded-[24px] bg-slate-950 p-4 text-white shadow-[0_26px_60px_rgba(15,23,42,0.28)] sm:p-5;
+  }
+
+  .marketing-mockup-compact {
+    @apply max-w-[320px];
+  }
+
+  .marketing-mockup__top {
+    @apply flex items-start justify-between gap-3 rounded-[18px] bg-slate-900 p-4;
+  }
+
+  .marketing-mockup__caption {
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-slate-400;
+  }
+
+  .marketing-mockup__value {
+    @apply mt-2 text-xl font-black tracking-tight text-cyan-300;
+  }
+
+  .marketing-mockup__pulse {
+    @apply mt-1 size-3 rounded-full bg-emerald-400 shadow-[0_0_0_8px_rgba(52,211,153,0.14)];
+  }
+
+  .marketing-mockup__grid {
+    @apply grid grid-cols-2 gap-3;
+  }
+
+  .marketing-mockup__metric {
+    @apply rounded-2xl p-3;
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .marketing-mockup__metric span {
+    @apply block text-xs text-slate-400;
+  }
+
+  .marketing-mockup__metric strong {
+    @apply mt-2 block text-2xl font-black text-white;
+  }
+
+  .marketing-mockup__chips {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .marketing-mockup__chips span {
+    @apply rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200;
+  }
+
+  .marketing-mockup__shortcut {
+    @apply rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-500 px-4 py-3 text-sm font-semibold text-white;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 5.5rem;
   }
 }

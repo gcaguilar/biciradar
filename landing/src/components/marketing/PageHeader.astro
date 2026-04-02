@@ -1,0 +1,97 @@
+---
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface LocaleLink {
+  href: string;
+  label: string;
+  localeLabel: string;
+  current: boolean;
+}
+
+interface Props {
+  siteName: string;
+  homeHref: string;
+  languageLabel: string;
+  languageLinks: LocaleLink[];
+  navLinks?: NavLink[];
+  primaryCtaLabel?: string;
+  primaryCtaHref?: string;
+  primaryEvent?: string;
+}
+
+const {
+  siteName,
+  homeHref,
+  languageLabel,
+  languageLinks,
+  navLinks = [],
+  primaryCtaLabel,
+  primaryCtaHref = '#beta-form',
+  primaryEvent = 'hero_cta_click',
+} = Astro.props;
+---
+
+<header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:px-6">
+    <div class="flex items-center justify-between gap-4">
+      <a class="text-lg font-black tracking-tight text-slate-950 md:text-xl" href={homeHref}>
+        {siteName}
+      </a>
+
+      <div class="hidden items-center gap-6 lg:flex">
+        {navLinks.length > 0 && (
+          <nav aria-label="Primary" class="flex items-center gap-5 text-sm font-medium text-slate-600">
+            {navLinks.map((link) => (
+              <a class="transition hover:text-slate-950" href={link.href}>
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        )}
+        <LanguageSwitcher label={languageLabel} links={languageLinks} />
+        {primaryCtaLabel && (
+          <a
+            class="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            href={primaryCtaHref}
+            data-track-event={primaryEvent}
+          >
+            {primaryCtaLabel}
+          </a>
+        )}
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3 lg:hidden">
+      {navLinks.length > 0 && (
+        <nav
+          aria-label="Primary mobile"
+          class="no-scrollbar flex gap-3 overflow-x-auto pb-1 text-sm font-medium text-slate-600"
+        >
+          {navLinks.map((link) => (
+            <a class="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 transition hover:border-slate-900 hover:text-slate-950" href={link.href}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
+      )}
+
+      <div class="flex items-center justify-between gap-3">
+        <LanguageSwitcher label={languageLabel} links={languageLinks} />
+        {primaryCtaLabel && (
+          <a
+            class="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+            href={primaryCtaHref}
+            data-track-event={primaryEvent}
+          >
+            {primaryCtaLabel}
+          </a>
+        )}
+      </div>
+    </div>
+  </div>
+</header>

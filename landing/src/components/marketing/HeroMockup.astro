@@ -1,0 +1,52 @@
+---
+interface Props {
+  stationLabel: string;
+  availability: string;
+  bikesLabel: string;
+  docksLabel: string;
+  chips?: string[];
+  shortcutLabel?: string;
+  compact?: boolean;
+}
+
+const {
+  stationLabel,
+  availability,
+  bikesLabel,
+  docksLabel,
+  chips = [],
+  shortcutLabel,
+  compact = false,
+} = Astro.props;
+---
+
+<div class:list={['marketing-mockup', compact && 'marketing-mockup-compact']}>
+  <div class="marketing-mockup__top">
+    <div>
+      <p class="marketing-mockup__caption">{stationLabel}</p>
+      <p class="marketing-mockup__value">{availability}</p>
+    </div>
+    <div class="marketing-mockup__pulse" aria-hidden="true"></div>
+  </div>
+
+  <div class="marketing-mockup__grid">
+    <div class="marketing-mockup__metric">
+      <span>{bikesLabel}</span>
+      <strong>12</strong>
+    </div>
+    <div class="marketing-mockup__metric">
+      <span>{docksLabel}</span>
+      <strong>5</strong>
+    </div>
+  </div>
+
+  {chips.length > 0 && (
+    <div class="marketing-mockup__chips">
+      {chips.map((chip) => (
+        <span>{chip}</span>
+      ))}
+    </div>
+  )}
+
+  {shortcutLabel && <div class="marketing-mockup__shortcut">{shortcutLabel}</div>}
+</div>

@@ -1,0 +1,150 @@
+---
+import type { CityKey, LocaleContent } from '../../content/marketing/types';
+import PageHeader from './PageHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import AnalyticsScripts from './AnalyticsScripts.astro';
+import { siteConfig } from '../../lib/site-config';
+import Icon from '../Icon.astro';
+
+interface LanguageLink {
+  href: string;
+  label: string;
+  localeLabel: string;
+  current: boolean;
+}
+
+interface CityLink {
+  key: CityKey;
+  href: string;
+  label: string;
+}
+
+interface Props {
+  content: LocaleContent;
+  languageLinks: LanguageLink[];
+  homeHref: string;
+  betaHref: string;
+  cityLinks: CityLink[];
+}
+
+const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
+---
+
+<PageHeader
+  siteName={content.metadata.siteName}
+  homeHref={homeHref}
+  languageLabel={content.home.header.languageLabel}
+  languageLinks={languageLinks}
+  primaryCtaLabel={content.common.backToHome}
+  primaryCtaHref={homeHref}
+  primaryEvent="city_revisit_click"
+/>
+
+<main id="main-content">
+  <section class="marketing-shell">
+    <div class="marketing-thank-you-card">
+      <span class="marketing-chip marketing-chip-success">{content.thankYou.badge}</span>
+      <h1 class="max-w-4xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+        {content.thankYou.title}
+      </h1>
+      <p class="max-w-3xl text-lg leading-8 text-slate-600">{content.thankYou.description}</p>
+
+      <ol class="space-y-3 text-sm leading-6 text-slate-700">
+        {content.thankYou.steps.map((step) => (
+          <li class="flex gap-3">
+            <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+              <Icon class="size-3" name="check" />
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <a class="marketing-secondary-button" href={homeHref}>
+          {content.thankYou.primaryCta}
+        </a>
+        <a
+          class="marketing-primary-button"
+          href={siteConfig.appStoreUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-track-event="hero_secondary_cta_click"
+          data-track-placement="thank_you"
+        >
+          {content.thankYou.secondaryCta}
+        </a>
+        <button class="marketing-secondary-button" type="button" data-share-button data-track-event="share_click">
+          {content.thankYou.shareLabel}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="space-y-3">
+      <p class="marketing-section-kicker">{content.common.cityRevisitLabel}</p>
+      <h2 class="marketing-section-title">{content.thankYou.cityLinksTitle}</h2>
+      <p class="max-w-3xl text-base leading-7 text-slate-600">{content.common.shareDescription}</p>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {cityLinks.map((city) => (
+        <a
+          class="marketing-city-card"
+          href={city.href}
+          data-track-event="city_revisit_click"
+          data-track-label={city.label}
+        >
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-sky-700">{city.label}</p>
+            <h3 class="marketing-card-title">{content.common.viewCities}</h3>
+          </div>
+          <span class="text-sm font-semibold text-slate-950">{content.common.cityRevisitLabel}</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="mt-4 text-sm text-slate-500">{content.thankYou.footnote}</p>
+  </section>
+
+  <SiteFooter
+    siteName={content.metadata.siteName}
+    tagline={content.home.footer.tagline}
+    links={content.home.footer.links}
+    note={content.home.footer.note}
+    betaLabel={content.home.footer.primaryCta}
+    betaHref={betaHref}
+    languageLabel={content.home.header.languageLabel}
+    languageLinks={languageLinks}
+  />
+</main>
+
+<script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback }}>
+  (() => {
+    const button = document.querySelector('[data-share-button]');
+    if (!(button instanceof HTMLButtonElement)) return;
+
+    button.addEventListener('click', async () => {
+      const shareData = {
+        title: document.title,
+        text: document.title,
+        url: window.location.origin,
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(shareData);
+          return;
+        }
+
+        await navigator.clipboard.writeText(window.location.origin);
+        alert(fallbackMessage);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  })();
+</script>
+
+<AnalyticsScripts locale={content.locale} pageKind="thank-you" />

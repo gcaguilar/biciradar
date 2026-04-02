@@ -1,0 +1,266 @@
+---
+import type { LocaleContent } from '../../content/marketing/types';
+import type { CityKey } from '../../content/marketing/types';
+import BetaForm from './BetaForm.astro';
+import FaqList from './FaqList.astro';
+import HeroMockup from './HeroMockup.astro';
+import PageHeader from './PageHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import AnalyticsScripts from './AnalyticsScripts.astro';
+import { siteConfig } from '../../lib/site-config';
+
+interface LanguageLink {
+  href: string;
+  label: string;
+  localeLabel: string;
+  current: boolean;
+}
+
+interface CityLink {
+  key: CityKey;
+  href: string;
+}
+
+interface Props {
+  content: LocaleContent;
+  languageLinks: LanguageLink[];
+  homeHref: string;
+  thankYouPath: string;
+  cityLinks: CityLink[];
+}
+
+const { content, languageLinks, homeHref, thankYouPath, cityLinks } = Astro.props;
+const sectionIds = content.home.header.sections.map((item) => item.id);
+const [problemId, solutionId, howId, citiesId, faqId] = sectionIds;
+const cityHrefByKey = new Map(cityLinks.map((item) => [item.key, item.href]));
+const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.hero.mockup.chips].filter(Boolean);
+---
+
+<PageHeader
+  siteName={content.metadata.siteName}
+  homeHref={homeHref}
+  languageLabel={content.home.header.languageLabel}
+  languageLinks={languageLinks}
+  navLinks={content.home.header.sections.map((item) => ({ href: `#${item.id}`, label: item.label }))}
+  primaryCtaLabel={content.home.header.primaryCta}
+  primaryCtaHref="#beta-form"
+  primaryEvent="hero_cta_click"
+/>
+
+<main id="main-content">
+  <section class="marketing-shell" id={solutionId}>
+    <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+      <div class="space-y-6">
+        <div class="space-y-4">
+          <h1 class="max-w-3xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            {content.home.hero.title}
+          </h1>
+          <p class="max-w-2xl text-lg leading-8 text-slate-600">
+            {content.home.hero.description}
+          </p>
+        </div>
+
+        <div class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)]">
+          <a
+            class="marketing-platform-card marketing-platform-card-ios"
+            href={siteConfig.appStoreUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-track-event="hero_secondary_cta_click"
+            data-track-placement="hero_ios"
+          >
+            <span class="marketing-chip marketing-chip-primary">{content.home.hero.primaryBadge}</span>
+            <span class="marketing-platform-card__button marketing-platform-card__button-ios">
+              {content.home.hero.primaryCta}
+            </span>
+          </a>
+
+          <a
+            class="marketing-platform-card marketing-platform-card-android"
+            href="#beta-form"
+            data-track-event="hero_cta_click"
+            data-track-placement="hero_android"
+          >
+            <span class="marketing-chip marketing-chip-secondary">{content.home.hero.secondaryBadge}</span>
+            <span class="marketing-platform-card__button marketing-platform-card__button-android">
+              {content.home.hero.secondaryCta}
+            </span>
+            <span class="marketing-platform-card__note">{content.home.hero.microcopy}</span>
+          </a>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          {heroValueProps.map((value) => (
+            <span class="marketing-value-pill">{value}</span>
+          ))}
+        </div>
+      </div>
+
+      <div class="marketing-hero-panel">
+        <HeroMockup {...content.home.hero.mockup} />
+      </div>
+    </div>
+  </section>
+
+  <section class="marketing-shell" id={problemId}>
+    <div class="space-y-3">
+      <h2 class="marketing-section-title">{content.home.problem.title}</h2>
+      <p class="max-w-3xl text-base leading-7 text-slate-600">{content.home.problem.intro}</p>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      {content.home.problem.cards.map((card) => (
+        <article class="marketing-card">
+          <h3 class="marketing-card-title">{card.title}</h3>
+          <p class="marketing-card-copy">{card.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="space-y-3">
+      <h2 class="marketing-section-title">{content.home.solution.title}</h2>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {content.home.solution.cards.map((card) => (
+        <article class="marketing-card">
+          <h3 class="marketing-card-title">{card.title}</h3>
+          <p class="marketing-card-copy">{card.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-shell" id={howId}>
+    <div class="space-y-3">
+      <h2 class="marketing-section-title">{content.home.howItWorks.title}</h2>
+    </div>
+
+    <div class="mt-8 grid gap-4 lg:grid-cols-3">
+      {content.home.howItWorks.steps.map((step) => (
+        <article class="marketing-step-card">
+          <span class="marketing-step-number">{step.number}</span>
+          <h3 class="marketing-card-title">{step.title}</h3>
+          <p class="marketing-card-copy">{step.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-shell" id={citiesId}>
+    <div class="space-y-3">
+      <h2 class="marketing-section-title">{content.home.cities.title}</h2>
+      <p class="max-w-3xl text-base leading-7 text-slate-600">{content.home.cities.description}</p>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {content.home.cities.items.map((city) => (
+        <a
+          class="marketing-city-card"
+          href={cityHrefByKey.get(city.key)}
+          data-track-event="city_page_click"
+          data-track-city={city.name}
+          data-track-system={city.system}
+        >
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-sky-700">{city.name} · {city.system}</p>
+            <h3 class="marketing-card-title">{city.description}</h3>
+          </div>
+          <span class="text-sm font-semibold text-slate-950">{content.common.cityPageCta}</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="mt-4 text-sm text-slate-500">{content.home.cities.moreLabel}</p>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="marketing-dark-band">
+      <div class="space-y-3">
+        <p class="marketing-section-kicker marketing-section-kicker-dark">{content.common.betaInviteLabel}</p>
+        <h2 class="text-3xl font-black tracking-tight text-white">{content.home.midCta.title}</h2>
+        <p class="max-w-2xl text-sm leading-6 text-slate-300">{content.home.midCta.description}</p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <a
+          class="marketing-dark-action marketing-dark-action-primary"
+          href={siteConfig.appStoreUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-track-event="hero_secondary_cta_click"
+          data-track-placement="mid_cta"
+        >
+          <strong>{content.home.midCta.primaryCta.label}</strong>
+          <span>{content.home.midCta.primaryCta.note}</span>
+        </a>
+
+        <a
+          class="marketing-dark-action marketing-dark-action-secondary"
+          href="#beta-form"
+          data-track-event="hero_cta_click"
+          data-track-placement="mid_cta"
+        >
+          <strong>{content.home.midCta.secondaryCta.label}</strong>
+          <span>{content.home.midCta.secondaryCta.note}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <BetaForm
+      locale={content.locale}
+      content={content.home.betaForm}
+      pageKind="home"
+      pagePath={homeHref}
+      thankYouPath={thankYouPath}
+    />
+  </section>
+
+  <section class="marketing-shell" id={faqId}>
+    <div class="space-y-3">
+      <h2 class="marketing-section-title">{content.home.faq.title}</h2>
+    </div>
+
+    <div class="mt-8">
+      <FaqList items={content.home.faq.items} />
+    </div>
+  </section>
+
+  <SiteFooter
+    siteName={content.metadata.siteName}
+    tagline={content.home.footer.tagline}
+    links={content.home.footer.links}
+    note={content.home.footer.note}
+    betaLabel={content.home.footer.primaryCta}
+    betaHref="#beta-form"
+    languageLabel={content.home.header.languageLabel}
+    languageLinks={languageLinks}
+  />
+</main>
+
+<div class="marketing-sticky-bar md:hidden">
+  <a
+    class="marketing-sticky-bar__ios"
+    href={siteConfig.appStoreUrl}
+    target="_blank"
+    rel="noreferrer"
+    data-track-event="hero_secondary_cta_click"
+    data-track-placement="sticky_mobile"
+  >
+    {content.home.hero.primaryCta}
+  </a>
+  <a
+    class="marketing-sticky-bar__beta"
+    href="#beta-form"
+    data-track-event="hero_cta_click"
+    data-track-placement="sticky_mobile"
+  >
+    {content.home.hero.secondaryCta}
+  </a>
+</div>
+
+<AnalyticsScripts locale={content.locale} pageKind="home" />

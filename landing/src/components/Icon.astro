@@ -4,13 +4,19 @@ interface Props {
     | 'arrow-right'
     | 'bell'
     | 'bike'
+    | 'calendar'
     | 'check'
+    | 'chevron-down'
+    | 'clock'
     | 'database'
     | 'download'
     | 'globe'
+    | 'mail'
     | 'moon'
     | 'phone'
     | 'pin'
+    | 'share'
+    | 'sparkles'
     | 'star'
     | 'sun';
   class?: string;
@@ -55,11 +61,41 @@ const icons = {
       },
     ],
   },
+  calendar: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M8 2v4M16 2v4M4 10h16',
+      },
+      {
+        d: 'M5 4h14a1 1 0 0 1 1 1v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1Z',
+      },
+    ],
+  },
   check: {
     viewBox: '0 0 24 24',
     paths: [
       {
         d: 'M9 12.75 11.25 15 15 9.75',
+      },
+      {
+        d: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+      },
+    ],
+  },
+  'chevron-down': {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'm6 9 6 6 6-6',
+      },
+    ],
+  },
+  clock: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M12 7v5l3 3',
       },
       {
         d: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
@@ -108,6 +144,17 @@ const icons = {
       },
     ],
   },
+  mail: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M4 6h16v12H4z',
+      },
+      {
+        d: 'm4 7 8 6 8-6',
+      },
+    ],
+  },
   moon: {
     viewBox: '0 0 24 24',
     paths: [
@@ -138,6 +185,34 @@ const icons = {
       },
       {
         d: 'M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z',
+      },
+    ],
+  },
+  share: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7',
+      },
+      {
+        d: 'm12 16 0-12',
+      },
+      {
+        d: 'm7 8 5-5 5 5',
+      },
+    ],
+  },
+  sparkles: {
+    viewBox: '0 0 24 24',
+    paths: [
+      {
+        d: 'm12 3 1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7L12 3Z',
+      },
+      {
+        d: 'm19 14 1 2.5L22.5 18 20 19l-1 2.5L18 19l-2.5-1.5L18 16.5 19 14Z',
+      },
+      {
+        d: 'm5 14 .8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z',
       },
     ],
   },

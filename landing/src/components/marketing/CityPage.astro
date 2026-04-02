@@ -1,0 +1,175 @@
+---
+import type { CityKey, LocaleContent } from '../../content/marketing/types';
+import HeroMockup from './HeroMockup.astro';
+import PageHeader from './PageHeader.astro';
+import FaqList from './FaqList.astro';
+import SiteFooter from './SiteFooter.astro';
+import AnalyticsScripts from './AnalyticsScripts.astro';
+import { siteConfig } from '../../lib/site-config';
+
+interface LanguageLink {
+  href: string;
+  label: string;
+  localeLabel: string;
+  current: boolean;
+}
+
+interface Props {
+  content: LocaleContent;
+  cityKey: CityKey;
+  languageLinks: LanguageLink[];
+  homeHref: string;
+  betaHref: string;
+}
+
+const { content, cityKey, languageLinks, homeHref, betaHref } = Astro.props;
+const city = content.cityPages[cityKey];
+---
+
+<PageHeader
+  siteName={content.metadata.siteName}
+  homeHref={homeHref}
+  languageLabel={content.home.header.languageLabel}
+  languageLinks={languageLinks}
+  primaryCtaLabel={content.common.heroCta}
+  primaryCtaHref={betaHref}
+  primaryEvent="hero_cta_click"
+/>
+
+<main id="main-content">
+  <section class="marketing-shell">
+    <div class="marketing-city-hero">
+      <div class="space-y-5">
+        <p class="marketing-city-badge">{city.badge}</p>
+        <h1 class="max-w-3xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+          {city.title}
+        </h1>
+        <p class="max-w-2xl text-lg leading-8 text-slate-600">{city.description}</p>
+
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a
+            class="marketing-primary-button"
+            href={betaHref}
+            data-track-event="hero_cta_click"
+            data-track-placement="city_hero"
+            data-track-city={city.badge}
+          >
+            {content.common.heroCta}
+          </a>
+          <a
+            class="marketing-secondary-button"
+            href={siteConfig.appStoreUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-track-event="hero_secondary_cta_click"
+            data-track-placement="city_hero"
+            data-track-city={city.badge}
+          >
+            {content.common.appStoreLabel}
+          </a>
+        </div>
+      </div>
+
+      <HeroMockup
+        stationLabel={city.mockup.stationLabel}
+        availability={city.mockup.availability}
+        bikesLabel={content.home.hero.mockup.bikesLabel}
+        docksLabel={content.home.hero.mockup.docksLabel}
+        chips={content.home.hero.mockup.chips}
+        compact
+      />
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="space-y-3">
+      <p class="marketing-section-kicker">{city.badge}</p>
+      <h2 class="marketing-section-title">{city.benefitsTitle}</h2>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-3">
+      {city.benefits.map((benefit) => (
+        <article class="marketing-card">
+          <h3 class="marketing-card-title">{benefit.title}</h3>
+          <p class="marketing-card-copy">{benefit.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="space-y-3">
+      <p class="marketing-section-kicker">{content.home.header.sections[1]?.label}</p>
+      <h2 class="marketing-section-title">{content.home.solution.title}</h2>
+    </div>
+
+    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {content.home.solution.cards.map((card) => (
+        <article class="marketing-card">
+          <h3 class="marketing-card-title">{card.title}</h3>
+          <p class="marketing-card-copy">{card.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="space-y-3">
+      <p class="marketing-section-kicker">{content.common.faqLabel}</p>
+      <h2 class="marketing-section-title">{city.faqTitle}</h2>
+    </div>
+
+    <div class="mt-8">
+      <FaqList items={city.faq} />
+    </div>
+  </section>
+
+  <section class="marketing-shell">
+    <div class="marketing-dark-band">
+      <div class="space-y-3">
+        <p class="marketing-section-kicker marketing-section-kicker-dark">{content.common.betaInviteLabel}</p>
+        <h2 class="text-3xl font-black tracking-tight text-white">{content.common.finalCtaTitle}</h2>
+        <p class="max-w-2xl text-sm leading-6 text-slate-300">{content.common.finalCtaDescription}</p>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <a
+          class="marketing-dark-action marketing-dark-action-primary"
+          href={siteConfig.appStoreUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-track-event="hero_secondary_cta_click"
+          data-track-placement="city_final"
+          data-track-city={city.badge}
+        >
+          <strong>{content.common.appStoreLabel}</strong>
+          <span>{city.badge}</span>
+        </a>
+
+        <a
+          class="marketing-dark-action marketing-dark-action-secondary"
+          href={betaHref}
+          data-track-event="hero_cta_click"
+          data-track-placement="city_final"
+          data-track-city={city.badge}
+        >
+          <strong>{content.common.heroCta}</strong>
+          <span>{content.common.betaInviteLabel}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <SiteFooter
+    siteName={content.metadata.siteName}
+    tagline={content.home.footer.tagline}
+    links={content.home.footer.links}
+    note={content.home.footer.note}
+    betaLabel={content.home.footer.primaryCta}
+    betaHref={betaHref}
+    languageLabel={content.home.header.languageLabel}
+    languageLinks={languageLinks}
+  />
+</main>
+
+<AnalyticsScripts locale={content.locale} pageKind="city" cityPageKey={cityKey} />

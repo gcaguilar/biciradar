@@ -1,0 +1,124 @@
+---
+interface Props {
+  locale: string;
+  pageKind: string;
+  cityPageKey?: string;
+}
+
+const { locale, pageKind, cityPageKey = '' } = Astro.props;
+---
+
+<script is:inline define:vars={{ locale, pageKind, cityPageKey }}>
+  (() => {
+    const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    const storageKey = 'biciradar:utm';
+    const pageContext = {
+      locale,
+      page_kind: pageKind,
+      city_page_key: cityPageKey || undefined,
+      path: window.location.pathname,
+    };
+
+    const readStoredUtm = () => {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey) || '{}');
+      } catch {
+        return {};
+      }
+    };
+
+    const persistUtm = () => {
+      const search = new URLSearchParams(window.location.search);
+      const existing = readStoredUtm();
+      const next = { ...existing };
+
+      for (const key of utmKeys) {
+        const value = search.get(key);
+        if (value) {
+          next[key] = value;
+        }
+      }
+
+      if (Object.keys(next).length > 0) {
+        next.last_path = window.location.pathname;
+        next.updated_at = new Date().toISOString();
+
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(next));
+          sessionStorage.setItem(storageKey, JSON.stringify(next));
+        } catch {}
+      }
+
+      return next;
+    };
+
+    const getUtm = () => {
+      const stored = persistUtm();
+      return stored;
+    };
+
+    const track = (eventName, payload = {}) => {
+      window.umami?.track(eventName, {
+        ...pageContext,
+        ...payload,
+      });
+    };
+
+    window.BiciRadarAnalytics = {
+      getUtm,
+      track,
+      pageContext,
+    };
+
+    persistUtm();
+
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target.closest('[data-track-event]') : null;
+      if (!(target instanceof HTMLElement)) return;
+
+      const payload = {};
+      if (target.dataset.trackCity) payload.city = target.dataset.trackCity;
+      if (target.dataset.trackSystem) payload.system = target.dataset.trackSystem;
+      if (target.dataset.trackLabel) payload.label = target.dataset.trackLabel;
+      if (target.dataset.trackPlacement) payload.placement = target.dataset.trackPlacement;
+      track(target.dataset.trackEvent || '', payload);
+    });
+
+    document.addEventListener(
+      'toggle',
+      (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLDetailsElement) || !target.open || !target.matches('[data-faq-item]')) {
+          return;
+        }
+
+        track('faq_open', {
+          question: target.dataset.faqQuestion || '',
+        });
+      },
+      true,
+    );
+
+    const milestones = [25, 50, 75, 100];
+    const fired = new Set();
+    const onScroll = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollable <= 0) return;
+      const percent = Math.round((window.scrollY / scrollable) * 100);
+
+      for (const milestone of milestones) {
+        if (percent >= milestone && !fired.has(milestone)) {
+          fired.add(milestone);
+          track(`scroll_${milestone}`);
+        }
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    if (pageKind === 'thank-you') {
+      track('thank_you_page_view');
+    }
+  })();
+</script>

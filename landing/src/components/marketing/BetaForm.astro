@@ -1,0 +1,323 @@
+---
+import type { CityKey, HomeContent, Locale } from '../../content/marketing/types';
+
+interface Props {
+  locale: Locale;
+  content: HomeContent['betaForm'];
+  pageKind: 'home' | 'city';
+  pagePath: string;
+  thankYouPath: string;
+  cityPageKey?: CityKey;
+}
+
+const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = Astro.props;
+---
+
+<section class="marketing-form-card" id="beta-form" aria-labelledby="beta-form-title">
+  <div class="space-y-3">
+    <h2 class="text-3xl font-bold tracking-tight text-emerald-950" id="beta-form-title">
+      {content.title}
+    </h2>
+    <p class="max-w-3xl text-sm leading-6 text-emerald-900/80">
+      {content.description}
+    </p>
+    <p class="text-sm text-emerald-900/70">{content.helper}</p>
+  </div>
+
+  <form
+    action="/api/beta-signup"
+    class="mt-8 space-y-5"
+    data-beta-form
+    data-error-message={content.errorMessage}
+    data-page-kind={pageKind}
+    data-city-page-key={cityPageKey}
+    data-page-path={pagePath}
+    data-redirect-path={thankYouPath}
+  >
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="marketing-field">
+        <span>{content.fields.email.label}</span>
+        <input
+          name="email"
+          type="email"
+          placeholder={content.fields.email.placeholder}
+          required
+          autocomplete="email"
+        />
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.operatingSystem.label}</span>
+        <select name="operatingSystem" required>
+          <option value="">{content.fields.operatingSystem.placeholder}</option>
+          {content.options.operatingSystems.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.city.label}</span>
+        <select name="city" required>
+          <option value="">{content.fields.city.placeholder}</option>
+          {content.options.cities.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.bikeSystem.label}</span>
+        <select name="bikeSystem" required>
+          <option value="">{content.fields.bikeSystem.placeholder}</option>
+          {content.options.systems.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.frequency.label}</span>
+        <select name="frequency" required>
+          <option value="">{content.fields.frequency.placeholder}</option>
+          {content.options.frequencies.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.interest.label}</span>
+        <select name="interest">
+          <option value="">{content.fields.interest.placeholder}</option>
+          {content.options.interests.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.widgets.label}</span>
+        <select name="widgets">
+          <option value="">{content.fields.widgets.placeholder}</option>
+          {content.options.yesNo.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+
+      <label class="marketing-field">
+        <span>{content.fields.smartwatch.label}</span>
+        <select name="smartwatch">
+          <option value="">{content.fields.smartwatch.placeholder}</option>
+          {content.options.yesNo.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))}
+        </select>
+      </label>
+    </div>
+
+    <div class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-4">
+      <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
+        <input class="mt-1 size-4 rounded border-slate-300" name="consent" type="checkbox" value="true" required />
+        <span>{content.consentLabel}</span>
+      </label>
+      <p class="text-xs text-slate-500">{content.consentHint}</p>
+    </div>
+
+    <div class="sr-only">
+      <label>
+        {content.honeypotLabel}
+        <input name="company" type="text" tabindex="-1" autocomplete="off" />
+      </label>
+    </div>
+
+    <input name="locale" type="hidden" value={locale} />
+    <input name="pageKind" type="hidden" value={pageKind} />
+    <input name="cityPageKey" type="hidden" value={cityPageKey} />
+    <input name="pagePath" type="hidden" value={pagePath} />
+    <input name="startedAt" type="hidden" value="" data-started-at />
+    <input name="utm_source" type="hidden" value="" data-utm-field="utm_source" />
+    <input name="utm_medium" type="hidden" value="" data-utm-field="utm_medium" />
+    <input name="utm_campaign" type="hidden" value="" data-utm-field="utm_campaign" />
+    <input name="utm_content" type="hidden" value="" data-utm-field="utm_content" />
+    <input name="utm_term" type="hidden" value="" data-utm-field="utm_term" />
+
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <button class="marketing-primary-button" type="submit">
+        <span data-submit-label>{content.submitLabel}</span>
+      </button>
+      <p aria-live="polite" class="text-sm font-medium text-emerald-950" data-form-status></p>
+    </div>
+  </form>
+</section>
+
+<script
+  is:inline
+  define:vars={{
+    messages: {
+      required: content.validation.required,
+      email: content.validation.email,
+      consent: content.validation.consent,
+      server: content.validation.server,
+      loading: content.loadingLabel,
+      success: content.successMessage,
+      submit: content.submitLabel,
+    },
+  }}
+>
+  (() => {
+    const form = document.querySelector('[data-beta-form]');
+    if (!(form instanceof HTMLFormElement)) return;
+
+    const statusNode = form.querySelector('[data-form-status]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const submitLabel = form.querySelector('[data-submit-label]');
+    const startedAt = form.querySelector('[data-started-at]');
+    const utmFields = form.querySelectorAll('[data-utm-field]');
+    let startedTracked = false;
+
+    if (startedAt instanceof HTMLInputElement) {
+      startedAt.value = String(Date.now());
+    }
+
+    const setStatus = (message = '', tone = 'default') => {
+      if (!(statusNode instanceof HTMLElement)) return;
+      statusNode.textContent = message;
+      statusNode.dataset.tone = tone;
+    };
+
+    const syncUtm = () => {
+      const utm = window.BiciRadarAnalytics?.getUtm?.() || {};
+      utmFields.forEach((field) => {
+        if (field instanceof HTMLInputElement && field.dataset.utmField) {
+          field.value = utm[field.dataset.utmField] || '';
+        }
+      });
+    };
+
+    const clearCustomValidity = (field) => {
+      if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) {
+        field.setCustomValidity('');
+      }
+    };
+
+    const validateField = (field) => {
+      if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement)) return;
+      field.setCustomValidity('');
+
+      if (field.name === 'consent' && field instanceof HTMLInputElement && !field.checked) {
+        field.setCustomValidity(messages.consent);
+        return;
+      }
+
+      if (field.required && !field.value) {
+        field.setCustomValidity(messages.required);
+        return;
+      }
+
+      if (field.type === 'email' && field.value) {
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
+        if (!valid) {
+          field.setCustomValidity(messages.email);
+        }
+      }
+    };
+
+    form.querySelectorAll('input, select').forEach((field) => {
+      field.addEventListener('input', () => clearCustomValidity(field));
+      field.addEventListener('change', () => clearCustomValidity(field));
+      field.addEventListener('invalid', () => validateField(field));
+      field.addEventListener(
+        'focus',
+        () => {
+          if (!startedTracked) {
+            startedTracked = true;
+            window.BiciRadarAnalytics?.track?.('beta_form_start');
+          }
+        },
+        { once: true },
+      );
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      syncUtm();
+
+      let valid = true;
+      form.querySelectorAll('input, select').forEach((field) => {
+        validateField(field);
+        if ((field instanceof HTMLInputElement || field instanceof HTMLSelectElement) && !field.checkValidity()) {
+          valid = false;
+        }
+      });
+
+      if (!valid) {
+        form.reportValidity();
+        return;
+      }
+
+      window.BiciRadarAnalytics?.track?.('beta_form_submit', {
+        page_kind: form.dataset.pageKind || '',
+        city_page_key: form.dataset.cityPageKey || '',
+      });
+
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+      }
+      if (submitLabel instanceof HTMLElement) {
+        submitLabel.textContent = messages.loading;
+      }
+      setStatus(messages.loading);
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+          },
+          body: new FormData(form),
+        });
+
+        const payload = await response.json().catch(() => null);
+
+        if (!response.ok || !payload?.ok) {
+          const errorMessage = payload?.message || messages.server;
+          setStatus(errorMessage, 'error');
+          window.BiciRadarAnalytics?.track?.('beta_form_error', {
+            message: errorMessage,
+          });
+          return;
+        }
+
+        setStatus(messages.success, 'success');
+        window.BiciRadarAnalytics?.track?.('beta_form_success', {
+          city: payload?.city || '',
+          system: payload?.bikeSystem || '',
+        });
+
+        const redirectUrl = new URL(payload.redirectPath || form.dataset.redirectPath || '/', window.location.origin);
+        const utm = window.BiciRadarAnalytics?.getUtm?.() || {};
+        Object.entries(utm).forEach(([key, value]) => {
+          if (key.startsWith('utm_') && value) {
+            redirectUrl.searchParams.set(key, value);
+          }
+        });
+        window.location.assign(redirectUrl.toString());
+      } catch (error) {
+        console.error(error);
+        setStatus(messages.server, 'error');
+        window.BiciRadarAnalytics?.track?.('beta_form_error', {
+          message: messages.server,
+        });
+      } finally {
+        if (submitButton instanceof HTMLButtonElement) {
+          submitButton.disabled = false;
+        }
+        if (submitLabel instanceof HTMLElement) {
+          submitLabel.textContent = messages.submit;
+        }
+      }
+    });
+  })();
+</script>

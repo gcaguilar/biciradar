@@ -1,0 +1,26 @@
+---
+import Icon from '../Icon.astro';
+import type { FaqItemContent } from '../../content/marketing/types';
+
+interface Props {
+  items: FaqItemContent[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="space-y-3">
+  {items.map((item) => (
+    <details
+      class="group rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition open:border-slate-900"
+      data-faq-item
+      data-faq-question={item.question}
+    >
+      <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-semibold text-slate-950">
+        <span>{item.question}</span>
+        <Icon class="size-5 shrink-0 text-slate-500 transition group-open:rotate-180" name="chevron-down" />
+      </summary>
+      <p class="mt-3 pr-8 text-sm leading-6 text-slate-600">{item.answer}</p>
+    </details>
+  ))}
+</div>
