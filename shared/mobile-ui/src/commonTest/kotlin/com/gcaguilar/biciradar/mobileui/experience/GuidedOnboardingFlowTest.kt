@@ -6,18 +6,26 @@ import kotlin.test.assertEquals
 
 class GuidedOnboardingFlowTest {
   @Test
-  fun `guided onboarding starts with location permission`() {
-    val checklist = OnboardingChecklistSnapshot()
+  fun `guided onboarding starts with feature highlights after city selection`() {
+    val checklist = OnboardingChecklistSnapshot(cityConfirmed = true)
 
-    assertEquals(GuidedOnboardingStep.LocationPermission, checklist.guidedOnboardingStep())
+    assertEquals(GuidedOnboardingStep.FeatureHighlights, checklist.guidedOnboardingStep())
   }
 
   @Test
   fun `guided onboarding advances through pending steps in order`() {
     assertEquals(
+      GuidedOnboardingStep.LocationPermission,
+      OnboardingChecklistSnapshot(
+        cityConfirmed = true,
+        featureHighlightsSeen = true,
+      ).guidedOnboardingStep(),
+    )
+    assertEquals(
       GuidedOnboardingStep.NotificationsPermission,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
+        featureHighlightsSeen = true,
         locationDecisionMade = true,
       ).guidedOnboardingStep(),
     )
@@ -25,6 +33,7 @@ class GuidedOnboardingFlowTest {
       GuidedOnboardingStep.FirstFavorite,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
+        featureHighlightsSeen = true,
         locationDecisionMade = true,
         notificationsDecisionMade = true,
       ).guidedOnboardingStep(),
@@ -33,6 +42,7 @@ class GuidedOnboardingFlowTest {
       GuidedOnboardingStep.SavedPlaces,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
+        featureHighlightsSeen = true,
         locationDecisionMade = true,
         notificationsDecisionMade = true,
         firstStationSaved = true,
@@ -42,6 +52,7 @@ class GuidedOnboardingFlowTest {
       GuidedOnboardingStep.Surfaces,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
+        featureHighlightsSeen = true,
         locationDecisionMade = true,
         notificationsDecisionMade = true,
         firstStationSaved = true,
@@ -54,6 +65,7 @@ class GuidedOnboardingFlowTest {
   fun `guided onboarding reports completed when every step is done`() {
     val checklist = OnboardingChecklistSnapshot(
       cityConfirmed = true,
+      featureHighlightsSeen = true,
       locationDecisionMade = true,
       notificationsDecisionMade = true,
       firstStationSaved = true,

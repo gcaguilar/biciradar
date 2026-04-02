@@ -25,6 +25,7 @@ enum class DataFreshness {
 @Serializable
 data class OnboardingChecklistSnapshot(
   val cityConfirmed: Boolean = false,
+  val featureHighlightsSeen: Boolean = false,
   val locationDecisionMade: Boolean = false,
   val notificationsDecisionMade: Boolean = false,
   /** User has at least one favorite (synced from favorites repo during onboarding). */

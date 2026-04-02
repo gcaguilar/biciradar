@@ -244,6 +244,17 @@
     <string name="dataSourceEnvironmentalDetail">Air quality and pollen: we use the Open-Meteo Air Quality/Pollen API by zone coordinates, with a short-lived cache to avoid excessive requests.</string>
     <string name="onboardingAllow">Allow</string>
     <string name="onboardingLater">Not now</string>
+    <string name="onboardingHighlightsTitle">What you can do</string>
+    <string name="onboardingHighlightsBody">Before we ask for permissions, here’s a quick look at what Bici Radar can do for you.</string>
+    <string name="onboardingHighlightsContinue">Continue setup</string>
+    <string name="onboardingFeatureNearbyTitle">See bikes and docks instantly</string>
+    <string name="onboardingFeatureNearbyBody">Use Map, Nearby, and Trip to find the best station around you or near your destination.</string>
+    <string name="onboardingFeatureSavedTitle">Save Home, Work, and favorites</string>
+    <string name="onboardingFeatureSavedBody">Keep key stations one tap away, share them with widgets, and bring them to your watch.</string>
+    <string name="onboardingFeatureAlertsTitle">Get alerts and monitor trips</string>
+    <string name="onboardingFeatureAlertsBody">Turn on notifications when bikes or docks match your needs and watch a station before you arrive.</string>
+    <string name="onboardingFeatureRoutesTitle">Open routes and shortcuts</string>
+    <string name="onboardingFeatureRoutesBody">Launch walking directions and use Siri or Assistant to check station status without digging through the app.</string>
     <string name="onboardingLocationTitle">Approximate location</string>
     <string name="onboardingLocationBody">We use your position to sort stations by distance. You can enable it now or later from the map or Nearby.</string>
     <string name="onboardingNotificationsTitle">Notifications</string>

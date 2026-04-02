@@ -244,6 +244,17 @@
     <string name="dataSourceEnvironmentalDetail">Qualitat de l’aire i pol·len: usem l’API d’Open-Meteo Air Quality/Pollen segons coordenades de la zona, amb memòria cau temporal per evitar peticions excessives.</string>
     <string name="onboardingAllow">Permetre</string>
     <string name="onboardingLater">Més tard</string>
+    <string name="onboardingHighlightsTitle">Tot el que pots fer</string>
+    <string name="onboardingHighlightsBody">Abans de configurar permisos, aquí tens un resum ràpid del que podràs fer amb Bici Radar.</string>
+    <string name="onboardingHighlightsContinue">Continuar configuració</string>
+    <string name="onboardingFeatureNearbyTitle">Veure bicis i ancoratges al moment</string>
+    <string name="onboardingFeatureNearbyBody">Consulta el mapa, A prop i Viatge per trobar la millor estació al teu voltant o prop del destí.</string>
+    <string name="onboardingFeatureSavedTitle">Desar Casa, Feina i favorites</string>
+    <string name="onboardingFeatureSavedBody">Tingues les teves estacions clau a un toc per obrir-les més ràpid, compartir-les amb widgets i portar-les al rellotge.</string>
+    <string name="onboardingFeatureAlertsTitle">Rebre alertes i vigilar</string>
+    <string name="onboardingFeatureAlertsBody">Activa avisos quan hi hagi bicis o ancoratges i vigila una estació abans d'arribar.</string>
+    <string name="onboardingFeatureRoutesTitle">Obrir rutes i dreceres</string>
+    <string name="onboardingFeatureRoutesBody">Llança navegació a peu i usa Siri o Assistant per consultar l'estat sense recórrer tota l'app.</string>
     <string name="onboardingLocationTitle">Ubicació aproximada</string>
     <string name="onboardingLocationBody">Usem la teva posició per ordenar estacions per distància.</string>
     <string name="onboardingNotificationsTitle">Avisos</string>

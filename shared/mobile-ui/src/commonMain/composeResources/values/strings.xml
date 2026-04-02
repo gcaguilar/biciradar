@@ -244,6 +244,17 @@
     <string name="dataSourceEnvironmentalDetail">Calidad del aire y polen: usamos Open-Meteo Air Quality/Pollen API según coordenadas de la zona, con caché temporal para evitar peticiones excesivas.</string>
     <string name="onboardingAllow">Permitir</string>
     <string name="onboardingLater">Más tarde</string>
+    <string name="onboardingHighlightsTitle">Todo lo que puedes hacer</string>
+    <string name="onboardingHighlightsBody">Antes de configurar permisos, aquí tienes un vistazo rápido de lo que podrás hacer con Bici Radar.</string>
+    <string name="onboardingHighlightsContinue">Seguir con la configuración</string>
+    <string name="onboardingFeatureNearbyTitle">Ver bicis y huecos al instante</string>
+    <string name="onboardingFeatureNearbyBody">Consulta el mapa, Cerca y Viaje para encontrar la mejor estación alrededor de ti o de tu destino.</string>
+    <string name="onboardingFeatureSavedTitle">Guardar Casa, Trabajo y favoritas</string>
+    <string name="onboardingFeatureSavedBody">Ten tus estaciones clave a un toque para abrirlas más rápido, compartirlas con widgets y llevarlas al reloj.</string>
+    <string name="onboardingFeatureAlertsTitle">Recibir alertas y monitorizar</string>
+    <string name="onboardingFeatureAlertsBody">Activa avisos cuando haya bicis o huecos y vigila una estación antes de llegar.</string>
+    <string name="onboardingFeatureRoutesTitle">Abrir rutas y atajos</string>
+    <string name="onboardingFeatureRoutesBody">Lanza navegación a pie y usa Siri o Assistant para consultar el estado sin recorrer toda la app.</string>
     <string name="onboardingLocationTitle">Ubicación aproximada</string>
     <string name="onboardingLocationBody">Usamos tu posición para ordenar estaciones por distancia. Puedes activarla ahora o más tarde desde el mapa o Cerca.</string>
     <string name="onboardingNotificationsTitle">Avisos</string>

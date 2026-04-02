@@ -244,6 +244,17 @@
     <string name="dataSourceEnvironmentalDetail">Airearen kalitatea eta polena: Open-Meteo Air Quality/Pollen APIa erabiltzen dugu zonako koordenatuen arabera, eskaera gehiegi saihesteko aldi baterako cachearekin.</string>
     <string name="onboardingAllow">Baimendu</string>
     <string name="onboardingLater">Geroago</string>
+    <string name="onboardingHighlightsTitle">Egin dezakezun guztia</string>
+    <string name="onboardingHighlightsBody">Baimenak konfiguratu aurretik, hemen duzu Bici Radarrekin egin ahal izango duzunaren laburpen azkar bat.</string>
+    <string name="onboardingHighlightsContinue">Jarraitu konfigurazioarekin</string>
+    <string name="onboardingFeatureNearbyTitle">Ikusi bizikletak eta ainguralekuak berehala</string>
+    <string name="onboardingFeatureNearbyBody">Erabili Mapa, Gertu eta Bidaia zure inguruan edo helmugatik gertu dagoen geltokirik onena aurkitzeko.</string>
+    <string name="onboardingFeatureSavedTitle">Gorde Etxea, Lana eta gogokoak</string>
+    <string name="onboardingFeatureSavedBody">Izan zure geltoki garrantzitsuenak ukitu bakarrera, partekatu widgetekin eta eraman erlojuera.</string>
+    <string name="onboardingFeatureAlertsTitle">Jaso alertak eta zaindu</string>
+    <string name="onboardingFeatureAlertsBody">Aktibatu abisuak bizikletak edo ainguralekuak behar duzunean eskuragarri daudenean, eta zaindu geltoki bat iritsi aurretik.</string>
+    <string name="onboardingFeatureRoutesTitle">Ireki ibilbideak eta lasterbideak</string>
+    <string name="onboardingFeatureRoutesBody">Abiarazi oinezko nabigazioa eta erabili Siri edo Assistant geltokiaren egoera app osoa zeharkatu gabe kontsultatzeko.</string>
     <string name="onboardingLocationTitle">Kokapen hurbila</string>
     <string name="onboardingLocationBody">Zure posizioa erabiltzen dugu geltokiak distantziaz ordenatzeko.</string>
     <string name="onboardingNotificationsTitle">Jakinarazpenak</string>

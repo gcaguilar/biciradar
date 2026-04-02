@@ -378,6 +378,11 @@ fun BiziMobileApp(
               navController,
             ) {
               GuidedOnboardingCallbacks(
+                onContinueFeatureHighlights = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist { it.copy(featureHighlightsSeen = true) }
+                  }
+                },
                 onRequestLocationPermission = {
                   scope.launch {
                     platformBindings.permissionPrompter.requestLocationPermission()

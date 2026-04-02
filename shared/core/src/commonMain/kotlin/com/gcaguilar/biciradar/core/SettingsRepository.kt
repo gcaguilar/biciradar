@@ -90,6 +90,7 @@ class SettingsRepositoryImpl(
     if (snapshot?.hasCompletedOnboarding == true && !checklist.isCompleted()) {
       checklist = OnboardingChecklistSnapshot(
         cityConfirmed = true,
+        featureHighlightsSeen = true,
         locationDecisionMade = true,
         notificationsDecisionMade = true,
         firstStationSaved = true,
