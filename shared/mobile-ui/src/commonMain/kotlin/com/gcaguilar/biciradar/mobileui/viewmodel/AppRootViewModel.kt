@@ -14,6 +14,7 @@ import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.core.compareAppVersionStrings
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
@@ -254,6 +255,7 @@ internal class AppRootViewModel(
 
   private fun updatePendingChangelog() {
     if (!_uiState.value.settingsBootstrapped) return
+    if (suppressChangelogWhileOnboardingPending()) return
     val lastSeen = settingsRepository.currentLastSeenChangelogAppVersion() ?: "0.0.0"
     val pending = pendingChangelogVersion(
       appVersion,
@@ -270,6 +272,22 @@ internal class AppRootViewModel(
         ),
       )
     }
+  }
+
+  private fun suppressChangelogWhileOnboardingPending(): Boolean {
+    val onboardingCompleted = settingsRepository.onboardingChecklist.value.isCompleted() ||
+      settingsRepository.hasCompletedOnboarding.value
+    if (onboardingCompleted) return false
+
+    val normalizedCurrentVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion
+    val normalizedLastSeen = normalizeAppVersionForCatalog(settingsRepository.currentLastSeenChangelogAppVersion())
+    if (normalizedLastSeen == null || compareAppVersionStrings(normalizedLastSeen, normalizedCurrentVersion) < 0) {
+      viewModelScope.launch {
+        settingsRepository.setLastSeenChangelogAppVersion(normalizedCurrentVersion)
+      }
+    }
+    _uiState.value = _uiState.value.copy(changelogPresentation = null)
+    return true
   }
 
   private fun maybeAutoCompleteOnboarding() {

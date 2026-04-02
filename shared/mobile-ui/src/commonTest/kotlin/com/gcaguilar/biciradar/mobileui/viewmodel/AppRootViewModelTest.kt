@@ -86,6 +86,31 @@ class AppRootViewModelTest {
   }
 
   @Test
+  fun `bootstrap suppresses changelog while onboarding is still pending`() = runTest(dispatcher) {
+    val settingsRepository = FakeAppRootSettingsRepository(
+      onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true),
+      lastSeenChangelogAppVersion = "0.19.0",
+    )
+    val viewModel = AppRootViewModel(
+      settingsRepository = settingsRepository,
+      favoritesRepository = FakeAppRootFavoritesRepository(),
+      stationsRepository = FakeAppRootStationsRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      engagementRepository = FakeEngagementRepository(),
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
+      reviewPrompter = AppRootFakeReviewPrompter(),
+      appVersion = "0.21.0",
+    )
+
+    advanceUntilIdle()
+
+    assertEquals(null, viewModel.uiState.value.changelogPresentation)
+    assertEquals("0.21.0", settingsRepository.lastSeenChangelogAppVersion.value)
+  }
+
+  @Test
   fun `auto completes onboarding milestones from favorites and saved places`() = runTest(dispatcher) {
     val settingsRepository = FakeAppRootSettingsRepository(
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true),
@@ -112,7 +137,8 @@ class AppRootViewModelTest {
 
     assertTrue(settingsRepository.onboardingChecklist.value.firstStationSaved)
     assertTrue(settingsRepository.onboardingChecklist.value.savedPlacesConfigured)
-    assertEquals(viewModel.uiState.value.changelogPresentation != null, true)
+    assertEquals(null, viewModel.uiState.value.changelogPresentation)
+    assertEquals("0.19.1", settingsRepository.lastSeenChangelogAppVersion.value)
   }
 
   @Test
