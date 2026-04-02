@@ -215,11 +215,11 @@ export const ca = {
     faq: {
       title: 'FAQ',
       items: [
-        { question: 'Com accedeixo a la beta?', answer: 'Omple el formulari i t’invitarem per email quan obrim noves places.' },
-        { question: 'BiciRadar substitueix l’app oficial?', answer: 'No. Està pensada com una capa ràpida per consultar disponibilitat, desar preferides i activar avisos.' },
-        { question: 'La puc fer servir si ja tinc l’app oficial?', answer: 'Sí. BiciRadar està orientada a reduir fricció en consultes ràpides del dia a dia.' },
-        { question: 'Funcionarà en més ciutats?', answer: 'Sí. La base queda preparada per créixer per ciutat i sistema mentre hi hagi dades oficials.' },
-        { question: 'Què passa amb les meves UTMs i la meva sol·licitud?', answer: 'Associem la campanya d’origen al teu lead per mesurar el funnel sense reutilitzar-ho en altres usos.' },
+        { question: 'Si ja tinc l’app oficial, què m’aporta BiciRadar?', answer: 'Rapidesa per al que més consultes: estació més propera, bicis disponibles, ancoratges lliures, preferides, estat i ruta.' },
+        { question: 'Realment estalvia temps?', answer: 'Sí. Inclou veu i dreceres a iPhone, Apple Watch i Android per resoldre consultes amb menys passos.' },
+        { question: 'Només serveix al mòbil?', answer: 'No. Està pensada per a mòbil i rellotge: Android, iOS, Wear OS i Apple Watch.' },
+        { question: 'Les dades són fiables?', answer: 'Fa servir fonts oficials d’open data de les ciutats. Pot haver-hi petits desfasaments típics del temps real.' },
+        { question: 'Per què fer servir BiciRadar com a complement?', answer: 'L’app oficial és el canal institucional; BiciRadar està optimitzada per consultar més ràpid i amb menys fricció.' },
       ],
     },
     footer: {

@@ -189,11 +189,11 @@ export const eu = {
     faq: {
       title: 'FAQ',
       items: [
-        { question: 'Nola lortzen dut beta sarbidea?', answer: 'Bete formularioa eta plaza berriak irekitzen ditugunean email bidez gonbidatuko zaitugu.' },
-        { question: 'BiciRadarrek app ofiziala ordezkatzen al du?', answer: 'Ez. Erabilgarritasuna azkar kontsultatzeko, gustukoak gordetzeko eta abisuak aktibatzeko geruza azkar gisa pentsatuta dago.' },
-        { question: 'Erabili al dezaket app ofiziala badut jada?', answer: 'Bai. BiciRadar eguneroko kontsulta azkarretako marruskadura murriztera bideratuta dago.' },
-        { question: 'Hiri gehiagotan ibiliko da?', answer: 'Bai. Oinarria hiriz hiri eta sistemaz sistema hazteko prestatuta dago datu ofizialak dauden bitartean.' },
-        { question: 'Zer gertatzen da nire UTMei eta nire eskaerari?', answer: 'Jatorrizko kanpaina zure leadari lotzen diogu funnel-a neurtzeko, beste erabilerarik eman gabe.' },
+        { question: 'App ofiziala badut, zer ematen dit BiciRadar-ek?', answer: 'Abiadura: gertuko estazioa, bizikletak, ainguraleku libreak, gogokoak, egoera eta ibilbidea azkar ikusteko.' },
+        { question: 'Benetan denbora aurrezten du?', answer: 'Bai. Ahotsa eta lasterbideak ditu iPhone, Apple Watch eta Android-en, kontsultak urrats gutxiagotan egiteko.' },
+        { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
+        { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
+        { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
       ],
     },
     footer: {

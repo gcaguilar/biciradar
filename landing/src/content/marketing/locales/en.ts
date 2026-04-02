@@ -277,27 +277,29 @@ export const en = {
       title: 'FAQ',
       items: [
         {
-          question: 'How do I get beta access?',
-          answer: 'Complete the form and we will invite you by email as new spots open.',
-        },
-        {
-          question: 'Does BiciRadar replace the official app?',
+          question: 'If I already use the official app, what does BiciRadar add?',
           answer:
-            'No. It is designed as a fast layer for availability checks, favorites, and alerts.',
+            'Speed for what matters most: nearest station, available bikes, free docks, favorites, station status, and route.',
         },
         {
-          question: 'Can I use it if I already have the official app?',
-          answer: 'Yes. BiciRadar is focused on reducing friction in daily quick checks.',
-        },
-        {
-          question: 'Will it support more cities?',
+          question: 'Does it really save time?',
           answer:
-            'Yes. The architecture is prepared to grow by city and system whenever official data is available.',
+            'Yes. It includes voice and shortcuts on iPhone, Apple Watch, and Android to solve queries in fewer steps, sometimes without opening the app.',
         },
         {
-          question: 'What happens to my UTMs and my signup?',
+          question: 'Is it only for mobile?',
           answer:
-            'We attach campaign data to each lead so we can measure the funnel without reusing it elsewhere.',
+            'No. It is designed for phone and watch: Android, iOS, Wear OS, and Apple Watch.',
+        },
+        {
+          question: 'Is the data reliable?',
+          answer:
+            'It uses official city open-data sources. Small delays can happen as in any real-time system.',
+        },
+        {
+          question: 'Why use BiciRadar as a complement?',
+          answer:
+            'The official app is the institutional channel; BiciRadar is optimized for faster, lower-friction daily checks.',
         },
       ],
     },
