@@ -23,6 +23,7 @@ import kotlinx.serialization.json.Json
 @DependencyGraph(AppScope::class)
 interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
+  val changeCityUseCase: ChangeCityUseCase
   val datosBiziApi: DatosBiziApi
   val environmentalRepository: EnvironmentalRepository
   val engagementRepository: EngagementRepository

@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,8 +35,8 @@ data class ShortcutGuide(
 
 class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
-  private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
+  private val changeCityUseCase: ChangeCityUseCase,
   private val permissionPrompter: PermissionPrompter,
   private val localNotifier: LocalNotifier,
 ) : ViewModel() {
@@ -142,9 +142,7 @@ class ProfileViewModel(
 
   fun onCitySelected(city: City) {
     viewModelScope.launch {
-      settingsRepository.setSelectedCity(city)
-      favoritesRepository.clearAll()
-      stationsRepository.forceRefresh()
+      changeCityUseCase.execute(city = city)
       refreshSetupRequirements()
     }
   }
@@ -161,7 +159,7 @@ class ProfileViewModel(
     publishUiState(_uiState.value.copy(shortcutGuides = guides))
   }
 
-  fun refreshSetupRequirements() {
+  private fun refreshSetupRequirements() {
     viewModelScope.launch {
       latestHasLocationPermission = permissionPrompter.hasLocationPermission()
       latestHasNotificationPermission = localNotifier.hasPermission()

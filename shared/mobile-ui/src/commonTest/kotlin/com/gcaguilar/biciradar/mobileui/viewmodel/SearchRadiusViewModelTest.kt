@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import com.gcaguilar.biciradar.core.AutocompleteResult
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
@@ -121,21 +122,55 @@ class SearchRadiusViewModelTest {
 
   @Test
   fun `profile view model shows setup card when onboarding is complete but setup requirements are missing`() = runTest(dispatcher) {
+    val settingsRepository = FakeSettingsRepository()
     val favoritesRepository = FakeFavoritesRepository().apply {
       favoriteIds.value = setOf("home")
       homeStationId.value = "home"
       workStationId.value = "work"
     }
+    val stationsRepository = FakeStationsRepository()
     val viewModel = ProfileViewModel(
-      settingsRepository = FakeSettingsRepository(),
-      stationsRepository = FakeStationsRepository(),
+      settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
+      changeCityUseCase = ChangeCityUseCase(
+        settingsRepository = settingsRepository,
+        favoritesRepository = favoritesRepository,
+        stationsRepository = stationsRepository,
+      ),
       permissionPrompter = FakePermissionPrompter(hasLocationPermission = false),
       localNotifier = FakeLocalNotifier(hasPermission = false),
     )
 
     advanceUntilIdle()
     assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
+  }
+
+  @Test
+  fun `profile view model clears favorites and refreshes stations when changing city`() = runTest(dispatcher) {
+    val settingsRepository = FakeSettingsRepository(city = City.ZARAGOZA)
+    val favoritesRepository = FakeFavoritesRepository().apply {
+      favoriteIds.value = setOf("home")
+    }
+    val stationsRepository = FakeStationsRepository()
+    val viewModel = ProfileViewModel(
+      settingsRepository = settingsRepository,
+      favoritesRepository = favoritesRepository,
+      changeCityUseCase = ChangeCityUseCase(
+        settingsRepository = settingsRepository,
+        favoritesRepository = favoritesRepository,
+        stationsRepository = stationsRepository,
+      ),
+      permissionPrompter = FakePermissionPrompter(hasLocationPermission = true),
+      localNotifier = FakeLocalNotifier(hasPermission = true),
+    )
+
+    advanceUntilIdle()
+    viewModel.onCitySelected(City.MADRID)
+    advanceUntilIdle()
+
+    assertEquals(City.MADRID, settingsRepository.selectedCity.value)
+    assertEquals(1, favoritesRepository.clearAllCalls)
+    assertEquals(1, stationsRepository.forceRefreshCalls)
   }
 }
 
@@ -193,8 +228,11 @@ private class FakeStationsRepository(
   initialState: StationsState = StationsState(),
 ) : StationsRepository {
   override val state: MutableStateFlow<StationsState> = MutableStateFlow(initialState)
+  var forceRefreshCalls: Int = 0
   override suspend fun loadIfNeeded() = Unit
-  override suspend fun forceRefresh() = Unit
+  override suspend fun forceRefresh() {
+    forceRefreshCalls++
+  }
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
   override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
 }
@@ -203,6 +241,7 @@ private class FakeFavoritesRepository : FavoritesRepository {
   override val favoriteIds = MutableStateFlow(emptySet<String>())
   override val homeStationId = MutableStateFlow<String?>(null)
   override val workStationId = MutableStateFlow<String?>(null)
+  var clearAllCalls: Int = 0
 
   override suspend fun bootstrap() = Unit
   override suspend fun syncFromPeer() = Unit
@@ -213,7 +252,9 @@ private class FakeFavoritesRepository : FavoritesRepository {
   override suspend fun setWorkStationId(stationId: String?) {
     workStationId.value = stationId
   }
-  override suspend fun clearAll() = Unit
+  override suspend fun clearAll() {
+    clearAllCalls++
+  }
   override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
   override fun currentHomeStationId(): String? = homeStationId.value
   override fun currentWorkStationId(): String? = workStationId.value

@@ -260,9 +260,6 @@ internal object BiziMobileAppContent {
     onShowChangelogManual: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    LaunchedEffect(viewModel) {
-      viewModel.refreshSetupRequirements()
-    }
     ProfileScreen(
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
