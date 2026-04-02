@@ -16,7 +16,7 @@ class ChangelogVersioningTest {
 
   @Test
   fun pendingChangelogVersion_requiresCatalogAndNewerLastSeen() {
-    val catalog = setOf("0.18.1", "0.19.0", "0.21.0")
+    val catalog = setOf("0.18.1", "0.19.0", "0.21.0", "0.22.0")
     assertNull(pendingChangelogVersion("0.19.0", null, catalog))
     assertNull(pendingChangelogVersion("0.19.0", "0.19.0", catalog))
     assertEquals("0.19.0", pendingChangelogVersion("0.19.0", "0.18.1", catalog))
@@ -25,7 +25,8 @@ class ChangelogVersioningTest {
     assertNull(pendingChangelogVersion("0.19.1", "0.19.0", catalog))
     assertNull(pendingChangelogVersion("0.20.0", "0.19.0", catalog))
     assertEquals("0.21.0", pendingChangelogVersion("0.21.0", "0.19.0", catalog))
-    assertEquals("0.21.0", pendingChangelogVersion("0.22.0", "0.19.0", catalog))
-    assertNull(pendingChangelogVersion("0.22.0", "0.21.0", catalog))
+    assertEquals("0.22.0", pendingChangelogVersion("0.22.0", "0.21.0", catalog))
+    assertEquals("0.22.0", pendingChangelogVersion("0.22.3", "0.21.0", catalog))
+    assertNull(pendingChangelogVersion("0.22.0", "0.22.0", catalog))
   }
 }

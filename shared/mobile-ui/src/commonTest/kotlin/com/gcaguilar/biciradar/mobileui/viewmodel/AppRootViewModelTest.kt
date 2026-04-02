@@ -58,10 +58,10 @@ class AppRootViewModelTest {
   }
 
   @Test
-  fun `bootstrap exposes pending changelog and startup readiness after refresh`() = runTest(dispatcher) {
+  fun `bootstrap exposes pending changelog for the latest cataloged version`() = runTest(dispatcher) {
     val settingsRepository = FakeAppRootSettingsRepository(
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true, completedAtEpoch = 1L),
-      lastSeenChangelogAppVersion = "0.0.0",
+      lastSeenChangelogAppVersion = "0.19.0",
     )
     val viewModel = AppRootViewModel(
       settingsRepository = settingsRepository,
@@ -73,7 +73,7 @@ class AppRootViewModelTest {
       surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
-      appVersion = "0.19.1",
+      appVersion = "0.21.0",
     )
 
     viewModel.onRefreshSignal()
@@ -83,6 +83,7 @@ class AppRootViewModelTest {
     assertTrue(viewModel.uiState.value.favoritesBootstrapped)
     assertTrue(viewModel.uiState.value.startupLaunchReady)
     assertNotNull(viewModel.uiState.value.changelogPresentation)
+    assertEquals("0.21.0", viewModel.uiState.value.changelogPresentation?.highlightedVersion)
   }
 
   @Test
