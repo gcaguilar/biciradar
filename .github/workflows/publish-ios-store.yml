@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.0.2
         with:
           fetch-tags: true
 
@@ -43,13 +43,13 @@ jobs:
           echo "Building iOS release: ${release_tag:-$(git rev-parse --short HEAD)}"
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v5.2.0
         with:
           distribution: temurin
           java-version: "21"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.0.1
         with:
           build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
           build-scan-terms-of-use-agree: "yes"
@@ -151,7 +151,7 @@ jobs:
           fi
 
       - name: Set up Ruby and Bundler
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@v1.299.0
         with:
           ruby-version: '3.3'
           bundler-cache: true
@@ -162,7 +162,7 @@ jobs:
         run: bundle exec fastlane ios release_to_app_store
 
       - name: Upload signed iOS IPA artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: ios-app-store-ipa
           if-no-files-found: error
