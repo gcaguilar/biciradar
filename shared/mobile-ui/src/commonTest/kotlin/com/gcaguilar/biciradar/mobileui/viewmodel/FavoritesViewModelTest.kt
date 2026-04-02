@@ -1,22 +1,24 @@
 package com.gcaguilar.biciradar.mobileui.viewmodel
 
-import com.gcaguilar.biciradar.core.AssistantAction
-import com.gcaguilar.biciradar.core.AssistantIntentResolver
-import com.gcaguilar.biciradar.core.AssistantResolution
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
+import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
+import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
+import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -28,7 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ShortcutsViewModelTest {
+class FavoritesViewModelTest {
   private val dispatcher = StandardTestDispatcher()
 
   @BeforeTest
@@ -42,60 +44,36 @@ class ShortcutsViewModelTest {
   }
 
   @Test
-  fun `resolves assistant action into latest answer`() = runTest(dispatcher) {
-    val viewModel = ShortcutsViewModel(
-      assistantIntentResolver = RecordingAssistantIntentResolver(),
-      stationsRepository = FakeShortcutsStationsRepository(
-        StationsState(
-          stations = listOf(
-            Station(
-              id = "station-1",
-              name = "Plaza Espana",
-              address = "Centro",
-              location = GeoPoint(41.65, -0.88),
-              bikesAvailable = 7,
-              slotsFree = 5,
-              distanceMeters = 120,
-            ),
+  fun `assignment candidate uses ranked station matching instead of raw name contains`() = runTest(dispatcher) {
+    val viewModel = FavoritesViewModel(
+      favoritesRepository = FakeFavoritesRepo(),
+      stationsRepository = FakeFavoriteStationsRepository(
+        listOf(
+          Station(
+            id = "station-1",
+            name = "Universidad",
+            address = "Plaza San Francisco",
+            location = GeoPoint(41.64, -0.89),
+            bikesAvailable = 4,
+            slotsFree = 8,
+            distanceMeters = 200,
           ),
         ),
       ),
-      favoritesRepository = FakeShortcutsFavoritesRepository(setOf("station-1")),
-      settingsRepository = FakeShortcutsSettingsRepository(searchRadiusMeters = 900),
+      settingsRepository = FakeFavoriteSettingsRepository(),
+      savedPlaceAlertsRepository = FakeFavoriteAlertsRepository(),
+      routeLauncher = NoOpFavoriteRouteLauncher,
     )
 
-    viewModel.resolveInitialAction(AssistantAction.NearestStation)
-
+    viewModel.onSearchQueryChange("san francisco")
     advanceUntilIdle()
 
-    assertEquals("resolved:1:1:900", viewModel.uiState.value.latestAnswer)
-    assertEquals(900, viewModel.uiState.value.searchRadiusMeters)
+    assertEquals("station-1", viewModel.uiState.value.assignmentCandidate?.id)
   }
 }
 
-private class RecordingAssistantIntentResolver : AssistantIntentResolver {
-  override suspend fun resolve(
-    action: AssistantAction,
-    stationsState: StationsState,
-    favoriteIds: Set<String>,
-    searchRadiusMeters: Int,
-  ): AssistantResolution = AssistantResolution(
-    spokenResponse = "resolved:${stationsState.stations.size}:${favoriteIds.size}:$searchRadiusMeters",
-  )
-}
-
-private class FakeShortcutsStationsRepository(
-  initialState: StationsState,
-) : StationsRepository {
-  override val state = MutableStateFlow(initialState)
-  override suspend fun loadIfNeeded() = Unit
-  override suspend fun forceRefresh() = Unit
-  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
-  override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
-}
-
-private class FakeShortcutsFavoritesRepository(initialFavoriteIds: Set<String>) : FavoritesRepository {
-  override val favoriteIds = MutableStateFlow(initialFavoriteIds)
+private class FakeFavoritesRepo : FavoritesRepository {
+  override val favoriteIds = MutableStateFlow(emptySet<String>())
   override val homeStationId = MutableStateFlow<String?>(null)
   override val workStationId = MutableStateFlow<String?>(null)
   override suspend fun bootstrap() = Unit
@@ -109,10 +87,16 @@ private class FakeShortcutsFavoritesRepository(initialFavoriteIds: Set<String>) 
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
-private class FakeShortcutsSettingsRepository(
-  searchRadiusMeters: Int,
-) : SettingsRepository {
-  override val searchRadiusMeters = MutableStateFlow(searchRadiusMeters)
+private class FakeFavoriteStationsRepository(stations: List<Station>) : StationsRepository {
+  override val state = MutableStateFlow(StationsState(stations = stations))
+  override suspend fun loadIfNeeded() = Unit
+  override suspend fun forceRefresh() = Unit
+  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+  override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
+}
+
+private class FakeFavoriteSettingsRepository : SettingsRepository {
+  override val searchRadiusMeters = MutableStateFlow(500)
   override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
   override val lastSeenChangelogVersion = MutableStateFlow(0)
   override val lastSeenChangelogAppVersion = MutableStateFlow<String?>(null)
@@ -137,4 +121,21 @@ private class FakeShortcutsSettingsRepository(
   override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
+}
+
+private class FakeFavoriteAlertsRepository : SavedPlaceAlertsRepository {
+  override val rules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
+  override suspend fun bootstrap() = Unit
+  override fun currentRules(): List<SavedPlaceAlertRule> = emptyList()
+  override fun ruleForTarget(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? = null
+  override suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean) = Unit
+  override suspend fun removeRule(ruleId: String) = Unit
+  override suspend fun removeRuleForTarget(target: SavedPlaceAlertTarget) = Unit
+  override suspend fun setRuleEnabled(ruleId: String, enabled: Boolean) = Unit
+  override suspend fun replaceAll(rules: List<SavedPlaceAlertRule>) = Unit
+}
+
+private object NoOpFavoriteRouteLauncher : RouteLauncher {
+  override fun launch(station: Station) = Unit
+  override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
