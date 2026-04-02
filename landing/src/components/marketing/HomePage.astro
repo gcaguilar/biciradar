@@ -44,7 +44,7 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
   languageLinks={languageLinks}
   navLinks={content.home.header.sections.map((item) => ({ href: `#${item.id}`, label: item.label }))}
   primaryCtaLabel={content.home.header.primaryCta}
-  primaryCtaHref="#beta-form"
+  primaryCtaHref={appStoreHref}
   primaryEvent="hero_cta_click"
   githubAriaLabel={content.common.githubAriaLabel}
 />
@@ -87,7 +87,9 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
             <span class="marketing-platform-card__button marketing-platform-card__button-android">
               {content.home.hero.secondaryCta}
             </span>
-            <span class="marketing-platform-card__note">{content.home.hero.microcopy}</span>
+            {content.home.hero.microcopy.trim() ? (
+              <span class="marketing-platform-card__note">{content.home.hero.microcopy}</span>
+            ) : null}
           </a>
         </div>
 
