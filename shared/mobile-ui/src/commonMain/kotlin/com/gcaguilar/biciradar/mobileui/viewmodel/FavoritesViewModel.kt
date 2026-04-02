@@ -12,10 +12,13 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class FavoritesUiState(
@@ -37,82 +40,65 @@ class FavoritesViewModel(
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(FavoritesUiState())
-  val uiState: StateFlow<FavoritesUiState> = _uiState.asStateFlow()
-
-  private var latestAllStations: List<Station> = emptyList()
-  private var latestFavoriteIds: Set<String> = emptySet()
-  private var latestHomeStationId: String? = null
-  private var latestWorkStationId: String? = null
-  private var latestSelectedCity: City = City.ZARAGOZA
-  private var latestSavedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList()
-
-  init {
-    viewModelScope.launch {
-      stationsRepository.state.collect { stationsState ->
-        latestAllStations = stationsState.stations
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      favoritesRepository.favoriteIds.collect { ids ->
-        latestFavoriteIds = ids
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      favoritesRepository.homeStationId.collect { homeStationId ->
-        latestHomeStationId = homeStationId
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      favoritesRepository.workStationId.collect { workStationId ->
-        latestWorkStationId = workStationId
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      settingsRepository.selectedCity.collect { city ->
-        latestSelectedCity = city
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      savedPlaceAlertsRepository.rules.collect { rules ->
-        latestSavedPlaceAlertRules = rules
-        publishUiState()
-      }
-    }
-  }
-
-  private fun publishUiState() {
-    val query = _uiState.value.searchQuery
-    _uiState.value = FavoritesUiState(
-      allStations = latestAllStations,
-      favoriteStations = visibleFavoriteStations(
-        stations = latestAllStations,
-        favoriteIds = latestFavoriteIds,
-        homeStationId = latestHomeStationId,
-        workStationId = latestWorkStationId,
-      ),
-      homeStation = latestAllStations.find { it.id == latestHomeStationId },
-      workStation = latestAllStations.find { it.id == latestWorkStationId },
-      searchQuery = query,
-      assignmentCandidate = findStationMatchingQuery(latestAllStations, query),
-      savedPlaceAlertsCityId = latestSelectedCity.id,
-      savedPlaceAlertRules = latestSavedPlaceAlertRules,
+  private val searchQuery = MutableStateFlow("")
+  private val cityRulesState: StateFlow<FavoritesCityRulesState> = combine(
+    settingsRepository.selectedCity,
+    savedPlaceAlertsRepository.rules,
+  ) { selectedCity, alertRules ->
+    FavoritesCityRulesState(
+      selectedCity = selectedCity,
+      savedPlaceAlertRules = alertRules,
     )
-  }
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.Eagerly,
+    initialValue = FavoritesCityRulesState(
+      selectedCity = settingsRepository.selectedCity.value,
+      savedPlaceAlertRules = savedPlaceAlertsRepository.rules.value,
+    ),
+  )
+
+  private val relationState: StateFlow<FavoritesRelationState> = combine(
+    stationsRepository.state,
+    favoritesRepository.favoriteIds,
+    favoritesRepository.homeStationId,
+    favoritesRepository.workStationId,
+    cityRulesState,
+  ) { stationsState: StationsState,
+      favoriteIds: Set<String>,
+      homeStationId: String?,
+      workStationId: String?,
+      cityRulesState: FavoritesCityRulesState ->
+    FavoritesRelationState(
+      stations = stationsState.stations,
+      favoriteIds = favoriteIds,
+      homeStationId = homeStationId,
+      workStationId = workStationId,
+      selectedCity = cityRulesState.selectedCity,
+      savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
+    )
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.Eagerly,
+    initialValue = buildRelationState(
+      stations = stationsRepository.state.value.stations,
+      favoriteIds = favoritesRepository.favoriteIds.value,
+      homeStationId = favoritesRepository.homeStationId.value,
+      workStationId = favoritesRepository.workStationId.value,
+      cityRulesState = cityRulesState.value,
+    ),
+  )
+
+  val uiState: StateFlow<FavoritesUiState> = combine(relationState, searchQuery) { relation, query ->
+    relation.toUiState(query)
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.Eagerly,
+    initialValue = relationState.value.toUiState(searchQuery.value),
+  )
 
   fun onSearchQueryChange(query: String) {
-    _uiState.value = _uiState.value.copy(searchQuery = query)
-    publishUiState()
+    searchQuery.value = query
   }
 
   fun onAssignHomeStation(station: Station) {
@@ -160,4 +146,49 @@ class FavoritesViewModel(
       savedPlaceAlertsRepository.removeRuleForTarget(target)
     }
   }
+
+  private fun buildRelationState(
+    stations: List<Station>,
+    favoriteIds: Set<String>,
+    homeStationId: String?,
+    workStationId: String?,
+    cityRulesState: FavoritesCityRulesState,
+  ): FavoritesRelationState = FavoritesRelationState(
+    stations = stations,
+    favoriteIds = favoriteIds,
+    homeStationId = homeStationId,
+    workStationId = workStationId,
+    selectedCity = cityRulesState.selectedCity,
+    savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
+  )
+
+  private fun FavoritesRelationState.toUiState(query: String): FavoritesUiState = FavoritesUiState(
+    allStations = stations,
+    favoriteStations = visibleFavoriteStations(
+      stations = stations,
+      favoriteIds = favoriteIds,
+      homeStationId = homeStationId,
+      workStationId = workStationId,
+    ),
+    homeStation = stations.find { it.id == homeStationId },
+    workStation = stations.find { it.id == workStationId },
+    searchQuery = query,
+    assignmentCandidate = findStationMatchingQuery(stations, query),
+    savedPlaceAlertsCityId = selectedCity.id,
+    savedPlaceAlertRules = savedPlaceAlertRules,
+  )
 }
+
+internal data class FavoritesRelationState(
+  val stations: List<Station>,
+  val favoriteIds: Set<String>,
+  val homeStationId: String?,
+  val workStationId: String?,
+  val selectedCity: City,
+  val savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+)
+
+internal data class FavoritesCityRulesState(
+  val selectedCity: City,
+  val savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+)

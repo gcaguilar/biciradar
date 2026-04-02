@@ -1,7 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.EngagementSnapshot
+import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
@@ -13,6 +13,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
@@ -28,9 +29,11 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class FavoritesViewModelTest {
+class StationDetailViewModelTest {
   private val dispatcher = StandardTestDispatcher()
 
   @BeforeTest
@@ -44,89 +47,73 @@ class FavoritesViewModelTest {
   }
 
   @Test
-  fun `assignment candidate uses ranked station matching instead of raw name contains`() = runTest(dispatcher) {
-    val stationsRepository = FakeFavoriteStationsRepository(
-        listOf(
-          Station(
-            id = "station-1",
-            name = "Universidad",
-            address = "Plaza San Francisco",
-            location = GeoPoint(41.64, -0.89),
-            bikesAvailable = 4,
-            slotsFree = 8,
-            distanceMeters = 200,
-          ),
-        ),
-    )
-    val viewModel = FavoritesViewModel(
-      favoritesRepository = FakeFavoritesRepo(),
-      stationsRepository = stationsRepository,
-      settingsRepository = FakeFavoriteSettingsRepository(),
-      savedPlaceAlertsRepository = FakeFavoriteAlertsRepository(),
-      routeLauncher = NoOpFavoriteRouteLauncher,
-    )
-
-    viewModel.onSearchQueryChange("san francisco")
-    advanceUntilIdle()
-
-    assertEquals("station-1", viewModel.uiState.value.assignmentCandidate?.id)
-  }
-
-  @Test
-  fun `ui state follows repository updates without manual publish`() = runTest(dispatcher) {
-    val favoritesRepository = FakeFavoritesRepo()
-    val stationsRepository = FakeFavoriteStationsRepository(
-      listOf(
-        Station(
-          id = "station-1",
-          name = "Universidad",
-          address = "Plaza San Francisco",
-          location = GeoPoint(41.64, -0.89),
-          bikesAvailable = 4,
-          slotsFree = 8,
-          distanceMeters = 200,
+  fun `ui state derives from repository flows and pattern refresh`() = runTest(dispatcher) {
+    val favoritesRepository = FakeStationDetailFavoritesRepository()
+    val settingsRepository = FakeStationDetailSettingsRepository()
+    val savedPlaceAlertsRepository = FakeStationDetailAlertsRepository()
+    val datosBiziApi = FakeStationDetailDatosBiziApi(
+      patterns = listOf(
+        StationHourlyPattern(
+          stationId = "station-1",
+          dayType = "weekday",
+          hour = 9,
+          bikesAvg = 3.0,
+          anchorsAvg = 5.0,
+          occupancyAvg = 0.42,
+          sampleCount = 12,
         ),
       ),
     )
-    val settingsRepository = FakeFavoriteSettingsRepository()
-    val savedPlaceAlertsRepository = FakeFavoriteAlertsRepository()
-    val viewModel = FavoritesViewModel(
+
+    val viewModel = StationDetailViewModel(
+      stationId = "station-1",
       favoritesRepository = favoritesRepository,
-      stationsRepository = stationsRepository,
       settingsRepository = settingsRepository,
       savedPlaceAlertsRepository = savedPlaceAlertsRepository,
-      routeLauncher = NoOpFavoriteRouteLauncher,
+      datosBiziApi = datosBiziApi,
+      routeLauncher = NoOpStationDetailRouteLauncher,
     )
 
     advanceUntilIdle()
-    assertEquals(City.ZARAGOZA.id, viewModel.uiState.value.savedPlaceAlertsCityId)
-    assertEquals(emptyList<Station>(), viewModel.uiState.value.favoriteStations)
 
-    favoritesRepository.favoriteIds.value = setOf("station-1")
+    assertTrue(viewModel.uiState.value.isFavorite)
+    assertTrue(viewModel.uiState.value.isHomeStation)
+    assertFalse(viewModel.uiState.value.isWorkStation)
+    assertTrue(viewModel.uiState.value.supportsUsagePatterns)
+    assertEquals(City.ZARAGOZA.id, viewModel.uiState.value.savedPlaceAlertsCityId)
+    assertEquals(1, viewModel.uiState.value.patterns.size)
+    assertFalse(viewModel.uiState.value.patternsLoading)
+    assertFalse(viewModel.uiState.value.patternsError)
+
+    favoritesRepository.favoriteIds.value = emptySet()
+    favoritesRepository.homeStationId.value = null
+    favoritesRepository.workStationId.value = "station-1"
     settingsRepository.selectedCity.value = City.MADRID
     savedPlaceAlertsRepository.rules.value = listOf(
       SavedPlaceAlertRule(
         id = "rule-1",
-        target = SavedPlaceAlertTarget.Home(
+        target = SavedPlaceAlertTarget.Work(
           stationId = "station-1",
-          cityId = City.ZARAGOZA.id,
+          cityId = City.MADRID.id,
         ),
-        condition = SavedPlaceAlertCondition.BikesAtLeast(1),
+        condition = SavedPlaceAlertCondition.BikesAtLeast(2),
         isEnabled = true,
       ),
     )
     advanceUntilIdle()
 
-    assertEquals("station-1", viewModel.uiState.value.favoriteStations.single().id)
-    assertEquals(null, viewModel.uiState.value.homeStation)
+    assertFalse(viewModel.uiState.value.isFavorite)
+    assertFalse(viewModel.uiState.value.isHomeStation)
+    assertTrue(viewModel.uiState.value.isWorkStation)
+    assertFalse(viewModel.uiState.value.supportsUsagePatterns)
     assertEquals(City.MADRID.id, viewModel.uiState.value.savedPlaceAlertsCityId)
     assertEquals(1, viewModel.uiState.value.savedPlaceAlertRules.size)
   }
 }
 
-private class FakeFavoritesRepo : FavoritesRepository {
-  override val favoriteIds = MutableStateFlow(emptySet<String>())
-  override val homeStationId = MutableStateFlow<String?>(null)
+private class FakeStationDetailFavoritesRepository : FavoritesRepository {
+  override val favoriteIds = MutableStateFlow(setOf("station-1"))
+  override val homeStationId = MutableStateFlow<String?>("station-1")
   override val workStationId = MutableStateFlow<String?>(null)
   override suspend fun bootstrap() = Unit
   override suspend fun syncFromPeer() = Unit
@@ -139,15 +126,7 @@ private class FakeFavoritesRepo : FavoritesRepository {
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
-private class FakeFavoriteStationsRepository(stations: List<Station>) : StationsRepository {
-  override val state = MutableStateFlow(StationsState(stations = stations))
-  override suspend fun loadIfNeeded() = Unit
-  override suspend fun forceRefresh() = Unit
-  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
-  override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
-}
-
-private class FakeFavoriteSettingsRepository : SettingsRepository {
+private class FakeStationDetailSettingsRepository : SettingsRepository {
   override val searchRadiusMeters = MutableStateFlow(500)
   override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
   override val lastSeenChangelogVersion = MutableStateFlow(0)
@@ -156,7 +135,7 @@ private class FakeFavoriteSettingsRepository : SettingsRepository {
   override val selectedCity = MutableStateFlow(City.ZARAGOZA)
   override val hasCompletedOnboarding = MutableStateFlow(true)
   override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot(completedAtEpoch = 1L))
-  override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
+  override val engagementSnapshot = MutableStateFlow(com.gcaguilar.biciradar.core.EngagementSnapshot())
   override suspend fun bootstrap() = Unit
   override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
   override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
@@ -171,14 +150,14 @@ private class FakeFavoriteSettingsRepository : SettingsRepository {
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
   override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
-  override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+  override suspend fun setEngagementSnapshot(snapshot: com.gcaguilar.biciradar.core.EngagementSnapshot) = Unit
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 }
 
-private class FakeFavoriteAlertsRepository : SavedPlaceAlertsRepository {
+private class FakeStationDetailAlertsRepository : SavedPlaceAlertsRepository {
   override val rules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
   override suspend fun bootstrap() = Unit
-  override fun currentRules(): List<SavedPlaceAlertRule> = emptyList()
+  override fun currentRules(): List<SavedPlaceAlertRule> = rules.value
   override fun ruleForTarget(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? = null
   override suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean) = Unit
   override suspend fun removeRule(ruleId: String) = Unit
@@ -187,7 +166,13 @@ private class FakeFavoriteAlertsRepository : SavedPlaceAlertsRepository {
   override suspend fun replaceAll(rules: List<SavedPlaceAlertRule>) = Unit
 }
 
-private object NoOpFavoriteRouteLauncher : RouteLauncher {
+private class FakeStationDetailDatosBiziApi(
+  private val patterns: List<StationHourlyPattern>,
+) : DatosBiziApi {
+  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = patterns
+}
+
+private object NoOpStationDetailRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
