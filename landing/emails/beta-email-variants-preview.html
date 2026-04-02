@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BiciRadar · Variantes de correo beta (vista previa)</title>
+    <!-- Textos: landing/src/content/marketing/beta-email-content.ts (es). Envío real: landing/src/lib/beta-user-email.template.html -->
+    <style>
+      :root {
+        --text: #0f172a;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --btn-bg: #0f172a;
+        --btn-fg: #ffffff;
+      }
+      body {
+        margin: 0;
+        padding: 2rem 1rem;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text);
+        background: #f8fafc;
+      }
+      h1.page-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      .variant {
+        max-width: 560px;
+        margin: 0 auto 2.5rem;
+        padding: 1.5rem 1.5rem 1.75rem;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+      .variant-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .variant h2 {
+        font-size: 1.25rem;
+        line-height: 1.3;
+        margin: 0 0 0.75rem;
+      }
+      .variant .subject {
+        font-size: 0.875rem;
+        color: var(--muted);
+        margin: 0 0 1rem;
+      }
+      .variant .subject strong {
+        color: var(--text);
+      }
+      .variant p {
+        margin: 0 0 0.75rem;
+      }
+      .variant .hint {
+        font-size: 0.9375rem;
+        color: var(--muted);
+        margin: 0 0 1rem;
+      }
+      .buttons {
+        margin: 1.25rem 0 1rem;
+      }
+      .btn {
+        display: inline-block;
+        margin: 0 0 10px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: var(--btn-bg);
+        color: var(--btn-fg);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9375rem;
+      }
+      .footer-note {
+        font-size: 0.875rem;
+        color: var(--muted);
+        margin-top: 1rem;
+      }
+      .signoff {
+        margin: 0.5rem 0 0;
+        font-size: 0.9375rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="page-title">Vista previa · Correo beta BiciRadar (3 variantes)</h1>
+
+    <!-- iOS -->
+    <article class="variant" aria-label="Variante iOS">
+      <div class="variant-label">Solo iOS</div>
+      <p>Hola,</p>
+      <p class="subject"><strong>Asunto:</strong> Ya puedes descargar BiciRadar en App Store</p>
+      <h2>Tu acceso en iPhone ya está listo</h2>
+      <p>
+        Gracias por apuntarte. Ya puedes entrar en BiciRadar desde App Store y empezar a usar la app en
+        iPhone.
+      </p>
+      <div class="buttons">
+        <a class="btn" href="https://apps.apple.com/es/app/biciradar/id6760931316">Abrir App Store</a>
+      </div>
+      <p class="footer-note">Si algo no te encaja, responde a este correo y lo revisamos.</p>
+      <p class="signoff">Gracias por apuntarte a la beta.<br />Equipo BiciRadar</p>
+    </article>
+
+    <!-- Android -->
+    <article class="variant" aria-label="Variante Android">
+      <div class="variant-label">Solo Android</div>
+      <p>Hola,</p>
+      <p class="subject"><strong>Asunto:</strong> Siguiente paso: únete al grupo de testers de BiciRadar</p>
+      <h2>Únete al grupo en Google con tu cuenta</h2>
+      <p>
+        Para la beta en Android, entra en el grupo testers-biciradar en Google Groups con la misma cuenta
+        de Google que usarás en el móvil. Cuando estés dentro, instala BiciRadar desde Google Play.
+      </p>
+      <p class="hint">
+        Si Google Play no muestra la beta al momento, espera unos minutos tras unirte al grupo y vuelve a
+        probar.
+      </p>
+      <div class="buttons">
+        <a class="btn" href="https://groups.google.com/g/testers-biciradar">Unirse al grupo testers-biciradar</a><br />
+        <a class="btn" href="https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar">Abrir Google Play</a>
+      </div>
+      <p class="footer-note">Si algo no te encaja, responde a este correo y lo revisamos.</p>
+      <p class="signoff">Gracias por apuntarte a la beta.<br />Equipo BiciRadar</p>
+    </article>
+
+    <!-- Android + iOS -->
+    <article class="variant" aria-label="Variante Android e iOS">
+      <div class="variant-label">Android e iOS</div>
+      <p>Hola,</p>
+      <p class="subject">
+        <strong>Asunto:</strong> Siguiente paso: grupo de testers e instalación de BiciRadar
+      </p>
+      <h2>Android: grupo en Google primero; iPhone: App Store</h2>
+      <p>
+        Para Android, únete al grupo testers-biciradar en Google con tu cuenta de Google y luego instala
+        desde Google Play. Para iPhone, también puedes instalar desde App Store cuando quieras.
+      </p>
+      <p class="hint">
+        Si Google Play no muestra la beta al momento, espera unos minutos tras unirte al grupo y vuelve a
+        probar.
+      </p>
+      <div class="buttons">
+        <a class="btn" href="https://groups.google.com/g/testers-biciradar">Unirse al grupo testers-biciradar</a><br />
+        <a class="btn" href="https://apps.apple.com/es/app/biciradar/id6760931316">Abrir App Store</a><br />
+        <a class="btn" href="https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar">Abrir Google Play</a>
+      </div>
+      <p class="footer-note">Si algo no te encaja, responde a este correo y lo revisamos.</p>
+      <p class="signoff">Gracias por apuntarte a la beta.<br />Equipo BiciRadar</p>
+    </article>
+  </body>
+</html>

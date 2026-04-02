@@ -3,6 +3,7 @@ import { betaUserEmailContent } from '../content/marketing/beta-email-content';
 import type { BetaLeadRecord } from './beta-form';
 import { localeToHtmlLang } from './i18n';
 import { siteConfig } from './site-config';
+import betaUserEmailTemplateRaw from './beta-user-email.template.html?raw';
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -24,6 +25,29 @@ function escapeHtml(value: string) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function fillBetaUserEmailTemplate(vars: Record<string, string>) {
+  let html = betaUserEmailTemplateRaw.replace(/<!--[\s\S]*?-->/g, '');
+  for (const [key, value] of Object.entries(vars)) {
+    html = html.replaceAll(`{{${key}}}`, value);
+  }
+  return html.trim();
+}
+
+const BUTTON_STYLE =
+  'display:inline-block;margin:0 0 10px;padding:12px 18px;border-radius:999px;background:#0f172a;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px';
+
+function buildButtonsHtml(links: Array<{ href: string; label: string }>) {
+  return links
+    .map(
+      (link) => `
+        <p style="margin:0 0 12px">
+          <a href="${escapeHtml(link.href)}" style="${BUTTON_STYLE}">${escapeHtml(link.label)}</a>
+        </p>
+      `,
+    )
+    .join('');
 }
 
 function isAndroidFlow(record: BetaLeadRecord) {
@@ -63,33 +87,21 @@ function buildUserEmail(record: BetaLeadRecord) {
     links.push({ href: siteConfig.playStoreUrl, label: content.playStoreLabel });
   }
 
-  const html = `
-    <div lang="${record.locale}" style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
-      <p>${escapeHtml(content.greeting)}</p>
-      <h1 style="font-size:24px;line-height:1.2;margin:0 0 16px">${escapeHtml(headline)}</h1>
-      <p>${escapeHtml(intro)}</p>
-      ${
-        androidFlow
-          ? `<p>${escapeHtml(content.delayedHint)}</p>`
-          : ''
-      }
-      <div style="margin:24px 0">
-        ${links
-          .map(
-            (link) => `
-              <p style="margin:0 0 12px">
-                <a href="${escapeHtml(link.href)}" style="display:inline-block;background:#0f172a;color:#ffffff;padding:12px 18px;border-radius:999px;text-decoration:none;font-weight:700">
-                  ${escapeHtml(link.label)}
-                </a>
-              </p>
-            `,
-          )
-          .join('')}
-      </div>
-      <p>${escapeHtml(content.supportLine)}</p>
-      <p>${escapeHtml(content.closing)}<br />${escapeHtml(content.signature)}</p>
-    </div>
-  `;
+  const hintHtml = androidFlow
+    ? `<p style="margin:0 0 12px;font-size:15px;color:#64748b">${escapeHtml(content.delayedHint)}</p>`
+    : '';
+
+  const html = fillBetaUserEmailTemplate({
+    LOCALE: escapeHtml(record.locale),
+    GREETING: escapeHtml(content.greeting),
+    HEADLINE: escapeHtml(headline),
+    INTRO: escapeHtml(intro),
+    HINT_HTML: hintHtml,
+    BUTTONS_HTML: buildButtonsHtml(links),
+    SUPPORT_LINE: escapeHtml(content.supportLine),
+    CLOSING: escapeHtml(content.closing),
+    SIGNATURE: escapeHtml(content.signature),
+  });
 
   const text = [
     content.greeting,
