@@ -19,6 +19,7 @@ function buildRecord(
 ): BetaLeadRecord {
   return {
     locale,
+    email: 'user@example.com',
     operatingSystem,
     city: 'madrid',
     consent: true,
@@ -50,8 +51,8 @@ describe('sendBetaSignupEmails', () => {
     expect(resendSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: ['ops@biciradar.app'],
-        subject: 'BiciRadar beta · BiciMAD · Android',
-        text: expect.stringContaining('BiciMAD'),
+        subject: 'BiciRadar beta · user@example.com · BiciMAD · Android',
+        text: expect.stringContaining('user@example.com'),
       }),
     );
     const payload = resendSend.mock.calls[0][0] as { html: string; headers: Record<string, string> };

@@ -1,5 +1,8 @@
+import { isValidEmail } from './is-valid-email';
+
 export interface BetaFormMessages {
   required: string;
+  email: string;
   consent: string;
   turnstile: string;
   server: string;
@@ -171,9 +174,21 @@ export function mountBetaForm(): void {
       field.setCustomValidity(messages.required);
       return;
     }
+
+    if (field.type === 'email' && field.value) {
+      const trimmed = field.value.trim();
+      if (!isValidEmail(trimmed)) {
+        field.setCustomValidity(messages.email);
+      }
+    }
   };
 
   form.querySelectorAll('input, select').forEach((field) => {
+    if (field instanceof HTMLInputElement && field.name === 'email') {
+      field.addEventListener('blur', () => {
+        field.value = field.value.trim();
+      });
+    }
     field.addEventListener('input', () => clearCustomValidity(field));
     field.addEventListener('change', () => clearCustomValidity(field));
     field.addEventListener('invalid', () => validateField(field));
@@ -192,6 +207,11 @@ export function mountBetaForm(): void {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     syncUtm();
+
+    const emailInput = form.querySelector('input[name="email"]');
+    if (emailInput instanceof HTMLInputElement) {
+      emailInput.value = emailInput.value.trim();
+    }
 
     let valid = true;
     form.querySelectorAll('input, select').forEach((field) => {
@@ -249,10 +269,9 @@ export function mountBetaForm(): void {
       }
 
       setStatus(messages.success, 'success');
-      const cityField = form.querySelector('[name="city"]');
       const osField = form.querySelector('[name="operatingSystem"]');
       window.BiciRadarAnalytics?.track?.('beta_form_success', {
-        city: cityField instanceof HTMLSelectElement ? cityField.value : '',
+        city_page_key: form.dataset.cityPageKey || '',
         os: osField instanceof HTMLSelectElement ? osField.value : '',
       });
 

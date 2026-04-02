@@ -1,11 +1,14 @@
 import type { CityKey } from '../content/marketing/types';
 import { normalizeLocale, type Locale } from './i18n';
 import { parseCityKey } from './beta-city-system';
+import { isValidEmail } from './is-valid-email';
 
 export interface BetaLeadRecord {
   locale: Locale;
+  email: string;
   operatingSystem: 'ios' | 'android' | 'both';
-  city: CityKey;
+  /** Set when the signup comes from a city landing (hidden `cityPageKey`). */
+  city?: CityKey;
   consent: boolean;
   pagePath?: string;
   pageKind?: string;
@@ -64,10 +67,15 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
     return { ok: false, status: 400, message: 'Missing required fields.' };
   }
 
-  const cityRaw = readValue(formData, 'city');
-  const city = parseCityKey(cityRaw);
-  if (!city) {
+  const cityPageKeyRaw = readValue(formData, 'cityPageKey');
+  const city = parseCityKey(cityPageKeyRaw) ?? undefined;
+
+  const email = readValue(formData, 'email');
+  if (!email) {
     return { ok: false, status: 400, message: 'Missing required fields.' };
+  }
+  if (!isValidEmail(email)) {
+    return { ok: false, status: 400, message: 'Invalid email.' };
   }
 
   const consent = ['on', 'true', '1', 'yes'].includes(readValue(formData, 'consent').toLowerCase());
@@ -84,8 +92,9 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
 
   const data: BetaLeadRecord = {
     locale,
+    email,
     operatingSystem: operatingSystem as BetaLeadRecord['operatingSystem'],
-    city,
+    ...(city ? { city } : {}),
     consent,
     pagePath: readValue(formData, 'pagePath') || undefined,
     pageKind: readValue(formData, 'pageKind') || undefined,

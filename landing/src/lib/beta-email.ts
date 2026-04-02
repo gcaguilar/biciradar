@@ -36,13 +36,16 @@ const OS_LABEL: Record<BetaLeadRecord['operatingSystem'], string> = {
 };
 
 function buildTeamNotification(record: BetaLeadRecord) {
-  const system = bikeSystemLabelForCity(record.city);
+  const system = record.city ? bikeSystemLabelForCity(record.city) : null;
   const os = OS_LABEL[record.operatingSystem];
   const locale = normalizeLocale(record.locale);
-  const subject = `BiciRadar beta · ${system} · ${os}`;
+  const subject = system
+    ? `BiciRadar beta · ${record.email} · ${system} · ${os}`
+    : `BiciRadar beta · ${record.email} · ${os}`;
 
   const lines: string[] = [
-    `Sistema de bici: ${system}`,
+    `Email: ${record.email}`,
+    ...(system ? [`Sistema de bici: ${system}`] : ['Sistema de bici: (sin ciudad en página)']),
     `Plataforma: ${os}`,
     `Idioma formulario: ${locale}`,
     `Consentimiento: sí`,

@@ -111,7 +111,6 @@ export interface HomeContent {
   betaForm: {
     title: string;
     description: string;
-    helper: string;
     honeypotLabel: string;
     consentLabel: string;
     consentHint: string;
@@ -122,14 +121,14 @@ export interface HomeContent {
     errorMessage: string;
     options: {
       operatingSystems: Array<{ value: string; label: string }>;
-      cities: Array<{ value: string; label: string }>;
     };
     fields: {
+      email: { label: string; placeholder: string };
       operatingSystem: { label: string; placeholder: string };
-      city: { label: string; placeholder: string };
     };
     validation: {
       required: string;
+      email: string;
       consent: string;
       turnstile: string;
       server: string;
