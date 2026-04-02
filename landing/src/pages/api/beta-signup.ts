@@ -8,6 +8,15 @@ function wantsJson(request: Request) {
   return request.headers.get('accept')?.includes('application/json');
 }
 
+function buildRedirectPath(request: Request, locale: Parameters<typeof getThankYouPath>[0], operatingSystem: string) {
+  const redirectUrl = new URL(getThankYouPath(locale), request.url);
+  if (operatingSystem) {
+    redirectUrl.searchParams.set('os', operatingSystem);
+  }
+
+  return `${redirectUrl.pathname}${redirectUrl.search}`;
+}
+
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
   const validation = validateBetaLead(formData, request.headers);
@@ -28,7 +37,11 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   await storeBetaLead(validation.data);
-  const redirectPath = getThankYouPath(validation.data.locale);
+  const redirectPath = buildRedirectPath(
+    request,
+    validation.data.locale,
+    validation.data.operatingSystem,
+  );
 
   if (wantsJson(request)) {
     return Response.json({

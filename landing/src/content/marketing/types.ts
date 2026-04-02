@@ -179,6 +179,7 @@ export interface ThankYouContent {
   description: string;
   steps: string[];
   cityLinksTitle: string;
+  cityCardCtaPrefix: string;
   shareLabel: string;
   primaryCta: string;
   secondaryCta: string;

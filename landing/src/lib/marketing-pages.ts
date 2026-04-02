@@ -22,6 +22,7 @@ export function getLocalizedCityLinks(locale: Locale) {
   return getAllCityDefinitions(locale).map((city) => ({
     key: city.key,
     href: getCityPath(locale, city.key),
+    name: city.name,
     label: `${city.name} · ${city.system}`,
   }));
 }
