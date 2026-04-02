@@ -69,6 +69,23 @@ class MapEnvironmentalViewModelTest {
 
     assertEquals(emptyList(), viewModel.uiState.value.zones)
   }
+
+  @Test
+  fun `reacts when stations arrive after the environmental layer is already active`() = runTest(dispatcher) {
+    val viewModel = MapEnvironmentalViewModel(
+      environmentalRepository = FakeEnvironmentalRepository(),
+    )
+
+    viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
+    advanceUntilIdle()
+    assertEquals(emptyList(), viewModel.uiState.value.zones)
+
+    viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
+    advanceUntilIdle()
+
+    assertEquals(1, viewModel.uiState.value.zones.size)
+    assertEquals(listOf(5), viewModel.uiState.value.zones.map { it.pollenScore })
+  }
 }
 
 private class FakeEnvironmentalRepository : EnvironmentalRepository {
