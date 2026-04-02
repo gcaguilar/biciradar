@@ -54,6 +54,7 @@ export const es = {
     betaInviteLabel: 'Acceso por invitación pública',
     faqLabel: 'Preguntas frecuentes',
     thankYouShareFallback: 'Enlace copiado. Ya puedes compartirlo.',
+    githubAriaLabel: 'Código fuente en GitHub',
   },
   home: {
     seo: {
@@ -270,6 +271,7 @@ export const es = {
         required: 'Completa este campo.',
         email: 'Introduce un email válido.',
         consent: 'Necesitamos tu consentimiento para gestionar la beta.',
+        turnstile: 'Completa la verificación de seguridad e inténtalo de nuevo.',
         server: 'Ha habido un problema al guardar tu solicitud.',
       },
     },
@@ -304,7 +306,7 @@ export const es = {
         {
           question: '¿Qué vais a hacer con los datos del formulario?',
           answer:
-            'Usaremos tu email únicamente para avisarte cuando puedas descargar la app y gestionar tu acceso a la beta. No lo usaremos para otros fines fuera de este proceso.',
+            'Usaremos tu email para enviarte los pasos y enlaces de la beta (grupo de testers en Google y descarga en Play o App Store). No lo usaremos para otros fines fuera de este proceso.',
         },
       ],
     },
@@ -317,6 +319,7 @@ export const es = {
       ],
       primaryCta: 'Entrar en la beta',
       note: 'BiciRadar · iPhone y Android · Datos basados en fuentes oficiales',
+      githubLine: 'Código abierto en GitHub',
     },
   },
   thankYou: {
@@ -326,20 +329,38 @@ export const es = {
         'Tu solicitud para la beta se ha enviado correctamente. Revisa próximos pasos, comparte la beta y visita páginas locales.',
     },
     badge: 'Solicitud enviada',
-    title: 'Gracias. Tu solicitud para Android beta se ha enviado correctamente.',
-    description:
-      'Revisaremos tu solicitud y usaremos tu email para gestionar el acceso al canal beta y priorizar ciudades con mayor demanda.',
-    steps: [
-      'Confirmamos tu solicitud.',
-      'Priorizamos invitaciones según ciudad, sistema y plataforma.',
-      'Recibes instrucciones por email cuando haya acceso disponible.',
-    ],
+    ios: {
+      title: 'Gracias. Ya puedes descargar BiciRadar en iPhone.',
+      description:
+        'Te hemos enviado un email con el enlace a App Store. Mientras tanto puedes explorar las ciudades disponibles o compartir la beta.',
+      steps: [
+        'Abre el email de confirmación en tu bandeja de entrada.',
+        'Descarga BiciRadar desde App Store en tu iPhone.',
+        'Activa notificaciones y guarda tus estaciones favoritas.',
+      ],
+    },
+    androidOrBoth: {
+      title: 'Gracias. Siguiente paso: únete al grupo de testers en Google.',
+      description:
+        'Para la beta en Android necesitas entrar en el grupo testers-biciradar con tu cuenta de Google y luego instalar desde Google Play. Te hemos enviado un email con los mismos enlaces.',
+      stepsAndroid: [
+        'Únete al grupo testers-biciradar en Google Groups con la misma cuenta de Google que usarás en el móvil.',
+        'Cuando estés dentro del grupo, descarga BiciRadar desde Google Play.',
+      ],
+      stepsBoth: [
+        'Únete al grupo testers-biciradar en Google Groups con la misma cuenta de Google que usarás en Android.',
+        'Descarga BiciRadar desde Google Play para la beta en Android.',
+        'En iPhone, instala también desde App Store con el botón de abajo.',
+      ],
+    },
     cityLinksTitle: 'Explora ciudades disponibles mientras tanto',
     cityCardCtaPrefix: 'Ver',
     shareLabel: 'Compartir la beta',
     primaryCta: 'Explora ciudades disponibles mientras tanto',
-    secondaryCta: 'Descargar en App Store',
-    footnote: '¿No recibes email? Escríbenos a soporte.',
+    appStoreCta: 'Descargar en App Store',
+    playStoreCta: 'Descargar en Google Play',
+    googleGroupCta: 'Unirse al grupo testers-biciradar',
+    footnote: '¿No recibes email? Revisa spam o escríbenos a soporte.',
   },
   cityPages: {
     madrid: {

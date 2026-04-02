@@ -54,6 +54,7 @@ export const ca = {
     betaInviteLabel: 'Accés per invitació pública',
     faqLabel: 'Preguntes freqüents',
     thankYouShareFallback: 'Enllaç copiat. Ja el pots compartir.',
+    githubAriaLabel: 'Codi font a GitHub',
   },
   home: {
     seo: {
@@ -209,6 +210,7 @@ export const ca = {
         required: 'Completa aquest camp.',
         email: 'Introdueix un email vàlid.',
         consent: 'Necessitem el teu consentiment per gestionar la beta.',
+        turnstile: 'Completa la verificació de seguretat i torna-ho a provar.',
         server: 'Hi ha hagut un problema en desar la teva sol·licitud.',
       },
     },
@@ -220,7 +222,7 @@ export const ca = {
         { question: 'Només serveix al mòbil?', answer: 'No. Està pensada per a mòbil i rellotge: Android, iOS, Wear OS i Apple Watch.' },
         { question: 'Les dades són fiables?', answer: 'Fa servir fonts oficials d’open data de les ciutats. Pot haver-hi petits desfasaments típics del temps real.' },
         { question: 'Per què fer servir BiciRadar com a complement?', answer: 'L’app oficial és el canal institucional; BiciRadar està optimitzada per consultar més ràpid i amb menys fricció.' },
-        { question: 'Què fareu amb les dades del formulari?', answer: 'Farem servir el teu correu només per avisar-te quan puguis descarregar l’app i gestionar el teu accés a la beta. No el farem servir per a cap altre ús fora d’aquest procés.' },
+        { question: 'Què fareu amb les dades del formulari?', answer: 'Farem servir el teu correu per enviar-te els passos i enllaços de la beta (grup de testers a Google i descàrrega a Play o App Store). No el farem servir per a cap altre ús fora d’aquest procés.' },
       ],
     },
     footer: {
@@ -232,6 +234,7 @@ export const ca = {
       ],
       primaryCta: 'Entrar a la beta',
       note: 'BiciRadar · iPhone i Android · Dades basades en fonts oficials',
+      githubLine: 'Codi obert a GitHub',
     },
   },
   thankYou: {
@@ -241,20 +244,38 @@ export const ca = {
         'La teva sol·licitud per a la beta s’ha enviat correctament. Revisa els pròxims passos, comparteix la beta i visita pàgines locals.',
     },
     badge: 'Sol·licitud enviada',
-    title: 'Gràcies. La teva sol·licitud per a Android beta s’ha enviat correctament.',
-    description:
-      'Revisarem la teva sol·licitud i farem servir el teu email per gestionar l’accés a la beta i prioritzar ciutats amb més demanda.',
-    steps: [
-      'Confirmem la teva sol·licitud.',
-      'Prioritzem invitacions segons ciutat, sistema i plataforma.',
-      'Reps instruccions per email quan hi hagi accés disponible.',
-    ],
+    ios: {
+      title: 'Gràcies. Ja pots descarregar BiciRadar a l’iPhone.',
+      description:
+        'T’hem enviat un email amb l’enllaç a l’App Store. Mentrestant pots explorar ciutats disponibles o compartir la beta.',
+      steps: [
+        'Obre l’email de confirmació a la safata d’entrada.',
+        'Descarrega BiciRadar des de l’App Store al teu iPhone.',
+        'Activa notificacions i desa les estacions favorites.',
+      ],
+    },
+    androidOrBoth: {
+      title: 'Gràcies. Pas següent: uneix-te al grup de testers a Google.',
+      description:
+        'Per a la beta d’Android cal entrar al grup testers-biciradar amb el teu compte de Google i després instal·lar des de Google Play. T’hem enviat un email amb els mateixos enllaços.',
+      stepsAndroid: [
+        'Uneix-te al grup testers-biciradar a Google Groups amb el mateix compte de Google que faràs servir al mòbil.',
+        'Quan siguis dins del grup, descarrega BiciRadar des de Google Play.',
+      ],
+      stepsBoth: [
+        'Uneix-te al grup testers-biciradar a Google Groups amb el mateix compte de Google que faràs servir a Android.',
+        'Descarrega BiciRadar des de Google Play per a la beta d’Android.',
+        'A l’iPhone, instal·la també des de l’App Store amb el botó de sota.',
+      ],
+    },
     cityLinksTitle: 'Explora ciutats disponibles mentrestant',
     cityCardCtaPrefix: 'Veure',
     shareLabel: 'Compartir la beta',
     primaryCta: 'Explora ciutats disponibles mentrestant',
-    secondaryCta: 'Descarregar a l’App Store',
-    footnote: 'No reps cap email? Escriu-nos a suport.',
+    appStoreCta: 'Descarregar a l’App Store',
+    playStoreCta: 'Descarregar a Google Play',
+    googleGroupCta: 'Unir-se al grup testers-biciradar',
+    footnote: 'No reps l’email? Revisa la carpeta de correu brossa o escriu-nos a suport.',
   },
   cityPages: {
     madrid: {

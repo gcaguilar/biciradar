@@ -29,6 +29,8 @@ interface Props {
 }
 
 const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
+
+const thankYouCopy = content.thankYou;
 ---
 
 <PageHeader
@@ -39,19 +41,25 @@ const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
   primaryCtaLabel={content.common.backToHome}
   primaryCtaHref={homeHref}
   primaryEvent="city_revisit_click"
+  githubAriaLabel={content.common.githubAriaLabel}
 />
 
 <main id="main-content">
   <section class="marketing-shell">
     <div class="marketing-thank-you-card">
-      <span class="marketing-chip marketing-chip-success">{content.thankYou.badge}</span>
-      <h1 class="max-w-4xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
-        {content.thankYou.title}
+      <span class="marketing-chip marketing-chip-success">{thankYouCopy.badge}</span>
+      <h1
+        class="max-w-4xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl"
+        data-thank-you-title
+      >
+        {thankYouCopy.ios.title}
       </h1>
-      <p class="max-w-3xl text-lg leading-8 text-slate-600">{content.thankYou.description}</p>
+      <p class="max-w-3xl text-lg leading-8 text-slate-600" data-thank-you-description>
+        {thankYouCopy.ios.description}
+      </p>
 
-      <ol class="space-y-3 text-sm leading-6 text-slate-700">
-        {content.thankYou.steps.map((step) => (
+      <ol class="space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-ios>
+        {thankYouCopy.ios.steps.map((step) => (
           <li class="flex gap-3">
             <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
               <Icon class="size-3" name="check" />
@@ -61,23 +69,67 @@ const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
         ))}
       </ol>
 
-      <div class="flex flex-col gap-3 sm:flex-row">
+      <ol class="hidden space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-android-only>
+        {thankYouCopy.androidOrBoth.stepsAndroid.map((step) => (
+          <li class="flex gap-3">
+            <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+              <Icon class="size-3" name="check" />
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <ol class="hidden space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-both-platforms>
+        {thankYouCopy.androidOrBoth.stepsBoth.map((step) => (
+          <li class="flex gap-3">
+            <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
+              <Icon class="size-3" name="check" />
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+
+      <div class="flex flex-col flex-wrap gap-3 sm:flex-row" data-thank-you-actions>
         <a class="marketing-secondary-button" href="#available-cities">
-          {content.thankYou.primaryCta}
+          {thankYouCopy.primaryCta}
+        </a>
+        <a
+          class="marketing-primary-button hidden"
+          href={siteConfig.googleTestersGroupUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-thank-you-google-group
+          data-track-event="beta_google_group_click"
+          data-track-placement="thank_you"
+        >
+          {thankYouCopy.googleGroupCta}
+        </a>
+        <a
+          class="marketing-primary-button hidden"
+          href={siteConfig.playStoreUrl}
+          target="_blank"
+          rel="noreferrer"
+          data-thank-you-play-store
+          data-track-event="hero_play_store_click"
+          data-track-placement="thank_you"
+        >
+          {thankYouCopy.playStoreCta}
         </a>
         <a
           class="marketing-primary-button"
           href={siteConfig.appStoreUrl}
           target="_blank"
           rel="noreferrer"
-          data-thank-you-download
+          data-thank-you-app-store
           data-track-event="hero_secondary_cta_click"
           data-track-placement="thank_you"
         >
-          {content.thankYou.secondaryCta}
+          {thankYouCopy.appStoreCta}
         </a>
         <button class="marketing-secondary-button" type="button" data-share-button data-track-event="share_click">
-          {content.thankYou.shareLabel}
+          {thankYouCopy.shareLabel}
         </button>
       </div>
     </div>
@@ -85,7 +137,7 @@ const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
 
   <section class="marketing-shell" id="available-cities">
     <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.thankYou.cityLinksTitle}</h2>
+      <h2 class="marketing-section-title">{thankYouCopy.cityLinksTitle}</h2>
       <p class="max-w-3xl text-base leading-7 text-slate-600">{content.common.shareDescription}</p>
     </div>
 
@@ -99,13 +151,13 @@ const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
         >
           <div class="space-y-2">
             <p class="text-sm font-semibold text-sky-700">{city.label}</p>
-            <h3 class="marketing-card-title">{`${content.thankYou.cityCardCtaPrefix} ${city.name}`}</h3>
+            <h3 class="marketing-card-title">{`${thankYouCopy.cityCardCtaPrefix} ${city.name}`}</h3>
           </div>
         </a>
       ))}
     </div>
 
-    <p class="mt-4 text-sm text-slate-500">{content.thankYou.footnote}</p>
+    <p class="mt-4 text-sm text-slate-500">{thankYouCopy.footnote}</p>
   </section>
 
   <SiteFooter
@@ -117,17 +169,53 @@ const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
     betaHref={betaHref}
     languageLabel={content.home.header.languageLabel}
     languageLinks={languageLinks}
+    githubLine={content.home.footer.githubLine}
   />
 </main>
 
-<script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback }}>
+<script
+  is:inline
+  define:vars={{
+    fallbackMessage: content.common.thankYouShareFallback,
+    copyAndroid: thankYouCopy.androidOrBoth,
+  }}
+>
   (() => {
     const button = document.querySelector('[data-share-button]');
-    const downloadButton = document.querySelector('[data-thank-you-download]');
+    const titleEl = document.querySelector('[data-thank-you-title]');
+    const descriptionEl = document.querySelector('[data-thank-you-description]');
+    const stepsIos = document.querySelector('[data-thank-you-steps-ios]');
+    const stepsAndroidOnly = document.querySelector('[data-thank-you-steps-android-only]');
+    const stepsBothPlatforms = document.querySelector('[data-thank-you-steps-both-platforms]');
+    const appStoreLink = document.querySelector('[data-thank-you-app-store]');
+    const groupLink = document.querySelector('[data-thank-you-google-group]');
+    const playLink = document.querySelector('[data-thank-you-play-store]');
     const searchParams = new URLSearchParams(window.location.search);
     const signupOs = (searchParams.get('os') || '').toLowerCase();
-    if (signupOs === 'android' && downloadButton instanceof HTMLElement) {
-      downloadButton.remove();
+    const isAndroidFlow = signupOs === 'android' || signupOs === 'both';
+
+    if (signupOs === 'android') {
+      if (titleEl) titleEl.textContent = copyAndroid.title;
+      if (descriptionEl) descriptionEl.textContent = copyAndroid.description;
+      stepsIos?.classList.add('hidden');
+      stepsAndroidOnly?.classList.remove('hidden');
+    } else if (signupOs === 'both') {
+      if (titleEl) titleEl.textContent = copyAndroid.title;
+      if (descriptionEl) descriptionEl.textContent = copyAndroid.description;
+      stepsIos?.classList.add('hidden');
+      stepsBothPlatforms?.classList.remove('hidden');
+    }
+
+    if (isAndroidFlow) {
+      if (appStoreLink instanceof HTMLElement) appStoreLink.classList.add('hidden');
+      if (groupLink instanceof HTMLElement) groupLink.classList.remove('hidden');
+      if (playLink instanceof HTMLElement) playLink.classList.remove('hidden');
+      if (signupOs === 'both' && appStoreLink instanceof HTMLElement) {
+        appStoreLink.classList.remove('hidden');
+      }
+    } else {
+      if (groupLink instanceof HTMLElement) groupLink.classList.add('hidden');
+      if (playLink instanceof HTMLElement) playLink.classList.add('hidden');
     }
 
     if (!(button instanceof HTMLButtonElement)) return;

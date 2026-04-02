@@ -11,6 +11,8 @@ interface Props {
 }
 
 const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = Astro.props;
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
 ---
 
 <section class="marketing-form-card" id="beta-form" aria-labelledby="beta-form-title">
@@ -33,6 +35,7 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
     data-city-page-key={cityPageKey}
     data-page-path={pagePath}
     data-redirect-path={thankYouPath}
+    data-turnstile-active={turnstileSiteKey ? 'true' : 'false'}
   >
     <div class="grid gap-4 md:grid-cols-2">
       <label class="marketing-field">
@@ -120,13 +123,29 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
       </label>
     </div>
 
-    <div class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-4">
+    <div id="beta-form-consent" class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-4">
       <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
-        <input class="mt-1 size-4 rounded border-slate-300" name="consent" type="checkbox" value="true" required />
+        <input
+          class="mt-1 size-4 rounded border-slate-300"
+          name="consent"
+          type="checkbox"
+          value="true"
+          required
+          data-beta-consent
+        />
         <span>{content.consentLabel}</span>
       </label>
       <p class="text-xs text-slate-500">{content.consentHint}</p>
     </div>
+
+    {
+      turnstileSiteKey ? (
+        <div class="rounded-2xl border border-slate-200 bg-white/80 p-4">
+          <input type="hidden" name="cf-turnstile-response" value="" data-turnstile-response />
+          <div class="min-h-[65px]" data-turnstile-container />
+        </div>
+      ) : null
+    }
 
     <div class="sr-only">
       <label>
@@ -147,7 +166,13 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
     <input name="utm_term" type="hidden" value="" data-utm-field="utm_term" />
 
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <button class="marketing-primary-button" type="submit">
+      <button
+        class="marketing-primary-button disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45"
+        type="submit"
+        disabled
+        data-beta-submit
+        aria-describedby="beta-form-consent"
+      >
         <span data-submit-label>{content.submitLabel}</span>
       </button>
       <p aria-live="polite" class="text-sm font-medium text-emerald-950" data-form-status></p>
@@ -162,11 +187,13 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
       required: content.validation.required,
       email: content.validation.email,
       consent: content.validation.consent,
+      turnstile: content.validation.turnstile,
       server: content.validation.server,
       loading: content.loadingLabel,
       success: content.successMessage,
       submit: content.submitLabel,
     },
+    turnstileSiteKey,
   }}
 >
   (() => {
@@ -174,11 +201,18 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
     if (!(form instanceof HTMLFormElement)) return;
 
     const statusNode = form.querySelector('[data-form-status]');
-    const submitButton = form.querySelector('button[type="submit"]');
+    const submitButton = form.querySelector('[data-beta-submit]');
+    const consentCheckbox = form.querySelector('[data-beta-consent]');
     const submitLabel = form.querySelector('[data-submit-label]');
     const startedAt = form.querySelector('[data-started-at]');
     const utmFields = form.querySelectorAll('[data-utm-field]');
+    const tokenInput = form.querySelector('[data-turnstile-response]');
+    const turnstileContainer = form.querySelector('[data-turnstile-container]');
+    const turnstileOn = Boolean(turnstileSiteKey);
     let startedTracked = false;
+    let turnstileReady = !turnstileOn;
+    /** @type {string | null} */
+    let turnstileWidgetId = null;
 
     if (startedAt instanceof HTMLInputElement) {
       startedAt.value = String(Date.now());
@@ -189,6 +223,54 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
       statusNode.textContent = message;
       statusNode.dataset.tone = tone;
     };
+
+    const syncSubmitEnabled = () => {
+      if (!(submitButton instanceof HTMLButtonElement)) return;
+      const consentOk = consentCheckbox instanceof HTMLInputElement && consentCheckbox.checked;
+      const captchaOk = !turnstileOn || turnstileReady;
+      submitButton.disabled = !(consentOk && captchaOk);
+    };
+
+    const loadTurnstile = () => {
+      if (!turnstileOn || !(turnstileContainer instanceof HTMLElement)) return;
+      if (document.querySelector('script[data-biciradar-turnstile]')) return;
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      script.dataset.biciradarTurnstile = '1';
+      script.onload = () => {
+        const turnstile = window.turnstile;
+        if (!turnstile || !(turnstileContainer instanceof HTMLElement)) return;
+        turnstileWidgetId = turnstile.render(turnstileContainer, {
+          sitekey: turnstileSiteKey,
+          callback: (token) => {
+            if (tokenInput instanceof HTMLInputElement) tokenInput.value = token;
+            turnstileReady = true;
+            syncSubmitEnabled();
+            setStatus('', 'default');
+          },
+          'expired-callback': () => {
+            if (tokenInput instanceof HTMLInputElement) tokenInput.value = '';
+            turnstileReady = false;
+            syncSubmitEnabled();
+          },
+          'error-callback': () => {
+            if (tokenInput instanceof HTMLInputElement) tokenInput.value = '';
+            turnstileReady = false;
+            syncSubmitEnabled();
+            setStatus(messages.turnstile, 'error');
+          },
+        });
+      };
+      document.head.appendChild(script);
+    };
+
+    loadTurnstile();
+    syncSubmitEnabled();
+    if (consentCheckbox instanceof HTMLInputElement) {
+      consentCheckbox.addEventListener('change', syncSubmitEnabled);
+    }
 
     const syncUtm = () => {
       const utm = window.BiciRadarAnalytics?.getUtm?.() || {};
@@ -273,6 +355,7 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
       }
       setStatus(messages.loading);
 
+      let submitFailed = false;
       try {
         const response = await fetch(form.action, {
           method: 'POST',
@@ -285,6 +368,7 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
         const payload = await response.json().catch(() => null);
 
         if (!response.ok || !payload?.ok) {
+          submitFailed = true;
           const errorMessage = payload?.message || messages.server;
           setStatus(errorMessage, 'error');
           window.BiciRadarAnalytics?.track?.('beta_form_error', {
@@ -308,15 +392,25 @@ const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = 
         });
         window.location.assign(redirectUrl.toString());
       } catch (error) {
+        submitFailed = true;
         console.error(error);
         setStatus(messages.server, 'error');
         window.BiciRadarAnalytics?.track?.('beta_form_error', {
           message: messages.server,
         });
       } finally {
-        if (submitButton instanceof HTMLButtonElement) {
-          submitButton.disabled = false;
+        if (submitFailed && turnstileOn && window.turnstile && turnstileWidgetId != null) {
+          try {
+            window.turnstile.reset(turnstileWidgetId);
+          } catch (resetError) {
+            console.error(resetError);
+          }
         }
+        if (submitFailed && turnstileOn) {
+          turnstileReady = false;
+          if (tokenInput instanceof HTMLInputElement) tokenInput.value = '';
+        }
+        syncSubmitEnabled();
         if (submitLabel instanceof HTMLElement) {
           submitLabel.textContent = messages.submit;
         }

@@ -13,11 +13,14 @@ vi.mock('resend', () => {
   return { Resend, __resendSend: send };
 });
 
-function buildRecord(operatingSystem: BetaLeadRecord['operatingSystem']): BetaLeadRecord {
+function buildRecord(
+  operatingSystem: BetaLeadRecord['operatingSystem'],
+  locale: BetaLeadRecord['locale'] = 'en',
+): BetaLeadRecord {
   return {
     id: 'lead-1',
     createdAt: '2026-04-02T12:00:00.000Z',
-    locale: 'en',
+    locale,
     email: 'user@example.com',
     operatingSystem,
     city: 'Barcelona',
@@ -30,74 +33,59 @@ function buildRecord(operatingSystem: BetaLeadRecord['operatingSystem']): BetaLe
 
 describe('sendBetaSignupEmails', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-04-02T12:00:00.000Z'));
     process.env.RESEND_API_KEY = 'resend_test_key';
     process.env.RESEND_FROM = 'BiciRadar <team@biciradar.app>';
-    process.env.BETA_NOTIFY_TO = 'ops@biciradar.app';
-    process.env.BETA_NOTIFY_SECRET = 'landing-shared-secret';
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.clearAllMocks();
     delete process.env.RESEND_API_KEY;
     delete process.env.RESEND_FROM;
-    delete process.env.BETA_NOTIFY_TO;
-    delete process.env.BETA_NOTIFY_SECRET;
   });
 
-  it('sends Android user email delayed and includes Play Store content', async () => {
+  it('sends a single Android email with Google group and Play Store links', async () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
     await sendBetaSignupEmails(buildRecord('android'));
 
-    expect(resendSend).toHaveBeenCalledTimes(2);
-    expect(resendSend).toHaveBeenNthCalledWith(
-      1,
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    expect(resendSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: ['user@example.com'],
-        subject: expect.stringContaining('Android beta access'),
-        scheduledAt: '2026-04-02T12:02:00.000Z',
-        html: expect.stringContaining('Open Google Play'),
-        text: expect.stringContaining('Open Google Play'),
+        subject: expect.stringContaining('testers group'),
+        text: expect.stringContaining('groups.google.com/g/testers-biciradar'),
       }),
     );
-    expect(resendSend).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        text: expect.stringContaining('"secret": "landing-shared-secret"'),
-      }),
-    );
+    const payload = resendSend.mock.calls[0][0] as { html: string; headers: Record<string, string> };
+    expect(payload.html).toContain('lang="en"');
+    expect(payload.html).toContain('groups.google.com/g/testers-biciradar');
+    expect(payload.html).toContain('play.google.com');
+    expect(payload.headers['Content-Language']).toBe('en');
   });
 
-  it('sends Android+iOS user email with both store links and delayed schedule', async () => {
+  it('sends a single email for Android+iOS with group, App Store, and Play Store links', async () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
     await sendBetaSignupEmails(buildRecord('both'));
 
-    expect(resendSend).toHaveBeenCalledTimes(2);
-    expect(resendSend).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        to: ['user@example.com'],
-        scheduledAt: '2026-04-02T12:02:00.000Z',
-        html: expect.stringContaining('Open App Store'),
-      }),
-    );
-    expect(resendSend).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        html: expect.stringContaining('Open Google Play'),
-      }),
-    );
-    expect(resendSend).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        text: expect.stringContaining('"secret": "landing-shared-secret"'),
-      }),
-    );
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    const payload = resendSend.mock.calls[0][0] as { html: string; subject: string };
+    expect(payload.html).toContain('groups.google.com/g/testers-biciradar');
+    expect(payload.html).toContain('apps.apple.com');
+    expect(payload.html).toContain('play.google.com');
+  });
+
+  it('uses the form locale for copy and headers (e.g. Catalan for iOS)', async () => {
+    const resendModule = await import('resend');
+    const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
+
+    await sendBetaSignupEmails(buildRecord('ios', 'ca'));
+
+    const payload = resendSend.mock.calls[0][0] as { subject: string; html: string; headers: Record<string, string> };
+    expect(payload.subject).toBe('Ja pots descarregar BiciRadar a l’App Store');
+    expect(payload.html).toContain('lang="ca"');
+    expect(payload.headers['Content-Language']).toBe('ca');
   });
 });

@@ -54,6 +54,7 @@ export const eu = {
     betaInviteLabel: 'Gonbidapen publiko bidezko sarbidea',
     faqLabel: 'Ohiko galderak',
     thankYouShareFallback: 'Esteka kopiatu da. Orain parteka dezakezu.',
+    githubAriaLabel: 'Iturburu kodea GitHub-en',
   },
   home: {
     seo: {
@@ -183,6 +184,7 @@ export const eu = {
         required: 'Bete eremu hau.',
         email: 'Sartu baliozko email bat.',
         consent: 'Zure baimena behar dugu beta kudeatzeko.',
+        turnstile: 'Osatu segurtasun egiaztapena eta saiatu berriro.',
         server: 'Arazo bat egon da zure eskaera gordetzean.',
       },
     },
@@ -194,7 +196,7 @@ export const eu = {
         { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
         { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
         { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
-        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila bakarrik erabiliko dugu aplikazioa noiz deskarga dezakezun jakinarazteko eta zure beta sarbidea kudeatzeko. Ez dugu prozesu honetatik kanpo beste ezertarako erabiliko.' },
+        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila beta urratsak eta estekak bidaltzeko erabiliko dugu (Google-ko testers taldea eta Play edo App Store-ko deskarga). Ez dugu prozesu honetatik kanpo beste ezertarako erabiliko.' },
       ],
     },
     footer: {
@@ -206,6 +208,7 @@ export const eu = {
       ],
       primaryCta: 'Sartu betan',
       note: 'BiciRadar · iPhone eta Android · Iturri ofizialetan oinarritutako datuak',
+      githubLine: 'Iturburu irekia GitHub-en',
     },
   },
   thankYou: {
@@ -214,19 +217,38 @@ export const eu = {
       description: 'Zure beta eskaera ondo bidali da. Begiratu hurrengo pausoak, partekatu beta eta bisitatu tokiko orriak.',
     },
     badge: 'Eskaera bidalia',
-    title: 'Eskerrik asko. Zure Android beta eskaera behar bezala bidali da.',
-    description: 'Zure eskaera berrikusiko dugu eta zure emaila erabiliko dugu beta sarbidea kudeatzeko eta eskari handiena duten hiriak lehenesteko.',
-    steps: [
-      'Zure eskaera berresten dugu.',
-      'Gonbidapenak hiria, sistema eta plataformaren arabera lehenesten ditugu.',
-      'Sarbidea dagoenean email bidezko jarraibideak jasoko dituzu.',
-    ],
+    ios: {
+      title: 'Eskerrik asko. BiciRadar iPhone-n deskarga dezakezu dagoeneko.',
+      description:
+        'Email batean App Store-ko esteka bidali dizugu. Bitartean hiriak arakatu ditzakezu edo beta partekatu.',
+      steps: [
+        'Berrespen emaila ireki sarrerako ontzian.',
+        'Deskargatu BiciRadar App Store-tik zure iPhone-an.',
+        'Gaitu jakinarazpenak eta gogokoen diren geltokiak gorde.',
+      ],
+    },
+    androidOrBoth: {
+      title: 'Eskerrik asko. Hurrengo urratsa: batu Google-ko testers taldera.',
+      description:
+        'Android betarako testers-biciradar taldean sartu behar duzu zure Google kontuarekin eta gero Google Play-tik instalatu. Esteka berak email bidez bidali dizkizugu.',
+      stepsAndroid: [
+        'Batu testers-biciradar Google Groups taldeera telefonoan erabiliko duzun Google kontu berarekin.',
+        'Taldean sartu ondoren, deskargatu BiciRadar Google Play-tik.',
+      ],
+      stepsBoth: [
+        'Batu testers-biciradar Google Groups taldeera Android-en erabiliko duzun Google kontu berarekin.',
+        'Deskargatu BiciRadar Google Play-tik Android beta-rako.',
+        'iPhone-an, instalatu App Store-tik beheko botoiarekin ere.',
+      ],
+    },
     cityLinksTitle: 'Bitartean, arakatu eskuragarri dauden hiriak',
     cityCardCtaPrefix: 'Ikusi',
     shareLabel: 'Partekatu beta',
     primaryCta: 'Bitartean, arakatu eskuragarri dauden hiriak',
-    secondaryCta: 'Deskargatu App Storen',
-    footnote: 'Ez duzu emailik jasotzen? Idatzi laguntzara.',
+    appStoreCta: 'Deskargatu App Storen',
+    playStoreCta: 'Deskargatu Google Play-n',
+    googleGroupCta: 'Batu testers-biciradar taldera',
+    footnote: 'Ez duzu emailik? Begiratu spam edo idatzi laguntzara.',
   },
   cityPages: {
     madrid: {

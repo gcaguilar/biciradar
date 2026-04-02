@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { sendBetaSignupEmails } from '../../lib/beta-email';
 import { storeBetaLead, validateBetaLead } from '../../lib/beta-form';
 import { getThankYouPath } from '../../lib/routes';
+import { verifyTurnstileFromRequest } from '../../lib/turnstile';
 
 export const prerender = false;
 
@@ -20,6 +21,16 @@ function buildRedirectPath(request: Request, locale: Parameters<typeof getThankY
 
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
+
+  const turnstile = await verifyTurnstileFromRequest(formData, request.headers);
+  if (!turnstile.ok) {
+    if (wantsJson(request)) {
+      return Response.json({ ok: false, message: turnstile.message }, { status: turnstile.status });
+    }
+    const fallbackPath = String(formData.get('pagePath') || '/');
+    return Response.redirect(new URL(fallbackPath, request.url), 303);
+  }
+
   const validation = validateBetaLead(formData, request.headers);
 
   if (!validation.ok) {

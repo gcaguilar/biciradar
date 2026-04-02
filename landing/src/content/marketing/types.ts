@@ -142,6 +142,7 @@ export interface HomeContent {
       required: string;
       email: string;
       consent: string;
+      turnstile: string;
       server: string;
     };
   };
@@ -154,6 +155,7 @@ export interface HomeContent {
     links: Array<{ label: string; href: string }>;
     primaryCta: string;
     note: string;
+    githubLine: string;
   };
 }
 
@@ -172,17 +174,31 @@ export interface CityPageContent {
   };
 }
 
-export interface ThankYouContent {
-  seo: SeoContent;
-  badge: string;
+export interface ThankYouVariantContent {
   title: string;
   description: string;
   steps: string[];
+}
+
+export interface ThankYouAndroidOrBothContent {
+  title: string;
+  description: string;
+  stepsAndroid: string[];
+  stepsBoth: string[];
+}
+
+export interface ThankYouContent {
+  seo: SeoContent;
+  badge: string;
+  ios: ThankYouVariantContent;
+  androidOrBoth: ThankYouAndroidOrBothContent;
   cityLinksTitle: string;
   cityCardCtaPrefix: string;
   shareLabel: string;
   primaryCta: string;
-  secondaryCta: string;
+  appStoreCta: string;
+  playStoreCta: string;
+  googleGroupCta: string;
   footnote: string;
 }
 
@@ -214,6 +230,7 @@ export interface LocaleContent {
     betaInviteLabel: string;
     faqLabel: string;
     thankYouShareFallback: string;
+    githubAriaLabel: string;
   };
   home: HomeContent;
   thankYou: ThankYouContent;

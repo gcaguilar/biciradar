@@ -1,5 +1,7 @@
 ---
 import LanguageSwitcher from './LanguageSwitcher.astro';
+import Icon from '../Icon.astro';
+import { siteConfig } from '../../lib/site-config';
 
 interface FooterLink {
   href: string;
@@ -22,6 +24,7 @@ interface Props {
   betaHref: string;
   languageLabel: string;
   languageLinks: LocaleLink[];
+  githubLine: string;
 }
 
 const {
@@ -33,8 +36,10 @@ const {
   betaHref,
   languageLabel,
   languageLinks,
+  githubLine,
 } = Astro.props;
 const currentYear = new Date().getFullYear();
+const githubHref = siteConfig.githubUrl;
 ---
 
 <footer class="border-t border-slate-200 bg-white">
@@ -56,6 +61,18 @@ const currentYear = new Date().getFullYear();
       </a>
 
       <LanguageSwitcher label={languageLabel} links={languageLinks} />
+
+      <a
+        class="inline-flex max-w-full items-center gap-2 text-sm text-slate-600 transition hover:text-slate-950"
+        href={githubHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-track-event="github_click"
+        data-track-placement="footer"
+      >
+        <Icon name="github" class="size-5 shrink-0" />
+        <span class="leading-snug underline-offset-2 hover:underline">{githubLine}</span>
+      </a>
 
       <div class="flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
         {links.map((link) => (
