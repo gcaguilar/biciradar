@@ -4,42 +4,53 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
-import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsState
+import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.SettingsRepository
+import com.gcaguilar.biciradar.core.StationsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 internal data class ShortcutsUiState(
   val latestAnswer: String? = null,
+  val searchRadiusMeters: Int = 0,
 )
 
 internal class ShortcutsViewModel(
   private val assistantIntentResolver: AssistantIntentResolver,
+  private val stationsRepository: StationsRepository,
+  private val favoritesRepository: FavoritesRepository,
+  private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(ShortcutsUiState())
+  private val _uiState = MutableStateFlow(
+    ShortcutsUiState(searchRadiusMeters = settingsRepository.currentSearchRadiusMeters()),
+  )
   val uiState: StateFlow<ShortcutsUiState> = _uiState.asStateFlow()
 
   private var resolveJob: Job? = null
 
-  fun resolveInitialAction(
-    action: AssistantAction,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    searchRadiusMeters: Int,
-  ) {
+  init {
+    viewModelScope.launch {
+      settingsRepository.searchRadiusMeters.collect { radius ->
+        _uiState.value = _uiState.value.copy(searchRadiusMeters = radius)
+      }
+    }
+  }
+
+  fun resolveInitialAction(action: AssistantAction) {
     resolveJob?.cancel()
     resolveJob = viewModelScope.launch {
       val resolution = assistantIntentResolver.resolve(
         action = action,
-        stationsState = StationsState(stations = stations),
-        favoriteIds = favoriteIds,
-        searchRadiusMeters = searchRadiusMeters,
+        stationsState = stationsRepository.state.value,
+        favoriteIds = favoritesRepository.favoriteIds.value,
+        searchRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
       )
-      _uiState.value = ShortcutsUiState(latestAnswer = resolution.spokenResponse)
+      _uiState.value = _uiState.value.copy(latestAnswer = resolution.spokenResponse)
     }
   }
 }

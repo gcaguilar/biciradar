@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,7 +104,7 @@ class FavoritesViewModel(
       homeStation = latestAllStations.find { it.id == latestHomeStationId },
       workStation = latestAllStations.find { it.id == latestWorkStationId },
       searchQuery = query,
-      assignmentCandidate = latestAllStations.find { it.name.contains(query, ignoreCase = true) },
+      assignmentCandidate = findStationMatchingQuery(latestAllStations, query),
       savedPlaceAlertsCityId = latestSelectedCity.id,
       savedPlaceAlertRules = latestSavedPlaceAlertRules,
     )

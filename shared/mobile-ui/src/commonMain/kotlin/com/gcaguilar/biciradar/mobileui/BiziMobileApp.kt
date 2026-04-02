@@ -139,10 +139,12 @@ import com.gcaguilar.biciradar.core.Station
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import com.gcaguilar.biciradar.core.filterStationsByQuery
-import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
+import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.isGoogleMapsReady
 import com.gcaguilar.biciradar.core.selectNearbyStation
+import com.gcaguilar.biciradar.core.selectNearbyStationWithBikes
+import com.gcaguilar.biciradar.core.selectNearbyStationWithSlots
 
 
 import kotlinx.coroutines.Job
@@ -165,6 +167,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.DEFAULT_SURFACE_MONITORING_DURATION_SECONDS
 import com.gcaguilar.biciradar.core.geo.GeoResult
@@ -183,20 +186,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
-import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingCallbacks
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
+import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModelFactory
 import androidx.window.core.layout.WindowSizeClass
-
-private data class ChangelogPresentation(
-  val sections: List<ChangelogVersionSection>,
-  val highlightedVersion: String? = null,
-  val persistSeenVersion: String? = null,
-)
 
 sealed interface MobileLaunchRequest {
   data object Home : MobileLaunchRequest
@@ -272,6 +268,22 @@ fun BiziMobileApp(
   val stationsRepository = remember(graph) { graph.stationsRepository }
   val favoritesRepository = remember(graph) { graph.favoritesRepository }
   val settingsRepository = remember(graph) { graph.settingsRepository }
+  val appRootViewModelFactory = remember(graph, platformBindings) {
+    AppRootViewModelFactory(
+      settingsRepository = graph.settingsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      stationsRepository = graph.stationsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      engagementRepository = graph.engagementRepository,
+      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      appUpdatePrompter = platformBindings.appUpdatePrompter,
+      reviewPrompter = platformBindings.reviewPrompter,
+      appVersion = platformBindings.appVersion,
+    )
+  }
+  val appRootViewModel = viewModel(key = "app-root") { appRootViewModelFactory.create() }
+  val appRootUiState by appRootViewModel.uiState.collectAsState()
   val scope = rememberCoroutineScope()
   val appState = rememberAppState()
   val navController = rememberNavController()
@@ -286,178 +298,27 @@ fun BiziMobileApp(
     mobilePlatform == MobileUiPlatform.IOS -> false
     else -> mapSupportStatus.isGoogleMapsReady()
   }
-  var settingsBootstrapped by remember(graph) { mutableStateOf(false) }
-  var favoritesBootstrapped by remember(graph) { mutableStateOf(false) }
-  var initialLoadAttemptFinished by remember(graph) { mutableStateOf(false) }
-  var minimumSplashElapsed by remember(graph) { mutableStateOf(false) }
   val onboardingChecklist by settingsRepository.onboardingChecklist.collectAsState()
-  val hasCompletedOnboarding by settingsRepository.hasCompletedOnboarding.collectAsState()
-  val homeStationId by favoritesRepository.homeStationId.collectAsState()
-  val workStationId by favoritesRepository.workStationId.collectAsState()
-  var changelogPresentation by remember(graph) { mutableStateOf<ChangelogPresentation?>(null) }
-  var currentCity by remember(graph) { mutableStateOf(City.ZARAGOZA) }
-  val engagementSnap by settingsRepository.engagementSnapshot.collectAsState()
-  var topUpdateBanner by remember { mutableStateOf<TopUpdateBanner>(TopUpdateBanner.Hidden) }
-  var showFeedbackNudge by remember { mutableStateOf(false) }
   var showFeedbackDialog by remember { mutableStateOf(false) }
   var showOnboardingFromProfile by rememberSaveable { mutableStateOf(false) }
-  var updatePollToken by remember { mutableIntStateOf(0) }
 
   LaunchedEffect(graph) {
     platformBindings.onGraphCreated(graph)
     onTripRepositoryReady?.invoke(graph.tripRepository)
     onSurfaceMonitoringRepositoryReady?.invoke(graph.surfaceMonitoringRepository)
     onSurfaceSnapshotRepositoryReady?.invoke(graph.surfaceSnapshotRepository)
-    graph.surfaceSnapshotRepository.bootstrap()
-    graph.surfaceMonitoringRepository.bootstrap()
   }
 
-  LaunchedEffect(graph) {
-    settingsBootstrapped = false
-    runCatching { settingsRepository.bootstrap() }
-    settingsBootstrapped = true
-  }
-
-  LaunchedEffect(settingsBootstrapped, platformBindings.appVersion) {
-    if (!settingsBootstrapped) return@LaunchedEffect
-    val lastSeen = settingsRepository.currentLastSeenChangelogAppVersion() ?: "0.0.0"
-    val pending = pendingChangelogVersion(
-      platformBindings.appVersion,
-      lastSeen,
-      ChangelogCatalog.catalogVersionSet(),
-    )
-    val entries = pending?.let { ChangelogCatalog.entriesFor(it) }.orEmpty()
-    println(
-      "[BiziRadar][Changelog] current=${platformBindings.appVersion} lastSeen=$lastSeen pending=$pending entries=${entries.size}",
-    )
-    if (pending != null && entries.isNotEmpty()) {
-      changelogPresentation = ChangelogPresentation(
-        sections = ChangelogCatalog.history(),
-        highlightedVersion = pending,
-        persistSeenVersion = normalizeAppVersionForCatalog(platformBindings.appVersion) ?: platformBindings.appVersion,
-      )
-      println("[BiziRadar][Changelog] showing history for $pending")
-    }
-  }
-
-  LaunchedEffect(settingsBootstrapped, onboardingChecklist.cityConfirmed) {
-    if (settingsBootstrapped && onboardingChecklist.cityConfirmed) {
-      currentCity = runCatching { settingsRepository.selectedCity.value }.getOrNull() ?: City.ZARAGOZA
-    }
-  }
-
-  LaunchedEffect(
-    settingsBootstrapped,
-    favoriteIds,
-    onboardingChecklist.cityConfirmed,
-    onboardingChecklist.firstStationSaved,
-  ) {
-    if (!settingsBootstrapped || !onboardingChecklist.cityConfirmed || onboardingChecklist.firstStationSaved) return@LaunchedEffect
-    if (favoriteIds.isNotEmpty()) {
-      settingsRepository.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
-    }
-  }
-
-  LaunchedEffect(settingsBootstrapped, homeStationId, workStationId, onboardingChecklist.savedPlacesConfigured) {
-    if (!settingsBootstrapped || onboardingChecklist.savedPlacesConfigured) return@LaunchedEffect
-    if (homeStationId != null && workStationId != null) {
-      settingsRepository.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
-    }
-  }
-
-  LaunchedEffect(settingsBootstrapped, graph) {
-    if (!settingsBootstrapped) return@LaunchedEffect
-    runCatching { graph.savedPlaceAlertsRepository.bootstrap() }
-    graph.engagementRepository.bootstrap()
-    graph.engagementRepository.markSessionStarted()
-    graph.engagementRepository.markUsefulSession()
-  }
-
-  LaunchedEffect(stationsState.freshness, graph) {
-    graph.engagementRepository.markDataFreshnessObserved(stationsState.freshness)
-  }
-
-  var previousFavoriteCount by remember(graph) { mutableStateOf(favoriteIds.size) }
-  LaunchedEffect(favoriteIds.size, graph) {
-    if (favoriteIds.size > previousFavoriteCount) {
-      graph.engagementRepository.markFavoriteCreated()
-    }
-    previousFavoriteCount = favoriteIds.size
-  }
-
-  var inAppReviewRequested by remember(graph) { mutableStateOf(false) }
-
-  LaunchedEffect(graph) {
-    favoritesBootstrapped = false
-    runCatching { favoritesRepository.syncFromPeer() }
-    favoritesBootstrapped = true
-  }
-
-  LaunchedEffect(
-    settingsBootstrapped,
-    favoritesBootstrapped,
-    stationsState.stations,
-    stationsState.lastUpdatedEpoch,
-    stationsState.userLocation,
-    favoriteIds,
-  ) {
-    if (settingsBootstrapped && favoritesBootstrapped) {
-      graph.surfaceSnapshotRepository.refreshSnapshot()
-    }
-  }
-
-  LaunchedEffect(graph) {
-    minimumSplashElapsed = false
-    kotlinx.coroutines.delay(700)
-    minimumSplashElapsed = true
-  }
-
-  LaunchedEffect(graph, refreshKey, settingsBootstrapped, favoritesBootstrapped) {
-    if (settingsBootstrapped && favoritesBootstrapped) {
-      runCatching { favoritesRepository.syncFromPeer() }
-      stationsRepository.forceRefresh()
-      initialLoadAttemptFinished = true
-    }
-  }
-
-  LaunchedEffect(
-    graph,
-    stationsState.stations,
-    stationsState.isLoading,
-    stationsState.errorMessage,
-  ) {
-    if (stationsState.isLoading || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) {
-      return@LaunchedEffect
-    }
-    kotlinx.coroutines.delay(5_000)
-    val latestState = stationsRepository.state.value
-    if (!latestState.isLoading && latestState.stations.isEmpty() && latestState.errorMessage == null) {
-      stationsRepository.loadIfNeeded()
-    }
+  LaunchedEffect(refreshKey) {
+    appRootViewModel.onRefreshSignal()
   }
 
   val nearestSelection = remember(stationsState.stations, searchRadiusMeters) {
     selectNearbyStation(stationsState.stations, searchRadiusMeters)
   }
 
-  val startupLaunchReady = remember(
-    minimumSplashElapsed,
-    settingsBootstrapped,
-    favoritesBootstrapped,
-    initialLoadAttemptFinished,
-    stationsState.isLoading,
-    stationsState.stations,
-    stationsState.errorMessage,
-  ) {
-    settingsBootstrapped &&
-      favoritesBootstrapped &&
-      minimumSplashElapsed &&
-      (initialLoadAttemptFinished || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) &&
-      !(stationsState.isLoading && stationsState.stations.isEmpty())
-  }
-
   BiziLaunchEffects(
-    startupLaunchReady = startupLaunchReady,
+    startupLaunchReady = appRootUiState.startupLaunchReady,
     onStartupReadyChanged = onStartupReadyChanged,
     appState = appState,
     launchRequest = launchRequest,
@@ -472,94 +333,15 @@ fun BiziMobileApp(
     platformBindings = platformBindings,
   )
 
-  LaunchedEffect(
-    settingsBootstrapped,
-    startupLaunchReady,
-    engagementSnap.lastUpdateCheckAtEpoch,
-    engagementSnap.dismissedUpdateVersion,
-  ) {
-    if (!settingsBootstrapped || !startupLaunchReady) return@LaunchedEffect
-    val day = 24L * 60 * 60 * 1000
-    val now = epochMillisForUi()
-    val last = engagementSnap.lastUpdateCheckAtEpoch
-    if (last != null && now - last < day) return@LaunchedEffect
-    graph.engagementRepository.markUpdateChecked(nowEpoch = now)
-    when (val u = platformBindings.appUpdatePrompter.checkForUpdate()) {
-      is UpdateAvailabilityState.Available -> {
-        if (u.versionName == engagementSnap.dismissedUpdateVersion) return@LaunchedEffect
-        topUpdateBanner = TopUpdateBanner.Available(u.versionName, u.isFlexibleAllowed, u.storeUrl)
-      }
-      is UpdateAvailabilityState.Downloaded -> {
-        topUpdateBanner = TopUpdateBanner.Downloaded(u.versionName)
-      }
-      else -> {}
-    }
-  }
-
-  LaunchedEffect(updatePollToken) {
-    if (updatePollToken == 0) return@LaunchedEffect
-    repeat(10) {
-      delay(8_000)
-      when (val u = platformBindings.appUpdatePrompter.checkForUpdate()) {
-        is UpdateAvailabilityState.Downloaded -> {
-          topUpdateBanner = TopUpdateBanner.Downloaded(u.versionName)
-          return@LaunchedEffect
-        }
-        else -> {}
-      }
-    }
-  }
-
-  LaunchedEffect(
-    startupLaunchReady,
-    hasCompletedOnboarding,
-    onboardingChecklist,
-    platformBindings.appVersion,
-  ) {
-    if (!startupLaunchReady) return@LaunchedEffect
-    if (!onboardingChecklist.isCompleted()) return@LaunchedEffect
-    if (!graph.engagementRepository.shouldShowFeedbackNudge(platformBindings.appVersion)) return@LaunchedEffect
-    showFeedbackNudge = true
-    graph.engagementRepository.markFeedbackNudgeShown(platformBindings.appVersion)
-  }
-
-  LaunchedEffect(
-    startupLaunchReady,
-    settingsBootstrapped,
-    onboardingChecklist,
-    hasCompletedOnboarding,
-    stationsState.freshness,
-    graph,
-    platformBindings.appVersion,
-  ) {
-    if (!startupLaunchReady || !settingsBootstrapped || inAppReviewRequested) {
-      return@LaunchedEffect
-    }
-    if (!onboardingChecklist.isCompleted()) return@LaunchedEffect
-    if (stationsState.freshness == DataFreshness.Unavailable) return@LaunchedEffect
-    val eligibility = graph.engagementRepository.reviewEligibility(
-      appVersion = platformBindings.appVersion,
-      onboardingCompleted = onboardingChecklist.isCompleted() || hasCompletedOnboarding,
-      currentFreshness = stationsState.freshness,
-    )
-    if (eligibility.isEligible) {
-      inAppReviewRequested = true
-      scope.launch {
-        delay(4_000)
-        graph.engagementRepository.markReviewPrompted(platformBindings.appVersion)
-        platformBindings.reviewPrompter.requestInAppReview()
-      }
-    }
-  }
-
   val filteredStations = remember(stationsState.stations, appState.searchQuery) {
     filterStations(stationsState.stations, appState.searchQuery)
   }
+  val changelogPresentation = appRootUiState.changelogPresentation
   val showStartupSplash = remember(
     useInAppStartupSplash,
-    startupLaunchReady,
+    appRootUiState.startupLaunchReady,
   ) {
-    useInAppStartupSplash && !startupLaunchReady
+    useInAppStartupSplash && !appRootUiState.startupLaunchReady
   }
 
   BiziTheme(mobilePlatform, themePreference) {
@@ -678,6 +460,9 @@ fun BiziMobileApp(
                   val shortcutsViewModelFactory = remember(graph) {
                     com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
                       assistantIntentResolver = graph.assistantIntentResolver,
+                      stationsRepository = graph.stationsRepository,
+                      favoritesRepository = graph.favoritesRepository,
+                      settingsRepository = graph.settingsRepository,
                     )
                   }
                   val favoritesViewModelFactory = remember(graph) {
@@ -767,55 +552,23 @@ fun BiziMobileApp(
                         initialAssistantAction = appState.pendingAssistantAction,
                         onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
                         onOpenOnboarding = { showOnboardingFromProfile = true },
-                        onShowChangelogManual = {
-                          val sections = ChangelogCatalog.history()
-                          if (sections.isNotEmpty()) {
-                            changelogPresentation = ChangelogPresentation(
-                              sections = sections,
-                              highlightedVersion = ChangelogCatalog.latestVersionAtOrBefore(platformBindings.appVersion),
-                              persistSeenVersion = normalizeAppVersionForCatalog(platformBindings.appVersion)
-                                ?: platformBindings.appVersion,
-                            )
-                          }
-                        },
+                        onShowChangelogManual = appRootViewModel::showChangelogHistory,
                         paddingValues = innerPadding,
                       )
                     }
                     EngagementTopOverlays(
-                      updateBanner = topUpdateBanner,
-                      showFeedbackNudge = showFeedbackNudge,
-                      onDismissAvailableUpdate = { version ->
-                        scope.launch {
-                          graph.engagementRepository.markUpdateBannerDismissed(version, epochMillisForUi())
-                        }
-                        topUpdateBanner = TopUpdateBanner.Hidden
-                      },
-                      onDismissDownloadedUpdate = { topUpdateBanner = TopUpdateBanner.Hidden },
-                      onStartUpdate = {
-                        scope.launch {
-                          val banner = topUpdateBanner as? TopUpdateBanner.Available ?: return@launch
-                          if (banner.flexible) {
-                            if (platformBindings.appUpdatePrompter.startFlexibleUpdate()) {
-                              updatePollToken++
-                            }
-                          } else {
-                            platformBindings.appUpdatePrompter.openStoreListing()
-                          }
-                        }
-                      },
-                      onRestartToUpdate = {
-                        scope.launch {
-                          platformBindings.appUpdatePrompter.completeFlexibleUpdateIfReady()
-                        }
-                      },
+                      updateBanner = appRootUiState.topUpdateBanner,
+                      showFeedbackNudge = appRootUiState.showFeedbackNudge,
+                      onDismissAvailableUpdate = appRootViewModel::dismissAvailableUpdate,
+                      onDismissDownloadedUpdate = appRootViewModel::dismissDownloadedUpdate,
+                      onStartUpdate = appRootViewModel::onStartUpdateRequested,
+                      onRestartToUpdate = appRootViewModel::onRestartToUpdateRequested,
                       onFeedbackSend = {
-                        scope.launch { graph.engagementRepository.markFeedbackOpened() }
+                        appRootViewModel.onFeedbackOpened()
                         showFeedbackDialog = true
-                        showFeedbackNudge = false
                       },
                       onFeedbackDismiss = {
-                        scope.launch { graph.engagementRepository.markFeedbackDismissed() }
-                        showFeedbackNudge = false
+                        appRootViewModel.onFeedbackDismissed()
                       },
                     )
                     if (showFeedbackDialog) {
@@ -830,24 +583,11 @@ fun BiziMobileApp(
                     changelogPresentation
                       ?.takeIf { !showStartupSplash && it.sections.isNotEmpty() }
                       ?.let { presentation ->
-                        val onChangelogDismiss = remember(presentation.persistSeenVersion) {
-                          {
-                            val persistSeenVersion = presentation.persistSeenVersion
-                            changelogPresentation = null
-                            if (persistSeenVersion != null) {
-                              scope.launch {
-                                settingsRepository.setLastSeenChangelogAppVersion(persistSeenVersion)
-                              }
-                              println("[BiziRadar][Changelog] dismissed and persisted=$persistSeenVersion")
-                            }
-                            Unit
-                          }
-                        }
                         ChangelogHistoryScreen(
                           mobilePlatform = mobilePlatform,
                           sections = presentation.sections,
                           highlightedVersion = presentation.highlightedVersion,
-                          onBack = onChangelogDismiss,
+                          onBack = appRootViewModel::dismissChangelog,
                         )
                       }
                   }
@@ -882,10 +622,10 @@ internal fun NearbyScreen(
   paddingValues: PaddingValues,
 ) {
   val nearestWithBikesSelection = remember(stations, searchRadiusMeters) {
-    selectNearbyStation(stations, searchRadiusMeters) { station -> station.bikesAvailable > 0 }
+    selectNearbyStationWithBikes(stations, searchRadiusMeters)
   }
   val nearestWithSlotsSelection = remember(stations, searchRadiusMeters) {
-    selectNearbyStation(stations, searchRadiusMeters) { station -> station.slotsFree > 0 }
+    selectNearbyStationWithSlots(stations, searchRadiusMeters)
   }
 
   Box(
@@ -1094,6 +834,7 @@ internal fun FavoritesScreen(
   homeStation: Station?,
   workStation: Station?,
   searchQuery: String,
+  assignmentCandidate: Station?,
   onSearchQueryChange: (String) -> Unit,
   onStationSelected: (Station) -> Unit,
   onAssignHomeStation: (Station) -> Unit,
@@ -1113,8 +854,6 @@ internal fun FavoritesScreen(
   onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)?,
   onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)?,
 ) {
-  fun ruleFor(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
-    savedPlaceAlertRules.firstOrNull { it.target.identityKey() == target.identityKey() }
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   val upsertAlert = onUpsertSavedPlaceAlert
   val removeAlertForTarget = onRemoveSavedPlaceAlertForTarget
@@ -1134,11 +873,6 @@ internal fun FavoritesScreen(
         },
       )
     }
-  }
-  val assignmentCandidate = remember(allStations, searchQuery) {
-    searchQuery
-      .takeIf { it.isNotBlank() }
-      ?.let { query -> findStationMatchingQuery(allStations, query) }
   }
   Box(
     modifier = Modifier
@@ -1239,14 +973,17 @@ internal fun FavoritesScreen(
             if (s != null && upsertAlert != null) {
               {
                 val t = SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name)
-                alertEditor = t to ruleFor(t)
+                alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
               null
             }
           },
           savedPlaceAlertActive = homeStation?.let { s ->
-            ruleFor(SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name)) != null
+            findSavedPlaceAlertRule(
+              savedPlaceAlertRules,
+              SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name),
+            ) != null
           } == true,
         )
       }
@@ -1265,14 +1002,17 @@ internal fun FavoritesScreen(
             if (s != null && upsertAlert != null) {
               {
                 val t = SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name)
-                alertEditor = t to ruleFor(t)
+                alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
               null
             }
           },
           savedPlaceAlertActive = workStation?.let { s ->
-            ruleFor(SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name)) != null
+            findSavedPlaceAlertRule(
+              savedPlaceAlertRules,
+              SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name),
+            ) != null
           } == true,
         )
       }
@@ -1304,12 +1044,13 @@ internal fun FavoritesScreen(
             onSavedPlaceAlertClick = if (upsertAlert != null) {
               {
                 val t = SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name)
-                alertEditor = t to ruleFor(t)
+                alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
               null
             },
-            savedPlaceAlertActive = ruleFor(
+            savedPlaceAlertActive = findSavedPlaceAlertRule(
+              savedPlaceAlertRules,
               SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name),
             ) != null,
           )
@@ -1348,8 +1089,6 @@ internal fun StationDetailScreen(
   patternsError: Boolean,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
-  fun ruleFor(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
-    savedPlaceAlertRules.firstOrNull { it.target.identityKey() == target.identityKey() }
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   var showWeekend by rememberSaveable { mutableStateOf(false) }
   Box(Modifier.fillMaxSize()) {
@@ -1509,22 +1248,28 @@ internal fun StationDetailScreen(
                   if (isHomeStation) {
                     StationDetailAlertBellColumn(
                       label = stringResource(Res.string.home),
-                      active = ruleFor(homeTarget) != null,
-                      onClick = { alertEditor = homeTarget to ruleFor(homeTarget) },
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget) != null,
+                      onClick = {
+                        alertEditor = homeTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget)
+                      },
                     )
                   }
                   if (isWorkStation) {
                     StationDetailAlertBellColumn(
                       label = stringResource(Res.string.work),
-                      active = ruleFor(workTarget) != null,
-                      onClick = { alertEditor = workTarget to ruleFor(workTarget) },
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget) != null,
+                      onClick = {
+                        alertEditor = workTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget)
+                      },
                     )
                   }
                   if (isFavorite) {
                     StationDetailAlertBellColumn(
                       label = stringResource(Res.string.favorite),
-                      active = ruleFor(favoriteTarget) != null,
-                      onClick = { alertEditor = favoriteTarget to ruleFor(favoriteTarget) },
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget) != null,
+                      onClick = {
+                        alertEditor = favoriteTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget)
+                      },
                     )
                   }
                 }

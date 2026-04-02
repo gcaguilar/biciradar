@@ -42,3 +42,23 @@ fun selectNearbyStation(
     radiusMeters = normalizedRadius,
   )
 }
+
+fun selectNearbyStationWithBikes(
+  stations: List<Station>,
+  searchRadiusMeters: Int,
+): NearbyStationSelection = selectNearbyStation(
+  stations = stations,
+  searchRadiusMeters = searchRadiusMeters,
+) { station ->
+  station.bikesAvailable > 0
+}
+
+fun selectNearbyStationWithSlots(
+  stations: List<Station>,
+  searchRadiusMeters: Int,
+): NearbyStationSelection = selectNearbyStation(
+  stations = stations,
+  searchRadiusMeters = searchRadiusMeters,
+) { station ->
+  station.slotsFree > 0
+}

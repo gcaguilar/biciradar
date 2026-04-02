@@ -99,10 +99,9 @@ class TripRepositoryImpl(
       station.copy(distanceMeters = distanceBetween(location, station.location))
     }.sortedBy { it.distanceMeters }
 
-    val selection = selectNearbyStation(
+    val selection = selectNearbyStationWithSlots(
       stations = stationsWithDistance,
       searchRadiusMeters = searchRadiusMeters,
-      predicate = { it.slotsFree > 0 },
     )
     val chosen = selection.highlightedStation
 

@@ -123,6 +123,7 @@ internal object BiziMobileAppContent {
     homeStation: Station?,
     workStation: Station?,
     searchQuery: String,
+    assignmentCandidate: Station?,
     onSearchQueryChange: (String) -> Unit,
     onStationSelected: (Station) -> Unit,
     onAssignHomeStation: (Station) -> Unit,
@@ -149,6 +150,7 @@ internal object BiziMobileAppContent {
     homeStation = homeStation,
     workStation = workStation,
     searchQuery = searchQuery,
+    assignmentCandidate = assignmentCandidate,
     onSearchQueryChange = onSearchQueryChange,
     onStationSelected = onStationSelected,
     onAssignHomeStation = onAssignHomeStation,
@@ -191,6 +193,7 @@ internal object BiziMobileAppContent {
       homeStation = uiState.homeStation,
       workStation = uiState.workStation,
       searchQuery = uiState.searchQuery,
+      assignmentCandidate = uiState.assignmentCandidate,
       onSearchQueryChange = viewModel::onSearchQueryChange,
       onStationSelected = onStationSelected,
       onAssignHomeStation = viewModel::onAssignHomeStation,
@@ -305,28 +308,20 @@ internal object BiziMobileAppContent {
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModel,
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    searchRadiusMeters: Int,
     initialAction: AssistantAction?,
     onInitialActionConsumed: () -> Unit,
     onBack: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    LaunchedEffect(viewModel, initialAction, stations, favoriteIds, searchRadiusMeters) {
+    LaunchedEffect(viewModel, initialAction) {
       val action = initialAction ?: return@LaunchedEffect
-      viewModel.resolveInitialAction(
-        action = action,
-        stations = stations,
-        favoriteIds = favoriteIds,
-        searchRadiusMeters = searchRadiusMeters,
-      )
+      viewModel.resolveInitialAction(action)
       onInitialActionConsumed()
     }
     ShortcutsScreen(
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
-      searchRadiusMeters = searchRadiusMeters,
+      searchRadiusMeters = uiState.searchRadiusMeters,
       latestAnswer = uiState.latestAnswer,
       onBack = onBack,
     )

@@ -222,9 +222,6 @@ internal fun BiziNavHost(
         viewModel = shortcutsViewModel,
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
-        stations = stations,
-        searchRadiusMeters = searchRadiusMeters,
-        favoriteIds = favoriteIds,
         initialAction = initialAssistantAction,
         onInitialActionConsumed = onInitialActionConsumed,
         onBack = remember(navController) {

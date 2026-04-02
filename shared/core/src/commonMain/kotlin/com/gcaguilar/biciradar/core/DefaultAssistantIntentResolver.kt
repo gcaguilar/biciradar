@@ -23,9 +23,7 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         },
       )
       AssistantAction.NearestStationWithBikes -> nearestStationResolution(
-        selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
-          station.bikesAvailable > 0
-        },
+        selection = selectNearbyStationWithBikes(stationsState.stations, searchRadiusMeters),
         emptyMessage = "No nearby stations with bikes",
         withinRadiusFormatter = { station ->
           "Nearest station with bikes: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
@@ -35,9 +33,7 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
         },
       )
       AssistantAction.NearestStationWithSlots -> nearestStationResolution(
-        selection = selectNearbyStation(stationsState.stations, searchRadiusMeters) { station ->
-          station.slotsFree > 0
-        },
+        selection = selectNearbyStationWithSlots(stationsState.stations, searchRadiusMeters),
         emptyMessage = "No nearby stations with free slots",
         withinRadiusFormatter = { station ->
           "Nearest station with slots: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"

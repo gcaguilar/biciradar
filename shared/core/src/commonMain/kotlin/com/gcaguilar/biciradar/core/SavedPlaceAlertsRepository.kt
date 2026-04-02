@@ -47,7 +47,7 @@ class SavedPlaceAlertsRepositoryImpl(
   override fun currentRules(): List<SavedPlaceAlertRule> = mutableRules.value
 
   override fun ruleForTarget(target: SavedPlaceAlertTarget): SavedPlaceAlertRule? =
-    mutableRules.value.firstOrNull { it.target.identityKey() == target.identityKey() }
+    findSavedPlaceAlertRule(mutableRules.value, target)
 
   override suspend fun upsertRule(
     target: SavedPlaceAlertTarget,

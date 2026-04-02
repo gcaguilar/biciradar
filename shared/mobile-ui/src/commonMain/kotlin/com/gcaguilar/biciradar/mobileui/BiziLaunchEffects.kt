@@ -14,6 +14,8 @@ import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.selectNearbyStation
+import com.gcaguilar.biciradar.core.selectNearbyStationWithBikes
+import com.gcaguilar.biciradar.core.selectNearbyStationWithSlots
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 
 @Composable
@@ -69,18 +71,18 @@ internal fun BiziLaunchEffects(
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithBikes -> {
-        val station = selectNearbyStation(
-          stationsState.stations,
-          searchRadiusMeters,
-        ) { station -> station.bikesAvailable > 0 }.highlightedStation ?: return@LaunchedEffect
+        val station = selectNearbyStationWithBikes(
+          stations = stationsState.stations,
+          searchRadiusMeters = searchRadiusMeters,
+        ).highlightedStation ?: return@LaunchedEffect
         navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
       MobileLaunchRequest.NearestStationWithSlots -> {
-        val station = selectNearbyStation(
-          stationsState.stations,
-          searchRadiusMeters,
-        ) { station -> station.slotsFree > 0 }.highlightedStation ?: return@LaunchedEffect
+        val station = selectNearbyStationWithSlots(
+          stations = stationsState.stations,
+          searchRadiusMeters = searchRadiusMeters,
+        ).highlightedStation ?: return@LaunchedEffect
         navController.navigate(Screen.StationDetail(station.id))
         appState.pendingLaunchRequest = null
       }
