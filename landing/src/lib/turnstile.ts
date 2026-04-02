@@ -27,10 +27,12 @@ function getClientIp(headers: Headers) {
   );
 }
 
-/**
- * When `TURNSTILE_SECRET_KEY` is unset, verification is skipped (local dev).
- * In production, set both `PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`.
- */
+function shouldSubmitRemoteIp() {
+  const v = process.env.TURNSTILE_SUBMIT_REMOTE_IP?.trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
+/** Skips verify if `TURNSTILE_SECRET_KEY` is unset. Omits `remoteip` by default (proxy-safe); set `TURNSTILE_SUBMIT_REMOTE_IP=true` to send it. */
 export async function verifyTurnstileFromRequest(
   formData: FormData,
   headers: Headers,
@@ -51,9 +53,11 @@ export async function verifyTurnstileFromRequest(
   const body = new URLSearchParams();
   body.set('secret', secret);
   body.set('response', token);
-  const ip = getClientIp(headers);
-  if (ip) {
-    body.set('remoteip', ip);
+  if (shouldSubmitRemoteIp()) {
+    const ip = getClientIp(headers);
+    if (ip) {
+      body.set('remoteip', ip);
+    }
   }
 
   const response = await fetch(VERIFY_URL, {
@@ -62,8 +66,14 @@ export async function verifyTurnstileFromRequest(
     body,
   });
 
-  const data = (await response.json()) as { success?: boolean };
+  const data = (await response.json()) as { success?: boolean; 'error-codes'?: string[] };
   if (!data.success) {
+    const codes = data['error-codes'] ?? [];
+    if (codes.length > 0) {
+      console.error('Turnstile siteverify failed', { errorCodes: codes });
+    } else {
+      console.error('Turnstile siteverify failed', { success: data.success, httpStatus: response.status });
+    }
     return { ok: false, status: 400, message };
   }
 
