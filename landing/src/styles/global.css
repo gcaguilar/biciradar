@@ -103,7 +103,7 @@ summary:focus-visible {
   }
 
   .marketing-primary-button {
-    @apply inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600;
+    @apply inline-flex items-center justify-center rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700;
   }
 
   .marketing-primary-button:disabled {
@@ -202,7 +202,7 @@ summary:focus-visible {
   }
 
   .marketing-dark-action-secondary {
-    @apply bg-emerald-500 text-white hover:bg-emerald-400;
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
   }
 
   .marketing-form-card {
@@ -215,7 +215,7 @@ summary:focus-visible {
 
   .marketing-field input,
   .marketing-field select {
-    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-normal text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-900;
+    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base font-normal text-slate-900 shadow-sm transition placeholder:text-slate-500 focus:border-slate-900;
   }
 
   .marketing-thank-you-card {
@@ -239,7 +239,7 @@ summary:focus-visible {
   }
 
   .marketing-sticky-bar__beta {
-    @apply inline-flex items-center justify-center rounded-xl bg-emerald-500 px-3 py-3 text-center text-sm font-semibold text-white;
+    @apply inline-flex items-center justify-center rounded-xl bg-emerald-700 px-3 py-3 text-center text-sm font-semibold text-white transition hover:bg-emerald-800;
   }
 
   .marketing-mockup {
@@ -255,7 +255,7 @@ summary:focus-visible {
   }
 
   .marketing-mockup__caption {
-    @apply text-xs font-medium uppercase tracking-[0.18em] text-slate-400;
+    @apply text-xs font-medium uppercase tracking-[0.18em] text-slate-300;
   }
 
   .marketing-mockup__value {
@@ -276,7 +276,7 @@ summary:focus-visible {
   }
 
   .marketing-mockup__metric span {
-    @apply block text-xs text-slate-400;
+    @apply block text-xs text-slate-300;
   }
 
   .marketing-mockup__metric strong {

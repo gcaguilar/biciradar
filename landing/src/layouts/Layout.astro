@@ -72,7 +72,7 @@ const fontStylesheetHref =
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href={fontStylesheetHref} as="style" />
-    <link rel="stylesheet" href={fontStylesheetHref} media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href={fontStylesheetHref} media="print" onload={"this.media='all'"} />
     <noscript><link rel="stylesheet" href={fontStylesheetHref} /></noscript>
     <script is:inline>
       (() => {
