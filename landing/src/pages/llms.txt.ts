@@ -11,22 +11,27 @@ export const GET: APIRoute = ({ site }) => {
     siteUrl,
     import.meta.env.BASE_URL,
   );
+  const madridUrl = absolutePageUrl('/madrid-bicimad', siteUrl, import.meta.env.BASE_URL);
+  const barcelonaUrl = absolutePageUrl('/barcelona-bicing', siteUrl, import.meta.env.BASE_URL);
 
   const body = `# BiciRadar
 
-> Official public site for BiciRadar, a shared-bike availability app built around official city open-data feeds.
+> Official public site for BiciRadar, a shared-bike availability app and beta waitlist built around official city open-data feeds.
 
 ## Canonical site
 - ${homeUrl}
 
 ## Key pages
 - Home: ${homeUrl}
+- Madrid: ${madridUrl}
+- Barcelona: ${barcelonaUrl}
 - Product reference: ${complementUrl}
 
 ## Product scope
 - Real-time availability for bikes and free docks in public bike-share stations.
 - Favorites, alerts, widgets, watch surfaces, and quick access for daily commuting.
 - Public-facing product overview and FAQ content for end users.
+- Beta signup flow with localized landing pages and city-specific SEO pages.
 
 ## Platforms
 - iPhone and iOS

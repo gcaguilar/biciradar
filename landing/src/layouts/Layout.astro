@@ -1,51 +1,46 @@
 ---
 import '../styles/global.css';
-import { withBase } from '../utils/paths';
 import { absolutePageUrl, absoluteUrl, resolveSiteUrl } from '../utils/site';
+import type { AlternateLink } from '../lib/seo';
+import { localeToOgLocale } from '../lib/i18n';
 
 interface Props {
   title: string;
   description?: string;
   image?: string;
-  lang?: string;
+  lang?: keyof typeof localeToOgLocale;
+  canonicalPath?: string;
+  alternates?: AlternateLink[];
+  skipLinkLabel?: string;
+  robots?: string;
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
 const {
   title,
-  description = 'Consulta en tiempo real la disponibilidad de bicis y huecos en estaciones de tu ciudad con BiciRadar.',
+  description = 'Consulta en tiempo real la disponibilidad de bicis y huecos con BiciRadar.',
   image = '/og-image.svg',
   lang = 'es',
+  canonicalPath,
+  alternates = [],
+  skipLinkLabel = 'Skip to content',
+  robots = 'index,follow',
   structuredData = [],
 } = Astro.props;
+
 const site = resolveSiteUrl(Astro.site);
-const canonical = new URL(Astro.url.pathname, site).toString();
+const canonical = absolutePageUrl(canonicalPath || Astro.url.pathname, site, import.meta.env.BASE_URL);
 const ogImage = absoluteUrl(image, site, import.meta.env.BASE_URL);
-const faviconPath = withBase('/favicon.svg', import.meta.env.BASE_URL);
-const homeUrl = absolutePageUrl('/', site, import.meta.env.BASE_URL);
-const structuredDataEntries = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'MobileApplication',
-    name: 'BiciRadar',
-    applicationCategory: 'TravelApplication',
-    operatingSystem: 'iOS, Android, Wear OS, Apple Watch',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'EUR',
-    },
-    url: homeUrl,
-    inLanguage: 'es',
-    sameAs: [
-      'https://apps.apple.com/es/app/biciradar/id6760931316',
-      'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
-    ],
-  },
-  ...(Array.isArray(structuredData) ? structuredData : [structuredData]).filter(Boolean),
-];
+const faviconPath = absoluteUrl('/favicon.svg', site, import.meta.env.BASE_URL);
+const structuredDataEntries = (Array.isArray(structuredData) ? structuredData : [structuredData]).filter(Boolean);
+const ogLocale = localeToOgLocale[lang] || localeToOgLocale.es;
+const alternateOgLocales = alternates
+  .map((alternate) => alternate.hreflang)
+  .filter((hreflang) => hreflang !== lang && hreflang !== 'x-default')
+  .map((hreflang) => localeToOgLocale[hreflang as keyof typeof localeToOgLocale])
+  .filter(Boolean);
 const fontStylesheetHref =
-  'https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Space+Grotesk:wght@500;700&display=swap';
+  'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap';
 ---
 
 <!doctype html>
@@ -53,42 +48,31 @@ const fontStylesheetHref =
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#005ea0" />
+    <meta name="theme-color" content="#f8fafc" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={canonical} />
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+    ))}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="BiciRadar" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale" content={ogLocale} />
+    {alternateOgLocales.map((locale) => <meta property="og:locale:alternate" content={locale} />)}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <link rel="icon" type="image/svg+xml" href={faviconPath} />
-    <script is:inline>
-      (() => {
-        try {
-          const savedTheme = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-          document.documentElement.classList.toggle('dark', shouldUseDark);
-        } catch {}
-      })();
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preload" href={fontStylesheetHref} as="style" />
-    <link
-      href={fontStylesheetHref}
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
-    />
+    <link href={fontStylesheetHref} rel="stylesheet" />
     <noscript><link rel="stylesheet" href={fontStylesheetHref} /></noscript>
     <script is:inline>
       (() => {
@@ -105,17 +89,20 @@ const fontStylesheetHref =
         };
 
         if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(loadAnalytics, { timeout: 3000 });
+          window.requestIdleCallback(loadAnalytics, { timeout: 2500 });
         } else {
           window.addEventListener('load', () => window.setTimeout(loadAnalytics, 1), { once: true });
         }
       })();
     </script>
     {structuredDataEntries.map((entry) => (
-      <script type="application/ld+json" set:html={JSON.stringify(entry)} />
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(entry)} />
     ))}
   </head>
-  <body class="bg-background font-body text-on-surface antialiased overflow-x-hidden">
+  <body>
+    <a class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:rounded-full focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-950" href="#main-content">
+      {skipLinkLabel}
+    </a>
     <slot />
   </body>
 </html>

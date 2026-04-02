@@ -1,18 +1,30 @@
 import type { APIRoute } from 'astro';
+import { orderedCityKeys } from '../content/marketing';
 import { absolutePageUrl, resolveSiteUrl } from '../utils/site';
+import { locales } from '../lib/i18n';
+import { getCityPath, getHomePath } from '../lib/routes';
 
 export const prerender = true;
 
-const routes = [
+const marketingRoutes = locales.flatMap((locale) => [
   {
-    path: '/',
+    path: getHomePath(locale),
     changefreq: 'weekly',
-    priority: '1.0',
+    priority: locale === 'es' ? '1.0' : '0.9',
   },
+  ...orderedCityKeys.map((cityKey) => ({
+    path: getCityPath(locale, cityKey),
+    changefreq: 'weekly',
+    priority: locale === 'es' ? '0.8' : '0.7',
+  })),
+]);
+
+const routes = [
+  ...marketingRoutes,
   {
     path: '/biciradar-complemento-app-oficial',
-    changefreq: 'weekly',
-    priority: '0.8',
+    changefreq: 'monthly',
+    priority: '0.5',
   },
 ];
 
