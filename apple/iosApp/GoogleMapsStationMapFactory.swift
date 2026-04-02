@@ -46,6 +46,7 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         stations: [Station],
         userLocation: GeoPoint?,
         highlightedStationId: String?,
+        isDarkTheme: Bool,
         onStationSelected: @escaping (Station) -> Void,
         recenterRequestToken: Int32,
         environmentalOverlay: EnvironmentalOverlayData?
@@ -54,6 +55,8 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         self.onStationSelected = onStationSelected
         mapDelegate?.stations = stations
         mapDelegate?.highlightedStationId = highlightedStationId
+        mapView.overrideUserInterfaceStyle = isDarkTheme ? .dark : .light
+        mapView.mapStyle = isDarkTheme ? try? GMSMapStyle(jsonString: Self.darkMapStyleJSON) : nil
 
         // Enable native blue dot for user location
         mapView.isMyLocationEnabled = userLocation != nil
@@ -174,6 +177,25 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
     }
 
     private static var delegateKey: UInt8 = 0
+    private static let darkMapStyleJSON = """
+    [
+      {"elementType":"geometry","stylers":[{"color":"#0f172a"}]},
+      {"elementType":"labels.text.fill","stylers":[{"color":"#cbd5e1"}]},
+      {"elementType":"labels.text.stroke","stylers":[{"color":"#0f172a"}]},
+      {"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#334155"}]},
+      {"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"color":"#111827"}]},
+      {"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#0b1220"}]},
+      {"featureType":"poi","elementType":"geometry","stylers":[{"color":"#111827"}]},
+      {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#0b3b2e"}]},
+      {"featureType":"road","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
+      {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#0f172a"}]},
+      {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#334155"}]},
+      {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1e293b"}]},
+      {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#172033"}]},
+      {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0a2540"}]},
+      {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#93c5fd"}]}
+    ]
+    """
 }
 
 private final class GoogleMapsStationMapDelegate: NSObject, GMSMapViewDelegate {

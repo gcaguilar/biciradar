@@ -47,8 +47,11 @@ private fun compareVersionPart(a: VersionPart, b: VersionPart): Int {
 }
 
 /**
- * Changelog for [currentAppVersion] should show once if there is a catalog entry for that exact version
- * and it is newer than [lastSeenChangelogAppVersion] (or lastSeen is null before baseline is applied — caller should baseline first).
+ * Changelog for [currentAppVersion] should show once if there is any catalog entry
+ * at or below the current app version and newer than [lastSeenChangelogAppVersion].
+ *
+ * This lets patch builds such as `0.19.1` reuse the `0.19.0` changelog until a
+ * more specific entry is added to the catalog.
  */
 fun pendingChangelogVersion(
   currentAppVersion: String,
@@ -57,7 +60,11 @@ fun pendingChangelogVersion(
 ): String? {
   val normalizedCurrent = normalizeAppVersionForCatalog(currentAppVersion) ?: return null
   val normalizedLastSeen = normalizeAppVersionForCatalog(lastSeenChangelogAppVersion) ?: return null
-  if (!catalogVersions.contains(normalizedCurrent)) return null
-  if (compareAppVersionStrings(normalizedCurrent, normalizedLastSeen) <= 0) return null
-  return normalizedCurrent
+  val newestCompatibleCatalogVersion = catalogVersions
+    .mapNotNull(::normalizeAppVersionForCatalog)
+    .filter { compareAppVersionStrings(it, normalizedCurrent) <= 0 }
+    .maxWithOrNull { a, b -> compareAppVersionStrings(a, b) }
+    ?: return null
+  if (compareAppVersionStrings(newestCompatibleCatalogVersion, normalizedLastSeen) <= 0) return null
+  return newestCompatibleCatalogVersion
 }

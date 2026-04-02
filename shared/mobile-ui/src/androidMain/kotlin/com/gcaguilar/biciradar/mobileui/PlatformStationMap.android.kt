@@ -29,6 +29,7 @@ import org.jetbrains.compose.resources.stringResource
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -82,8 +83,15 @@ internal actual fun PlatformStationMap(
     return
   }
   val cameraPositionState = rememberCameraPositionState()
-  val mapProperties = remember(userLocation != null) {
-    MapProperties(isMyLocationEnabled = userLocation != null)
+  val isDarkTheme = LocalIsDarkTheme.current
+  val mapStyleOptions = remember(isDarkTheme) {
+    if (isDarkTheme) MapStyleOptions(DARK_MAP_STYLE_JSON) else null
+  }
+  val mapProperties = remember(userLocation != null, mapStyleOptions) {
+    MapProperties(
+      isMyLocationEnabled = userLocation != null,
+      mapStyleOptions = mapStyleOptions,
+    )
   }
   val mapUiSettings = remember {
     MapUiSettings(
@@ -191,3 +199,23 @@ internal actual fun PlatformStationMap(
     }
   }
 }
+
+private const val DARK_MAP_STYLE_JSON = """
+[
+  {"elementType":"geometry","stylers":[{"color":"#0f172a"}]},
+  {"elementType":"labels.text.fill","stylers":[{"color":"#cbd5e1"}]},
+  {"elementType":"labels.text.stroke","stylers":[{"color":"#0f172a"}]},
+  {"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#334155"}]},
+  {"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"color":"#111827"}]},
+  {"featureType":"landscape.natural","elementType":"geometry","stylers":[{"color":"#0b1220"}]},
+  {"featureType":"poi","elementType":"geometry","stylers":[{"color":"#111827"}]},
+  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#0b3b2e"}]},
+  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#1f2937"}]},
+  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#0f172a"}]},
+  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#334155"}]},
+  {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1e293b"}]},
+  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#172033"}]},
+  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#0a2540"}]},
+  {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#93c5fd"}]}
+]
+"""

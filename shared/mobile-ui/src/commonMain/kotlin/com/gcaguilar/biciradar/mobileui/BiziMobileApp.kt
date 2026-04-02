@@ -185,151 +185,18 @@ import androidx.navigation.compose.rememberNavController
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
+import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
+import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingCallbacks
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 import androidx.window.core.layout.WindowSizeClass
 
-// --- Light-mode palette raw tokens ---
-private val BiziLight = Color(0xFFF8F6F6)
-private val BiziGrouped = Color(0xFFF2F2F7)
-private val BiziInk = Color(0xFF0D1B2A)
-private val BiziMuted = Color(0xFF64779D)
-private val BiziPanel = Color(0xFFE8EDF4)
-private val BiziPrimary = Color(0xFF1D74BD)
-private val BiziSecondary = Color(0xFF64C23A)
-private val BiziTertiary = Color(0xFF0D1B2A)
-private val BiziOrange = Color(0xFFF28000)
-private val BiziNeutral = Color(0xFF64779D)
-
-// --- Dark-mode palette raw tokens ---
-private val BiziDarkBackground = Color(0xFF0F172A)
-private val BiziDarkGrouped = Color(0xFF1C1C1E)
-private val BiziDarkSurface = Color(0xFF1E1E1E)
-private val BiziDarkInk = Color(0xFFF1EDED)
-private val BiziDarkMuted = Color(0xFF94A3B8)
-private val BiziDarkPanel = Color(0xFF2A2A2C)
-private val BiziDarkPrimary = Color(0xFF1070CA)
-private val BiziDarkSecondary = Color(0xFF64C832)
-private val BiziDarkTertiary = Color(0xFFA05ABA)
-private val BiziDarkNeutral = Color(0xFF0F172A)
-
-/**
- * Semantic color scheme consumed by every composable in the app.
- * Two instances exist: [LightBiziColors] and [DarkBiziColors].
- */
-internal data class BiziColors(
-  /** Page-level background (Android). */
-  val background: Color,
-  /** Page-level background (iOS grouped style). */
-  val groupedBackground: Color,
-  /** Card / surface container. */
-  val surface: Color,
-  /** Primary text on surfaces. */
-  val ink: Color,
-  /** Secondary / caption text. */
-  val muted: Color,
-  /** Subtle borders and dividers. */
-  val panel: Color,
-  /** Accent: bikes count, favorites, brand. */
-  val red: Color,
-  /** Accent: slots count, routes. */
-  val blue: Color,
-  /** Accent: distance, home. */
-  val green: Color,
-  /** Accent: partial availability on the map. */
-  val orange: Color,
-  /** Accent: regular bikes. */
-  val purple: Color,
-  /** Foreground on accent fills (e.g. icon on BiziRed circle). */
-  val onAccent: Color,
-  /** NavigationBar container. */
-  val navBar: Color,
-  /** NavigationBar container (iOS translucent). */
-  val navBarIos: Color,
-  /** Text-field container (iOS). */
-  val fieldSurfaceIos: Color,
-  /** Text-field container (Android). */
-  val fieldSurfaceAndroid: Color,
-  /** Dismiss-to-delete background base alpha factor. */
-  val dismissAlphaBase: Float,
+private data class ChangelogPresentation(
+  val sections: List<ChangelogVersionSection>,
+  val highlightedVersion: String? = null,
+  val persistSeenVersion: String? = null,
 )
-
-private val LightBiziColors = BiziColors(
-  background = BiziLight,
-  groupedBackground = BiziGrouped,
-  surface = Color.White,
-  ink = BiziInk,
-  muted = BiziMuted,
-  panel = BiziPanel,
-  red = BiziPrimary,
-  blue = BiziTertiary,
-  green = BiziSecondary,
-  orange = BiziOrange,
-  purple = BiziNeutral,
-  onAccent = Color.White,
-  navBar = Color.White,
-  navBarIos = Color.White.copy(alpha = 0.96f),
-  fieldSurfaceIos = Color.White,
-  fieldSurfaceAndroid = BiziPanel,
-  dismissAlphaBase = 0.10f,
-)
-
-private val DarkBiziColors = BiziColors(
-  background = BiziDarkBackground,
-  groupedBackground = BiziDarkGrouped,
-  surface = BiziDarkSurface,
-  ink = BiziDarkInk,
-  muted = BiziDarkMuted,
-  panel = BiziDarkPanel,
-  red = BiziDarkPrimary,
-  blue = BiziDarkTertiary,
-  green = BiziDarkSecondary,
-  orange = BiziOrange,
-  purple = BiziDarkNeutral,
-  onAccent = Color.White,
-  navBar = BiziDarkSurface,
-  navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
-  fieldSurfaceIos = BiziDarkSurface,
-  fieldSurfaceAndroid = BiziDarkPanel,
-  dismissAlphaBase = 0.16f,
-)
-
-internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
-
-internal enum class BiziWindowLayout {
-  Compact,
-  Medium,
-  Expanded,
-}
-
-internal val LocalBiziWindowLayout = staticCompositionLocalOf { BiziWindowLayout.Compact }
-
-private enum class MobileTab(val labelKey: StringResource) {
-  Cerca(Res.string.nearby),
-  Mapa(Res.string.map),
-  Favoritos(Res.string.favorites),
-  Viaje(Res.string.trip),
-  Perfil(Res.string.settings),
-}
-
-private val MobileTabs = listOf(
-  MobileTab.Cerca,
-  MobileTab.Mapa,
-  MobileTab.Favoritos,
-  MobileTab.Viaje,
-  MobileTab.Perfil,
-)
-
-private enum class MapFilter(val labelKey: StringResource) {
-  BIKES_AND_SLOTS(Res.string.mapFilterBikesAndSlots),
-  ONLY_BIKES(Res.string.mapFilterOnlyBikes),
-  ONLY_SLOTS(Res.string.mapFilterOnlySlots),
-  ONLY_EBIKES(Res.string.mapFilterOnlyEbikes),
-  ONLY_REGULAR_BIKES(Res.string.mapFilterOnlyRegularBikes),
-  AIR_QUALITY(Res.string.mapFilterAirQuality),
-  POLLEN(Res.string.mapFilterPollen),
-}
 
 sealed interface MobileLaunchRequest {
   data object Home : MobileLaunchRequest
@@ -372,31 +239,6 @@ sealed interface AssistantLaunchRequest {
     val stationQuery: String? = null,
   ) : AssistantLaunchRequest
 }
-
-private sealed interface TopUpdateBanner {
-  data object Hidden : TopUpdateBanner
-
-  data class Available(
-    val version: String,
-    val flexible: Boolean,
-    val storeUrl: String?,
-  ) : TopUpdateBanner
-
-  data class Downloaded(val version: String) : TopUpdateBanner
-}
-
-private enum class EnvironmentalLayer {
-  AirQuality,
-  Pollen,
-}
-
-private data class ZoneEnvironmentalSnapshot(
-  val centerLatitude: Double,
-  val centerLongitude: Double,
-  val zoneLabel: String,
-  val airQualityScore: Int? = null,
-  val pollenScore: Int? = null,
-)
 
 @androidx.compose.runtime.Stable
 private class AppState {
@@ -452,8 +294,7 @@ fun BiziMobileApp(
   val hasCompletedOnboarding by settingsRepository.hasCompletedOnboarding.collectAsState()
   val homeStationId by favoritesRepository.homeStationId.collectAsState()
   val workStationId by favoritesRepository.workStationId.collectAsState()
-  var showChangelog by remember(graph) { mutableStateOf(false) }
-  var changelogDialogEntries by remember(graph) { mutableStateOf<List<ChangelogCatalogEntry>>(emptyList()) }
+  var changelogPresentation by remember(graph) { mutableStateOf<ChangelogPresentation?>(null) }
   var currentCity by remember(graph) { mutableStateOf(City.ZARAGOZA) }
   val engagementSnap by settingsRepository.engagementSnapshot.collectAsState()
   var topUpdateBanner by remember { mutableStateOf<TopUpdateBanner>(TopUpdateBanner.Hidden) }
@@ -489,10 +330,13 @@ fun BiziMobileApp(
     println(
       "[BiziRadar][Changelog] current=${platformBindings.appVersion} lastSeen=$lastSeen pending=$pending entries=${entries.size}",
     )
-    if (entries.isNotEmpty()) {
-      changelogDialogEntries = entries
-      showChangelog = true
-      println("[BiziRadar][Changelog] showing dialog for $pending")
+    if (pending != null && entries.isNotEmpty()) {
+      changelogPresentation = ChangelogPresentation(
+        sections = ChangelogCatalog.history(),
+        highlightedVersion = pending,
+        persistSeenVersion = normalizeAppVersionForCatalog(platformBindings.appVersion) ?: platformBindings.appVersion,
+      )
+      println("[BiziRadar][Changelog] showing history for $pending")
     }
   }
 
@@ -894,35 +738,66 @@ fun BiziMobileApp(
             )
           }
           !onboardingChecklist.isCompleted() -> {
+            val onboardingCallbacks = remember(
+              scope,
+              platformBindings,
+              settingsRepository,
+              navController,
+            ) {
+              GuidedOnboardingCallbacks(
+                onRequestLocationPermission = {
+                  scope.launch {
+                    platformBindings.permissionPrompter.requestLocationPermission()
+                    settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
+                  }
+                },
+                onDismissLocationStep = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
+                  }
+                },
+                onRequestNotificationsPermission = {
+                  scope.launch {
+                    platformBindings.localNotifier.requestPermission()
+                    settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
+                  }
+                },
+                onDismissNotificationsStep = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
+                  }
+                },
+                onOpenFavorites = {
+                  runCatching {
+                    navController.navigate(Screen.Favorites) { launchSingleTop = true }
+                  }
+                },
+                onDismissFirstFavoriteStep = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
+                  }
+                },
+                onDismissSavedPlacesStep = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
+                  }
+                },
+                onCompleteSurfacesStep = {
+                  scope.launch {
+                    settingsRepository.updateOnboardingChecklist {
+                      it.copy(surfacesDiscovered = true).markCompleted()
+                    }
+                  }
+                },
+              )
+            }
             GuidedOnboardingFlow(
               checklist = onboardingChecklist,
-              platformBindings = platformBindings,
-              scope = scope,
-              settingsRepository = settingsRepository,
-              onOpenFavorites = {
-                runCatching {
-                  navController.navigate(Screen.Favorites) { launchSingleTop = true }
-                }
-              },
+              callbacks = onboardingCallbacks,
             )
           }
           else -> {
             Box(Modifier.fillMaxSize()) {
-              if (showChangelog && changelogDialogEntries.isNotEmpty()) {
-                val onChangelogDismiss = remember(changelogDialogEntries) {
-                  {
-                    showChangelog = false
-                    scope.launch {
-                      settingsRepository.setLastSeenChangelogAppVersion(
-                        normalizeAppVersionForCatalog(platformBindings.appVersion) ?: platformBindings.appVersion,
-                      )
-                    }
-                    println("[BiziRadar][Changelog] dismissed and persisted=${platformBindings.appVersion}")
-                    Unit
-                  }
-                }
-                ChangelogDialog(entries = changelogDialogEntries, onDismiss = onChangelogDismiss)
-              }
               AnimatedContent(
                 targetState = showStartupSplash,
                 transitionSpec = {
@@ -933,165 +808,194 @@ fun BiziMobileApp(
                 if (splashVisible) {
                   StartupSplashScreen(mobilePlatform = mobilePlatform)
                 } else {
-            val tripViewModelFactory = remember(graph) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
-                tripRepository = graph.tripRepository,
-                surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-                geoSearchUseCase = graph.geoSearchUseCase,
-                reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
-                settingsRepository = graph.settingsRepository,
-              )
-            }
-            val nearbyViewModelFactory = remember(graph) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
-                stationsRepository = graph.stationsRepository,
-                favoritesRepository = graph.favoritesRepository,
-                routeLauncher = graph.routeLauncher,
-                settingsRepository = graph.settingsRepository,
-              )
-            }
-            val favoritesViewModelFactory = remember(graph) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
-                favoritesRepository = graph.favoritesRepository,
-                stationsRepository = graph.stationsRepository,
-                settingsRepository = graph.settingsRepository,
-                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-                routeLauncher = graph.routeLauncher,
-              )
-            }
-            val profileViewModelFactory = remember(graph, platformBindings) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
-                settingsRepository = graph.settingsRepository,
-                stationsRepository = graph.stationsRepository,
-                favoritesRepository = graph.favoritesRepository,
-                permissionPrompter = platformBindings.permissionPrompter,
-                localNotifier = platformBindings.localNotifier,
-              )
-            }
-            val savedPlaceAlertsViewModelFactory = remember(graph) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
-                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-              )
-            }
-            val stationDetailViewModelFactory = remember(graph) {
-              com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
-                favoritesRepository = graph.favoritesRepository,
-                settingsRepository = graph.settingsRepository,
-                savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-                datosBiziApi = graph.datosBiziApi,
-                routeLauncher = graph.routeLauncher,
-              )
-            }
-            val onRefreshStations = remember(scope, stationsRepository) {
-              {
-                scope.launch { stationsRepository.forceRefresh() }
-                Unit
-              }
-            }
-            Box(modifier = Modifier.fillMaxSize()) {
-              BiziNavigationShell(
-                mobilePlatform = mobilePlatform,
-                navController = navController,
-                windowLayout = windowLayout,
-              ) { innerPadding ->
-                BiziNavHost(
-                  navController = navController,
-                  mobilePlatform = mobilePlatform,
-                  tripViewModelFactory = tripViewModelFactory,
-                  nearbyViewModelFactory = nearbyViewModelFactory,
-                  favoritesViewModelFactory = favoritesViewModelFactory,
-                  profileViewModelFactory = profileViewModelFactory,
-                  savedPlaceAlertsViewModelFactory = savedPlaceAlertsViewModelFactory,
-                  stationDetailViewModelFactory = stationDetailViewModelFactory,
-                  stations = filteredStations,
-                  favoriteIds = favoriteIds,
-                  loading = stationsState.isLoading,
-                  errorMessage = stationsState.errorMessage,
-                  stationsFreshness = stationsState.freshness,
-                  stationsLastUpdatedEpoch = stationsState.lastUpdatedEpoch,
-                  onRefreshStations = onRefreshStations,
-                  nearestSelection = nearestSelection,
-                  userLocation = stationsState.userLocation,
-                  searchQuery = appState.searchQuery,
-                  searchRadiusMeters = searchRadiusMeters,
-                  isMapReady = isMapReady,
-                  onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-                  onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                  onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                  onQuickRoute = remember(graph, scope) {
-                    { station ->
-                      scope.launch {
-                        graph.engagementRepository.markRouteOpened()
-                        graph.routeLauncher.launch(station)
+                  val tripViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
+                      tripRepository = graph.tripRepository,
+                      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+                      geoSearchUseCase = graph.geoSearchUseCase,
+                      reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
+                      settingsRepository = graph.settingsRepository,
+                    )
+                  }
+                  val nearbyViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
+                      stationsRepository = graph.stationsRepository,
+                      favoritesRepository = graph.favoritesRepository,
+                      routeLauncher = graph.routeLauncher,
+                      settingsRepository = graph.settingsRepository,
+                    )
+                  }
+                  val favoritesViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
+                      favoritesRepository = graph.favoritesRepository,
+                      stationsRepository = graph.stationsRepository,
+                      settingsRepository = graph.settingsRepository,
+                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+                      routeLauncher = graph.routeLauncher,
+                    )
+                  }
+                  val profileViewModelFactory = remember(graph, platformBindings) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
+                      settingsRepository = graph.settingsRepository,
+                      stationsRepository = graph.stationsRepository,
+                      favoritesRepository = graph.favoritesRepository,
+                      permissionPrompter = platformBindings.permissionPrompter,
+                      localNotifier = platformBindings.localNotifier,
+                    )
+                  }
+                  val savedPlaceAlertsViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
+                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+                    )
+                  }
+                  val stationDetailViewModelFactory = remember(graph) {
+                    com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
+                      favoritesRepository = graph.favoritesRepository,
+                      settingsRepository = graph.settingsRepository,
+                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+                      datosBiziApi = graph.datosBiziApi,
+                      routeLauncher = graph.routeLauncher,
+                    )
+                  }
+                  val onRefreshStations = remember(scope, stationsRepository) {
+                    {
+                      scope.launch { stationsRepository.forceRefresh() }
+                      Unit
+                    }
+                  }
+                  Box(modifier = Modifier.fillMaxSize()) {
+                    BiziNavigationShell(
+                      mobilePlatform = mobilePlatform,
+                      navController = navController,
+                      windowLayout = windowLayout,
+                    ) { innerPadding ->
+                      BiziNavHost(
+                        navController = navController,
+                        mobilePlatform = mobilePlatform,
+                        tripViewModelFactory = tripViewModelFactory,
+                        nearbyViewModelFactory = nearbyViewModelFactory,
+                        favoritesViewModelFactory = favoritesViewModelFactory,
+                        profileViewModelFactory = profileViewModelFactory,
+                        savedPlaceAlertsViewModelFactory = savedPlaceAlertsViewModelFactory,
+                        stationDetailViewModelFactory = stationDetailViewModelFactory,
+                        stations = filteredStations,
+                        favoriteIds = favoriteIds,
+                        loading = stationsState.isLoading,
+                        errorMessage = stationsState.errorMessage,
+                        stationsFreshness = stationsState.freshness,
+                        stationsLastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+                        onRefreshStations = onRefreshStations,
+                        nearestSelection = nearestSelection,
+                        userLocation = stationsState.userLocation,
+                        searchQuery = appState.searchQuery,
+                        searchRadiusMeters = searchRadiusMeters,
+                        isMapReady = isMapReady,
+                        onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
+                        onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
+                        onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
+                        onQuickRoute = remember(graph, scope) {
+                          { station ->
+                            scope.launch {
+                              graph.engagementRepository.markRouteOpened()
+                              graph.routeLauncher.launch(station)
+                            }
+                          }
+                        },
+                        onOpenAssistant = remember(navController) {
+                          { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
+                        },
+                        localNotifier = platformBindings.localNotifier,
+                        routeLauncher = graph.routeLauncher,
+                        platformBindings = platformBindings,
+                        graph = graph,
+                        stationsRepository = stationsRepository,
+                        initialAssistantAction = appState.pendingAssistantAction,
+                        onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
+                        onOpenOnboarding = { showOnboardingFromProfile = true },
+                        onShowChangelogManual = {
+                          val sections = ChangelogCatalog.history()
+                          if (sections.isNotEmpty()) {
+                            changelogPresentation = ChangelogPresentation(
+                              sections = sections,
+                              highlightedVersion = ChangelogCatalog.latestVersionAtOrBefore(platformBindings.appVersion),
+                              persistSeenVersion = normalizeAppVersionForCatalog(platformBindings.appVersion)
+                                ?: platformBindings.appVersion,
+                            )
+                          }
+                        },
+                        paddingValues = innerPadding,
+                      )
+                    }
+                    EngagementTopOverlays(
+                      updateBanner = topUpdateBanner,
+                      showFeedbackNudge = showFeedbackNudge,
+                      onDismissAvailableUpdate = { version ->
+                        scope.launch {
+                          graph.engagementRepository.markUpdateBannerDismissed(version, epochMillisForUi())
+                        }
+                        topUpdateBanner = TopUpdateBanner.Hidden
+                      },
+                      onDismissDownloadedUpdate = { topUpdateBanner = TopUpdateBanner.Hidden },
+                      onStartUpdate = {
+                        scope.launch {
+                          val banner = topUpdateBanner as? TopUpdateBanner.Available ?: return@launch
+                          if (banner.flexible) {
+                            if (platformBindings.appUpdatePrompter.startFlexibleUpdate()) {
+                              updatePollToken++
+                            }
+                          } else {
+                            platformBindings.appUpdatePrompter.openStoreListing()
+                          }
+                        }
+                      },
+                      onRestartToUpdate = {
+                        scope.launch {
+                          platformBindings.appUpdatePrompter.completeFlexibleUpdateIfReady()
+                        }
+                      },
+                      onFeedbackSend = {
+                        scope.launch { graph.engagementRepository.markFeedbackOpened() }
+                        showFeedbackDialog = true
+                        showFeedbackNudge = false
+                      },
+                      onFeedbackDismiss = {
+                        scope.launch { graph.engagementRepository.markFeedbackDismissed() }
+                        showFeedbackNudge = false
+                      },
+                    )
+                    if (showFeedbackDialog) {
+                      FeedbackDialog(
+                        onDismiss = { showFeedbackDialog = false },
+                        onOpenFeedbackForm = {
+                          platformBindings.externalLinks.openFeedbackForm()
+                          showFeedbackDialog = false
+                        },
+                      )
+                    }
+                    changelogPresentation
+                      ?.takeIf { !showStartupSplash && it.sections.isNotEmpty() }
+                      ?.let { presentation ->
+                        val onChangelogDismiss = remember(presentation.persistSeenVersion) {
+                          {
+                            val persistSeenVersion = presentation.persistSeenVersion
+                            changelogPresentation = null
+                            if (persistSeenVersion != null) {
+                              scope.launch {
+                                settingsRepository.setLastSeenChangelogAppVersion(persistSeenVersion)
+                              }
+                              println("[BiziRadar][Changelog] dismissed and persisted=$persistSeenVersion")
+                            }
+                            Unit
+                          }
+                        }
+                        ChangelogHistoryScreen(
+                          mobilePlatform = mobilePlatform,
+                          sections = presentation.sections,
+                          highlightedVersion = presentation.highlightedVersion,
+                          onBack = onChangelogDismiss,
+                        )
                       }
-                    }
-                  },
-                  onOpenAssistant = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
-                  localNotifier = platformBindings.localNotifier,
-                  routeLauncher = graph.routeLauncher,
-                  platformBindings = platformBindings,
-                  graph = graph,
-                  stationsRepository = stationsRepository,
-                  initialAssistantAction = appState.pendingAssistantAction,
-                  onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-                  onOpenOnboarding = { showOnboardingFromProfile = true },
-                  onShowChangelogManual = {
-                    val entries = ChangelogCatalog.entriesFor(platformBindings.appVersion)
-                    if (entries.isNotEmpty()) {
-                      changelogDialogEntries = entries
-                      showChangelog = true
-                    }
-                  },
-                  paddingValues = innerPadding,
-                )
-              }
-              EngagementTopOverlays(
-                updateBanner = topUpdateBanner,
-                showFeedbackNudge = showFeedbackNudge,
-                onDismissAvailableUpdate = { version ->
-                  scope.launch {
-                    graph.engagementRepository.markUpdateBannerDismissed(version, epochMillisForUi())
                   }
-                  topUpdateBanner = TopUpdateBanner.Hidden
-                },
-                onDismissDownloadedUpdate = { topUpdateBanner = TopUpdateBanner.Hidden },
-                onStartUpdate = {
-                  scope.launch {
-                    val banner = topUpdateBanner as? TopUpdateBanner.Available ?: return@launch
-                    if (banner.flexible) {
-                      if (platformBindings.appUpdatePrompter.startFlexibleUpdate()) {
-                        updatePollToken++
-                      }
-                    } else {
-                      platformBindings.appUpdatePrompter.openStoreListing()
-                    }
-                  }
-                },
-                onRestartToUpdate = {
-                  scope.launch {
-                    platformBindings.appUpdatePrompter.completeFlexibleUpdateIfReady()
-                  }
-                },
-                onFeedbackSend = {
-                  scope.launch { graph.engagementRepository.markFeedbackOpened() }
-                  showFeedbackDialog = true
-                  showFeedbackNudge = false
-                },
-                onFeedbackDismiss = {
-                  scope.launch { graph.engagementRepository.markFeedbackDismissed() }
-                  showFeedbackNudge = false
-                },
-              )
-              if (showFeedbackDialog) {
-                FeedbackDialog(
-                  onDismiss = { showFeedbackDialog = false },
-                  onOpenFeedbackForm = {
-                    platformBindings.externalLinks.openFeedbackForm()
-                    showFeedbackDialog = false
-                  },
-                )
-              }
-            }
                 }
               }
             }
@@ -1103,757 +1007,8 @@ fun BiziMobileApp(
   }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun BiziTheme(
-  mobilePlatform: MobileUiPlatform,
-  themePreference: ThemePreference = ThemePreference.System,
-  content: @Composable () -> Unit,
-) {
-  val isDark = when (themePreference) {
-    ThemePreference.Light -> false
-    ThemePreference.Dark -> true
-    ThemePreference.System -> isSystemInDarkTheme()
-  }
-  val dynamicColorScheme = platformDynamicColorScheme(isDark)
-  val colors = dynamicColorScheme?.let { dynamicScheme ->
-    dynamicBiziColors(dynamicScheme, mobilePlatform, isDark)
-  } ?: if (isDark) {
-    DarkBiziColors
-  } else {
-    LightBiziColors
-  }
-  CompositionLocalProvider(LocalBiziColors provides colors) {
-    MaterialTheme(
-      colorScheme = dynamicColorScheme ?: biziColorScheme(
-        isDark = isDark,
-        colors = colors,
-        mobilePlatform = mobilePlatform,
-      ),
-      motionScheme = MotionScheme.expressive(),
-      content = content,
-    )
-  }
-}
-
-@Composable
-private fun BoxScope.EngagementTopOverlays(
-  updateBanner: TopUpdateBanner,
-  showFeedbackNudge: Boolean,
-  onDismissAvailableUpdate: (String) -> Unit,
-  onDismissDownloadedUpdate: () -> Unit,
-  onStartUpdate: () -> Unit,
-  onRestartToUpdate: () -> Unit,
-  onFeedbackSend: () -> Unit,
-  onFeedbackDismiss: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Column(
-    modifier = Modifier
-      .align(Alignment.TopCenter)
-      .fillMaxWidth()
-      .statusBarsPadding()
-      .padding(horizontal = 12.dp, vertical = 8.dp)
-      .zIndex(4f),
-    verticalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    when (val b = updateBanner) {
-      TopUpdateBanner.Hidden -> Unit
-      is TopUpdateBanner.Available -> {
-        Surface(
-          color = c.blue.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(12.dp),
-          modifier = Modifier.fillMaxWidth(),
-        ) {
-          Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.updateAvailableTitle),
-              style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.SemiBold,
-              color = c.ink,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              TextButton(onClick = onStartUpdate) {
-                Text(stringResource(Res.string.updateNow))
-              }
-              TextButton(onClick = { onDismissAvailableUpdate(b.version) }) {
-                Text(stringResource(Res.string.updateDismiss))
-              }
-            }
-          }
-        }
-      }
-      is TopUpdateBanner.Downloaded -> {
-        Surface(
-          color = c.green.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(12.dp),
-          modifier = Modifier.fillMaxWidth(),
-        ) {
-          Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.restartToUpdate),
-              style = MaterialTheme.typography.bodyMedium,
-              color = c.ink,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              TextButton(onClick = onRestartToUpdate) {
-                Text(stringResource(Res.string.restartToUpdate))
-              }
-              TextButton(onClick = onDismissDownloadedUpdate) {
-                Text(stringResource(Res.string.close))
-              }
-            }
-          }
-        }
-      }
-    }
-    if (showFeedbackNudge) {
-      Surface(
-        color = c.surface,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, c.panel),
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        Column(
-          modifier = Modifier.padding(12.dp),
-          verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-          Text(
-            text = stringResource(Res.string.feedbackNudgeTitle),
-            fontWeight = FontWeight.SemiBold,
-            color = c.ink,
-          )
-          Text(
-            text = stringResource(Res.string.feedbackNudgeBody),
-            style = MaterialTheme.typography.bodySmall,
-            color = c.muted,
-          )
-          Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            TextButton(onClick = onFeedbackSend) {
-              Text(stringResource(Res.string.feedbackNudgeAction))
-            }
-            TextButton(onClick = onFeedbackDismiss) {
-              Text(stringResource(Res.string.updateDismiss))
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun FeedbackDialog(
-  onDismiss: () -> Unit,
-  onOpenFeedbackForm: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  AlertDialog(
-    onDismissRequest = onDismiss,
-    containerColor = c.surface,
-    tonalElevation = 6.dp,
-    title = {
-      Text(
-        text = stringResource(Res.string.feedbackAndSuggestions),
-        color = c.ink,
-        fontWeight = FontWeight.SemiBold,
-      )
-    },
-    text = {
-      Text(
-        text = stringResource(Res.string.feedbackDescription),
-        color = c.muted,
-      )
-    },
-    confirmButton = {
-      TextButton(onClick = onOpenFeedbackForm) {
-        Text(stringResource(Res.string.openFeedbackForm))
-      }
-    },
-    dismissButton = {
-      TextButton(onClick = onDismiss) {
-        Text(stringResource(Res.string.close))
-      }
-    },
-  )
-}
-
-@Composable
-private fun BiziNavigationShell(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-  windowLayout: BiziWindowLayout,
-  content: @Composable (PaddingValues) -> Unit,
-) {
-  if (windowLayout == BiziWindowLayout.Compact) {
-    Scaffold(
-      containerColor = pageBackgroundColor(mobilePlatform),
-      bottomBar = {
-        MobileBottomNavigationBar(
-          mobilePlatform = mobilePlatform,
-          navController = navController,
-        )
-      },
-    ) { innerPadding ->
-      content(innerPadding)
-    }
-    return
-  }
-
-  Row(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(pageBackgroundColor(mobilePlatform)),
-  ) {
-    MobileNavigationRail(
-      mobilePlatform = mobilePlatform,
-      navController = navController,
-    )
-    VerticalDivider(color = LocalBiziColors.current.panel)
-    Box(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight(),
-    ) {
-      content(PaddingValues())
-    }
-  }
-}
-
-@Composable
-private fun rememberBiziWindowLayout(): BiziWindowLayout {
-  val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-  return when {
-    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) &&
-      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Expanded
-    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Medium
-    else -> BiziWindowLayout.Compact
-  }
-}
-
-private fun biziColorScheme(
-  isDark: Boolean,
-  colors: BiziColors,
-  mobilePlatform: MobileUiPlatform,
-) = if (isDark) {
-  darkColorScheme(
-    primary = colors.red,
-    onPrimary = colors.onAccent,
-    secondary = colors.green,
-    onSecondary = colors.onAccent,
-    tertiary = colors.blue,
-    onTertiary = colors.onAccent,
-    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
-    onBackground = colors.ink,
-    surface = colors.surface,
-    onSurface = colors.ink,
-    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
-    onSurfaceVariant = colors.muted,
-    outline = colors.panel,
-    inverseSurface = colors.ink,
-    inverseOnSurface = colors.surface,
-  )
-} else {
-  lightColorScheme(
-    primary = colors.red,
-    onPrimary = colors.onAccent,
-    secondary = colors.green,
-    onSecondary = colors.onAccent,
-    tertiary = colors.blue,
-    onTertiary = colors.onAccent,
-    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
-    onBackground = colors.ink,
-    surface = colors.surface,
-    onSurface = colors.ink,
-    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
-    onSurfaceVariant = colors.muted,
-    outline = colors.panel,
-    inverseSurface = colors.ink,
-    inverseOnSurface = colors.surface,
-  )
-}
-
-private fun dynamicBiziColors(
-  colorScheme: ColorScheme,
-  mobilePlatform: MobileUiPlatform,
-  isDark: Boolean,
-): BiziColors = BiziColors(
-  background = colorScheme.background,
-  groupedBackground = if (mobilePlatform == MobileUiPlatform.IOS) colorScheme.surface else colorScheme.background,
-  surface = colorScheme.surface,
-  ink = colorScheme.onSurface,
-  muted = colorScheme.onSurfaceVariant,
-  panel = colorScheme.surfaceVariant,
-  red = colorScheme.primary,
-  blue = colorScheme.tertiary,
-  green = colorScheme.secondary,
-  orange = colorScheme.tertiary,
-  purple = colorScheme.secondary,
-  onAccent = colorScheme.onPrimary,
-  navBar = colorScheme.surface,
-  navBarIos = colorScheme.surface.copy(alpha = 0.96f),
-  fieldSurfaceIos = colorScheme.surface,
-  fieldSurfaceAndroid = colorScheme.surfaceVariant,
-  dismissAlphaBase = if (isDark) 0.16f else 0.10f,
-)
-
-@Composable
-private fun StartupSplashScreen(
-  mobilePlatform: MobileUiPlatform,
-) {
-  val c = LocalBiziColors.current
-  val backgroundColor = if (mobilePlatform == MobileUiPlatform.IOS) c.groupedBackground else c.background
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(backgroundColor),
-    contentAlignment = Alignment.Center,
-  ) {
-    Column(
-      modifier = Modifier.padding(horizontal = 32.dp),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-      Surface(
-        shape = CircleShape,
-        color = c.red,
-      ) {
-        Icon(
-          imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
-          contentDescription = null,
-          tint = c.onAccent,
-          modifier = Modifier.padding(18.dp).size(30.dp),
-        )
-      }
-      Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-      ) {
-        Text(
-          text = stringResource(Res.string.appName),
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.Bold,
-          color = c.red,
-        )
-        Text(
-          text = stringResource(Res.string.loadingStationsFavoritesShortcuts),
-          style = MaterialTheme.typography.bodyMedium,
-          color = c.muted,
-        )
-      }
-      Text(
-        text = if (mobilePlatform == MobileUiPlatform.IOS) {
-          stringResource(Res.string.preparingIphoneExperience)
-        } else {
-          stringResource(Res.string.preparingAndroidExperience)
-        },
-        style = MaterialTheme.typography.labelMedium,
-        color = c.muted,
-      )
-    }
-  }
-}
-
-@Composable
-private fun MobileBottomNavigationBar(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-) {
-  val navBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = navBackStackEntry?.destination?.route
-  NavigationBar(
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      LocalBiziColors.current.navBarIos
-    } else {
-      LocalBiziColors.current.navBar
-    },
-  ) {
-    MobileTabs.forEach { tab ->
-      val screen = tab.screen()
-      NavigationBarItem(
-        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
-        onClick = { navController.navigateToPrimaryDestination(screen) },
-        icon = {
-          Icon(
-            imageVector = tab.icon(),
-            contentDescription = stringResource(tab.labelKey),
-          )
-        },
-        label = { Text(stringResource(tab.labelKey)) },
-      )
-    }
-  }
-}
-
-@Composable
-private fun MobileNavigationRail(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-) {
-  val navBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = navBackStackEntry?.destination?.route
-  val colors = LocalBiziColors.current
-
-  NavigationRail(
-    modifier = Modifier
-      .fillMaxHeight()
-      .padding(vertical = 12.dp),
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      colors.navBarIos
-    } else {
-      colors.navBar
-    },
-    header = {
-      Column(
-        modifier = Modifier.padding(bottom = 18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        Surface(
-          shape = CircleShape,
-          color = colors.red,
-        ) {
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
-            contentDescription = null,
-            tint = colors.onAccent,
-            modifier = Modifier.padding(12.dp).size(20.dp),
-          )
-        }
-        Text(
-          text = stringResource(Res.string.appName),
-          style = MaterialTheme.typography.labelSmall,
-          color = colors.muted,
-        )
-      }
-    },
-  ) {
-    MobileTabs.forEach { tab ->
-      val screen = tab.screen()
-      NavigationRailItem(
-        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
-        onClick = { navController.navigateToPrimaryDestination(screen) },
-        icon = {
-          Icon(
-            imageVector = tab.icon(),
-            contentDescription = stringResource(tab.labelKey),
-          )
-        },
-        label = { Text(stringResource(tab.labelKey)) },
-      )
-    }
-  }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-private fun MapScreen(
-  mobilePlatform: MobileUiPlatform,
-  stations: List<Station>,
-  favoriteIds: Set<String>,
-  loading: Boolean,
-  errorMessage: String?,
-  dataFreshness: DataFreshness,
-  lastUpdatedEpoch: Long?,
-  onRefreshStations: () -> Unit,
-  nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
-  searchQuery: String,
-  searchRadiusMeters: Int,
-  userLocation: GeoPoint?,
-  isMapReady: Boolean,
-  onSearchQueryChange: (String) -> Unit,
-  onStationSelected: (Station) -> Unit,
-  onRetry: () -> Unit,
-  onFavoriteToggle: (Station) -> Unit,
-  onQuickRoute: (Station) -> Unit,
-  environmentalRepository: EnvironmentalRepository,
-  paddingValues: PaddingValues,
-) {
-  val nearestStation = nearestSelection.highlightedStation
-  var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
-  var isCardDismissed by rememberSaveable { mutableStateOf(false) }
-  var showEnvironmentalSheet by rememberSaveable { mutableStateOf(false) }
-  var activeFilters by remember { mutableStateOf(emptySet<MapFilter>()) }
-  var recenterRequestToken by rememberSaveable { mutableStateOf(0) }
-  val activeEnvironmentalLayer = remember(activeFilters) {
-    when {
-      MapFilter.AIR_QUALITY in activeFilters -> EnvironmentalLayer.AirQuality
-      MapFilter.POLLEN in activeFilters -> EnvironmentalLayer.Pollen
-      else -> null
-    }
-  }
-  val stationAvailabilityFilters = remember(activeFilters) {
-    activeFilters.filterNot { it == MapFilter.AIR_QUALITY || it == MapFilter.POLLEN }.toSet()
-  }
-
-  val mapStations = remember(stations, stationAvailabilityFilters) {
-    if (stationAvailabilityFilters.isEmpty()) {
-      stations
-    } else {
-      stations.filter { station ->
-        stationAvailabilityFilters.any { filter ->
-          when (filter) {
-            MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
-            MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
-            MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
-            MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
-            MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
-            MapFilter.AIR_QUALITY,
-            MapFilter.POLLEN -> true
-          }
-        }
-      }
-    }
-  }
-  val estimatedEnvironmentalSnapshots = remember(stations, activeEnvironmentalLayer) {
-    if (activeEnvironmentalLayer == null) {
-      emptyList()
-    } else {
-      buildEnvironmentalZoneSnapshots(stations)
-    }
-  }
-  var environmentalSnapshots by remember { mutableStateOf<List<ZoneEnvironmentalSnapshot>>(emptyList()) }
-  LaunchedEffect(estimatedEnvironmentalSnapshots, activeEnvironmentalLayer) {
-    if (activeEnvironmentalLayer == null) {
-      environmentalSnapshots = emptyList()
-      showEnvironmentalSheet = false
-      return@LaunchedEffect
-    }
-    environmentalSnapshots = estimatedEnvironmentalSnapshots.map { zone ->
-      val reading = environmentalRepository.readingAt(zone.centerLatitude, zone.centerLongitude)
-      zone.copy(
-        airQualityScore = reading?.airQualityIndex,
-        pollenScore = reading?.pollenIndex,
-      )
-    }
-  }
-
-  // Reset dismiss when the selected station changes (user tapped a marker).
-  LaunchedEffect(selectedMapStationId) {
-    isCardDismissed = false
-  }
-
-  LaunchedEffect(stations, nearestStation?.id, searchQuery) {
-    val hasSelectedStation = selectedMapStationId != null && stations.any { station -> station.id == selectedMapStationId }
-    if (!hasSelectedStation) {
-      selectedMapStationId = if (searchQuery.isNotBlank()) {
-        stations.firstOrNull()?.id
-      } else {
-        nearestStation?.id ?: stations.firstOrNull()?.id
-      }
-      hasExplicitMapSelection = false
-    }
-  }
-
-  val selectedMapStation = remember(selectedMapStationId, stations, nearestStation, searchQuery) {
-    selectedMapStationId?.let { id -> stations.firstOrNull { station -> station.id == id } }
-      ?: when {
-        stations.isEmpty() -> null
-        searchQuery.isNotBlank() -> stations.firstOrNull()
-        else -> nearestStation?.takeIf { nearest -> stations.any { it.id == nearest.id } } ?: stations.firstOrNull()
-      }
-  }
-  val mapIsShowingNearestSelection = !hasExplicitMapSelection && selectedMapStation?.id == nearestStation?.id
-  val mapIsShowingNearestFallback = selectedMapStation?.id == nearestStation?.id && nearestSelection.usesFallback
-
-  LaunchedEffect(searchQuery, stations) {
-    if (searchQuery.isBlank()) return@LaunchedEffect
-    val firstMatch = stations.firstOrNull() ?: return@LaunchedEffect
-    selectedMapStationId = firstMatch.id
-    hasExplicitMapSelection = false
-  }
-
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
-  ) {
-    val platformEnvironmentalOverlay = activeEnvironmentalLayer?.let { layer ->
-      EnvironmentalOverlayData(
-        layer = when (layer) {
-          EnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
-          EnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
-        },
-        zones = environmentalSnapshots
-          .ifEmpty { estimatedEnvironmentalSnapshots }
-          .mapNotNull { zone ->
-            val value = when (layer) {
-              EnvironmentalLayer.AirQuality -> zone.airQualityScore
-              EnvironmentalLayer.Pollen -> zone.pollenScore
-            } ?: return@mapNotNull null
-            EnvironmentalOverlayZone(
-              center = GeoPoint(zone.centerLatitude, zone.centerLongitude),
-              value = value,
-            )
-          },
-      )
-    }
-
-    PlatformStationMap(
-      modifier = Modifier.fillMaxSize(),
-      stations = mapStations,
-      userLocation = userLocation,
-      highlightedStationId = selectedMapStation?.id,
-      isMapReady = isMapReady,
-      onStationSelected = { station ->
-        hasExplicitMapSelection = true
-        selectedMapStationId = station.id
-      },
-      recenterRequestToken = recenterRequestToken,
-      environmentalOverlay = platformEnvironmentalOverlay,
-    )
-
-    Column(
-      modifier = Modifier
-        .align(Alignment.TopCenter)
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-      StationSearchField(
-        mobilePlatform = mobilePlatform,
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        label = stringResource(Res.string.mapSearchStationOrAddress),
-      )
-      if (mobilePlatform != MobileUiPlatform.Desktop) {
-        MapFilterChipRow(
-          activeFilters = activeFilters,
-          onToggleFilter = { filter ->
-            val next = if (filter in activeFilters) emptySet<MapFilter>() else setOf(filter)
-            activeFilters = next
-            showEnvironmentalSheet = filter == MapFilter.AIR_QUALITY || filter == MapFilter.POLLEN
-          },
-        )
-      }
-      DataFreshnessBanner(
-        freshness = dataFreshness,
-        lastUpdatedEpoch = lastUpdatedEpoch,
-        loading = loading,
-        onRefresh = onRefreshStations,
-        modifier = Modifier.padding(bottom = 8.dp),
-      )
-    }
-
-    AnimatedVisibility(
-      modifier = Modifier
-        .align(Alignment.Center)
-        .padding(horizontal = 16.dp),
-      visible = errorMessage != null || (!loading && stations.isEmpty()),
-      enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
-      exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-      label = "map-centered-feedback",
-    ) {
-      if (errorMessage != null) {
-        EmptyStateCard(
-          title = stringResource(Res.string.mapUpdateFailed),
-          description = errorMessage,
-          primaryAction = stringResource(Res.string.retry),
-          onPrimaryAction = onRetry,
-        )
-      } else {
-        EmptyStateCard(
-          title = if (searchQuery.isBlank()) {
-            stringResource(Res.string.mapNoStationsOnScreen)
-          } else {
-            stringResource(Res.string.mapNoStations)
-          },
-          description = if (searchQuery.isBlank()) {
-            stringResource(Res.string.mapLocationFallbackDescription)
-          } else {
-            stringResource(Res.string.mapTryAnotherQuery)
-          },
-          primaryAction = stringResource(Res.string.loadStations),
-          onPrimaryAction = onRetry,
-        )
-      }
-    }
-
-    Column(
-      modifier = Modifier
-        .align(Alignment.BottomCenter)
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Bottom,
-        ) {
-          AnimatedVisibility(
-            visible = selectedMapStation != null && !isCardDismissed,
-            modifier = Modifier.weight(1f),
-            enter = fadeIn(animationSpec = tween(220)) + expandVertically(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(140)) + shrinkVertically(animationSpec = tween(140)),
-            label = "map-selected-station-overlay",
-          ) {
-            selectedMapStation?.let { station ->
-              MapSelectedStationCard(
-                modifier = Modifier.fillMaxWidth(),
-                mobilePlatform = mobilePlatform,
-                station = station,
-                isFavorite = station.id in favoriteIds,
-                isShowingNearestSelection = mapIsShowingNearestSelection,
-                isFallbackSelection = mapIsShowingNearestFallback,
-                searchRadiusMeters = searchRadiusMeters,
-                onFavoriteToggle = { onFavoriteToggle(station) },
-                onOpenStationDetails = { onStationSelected(station) },
-                onQuickRoute = { onQuickRoute(station) },
-                onDismiss = { isCardDismissed = true },
-              )
-            }
-          }
-          if (mobilePlatform != MobileUiPlatform.Desktop) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              activeEnvironmentalLayer?.let {
-                MapEnvironmentalSheetButton(
-                  onClick = { showEnvironmentalSheet = true },
-                )
-              }
-              MapRecenterButton(
-                enabled = userLocation != null || stations.isNotEmpty(),
-                onClick = {
-                  recenterRequestToken += 1
-                  isCardDismissed = false
-                },
-              )
-            }
-          }
-        }
-      }
-    }
-
-    if (activeEnvironmentalLayer != null && showEnvironmentalSheet) {
-      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-      ModalBottomSheet(
-        onDismissRequest = { showEnvironmentalSheet = false },
-        sheetState = sheetState,
-        containerColor = LocalBiziColors.current.surface,
-      ) {
-        EnvironmentalLayerCard(
-          layer = activeEnvironmentalLayer,
-          zones = if (environmentalSnapshots.isNotEmpty()) environmentalSnapshots else estimatedEnvironmentalSnapshots,
-          onClear = {
-            showEnvironmentalSheet = false
-            activeFilters = emptySet()
-          },
-        )
-      }
-    }
-  }
-
-@Composable
-private fun NearbyScreen(
+internal fun NearbyScreen(
   mobilePlatform: MobileUiPlatform,
   stations: List<Station>,
   favoriteIds: Set<String>,
@@ -2051,212 +1206,6 @@ private fun NearbyScreen(
   }
 }
 
-private fun buildEnvironmentalZoneSnapshots(stations: List<Station>): List<ZoneEnvironmentalSnapshot> {
-  if (stations.isEmpty()) return emptyList()
-  val averageLatitude = stations.map { it.location.latitude }.average()
-  val averageLongitude = stations.map { it.location.longitude }.average()
-  val grouped = stations.groupBy { station ->
-    val north = station.location.latitude >= averageLatitude
-    val east = station.location.longitude >= averageLongitude
-    when {
-      north && east -> "Noreste"
-      north && !east -> "Noroeste"
-      !north && east -> "Sureste"
-      else -> "Suroeste"
-    }
-  }
-  return grouped.entries.sortedBy { it.key }.map { (zone, zoneStations) ->
-    val centerLatitude = zoneStations.map { it.location.latitude }.average()
-    val centerLongitude = zoneStations.map { it.location.longitude }.average()
-    ZoneEnvironmentalSnapshot(
-      centerLatitude = centerLatitude,
-      centerLongitude = centerLongitude,
-      zoneLabel = zone,
-    )
-  }
-}
-
-@Composable
-private fun EnvironmentalLayerSummaryCard(
-  layer: EnvironmentalLayer,
-  onOpenDetails: () -> Unit,
-  onClear: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
-  ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 10.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-          text = when (layer) {
-            EnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
-            EnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
-          },
-          fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-          text = stringResource(Res.string.mapEnvironmentalLayerHint),
-          style = MaterialTheme.typography.bodySmall,
-          color = c.muted,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-        )
-      }
-      Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = onOpenDetails, contentPadding = PaddingValues(0.dp)) {
-          Text(stringResource(Res.string.details))
-        }
-        TextButton(onClick = onClear, contentPadding = PaddingValues(0.dp)) {
-          Text(stringResource(Res.string.mapClearEnvironmentalLayer))
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnvironmentalLayerCard(
-  layer: EnvironmentalLayer,
-  zones: List<ZoneEnvironmentalSnapshot>,
-  onClear: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
-  ) {
-    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      Text(
-        text = when (layer) {
-          EnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
-          EnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
-        },
-        fontWeight = FontWeight.SemiBold,
-      )
-      Text(
-        text = stringResource(Res.string.mapEnvironmentalLayerHint),
-        style = MaterialTheme.typography.bodySmall,
-        color = c.muted,
-      )
-      EnvironmentalLegendRow(layer = layer)
-      zones.take(4).forEach { zone ->
-        val score = when (layer) {
-          EnvironmentalLayer.AirQuality -> zone.airQualityScore
-          EnvironmentalLayer.Pollen -> zone.pollenScore
-        }
-        val tone = environmentalToneForLayer(layer = layer, score = score, muted = c.muted)
-        val valueText = when {
-          score == null -> "--"
-          layer == EnvironmentalLayer.AirQuality -> "AQI $score"
-          else -> "$score gr/m3"
-        }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Text(zone.zoneLabel, style = MaterialTheme.typography.bodySmall, color = c.ink)
-          Text(
-            valueText,
-            style = MaterialTheme.typography.bodySmall,
-            color = tone,
-            fontWeight = FontWeight.SemiBold,
-          )
-        }
-      }
-      TextButton(onClick = onClear, contentPadding = PaddingValues(0.dp)) {
-        Text(stringResource(Res.string.mapClearEnvironmentalLayer))
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnvironmentalLegendRow(layer: EnvironmentalLayer) {
-  val c = LocalBiziColors.current
-  val labels = when (layer) {
-    EnvironmentalLayer.AirQuality -> listOf(
-      stringResource(Res.string.environmentalLegendGood),
-      stringResource(Res.string.environmentalLegendModerate),
-      stringResource(Res.string.environmentalLegendPoor),
-    )
-    EnvironmentalLayer.Pollen -> listOf(
-      stringResource(Res.string.environmentalLegendLow),
-      stringResource(Res.string.environmentalLegendMedium),
-      stringResource(Res.string.environmentalLegendHigh),
-    )
-  }
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    listOf(c.green, c.orange, c.red).forEachIndexed { index, color ->
-      Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        MapColorDot(color = color)
-        Text(labels[index], style = MaterialTheme.typography.labelSmall, color = c.muted)
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnvironmentalMapOverlay(
-  modifier: Modifier,
-  layer: EnvironmentalLayer,
-  zones: List<ZoneEnvironmentalSnapshot>,
-  stations: List<Station>,
-) {
-  if (zones.isEmpty() || stations.isEmpty()) return
-  val minLat = stations.minOfOrNull { it.location.latitude } ?: return
-  val maxLat = stations.maxOfOrNull { it.location.latitude } ?: return
-  val minLon = stations.minOfOrNull { it.location.longitude } ?: return
-  val maxLon = stations.maxOfOrNull { it.location.longitude } ?: return
-  val latRange = (maxLat - minLat).takeIf { it > 0.00001 } ?: return
-  val lonRange = (maxLon - minLon).takeIf { it > 0.00001 } ?: return
-  val c = LocalBiziColors.current
-
-  Canvas(modifier = modifier) {
-    zones.forEach { zone ->
-      val value = when (layer) {
-        EnvironmentalLayer.AirQuality -> zone.airQualityScore
-        EnvironmentalLayer.Pollen -> zone.pollenScore
-      } ?: return@forEach
-
-      val tone = environmentalToneForLayer(layer = layer, score = value, muted = c.muted)
-      val intensity = when (layer) {
-        EnvironmentalLayer.AirQuality -> (value.coerceIn(0, 200) / 200f)
-        EnvironmentalLayer.Pollen -> (value.coerceIn(0, 80) / 80f)
-      }
-      val x = (((zone.centerLongitude - minLon) / lonRange).toFloat() * size.width).coerceIn(0f, size.width)
-      val y = (size.height - (((zone.centerLatitude - minLat) / latRange).toFloat() * size.height)).coerceIn(0f, size.height)
-      drawCircle(
-        color = tone.copy(alpha = 0.14f + (0.20f * intensity)),
-        radius = size.minDimension * (0.10f + (0.14f * intensity)),
-        center = androidx.compose.ui.geometry.Offset(x, y),
-      )
-    }
-  }
-}
-
-private fun environmentalToneForLayer(layer: EnvironmentalLayer, score: Int?, muted: Color): Color = when {
-  score == null -> muted
-  layer == EnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
-  layer == EnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
-  layer == EnvironmentalLayer.AirQuality -> Color(0xFFD84315)
-  layer == EnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
-  layer == EnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
-  else -> Color(0xFFC2185B)
-}
-
 @Composable
 private fun RefreshButtonWithCountdown(
   countdown: Int,
@@ -2282,291 +1231,7 @@ private fun RefreshButtonWithCountdown(
 }
 
 @Composable
-private fun MapFilterChipRow(
-  activeFilters: Set<MapFilter>,
-  onToggleFilter: (MapFilter) -> Unit,
-) {
-  Row(
-    modifier = Modifier.horizontalScroll(rememberScrollState()),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    MapFilter.entries.forEach { filter ->
-      MapFilterChip(
-        filter = filter,
-        label = stringResource(filter.labelKey),
-        selected = filter in activeFilters,
-        onClick = { onToggleFilter(filter) },
-      )
-    }
-  }
-}
-
-@Composable
-private fun MapLegendChip(
-  label: String,
-  color: Color,
-) {
-  val c = LocalBiziColors.current
-  Surface(
-    shape = RoundedCornerShape(18.dp),
-    color = c.surface.copy(alpha = 0.92f),
-    border = BorderStroke(1.dp, c.panel),
-  ) {
-    Row(
-      modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      MapColorDot(color = color)
-      Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = c.ink,
-      )
-    }
-  }
-}
-
-@Composable
-private fun MapColorDot(
-  color: Color,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .size(10.dp)
-      .clip(CircleShape)
-      .background(color),
-  )
-}
-
-@Composable
-private fun MapFilterChip(
-  filter: MapFilter,
-  label: String,
-  selected: Boolean,
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  val accent = when (filter) {
-    MapFilter.BIKES_AND_SLOTS -> c.green
-    MapFilter.ONLY_BIKES -> c.blue
-    MapFilter.ONLY_SLOTS -> c.red
-    MapFilter.ONLY_EBIKES -> c.orange
-    MapFilter.ONLY_REGULAR_BIKES -> c.purple
-    MapFilter.AIR_QUALITY -> c.green
-    MapFilter.POLLEN -> c.orange
-  }
-  val backgroundColor by animateColorAsState(
-    targetValue = if (selected) c.surface else c.surface,
-    animationSpec = tween(180),
-  )
-  val contentColor by animateColorAsState(
-    targetValue = if (selected) accent else c.ink,
-    animationSpec = tween(180),
-  )
-  val borderColor by animateColorAsState(
-    targetValue = if (selected) accent else c.panel,
-    animationSpec = tween(180),
-  )
-  val selectionScale by animateFloatAsState(
-    targetValue = if (selected) 1f else 0.98f,
-    animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-    label = "map-filter-scale",
-  )
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = backgroundColor,
-    border = BorderStroke(1.dp, borderColor),
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = selectionScale
-        scaleY = selectionScale
-      }
-      .clickable(onClick = onClick),
-  ) {
-    Row(
-      modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      MapColorDot(color = accent)
-      Text(
-        text = label,
-        color = contentColor,
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
-      )
-    }
-  }
-}
-
-@Composable
-private fun MapRecenterButton(
-  enabled: Boolean,
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Surface(
-    modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
-    shape = CircleShape,
-    color = c.surface.copy(alpha = if (enabled) 0.96f else 0.88f),
-    tonalElevation = 4.dp,
-    shadowElevation = 6.dp,
-  ) {
-    Icon(
-      imageVector = Icons.Filled.MyLocation,
-      contentDescription = stringResource(Res.string.mapMyLocation),
-      tint = if (enabled) c.green else c.muted,
-      modifier = Modifier.padding(14.dp).size(22.dp),
-    )
-  }
-}
-
-@Composable
-private fun MapEnvironmentalSheetButton(
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Surface(
-    modifier = Modifier.clickable(onClick = onClick),
-    shape = CircleShape,
-    color = c.surface.copy(alpha = 0.96f),
-    tonalElevation = 4.dp,
-    shadowElevation = 6.dp,
-  ) {
-    Icon(
-      imageVector = Icons.Filled.Tune,
-      contentDescription = stringResource(Res.string.details),
-      tint = c.blue,
-      modifier = Modifier.padding(14.dp).size(22.dp),
-    )
-  }
-}
-
-@Composable
-private fun MapSelectedStationCard(
-  modifier: Modifier = Modifier,
-  mobilePlatform: MobileUiPlatform,
-  station: Station,
-  isFavorite: Boolean,
-  isShowingNearestSelection: Boolean,
-  isFallbackSelection: Boolean,
-  searchRadiusMeters: Int,
-  onFavoriteToggle: () -> Unit,
-  onOpenStationDetails: (Station) -> Unit,
-  onQuickRoute: (Station) -> Unit,
-  onDismiss: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
-  val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else c.onAccent.copy(alpha = 0.84f)
-  Card(
-    modifier = modifier,
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, c.red.copy(alpha = 0.12f)) else null,
-    colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
-  ) {
-    Column(
-      modifier = Modifier
-        .padding(horizontal = 14.dp, vertical = 13.dp)
-        .animateContentSize(animationSpec = spring(dampingRatio = 0.82f, stiffness = 450f)),
-      verticalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          if (isFallbackSelection) {
-            stringResource(Res.string.mapNoStationsWithinRadius, searchRadiusMeters)
-          } else if (isShowingNearestSelection) {
-            stringResource(Res.string.mapNearestStationLabel)
-          } else {
-            stringResource(Res.string.mapSelectedStationLabel)
-          },
-          color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
-        )
-        Icon(
-          imageVector = Icons.Filled.Close,
-          contentDescription = stringResource(Res.string.close),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
-          modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
-        )
-      }
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        Text(
-          text = station.name,
-          style = MaterialTheme.typography.titleLarge,
-          color = overlayTitle,
-          fontWeight = FontWeight.Bold,
-        )
-        Text(
-          text = station.address,
-          style = MaterialTheme.typography.bodySmall,
-          color = overlayBody,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-        )
-      }
-      Text(
-        text = if (isFallbackSelection) {
-          stringResource(
-            Res.string.mapNearestFallbackSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        } else {
-          stringResource(
-            Res.string.mapStationDistanceSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        },
-        color = overlayBody,
-      )
-      Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        RoutePill(
-          label = stringResource(Res.string.route),
-          onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
-          onClick = { onQuickRoute(station) },
-        )
-        if (mobilePlatform == MobileUiPlatform.IOS) {
-          FavoritePill(
-            active = isFavorite,
-            onClick = onFavoriteToggle,
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-          )
-        } else {
-          OutlineActionPill(
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-            tint = c.onAccent,
-            borderTint = c.onAccent.copy(alpha = 0.32f),
-            onClick = onFavoriteToggle,
-          )
-        }
-        OutlineActionPill(
-          label = stringResource(Res.string.details),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
-          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
-          onClick = { onOpenStationDetails(station) },
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun FavoritesScreen(
+internal fun FavoritesScreen(
   mobilePlatform: MobileUiPlatform,
   onOpenAssistant: () -> Unit,
   allStations: List<Station>,
@@ -2799,511 +1464,9 @@ private fun FavoritesScreen(
   }
 }
 
-@Composable
-private fun ProfileScreen(
-  mobilePlatform: MobileUiPlatform,
-  paddingValues: PaddingValues,
-  searchRadiusMeters: Int,
-  preferredMapApp: PreferredMapApp,
-  themePreference: ThemePreference,
-  selectedCity: City,
-  onOpenShortcuts: () -> Unit,
-  onSearchRadiusSelected: (Int) -> Unit,
-  onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
-  onThemePreferenceSelected: (ThemePreference) -> Unit,
-  onCitySelected: (City) -> Unit,
-  showProfileSetupCard: Boolean,
-  onShowChangelog: () -> Unit,
-  onOpenOnboarding: () -> Unit,
-  onOpenFeedback: () -> Unit,
-  onRateApp: () -> Unit,
-) {
-  var showFeedbackDialog by remember { mutableStateOf(false) }
-  var showDataSourcesDialog by remember { mutableStateOf(false) }
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
-    contentAlignment = Alignment.TopCenter,
-  ) {
-    LazyColumn(
-      modifier = Modifier.responsivePageWidth(),
-      contentPadding = PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-      item {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Text(
-            text = stringResource(Res.string.settings),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-          )
-          Text(
-            text = stringResource(Res.string.profileSubtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalBiziColors.current.muted,
-          )
-        }
-      }
-      if (showProfileSetupCard) {
-        item {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-          ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(stringResource(Res.string.profileSetupCardTitle), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.profileSetupCardBody),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              TextButton(
-                onClick = onOpenOnboarding,
-                contentPadding = PaddingValues(0.dp),
-              ) {
-                Text(stringResource(Res.string.profileSetupCardAction), style = MaterialTheme.typography.bodySmall)
-              }
-            }
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.viewWhatsNew), fontWeight = FontWeight.SemiBold)
-            TextButton(onClick = onShowChangelog, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.viewWhatsNew), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.nearbyStationRadiusDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            SearchRadiusSelector(
-              selectedRadiusMeters = searchRadiusMeters,
-              onSearchRadiusSelected = onSearchRadiusSelected,
-            )
-          }
-        }
-      }
-      item {
-        Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.selectedCity), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.citySelectionSubtitle),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            CitySelector(
-              selectedCity = selectedCity,
-              onCitySelected = onCitySelected,
-            )
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.appearance), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.appearanceDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.System,
-                label = stringResource(Res.string.system),
-                onClick = { onThemePreferenceSelected(ThemePreference.System) },
-              )
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.Light,
-                label = stringResource(Res.string.light),
-                onClick = { onThemePreferenceSelected(ThemePreference.Light) },
-              )
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.Dark,
-                label = stringResource(Res.string.dark),
-                onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
-              )
-            }
-          }
-        }
-      }
-      if (mobilePlatform == MobileUiPlatform.IOS) {
-        item {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-          ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-              Text(stringResource(Res.string.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.iPhoneRouteAppDescription),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                RadiusSelectionButton(
-                  modifier = Modifier.weight(1f),
-                  selected = preferredMapApp == PreferredMapApp.AppleMaps,
-                  label = "Apple Maps",
-                  onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
-                )
-                RadiusSelectionButton(
-                  modifier = Modifier.weight(1f),
-                  selected = preferredMapApp == PreferredMapApp.GoogleMaps,
-                  label = "Google Maps",
-                  onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
-                )
-              }
-              Text(
-                 stringResource(Res.string.iPhoneRouteAppFallback),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-            }
-          }
-        }
-      }
-      item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.rateApp), fontWeight = FontWeight.SemiBold)
-            TextButton(onClick = onRateApp, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.rateApp), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-      }
-      item {
-        Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.feedbackDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(
-              onClick = { showFeedbackDialog = true },
-              contentPadding = PaddingValues(0.dp),
-            ) {
-              Text(stringResource(Res.string.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-      }
-      if (showFeedbackDialog) {
-        item {
-          FeedbackDialog(
-            onDismiss = { showFeedbackDialog = false },
-            onOpenFeedbackForm = {
-              onOpenFeedback()
-              showFeedbackDialog = false
-            },
-          )
-        }
-      }
-      item {
-        val uriHandler = LocalUriHandler.current
-        Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.privacyAndData), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.privacyDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(
-              onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
-              contentPadding = PaddingValues(0.dp),
-            ) {
-              Text(stringResource(Res.string.openPrivacyPolicy), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable { showDataSourcesDialog = true }
-              .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-          ) {
-            Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.dataSourceDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Text(
-              text = stringResource(Res.string.dataSourceDetailsAction),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.blue,
-              fontWeight = FontWeight.SemiBold,
-            )
-          }
-        }
-      }
-    }
-  }
-
-  if (showDataSourcesDialog) {
-    AlertDialog(
-      onDismissRequest = { showDataSourcesDialog = false },
-      title = { Text(stringResource(Res.string.dataSourceTitle)) },
-      text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = stringResource(Res.string.dataSourceGbfsDetail),
-            style = MaterialTheme.typography.bodySmall,
-          )
-          Text(
-            text = stringResource(Res.string.dataSourceEnvironmentalDetail),
-            style = MaterialTheme.typography.bodySmall,
-          )
-        }
-      },
-      confirmButton = {
-        TextButton(onClick = { showDataSourcesDialog = false }) {
-          Text(stringResource(Res.string.close))
-        }
-      },
-    )
-  }
-}
-
-@Composable
-private fun SearchRadiusSelector(
-  selectedRadiusMeters: Int,
-  onSearchRadiusSelected: (Int) -> Unit,
-) {
-  val colors = LocalBiziColors.current
-  var expanded by remember { mutableStateOf(false) }
-  Box {
-    OutlinedButton(
-      onClick = { expanded = true },
-      modifier = Modifier.fillMaxWidth(),
-      border = BorderStroke(1.dp, colors.panel),
-      colors = ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = formatDistance(selectedRadiusMeters),
-          color = colors.ink,
-        )
-        Icon(
-          imageVector = Icons.Filled.Navigation,
-          contentDescription = null,
-          tint = colors.red,
-        )
-      }
-    }
-
-    DropdownMenu(
-      expanded = expanded,
-      onDismissRequest = { expanded = false },
-      modifier = Modifier.background(colors.surface),
-    ) {
-      SEARCH_RADIUS_OPTIONS_METERS.forEach { radius ->
-        DropdownMenuItem(
-          text = {
-            Text(
-              text = formatDistance(radius),
-              color = if (radius == selectedRadiusMeters) colors.red else colors.ink,
-              fontWeight = if (radius == selectedRadiusMeters) FontWeight.SemiBold else FontWeight.Normal,
-            )
-          },
-          onClick = {
-            expanded = false
-            onSearchRadiusSelected(radius)
-          },
-        )
-      }
-    }
-  }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ShortcutsScreen(
-  mobilePlatform: MobileUiPlatform,
-  paddingValues: PaddingValues,
-  graph: SharedGraph,
-  stationsRepository: com.gcaguilar.biciradar.core.StationsRepository,
-  favoriteIds: Set<String>,
-  searchRadiusMeters: Int,
-  initialAction: AssistantAction?,
-  onInitialActionConsumed: () -> Unit,
-  onBack: () -> Unit,
-) {
-  PlatformBackHandler(enabled = true, onBack = onBack)
-  var latestAnswer by remember { mutableStateOf<String?>(null) }
-  val shortcutGuides = shortcutGuidesFor(mobilePlatform)
-
-  LaunchedEffect(initialAction, favoriteIds, searchRadiusMeters) {
-    val action = initialAction ?: return@LaunchedEffect
-    val resolution = graph.assistantIntentResolver.resolve(
-      action = action,
-      stationsState = stationsRepository.state.value,
-      favoriteIds = favoriteIds,
-      searchRadiusMeters = searchRadiusMeters,
-    )
-    latestAnswer = resolution.spokenResponse
-    onInitialActionConsumed()
-  }
-
-  Scaffold(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
-    topBar = {
-      TopAppBar(
-        title = {
-          if (mobilePlatform == MobileUiPlatform.IOS) {
-            Text("")
-          } else {
-            Text(stringResource(Res.string.shortcuts))
-          }
-        },
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
-          }
-        },
-      )
-    },
-    containerColor = pageBackgroundColor(mobilePlatform),
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(pageBackgroundColor(mobilePlatform)),
-      contentAlignment = Alignment.TopCenter,
-    ) {
-      LazyColumn(
-        modifier = Modifier.responsivePageWidth(),
-        contentPadding = PaddingValues(
-          start = 16.dp,
-          top = innerPadding.calculateTopPadding() + 16.dp,
-          end = 16.dp,
-          bottom = innerPadding.calculateBottomPadding() + 16.dp,
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-      ) {
-        if (mobilePlatform == MobileUiPlatform.IOS) {
-          item {
-            Column(
-              verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-              Text(
-                text = stringResource(Res.string.shortcuts),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-              )
-              Text(
-                text = stringResource(Res.string.shortcutsIosSubtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalBiziColors.current.muted,
-              )
-            }
-          }
-        }
-        item {
-          Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-            Column(
-              modifier = Modifier.padding(18.dp),
-              verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-              Text(stringResource(Res.string.howToInvoke), fontWeight = FontWeight.SemiBold)
-              Text(
-                if (mobilePlatform == MobileUiPlatform.IOS) {
-                  stringResource(Res.string.shortcutsAvailableOnIos)
-                } else {
-                  stringResource(Res.string.shortcutsAvailableWithAssistant, mobilePlatform.assistantDisplayName())
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              Text(
-                if (mobilePlatform == MobileUiPlatform.IOS) {
-                  stringResource(Res.string.shortcutsIosInvocationHint)
-                } else {
-                  stringResource(Res.string.shortcutsAndroidInvocationHint)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              Text(
-                stringResource(Res.string.shortcutsCurrentRadius, searchRadiusMeters),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.ink,
-              )
-            }
-          }
-        }
-        latestAnswer?.let { answer ->
-          item {
-            Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-              Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-              ) {
-                Text(stringResource(Res.string.latestAnswer), fontWeight = FontWeight.SemiBold)
-                Text(answer)
-              }
-            }
-          }
-        }
-        items(shortcutGuides, key = { it.title }) { guide ->
-          ShortcutGuideCard(guide = guide)
-        }
-      }
-    }
-  }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StationDetailScreen(
+internal fun StationDetailScreen(
   mobilePlatform: MobileUiPlatform,
   station: Station,
   isFavorite: Boolean,
@@ -3832,47 +1995,6 @@ private fun PatternHintPill(
 }
 
 @Composable
-private fun ChangelogDialog(
-  entries: List<ChangelogCatalogEntry>,
-  onDismiss: () -> Unit,
-) {
-  val colors = LocalBiziColors.current
-  androidx.compose.material3.AlertDialog(
-    onDismissRequest = onDismiss,
-    containerColor = colors.surface,
-    title = {
-      Text(stringResource(Res.string.changelogWhatsNew), fontWeight = FontWeight.Bold)
-    },
-    text = {
-      LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-      ) {
-        items(entries.size) { index ->
-          val entry = entries[index]
-          Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-              stringResource(entry.titleKey),
-              style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-              stringResource(entry.descriptionKey),
-              style = MaterialTheme.typography.bodySmall,
-              color = colors.muted,
-            )
-          }
-        }
-      }
-    },
-    confirmButton = {
-      TextButton(onClick = onDismiss) {
-        Text(stringResource(Res.string.gotIt))
-      }
-    },
-  )
-}
-
-@Composable
 private fun CitySelectionScreen(
   onCitySelected: (City) -> Unit,
 ) {
@@ -3960,7 +2082,7 @@ private fun geoSuggestionSecondaryText(result: GeoResult): String? {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun TripScreen(
+internal fun TripScreen(
   viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
   mobilePlatform: MobileUiPlatform,
   localNotifier: LocalNotifier,
@@ -4608,45 +2730,6 @@ private fun TripMonitoringActiveCard(
   }
 }
 
-private data class ShortcutGuide(
-  val title: String,
-  val description: String,
-  val examples: List<String>,
-  val icon: androidx.compose.ui.graphics.vector.ImageVector,
-)
-
-@Composable
-private fun ShortcutGuideCard(
-  guide: ShortcutGuide,
-) {
-  Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
-    Column(
-      modifier = Modifier.padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Icon(guide.icon, contentDescription = null, tint = LocalBiziColors.current.red)
-        Text(guide.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-      }
-      Text(
-        guide.description,
-        style = MaterialTheme.typography.bodySmall,
-        color = LocalBiziColors.current.muted,
-      )
-      guide.examples.forEach { example ->
-        Text(
-          "\u2022 $example",
-          style = MaterialTheme.typography.bodyMedium,
-          color = LocalBiziColors.current.ink,
-        )
-      }
-    }
-  }
-}
-
 @Composable
 private fun AvailabilityCard(
   modifier: Modifier,
@@ -4905,7 +2988,7 @@ private fun FavoriteDismissBackground(
 }
 
 @Composable
-private fun RoutePill(
+internal fun RoutePill(
   label: String,
   onClick: () -> Unit,
   onDarkBackground: Boolean = false,
@@ -5142,7 +3225,7 @@ private fun MobilePageHeader(
 }
 
 @Composable
-private fun StationSearchField(
+internal fun StationSearchField(
   mobilePlatform: MobileUiPlatform,
   value: String,
   onValueChange: (String) -> Unit,
@@ -5274,7 +3357,7 @@ private fun QuickRouteActionCard(
 }
 
 @Composable
-private fun OutlineActionPill(
+internal fun OutlineActionPill(
   label: String,
   tint: Color,
   borderTint: Color,
@@ -5299,7 +3382,7 @@ private fun OutlineActionPill(
 }
 
 @Composable
-private fun EmptyStateCard(
+internal fun EmptyStateCard(
   title: String,
   description: String,
   primaryAction: String? = null,
@@ -5329,7 +3412,7 @@ private fun EmptyStateCard(
 }
 
 @Composable
-private fun RadiusSelectionButton(
+internal fun RadiusSelectionButton(
   modifier: Modifier,
   selected: Boolean,
   label: String,
@@ -5378,134 +3461,6 @@ private fun RadiusSelectionButton(
   }
 }
 
-private fun PreferredMapApp.displayName(): String = when (this) {
-  PreferredMapApp.AppleMaps -> "Apple Maps"
-  PreferredMapApp.GoogleMaps -> "Google Maps"
-}
-
-@Composable
-private fun CitySelector(
-  selectedCity: City,
-  onCitySelected: (City) -> Unit,
-) {
-  val colors = LocalBiziColors.current
-  var expanded by remember { mutableStateOf(false) }
-
-  Box {
-    OutlinedButton(
-      onClick = { expanded = true },
-      modifier = Modifier.fillMaxWidth(),
-      border = BorderStroke(1.dp, colors.panel),
-      colors = ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = selectedCity.displayName,
-          color = colors.ink,
-        )
-        Icon(
-          imageVector = Icons.Filled.Navigation,
-          contentDescription = null,
-          tint = colors.red,
-        )
-      }
-    }
-
-    DropdownMenu(
-      expanded = expanded,
-      onDismissRequest = { expanded = false },
-      modifier = Modifier.background(colors.surface),
-    ) {
-      City.entries.sortedBy { it.displayName }.forEach { city ->
-        DropdownMenuItem(
-          text = {
-            Text(
-              text = city.displayName,
-              color = if (city == selectedCity) colors.red else colors.ink,
-              fontWeight = if (city == selectedCity) FontWeight.SemiBold else FontWeight.Normal,
-            )
-          },
-          onClick = {
-            onCitySelected(city)
-            expanded = false
-          },
-          leadingIcon = {
-            if (city == selectedCity) {
-              Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = colors.red,
-              )
-            }
-          },
-        )
-      }
-    }
-  }
-}
-
-private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
-  MobileUiPlatform.Android -> "Google Assistant"
-  MobileUiPlatform.IOS -> "Siri"
-  MobileUiPlatform.Desktop -> "Asistente"
-}
-
-@Composable
-private fun shortcutGuidesFor(
-  mobilePlatform: MobileUiPlatform,
-): List<ShortcutGuide> = listOf(
-  ShortcutGuide(
-    title = stringResource(Res.string.mapNearestStationLabel),
-    description = stringResource(Res.string.guideNearestStationDescription),
-    examples = listOf(
-      stringResource(Res.string.guideNearestStationExampleNearest),
-      stringResource(Res.string.guideNearestStationExampleClosest),
-    ),
-    icon = Icons.Filled.LocationOn,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideNearestWithBikesOrSlots),
-    description = stringResource(Res.string.guideNearestWithBikesOrSlotsDescription),
-    examples = listOf(
-      stringResource(Res.string.guideNearestWithBikesOrSlotsExampleBikes),
-      stringResource(Res.string.guideNearestWithBikesOrSlotsExampleSlots),
-    ),
-    icon = Icons.AutoMirrored.Filled.DirectionsBike,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideStationStatus),
-    description = stringResource(Res.string.guideStationStatusDescription),
-    examples = listOf(
-      stringResource(Res.string.guideStationStatusExampleHome),
-      stringResource(Res.string.guideStationStatusExampleHomeBikes),
-      stringResource(Res.string.guideStationStatusExampleStationSlots),
-    ),
-    icon = Icons.Filled.Search,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.favorites),
-    description = stringResource(Res.string.guideFavoritesDescription),
-    examples = listOf(
-      stringResource(Res.string.guideFavoritesExampleOpen),
-      stringResource(Res.string.guideFavoritesExampleWork),
-    ),
-    icon = Icons.Filled.Favorite,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideRouteToStation),
-    description = stringResource(Res.string.guideRouteToStationDescription),
-    examples = listOf(
-      stringResource(Res.string.guideRouteToStationExamplePlazaEspana),
-      stringResource(Res.string.guideRouteToStationExampleWork),
-    ),
-    icon = Icons.Filled.Directions,
-  ),
-)
-
 @Composable
 private fun StationMetricPill(
   modifier: Modifier = Modifier,
@@ -5537,7 +3492,7 @@ private fun StationMetricPill(
 }
 
 @Composable
-private fun FavoritePill(
+internal fun FavoritePill(
   active: Boolean,
   onClick: () -> Unit,
   label: String,
@@ -5631,73 +3586,6 @@ private fun SavedPlacePill(
   }
 }
 
-@Composable
-internal fun pageBackgroundColor(platform: MobileUiPlatform): Color {
-  val c = LocalBiziColors.current
-  return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
-}
-
-@Composable
-private fun Modifier.responsivePageWidth(): Modifier {
-  val maxWidth = when (LocalBiziWindowLayout.current) {
-    BiziWindowLayout.Compact -> null
-    BiziWindowLayout.Medium -> 760.dp
-    BiziWindowLayout.Expanded -> 920.dp
-  }
-  return if (maxWidth == null) {
-    fillMaxSize()
-  } else {
-    fillMaxSize().widthIn(max = maxWidth)
-  }
-}
-
-private fun NavHostController.navigateToPrimaryDestination(screen: Screen) {
-  navigate(screen) {
-    launchSingleTop = true
-    restoreState = true
-    popUpTo(Screen.Nearby) { saveState = true }
-  }
-}
-
-private fun MobileTab.screen(): Screen = when (this) {
-  MobileTab.Mapa -> Screen.Map
-  MobileTab.Cerca -> Screen.Nearby
-  MobileTab.Favoritos -> Screen.Favorites
-  MobileTab.Viaje -> Screen.Trip()
-  MobileTab.Perfil -> Screen.Profile
-}
-
-private fun MobileTab.icon() = when (this) {
-  MobileTab.Mapa -> Icons.Filled.Map
-  MobileTab.Cerca -> Icons.Filled.LocationOn
-  MobileTab.Favoritos -> Icons.Filled.Favorite
-  MobileTab.Viaje -> Icons.Filled.Navigation
-  MobileTab.Perfil -> Icons.Filled.Tune
-}
-
-private fun AssistantAction.icon() = when (this) {
-  AssistantAction.FavoriteStations -> Icons.Filled.Favorite
-  AssistantAction.NearestStation -> Icons.Filled.LocationOn
-  AssistantAction.NearestStationWithBikes -> Icons.AutoMirrored.Filled.DirectionsBike
-  AssistantAction.NearestStationWithSlots -> Icons.Filled.LocalParking
-  is AssistantAction.StationBikeCount -> Icons.AutoMirrored.Filled.DirectionsBike
-  is AssistantAction.StationSlotCount -> Icons.Filled.LocalParking
-  is AssistantAction.RouteToStation -> Icons.Filled.Directions
-  is AssistantAction.StationStatus -> Icons.Filled.LocationOn
-}
-
-@Composable
-private fun AssistantAction.label(): String = when (this) {
-  AssistantAction.FavoriteStations -> stringResource(Res.string.myFavorites)
-  AssistantAction.NearestStation -> stringResource(Res.string.mapNearestStationLabel)
-  AssistantAction.NearestStationWithBikes -> stringResource(Res.string.assistantLabelNearestWithBikes)
-  AssistantAction.NearestStationWithSlots -> stringResource(Res.string.assistantLabelNearestWithSlots)
-  is AssistantAction.StationBikeCount -> stringResource(Res.string.bikesInStation)
-  is AssistantAction.StationSlotCount -> stringResource(Res.string.slotsInStation)
-  is AssistantAction.RouteToStation -> stringResource(Res.string.routeToStation)
-  is AssistantAction.StationStatus -> stringResource(Res.string.stationStatusLabel)
-}
-
 private fun filterStations(
   stations: List<Station>,
   searchQuery: String,
@@ -5716,401 +3604,4 @@ private fun resolveLaunchStation(
     homeStationId = graph.favoritesRepository.currentHomeStationId(),
     workStationId = graph.favoritesRepository.currentWorkStationId(),
   )
-}
-
-internal object BiziMobileAppContent {
-  @Composable
-  fun TripScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
-    mobilePlatform: MobileUiPlatform,
-    localNotifier: LocalNotifier,
-    routeLauncher: RouteLauncher,
-    userLocation: GeoPoint?,
-    stations: List<Station>,
-    isMapReady: Boolean,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
-    paddingValues: PaddingValues,
-  ) = TripScreen(
-    viewModel = viewModel,
-    mobilePlatform = mobilePlatform,
-    localNotifier = localNotifier,
-    routeLauncher = routeLauncher,
-    userLocation = userLocation,
-    stations = stations,
-    isMapReady = isMapReady,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    stationsLoading = stationsLoading,
-    onRefreshStations = onRefreshStations,
-    paddingValues = paddingValues,
-  )
-
-  @Composable
-  fun NearbyScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    loading: Boolean,
-    errorMessage: String?,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
-    searchRadiusMeters: Int,
-    onStationSelected: (Station) -> Unit,
-    onRetry: () -> Unit,
-    onRefresh: () -> Unit,
-    onFavoriteToggle: (Station) -> Unit,
-    onQuickRoute: (Station) -> Unit,
-    refreshCountdownSeconds: Int,
-    paddingValues: PaddingValues,
-  ) = NearbyScreen(
-    mobilePlatform = mobilePlatform,
-    stations = stations,
-    favoriteIds = favoriteIds,
-    loading = loading,
-    errorMessage = errorMessage,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    nearestSelection = nearestSelection,
-    searchRadiusMeters = searchRadiusMeters,
-    onStationSelected = onStationSelected,
-    onRetry = onRetry,
-    onRefresh = onRefresh,
-    onFavoriteToggle = onFavoriteToggle,
-    onQuickRoute = onQuickRoute,
-    refreshCountdownSeconds = refreshCountdownSeconds,
-    paddingValues = paddingValues,
-  )
-
-  @Composable
-  fun NearbyScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModel,
-    mobilePlatform: MobileUiPlatform,
-    onStationSelected: (Station) -> Unit,
-    paddingValues: PaddingValues,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    NearbyScreen(
-      mobilePlatform = mobilePlatform,
-      stations = uiState.stations,
-      favoriteIds = uiState.favoriteIds,
-      loading = uiState.isLoading,
-      errorMessage = uiState.errorMessage,
-      dataFreshness = uiState.dataFreshness,
-      lastUpdatedEpoch = uiState.lastUpdatedEpoch,
-      nearestSelection = uiState.nearestSelection,
-      searchRadiusMeters = uiState.searchRadiusMeters,
-      onStationSelected = onStationSelected,
-      onRetry = viewModel::onRetry,
-      onRefresh = viewModel::onRefresh,
-      onFavoriteToggle = viewModel::onFavoriteToggle,
-      onQuickRoute = viewModel::onQuickRoute,
-      refreshCountdownSeconds = uiState.refreshCountdownSeconds,
-      paddingValues = paddingValues,
-    )
-  }
-
-  @Composable
-  fun FavoritesScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    onOpenAssistant: () -> Unit,
-    allStations: List<Station>,
-    stations: List<Station>,
-    homeStation: Station?,
-    workStation: Station?,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit,
-    onStationSelected: (Station) -> Unit,
-    onAssignHomeStation: (Station) -> Unit,
-    onAssignWorkStation: (Station) -> Unit,
-    onClearHomeStation: () -> Unit,
-    onClearWorkStation: () -> Unit,
-    onRemoveFavorite: (Station) -> Unit,
-    onQuickRoute: (Station) -> Unit,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
-    onOpenSavedPlaceAlerts: () -> Unit,
-    paddingValues: PaddingValues,
-    savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
-    savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
-    onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)? = null,
-    onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)? = null,
-  ) = FavoritesScreen(
-    mobilePlatform = mobilePlatform,
-    onOpenAssistant = onOpenAssistant,
-    allStations = allStations,
-    stations = stations,
-    homeStation = homeStation,
-    workStation = workStation,
-    searchQuery = searchQuery,
-    onSearchQueryChange = onSearchQueryChange,
-    onStationSelected = onStationSelected,
-    onAssignHomeStation = onAssignHomeStation,
-    onAssignWorkStation = onAssignWorkStation,
-    onClearHomeStation = onClearHomeStation,
-    onClearWorkStation = onClearWorkStation,
-    onRemoveFavorite = onRemoveFavorite,
-    onQuickRoute = onQuickRoute,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    stationsLoading = stationsLoading,
-    onRefreshStations = onRefreshStations,
-    onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
-    paddingValues = paddingValues,
-    savedPlaceAlertsCityId = savedPlaceAlertsCityId,
-    savedPlaceAlertRules = savedPlaceAlertRules,
-    onUpsertSavedPlaceAlert = onUpsertSavedPlaceAlert,
-    onRemoveSavedPlaceAlertForTarget = onRemoveSavedPlaceAlertForTarget,
-  )
-
-  @Composable
-  fun FavoritesScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModel,
-    mobilePlatform: MobileUiPlatform,
-    onOpenAssistant: () -> Unit,
-    onStationSelected: (Station) -> Unit,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
-    onOpenSavedPlaceAlerts: () -> Unit,
-    paddingValues: PaddingValues,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    FavoritesScreen(
-      mobilePlatform = mobilePlatform,
-      onOpenAssistant = onOpenAssistant,
-      allStations = uiState.allStations,
-      stations = uiState.favoriteStations,
-      homeStation = uiState.homeStation,
-      workStation = uiState.workStation,
-      searchQuery = uiState.searchQuery,
-      onSearchQueryChange = viewModel::onSearchQueryChange,
-      onStationSelected = onStationSelected,
-      onAssignHomeStation = viewModel::onAssignHomeStation,
-      onAssignWorkStation = viewModel::onAssignWorkStation,
-      onClearHomeStation = viewModel::onClearHomeStation,
-      onClearWorkStation = viewModel::onClearWorkStation,
-      onRemoveFavorite = viewModel::onRemoveFavorite,
-      onQuickRoute = viewModel::onQuickRoute,
-      dataFreshness = dataFreshness,
-      lastUpdatedEpoch = lastUpdatedEpoch,
-      stationsLoading = stationsLoading,
-      onRefreshStations = onRefreshStations,
-      onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
-      paddingValues = paddingValues,
-      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
-      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
-      onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
-      onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
-    )
-  }
-
-  @Composable
-  fun ProfileScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    paddingValues: PaddingValues,
-    searchRadiusMeters: Int,
-    preferredMapApp: PreferredMapApp,
-    themePreference: ThemePreference,
-    selectedCity: City,
-    onOpenShortcuts: () -> Unit,
-    onSearchRadiusSelected: (Int) -> Unit,
-    onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
-    onThemePreferenceSelected: (ThemePreference) -> Unit,
-    onCitySelected: (City) -> Unit,
-    showProfileSetupCard: Boolean = false,
-    onShowChangelog: () -> Unit = {},
-    onOpenFeedback: () -> Unit = {},
-    onOpenOnboarding: () -> Unit = {},
-    onRateApp: () -> Unit = {},
-  ) = ProfileScreen(
-    mobilePlatform = mobilePlatform,
-    paddingValues = paddingValues,
-    searchRadiusMeters = searchRadiusMeters,
-    preferredMapApp = preferredMapApp,
-    themePreference = themePreference,
-    selectedCity = selectedCity,
-    onOpenShortcuts = onOpenShortcuts,
-    onSearchRadiusSelected = onSearchRadiusSelected,
-    onPreferredMapAppSelected = onPreferredMapAppSelected,
-    onThemePreferenceSelected = onThemePreferenceSelected,
-    onCitySelected = onCitySelected,
-    showProfileSetupCard = showProfileSetupCard,
-    onShowChangelog = onShowChangelog,
-    onOpenOnboarding = onOpenOnboarding,
-    onOpenFeedback = onOpenFeedback,
-    onRateApp = onRateApp,
-  )
-
-  @Composable
-  fun ProfileScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModel,
-    mobilePlatform: MobileUiPlatform,
-    paddingValues: PaddingValues,
-    onOpenShortcuts: () -> Unit,
-    onOpenOnboarding: () -> Unit,
-    platformBindings: PlatformBindings,
-    onShowChangelogManual: () -> Unit,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    LaunchedEffect(viewModel) {
-      viewModel.refreshSetupRequirements()
-    }
-    ProfileScreen(
-      mobilePlatform = mobilePlatform,
-      paddingValues = paddingValues,
-      searchRadiusMeters = uiState.searchRadiusMeters,
-      preferredMapApp = uiState.preferredMapApp,
-      themePreference = uiState.themePreference,
-      selectedCity = uiState.selectedCity,
-      onOpenShortcuts = onOpenShortcuts,
-      onSearchRadiusSelected = viewModel::onSearchRadiusSelected,
-      onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
-      onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
-      onCitySelected = viewModel::onCitySelected,
-      showProfileSetupCard = uiState.showProfileSetupCard,
-      onShowChangelog = onShowChangelogManual,
-      onOpenOnboarding = onOpenOnboarding,
-      onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
-      onRateApp = {
-        // Manual CTA should open the store review page directly.
-        platformBindings.reviewPrompter.openStoreWriteReview()
-      },
-    )
-  }
-
-  @Composable
-  fun SavedPlaceAlertsScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModel,
-    mobilePlatform: MobileUiPlatform,
-    paddingValues: PaddingValues,
-    onBack: () -> Unit,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    SavedPlaceAlertsListScreen(
-      mobilePlatform = mobilePlatform,
-      rules = uiState.rules,
-      paddingValues = paddingValues,
-      onBack = onBack,
-      onSetEnabled = viewModel::onSetEnabled,
-      onUpsert = viewModel::onUpsert,
-      onRemoveRule = viewModel::onRemoveRule,
-    )
-  }
-
-  @Composable
-  fun ShortcutsScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    paddingValues: PaddingValues,
-    graph: SharedGraph,
-    stationsRepository: StationsRepository,
-    favoriteIds: Set<String>,
-    searchRadiusMeters: Int,
-    initialAction: AssistantAction?,
-    onInitialActionConsumed: () -> Unit,
-    onBack: () -> Unit,
-  ) = ShortcutsScreen(
-    mobilePlatform = mobilePlatform,
-    paddingValues = paddingValues,
-    graph = graph,
-    stationsRepository = stationsRepository,
-    favoriteIds = favoriteIds,
-    searchRadiusMeters = searchRadiusMeters,
-    initialAction = initialAction,
-    onInitialActionConsumed = onInitialActionConsumed,
-    onBack = onBack,
-  )
-
-  @Composable
-  fun MapScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    loading: Boolean,
-    errorMessage: String?,
-    nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
-    searchQuery: String,
-    searchRadiusMeters: Int,
-    userLocation: GeoPoint?,
-    isMapReady: Boolean,
-    onSearchQueryChange: (String) -> Unit,
-    onStationSelected: (Station) -> Unit,
-    onRetry: () -> Unit,
-    onFavoriteToggle: (Station) -> Unit,
-    onQuickRoute: (Station) -> Unit,
-    environmentalRepository: EnvironmentalRepository,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    onRefreshStations: () -> Unit,
-    paddingValues: PaddingValues,
-  ) = MapScreen(
-    mobilePlatform = mobilePlatform,
-    stations = stations,
-    favoriteIds = favoriteIds,
-    loading = loading,
-    errorMessage = errorMessage,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    onRefreshStations = onRefreshStations,
-    nearestSelection = nearestSelection,
-    searchQuery = searchQuery,
-    searchRadiusMeters = searchRadiusMeters,
-    userLocation = userLocation,
-    isMapReady = isMapReady,
-    onSearchQueryChange = onSearchQueryChange,
-    onStationSelected = onStationSelected,
-    onRetry = onRetry,
-    onFavoriteToggle = onFavoriteToggle,
-    onQuickRoute = onQuickRoute,
-    environmentalRepository = environmentalRepository,
-    paddingValues = paddingValues,
-  )
-
-  @Composable
-  fun StationDetailScreenContent(
-    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel,
-    mobilePlatform: MobileUiPlatform,
-    station: Station,
-    userLocation: GeoPoint?,
-    isMapReady: Boolean,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
-    onBack: () -> Unit,
-  ) {
-    val uiState by viewModel.uiState.collectAsState()
-    StationDetailScreen(
-      mobilePlatform = mobilePlatform,
-      station = station,
-      isFavorite = uiState.isFavorite,
-      isHomeStation = uiState.isHomeStation,
-      isWorkStation = uiState.isWorkStation,
-      userLocation = userLocation,
-      isMapReady = isMapReady,
-      supportsUsagePatterns = uiState.supportsUsagePatterns,
-      dataFreshness = dataFreshness,
-      lastUpdatedEpoch = lastUpdatedEpoch,
-      stationsLoading = stationsLoading,
-      onRefreshStations = onRefreshStations,
-      onBack = onBack,
-      onToggleFavorite = viewModel::onToggleFavorite,
-      onToggleHome = viewModel::onToggleHome,
-      onToggleWork = viewModel::onToggleWork,
-      onRoute = { viewModel.onRoute(station) },
-      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
-      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
-      onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
-      onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
-      patterns = uiState.patterns,
-      patternsLoading = uiState.patternsLoading,
-      patternsError = uiState.patternsError,
-    )
-  }
 }

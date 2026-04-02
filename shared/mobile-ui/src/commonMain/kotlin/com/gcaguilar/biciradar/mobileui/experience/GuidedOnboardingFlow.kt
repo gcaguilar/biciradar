@@ -21,22 +21,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.PlatformBindings
-import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+
+enum class GuidedOnboardingStep {
+  LocationPermission,
+  NotificationsPermission,
+  FirstFavorite,
+  SavedPlaces,
+  Surfaces,
+  Completed,
+}
+
+data class GuidedOnboardingCallbacks(
+  val onRequestLocationPermission: () -> Unit,
+  val onDismissLocationStep: () -> Unit,
+  val onRequestNotificationsPermission: () -> Unit,
+  val onDismissNotificationsStep: () -> Unit,
+  val onOpenFavorites: () -> Unit,
+  val onDismissFirstFavoriteStep: () -> Unit,
+  val onDismissSavedPlacesStep: () -> Unit,
+  val onCompleteSurfacesStep: () -> Unit,
+)
+
+internal fun OnboardingChecklistSnapshot.guidedOnboardingStep(): GuidedOnboardingStep = when {
+  !locationDecisionMade -> GuidedOnboardingStep.LocationPermission
+  !notificationsDecisionMade -> GuidedOnboardingStep.NotificationsPermission
+  !firstStationSaved -> GuidedOnboardingStep.FirstFavorite
+  !savedPlacesConfigured -> GuidedOnboardingStep.SavedPlaces
+  !surfacesDiscovered -> GuidedOnboardingStep.Surfaces
+  else -> GuidedOnboardingStep.Completed
+}
 
 @Composable
 fun GuidedOnboardingFlow(
   checklist: OnboardingChecklistSnapshot,
-  platformBindings: PlatformBindings,
-  scope: CoroutineScope,
-  settingsRepository: SettingsRepository,
-  onOpenFavorites: () -> Unit,
+  callbacks: GuidedOnboardingCallbacks,
 ) {
+  val step = checklist.guidedOnboardingStep()
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -46,109 +69,83 @@ fun GuidedOnboardingFlow(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    when {
-      !checklist.locationDecisionMade -> {
+    when (step) {
+      GuidedOnboardingStep.LocationPermission -> {
         Text(stringResource(Res.string.onboardingLocationTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(Res.string.onboardingLocationBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Button(
-          onClick = {
-            scope.launch {
-              platformBindings.permissionPrompter.requestLocationPermission()
-              settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
-            }
-          },
+          onClick = callbacks.onRequestLocationPermission,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingAllow)) }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-          onClick = {
-            scope.launch {
-              settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
-            }
-          },
+          onClick = callbacks.onDismissLocationStep,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingLater)) }
       }
-      !checklist.notificationsDecisionMade -> {
+
+      GuidedOnboardingStep.NotificationsPermission -> {
         Text(stringResource(Res.string.onboardingNotificationsTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(Res.string.onboardingNotificationsBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Button(
-          onClick = {
-            scope.launch {
-              platformBindings.localNotifier.requestPermission()
-              settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
-            }
-          },
+          onClick = callbacks.onRequestNotificationsPermission,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingAllow)) }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-          onClick = {
-            scope.launch {
-              settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
-            }
-          },
+          onClick = callbacks.onDismissNotificationsStep,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingLater)) }
       }
-      !checklist.firstStationSaved -> {
+
+      GuidedOnboardingStep.FirstFavorite -> {
         Text(stringResource(Res.string.onboardingFavoriteTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(Res.string.onboardingFavoriteBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Button(
-          onClick = onOpenFavorites,
+          onClick = callbacks.onOpenFavorites,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingGoToFavorites)) }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-          onClick = {
-            scope.launch {
-              settingsRepository.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
-            }
-          },
+          onClick = callbacks.onDismissFirstFavoriteStep,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingLater)) }
       }
-      !checklist.savedPlacesConfigured -> {
+
+      GuidedOnboardingStep.SavedPlaces -> {
         Text(stringResource(Res.string.onboardingSavedPlacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(Res.string.onboardingSavedPlacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Button(
-          onClick = onOpenFavorites,
+          onClick = callbacks.onOpenFavorites,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingGoToFavorites)) }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
-          onClick = {
-            scope.launch {
-              settingsRepository.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
-            }
-          },
+          onClick = callbacks.onDismissSavedPlacesStep,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingLater)) }
       }
-      !checklist.surfacesDiscovered -> {
+
+      GuidedOnboardingStep.Surfaces -> {
         Text(stringResource(Res.string.onboardingSurfacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
         Text(stringResource(Res.string.onboardingSurfacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(24.dp))
         Button(
-          onClick = {
-            scope.launch {
-              settingsRepository.setOnboardingChecklist(
-                checklist.copy(surfacesDiscovered = true).markCompleted(),
-              )
-            }
-          },
+          onClick = callbacks.onCompleteSurfacesStep,
           modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(Res.string.onboardingFinish)) }
       }
+
+      GuidedOnboardingStep.Completed -> Unit
     }
   }
 }

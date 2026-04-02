@@ -46,6 +46,7 @@ internal actual fun PlatformStationMap(
   pinTitle: String,
 ) {
   val factory = LocalStationMapViewFactory.current
+  val isDarkTheme = LocalIsDarkTheme.current
 
   if (isMapReady && factory != null) {
     val view = remember { factory.createView() }
@@ -58,6 +59,7 @@ internal actual fun PlatformStationMap(
           stations = stations,
           userLocation = userLocation,
           highlightedStationId = highlightedStationId,
+          isDarkTheme = isDarkTheme,
           onStationSelected = onStationSelected,
           recenterRequestToken = recenterRequestToken,
           environmentalOverlay = environmentalOverlay,
@@ -70,6 +72,7 @@ internal actual fun PlatformStationMap(
       stations = stations,
       userLocation = userLocation,
       highlightedStationId = highlightedStationId,
+      isDarkTheme = isDarkTheme,
       onStationSelected = onStationSelected,
       onMapClick = onMapClick,
       pinLocation = pinLocation,
@@ -88,6 +91,7 @@ private fun AppleMapKitView(
   stations: List<Station>,
   userLocation: GeoPoint?,
   highlightedStationId: String?,
+  isDarkTheme: Boolean,
   onStationSelected: (Station) -> Unit,
   onMapClick: ((GeoPoint) -> Unit)?,
   pinLocation: GeoPoint?,
@@ -112,6 +116,7 @@ private fun AppleMapKitView(
         stations = stations,
         userLocation = userLocation,
         highlightedStationId = highlightedStationId,
+        isDarkTheme = isDarkTheme,
         pinLocation = pinLocation,
         recenterRequestToken = recenterRequestToken,
         environmentalOverlay = environmentalOverlay,
@@ -176,6 +181,7 @@ private class IOSStationMapCoordinator(
     stations: List<Station>,
     userLocation: GeoPoint?,
     highlightedStationId: String?,
+    isDarkTheme: Boolean,
     pinLocation: GeoPoint?,
     recenterRequestToken: Int,
     environmentalOverlay: EnvironmentalOverlayData?,

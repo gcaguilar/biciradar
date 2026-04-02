@@ -195,7 +195,6 @@ internal fun BiziNavHost(
         viewModel = profileViewModel,
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
-        onOpenShortcuts = remember(navController) { { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } } },
         onOpenOnboarding = onOpenOnboarding,
         platformBindings = platformBindings,
         onShowChangelogManual = onShowChangelogManual,

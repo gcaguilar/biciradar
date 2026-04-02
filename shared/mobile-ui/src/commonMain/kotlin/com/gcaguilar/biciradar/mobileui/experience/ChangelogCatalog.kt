@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.experience
 
+import com.gcaguilar.biciradar.core.compareAppVersionStrings
+import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
@@ -7,6 +9,11 @@ import org.jetbrains.compose.resources.StringResource
 data class ChangelogCatalogEntry(
   val titleKey: StringResource,
   val descriptionKey: StringResource,
+)
+
+data class ChangelogVersionSection(
+  val versionName: String,
+  val entries: List<ChangelogCatalogEntry>,
 )
 
 /**
@@ -34,4 +41,21 @@ object ChangelogCatalog {
 
   fun entriesFor(versionName: String): List<ChangelogCatalogEntry> =
     entriesByVersion[versionName].orEmpty()
+
+  fun latestVersionAtOrBefore(versionName: String): String? {
+    val normalizedVersion = normalizeAppVersionForCatalog(versionName) ?: return null
+    return entriesByVersion.keys
+      .filter { compareAppVersionStrings(it, normalizedVersion) <= 0 }
+      .maxWithOrNull { a, b -> compareAppVersionStrings(a, b) }
+  }
+
+  fun history(): List<ChangelogVersionSection> =
+    entriesByVersion.keys
+      .sortedWith { a, b -> compareAppVersionStrings(b, a) }
+      .map { versionName ->
+        ChangelogVersionSection(
+          versionName = versionName,
+          entries = entriesFor(versionName),
+        )
+      }
 }

@@ -12,6 +12,7 @@ interface StationMapViewFactory {
     stations: List<Station>,
     userLocation: GeoPoint?,
     highlightedStationId: String?,
+    isDarkTheme: Boolean,
     onStationSelected: (Station) -> Unit,
     recenterRequestToken: Int,
     environmentalOverlay: EnvironmentalOverlayData?,
