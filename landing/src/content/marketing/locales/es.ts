@@ -301,6 +301,11 @@ export const es = {
           answer:
             'La app oficial es el canal institucional; BiciRadar está optimizado para consultar más rápido y con menos fricción.',
         },
+        {
+          question: '¿Qué vais a hacer con los datos del formulario?',
+          answer:
+            'Usaremos tu email únicamente para avisarte cuando puedas descargar la app y gestionar tu acceso a la beta. No lo usaremos para otros fines fuera de este proceso.',
+        },
       ],
     },
     footer: {

@@ -301,6 +301,11 @@ export const en = {
           answer:
             'The official app is the institutional channel; BiciRadar is optimized for faster, lower-friction daily checks.',
         },
+        {
+          question: 'What will you do with the data from the form?',
+          answer:
+            'We will only use your email to let you know when you can download the app and to manage your beta access. We will not use it for anything outside that process.',
+        },
       ],
     },
     footer: {

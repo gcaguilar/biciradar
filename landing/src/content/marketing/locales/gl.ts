@@ -194,6 +194,7 @@ export const gl = {
         { question: 'Só serve no móbil?', answer: 'Non. Está pensada para móbil e reloxo: Android, iOS, Wear OS e Apple Watch.' },
         { question: 'Os datos son fiables?', answer: 'Usa fontes oficiais de open data das cidades. Pode haber pequenos desfases normais en sistemas en tempo real.' },
         { question: 'Por que usar BiciRadar como complemento?', answer: 'A app oficial é a canle institucional; BiciRadar está optimizada para consultar máis rápido e con menos fricción.' },
+        { question: 'Que ides facer cos datos do formulario?', answer: 'Usaremos o teu email unicamente para avisarte cando poidas descargar a app e xestionar o teu acceso á beta. Non o usaremos para outros fins fóra deste proceso.' },
       ],
     },
     footer: {

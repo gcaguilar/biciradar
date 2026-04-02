@@ -220,6 +220,7 @@ export const ca = {
         { question: 'Només serveix al mòbil?', answer: 'No. Està pensada per a mòbil i rellotge: Android, iOS, Wear OS i Apple Watch.' },
         { question: 'Les dades són fiables?', answer: 'Fa servir fonts oficials d’open data de les ciutats. Pot haver-hi petits desfasaments típics del temps real.' },
         { question: 'Per què fer servir BiciRadar com a complement?', answer: 'L’app oficial és el canal institucional; BiciRadar està optimitzada per consultar més ràpid i amb menys fricció.' },
+        { question: 'Què fareu amb les dades del formulari?', answer: 'Farem servir el teu correu només per avisar-te quan puguis descarregar l’app i gestionar el teu accés a la beta. No el farem servir per a cap altre ús fora d’aquest procés.' },
       ],
     },
     footer: {

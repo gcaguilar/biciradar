@@ -194,6 +194,7 @@ export const eu = {
         { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
         { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
         { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
+        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila bakarrik erabiliko dugu aplikazioa noiz deskarga dezakezun jakinarazteko eta zure beta sarbidea kudeatzeko. Ez dugu prozesu honetatik kanpo beste ezertarako erabiliko.' },
       ],
     },
     footer: {
