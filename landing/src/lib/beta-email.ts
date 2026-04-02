@@ -126,6 +126,8 @@ function buildInternalNotification(record: BetaLeadRecord) {
   const androidFlow = isAndroidFlow(record);
   const recipients = getInternalRecipients();
   const payload = {
+    kind: 'biciradar_beta_lead',
+    version: 1,
     id: record.id,
     createdAt: record.createdAt,
     email: record.email,
@@ -150,46 +152,9 @@ function buildInternalNotification(record: BetaLeadRecord) {
   };
 
   const subject = `[BiciRadar Beta Lead] ${record.operatingSystem.toUpperCase()} · ${record.email}`;
-  const html = `
-    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a">
-      <h1 style="font-size:22px;line-height:1.2;margin:0 0 16px">Nuevo lead de BiciRadar</h1>
-      <p><strong>n8n_action:</strong> ${escapeHtml(payload.n8nAction)}</p>
-      <p><strong>scheduled_user_email:</strong> ${escapeHtml(payload.scheduledUserEmail)}</p>
-      <table style="border-collapse:collapse;margin:20px 0;width:100%">
-        <tbody>
-          ${Object.entries(payload)
-            .map(([key, value]) => {
-              const rendered =
-                typeof value === 'object'
-                  ? escapeHtml(JSON.stringify(value))
-                  : escapeHtml(String(value));
-              return `<tr>
-                <td style="border:1px solid #cbd5e1;padding:8px;font-weight:700;vertical-align:top">${escapeHtml(key)}</td>
-                <td style="border:1px solid #cbd5e1;padding:8px;vertical-align:top">${rendered}</td>
-              </tr>`;
-            })
-            .join('')}
-        </tbody>
-      </table>
-      <p><strong>payload_json</strong></p>
-      <pre style="white-space:pre-wrap;background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:12px">${escapeHtml(
-        JSON.stringify(payload, null, 2),
-      )}</pre>
-    </div>
-  `;
-
-  const text = [
-    'Nuevo lead de BiciRadar',
-    `n8n_action: ${payload.n8nAction}`,
-    `scheduled_user_email: ${payload.scheduledUserEmail}`,
-    '',
-    ...Object.entries(payload).map(([key, value]) =>
-      `${key}: ${typeof value === 'object' ? JSON.stringify(value) : String(value)}`,
-    ),
-    '',
-    'payload_json:',
-    JSON.stringify(payload, null, 2),
-  ].join('\n');
+  const serialized = JSON.stringify(payload, null, 2);
+  const html = `<pre style="font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;white-space:pre-wrap;line-height:1.5;color:#0f172a">${escapeHtml(serialized)}</pre>`;
+  const text = serialized;
 
   return {
     to: recipients,
