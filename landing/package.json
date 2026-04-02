@@ -18,6 +18,7 @@
     "@astrojs/check": "^0.9.8",
     "@astrojs/node": "^10.0.4",
     "astro": "^6.1.2",
+    "resend": "^6.10.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {

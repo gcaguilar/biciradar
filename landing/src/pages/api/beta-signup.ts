@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { sendBetaSignupEmails } from '../../lib/beta-email';
 import { storeBetaLead, validateBetaLead } from '../../lib/beta-form';
 import { getThankYouPath } from '../../lib/routes';
 
@@ -37,6 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   await storeBetaLead(validation.data);
+  await sendBetaSignupEmails(validation.data);
   const redirectPath = buildRedirectPath(
     request,
     validation.data.locale,
