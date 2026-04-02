@@ -58,7 +58,8 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
   }
 
   const startedAt = Number(readValue(formData, 'startedAt'));
-  if (Number.isFinite(startedAt) && startedAt > 0 && Date.now() - startedAt < 1200) {
+  // Block instant submissions only (bots); keep threshold low so fast humans are not rejected.
+  if (Number.isFinite(startedAt) && startedAt > 0 && Date.now() - startedAt < 400) {
     return { ok: false, status: 429, message: 'Please try again.' };
   }
 
