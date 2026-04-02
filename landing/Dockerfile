@@ -1,5 +1,5 @@
 # Coolify / Docker: run Astro Node adapter (serves static + /api/*). Do not use a static-only nginx image.
-# Set env in Coolify: PUBLIC_SITE_URL, RESEND_*, TURNSTILE_* as needed.
+# Set env in Coolify: PUBLIC_SITE_URL, RESEND_API_KEY, RESEND_FROM, RESEND_BETA_NOTIFY_TO (team inbox for beta form), TURNSTILE_* as needed.
 
 FROM node:22-alpine AS build
 WORKDIR /app

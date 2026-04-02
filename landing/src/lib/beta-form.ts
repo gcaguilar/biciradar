@@ -1,22 +1,11 @@
-import { appendFile, mkdir } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import type { CityKey } from '../content/marketing/types';
 import { normalizeLocale, type Locale } from './i18n';
-import { isValidEmail } from './is-valid-email';
+import { parseCityKey } from './beta-city-system';
 
 export interface BetaLeadRecord {
-  id: string;
-  createdAt: string;
   locale: Locale;
-  email: string;
-  operatingSystem: string;
-  city: string;
-  bikeSystem: string;
-  frequency: string;
-  interest?: string;
-  widgets?: string;
-  smartwatch?: string;
+  operatingSystem: 'ios' | 'android' | 'both';
+  city: CityKey;
   consent: boolean;
   pagePath?: string;
   pageKind?: string;
@@ -40,14 +29,6 @@ export interface ValidationFailure {
 
 export type ValidationResult = ValidationSuccess | ValidationFailure;
 
-const requiredFields = [
-  'email',
-  'operatingSystem',
-  'city',
-  'bikeSystem',
-  'frequency',
-] as const;
-
 const utmKeys = [
   'utm_source',
   'utm_medium',
@@ -55,6 +36,8 @@ const utmKeys = [
   'utm_content',
   'utm_term',
 ] as const;
+
+const allowedOs = new Set(['ios', 'android', 'both']);
 
 function readValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -76,15 +59,15 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
     return { ok: false, status: 429, message: 'Please try again.' };
   }
 
-  for (const field of requiredFields) {
-    if (!readValue(formData, field)) {
-      return { ok: false, status: 400, message: 'Missing required fields.' };
-    }
+  const operatingSystem = readValue(formData, 'operatingSystem');
+  if (!operatingSystem || !allowedOs.has(operatingSystem)) {
+    return { ok: false, status: 400, message: 'Missing required fields.' };
   }
 
-  const email = readValue(formData, 'email');
-  if (!isValidEmail(email)) {
-    return { ok: false, status: 400, message: 'Invalid email.' };
+  const cityRaw = readValue(formData, 'city');
+  const city = parseCityKey(cityRaw);
+  if (!city) {
+    return { ok: false, status: 400, message: 'Missing required fields.' };
   }
 
   const consent = ['on', 'true', '1', 'yes'].includes(readValue(formData, 'consent').toLowerCase());
@@ -100,17 +83,9 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
   );
 
   const data: BetaLeadRecord = {
-    id: randomUUID(),
-    createdAt: new Date().toISOString(),
     locale,
-    email,
-    operatingSystem: readValue(formData, 'operatingSystem'),
-    city: readValue(formData, 'city'),
-    bikeSystem: readValue(formData, 'bikeSystem'),
-    frequency: readValue(formData, 'frequency'),
-    interest: readValue(formData, 'interest') || undefined,
-    widgets: readValue(formData, 'widgets') || undefined,
-    smartwatch: readValue(formData, 'smartwatch') || undefined,
+    operatingSystem: operatingSystem as BetaLeadRecord['operatingSystem'],
+    city,
     consent,
     pagePath: readValue(formData, 'pagePath') || undefined,
     pageKind: readValue(formData, 'pageKind') || undefined,
@@ -122,16 +97,6 @@ export function validateBetaLead(formData: FormData, headers: Headers): Validati
   };
 
   return { ok: true, data };
-}
-
-function getStoragePath() {
-  return process.env.BETA_FORM_STORAGE_PATH?.trim() || join(tmpdir(), 'biciradar-beta-signups.ndjson');
-}
-
-async function persistToFile(record: BetaLeadRecord) {
-  const storagePath = getStoragePath();
-  await mkdir(dirname(storagePath), { recursive: true });
-  await appendFile(storagePath, `${JSON.stringify(record)}\n`, 'utf8');
 }
 
 async function sendWebhook(record: BetaLeadRecord) {
@@ -160,9 +125,8 @@ async function sendWebhook(record: BetaLeadRecord) {
   }
 }
 
-export async function storeBetaLead(record: BetaLeadRecord) {
-  await persistToFile(record);
-
+/** Optional webhook only; lead data is not written to disk. */
+export async function forwardBetaLead(record: BetaLeadRecord) {
   try {
     await sendWebhook(record);
   } catch (error) {

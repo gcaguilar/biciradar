@@ -6,24 +6,6 @@ const operatingSystems = [
   { value: 'both', label: 'Biak erabiltzen ditut' },
 ];
 
-const frequencies = [
-  { value: 'daily', label: 'Egunero' },
-  { value: 'weekly', label: 'Astean hainbat aldiz' },
-  { value: 'occasional', label: 'Noizean behin' },
-];
-
-const interests = [
-  { value: 'bikes', label: 'Bizikletak aurkitzea' },
-  { value: 'docks', label: 'Leku libreak aurkitzea' },
-  { value: 'alerts', label: 'Abisuak jasotzea' },
-  { value: 'widgets', label: 'Widget eta lasterbideak erabiltzea' },
-];
-
-const yesNo = [
-  { value: 'yes', label: 'Bai' },
-  { value: 'no', label: 'Ez' },
-];
-
 export const eu = {
   locale: 'eu',
   languageName: 'Euskara',
@@ -79,7 +61,7 @@ export const eu = {
         'BiciRadarrek BiciMAD, Bicing, Sevici eta beste bizikleta partekatu sistemetako erabilgarritasuna ikusten laguntzen dizu. Gorde gustukoak, jaso abisuak eta ireki azkar widgetetatik.',
       primaryCta: 'Deskargatu App Store-n',
       secondaryCta: 'Eskatu beta sarbidea',
-      microcopy: 'Eskatu sarbidea eta zure emaila erabiliko dugu Android betarako gonbidapena kudeatzeko.',
+      microcopy: 'Eskatu sarbidea plataforma eta hiriarekin; sistema bakoitzeko eskariaren arabera lehenesten dugu beta.',
       primaryBadge: 'iPhone · Eskuragarri orain',
       secondaryBadge: 'Android · Beta itxia',
       mockup: {
@@ -137,55 +119,38 @@ export const eu = {
       secondaryCta: { label: 'Eskatu beta sarbidea', note: 'Android sarbide kontrolatuan' },
     },
     betaForm: {
-      title: 'Android beta sarbidea',
-      description: 'Zure emaila erabiliko dugu beta sarbidea kudeatzeko eta eskari handiena duten hiriak lehenesteko.',
-      helper: 'Horrez gain, sistema, plataforma, widget eta erabilera maiztasuneko interesa neurtzen laguntzen digu.',
+      title: 'Beta sarbide eskaera',
+      description:
+        'Adierazi sistema eragilea eta bizikleta publikoa erabiltzen duzun hiria. Zure baimenarekin kudeatzen dugu beta interesa.',
+      helper:
+        'Hiri bakoitza bere sistemari lotuta dago: Madril · BiciMAD, Bartzelona · Bicing, Sevilla · Sevici, Valentzia · Valenbisi, Zaragoza · Bizi.',
       honeypotLabel: 'Enpresa',
       consentLabel: 'Onartzen dut BiciRadarrek datu hauek erabiltzea beta sarbidea kudeatzeko eta eskaera honi buruz nirekin harremanetan jartzeko.',
       consentHint: 'Informazioa beta prozesurako bakarrik erabiltzen dugu.',
       submitLabel: 'Eskatu beta sarbidea',
       loadingLabel: 'Eskaera bidaltzen...',
       successTitle: 'Eskaera bidalia',
-      successMessage: 'Zure eskaera gorde dugu. Zure sarbidea irekitzen denean jakinaraziko dizugu.',
+      successMessage: 'Eskaera bidalia. Eskerrik asko zure interesagatik.',
       errorMessage: 'Ezin izan dugu zure eskaera bidali. Saiatu berriro segundo batzuk barru.',
       options: {
         operatingSystems,
         cities: [
-          { value: 'madrid', label: 'Madril' },
-          { value: 'barcelona', label: 'Bartzelona' },
-          { value: 'sevilla', label: 'Sevilla' },
-          { value: 'valencia', label: 'Valentzia' },
-          { value: 'zaragoza', label: 'Zaragoza' },
-          { value: 'other', label: 'Beste hiri bat' },
+          { value: 'madrid', label: 'Madril · BiciMAD' },
+          { value: 'barcelona', label: 'Bartzelona · Bicing' },
+          { value: 'sevilla', label: 'Sevilla · Sevici' },
+          { value: 'valencia', label: 'Valentzia · Valenbisi' },
+          { value: 'zaragoza', label: 'Zaragoza · Bizi' },
         ],
-        systems: [
-          { value: 'bicimad', label: 'BiciMAD' },
-          { value: 'bicing', label: 'Bicing' },
-          { value: 'sevici', label: 'Sevici' },
-          { value: 'valenbisi', label: 'Valenbisi' },
-          { value: 'bizi', label: 'Bizi' },
-          { value: 'other', label: 'Beste sistema bat' },
-        ],
-        frequencies,
-        interests,
-        yesNo,
       },
       fields: {
-        email: { label: 'Emaila', placeholder: 'zure@email.com' },
         operatingSystem: { label: 'Sistema eragilea', placeholder: 'Aukeratu zure sistema eragilea' },
-        city: { label: 'Hiria', placeholder: 'Aukeratu zure hiri nagusia' },
-        bikeSystem: { label: 'Bizikleta sistema', placeholder: 'Aukeratu gehien erabiltzen duzun sistema' },
-        frequency: { label: 'Erabilera maiztasuna', placeholder: 'Zenbat aldiz erabiltzen duzu bizikleta partekatua?' },
-        interest: { label: 'Interes nagusia', placeholder: 'Zer interesatzen zaizu gehien BiciRadarri buruz?' },
-        widgets: { label: 'Widgetak interesatzen zaizkizu?', placeholder: 'Aukeratu aukera bat' },
-        smartwatch: { label: 'Smartwatch erabiltzen duzu?', placeholder: 'Aukeratu aukera bat' },
+        city: { label: 'Hiria eta sistema', placeholder: 'Aukeratu hiria eta sistema' },
       },
       validation: {
         required: 'Bete eremu hau.',
-        email: 'Sartu baliozko email bat.',
         consent: 'Zure baimena behar dugu beta kudeatzeko.',
         turnstile: 'Osatu segurtasun egiaztapena eta saiatu berriro.',
-        server: 'Arazo bat egon da zure eskaera gordetzean.',
+        server: 'Arazo bat egon da zure eskaera bidaltzean.',
       },
     },
     faq: {
@@ -196,7 +161,7 @@ export const eu = {
         { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
         { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
         { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
-        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila beta urratsak eta estekak bidaltzeko erabiliko dugu (Google-ko testers taldea eta Play edo App Store-ko deskarga). Ez dugu prozesu honetatik kanpo beste ezertarako erabiliko.' },
+        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Sistema eragilea eta hiria erabiltzen ditugu beta interesa kudeatzeko eta eskaria lehenesteko. Ez dugu eskaera fitxategi lokal batean gordetzen; taldeak jakinarazpen barnekoa jasotzen du jarraipena egiteko.' },
       ],
     },
     footer: {
@@ -214,41 +179,25 @@ export const eu = {
   thankYou: {
     seo: {
       title: 'Eskerrik asko BiciRadar betan apuntatzeagatik',
-      description: 'Zure beta eskaera ondo bidali da. Begiratu hurrengo pausoak, partekatu beta eta bisitatu tokiko orriak.',
+      description:
+        'Zure beta eskaera ondo bidali da. Arakatu aplikazioa, eskuragarri dauden hiriak edo partekatu beta.',
     },
     badge: 'Eskaera bidalia',
-    ios: {
-      title: 'Eskerrik asko. BiciRadar iPhone-n deskarga dezakezu dagoeneko.',
-      description:
-        'Email batean App Store-ko esteka bidali dizugu. Bitartean hiriak arakatu ditzakezu edo beta partekatu.',
-      steps: [
-        'Berrespen emaila ireki sarrerako ontzian.',
-        'Deskargatu BiciRadar App Store-tik zure iPhone-an.',
-        'Gaitu jakinarazpenak eta gogokoen diren geltokiak gorde.',
-      ],
-    },
-    androidOrBoth: {
-      title: 'Eskerrik asko. Hurrengo urratsa: batu Google-ko testers taldera.',
-      description:
-        'Android betarako testers-biciradar taldean sartu behar duzu zure Google kontuarekin eta gero Google Play-tik instalatu. Esteka berak email bidez bidali dizkizugu.',
-      stepsAndroid: [
-        'Batu testers-biciradar Google Groups taldeera telefonoan erabiliko duzun Google kontu berarekin.',
-        'Taldean sartu ondoren, deskargatu BiciRadar Google Play-tik.',
-      ],
-      stepsBoth: [
-        'Batu testers-biciradar Google Groups taldeera Android-en erabiliko duzun Google kontu berarekin.',
-        'Deskargatu BiciRadar Google Play-tik Android beta-rako.',
-        'iPhone-an, instalatu App Store-tik beheko botoiarekin ere.',
-      ],
-    },
+    title: 'Eskerrik asko, jaso dugu zure eskaera',
+    description:
+      'Beta interesa erregistratuta dago. BiciRadar instalatu dezakezu orain edo hiri bakoitzeko tokiko orriak arakatu.',
+    steps: [
+      'Deskargatu BiciRadar App Store-tik edo Google Play-tik orain probatu nahi baduzu.',
+      'Arakatu tokiko orriak erabilgarritasuna denbora errealean ikusteko.',
+      'Zalantzarik baduzu, idatzi hola@biciradar.es helbidera.',
+    ],
     cityLinksTitle: 'Bitartean, arakatu eskuragarri dauden hiriak',
     cityCardCtaPrefix: 'Ikusi',
     shareLabel: 'Partekatu beta',
     primaryCta: 'Bitartean, arakatu eskuragarri dauden hiriak',
     appStoreCta: 'Deskargatu App Storen',
     playStoreCta: 'Deskargatu Google Play-n',
-    googleGroupCta: 'Batu testers-biciradar taldera',
-    footnote: 'Ez duzu emailik? Begiratu spam edo idatzi laguntzara.',
+    footnote: 'Galderak? hola@biciradar.es',
   },
   cityPages: {
     madrid: {

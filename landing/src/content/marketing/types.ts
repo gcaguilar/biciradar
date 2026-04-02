@@ -123,24 +123,13 @@ export interface HomeContent {
     options: {
       operatingSystems: Array<{ value: string; label: string }>;
       cities: Array<{ value: string; label: string }>;
-      systems: Array<{ value: string; label: string }>;
-      frequencies: Array<{ value: string; label: string }>;
-      interests: Array<{ value: string; label: string }>;
-      yesNo: Array<{ value: string; label: string }>;
     };
     fields: {
-      email: { label: string; placeholder: string };
       operatingSystem: { label: string; placeholder: string };
       city: { label: string; placeholder: string };
-      bikeSystem: { label: string; placeholder: string };
-      frequency: { label: string; placeholder: string };
-      interest: { label: string; placeholder: string };
-      widgets: { label: string; placeholder: string };
-      smartwatch: { label: string; placeholder: string };
     };
     validation: {
       required: string;
-      email: string;
       consent: string;
       turnstile: string;
       server: string;
@@ -174,31 +163,18 @@ export interface CityPageContent {
   };
 }
 
-export interface ThankYouVariantContent {
-  title: string;
-  description: string;
-  steps: string[];
-}
-
-export interface ThankYouAndroidOrBothContent {
-  title: string;
-  description: string;
-  stepsAndroid: string[];
-  stepsBoth: string[];
-}
-
 export interface ThankYouContent {
   seo: SeoContent;
   badge: string;
-  ios: ThankYouVariantContent;
-  androidOrBoth: ThankYouAndroidOrBothContent;
+  title: string;
+  description: string;
+  steps: string[];
   cityLinksTitle: string;
   cityCardCtaPrefix: string;
   shareLabel: string;
   primaryCta: string;
   appStoreCta: string;
   playStoreCta: string;
-  googleGroupCta: string;
   footnote: string;
 }
 

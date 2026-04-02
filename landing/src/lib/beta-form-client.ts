@@ -1,8 +1,5 @@
-import { isValidEmail } from './is-valid-email';
-
 export interface BetaFormMessages {
   required: string;
-  email: string;
   consent: string;
   turnstile: string;
   server: string;
@@ -47,7 +44,7 @@ function readConfig(): BetaFormConfig | null {
   }
 }
 
-/** Client behaviour for the marketing beta signup form (bundled; uses shared `isValidEmail`). */
+/** Client behaviour for the marketing beta signup form (bundled). */
 export function mountBetaForm(): void {
   const config = readConfig();
   if (!config) return;
@@ -174,21 +171,9 @@ export function mountBetaForm(): void {
       field.setCustomValidity(messages.required);
       return;
     }
-
-    if (field.type === 'email' && field.value) {
-      const trimmed = field.value.trim();
-      if (!isValidEmail(trimmed)) {
-        field.setCustomValidity(messages.email);
-      }
-    }
   };
 
   form.querySelectorAll('input, select').forEach((field) => {
-    if (field instanceof HTMLInputElement && field.name === 'email') {
-      field.addEventListener('blur', () => {
-        field.value = field.value.trim();
-      });
-    }
     field.addEventListener('input', () => clearCustomValidity(field));
     field.addEventListener('change', () => clearCustomValidity(field));
     field.addEventListener('invalid', () => validateField(field));
@@ -207,11 +192,6 @@ export function mountBetaForm(): void {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     syncUtm();
-
-    const emailInput = form.querySelector('input[name="email"]');
-    if (emailInput instanceof HTMLInputElement) {
-      emailInput.value = emailInput.value.trim();
-    }
 
     let valid = true;
     form.querySelectorAll('input, select').forEach((field) => {
@@ -256,8 +236,6 @@ export function mountBetaForm(): void {
         ok?: boolean;
         message?: string;
         redirectPath?: string;
-        city?: string;
-        bikeSystem?: string;
       } | null;
 
       if (!response.ok || !payload?.ok) {
@@ -271,9 +249,11 @@ export function mountBetaForm(): void {
       }
 
       setStatus(messages.success, 'success');
+      const cityField = form.querySelector('[name="city"]');
+      const osField = form.querySelector('[name="operatingSystem"]');
       window.BiciRadarAnalytics?.track?.('beta_form_success', {
-        city: payload?.city || '',
-        system: payload?.bikeSystem || '',
+        city: cityField instanceof HTMLSelectElement ? cityField.value : '',
+        os: osField instanceof HTMLSelectElement ? osField.value : '',
       });
 
       const redirectUrl = new URL(

@@ -16,7 +16,6 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? ''
 
 const betaFormMessages = {
   required: content.validation.required,
-  email: content.validation.email,
   consent: content.validation.consent,
   turnstile: content.validation.turnstile,
   server: content.validation.server,
@@ -50,19 +49,6 @@ const betaFormMessages = {
   >
     <div class="grid gap-4 md:grid-cols-2">
       <label class="marketing-field">
-        <span>{content.fields.email.label}</span>
-        <input
-          name="email"
-          type="email"
-          placeholder={content.fields.email.placeholder}
-          required
-          autocomplete="email"
-          inputmode="email"
-          maxlength="254"
-        />
-      </label>
-
-      <label class="marketing-field">
         <span>{content.fields.operatingSystem.label}</span>
         <select name="operatingSystem" required>
           <option value="">{content.fields.operatingSystem.placeholder}</option>
@@ -77,56 +63,6 @@ const betaFormMessages = {
         <select name="city" required>
           <option value="">{content.fields.city.placeholder}</option>
           {content.options.cities.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.bikeSystem.label}</span>
-        <select name="bikeSystem" required>
-          <option value="">{content.fields.bikeSystem.placeholder}</option>
-          {content.options.systems.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.frequency.label}</span>
-        <select name="frequency" required>
-          <option value="">{content.fields.frequency.placeholder}</option>
-          {content.options.frequencies.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.interest.label}</span>
-        <select name="interest">
-          <option value="">{content.fields.interest.placeholder}</option>
-          {content.options.interests.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.widgets.label}</span>
-        <select name="widgets">
-          <option value="">{content.fields.widgets.placeholder}</option>
-          {content.options.yesNo.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-
-      <label class="marketing-field">
-        <span>{content.fields.smartwatch.label}</span>
-        <select name="smartwatch">
-          <option value="">{content.fields.smartwatch.placeholder}</option>
-          {content.options.yesNo.map((option) => (
             <option value={option.value}>{option.label}</option>
           ))}
         </select>

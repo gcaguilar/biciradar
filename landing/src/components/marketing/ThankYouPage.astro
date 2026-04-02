@@ -3,7 +3,7 @@ import type { CityKey, LocaleContent } from '../../content/marketing/types';
 import PageHeader from './PageHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
-import { appStoreUrlForLocale, playStoreUrlForLocale, siteConfig } from '../../lib/site-config';
+import { appStoreUrlForLocale, playStoreUrlForLocale } from '../../lib/site-config';
 import Icon from '../Icon.astro';
 
 interface LanguageLink {
@@ -50,18 +50,15 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
   <section class="marketing-shell">
     <div class="marketing-thank-you-card">
       <span class="marketing-chip marketing-chip-success">{thankYouCopy.badge}</span>
-      <h1
-        class="max-w-4xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl"
-        data-thank-you-title
-      >
-        {thankYouCopy.ios.title}
+      <h1 class="max-w-4xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+        {thankYouCopy.title}
       </h1>
-      <p class="max-w-3xl text-lg leading-8 text-slate-600" data-thank-you-description>
-        {thankYouCopy.ios.description}
+      <p class="max-w-3xl text-lg leading-8 text-slate-600">
+        {thankYouCopy.description}
       </p>
 
-      <ol class="space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-ios>
-        {thankYouCopy.ios.steps.map((step) => (
+      <ol class="space-y-3 text-sm leading-6 text-slate-700">
+        {thankYouCopy.steps.map((step) => (
           <li class="flex gap-3">
             <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
               <Icon class="size-3" name="check" />
@@ -71,64 +68,29 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
         ))}
       </ol>
 
-      <ol class="hidden space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-android-only>
-        {thankYouCopy.androidOrBoth.stepsAndroid.map((step) => (
-          <li class="flex gap-3">
-            <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
-              <Icon class="size-3" name="check" />
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-
-      <ol class="hidden space-y-3 text-sm leading-6 text-slate-700" data-thank-you-steps-both-platforms>
-        {thankYouCopy.androidOrBoth.stepsBoth.map((step) => (
-          <li class="flex gap-3">
-            <span class="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700">
-              <Icon class="size-3" name="check" />
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-
-      <div class="flex flex-col flex-wrap gap-3 sm:flex-row" data-thank-you-actions>
+      <div class="flex flex-col flex-wrap gap-3 sm:flex-row">
         <a class="marketing-secondary-button" href="#available-cities">
           {thankYouCopy.primaryCta}
-        </a>
-        <a
-          class="marketing-primary-button hidden"
-          href={siteConfig.googleTestersGroupUrl}
-          target="_blank"
-          rel="noreferrer"
-          data-thank-you-google-group
-          data-track-event="beta_google_group_click"
-          data-track-placement="thank_you"
-        >
-          {thankYouCopy.googleGroupCta}
-        </a>
-        <a
-          class="marketing-primary-button hidden"
-          href={playStoreHref}
-          target="_blank"
-          rel="noreferrer"
-          data-thank-you-play-store
-          data-track-event="hero_play_store_click"
-          data-track-placement="thank_you"
-        >
-          {thankYouCopy.playStoreCta}
         </a>
         <a
           class="marketing-primary-button"
           href={appStoreHref}
           target="_blank"
           rel="noreferrer"
-          data-thank-you-app-store
           data-track-event="hero_secondary_cta_click"
           data-track-placement="thank_you"
         >
           {thankYouCopy.appStoreCta}
+        </a>
+        <a
+          class="marketing-primary-button"
+          href={playStoreHref}
+          target="_blank"
+          rel="noreferrer"
+          data-track-event="hero_play_store_click"
+          data-track-placement="thank_you"
+        >
+          {thankYouCopy.playStoreCta}
         </a>
         <button class="marketing-secondary-button" type="button" data-share-button data-track-event="share_click">
           {thankYouCopy.shareLabel}
@@ -175,51 +137,9 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
   />
 </main>
 
-<script
-  is:inline
-  define:vars={{
-    fallbackMessage: content.common.thankYouShareFallback,
-    copyAndroid: thankYouCopy.androidOrBoth,
-  }}
->
+<script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback }}>
   (() => {
     const button = document.querySelector('[data-share-button]');
-    const titleEl = document.querySelector('[data-thank-you-title]');
-    const descriptionEl = document.querySelector('[data-thank-you-description]');
-    const stepsIos = document.querySelector('[data-thank-you-steps-ios]');
-    const stepsAndroidOnly = document.querySelector('[data-thank-you-steps-android-only]');
-    const stepsBothPlatforms = document.querySelector('[data-thank-you-steps-both-platforms]');
-    const appStoreLink = document.querySelector('[data-thank-you-app-store]');
-    const groupLink = document.querySelector('[data-thank-you-google-group]');
-    const playLink = document.querySelector('[data-thank-you-play-store]');
-    const searchParams = new URLSearchParams(window.location.search);
-    const signupOs = (searchParams.get('os') || '').toLowerCase();
-    const isAndroidFlow = signupOs === 'android' || signupOs === 'both';
-
-    if (signupOs === 'android') {
-      if (titleEl) titleEl.textContent = copyAndroid.title;
-      if (descriptionEl) descriptionEl.textContent = copyAndroid.description;
-      stepsIos?.classList.add('hidden');
-      stepsAndroidOnly?.classList.remove('hidden');
-    } else if (signupOs === 'both') {
-      if (titleEl) titleEl.textContent = copyAndroid.title;
-      if (descriptionEl) descriptionEl.textContent = copyAndroid.description;
-      stepsIos?.classList.add('hidden');
-      stepsBothPlatforms?.classList.remove('hidden');
-    }
-
-    if (isAndroidFlow) {
-      if (appStoreLink instanceof HTMLElement) appStoreLink.classList.add('hidden');
-      if (groupLink instanceof HTMLElement) groupLink.classList.remove('hidden');
-      if (playLink instanceof HTMLElement) playLink.classList.remove('hidden');
-      if (signupOs === 'both' && appStoreLink instanceof HTMLElement) {
-        appStoreLink.classList.remove('hidden');
-      }
-    } else {
-      if (groupLink instanceof HTMLElement) groupLink.classList.add('hidden');
-      if (playLink instanceof HTMLElement) playLink.classList.add('hidden');
-    }
-
     if (!(button instanceof HTMLButtonElement)) return;
 
     button.addEventListener('click', async () => {
