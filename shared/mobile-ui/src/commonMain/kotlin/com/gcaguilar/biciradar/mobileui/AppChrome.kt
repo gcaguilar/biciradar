@@ -16,38 +16,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
-import androidx.compose.material.icons.filled.Directions
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import com.gcaguilar.biciradar.mobileui.navigation.Screen
-import org.jetbrains.compose.resources.StringResource
+import com.gcaguilar.biciradar.mobileui.navigation.BiziBottomBar
+import com.gcaguilar.biciradar.mobileui.navigation.MobileNavigationRail
 import org.jetbrains.compose.resources.stringResource
 
 internal sealed interface TopUpdateBanner {
@@ -62,22 +51,6 @@ internal sealed interface TopUpdateBanner {
     val version: String,
   ) : TopUpdateBanner
 }
-
-private enum class MobileTab(val labelKey: StringResource) {
-  Cerca(Res.string.nearby),
-  Mapa(Res.string.map),
-  Favoritos(Res.string.favorites),
-  Viaje(Res.string.trip),
-  Perfil(Res.string.settings),
-}
-
-private val MobileTabs = listOf(
-  MobileTab.Cerca,
-  MobileTab.Mapa,
-  MobileTab.Favoritos,
-  MobileTab.Viaje,
-  MobileTab.Perfil,
-)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -241,7 +214,7 @@ internal fun BiziNavigationShell(
     Scaffold(
       containerColor = pageBackgroundColor(mobilePlatform),
       bottomBar = {
-        MobileBottomNavigationBar(
+        BiziBottomBar(
           mobilePlatform = mobilePlatform,
           navController = navController,
         )
@@ -331,119 +304,4 @@ internal fun StartupSplashScreen(
       )
     }
   }
-}
-
-@Composable
-private fun MobileBottomNavigationBar(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-) {
-  val navBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = navBackStackEntry?.destination?.route
-  NavigationBar(
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      LocalBiziColors.current.navBarIos
-    } else {
-      LocalBiziColors.current.navBar
-    },
-  ) {
-    MobileTabs.forEach { tab ->
-      val screen = tab.screen()
-      NavigationBarItem(
-        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
-        onClick = { navController.navigateToPrimaryDestination(screen) },
-        icon = {
-          Icon(
-            imageVector = tab.icon(),
-            contentDescription = stringResource(tab.labelKey),
-          )
-        },
-        label = { Text(stringResource(tab.labelKey)) },
-      )
-    }
-  }
-}
-
-@Composable
-private fun MobileNavigationRail(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-) {
-  val navBackStackEntry by navController.currentBackStackEntryAsState()
-  val currentRoute = navBackStackEntry?.destination?.route
-  val colors = LocalBiziColors.current
-
-  NavigationRail(
-    modifier = Modifier
-      .fillMaxHeight()
-      .padding(vertical = 12.dp),
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      colors.navBarIos
-    } else {
-      colors.navBar
-    },
-    header = {
-      Column(
-        modifier = Modifier.padding(bottom = 18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        Surface(
-          shape = CircleShape,
-          color = colors.red,
-        ) {
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
-            contentDescription = null,
-            tint = colors.onAccent,
-            modifier = Modifier.padding(12.dp).size(20.dp),
-          )
-        }
-        Text(
-          text = stringResource(Res.string.appName),
-          style = MaterialTheme.typography.labelSmall,
-          color = colors.muted,
-        )
-      }
-    },
-  ) {
-    MobileTabs.forEach { tab ->
-      val screen = tab.screen()
-      NavigationRailItem(
-        selected = currentRoute?.contains(screen::class.qualifiedName.orEmpty()) == true,
-        onClick = { navController.navigateToPrimaryDestination(screen) },
-        icon = {
-          Icon(
-            imageVector = tab.icon(),
-            contentDescription = stringResource(tab.labelKey),
-          )
-        },
-        label = { Text(stringResource(tab.labelKey)) },
-      )
-    }
-  }
-}
-
-private fun NavHostController.navigateToPrimaryDestination(screen: Screen) {
-  navigate(screen) {
-    popUpTo(graph.startDestinationId) { saveState = true }
-    launchSingleTop = true
-    restoreState = true
-  }
-}
-
-private fun MobileTab.screen(): Screen = when (this) {
-  MobileTab.Cerca -> Screen.Nearby
-  MobileTab.Mapa -> Screen.Map
-  MobileTab.Favoritos -> Screen.Favorites
-  MobileTab.Viaje -> Screen.Trip()
-  MobileTab.Perfil -> Screen.Profile
-}
-
-private fun MobileTab.icon() = when (this) {
-  MobileTab.Cerca -> Icons.AutoMirrored.Filled.DirectionsBike
-  MobileTab.Mapa -> Icons.Filled.Map
-  MobileTab.Favoritos -> Icons.Filled.Favorite
-  MobileTab.Viaje -> Icons.Filled.Directions
-  MobileTab.Perfil -> Icons.Filled.Tune
 }
