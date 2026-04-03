@@ -5,7 +5,6 @@ import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.ReviewEligibility
 import com.gcaguilar.biciradar.core.ReviewPrompter
-import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.compareAppVersionStrings
 import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
@@ -21,7 +20,7 @@ internal class AppLifecycleUseCase(
   private val engagementRepository: EngagementRepository,
   private val appUpdatePrompter: AppUpdatePrompter,
   private val reviewPrompter: ReviewPrompter,
-  private val settingsRepository: SettingsRepository,
+  private val settingsAggregationUseCase: SettingsAggregationUseCase,
   private val appVersion: String,
 ) {
 
@@ -177,7 +176,7 @@ internal class AppLifecycleUseCase(
     val suppression = checkChangelogSuppression()
     if (suppression.suppressed) return null
 
-    val lastSeen = settingsRepository.currentLastSeenChangelogAppVersion() ?: "0.0.0"
+    val lastSeen = settingsAggregationUseCase.currentLastSeenChangelogAppVersion() ?: "0.0.0"
     val pending = pendingChangelogVersion(
       appVersion,
       lastSeen,
@@ -212,7 +211,7 @@ internal class AppLifecycleUseCase(
    * Marks the changelog as seen for the given version.
    */
   suspend fun markChangelogSeen(version: String) {
-    settingsRepository.setLastSeenChangelogAppVersion(version)
+    settingsAggregationUseCase.setLastSeenChangelogAppVersion(version)
   }
 
   /**
@@ -220,15 +219,14 @@ internal class AppLifecycleUseCase(
    * This is used when onboarding is pending.
    */
   fun checkChangelogSuppression(): ChangelogSuppressionResult {
-    val onboardingCompleted = settingsRepository.onboardingChecklist.value.isCompleted() ||
-      settingsRepository.hasCompletedOnboarding.value
+    val onboardingCompleted = settingsAggregationUseCase.isOnboardingCompleted()
     if (onboardingCompleted) {
       return ChangelogSuppressionResult(suppressed = false)
     }
 
     val normalizedCurrentVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion
     val normalizedLastSeen = normalizeAppVersionForCatalog(
-      settingsRepository.currentLastSeenChangelogAppVersion(),
+      settingsAggregationUseCase.currentLastSeenChangelogAppVersion(),
     )
 
     val shouldMarkSeen = normalizedLastSeen == null ||
@@ -246,7 +244,7 @@ internal class AppLifecycleUseCase(
    * Should be called during initialization.
    */
   suspend fun ensureChangelogBaseline() {
-    settingsRepository.ensureChangelogStringBaseline(appVersion)
+    settingsAggregationUseCase.ensureChangelogStringBaseline(appVersion)
   }
 
   // endregion

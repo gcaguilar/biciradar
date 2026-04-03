@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 
@@ -29,6 +30,10 @@ internal class AppRootViewModelFactory(
 ) {
   fun create(): AppRootViewModel {
     // Create Use Cases
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+
     val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
@@ -39,7 +44,7 @@ internal class AppRootViewModelFactory(
       engagementRepository = engagementRepository,
       appUpdatePrompter = appUpdatePrompter,
       reviewPrompter = reviewPrompter,
-      settingsRepository = settingsRepository,
+      settingsAggregationUseCase = settingsAggregationUseCase,
       appVersion = appVersion,
     )
 

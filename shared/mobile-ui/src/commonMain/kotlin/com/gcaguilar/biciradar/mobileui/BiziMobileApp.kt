@@ -70,10 +70,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
@@ -89,8 +87,6 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -210,8 +206,11 @@ import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModelFactory
 import androidx.window.core.layout.WindowSizeClass
-
-
+import com.gcaguilar.biciradar.mobileui.theme.LocalBiziWindowLayout
+import com.gcaguilar.biciradar.mobileui.theme.rememberBiziWindowLayout
+import com.gcaguilar.biciradar.mobileui.theme.ThemeProvider
+import com.gcaguilar.biciradar.mobileui.theme.pageBackgroundColor
+import com.gcaguilar.biciradar.mobileui.theme.responsivePageWidth
 
 @androidx.compose.runtime.Stable
 internal class AppState {
@@ -490,7 +489,7 @@ fun BiziMobileApp(
     useInAppStartupSplash && !appRootUiState.startupLaunchReady
   }
 
-  BiziTheme(mobilePlatform, themePreference) {
+  ThemeProvider(mobilePlatform, themePreference) {
     val windowLayout = rememberBiziWindowLayout()
     CompositionLocalProvider(LocalBiziWindowLayout provides windowLayout) {
       Surface(
