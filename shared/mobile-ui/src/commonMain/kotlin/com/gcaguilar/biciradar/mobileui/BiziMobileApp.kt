@@ -188,8 +188,15 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingCallbacks
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.BiziNavHost
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.NavigationHost
+import com.gcaguilar.biciradar.mobileui.navigation.NavigationHostConfig
+import com.gcaguilar.biciradar.mobileui.navigation.ViewModelFactories
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
+import com.gcaguilar.biciradar.mobileui.components.OverlayManager
+import com.gcaguilar.biciradar.mobileui.components.BiziNavigationShell
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
@@ -204,47 +211,7 @@ import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModelFactory
 import androidx.window.core.layout.WindowSizeClass
 
-sealed interface MobileLaunchRequest {
-  data object Home : MobileLaunchRequest
-  data object Map : MobileLaunchRequest
-  data object Favorites : MobileLaunchRequest
-  data object SavedPlaceAlerts : MobileLaunchRequest
-  data object NearestStation : MobileLaunchRequest
-  data object NearestStationWithBikes : MobileLaunchRequest
-  data object NearestStationWithSlots : MobileLaunchRequest
-  data object OpenAssistant : MobileLaunchRequest
-  data object StationStatus : MobileLaunchRequest
-  data class MonitorStation(val stationId: String) : MobileLaunchRequest
-  data class SelectCity(val cityId: String) : MobileLaunchRequest
-  data class RouteToStation(val stationId: String? = null) : MobileLaunchRequest
-  data class ShowStation(val stationId: String) : MobileLaunchRequest
-}
 
-sealed interface AssistantLaunchRequest {
-  data class SearchStation(
-    val stationQuery: String,
-  ) : AssistantLaunchRequest
-
-  data class StationStatus(
-    val stationId: String? = null,
-    val stationQuery: String? = null,
-  ) : AssistantLaunchRequest
-
-  data class StationBikeCount(
-    val stationId: String? = null,
-    val stationQuery: String? = null,
-  ) : AssistantLaunchRequest
-
-  data class StationSlotCount(
-    val stationId: String? = null,
-    val stationQuery: String? = null,
-  ) : AssistantLaunchRequest
-
-  data class RouteToStation(
-    val stationId: String? = null,
-    val stationQuery: String? = null,
-  ) : AssistantLaunchRequest
-}
 
 @androidx.compose.runtime.Stable
 internal class AppState {
@@ -256,6 +223,168 @@ internal class AppState {
 
 @Composable
 private fun rememberAppState(): AppState = remember { AppState() }
+
+/**
+ * Creates and remembers all ViewModel factories needed for navigation.
+ */
+@Composable
+private fun rememberViewModelFactories(
+  graph: com.gcaguilar.biciradar.core.SharedGraph,
+  platformBindings: PlatformBindings,
+): ViewModelFactories {
+  val trip = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
+      tripRepository = graph.tripRepository,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      geoSearchUseCase = graph.geoSearchUseCase,
+      reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
+      settingsRepository = graph.settingsRepository,
+    )
+  }
+  val nearby = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      routeLauncher = graph.routeLauncher,
+      settingsRepository = graph.settingsRepository,
+    )
+  }
+  val mapEnvironmental = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
+      environmentalRepository = graph.environmentalRepository,
+    )
+  }
+  val shortcuts = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
+      assistantIntentResolver = graph.assistantIntentResolver,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      settingsRepository = graph.settingsRepository,
+    )
+  }
+  val favorites = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
+      favoritesRepository = graph.favoritesRepository,
+      stationsRepository = graph.stationsRepository,
+      settingsRepository = graph.settingsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      routeLauncher = graph.routeLauncher,
+    )
+  }
+  val profile = remember(graph, platformBindings) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
+      settingsRepository = graph.settingsRepository,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      permissionPrompter = platformBindings.permissionPrompter,
+      localNotifier = platformBindings.localNotifier,
+    )
+  }
+  val savedPlaceAlerts = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+    )
+  }
+  val stationDetail = remember(graph) {
+    com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
+      favoritesRepository = graph.favoritesRepository,
+      settingsRepository = graph.settingsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      datosBiziApi = graph.datosBiziApi,
+      routeLauncher = graph.routeLauncher,
+    )
+  }
+  return ViewModelFactories(
+    trip = trip,
+    nearby = nearby,
+    mapEnvironmental = mapEnvironmental,
+    shortcuts = shortcuts,
+    favorites = favorites,
+    profile = profile,
+    savedPlaceAlerts = savedPlaceAlerts,
+    stationDetail = stationDetail,
+  )
+}
+
+/**
+ * Creates and remembers the navigation configuration.
+ */
+@Composable
+private fun rememberNavigationConfig(
+  navController: NavHostController,
+  mobilePlatform: MobileUiPlatform,
+  stations: List<Station>,
+  favoriteIds: Set<String>,
+  stationsState: com.gcaguilar.biciradar.core.StationsState,
+  nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
+  searchRadiusMeters: Int,
+  isMapReady: Boolean,
+  appState: AppState,
+  scope: kotlinx.coroutines.CoroutineScope,
+  stationsRepository: com.gcaguilar.biciradar.core.StationsRepository,
+  favoritesRepository: com.gcaguilar.biciradar.core.FavoritesRepository,
+  graph: com.gcaguilar.biciradar.core.SharedGraph,
+  platformBindings: PlatformBindings,
+  onOpenOnboarding: () -> Unit,
+  onShowChangelogManual: () -> Unit,
+): NavigationHostConfig {
+  val onRefreshStations = remember(scope, stationsRepository) {
+    {
+      scope.launch { stationsRepository.forceRefresh() }
+      Unit
+    }
+  }
+  val onRetry = remember(scope, stationsRepository) {
+    { scope.launch { stationsRepository.loadIfNeeded() }; Unit }
+  }
+  val onFavoriteToggle = remember(scope, favoritesRepository) {
+    { station: Station -> scope.launch { favoritesRepository.toggle(station.id) }; Unit }
+  }
+  val onQuickRoute = remember(graph, scope) {
+    { station: Station ->
+      scope.launch {
+        graph.engagementRepository.markRouteOpened()
+        graph.routeLauncher.launch(station)
+      }
+      Unit
+    }
+  }
+  val onOpenAssistant = remember(navController) {
+    { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
+  }
+  val onSearchQueryChange = remember(appState) { { query: String -> appState.searchQuery = query } }
+  val onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } }
+
+  return NavigationHostConfig(
+    navController = navController,
+    mobilePlatform = mobilePlatform,
+    stations = stations,
+    favoriteIds = favoriteIds,
+    loading = stationsState.isLoading,
+    errorMessage = stationsState.errorMessage,
+    stationsFreshness = stationsState.freshness,
+    stationsLastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+    onRefreshStations = onRefreshStations,
+    nearestSelection = nearestSelection,
+    userLocation = stationsState.userLocation,
+    searchQuery = appState.searchQuery,
+    searchRadiusMeters = searchRadiusMeters,
+    isMapReady = isMapReady,
+    onSearchQueryChange = onSearchQueryChange,
+    onRetry = onRetry,
+    onFavoriteToggle = onFavoriteToggle,
+    onQuickRoute = onQuickRoute,
+    onOpenAssistant = onOpenAssistant,
+    localNotifier = platformBindings.localNotifier,
+    routeLauncher = graph.routeLauncher,
+    platformBindings = platformBindings,
+    initialAssistantAction = appState.pendingAssistantAction,
+    onInitialActionConsumed = onInitialActionConsumed,
+    onOpenOnboarding = onOpenOnboarding,
+    onShowChangelogManual = onShowChangelogManual,
+    paddingValues = PaddingValues(),
+  )
+}
 
 @Composable
 fun BiziMobileApp(
@@ -457,130 +586,48 @@ fun BiziMobileApp(
                 if (splashVisible) {
                   StartupSplashScreen(mobilePlatform = mobilePlatform)
                 } else {
-                  val tripViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
-                      tripRepository = graph.tripRepository,
-                      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-                      geoSearchUseCase = graph.geoSearchUseCase,
-                      reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
-                      settingsRepository = graph.settingsRepository,
-                    )
-                  }
-                  val nearbyViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
-                      stationsRepository = graph.stationsRepository,
-                      favoritesRepository = graph.favoritesRepository,
-                      routeLauncher = graph.routeLauncher,
-                      settingsRepository = graph.settingsRepository,
-                    )
-                  }
-                  val mapEnvironmentalViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
-                      environmentalRepository = graph.environmentalRepository,
-                    )
-                  }
-                  val shortcutsViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
-                      assistantIntentResolver = graph.assistantIntentResolver,
-                      stationsRepository = graph.stationsRepository,
-                      favoritesRepository = graph.favoritesRepository,
-                      settingsRepository = graph.settingsRepository,
-                    )
-                  }
-                  val favoritesViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
-                      favoritesRepository = graph.favoritesRepository,
-                      stationsRepository = graph.stationsRepository,
-                      settingsRepository = graph.settingsRepository,
-                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-                      routeLauncher = graph.routeLauncher,
-                    )
-                  }
-                  val profileViewModelFactory = remember(graph, platformBindings) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
-                      settingsRepository = graph.settingsRepository,
-                      stationsRepository = graph.stationsRepository,
-                      favoritesRepository = graph.favoritesRepository,
-                      permissionPrompter = platformBindings.permissionPrompter,
-                      localNotifier = platformBindings.localNotifier,
-                    )
-                  }
-                  val savedPlaceAlertsViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
-                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-                    )
-                  }
-                  val stationDetailViewModelFactory = remember(graph) {
-                    com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
-                      favoritesRepository = graph.favoritesRepository,
-                      settingsRepository = graph.settingsRepository,
-                      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-                      datosBiziApi = graph.datosBiziApi,
-                      routeLauncher = graph.routeLauncher,
-                    )
-                  }
-                  val onRefreshStations = remember(scope, stationsRepository) {
-                    {
-                      scope.launch { stationsRepository.forceRefresh() }
-                      Unit
-                    }
-                  }
+                  // Create ViewModel factories
+                  val viewModelFactories = rememberViewModelFactories(graph, platformBindings)
+
+                  // Create navigation configuration
+                  val navConfig = rememberNavigationConfig(
+                    navController = navController,
+                    mobilePlatform = mobilePlatform,
+                    stations = filteredStations,
+                    favoriteIds = favoriteIds,
+                    stationsState = stationsState,
+                    nearestSelection = nearestSelection,
+                    searchRadiusMeters = searchRadiusMeters,
+                    isMapReady = isMapReady,
+                    appState = appState,
+                    scope = scope,
+                    stationsRepository = stationsRepository,
+                    favoritesRepository = favoritesRepository,
+                    graph = graph,
+                    platformBindings = platformBindings,
+                    onOpenOnboarding = { showOnboardingFromProfile = true },
+                    onShowChangelogManual = appRootViewModel::showChangelogHistory,
+                  )
+
                   Box(modifier = Modifier.fillMaxSize()) {
                     BiziNavigationShell(
                       mobilePlatform = mobilePlatform,
                       navController = navController,
                       windowLayout = windowLayout,
                     ) { innerPadding ->
-                      BiziNavHost(
-                        navController = navController,
-                        mobilePlatform = mobilePlatform,
-                        tripViewModelFactory = tripViewModelFactory,
-                        nearbyViewModelFactory = nearbyViewModelFactory,
-                        mapEnvironmentalViewModelFactory = mapEnvironmentalViewModelFactory,
-                        shortcutsViewModelFactory = shortcutsViewModelFactory,
-                        favoritesViewModelFactory = favoritesViewModelFactory,
-                        profileViewModelFactory = profileViewModelFactory,
-                        savedPlaceAlertsViewModelFactory = savedPlaceAlertsViewModelFactory,
-                        stationDetailViewModelFactory = stationDetailViewModelFactory,
-                        stations = filteredStations,
-                        favoriteIds = favoriteIds,
-                        loading = stationsState.isLoading,
-                        errorMessage = stationsState.errorMessage,
-                        stationsFreshness = stationsState.freshness,
-                        stationsLastUpdatedEpoch = stationsState.lastUpdatedEpoch,
-                        onRefreshStations = onRefreshStations,
-                        nearestSelection = nearestSelection,
-                        userLocation = stationsState.userLocation,
-                        searchQuery = appState.searchQuery,
-                        searchRadiusMeters = searchRadiusMeters,
-                        isMapReady = isMapReady,
-                        onSearchQueryChange = remember(appState) { { appState.searchQuery = it } },
-                        onRetry = remember(scope, stationsRepository) { { scope.launch { stationsRepository.loadIfNeeded() } } },
-                        onFavoriteToggle = remember(scope, favoritesRepository) { { station -> scope.launch { favoritesRepository.toggle(station.id) } } },
-                        onQuickRoute = remember(graph, scope) {
-                          { station ->
-                            scope.launch {
-                              graph.engagementRepository.markRouteOpened()
-                              graph.routeLauncher.launch(station)
-                            }
-                          }
-                        },
-                        onOpenAssistant = remember(navController) {
-                          { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
-                        },
-                        localNotifier = platformBindings.localNotifier,
-                        routeLauncher = graph.routeLauncher,
-                        platformBindings = platformBindings,
-                        initialAssistantAction = appState.pendingAssistantAction,
-                        onInitialActionConsumed = remember(appState) { { appState.pendingAssistantAction = null } },
-                        onOpenOnboarding = { showOnboardingFromProfile = true },
-                        onShowChangelogManual = appRootViewModel::showChangelogHistory,
-                        paddingValues = innerPadding,
+                      NavigationHost(
+                        config = navConfig.copy(paddingValues = innerPadding),
+                        factories = viewModelFactories,
                       )
                     }
-                    EngagementTopOverlays(
+                    OverlayManager(
+                      mobilePlatform = mobilePlatform,
                       updateBanner = appRootUiState.topUpdateBanner,
                       showFeedbackNudge = appRootUiState.showFeedbackNudge,
+                      showFeedbackDialog = showFeedbackDialog,
+                      changelogSections = changelogPresentation?.sections ?: emptyList(),
+                      highlightedVersion = changelogPresentation?.highlightedVersion,
+                      showChangelog = !showStartupSplash && changelogPresentation != null,
                       onDismissAvailableUpdate = appRootViewModel::dismissAvailableUpdate,
                       onDismissDownloadedUpdate = appRootViewModel::dismissDownloadedUpdate,
                       onStartUpdate = appRootViewModel::onStartUpdateRequested,
@@ -589,29 +636,14 @@ fun BiziMobileApp(
                         appRootViewModel.onFeedbackOpened()
                         showFeedbackDialog = true
                       },
-                      onFeedbackDismiss = {
-                        appRootViewModel.onFeedbackDismissed()
+                      onFeedbackDismiss = appRootViewModel::onFeedbackDismissed,
+                      onFeedbackDialogDismiss = { showFeedbackDialog = false },
+                      onOpenFeedbackForm = {
+                        platformBindings.externalLinks.openFeedbackForm()
+                        showFeedbackDialog = false
                       },
+                      onChangelogDismiss = appRootViewModel::dismissChangelog,
                     )
-                    if (showFeedbackDialog) {
-                      FeedbackDialog(
-                        onDismiss = { showFeedbackDialog = false },
-                        onOpenFeedbackForm = {
-                          platformBindings.externalLinks.openFeedbackForm()
-                          showFeedbackDialog = false
-                        },
-                      )
-                    }
-                    changelogPresentation
-                      ?.takeIf { !showStartupSplash && it.sections.isNotEmpty() }
-                      ?.let { presentation ->
-                        ChangelogHistoryScreen(
-                          mobilePlatform = mobilePlatform,
-                          sections = presentation.sections,
-                          highlightedVersion = presentation.highlightedVersion,
-                          onBack = appRootViewModel::dismissChangelog,
-                        )
-                      }
                   }
                 }
               }

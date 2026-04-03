@@ -2,8 +2,21 @@ package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import com.gcaguilar.biciradar.core.StationsState
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.LaunchRouter
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
+
+@Composable
+private fun rememberLaunchRouter(
+  navController: NavHostController,
+  appState: AppState,
+  launchCoordinator: LaunchCoordinator,
+): LaunchRouter = remember(navController, appState, launchCoordinator) {
+  LaunchRouter(navController, appState, launchCoordinator)
+}
 
 @Composable
 internal fun BiziLaunchEffects(
@@ -17,6 +30,8 @@ internal fun BiziLaunchEffects(
   launchCoordinator: LaunchCoordinator,
   navController: NavHostController,
 ) {
+  val launchRouter = rememberLaunchRouter(navController, appState, launchCoordinator)
+
   LaunchedEffect(launchRequest) {
     appState.pendingLaunchRequest = launchRequest
   }
@@ -37,7 +52,7 @@ internal fun BiziLaunchEffects(
       stations = stationsState.stations,
       searchRadiusMeters = searchRadiusMeters,
     ) ?: return@LaunchedEffect
-    applyLaunchResolution(navController, appState, resolution)
+    launchRouter.applyResolution(resolution)
     appState.pendingLaunchRequest = null
   }
 
@@ -45,19 +60,7 @@ internal fun BiziLaunchEffects(
     if (!startupLaunchReady) return@LaunchedEffect
     val request = appState.pendingAssistantLaunchRequest ?: return@LaunchedEffect
     val resolution = launchCoordinator.resolveAssistantLaunch(request, stationsState.stations)
-    applyLaunchResolution(navController, appState, resolution)
+    launchRouter.applyResolution(resolution)
     appState.pendingAssistantLaunchRequest = null
-  }
-}
-
-private fun applyLaunchResolution(
-  navController: NavHostController,
-  appState: AppState,
-  resolution: LaunchResolution,
-) {
-  resolution.searchQuery?.let { appState.searchQuery = it }
-  resolution.assistantAction?.let { appState.pendingAssistantAction = it }
-  resolution.screen?.let { screen ->
-    navController.navigate(screen) { launchSingleTop = true }
   }
 }

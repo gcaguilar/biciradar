@@ -16,6 +16,8 @@ import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import com.gcaguilar.biciradar.core.selectNearbyStationWithBikes
 import com.gcaguilar.biciradar.core.selectNearbyStationWithSlots
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
 
 internal data class LaunchResolution(

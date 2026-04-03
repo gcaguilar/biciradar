@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.platform.IOSPlatformBindings
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
