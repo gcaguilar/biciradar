@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,21 +20,17 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavHostController
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import com.gcaguilar.biciradar.mobileui.navigation.BiziBottomBar
-import com.gcaguilar.biciradar.mobileui.navigation.MobileNavigationRail
+import com.gcaguilar.biciradar.mobileui.components.BiziNavigationShell
 import org.jetbrains.compose.resources.stringResource
 
 internal sealed interface TopUpdateBanner {
@@ -201,48 +195,6 @@ internal fun FeedbackDialog(
       }
     },
   )
-}
-
-@Composable
-internal fun BiziNavigationShell(
-  mobilePlatform: MobileUiPlatform,
-  navController: NavHostController,
-  windowLayout: BiziWindowLayout,
-  content: @Composable (PaddingValues) -> Unit,
-) {
-  if (windowLayout == BiziWindowLayout.Compact) {
-    Scaffold(
-      containerColor = pageBackgroundColor(mobilePlatform),
-      bottomBar = {
-        BiziBottomBar(
-          mobilePlatform = mobilePlatform,
-          navController = navController,
-        )
-      },
-    ) { innerPadding ->
-      content(innerPadding)
-    }
-    return
-  }
-
-  Row(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(pageBackgroundColor(mobilePlatform)),
-  ) {
-    MobileNavigationRail(
-      mobilePlatform = mobilePlatform,
-      navController = navController,
-    )
-    VerticalDivider(color = LocalBiziColors.current.panel)
-    Box(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight(),
-    ) {
-      content(PaddingValues())
-    }
-  }
 }
 
 @Composable
