@@ -58,7 +58,42 @@ import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobileui.components.map.EnvironmentalLayerCard
+import com.gcaguilar.biciradar.mobileui.components.map.MapControls
+import com.gcaguilar.biciradar.mobileui.components.map.MapFiltersPanel
+import com.gcaguilar.biciradar.mobileui.components.map.MapSearchBar
+import com.gcaguilar.biciradar.mobileui.components.map.StationDetailBottomSheet
+import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.close
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.details
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendGood
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendHigh
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendLow
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendMedium
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendModerate
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendPoor
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.loadStations
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapClearEnvironmentalLayer
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapEnvironmentalLayerHint
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterAirQuality
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterPollen
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapLocationFallbackDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapMyLocation
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNearestFallbackSummary
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNearestStationLabel
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStations
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStationsOnScreen
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStationsWithinRadius
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapSearchStationOrAddress
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapSelectedStationLabel
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapStationDistanceSummary
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapTryAnotherQuery
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapUpdateFailed
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.retry
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -189,6 +224,7 @@ internal fun MapScreen(
       environmentalOverlay = platformEnvironmentalOverlay,
     )
 
+    // Panel superior con búsqueda y filtros
     Column(
       modifier = Modifier
         .align(Alignment.TopCenter)
@@ -196,14 +232,13 @@ internal fun MapScreen(
         .padding(horizontal = 16.dp, vertical = 16.dp),
       verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      StationSearchField(
+      MapSearchBar(
+        searchQuery = searchQuery,
+        onSearchQueryChange = onSearchQueryChange,
         mobilePlatform = mobilePlatform,
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        label = stringResource(Res.string.mapSearchStationOrAddress),
       )
       if (mobilePlatform != MobileUiPlatform.Desktop) {
-        MapFilterChipRow(
+        MapFiltersPanel(
           activeFilters = activeFilters,
           onToggleFilter = { filter ->
             val next = toggleMapFilterSelection(activeFilters, filter)
@@ -223,6 +258,7 @@ internal fun MapScreen(
       )
     }
 
+    // Mensajes de error o estado vacío
     AnimatedVisibility(
       modifier = Modifier
         .align(Alignment.Center)
@@ -233,14 +269,14 @@ internal fun MapScreen(
       label = "map-centered-feedback",
     ) {
       if (errorMessage != null) {
-        EmptyStateCard(
+        EmptyStatePlaceholder(
           title = stringResource(Res.string.mapUpdateFailed),
           description = errorMessage,
           primaryAction = stringResource(Res.string.retry),
           onPrimaryAction = onRetry,
         )
       } else {
-        EmptyStateCard(
+        EmptyStatePlaceholder(
           title = if (searchQuery.isBlank()) {
             stringResource(Res.string.mapNoStationsOnScreen)
           } else {
@@ -257,6 +293,7 @@ internal fun MapScreen(
       }
     }
 
+    // Panel inferior con tarjeta de estación y controles
     Column(
       modifier = Modifier
         .align(Alignment.BottomCenter)
@@ -277,14 +314,14 @@ internal fun MapScreen(
           label = "map-selected-station-overlay",
         ) {
           selectedMapStation?.let { station ->
-            MapSelectedStationCard(
+            StationDetailBottomSheet(
               modifier = Modifier.fillMaxWidth(),
-              mobilePlatform = mobilePlatform,
               station = station,
               isFavorite = station.id in favoriteIds,
               isShowingNearestSelection = mapIsShowingNearestSelection,
               isFallbackSelection = mapIsShowingNearestFallback,
               searchRadiusMeters = searchRadiusMeters,
+              mobilePlatform = mobilePlatform,
               onFavoriteToggle = { onFavoriteToggle(station) },
               onOpenStationDetails = { onStationSelected(station) },
               onQuickRoute = { onQuickRoute(station) },
@@ -293,24 +330,20 @@ internal fun MapScreen(
           }
         }
         if (mobilePlatform != MobileUiPlatform.Desktop) {
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            activeEnvironmentalLayer?.let {
-              MapEnvironmentalSheetButton(
-                onClick = { showEnvironmentalSheet = true },
-              )
-            }
-            MapRecenterButton(
-              enabled = userLocation != null || mapStations.isNotEmpty(),
-              onClick = {
-                recenterRequestToken += 1
-                isCardDismissed = false
-              },
-            )
-          }
+          MapControls(
+            enabled = userLocation != null || mapStations.isNotEmpty(),
+            showEnvironmentalButton = activeEnvironmentalLayer != null,
+            onRecenterClick = {
+              recenterRequestToken += 1
+              isCardDismissed = false
+            },
+            onEnvironmentalClick = { showEnvironmentalSheet = true },
+          )
         }
       }
     }
 
+    // Bottom sheet de capa ambiental
     if (activeEnvironmentalLayer != null && showEnvironmentalSheet) {
       val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
       ModalBottomSheet(
@@ -325,359 +358,6 @@ internal fun MapScreen(
             showEnvironmentalSheet = false
             activeFilters = clearEnvironmentalMapFilters(activeFilters)
           },
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnvironmentalLayerCard(
-  layer: MapEnvironmentalLayer,
-  zones: List<MapEnvironmentalZoneSnapshot>,
-  onClear: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
-  ) {
-    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-      Text(
-        text = when (layer) {
-          MapEnvironmentalLayer.AirQuality -> stringResource(Res.string.mapFilterAirQuality)
-          MapEnvironmentalLayer.Pollen -> stringResource(Res.string.mapFilterPollen)
-        },
-        fontWeight = FontWeight.SemiBold,
-      )
-      Text(
-        text = stringResource(Res.string.mapEnvironmentalLayerHint),
-        style = MaterialTheme.typography.bodySmall,
-        color = c.muted,
-      )
-      EnvironmentalLegendRow(layer = layer)
-      zones.take(4).forEach { zone ->
-        val score = when (layer) {
-          MapEnvironmentalLayer.AirQuality -> zone.airQualityScore
-          MapEnvironmentalLayer.Pollen -> zone.pollenScore
-        }
-        val tone = environmentalToneForLayer(layer = layer, score = score, muted = c.muted)
-        val valueText = when {
-          score == null -> "--"
-          layer == MapEnvironmentalLayer.AirQuality -> "AQI $score"
-          else -> "$score gr/m3"
-        }
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Text(zone.zoneLabel, style = MaterialTheme.typography.bodySmall, color = c.ink)
-          Text(
-            valueText,
-            style = MaterialTheme.typography.bodySmall,
-            color = tone,
-            fontWeight = FontWeight.SemiBold,
-          )
-        }
-      }
-      TextButton(onClick = onClear, contentPadding = PaddingValues(0.dp)) {
-        Text(stringResource(Res.string.mapClearEnvironmentalLayer))
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnvironmentalLegendRow(layer: MapEnvironmentalLayer) {
-  val c = LocalBiziColors.current
-  val labels = when (layer) {
-    MapEnvironmentalLayer.AirQuality -> listOf(
-      stringResource(Res.string.environmentalLegendGood),
-      stringResource(Res.string.environmentalLegendModerate),
-      stringResource(Res.string.environmentalLegendPoor),
-    )
-    MapEnvironmentalLayer.Pollen -> listOf(
-      stringResource(Res.string.environmentalLegendLow),
-      stringResource(Res.string.environmentalLegendMedium),
-      stringResource(Res.string.environmentalLegendHigh),
-    )
-  }
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.spacedBy(10.dp),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    listOf(c.green, c.orange, c.red).forEachIndexed { index, color ->
-      Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        MapColorDot(color = color)
-        Text(labels[index], style = MaterialTheme.typography.labelSmall, color = c.muted)
-      }
-    }
-  }
-}
-
-private fun environmentalToneForLayer(layer: MapEnvironmentalLayer, score: Int?, muted: Color): Color = when {
-  score == null -> muted
-  layer == MapEnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
-  layer == MapEnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
-  layer == MapEnvironmentalLayer.AirQuality -> Color(0xFFD84315)
-  layer == MapEnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
-  layer == MapEnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
-  else -> Color(0xFFC2185B)
-}
-
-@Composable
-private fun MapFilterChipRow(
-  activeFilters: Set<MapFilter>,
-  onToggleFilter: (MapFilter) -> Unit,
-) {
-  Row(
-    modifier = Modifier.horizontalScroll(rememberScrollState()),
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
-  ) {
-    MapFilter.entries.forEach { filter ->
-      MapFilterChip(
-        filter = filter,
-        label = stringResource(filter.labelKey),
-        selected = filter in activeFilters,
-        onClick = { onToggleFilter(filter) },
-      )
-    }
-  }
-}
-
-@Composable
-private fun MapColorDot(
-  color: Color,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .size(10.dp)
-      .clip(CircleShape)
-      .background(color),
-  )
-}
-
-@Composable
-private fun MapFilterChip(
-  filter: MapFilter,
-  label: String,
-  selected: Boolean,
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  val accent = when (filter) {
-    MapFilter.BIKES_AND_SLOTS -> c.green
-    MapFilter.ONLY_BIKES -> c.blue
-    MapFilter.ONLY_SLOTS -> c.red
-    MapFilter.ONLY_EBIKES -> c.orange
-    MapFilter.ONLY_REGULAR_BIKES -> c.purple
-    MapFilter.AIR_QUALITY -> c.green
-    MapFilter.POLLEN -> c.orange
-  }
-  val backgroundColor by animateColorAsState(
-    targetValue = c.surface,
-    animationSpec = tween(180),
-  )
-  val contentColor by animateColorAsState(
-    targetValue = if (selected) accent else c.ink,
-    animationSpec = tween(180),
-  )
-  val borderColor by animateColorAsState(
-    targetValue = if (selected) accent else c.panel,
-    animationSpec = tween(180),
-  )
-  val selectionScale by animateFloatAsState(
-    targetValue = if (selected) 1f else 0.98f,
-    animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-    label = "map-filter-scale",
-  )
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = backgroundColor,
-    border = BorderStroke(1.dp, borderColor),
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = selectionScale
-        scaleY = selectionScale
-      }
-      .clickable(onClick = onClick),
-  ) {
-    Row(
-      modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      MapColorDot(color = accent)
-      Text(
-        text = label,
-        color = contentColor,
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
-      )
-    }
-  }
-}
-
-@Composable
-private fun MapRecenterButton(
-  enabled: Boolean,
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Surface(
-    modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
-    shape = CircleShape,
-    color = c.surface.copy(alpha = if (enabled) 0.96f else 0.88f),
-    tonalElevation = 4.dp,
-    shadowElevation = 6.dp,
-  ) {
-    Icon(
-      imageVector = Icons.Filled.MyLocation,
-      contentDescription = stringResource(Res.string.mapMyLocation),
-      tint = if (enabled) c.green else c.muted,
-      modifier = Modifier.padding(14.dp).size(22.dp),
-    )
-  }
-}
-
-@Composable
-private fun MapEnvironmentalSheetButton(
-  onClick: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  Surface(
-    modifier = Modifier.clickable(onClick = onClick),
-    shape = CircleShape,
-    color = c.surface.copy(alpha = 0.96f),
-    tonalElevation = 4.dp,
-    shadowElevation = 6.dp,
-  ) {
-    Icon(
-      imageVector = Icons.Filled.Tune,
-      contentDescription = stringResource(Res.string.details),
-      tint = c.blue,
-      modifier = Modifier.padding(14.dp).size(22.dp),
-    )
-  }
-}
-
-@Composable
-private fun MapSelectedStationCard(
-  modifier: Modifier = Modifier,
-  mobilePlatform: MobileUiPlatform,
-  station: Station,
-  isFavorite: Boolean,
-  isShowingNearestSelection: Boolean,
-  isFallbackSelection: Boolean,
-  searchRadiusMeters: Int,
-  onFavoriteToggle: () -> Unit,
-  onOpenStationDetails: (Station) -> Unit,
-  onQuickRoute: (Station) -> Unit,
-  onDismiss: () -> Unit,
-) {
-  val c = LocalBiziColors.current
-  val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
-  val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else c.onAccent.copy(alpha = 0.84f)
-  Card(
-    modifier = modifier,
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, c.red.copy(alpha = 0.12f)) else null,
-    colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
-  ) {
-    Column(
-      modifier = Modifier
-        .padding(horizontal = 14.dp, vertical = 13.dp),
-      verticalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          if (isFallbackSelection) {
-            stringResource(Res.string.mapNoStationsWithinRadius, searchRadiusMeters)
-          } else if (isShowingNearestSelection) {
-            stringResource(Res.string.mapNearestStationLabel)
-          } else {
-            stringResource(Res.string.mapSelectedStationLabel)
-          },
-          color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
-        )
-        Icon(
-          imageVector = Icons.Filled.Close,
-          contentDescription = stringResource(Res.string.close),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
-          modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
-        )
-      }
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        Text(
-          text = station.name,
-          style = MaterialTheme.typography.titleLarge,
-          color = overlayTitle,
-          fontWeight = FontWeight.Bold,
-        )
-        Text(
-          text = station.address,
-          style = MaterialTheme.typography.bodySmall,
-          color = overlayBody,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-        )
-      }
-      Text(
-        text = if (isFallbackSelection) {
-          stringResource(
-            Res.string.mapNearestFallbackSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        } else {
-          stringResource(
-            Res.string.mapStationDistanceSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        },
-        color = overlayBody,
-      )
-      Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        RoutePill(
-          label = stringResource(Res.string.route),
-          onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
-          onClick = { onQuickRoute(station) },
-        )
-        if (mobilePlatform == MobileUiPlatform.IOS) {
-          FavoritePill(
-            active = isFavorite,
-            onClick = onFavoriteToggle,
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-          )
-        } else {
-          OutlineActionPill(
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-            tint = c.onAccent,
-            borderTint = c.onAccent.copy(alpha = 0.32f),
-            onClick = onFavoriteToggle,
-          )
-        }
-        OutlineActionPill(
-          label = stringResource(Res.string.details),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
-          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
-          onClick = { onOpenStationDetails(station) },
         )
       }
     }
