@@ -11,8 +11,7 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 
@@ -36,13 +35,10 @@ internal class AppRootViewModelFactory(
       stationsRepository = stationsRepository,
     )
 
-    val feedbackUseCase = FeedbackUseCase(
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
       appUpdatePrompter = appUpdatePrompter,
       reviewPrompter = reviewPrompter,
-      engagementRepository = engagementRepository,
-    )
-
-    val changelogUseCase = ChangelogUseCase(
       settingsRepository = settingsRepository,
       appVersion = appVersion,
     )
@@ -56,8 +52,7 @@ internal class AppRootViewModelFactory(
     // Create AppInitializer
     val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       savedPlaceAlertsRepository = savedPlaceAlertsRepository,
       surfaceManagementUseCase = surfaceManagementUseCase,
       clock = ::epochMillisForUi,
@@ -65,8 +60,7 @@ internal class AppRootViewModelFactory(
 
     return AppRootViewModel(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       appInitializer = appInitializer,
       appVersion = appVersion,
     )

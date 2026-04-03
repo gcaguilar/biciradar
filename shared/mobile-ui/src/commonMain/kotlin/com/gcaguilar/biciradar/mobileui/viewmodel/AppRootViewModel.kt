@@ -8,8 +8,7 @@ import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,8 +36,7 @@ internal data class AppRootUiState(
 
 internal class AppRootViewModel(
   private val startupUseCase: StartupUseCase,
-  private val feedbackUseCase: FeedbackUseCase,
-  private val changelogUseCase: ChangelogUseCase,
+  private val appLifecycleUseCase: AppLifecycleUseCase,
   private val appInitializer: AppInitializer,
   private val appVersion: String,
   private val clock: () -> Long = ::epochMillisForUi,
@@ -74,7 +72,7 @@ internal class AppRootViewModel(
   }
 
   fun showChangelogHistory() {
-    val presentation = changelogUseCase.getChangelogHistory() ?: return
+    val presentation = appLifecycleUseCase.getChangelogHistory() ?: return
     _uiState.value = _uiState.value.copy(changelogPresentation = presentation)
   }
 
@@ -83,28 +81,28 @@ internal class AppRootViewModel(
     _uiState.value = _uiState.value.copy(changelogPresentation = null)
     val persistSeenVersion = presentation?.persistSeenVersion ?: return
     viewModelScope.launch {
-      changelogUseCase.markChangelogSeen(persistSeenVersion)
+      appLifecycleUseCase.markChangelogSeen(persistSeenVersion)
     }
   }
 
   fun onFeedbackOpened() {
     _uiState.value = _uiState.value.copy(showFeedbackNudge = false)
     viewModelScope.launch {
-      feedbackUseCase.markFeedbackOpened(clock())
+      appLifecycleUseCase.markFeedbackOpened(clock())
     }
   }
 
   fun onFeedbackDismissed() {
     _uiState.value = _uiState.value.copy(showFeedbackNudge = false)
     viewModelScope.launch {
-      feedbackUseCase.markFeedbackDismissed(clock())
+      appLifecycleUseCase.markFeedbackDismissed(clock())
     }
   }
 
   fun dismissAvailableUpdate(version: String) {
     _uiState.value = _uiState.value.copy(topUpdateBanner = TopUpdateBanner.Hidden)
     viewModelScope.launch {
-      feedbackUseCase.markUpdateBannerDismissed(version, clock())
+      appLifecycleUseCase.markUpdateBannerDismissed(version, clock())
     }
   }
 
@@ -116,18 +114,18 @@ internal class AppRootViewModel(
     val banner = _uiState.value.topUpdateBanner as? TopUpdateBanner.Available ?: return
     viewModelScope.launch {
       if (banner.flexible) {
-        if (feedbackUseCase.startFlexibleUpdate()) {
+        if (appLifecycleUseCase.startFlexibleUpdate()) {
           startUpdatePolling()
         }
       } else {
-        feedbackUseCase.openStoreListing()
+        appLifecycleUseCase.openStoreListing()
       }
     }
   }
 
   fun onRestartToUpdateRequested() {
     viewModelScope.launch {
-      feedbackUseCase.completeFlexibleUpdateIfReady()
+      appLifecycleUseCase.completeFlexibleUpdateIfReady()
     }
   }
 
@@ -138,7 +136,7 @@ internal class AppRootViewModel(
         recomputeStartupLaunchReady()
         maybeScheduleEmptyStateRetry(stationsState)
         maybeRefreshSurfaceSnapshot()
-        feedbackUseCase.markDataFreshnessObserved(stationsState.freshness)
+        appLifecycleUseCase.markDataFreshnessObserved(stationsState.freshness)
         maybeRefreshExperiencePrompts()
       }
     }
@@ -146,7 +144,7 @@ internal class AppRootViewModel(
     viewModelScope.launch {
       startupUseCase.favoriteIds.collect { favoriteIds ->
         if (favoriteIds.size > latestFavoriteCount) {
-          feedbackUseCase.markFavoriteCreated(clock())
+          appLifecycleUseCase.markFavoriteCreated(clock())
         }
         latestFavoriteCount = favoriteIds.size
         latestFavoriteIds = favoriteIds
@@ -221,15 +219,15 @@ internal class AppRootViewModel(
     if (!_uiState.value.settingsBootstrapped) return
 
     // Check if changelog should be suppressed due to pending onboarding
-    val suppression = changelogUseCase.checkSuppression()
+    val suppression = appLifecycleUseCase.checkChangelogSuppression()
     if (suppression.suppressed && suppression.shouldMarkCurrentVersionSeen && suppression.currentVersionToMark != null) {
       viewModelScope.launch {
-        changelogUseCase.markChangelogSeen(suppression.currentVersionToMark)
+        appLifecycleUseCase.markChangelogSeen(suppression.currentVersionToMark)
       }
       return
     }
 
-    val presentation = changelogUseCase.getPendingChangelog()
+    val presentation = appLifecycleUseCase.getPendingChangelog()
     if (presentation != null) {
       _uiState.value = _uiState.value.copy(changelogPresentation = presentation)
     }
@@ -327,8 +325,8 @@ internal class AppRootViewModel(
     updateCheckInFlight = true
     viewModelScope.launch {
       try {
-        feedbackUseCase.markUpdateChecked(now)
-        when (val update = feedbackUseCase.checkForUpdate()) {
+        appLifecycleUseCase.markUpdateChecked(now)
+        when (val update = appLifecycleUseCase.checkForUpdate()) {
           is UpdateAvailabilityState.Available -> {
             // Note: We can't access dismissed version directly, would need to add method to FeedbackUseCase
             // For now, we show the banner
@@ -356,12 +354,12 @@ internal class AppRootViewModel(
   private fun maybeShowFeedbackNudge() {
     if (_uiState.value.showFeedbackNudge || feedbackNudgeInFlight) return
     if (!latestOnboardingChecklist.isCompleted()) return
-    if (!feedbackUseCase.shouldShowFeedbackNudge(appVersion, clock())) return
+    if (!appLifecycleUseCase.shouldShowFeedbackNudge(appVersion, clock())) return
     feedbackNudgeInFlight = true
     _uiState.value = _uiState.value.copy(showFeedbackNudge = true)
     viewModelScope.launch {
       try {
-        feedbackUseCase.markFeedbackNudgeShown(appVersion, clock())
+        appLifecycleUseCase.markFeedbackNudgeShown(appVersion, clock())
       } finally {
         feedbackNudgeInFlight = false
       }
@@ -372,7 +370,7 @@ internal class AppRootViewModel(
     if (inAppReviewRequested) return
     if (!latestOnboardingChecklist.isCompleted() && !latestOnboardingCompleted) return
     if (latestStationsState.freshness == DataFreshness.Unavailable) return
-    val eligibility = feedbackUseCase.checkReviewEligibility(
+    val eligibility = appLifecycleUseCase.checkReviewEligibility(
       appVersion = appVersion,
       onboardingCompleted = latestOnboardingChecklist.isCompleted() || latestOnboardingCompleted,
       currentFreshness = latestStationsState.freshness,
@@ -383,8 +381,8 @@ internal class AppRootViewModel(
     inAppReviewRequested = true
     viewModelScope.launch {
       delay(4_000)
-      feedbackUseCase.markReviewPrompted(appVersion, clock())
-      feedbackUseCase.requestInAppReview()
+      appLifecycleUseCase.markReviewPrompted(appVersion, clock())
+      appLifecycleUseCase.requestInAppReview()
     }
   }
 
@@ -393,7 +391,7 @@ internal class AppRootViewModel(
     updatePollJob = viewModelScope.launch {
       repeat(10) {
         delay(8_000)
-        when (val update = feedbackUseCase.checkForUpdate()) {
+        when (val update = appLifecycleUseCase.checkForUpdate()) {
           is UpdateAvailabilityState.Downloaded -> {
             _uiState.value = _uiState.value.copy(
               topUpdateBanner = TopUpdateBanner.Downloaded(update.versionName),

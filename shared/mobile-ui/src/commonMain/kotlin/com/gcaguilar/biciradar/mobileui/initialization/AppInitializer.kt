@@ -3,8 +3,7 @@ package com.gcaguilar.biciradar.mobileui.initialization
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import kotlinx.coroutines.delay
 
@@ -24,8 +23,7 @@ internal data class InitializationResult(
  */
 internal class AppInitializer(
   private val startupUseCase: StartupUseCase,
-  private val feedbackUseCase: FeedbackUseCase,
-  private val changelogUseCase: ChangelogUseCase,
+  private val appLifecycleUseCase: AppLifecycleUseCase,
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
   private val clock: () -> Long,
@@ -81,8 +79,8 @@ internal class AppInitializer(
     updatePendingChangelog()
 
     // Mark session started
-    feedbackUseCase.markSessionStarted(clock())
-    feedbackUseCase.markUsefulSession(clock())
+    appLifecycleUseCase.markSessionStarted(clock())
+    appLifecycleUseCase.markUsefulSession(clock())
 
     // Initialize favorites
     onFavoritesBootstrapped()
