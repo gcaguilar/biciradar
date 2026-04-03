@@ -3,13 +3,11 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.StationsState
-import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
-import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
+import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
@@ -41,9 +39,7 @@ internal class AppRootViewModel(
   private val startupUseCase: StartupUseCase,
   private val feedbackUseCase: FeedbackUseCase,
   private val changelogUseCase: ChangelogUseCase,
-  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
-  private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
-  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val appInitializer: AppInitializer,
   private val appVersion: String,
   private val clock: () -> Long = ::epochMillisForUi,
 ) : ViewModel() {
@@ -193,22 +189,15 @@ internal class AppRootViewModel(
 
   private fun bootstrap() {
     viewModelScope.launch {
-      surfaceSnapshotRepository.bootstrap()
-      surfaceMonitoringRepository.bootstrap()
-
-      _uiState.value = _uiState.value.copy(settingsBootstrapped = false)
-      startupUseCase.bootstrapSettings()
-      _uiState.value = _uiState.value.copy(settingsBootstrapped = true)
-
-      updatePendingChangelog()
-
-      runCatching { savedPlaceAlertsRepository.bootstrap() }
-      feedbackUseCase.markSessionStarted(clock())
-      feedbackUseCase.markUsefulSession(clock())
-
-      _uiState.value = _uiState.value.copy(favoritesBootstrapped = false)
-      startupUseCase.bootstrapFavorites()
-      _uiState.value = _uiState.value.copy(favoritesBootstrapped = true)
+      appInitializer.bootstrap(
+        onSettingsBootstrapped = {
+          _uiState.value = _uiState.value.copy(settingsBootstrapped = true)
+        },
+        onFavoritesBootstrapped = {
+          _uiState.value = _uiState.value.copy(favoritesBootstrapped = true)
+        },
+        updatePendingChangelog = ::updatePendingChangelog,
+      )
 
       recomputeStartupLaunchReady()
       maybeRefreshSurfaceSnapshot()
@@ -274,7 +263,7 @@ internal class AppRootViewModel(
     val uiState = _uiState.value
     if (!uiState.settingsBootstrapped || !uiState.favoritesBootstrapped) return
     viewModelScope.launch {
-      surfaceSnapshotRepository.refreshSnapshot()
+      appInitializer.refreshSurfaceSnapshot()
     }
   }
 
@@ -285,8 +274,8 @@ internal class AppRootViewModel(
     if (refreshJob?.isActive == true) return
     pendingRefreshSignals = 0
     refreshJob = viewModelScope.launch {
-      startupUseCase.syncFavoritesFromPeer()
-      startupUseCase.refreshStations()
+      appInitializer.syncFavoritesFromPeer()
+      appInitializer.refreshStations()
       _uiState.value = _uiState.value.copy(initialLoadAttemptFinished = true)
       recomputeStartupLaunchReady()
       if (pendingRefreshSignals > 0) {
@@ -304,7 +293,7 @@ internal class AppRootViewModel(
       delay(5_000)
       val latestState = startupUseCase.stationsState.value
       if (!latestState.isLoading && latestState.stations.isEmpty() && latestState.errorMessage == null) {
-        startupUseCase.loadStationsIfNeeded()
+        appInitializer.loadStationsIfNeeded()
       }
     }
   }
