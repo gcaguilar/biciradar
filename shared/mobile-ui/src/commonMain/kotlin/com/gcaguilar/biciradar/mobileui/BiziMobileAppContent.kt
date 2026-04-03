@@ -18,6 +18,8 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
+import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 
 internal object BiziMobileAppContent {
   @Composable
