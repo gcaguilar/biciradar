@@ -20,6 +20,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
+import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
 
 internal object BiziMobileAppContent {
   @Composable

@@ -58,6 +58,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.EmptyStateCard
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -68,7 +69,6 @@ import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
 import com.gcaguilar.biciradar.mobileui.StationMetricPill
 import com.gcaguilar.biciradar.mobileui.StationRow
 import com.gcaguilar.biciradar.mobileui.StationSearchField
-import com.gcaguilar.biciradar.mobileui.formatDistance
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res

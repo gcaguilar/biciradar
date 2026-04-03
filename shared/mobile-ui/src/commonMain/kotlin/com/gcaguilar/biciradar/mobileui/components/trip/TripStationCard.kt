@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.components.StationMetricPill
+import com.gcaguilar.biciradar.mobileui.StationMetricPill
 import org.jetbrains.compose.resources.stringResource
 import biciradar.shared.mobile_ui.generated.resources.Res
 import biciradar.shared.mobile_ui.generated.resources.distance
