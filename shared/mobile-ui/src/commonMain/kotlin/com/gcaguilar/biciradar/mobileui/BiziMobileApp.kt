@@ -101,9 +101,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.graphics.Color
@@ -112,7 +109,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
@@ -206,8 +202,7 @@ import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModelFactory
 import androidx.window.core.layout.WindowSizeClass
-import com.gcaguilar.biciradar.mobileui.theme.LocalBiziWindowLayout
-import com.gcaguilar.biciradar.mobileui.theme.rememberBiziWindowLayout
+import com.gcaguilar.biciradar.mobileui.LocalBiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.theme.ThemeProvider
 import com.gcaguilar.biciradar.mobileui.theme.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.theme.responsivePageWidth
@@ -490,9 +485,8 @@ fun BiziMobileApp(
   }
 
   ThemeProvider(mobilePlatform, themePreference) {
-    val windowLayout = rememberBiziWindowLayout()
-    CompositionLocalProvider(LocalBiziWindowLayout provides windowLayout) {
-      Surface(
+    val windowLayout = LocalBiziWindowLayout.current
+    Surface(
         modifier = modifier.fillMaxSize(),
         color = pageBackgroundColor(mobilePlatform),
       ) {
@@ -651,9 +645,7 @@ fun BiziMobileApp(
         }
       }
     }
-
   }
-}
 
 @Composable
 internal fun NearbyScreen(

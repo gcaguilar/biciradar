@@ -67,7 +67,7 @@ internal data class BiziColors(
   val dismissAlphaBase: Float,
 )
 
-private val LightBiziColors = BiziColors(
+internal val LightBiziColors = BiziColors(
   background = BiziLight,
   groupedBackground = BiziGrouped,
   surface = Color.White,
@@ -87,7 +87,7 @@ private val LightBiziColors = BiziColors(
   dismissAlphaBase = 0.10f,
 )
 
-private val DarkBiziColors = BiziColors(
+internal val DarkBiziColors = BiziColors(
   background = BiziDarkBackground,
   groupedBackground = BiziDarkGrouped,
   surface = BiziDarkSurface,
@@ -166,7 +166,7 @@ internal fun rememberBiziWindowLayout(): BiziWindowLayout {
   }
 }
 
-private fun biziColorScheme(
+internal fun biziColorScheme(
   isDark: Boolean,
   colors: BiziColors,
   mobilePlatform: MobileUiPlatform,
@@ -208,7 +208,7 @@ private fun biziColorScheme(
   )
 }
 
-private fun dynamicBiziColors(
+internal fun dynamicBiziColors(
   colorScheme: ColorScheme,
   mobilePlatform: MobileUiPlatform,
   isDark: Boolean,
