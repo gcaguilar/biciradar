@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,10 +61,10 @@ import com.gcaguilar.biciradar.core.GeoResult
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.LocalNotifier
+import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformStationMap
-import com.gcaguilar.biciradar.mobileui.RouteLauncher
+import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
