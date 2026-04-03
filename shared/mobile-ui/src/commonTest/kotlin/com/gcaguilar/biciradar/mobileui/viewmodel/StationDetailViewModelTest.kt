@@ -17,6 +17,7 @@ import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,14 +65,17 @@ class StationDetailViewModelTest {
         ),
       ),
     )
-
-    val viewModel = StationDetailViewModel(
-      stationId = "station-1",
+    val stationDetailUseCase = StationDetailUseCase(
       favoritesRepository = favoritesRepository,
       settingsRepository = settingsRepository,
       savedPlaceAlertsRepository = savedPlaceAlertsRepository,
       datosBiziApi = datosBiziApi,
       routeLauncher = NoOpStationDetailRouteLauncher,
+    )
+
+    val viewModel = StationDetailViewModel(
+      stationId = "station-1",
+      stationDetailUseCase = stationDetailUseCase,
     )
 
     advanceUntilIdle()

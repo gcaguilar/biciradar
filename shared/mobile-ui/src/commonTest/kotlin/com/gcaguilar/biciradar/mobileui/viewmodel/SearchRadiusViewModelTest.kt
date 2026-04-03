@@ -30,6 +30,9 @@ import com.gcaguilar.biciradar.core.geo.GeoApi
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,9 +88,14 @@ class SearchRadiusViewModelTest {
   fun `trip view model uses latest settings radius when selecting a suggestion`() = runTest(dispatcher) {
     val settingsRepository = FakeSettingsRepository(searchRadius = 300)
     val tripRepository = FakeTripRepository()
-    val viewModel = TripViewModel(
+    val tripManagementUseCase = TripManagementUseCase(
       tripRepository = tripRepository,
+      settingsRepository = settingsRepository,
+    )
+    val surfaceMonitoringUseCase = SurfaceMonitoringUseCase(
       surfaceMonitoringRepository = FakeSurfaceMonitoringRepository(),
+    )
+    val geoLocationUseCase = GeoLocationUseCase(
       geoSearchUseCase = GeoSearchUseCase(
         geoApi = FakeGeoApi(),
         googlePlacesApi = FakeGooglePlacesApi(),
@@ -98,7 +106,11 @@ class SearchRadiusViewModelTest {
         googlePlacesApi = FakeGooglePlacesApi(),
         googleMapsApiKey = null,
       ),
-      settingsRepository = settingsRepository,
+    )
+    val viewModel = TripViewModel(
+      tripManagementUseCase = tripManagementUseCase,
+      surfaceMonitoringUseCase = surfaceMonitoringUseCase,
+      geoLocationUseCase = geoLocationUseCase,
     )
 
     advanceUntilIdle()

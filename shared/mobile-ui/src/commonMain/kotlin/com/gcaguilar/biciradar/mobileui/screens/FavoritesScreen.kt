@@ -60,14 +60,14 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
-import com.gcaguilar.biciradar.mobileui.EmptyStateCard
+import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.OutlineActionPill
-import com.gcaguilar.biciradar.mobileui.RoutePill
 import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
-import com.gcaguilar.biciradar.mobileui.StationMetricPill
-import com.gcaguilar.biciradar.mobileui.StationRow
+import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
+import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
+import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
+import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -307,7 +307,7 @@ internal fun FavoritesScreen(
           exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
           label = "favorites-empty",
         ) {
-          EmptyStateCard(
+          EmptyStatePlaceholder(
             title = stringResource(Res.string.favoritesEmptyTitle),
             description = stringResource(Res.string.favoritesEmptyDescription),
           )

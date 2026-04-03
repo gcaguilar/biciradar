@@ -194,6 +194,13 @@ import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
+import com.gcaguilar.biciradar.mobileui.components.station.StationRow
+import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
+import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
+import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
+import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
+import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
+import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModelFactory
 import androidx.window.core.layout.WindowSizeClass
 
@@ -792,7 +799,7 @@ internal fun NearbyScreen(
             exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
             label = "nearby-empty",
           ) {
-            EmptyStateCard(
+            EmptyStatePlaceholder(
               title = stringResource(Res.string.mapNoStationsOnScreen),
               description = stringResource(Res.string.mapLocationFallbackDescription),
               primaryAction = stringResource(Res.string.loadStations),
@@ -1038,7 +1045,7 @@ internal fun FavoritesScreen(
           exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
           label = "favorites-empty",
         ) {
-          EmptyStateCard(
+          EmptyStatePlaceholder(
             title = stringResource(Res.string.favoritesEmptyTitle),
             description = stringResource(Res.string.favoritesEmptyDescription),
           )
@@ -1191,115 +1198,7 @@ private fun AvailabilityCard(
   }
 }
 
-@Composable
-internal fun StationRow(
-  mobilePlatform: MobileUiPlatform,
-  station: Station,
-  isFavorite: Boolean,
-  onClick: () -> Unit,
-  onFavoriteToggle: () -> Unit,
-  onQuickRoute: (() -> Unit)? = null,
-  savedPlaceAlertSlot: @Composable (() -> Unit)? = null,
-  extraActions: @Composable (() -> Unit)? = null,
-  showFavoriteCta: Boolean = true,
-) {
-  Card(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clickable(onClick = onClick)
-      .animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 520f)),
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-  ) {
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-      ) {
-        Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Text(
-            station.name,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-          )
-          Text(
-            station.address,
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-          )
-        }
-        Spacer(Modifier.width(12.dp))
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          onQuickRoute?.let { quickRoute ->
-            RoutePill(
-              label = stringResource(Res.string.route),
-              onClick = quickRoute,
-            )
-          }
-          savedPlaceAlertSlot?.invoke()
-          if (showFavoriteCta) {
-            FavoritePill(
-              active = isFavorite,
-              onClick = onFavoriteToggle,
-              label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-            )
-          } else {
-            FavoritePill(
-              active = true,
-              onClick = {},
-              label = stringResource(Res.string.favorite),
-            )
-          }
-        }
-      }
-      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        StationMetricPill(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.bikes),
-          value = station.bikesAvailable.toString(),
-          tint = LocalBiziColors.current.red,
-        )
-        StationMetricPill(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.slots),
-          value = station.slotsFree.toString(),
-          tint = LocalBiziColors.current.blue,
-        )
-        StationMetricPill(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.distance),
-          value = formatDistance(station.distanceMeters),
-          tint = LocalBiziColors.current.green,
-        )
-      }
-      extraActions?.let { actions ->
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          actions()
-        }
-      }
-    }
-  }
-}
+
 
 @Composable
 private fun DismissibleFavoriteStationRow(
@@ -1411,38 +1310,6 @@ private fun FavoriteDismissBackground(
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
       )
-    }
-  }
-}
-
-@Composable
-internal fun RoutePill(
-  label: String,
-  onClick: () -> Unit,
-  onDarkBackground: Boolean = false,
-) {
-  val c = LocalBiziColors.current
-  val pillColor = if (onDarkBackground) c.onAccent else c.blue
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = if (onDarkBackground) c.onAccent.copy(alpha = 0.14f) else c.blue.copy(alpha = 0.08f),
-    border = BorderStroke(1.dp, if (onDarkBackground) c.onAccent.copy(alpha = 0.32f) else c.blue.copy(alpha = 0.16f)),
-    modifier = Modifier.clickable(onClick = onClick),
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 9.dp)
-        .animateContentSize(animationSpec = tween(180)),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-      Icon(
-        imageVector = Icons.Filled.Directions,
-        contentDescription = null,
-        tint = pillColor,
-        modifier = Modifier.size(16.dp),
-      )
-      Text(label, color = pillColor, style = MaterialTheme.typography.labelMedium)
     }
   }
 }
@@ -1785,61 +1652,6 @@ private fun QuickRouteActionCard(
 }
 
 @Composable
-internal fun OutlineActionPill(
-  label: String,
-  tint: Color,
-  borderTint: Color,
-  onClick: () -> Unit,
-) {
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = Color.Transparent,
-    border = BorderStroke(1.dp, borderTint),
-    modifier = Modifier.clickable(onClick = onClick),
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 9.dp)
-        .animateContentSize(animationSpec = tween(180)),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-      Text(label, color = tint, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-    }
-  }
-}
-
-@Composable
-internal fun EmptyStateCard(
-  title: String,
-  description: String,
-  primaryAction: String? = null,
-  onPrimaryAction: (() -> Unit)? = null,
-) {
-  val c = LocalBiziColors.current
-  Card(
-    modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
-  ) {
-    Column(
-      modifier = Modifier.padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-      Text(title, fontWeight = FontWeight.SemiBold, color = c.ink)
-      Text(description, style = MaterialTheme.typography.bodySmall, color = c.muted)
-      if (primaryAction != null && onPrimaryAction != null) {
-        OutlinedButton(
-          onClick = onPrimaryAction,
-          colors = ButtonDefaults.outlinedButtonColors(contentColor = c.red),
-        ) {
-          Text(primaryAction)
-        }
-      }
-    }
-  }
-}
-
-@Composable
 internal fun RadiusSelectionButton(
   modifier: Modifier,
   selected: Boolean,
@@ -1885,131 +1697,6 @@ internal fun RadiusSelectionButton(
       color = textColor,
       style = MaterialTheme.typography.bodySmall,
       fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-    )
-  }
-}
-
-@Composable
-internal fun StationMetricPill(
-  modifier: Modifier = Modifier,
-  label: String,
-  value: String,
-  tint: Color,
-) {
-  Surface(
-    modifier = modifier,
-    shape = RoundedCornerShape(16.dp),
-    color = tint.copy(alpha = 0.09f),
-  ) {
-    Column(
-      modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 10.dp)
-        .animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 550f)),
-      verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-      Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
-      Text(
-        value,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.SemiBold,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-      )
-    }
-  }
-}
-
-@Composable
-internal fun FavoritePill(
-  active: Boolean,
-  onClick: () -> Unit,
-  label: String,
-) {
-  val containerColor by animateColorAsState(
-    targetValue = if (active) LocalBiziColors.current.red.copy(alpha = 0.10f) else Color.Transparent,
-    animationSpec = tween(180),
-    label = "favorite-pill-container",
-  )
-  val borderColor by animateColorAsState(
-    targetValue = if (active) LocalBiziColors.current.red.copy(alpha = 0.16f) else LocalBiziColors.current.panel,
-    animationSpec = tween(180),
-    label = "favorite-pill-border",
-  )
-  val scale by animateFloatAsState(
-    targetValue = if (active) 1f else 0.97f,
-    animationSpec = spring(dampingRatio = 0.78f, stiffness = 720f),
-    label = "favorite-pill-scale",
-  )
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = containerColor,
-    border = BorderStroke(1.dp, borderColor),
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-      }
-      .clickable(onClick = onClick),
-  ) {
-    Row(
-      modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 9.dp)
-        .animateContentSize(animationSpec = tween(180)),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-      Icon(
-        imageVector = if (active) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-        contentDescription = null,
-        tint = LocalBiziColors.current.red,
-        modifier = Modifier.size(16.dp),
-      )
-      Text(label, color = LocalBiziColors.current.red, style = MaterialTheme.typography.labelMedium)
-    }
-  }
-}
-
-@Composable
-internal fun SavedPlacePill(
-  active: Boolean,
-  label: String,
-  onClick: () -> Unit,
-) {
-  val tint = if (label == stringResource(Res.string.home)) LocalBiziColors.current.green else LocalBiziColors.current.blue
-  val containerColor by animateColorAsState(
-    targetValue = if (active) tint.copy(alpha = 0.10f) else Color.Transparent,
-    animationSpec = tween(180),
-    label = "saved-place-pill-container",
-  )
-  val borderColor by animateColorAsState(
-    targetValue = if (active) tint.copy(alpha = 0.18f) else LocalBiziColors.current.panel,
-    animationSpec = tween(180),
-    label = "saved-place-pill-border",
-  )
-  val scale by animateFloatAsState(
-    targetValue = if (active) 1f else 0.97f,
-    animationSpec = spring(dampingRatio = 0.78f, stiffness = 720f),
-    label = "saved-place-pill-scale",
-  )
-  Surface(
-    shape = RoundedCornerShape(16.dp),
-    color = containerColor,
-    border = BorderStroke(1.dp, borderColor),
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-      }
-      .clickable(onClick = onClick),
-  ) {
-    Text(
-      text = label,
-      modifier = Modifier
-        .padding(horizontal = 12.dp, vertical = 9.dp)
-        .animateContentSize(animationSpec = tween(180)),
-      color = tint,
-      style = MaterialTheme.typography.labelMedium,
-      fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
     )
   }
 }

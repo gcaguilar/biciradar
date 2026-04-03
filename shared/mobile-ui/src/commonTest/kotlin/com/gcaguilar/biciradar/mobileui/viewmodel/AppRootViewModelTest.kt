@@ -27,9 +27,12 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.core.epochMillisForUi
+import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,14 +86,27 @@ class AppRootViewModelTest {
       settingsRepository = settingsRepository,
       appVersion = "0.21.0",
     )
-    
-    val viewModel = AppRootViewModel(
+
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+
+    val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
       feedbackUseCase = feedbackUseCase,
       changelogUseCase = changelogUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
 
@@ -113,7 +129,7 @@ class AppRootViewModelTest {
     val favoritesRepository = FakeAppRootFavoritesRepository()
     val stationsRepository = FakeAppRootStationsRepository()
     val engagementRepository = FakeEngagementRepository()
-    
+
     val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
@@ -128,14 +144,27 @@ class AppRootViewModelTest {
       settingsRepository = settingsRepository,
       appVersion = "0.21.0",
     )
-    
-    val viewModel = AppRootViewModel(
+
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+
+    val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
       feedbackUseCase = feedbackUseCase,
       changelogUseCase = changelogUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
 
@@ -172,14 +201,27 @@ class AppRootViewModelTest {
       settingsRepository = settingsRepository,
       appVersion = "0.19.1",
     )
-    
-    val viewModel = AppRootViewModel(
+
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+
+    val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
       feedbackUseCase = feedbackUseCase,
       changelogUseCase = changelogUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
 
@@ -200,7 +242,7 @@ class AppRootViewModelTest {
     val favoritesRepository = FakeAppRootFavoritesRepository()
     val stationsRepository = FakeAppRootStationsRepository()
     val engagementRepository = FakeEngagementRepository()
-    
+
     val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
@@ -215,14 +257,27 @@ class AppRootViewModelTest {
       settingsRepository = settingsRepository,
       appVersion = "0.19.1",
     )
-    
-    val viewModel = AppRootViewModel(
+
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+
+    val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
       feedbackUseCase = feedbackUseCase,
       changelogUseCase = changelogUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
 

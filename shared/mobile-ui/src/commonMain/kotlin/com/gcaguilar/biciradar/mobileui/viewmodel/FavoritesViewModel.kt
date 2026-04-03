@@ -3,17 +3,14 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.FavoritesRepository
-import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
-import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
-import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
-import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.findStationMatchingQuery
+import com.gcaguilar.biciradar.mobileui.usecases.FavoritesManagementUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.RouteLaunchUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SavedPlaceAlertsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,17 +30,15 @@ data class FavoritesUiState(
 )
 
 class FavoritesViewModel(
-  private val favoritesRepository: FavoritesRepository,
-  private val stationsRepository: StationsRepository,
-  private val settingsRepository: SettingsRepository,
-  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
-  private val routeLauncher: RouteLauncher,
+  private val favoritesManagementUseCase: FavoritesManagementUseCase,
+  private val savedPlaceAlertsUseCase: SavedPlaceAlertsUseCase,
+  private val routeLaunchUseCase: RouteLaunchUseCase,
 ) : ViewModel() {
 
   private val searchQuery = MutableStateFlow("")
   private val cityRulesState: StateFlow<FavoritesCityRulesState> = combine(
-    settingsRepository.selectedCity,
-    savedPlaceAlertsRepository.rules,
+    favoritesManagementUseCase.selectedCity,
+    savedPlaceAlertsUseCase.rules,
   ) { selectedCity, alertRules ->
     FavoritesCityRulesState(
       selectedCity = selectedCity,
@@ -53,22 +48,22 @@ class FavoritesViewModel(
     scope = viewModelScope,
     started = SharingStarted.Eagerly,
     initialValue = FavoritesCityRulesState(
-      selectedCity = settingsRepository.selectedCity.value,
-      savedPlaceAlertRules = savedPlaceAlertsRepository.rules.value,
+      selectedCity = favoritesManagementUseCase.selectedCity.value,
+      savedPlaceAlertRules = savedPlaceAlertsUseCase.rules.value,
     ),
   )
 
   private val relationState: StateFlow<FavoritesRelationState> = combine(
-    stationsRepository.state,
-    favoritesRepository.favoriteIds,
-    favoritesRepository.homeStationId,
-    favoritesRepository.workStationId,
+    favoritesManagementUseCase.stationsState,
+    favoritesManagementUseCase.favoriteIds,
+    favoritesManagementUseCase.homeStationId,
+    favoritesManagementUseCase.workStationId,
     cityRulesState,
-  ) { stationsState: StationsState,
-      favoriteIds: Set<String>,
-      homeStationId: String?,
-      workStationId: String?,
-      cityRulesState: FavoritesCityRulesState ->
+  ) { stationsState,
+      favoriteIds,
+      homeStationId,
+      workStationId,
+      cityRulesState ->
     FavoritesRelationState(
       stations = stationsState.stations,
       favoriteIds = favoriteIds,
@@ -81,10 +76,10 @@ class FavoritesViewModel(
     scope = viewModelScope,
     started = SharingStarted.Eagerly,
     initialValue = buildRelationState(
-      stations = stationsRepository.state.value.stations,
-      favoriteIds = favoritesRepository.favoriteIds.value,
-      homeStationId = favoritesRepository.homeStationId.value,
-      workStationId = favoritesRepository.workStationId.value,
+      stations = favoritesManagementUseCase.stationsState.value.stations,
+      favoriteIds = favoritesManagementUseCase.favoriteIds.value,
+      homeStationId = favoritesManagementUseCase.homeStationId.value,
+      workStationId = favoritesManagementUseCase.workStationId.value,
       cityRulesState = cityRulesState.value,
     ),
   )
@@ -103,47 +98,47 @@ class FavoritesViewModel(
 
   fun onAssignHomeStation(station: Station) {
     viewModelScope.launch {
-      favoritesRepository.setHomeStationId(station.id)
+      favoritesManagementUseCase.setHomeStationId(station.id)
     }
   }
 
   fun onAssignWorkStation(station: Station) {
     viewModelScope.launch {
-      favoritesRepository.setWorkStationId(station.id)
+      favoritesManagementUseCase.setWorkStationId(station.id)
     }
   }
 
   fun onClearHomeStation() {
     viewModelScope.launch {
-      favoritesRepository.setHomeStationId(null)
+      favoritesManagementUseCase.setHomeStationId(null)
     }
   }
 
   fun onClearWorkStation() {
     viewModelScope.launch {
-      favoritesRepository.setWorkStationId(null)
+      favoritesManagementUseCase.setWorkStationId(null)
     }
   }
 
   fun onRemoveFavorite(station: Station) {
     viewModelScope.launch {
-      favoritesRepository.toggle(station.id)
+      favoritesManagementUseCase.toggleFavorite(station.id)
     }
   }
 
   fun onQuickRoute(station: Station) {
-    routeLauncher.launch(station)
+    routeLaunchUseCase.launchRoute(station)
   }
 
   fun onUpsertSavedPlaceAlert(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
     viewModelScope.launch {
-      savedPlaceAlertsRepository.upsertRule(target, condition)
+      savedPlaceAlertsUseCase.upsertRule(target, condition)
     }
   }
 
   fun onRemoveSavedPlaceAlertForTarget(target: SavedPlaceAlertTarget) {
     viewModelScope.launch {
-      savedPlaceAlertsRepository.removeRuleForTarget(target)
+      savedPlaceAlertsUseCase.removeRuleForTarget(target)
     }
   }
 

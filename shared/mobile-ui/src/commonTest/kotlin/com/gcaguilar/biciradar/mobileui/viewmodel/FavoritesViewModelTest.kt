@@ -16,6 +16,9 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.usecases.FavoritesManagementUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.RouteLaunchUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SavedPlaceAlertsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,12 +61,21 @@ class FavoritesViewModelTest {
           ),
         ),
     )
+    val favoritesRepository = FakeFavoritesRepo()
+    val settingsRepository = FakeFavoriteSettingsRepository()
+    val savedPlaceAlertsRepository = FakeFavoriteAlertsRepository()
     val viewModel = FavoritesViewModel(
-      favoritesRepository = FakeFavoritesRepo(),
-      stationsRepository = stationsRepository,
-      settingsRepository = FakeFavoriteSettingsRepository(),
-      savedPlaceAlertsRepository = FakeFavoriteAlertsRepository(),
-      routeLauncher = NoOpFavoriteRouteLauncher,
+      favoritesManagementUseCase = FavoritesManagementUseCase(
+        favoritesRepository = favoritesRepository,
+        stationsRepository = stationsRepository,
+        settingsRepository = settingsRepository,
+      ),
+      savedPlaceAlertsUseCase = SavedPlaceAlertsUseCase(
+        savedPlaceAlertsRepository = savedPlaceAlertsRepository,
+      ),
+      routeLaunchUseCase = RouteLaunchUseCase(
+        routeLauncher = NoOpFavoriteRouteLauncher,
+      ),
     )
 
     viewModel.onSearchQueryChange("san francisco")
@@ -91,11 +103,17 @@ class FavoritesViewModelTest {
     val settingsRepository = FakeFavoriteSettingsRepository()
     val savedPlaceAlertsRepository = FakeFavoriteAlertsRepository()
     val viewModel = FavoritesViewModel(
-      favoritesRepository = favoritesRepository,
-      stationsRepository = stationsRepository,
-      settingsRepository = settingsRepository,
-      savedPlaceAlertsRepository = savedPlaceAlertsRepository,
-      routeLauncher = NoOpFavoriteRouteLauncher,
+      favoritesManagementUseCase = FavoritesManagementUseCase(
+        favoritesRepository = favoritesRepository,
+        stationsRepository = stationsRepository,
+        settingsRepository = settingsRepository,
+      ),
+      savedPlaceAlertsUseCase = SavedPlaceAlertsUseCase(
+        savedPlaceAlertsRepository = savedPlaceAlertsRepository,
+      ),
+      routeLaunchUseCase = RouteLaunchUseCase(
+        routeLauncher = NoOpFavoriteRouteLauncher,
+      ),
     )
 
     advanceUntilIdle()

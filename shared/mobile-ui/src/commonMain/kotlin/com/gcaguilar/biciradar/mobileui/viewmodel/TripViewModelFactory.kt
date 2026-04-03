@@ -5,6 +5,9 @@ import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
 
 class TripViewModelFactory(
   private val tripRepository: TripRepository,
@@ -14,12 +17,22 @@ class TripViewModelFactory(
   private val settingsRepository: SettingsRepository,
 ) {
   fun create(): TripViewModel {
-    return TripViewModel(
+    val tripManagementUseCase = TripManagementUseCase(
       tripRepository = tripRepository,
+      settingsRepository = settingsRepository,
+    )
+    val surfaceMonitoringUseCase = SurfaceMonitoringUseCase(
       surfaceMonitoringRepository = surfaceMonitoringRepository,
+    )
+    val geoLocationUseCase = GeoLocationUseCase(
       geoSearchUseCase = geoSearchUseCase,
       reverseGeocodeUseCase = reverseGeocodeUseCase,
-      settingsRepository = settingsRepository,
+    )
+
+    return TripViewModel(
+      tripManagementUseCase = tripManagementUseCase,
+      surfaceMonitoringUseCase = surfaceMonitoringUseCase,
+      geoLocationUseCase = geoLocationUseCase,
     )
   }
 }

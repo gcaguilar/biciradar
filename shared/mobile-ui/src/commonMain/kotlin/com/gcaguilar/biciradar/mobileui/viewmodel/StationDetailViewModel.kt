@@ -3,16 +3,12 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.DatosBiziApi
-import com.gcaguilar.biciradar.core.FavoritesRepository
-import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
-import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
-import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
+import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
@@ -34,17 +30,13 @@ data class StationDetailUiState(
 
 class StationDetailViewModel(
   private val stationId: String,
-  private val favoritesRepository: FavoritesRepository,
-  private val settingsRepository: SettingsRepository,
-  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
-  private val datosBiziApi: DatosBiziApi,
-  private val routeLauncher: RouteLauncher,
+  private val stationDetailUseCase: StationDetailUseCase,
 ) : ViewModel() {
 
   private val patternState = MutableStateFlow(PatternState())
   private val cityRulesState: StateFlow<StationDetailCityRulesState> = combine(
-    settingsRepository.selectedCity,
-    savedPlaceAlertsRepository.rules,
+    stationDetailUseCase.selectedCity,
+    stationDetailUseCase.alertRules,
   ) { selectedCity, alertRules ->
     StationDetailCityRulesState(
       selectedCity = selectedCity,
@@ -54,15 +46,15 @@ class StationDetailViewModel(
     scope = viewModelScope,
     started = SharingStarted.Eagerly,
     initialValue = StationDetailCityRulesState(
-      selectedCity = settingsRepository.selectedCity.value,
-      savedPlaceAlertRules = savedPlaceAlertsRepository.rules.value,
+      selectedCity = stationDetailUseCase.selectedCity.value,
+      savedPlaceAlertRules = stationDetailUseCase.alertRules.value,
     ),
   )
 
   private val relationState: StateFlow<StationDetailRelationState> = combine(
-    favoritesRepository.favoriteIds,
-    favoritesRepository.homeStationId,
-    favoritesRepository.workStationId,
+    stationDetailUseCase.favoriteIds,
+    stationDetailUseCase.homeStationId,
+    stationDetailUseCase.workStationId,
     cityRulesState,
   ) { favoriteIds, homeStationId, workStationId, cityRulesState ->
     StationDetailRelationState(
@@ -77,9 +69,9 @@ class StationDetailViewModel(
     scope = viewModelScope,
     started = SharingStarted.Eagerly,
     initialValue = buildRelationState(
-      favoriteIds = favoritesRepository.favoriteIds.value,
-      homeStationId = favoritesRepository.homeStationId.value,
-      workStationId = favoritesRepository.workStationId.value,
+      favoriteIds = stationDetailUseCase.favoriteIds.value,
+      homeStationId = stationDetailUseCase.homeStationId.value,
+      workStationId = stationDetailUseCase.workStationId.value,
       cityRulesState = cityRulesState.value,
     ),
   )
@@ -99,7 +91,8 @@ class StationDetailViewModel(
   fun refreshPatterns() {
     viewModelScope.launch {
       patternState.value = patternState.value.copy(loading = true, error = false)
-      val patterns = runCatching { datosBiziApi.fetchPatterns(stationId) }.getOrNull()
+      val result = stationDetailUseCase.fetchStationPatterns(stationId)
+      val patterns = result.getOrNull()
       patternState.value = patternState.value.copy(
         patterns = patterns.orEmpty(),
         loading = false,
@@ -110,39 +103,35 @@ class StationDetailViewModel(
 
   fun onToggleFavorite() {
     viewModelScope.launch {
-      favoritesRepository.toggle(stationId)
+      stationDetailUseCase.toggleFavorite(stationId)
     }
   }
 
   fun onToggleHome() {
     viewModelScope.launch {
-      favoritesRepository.setHomeStationId(
-        if (favoritesRepository.homeStationId.value == stationId) null else stationId,
-      )
+      stationDetailUseCase.toggleHomeStation(stationId)
     }
   }
 
   fun onToggleWork() {
     viewModelScope.launch {
-      favoritesRepository.setWorkStationId(
-        if (favoritesRepository.workStationId.value == stationId) null else stationId,
-      )
+      stationDetailUseCase.toggleWorkStation(stationId)
     }
   }
 
   fun onRoute(station: Station) {
-    routeLauncher.launch(station)
+    stationDetailUseCase.launchRoute(station)
   }
 
   fun onUpsertSavedPlaceAlert(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
     viewModelScope.launch {
-      savedPlaceAlertsRepository.upsertRule(target, condition)
+      stationDetailUseCase.upsertAlertRule(target, condition)
     }
   }
 
   fun onRemoveSavedPlaceAlertForTarget(target: SavedPlaceAlertTarget) {
     viewModelScope.launch {
-      savedPlaceAlertsRepository.removeRuleForTarget(target)
+      stationDetailUseCase.removeAlertRuleForTarget(target)
     }
   }
 
