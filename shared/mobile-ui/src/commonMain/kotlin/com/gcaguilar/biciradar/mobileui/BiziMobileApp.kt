@@ -126,7 +126,6 @@ import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
 import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.core.GeoPoint
-import com.gcaguilar.biciradar.core.GeoResult
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.SEARCH_RADIUS_OPTIONS_METERS
@@ -170,9 +169,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.DEFAULT_SURFACE_MONITORING_DURATION_SECONDS
-import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository

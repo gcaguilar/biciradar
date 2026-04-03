@@ -1,6 +1,6 @@
 package com.gcaguilar.biciradar.mobileui
 
-internal enum class MobileUiPlatform {
+enum class MobileUiPlatform {
   Android,
   IOS,
   Desktop,

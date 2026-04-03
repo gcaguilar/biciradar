@@ -27,10 +27,12 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -63,16 +65,32 @@ class AppRootViewModelTest {
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true, completedAtEpoch = 1L),
       lastSeenChangelogAppVersion = "0.19.0",
     )
-    val viewModel = AppRootViewModel(
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+    
+    val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
-      favoritesRepository = FakeAppRootFavoritesRepository(),
-      stationsRepository = FakeAppRootStationsRepository(),
-      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      engagementRepository = FakeEngagementRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val feedbackUseCase = FeedbackUseCase(
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
+      engagementRepository = engagementRepository,
+    )
+    val changelogUseCase = ChangelogUseCase(
+      settingsRepository = settingsRepository,
+      appVersion = "0.21.0",
+    )
+    
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
       appVersion = "0.21.0",
     )
 
@@ -92,16 +110,32 @@ class AppRootViewModelTest {
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true),
       lastSeenChangelogAppVersion = "0.19.0",
     )
-    val viewModel = AppRootViewModel(
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+    
+    val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
-      favoritesRepository = FakeAppRootFavoritesRepository(),
-      stationsRepository = FakeAppRootStationsRepository(),
-      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      engagementRepository = FakeEngagementRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val feedbackUseCase = FeedbackUseCase(
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
+      engagementRepository = engagementRepository,
+    )
+    val changelogUseCase = ChangelogUseCase(
+      settingsRepository = settingsRepository,
+      appVersion = "0.21.0",
+    )
+    
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
       appVersion = "0.21.0",
     )
 
@@ -121,16 +155,31 @@ class AppRootViewModelTest {
       homeStationId.value = "station-1"
       workStationId.value = "station-2"
     }
-    val viewModel = AppRootViewModel(
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+    
+    val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
-      stationsRepository = FakeAppRootStationsRepository(),
-      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      engagementRepository = FakeEngagementRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      stationsRepository = stationsRepository,
+    )
+    val feedbackUseCase = FeedbackUseCase(
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
+      engagementRepository = engagementRepository,
+    )
+    val changelogUseCase = ChangelogUseCase(
+      settingsRepository = settingsRepository,
+      appVersion = "0.19.1",
+    )
+    
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
       appVersion = "0.19.1",
     )
 
@@ -148,16 +197,32 @@ class AppRootViewModelTest {
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true, completedAtEpoch = 1L),
       lastSeenChangelogAppVersion = "0.19.1",
     )
-    val viewModel = AppRootViewModel(
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+    
+    val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
-      favoritesRepository = FakeAppRootFavoritesRepository(),
-      stationsRepository = FakeAppRootStationsRepository(),
-      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
-      engagementRepository = FakeEngagementRepository(),
-      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
-      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val feedbackUseCase = FeedbackUseCase(
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
+      engagementRepository = engagementRepository,
+    )
+    val changelogUseCase = ChangelogUseCase(
+      settingsRepository = settingsRepository,
+      appVersion = "0.19.1",
+    )
+    
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      feedbackUseCase = feedbackUseCase,
+      changelogUseCase = changelogUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
       appVersion = "0.19.1",
     )
 

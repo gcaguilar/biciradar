@@ -57,7 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.GeoPoint
-import com.gcaguilar.biciradar.core.GeoResult
+import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -73,24 +73,24 @@ import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import biciradar.shared.mobile_ui.generated.resources.Res
-import biciradar.shared.mobile_ui.generated.resources.clear
-import biciradar.shared.mobile_ui.generated.resources.clearField
-import biciradar.shared.mobile_ui.generated.resources.cancelMap
-import biciradar.shared.mobile_ui.generated.resources.destination
-import biciradar.shared.mobile_ui.generated.resources.destinationPlaceholder
-import biciradar.shared.mobile_ui.generated.resources.gotIt
-import biciradar.shared.mobile_ui.generated.resources.pickOnMap
-import biciradar.shared.mobile_ui.generated.resources.searchingNearbyStation
-import biciradar.shared.mobile_ui.generated.resources.suggestions
-import biciradar.shared.mobile_ui.generated.resources.tapMapToPickDestination
-import biciradar.shared.mobile_ui.generated.resources.tripNoNearbyAlternative
-import biciradar.shared.mobile_ui.generated.resources.tripStationFull
-import biciradar.shared.mobile_ui.generated.resources.tripStationNoLongerHasSlots
-import biciradar.shared.mobile_ui.generated.resources.tripSubtitle
-import biciradar.shared.mobile_ui.generated.resources.tripSuggestedAlternative
-import biciradar.shared.mobile_ui.generated.resources.whereAreYouGoing
-import biciradar.shared.mobile_ui.generated.resources.walkRouteTo
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.clearField
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.cancelMap
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.destination
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.destinationPlaceholder
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.pickOnMap
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.searchingNearbyStation
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.suggestions
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tapMapToPickDestination
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlternative
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationFull
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationNoLongerHasSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSubtitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedAlternative
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.whereAreYouGoing
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.walkRouteTo
 
 private fun geoSuggestionSecondaryText(result: GeoResult): String? {
   val address = result.address.trim()

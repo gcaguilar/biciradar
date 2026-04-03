@@ -21,6 +21,7 @@ import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
+import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 
 internal object BiziMobileAppContent {
   @Composable

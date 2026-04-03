@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.TripMonitoringState
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
-import biciradar.shared.mobile_ui.generated.resources.Res
-import biciradar.shared.mobile_ui.generated.resources.monitoringActive
-import biciradar.shared.mobile_ui.generated.resources.remainingTime
-import biciradar.shared.mobile_ui.generated.resources.monitoringActiveDescription
-import biciradar.shared.mobile_ui.generated.resources.stopMonitoring
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActive
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.remainingTime
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActiveDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.stopMonitoring
 
 @Composable
 internal fun TripMonitoringActiveCard(

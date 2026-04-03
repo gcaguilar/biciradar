@@ -21,11 +21,11 @@ import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.StationMetricPill
 import org.jetbrains.compose.resources.stringResource
-import biciradar.shared.mobile_ui.generated.resources.Res
-import biciradar.shared.mobile_ui.generated.resources.distance
-import biciradar.shared.mobile_ui.generated.resources.bikes
-import biciradar.shared.mobile_ui.generated.resources.freeSlots
-import biciradar.shared.mobile_ui.generated.resources.tripSuggestedStation
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.freeSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedStation
 
 @Composable
 internal fun TripStationCard(
