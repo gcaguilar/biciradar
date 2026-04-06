@@ -18,6 +18,7 @@ androidx-startup = "1.2.0"
 androidx-wear-compose = "1.6.0"
 androidx-wear-protolayout = "1.4.0"
 androidx-wear-tiles = "1.6.0"
+androidx-wear-ongoing = "1.1.0"
 maps-compose = "8.2.2"
 play-services-location = "21.3.0"
 play-services-maps = "20.0.0"
@@ -50,6 +51,7 @@ androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-nav
 androidx-wear-protolayout = { module = "androidx.wear.protolayout:protolayout", version.ref = "androidx-wear-protolayout" }
 androidx-wear-protolayout-material3 = { module = "androidx.wear.protolayout:protolayout-material3", version.ref = "androidx-wear-protolayout" }
 androidx-wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "androidx-wear-tiles" }
+androidx-wear-ongoing = { module = "androidx.wear:wear-ongoing", version.ref = "androidx-wear-ongoing" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }

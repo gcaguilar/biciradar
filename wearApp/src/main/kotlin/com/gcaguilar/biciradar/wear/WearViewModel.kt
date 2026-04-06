@@ -14,6 +14,7 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.StopStationMonitoring
+import com.gcaguilar.biciradar.wear.ongoing.MonitoringOngoingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,6 +51,8 @@ internal class WearViewModel(
 
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
+  
+  private val ongoingActivity = MonitoringOngoingActivity(appContext)
 
   private var latestStations: List<Station> = emptyList()
   private var latestIsLoading: Boolean = false
@@ -164,8 +167,18 @@ internal class WearViewModel(
     viewModelScope.launch {
       if (latestSurfaceBundle?.monitoringSession?.takeIf { it.isActive }?.stationId == stationId) {
         stopStationMonitoring.execute(clear = true)
+        ongoingActivity.stop()
       } else {
         startStationMonitoring.execute(stationId = stationId)
+        // Iniciar ongoing activity
+        val station = stationsRepository.stationById(stationId)
+        if (station != null) {
+          ongoingActivity.start(
+            stationId = stationId,
+            stationName = station.name,
+            remainingSeconds = 300 // 5 minutos por defecto
+          )
+        }
       }
       FavoriteStationTileService.requestUpdate(appContext)
     }
@@ -174,6 +187,15 @@ internal class WearViewModel(
   fun onStartMonitoringFavorite(stationId: String) {
     viewModelScope.launch {
       startStationMonitoring.execute(stationId = stationId)
+      // Iniciar ongoing activity
+      val station = stationsRepository.stationById(stationId)
+      if (station != null) {
+        ongoingActivity.start(
+          stationId = stationId,
+          stationName = station.name,
+          remainingSeconds = 300 // 5 minutos por defecto
+        )
+      }
       FavoriteStationTileService.requestUpdate(appContext)
     }
   }
@@ -181,6 +203,7 @@ internal class WearViewModel(
   fun onStopMonitoring() {
     viewModelScope.launch {
       stopStationMonitoring.execute(clear = true)
+      ongoingActivity.stop()
       FavoriteStationTileService.requestUpdate(appContext)
     }
   }

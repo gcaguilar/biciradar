@@ -94,6 +94,7 @@ android {
     implementation(libs.androidx.wear.compose.material3)
     implementation(libs.androidx.wear.compose.navigation)
     implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.wear.ongoing)
     if (firebaseCrashlyticsEnabled) {
       implementation(platform(libs.firebase.bom))
       implementation(libs.firebase.crashlytics)
