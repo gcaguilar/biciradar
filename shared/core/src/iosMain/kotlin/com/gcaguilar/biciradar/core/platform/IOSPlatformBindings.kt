@@ -53,6 +53,11 @@ import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
 import platform.UIKit.UIApplication
 import platform.UIKit.UIDevice
+import platform.UIKit.UIAlertController
+import platform.UIKit.UIAlertControllerStyleAlert
+import platform.UIKit.UIAlertAction
+import platform.UIKit.UIAlertActionStyleDefault
+import platform.UIKit.UIAlertActionStyleCancel
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
@@ -248,15 +253,68 @@ private class IOSRouteLauncher : RouteLauncher {
       if (!launchGoogleMapsWeb(destination)) onAllGoogleFallbacksFailed()
       return
     }
+    
+    // Check if Google Maps app is installed
+    if (!app.canOpenURL(googleMapsUrl)) {
+      // Show alert and fallback to Apple Maps
+      showGoogleMapsNotInstalledAlert()
+      onAllGoogleFallbacksFailed()
+      return
+    }
+    
     app.openURL(
       url = googleMapsUrl,
       options = emptyMap<Any?, Any>(),
       completionHandler = { opened ->
         if (!opened) {
+          showGoogleMapsNotInstalledAlert()
           val openedWeb = launchGoogleMapsWeb(destination)
           if (!openedWeb) onAllGoogleFallbacksFailed()
         }
       },
+    )
+  }
+  
+  @OptIn(ExperimentalForeignApi::class)
+  private fun showGoogleMapsNotInstalledAlert() {
+    val alertController = UIAlertController.alertControllerWithTitle(
+      title = "Google Maps no instalado",
+      message = "Para obtener la mejor experiencia de navegación, instala Google Maps desde el App Store. Se abrirá Apple Maps como alternativa.",
+      preferredStyle = UIAlertControllerStyleAlert,
+    )
+    
+    alertController.addAction(
+      UIAlertAction.actionWithTitle(
+        title = "Abrir App Store",
+        style = UIAlertActionStyleDefault,
+        handler = { _ ->
+          val appStoreUrl = NSURL.URLWithString("https://apps.apple.com/app/google-maps/id585027354")
+          if (appStoreUrl != null && UIApplication.sharedApplication.canOpenURL(appStoreUrl)) {
+            UIApplication.sharedApplication.openURL(
+              url = appStoreUrl,
+              options = emptyMap<Any?, Any>(),
+              completionHandler = null,
+            )
+          }
+        },
+      )
+    )
+    
+    alertController.addAction(
+      UIAlertAction.actionWithTitle(
+        title = "Continuar con Apple Maps",
+        style = UIAlertActionStyleCancel,
+        handler = null,
+      )
+    )
+    
+    // Get the top view controller to present the alert
+    val keyWindow = UIApplication.sharedApplication.keyWindow
+    val rootViewController = keyWindow?.rootViewController
+    rootViewController?.presentViewController(
+      alertController,
+      animated = true,
+      completion = null,
     )
   }
 
