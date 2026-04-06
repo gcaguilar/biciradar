@@ -1,70 +1,92 @@
 package com.gcaguilar.biciradar.wear.ongoing
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationCompat
 import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
+import com.gcaguilar.biciradar.wear.WearActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
- * Manager central para gestionar Ongoing Activities en Wear OS.
+ * Manager para Ongoing Activities de monitorización en Wear OS.
  * 
- * Las Ongoing Activities permiten mostrar actividades en curso directamente
- * en la cara del reloj, dando acceso rápido a la app y mostrando información
- * en tiempo real.
+ * Muestra una actividad persistente en la cara del reloj cuando
+ * se está monitorizando una estación.
  */
 class OngoingActivityManager(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     
     private var currentOngoingActivity: OngoingActivity? = null
     private var updateJob: Job? = null
     
-    private val _isActive = MutableStateFlow(false)
-    val isActive: StateFlow<Boolean> = _isActive.asStateFlow()
+    init {
+        createNotificationChannel()
+    }
     
     /**
      * Inicia una Ongoing Activity para monitorización de estación.
-     * 
-     * @param stationId ID de la estación siendo monitorizada
-     * @param stationName Nombre de la estación
-     * @param remainingSeconds Segundos restantes de monitorización
-     * @param onTap Acción al tocar la ongoing activity
      */
     fun startMonitoringActivity(
         stationId: String,
         stationName: String,
-        remainingSeconds: Int,
-        onTap: () -> Unit
+        remainingSeconds: Int
     ) {
         stopCurrentActivity()
         
-        val initialStatus = Status.Builder()
-            .addTemplate("Monitoreando huecos en {station_name}")
-            .addPart("station_name", Status.TextPart(stationName))
+        // Crear intent para abrir la app
+        val intent = Intent(context, WearActivity::class.java).apply {
+            action = WearActivity.ACTION_OPEN_STATION
+            putExtra(WearActivity.EXTRA_OPEN_STATION_ID, stationId)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        // Crear notificación base
+        val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setContentTitle("Monitoreando huecos")
+            .setContentText(stationName)
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setOngoing(true)
+            .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+        
+        // Crear status para ongoing activity
+        val status = Status.Builder()
+            .addTemplate("Monitoreando huecos en {station}")
+            .addPart("station", Status.TextPart(stationName))
             .build()
         
-        currentOngoingActivity = OngoingActivity.Builder(context, NOTIFICATION_ID)
-            .setStaticIcon(android.R.drawable.ic_menu_mylocation)
-            .setTouchIntent(null) // Se configura desde la app
-            .setStatus(initialStatus)
+        // Crear ongoing activity
+        currentOngoingActivity = OngoingActivity.Builder(
+            context = context,
+            notificationId = NOTIFICATION_ID,
+            notificationBuilder = notificationBuilder
+        )
+            .setStatus(status)
             .build()
             .apply {
                 apply(context)
             }
         
-        _isActive.value = true
-        
         // Iniciar actualizaciones periódicas
+        var remaining = remainingSeconds
         updateJob = scope.launch {
-            var remaining = remainingSeconds
             while (isActive && remaining > 0) {
                 delay(1000)
                 remaining--
@@ -73,16 +95,29 @@ class OngoingActivityManager(private val context: Context) {
                 val seconds = remaining % 60
                 val timeText = String.format("%02d:%02d", minutes, seconds)
                 
+                // Actualizar status
                 val updatedStatus = Status.Builder()
-                    .addTemplate("{station_name} • {time_remaining}")
-                    .addPart("station_name", Status.TextPart(stationName))
-                    .addPart("time_remaining", Status.TextPart(timeText))
+                    .addTemplate("{station} • {time}")
+                    .addPart("station", Status.TextPart(stationName))
+                    .addPart("time", Status.TextPart(timeText))
                     .build()
                 
-                currentOngoingActivity?.update(updatedStatus)
+                currentOngoingActivity?.update(context, updatedStatus)
+                
+                // Actualizar notificación
+                val updatedNotification = NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setContentTitle("Monitoreando huecos")
+                    .setContentText("$stationName • $timeText")
+                    .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+                    .setOngoing(true)
+                    .setContentIntent(pendingIntent)
+                    .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                    .setPriority(NotificationCompat.PRIORITY_LOW)
+                    .build()
+                
+                notificationManager.notify(NOTIFICATION_ID, updatedNotification)
             }
             
-            // Cuando termina el tiempo, detener
             if (remaining <= 0) {
                 stopCurrentActivity()
             }
@@ -90,38 +125,29 @@ class OngoingActivityManager(private val context: Context) {
     }
     
     /**
-     * Actualiza el tiempo restante de la ongoing activity activa.
-     */
-    fun updateRemainingTime(stationName: String, remainingSeconds: Int) {
-        if (currentOngoingActivity == null) return
-        
-        val minutes = remainingSeconds / 60
-        val seconds = remainingSeconds % 60
-        val timeText = String.format("%02d:%02d", minutes, seconds)
-        
-        val updatedStatus = Status.Builder()
-            .addTemplate("{station_name} • {time_remaining}")
-            .addPart("station_name", Status.TextPart(stationName))
-            .addPart("time_remaining", Status.TextPart(timeText))
-            .build()
-        
-        currentOngoingActivity?.update(updatedStatus)
-    }
-    
-    /**
-     * Detiene la ongoing activity actual si existe.
+     * Detiene la ongoing activity actual.
      */
     fun stopCurrentActivity() {
         updateJob?.cancel()
         updateJob = null
-        
-        // La ongoing activity se detiene automáticamente cuando se cierra la notificación
-        // o cuando se llama a dismiss desde el sistema
+        notificationManager.cancel(NOTIFICATION_ID)
         currentOngoingActivity = null
-        _isActive.value = false
+    }
+    
+    private fun createNotificationChannel() {
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Monitorización",
+            NotificationManager.IMPORTANCE_LOW
+        ).apply {
+            description = "Notificaciones de monitorización de estaciones"
+            setShowBadge(false)
+        }
+        notificationManager.createNotificationChannel(channel)
     }
     
     companion object {
+        private const val CHANNEL_ID = "monitoring_channel"
         private const val NOTIFICATION_ID = 1001
         
         @Volatile
