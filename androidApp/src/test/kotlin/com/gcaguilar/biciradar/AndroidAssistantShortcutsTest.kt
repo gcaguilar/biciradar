@@ -1,7 +1,7 @@
 package com.gcaguilar.biciradar
 
-import com.gcaguilar.biciradar.mobileui.AssistantLaunchRequest
-import com.gcaguilar.biciradar.mobileui.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals

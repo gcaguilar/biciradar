@@ -49,10 +49,9 @@ class TripMonitorService : Service() {
     ensureNotificationChannel()
     favoritesRepository = SurfaceMonitoringRepositoryHolder.repository?.let { repo ->
       try {
-        repo.javaClass.getDeclaredField("favoritesRepository").apply {
-          isAccessible = true
-          get(repo) as? FavoritesRepository
-        }
+        val field = repo.javaClass.getDeclaredField("favoritesRepository")
+        field.isAccessible = true
+        field.get(repo) as? FavoritesRepository
       } catch (e: Exception) {
         null
       }

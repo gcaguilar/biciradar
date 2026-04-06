@@ -2,8 +2,8 @@ package com.gcaguilar.biciradar
 
 import android.app.SearchManager
 import android.content.Intent
-import com.gcaguilar.biciradar.mobileui.AssistantLaunchRequest
-import com.gcaguilar.biciradar.mobileui.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import java.text.Normalizer
 import java.util.Locale
 

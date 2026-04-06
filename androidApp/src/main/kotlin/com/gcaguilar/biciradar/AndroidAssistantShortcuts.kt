@@ -2,8 +2,8 @@ package com.gcaguilar.biciradar
 
 import android.content.Context
 import androidx.core.content.pm.ShortcutManagerCompat
-import com.gcaguilar.biciradar.mobileui.AssistantLaunchRequest
-import com.gcaguilar.biciradar.mobileui.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 
 internal object AndroidAssistantShortcuts {
 

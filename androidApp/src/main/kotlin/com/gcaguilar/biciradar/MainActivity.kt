@@ -18,9 +18,9 @@ import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
-import com.gcaguilar.biciradar.mobileui.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
-import com.gcaguilar.biciradar.mobileui.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.coroutines.CoroutineScope
