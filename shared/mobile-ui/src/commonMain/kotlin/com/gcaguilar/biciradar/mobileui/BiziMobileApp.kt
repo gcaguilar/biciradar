@@ -491,6 +491,15 @@ fun BiziMobileApp(
         color = pageBackgroundColor(mobilePlatform),
       ) {
         when {
+          !appRootUiState.settingsBootstrapped -> {
+            // Loading state while settings are being initialized
+            Box(
+              modifier = Modifier.fillMaxSize(),
+              contentAlignment = Alignment.Center,
+            ) {
+              CircularProgressIndicator()
+            }
+          }
           !onboardingChecklist.isCompleted() && !onboardingChecklist.cityConfirmed -> {
             CitySelectionScreen(
               onCitySelected = { city ->
