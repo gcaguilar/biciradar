@@ -49,14 +49,6 @@
             android:name="com.gcaguilar.biciradar.TripMonitorService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
-        <service
-            android:name=".appfunctions.BiciRadarAppFunctionService"
-            android:exported="true"
-            android:permission="androidx.appfunctions.BIND_APP_FUNCTION_SERVICE">
-            <intent-filter>
-                <action android:name="androidx.appfunctions.AppFunctionService" />
-            </intent-filter>
-        </service>
         <receiver
             android:name="com.gcaguilar.biciradar.FavoriteStationWidgetProvider"
             android:exported="true">
