@@ -3,7 +3,7 @@ package com.gcaguilar.biciradar.appfunctions.parameters
 import androidx.appfunctions.AppFunctionParameter
 
 @AppFunctionParameter
-enum class DetailLevel {
-    BASIC,
-    FULL
-}
+data class GetStationStatusParams(
+    val stationId: String,
+    val detailLevel: DetailLevel = DetailLevel.BASIC
+)
