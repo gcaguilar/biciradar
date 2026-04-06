@@ -29,8 +29,8 @@ import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import kotlinx.coroutines.Dispatchers
@@ -71,19 +71,22 @@ class AppRootViewModelTest {
     val favoritesRepository = FakeAppRootFavoritesRepository()
     val stationsRepository = FakeAppRootStationsRepository()
     val engagementRepository = FakeEngagementRepository()
-    
+
     val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
     )
-    val feedbackUseCase = FeedbackUseCase(
+
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
-      engagementRepository = engagementRepository,
-    )
-    val changelogUseCase = ChangelogUseCase(
-      settingsRepository = settingsRepository,
+      settingsAggregationUseCase = settingsAggregationUseCase,
       appVersion = "0.21.0",
     )
 
@@ -95,8 +98,7 @@ class AppRootViewModelTest {
 
     val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
       surfaceManagementUseCase = surfaceManagementUseCase,
       clock = { 1L },
@@ -104,8 +106,7 @@ class AppRootViewModelTest {
 
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
@@ -135,13 +136,16 @@ class AppRootViewModelTest {
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
     )
-    val feedbackUseCase = FeedbackUseCase(
+
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
-      engagementRepository = engagementRepository,
-    )
-    val changelogUseCase = ChangelogUseCase(
-      settingsRepository = settingsRepository,
+      settingsAggregationUseCase = settingsAggregationUseCase,
       appVersion = "0.21.0",
     )
 
@@ -153,8 +157,7 @@ class AppRootViewModelTest {
 
     val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
       surfaceManagementUseCase = surfaceManagementUseCase,
       clock = { 1L },
@@ -162,8 +165,7 @@ class AppRootViewModelTest {
 
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
@@ -186,19 +188,22 @@ class AppRootViewModelTest {
     }
     val stationsRepository = FakeAppRootStationsRepository()
     val engagementRepository = FakeEngagementRepository()
-    
+
     val startupUseCase = StartupUseCase(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
     )
-    val feedbackUseCase = FeedbackUseCase(
+
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
-      engagementRepository = engagementRepository,
-    )
-    val changelogUseCase = ChangelogUseCase(
-      settingsRepository = settingsRepository,
+      settingsAggregationUseCase = settingsAggregationUseCase,
       appVersion = "0.19.1",
     )
 
@@ -210,8 +215,7 @@ class AppRootViewModelTest {
 
     val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
       surfaceManagementUseCase = surfaceManagementUseCase,
       clock = { 1L },
@@ -219,8 +223,7 @@ class AppRootViewModelTest {
 
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
@@ -248,13 +251,16 @@ class AppRootViewModelTest {
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
     )
-    val feedbackUseCase = FeedbackUseCase(
+
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
       appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
       reviewPrompter = AppRootFakeReviewPrompter(),
-      engagementRepository = engagementRepository,
-    )
-    val changelogUseCase = ChangelogUseCase(
-      settingsRepository = settingsRepository,
+      settingsAggregationUseCase = settingsAggregationUseCase,
       appVersion = "0.19.1",
     )
 
@@ -266,8 +272,7 @@ class AppRootViewModelTest {
 
     val appInitializer = AppInitializer(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
       surfaceManagementUseCase = surfaceManagementUseCase,
       clock = { 1L },
@@ -275,8 +280,7 @@ class AppRootViewModelTest {
 
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
-      feedbackUseCase = feedbackUseCase,
-      changelogUseCase = changelogUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
       appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
