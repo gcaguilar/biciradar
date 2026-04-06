@@ -35,7 +35,6 @@ google-services-plugin = "4.4.4"
 material-components = "1.13.0"
 jetbrains-compose-material3 = "1.11.0-alpha05"
 jetbrains-compose-material3-adaptive = "1.3.0-alpha06"
-appfunctions = "1.0.0-alpha08"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -88,7 +87,6 @@ play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref =
 play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
-androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
