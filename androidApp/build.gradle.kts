@@ -83,6 +83,8 @@ android {
     implementation(libs.google.material)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
+    implementation(libs.androidx.appfunctions)
+    implementation(libs.androidx.appfunctions.runtime)
     testImplementation(libs.junit)
   }
 }
