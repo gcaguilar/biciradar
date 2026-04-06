@@ -106,7 +106,7 @@ class TripMonitorService : Service() {
       return
     }
     repository.state
-      .onEach { session ->
+      .onEach { session: SurfaceMonitoringSession? ->
         currentSession = session
         if (session == null || !session.isActive) {
           countdownJob?.cancel()
