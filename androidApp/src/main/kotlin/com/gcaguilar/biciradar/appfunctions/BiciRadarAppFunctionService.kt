@@ -2,6 +2,8 @@ package com.gcaguilar.biciradar.appfunctions
 
 import android.os.Bundle
 import androidx.appfunctions.AppFunctionService
+import androidx.appfunctions.ExecuteAppFunctionRequest
+import androidx.appfunctions.ExecuteAppFunctionResponse
 import com.gcaguilar.biciradar.appfunctions.functions.FindNearbyStationFunction
 import com.gcaguilar.biciradar.appfunctions.functions.GetFavoritesFunction
 import com.gcaguilar.biciradar.appfunctions.functions.GetStationStatusFunction
@@ -23,11 +25,11 @@ class BiciRadarAppFunctionService : AppFunctionService() {
     @Inject
     lateinit var getFavoritesFunction: GetFavoritesFunction
 
-    override suspend fun onExecute(
-        functionId: String,
-        parameters: Bundle
-    ): Bundle {
-        return when (functionId) {
+    override suspend fun executeFunction(request: ExecuteAppFunctionRequest): ExecuteAppFunctionResponse {
+        val functionId = request.functionId
+        val parameters = request.parameters
+        
+        val resultBundle = when (functionId) {
             "findNearbyStation" -> {
                 val params = FindNearbyStationParams(
                     preference = parameters.getString("preference")?.let {
@@ -57,5 +59,7 @@ class BiciRadarAppFunctionService : AppFunctionService() {
             }
             else -> throw IllegalArgumentException("Unknown function: $functionId")
         }
+        
+        return ExecuteAppFunctionResponse(resultBundle)
     }
 }

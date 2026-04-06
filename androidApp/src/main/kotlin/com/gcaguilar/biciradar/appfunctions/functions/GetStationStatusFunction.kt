@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.appfunctions.functions
 
-import com.gcaguilar.biciradar.appfunctions.parameters.DetailLevel
-import com.gcaguilar.biciradar.appfunctions.parameters.GetStationStatusParams
 import com.gcaguilar.biciradar.appfunctions.results.StationStatusResult
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.StationsRepository

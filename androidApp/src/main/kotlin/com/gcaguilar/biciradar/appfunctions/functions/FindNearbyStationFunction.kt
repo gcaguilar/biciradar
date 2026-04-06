@@ -9,7 +9,6 @@ import com.gcaguilar.biciradar.core.LocationProvider
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import javax.inject.Inject
-import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.pow
@@ -26,7 +25,7 @@ class FindNearbyStationFunction @Inject constructor(
     private val locationProvider: LocationProvider
 ) {
     suspend fun execute(params: FindNearbyStationParams): List<StationResult> {
-        val userLocation = locationProvider.getCurrentLocation()
+        val userLocation = locationProvider.currentLocation()
             ?: return emptyList()
         
         val favoriteIds = favoritesRepository.favoriteIds.value
