@@ -1,9 +1,11 @@
 package com.gcaguilar.biciradar.appfunctions.results
 
-import androidx.appfunctions.AppFunctionResult
-import androidx.appfunctions.AppFunctionUiPresentation
+import android.os.Parcel
+import android.os.Parcelable
 
-@AppFunctionResult
+/**
+ * Result data for a detailed station status query.
+ */
 data class StationStatusResult(
     val stationId: String,
     val name: String,
@@ -12,16 +14,39 @@ data class StationStatusResult(
     val slotsAvailable: Int,
     val isOpen: Boolean,
     val lastUpdated: Long,
-    val isFavorite: Boolean,
-    @AppFunctionUiPresentation
-    val uiPresentation: StationStatusCardUi? = null
-)
+    val isFavorite: Boolean
+) : Parcelable {
+    constructor(parcel: Parcel) : this(
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
+        parcel.readInt(),
+        parcel.readInt(),
+        parcel.readByte() != 0.toByte(),
+        parcel.readLong(),
+        parcel.readByte() != 0.toByte()
+    )
 
-@AppFunctionUiPresentation
-data class StationStatusCardUi(
-    val title: String,
-    val statusText: String,
-    val bikesText: String,
-    val slotsText: String,
-    val primaryAction: String
-)
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(stationId)
+        parcel.writeString(name)
+        parcel.writeString(address)
+        parcel.writeInt(bikesAvailable)
+        parcel.writeInt(slotsAvailable)
+        parcel.writeByte(if (isOpen) 1 else 0)
+        parcel.writeLong(lastUpdated)
+        parcel.writeByte(if (isFavorite) 1 else 0)
+    }
+
+    override fun describeContents(): Int = 0
+
+    companion object CREATOR : Parcelable.Creator<StationStatusResult> {
+        override fun createFromParcel(parcel: Parcel): StationStatusResult {
+            return StationStatusResult(parcel)
+        }
+
+        override fun newArray(size: Int): Array<StationStatusResult?> {
+            return arrayOfNulls(size)
+        }
+    }
+}

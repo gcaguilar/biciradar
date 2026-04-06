@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.appfunctions.parameters
 
-import androidx.appfunctions.AppFunctionParameter
-
-@AppFunctionParameter
+/**
+ * Level of detail for station status queries.
+ */
 enum class DetailLevel {
     BASIC,
     FULL

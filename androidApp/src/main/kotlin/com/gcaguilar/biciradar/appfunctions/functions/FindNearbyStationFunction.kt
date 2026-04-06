@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.appfunctions.functions
 
-import androidx.appfunctions.AppFunction
 import com.gcaguilar.biciradar.appfunctions.parameters.FindNearbyStationParams
 import com.gcaguilar.biciradar.appfunctions.parameters.StationPreference
 import com.gcaguilar.biciradar.appfunctions.results.StationResult
@@ -18,14 +17,16 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-@AppFunction
+/**
+ * App Function that finds nearby stations based on user location and preferences.
+ */
 class FindNearbyStationFunction @Inject constructor(
     private val stationsRepository: StationsRepository,
     private val favoritesRepository: FavoritesRepository,
     private val locationProvider: LocationProvider
 ) {
     suspend fun execute(params: FindNearbyStationParams): List<StationResult> {
-        val userLocation = locationProvider.currentLocation()
+        val userLocation = locationProvider.getCurrentLocation()
             ?: return emptyList()
         
         val favoriteIds = favoritesRepository.favoriteIds.value
@@ -41,7 +42,7 @@ class FindNearbyStationFunction @Inject constructor(
             }
             .sortedBy { it.distanceMeters }
         
-        return stations.map { it.toResult(favoriteIds.contains(it.id), userLocation) }
+        return stations.map { it.toResult(favoriteIds.contains(it.id)) }
     }
     
     private fun Station.matchesPreference(preference: StationPreference): Boolean {
@@ -58,7 +59,7 @@ class FindNearbyStationFunction @Inject constructor(
         )
     }
     
-    private fun Station.toResult(isFavorite: Boolean, userLocation: GeoPoint): StationResult {
+    private fun Station.toResult(isFavorite: Boolean): StationResult {
         return StationResult(
             stationId = id,
             name = name,
