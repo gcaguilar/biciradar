@@ -71,9 +71,9 @@ internal class AppInitializer(
     // Initialize surface repositories
     surfaceManagementUseCase.bootstrap()
 
-    // Initialize settings
-    onSettingsBootstrapped()
+    // Initialize settings first
     initializeSettings()
+    onSettingsBootstrapped()
 
     // Update changelog after settings are ready
     updatePendingChangelog()
@@ -83,8 +83,8 @@ internal class AppInitializer(
     appLifecycleUseCase.markUsefulSession(clock())
 
     // Initialize favorites
-    onFavoritesBootstrapped()
     initializeFavorites()
+    onFavoritesBootstrapped()
   }
 
   /**
