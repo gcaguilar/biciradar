@@ -350,3 +350,11 @@ class TripMonitorService : Service() {
     }
   }
 }
+
+/**
+ * Holder estático para acceder al SurfaceMonitoringRepository desde el servicio.
+ */
+object SurfaceMonitoringRepositoryHolder {
+  @Volatile
+  var repository: SurfaceMonitoringRepository? = null
+}
