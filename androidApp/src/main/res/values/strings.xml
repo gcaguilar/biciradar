@@ -27,4 +27,16 @@
     <string name="widget_action_monitor">Monitorizar</string>
     <string name="widget_action_configure">Configurar</string>
     <string name="widget_action_notifications">Permiso</string>
+    
+    <!-- Notification Actions -->
+    <string name="notification_action_stop">Detener</string>
+    <string name="notification_action_add_favorite">Favorito</string>
+    <string name="notification_action_remove_favorite">Quitar</string>
+    <string name="notification_action_share">Compartir</string>
+    <string name="notification_action_map">Mapa</string>
+    <string name="notification_action_alternative">Alternativa</string>
+    
+    <!-- Notification Channel -->
+    <string name="notification_channel_monitoring_title">Monitorización de estaciones</string>
+    <string name="notification_channel_monitoring_description">Notificaciones persistentes durante la monitorización de huecos en estaciones</string>
 </resources>

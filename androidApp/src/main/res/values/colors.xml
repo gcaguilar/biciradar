@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bizi_splash_background">#ffffff</color>
+    <color name="brand_primary">#FF1D74BD</color>
+    <color name="brand_secondary">#FF64C23A</color>
+    <color name="brand_error">#FFCF6679</color>
 </resources>
