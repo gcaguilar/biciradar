@@ -5,9 +5,11 @@ import androidx.appfunctions.AppFunctionService
 import com.gcaguilar.biciradar.appfunctions.functions.FindNearbyStationFunction
 import com.gcaguilar.biciradar.appfunctions.functions.GetFavoritesFunction
 import com.gcaguilar.biciradar.appfunctions.functions.GetStationStatusFunction
+import com.gcaguilar.biciradar.appfunctions.mapping.AppFunctionMapper
 import com.gcaguilar.biciradar.appfunctions.parameters.FindNearbyStationParams
 import com.gcaguilar.biciradar.appfunctions.parameters.GetStationStatusParams
 import com.gcaguilar.biciradar.appfunctions.parameters.StationPreference
+import com.gcaguilar.biciradar.core.AssistantAction
 import javax.inject.Inject
 
 /**
@@ -18,6 +20,9 @@ import javax.inject.Inject
  * function handlers based on the functionId.
  *
  * The function handlers are injected via Dagger/Hilt dependency injection.
+ *
+ * This service also integrates with the existing AssistantAction system through
+ * [AppFunctionMapper], allowing backward compatibility with existing assistant shortcuts.
  */
 class BiciRadarAppFunctionService : AppFunctionService() {
 
@@ -42,6 +47,10 @@ class BiciRadarAppFunctionService : AppFunctionService() {
         functionId: String,
         parameters: Bundle
     ): Bundle {
+        // Map the App Function call to an AssistantAction for backward compatibility
+        // with the existing assistant shortcut system
+        val assistantAction = AppFunctionMapper.toAssistantAction(functionId, parameters)
+
         return when (functionId) {
             "findNearbyStation" -> {
                 val params = FindNearbyStationParams(
@@ -73,5 +82,18 @@ class BiciRadarAppFunctionService : AppFunctionService() {
             }
             else -> throw IllegalArgumentException("Unknown function: $functionId")
         }
+    }
+
+    /**
+     * Converts an AssistantAction to its App Function representation.
+     *
+     * This method allows the existing assistant shortcut system to leverage
+     * App Functions for execution, maintaining backward compatibility.
+     *
+     * @param action The AssistantAction to convert
+     * @return A Pair of functionId and parameters Bundle, or null if the action cannot be mapped
+     */
+    fun fromAssistantAction(action: AssistantAction): Pair<String, Bundle>? {
+        return AppFunctionMapper.fromAssistantAction(action)
     }
 }
