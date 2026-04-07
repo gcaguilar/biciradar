@@ -256,6 +256,7 @@ export function mountBetaForm(): void {
         ok?: boolean;
         message?: string;
         redirectPath?: string;
+        warning?: string;
       } | null;
 
       if (!response.ok || !payload?.ok) {
@@ -274,6 +275,11 @@ export function mountBetaForm(): void {
         city_page_key: form.dataset.cityPageKey || '',
         os: osField instanceof HTMLSelectElement ? osField.value : '',
       });
+      if (payload?.warning) {
+        window.BiciRadarAnalytics?.track?.('beta_form_warning', {
+          message: payload.warning,
+        });
+      }
 
       const redirectUrl = new URL(
         payload.redirectPath || form.dataset.redirectPath || '/',

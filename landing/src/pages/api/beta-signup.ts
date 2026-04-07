@@ -53,20 +53,23 @@ export const POST: APIRoute = async ({ request }) => {
   await forwardBetaLead(validation.data);
 
   const emailResult = await sendBetaSignupEmails(validation.data);
-  if (!emailResult.ok) {
-    const message = emailResult.reason;
-    if (wantsJson(request)) {
-      return Response.json({ ok: false, message }, { status: 502 });
-    }
-    const fallbackPath = String(formData.get('pagePath') || '/');
-    return Response.redirect(new URL(fallbackPath, request.url), 303);
-  }
   const redirectPath = buildRedirectPath(request, validation.data.locale, validation.data.operatingSystem);
+  const emailWarning = !emailResult.ok ? emailResult.reason : undefined;
+
+  if (emailWarning) {
+    console.error('Beta signup accepted with email notification failure', {
+      reason: emailWarning,
+      pagePath: validation.data.pagePath || null,
+      operatingSystem: validation.data.operatingSystem,
+      locale: validation.data.locale,
+    });
+  }
 
   if (wantsJson(request)) {
     return Response.json({
       ok: true,
       redirectPath,
+      ...(emailWarning ? { warning: emailWarning } : {}),
     });
   }
 

@@ -102,7 +102,7 @@ describe('POST /api/beta-signup', () => {
     expect(payload.subject).not.toContain('BiciMAD');
   });
 
-  it('returns 502 when Resend reports an error so the client can show a failure', async () => {
+  it('keeps signup successful when Resend reports an error', async () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
     resendSend.mockResolvedValueOnce({
@@ -113,8 +113,10 @@ describe('POST /api/beta-signup', () => {
     const response = await POST({ request: buildRequest('ios') } as any);
     const body = await response.json();
 
-    expect(response.status).toBe(502);
-    expect(body.ok).toBe(false);
-    expect(String(body.message)).toContain('Invalid API key');
+    expect(response.status).toBe(200);
+    expect(body.ok).toBe(true);
+    expect(body.redirectPath).toMatch(/beta-thanks/);
+    expect(body.redirectPath).toMatch(/os=ios/);
+    expect(String(body.warning)).toContain('Invalid API key');
   });
 });
