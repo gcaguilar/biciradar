@@ -499,7 +499,6 @@ internal class AppRootViewModel(
         }
       }
     }
-    }
   }
 
   private fun recomputeOnboardingPresentation() {
