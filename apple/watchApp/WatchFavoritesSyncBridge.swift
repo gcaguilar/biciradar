@@ -9,6 +9,8 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
     static let workStationCacheKey = "bizizaragoza.watch.work_station_id"
     static let monitoringSessionCacheKey = "bizizaragoza.watch.monitoring_session"
     static let monitoringSessionContextKey = "monitoring_session"
+    static let snapshotV2CacheKey = "bizizaragoza.watch.favorite_categories_v2"
+    static let snapshotV2ContextKey = "favorite_categories_v2"
 
     @Published private(set) var favoriteIds: Set<String> = []
     @Published private(set) var homeStationId: String?
@@ -40,6 +42,18 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         context["favorite_ids"] = Array(favoriteIds)
         context["home_station_id"] = homeStationId
         context["work_station_id"] = workStationId
+        let snapshot = WatchFavoritesSnapshotV2(
+            categories: [],
+            stationCategory: [:],
+            favoriteIds: favoriteIds,
+            homeStationId: homeStationId,
+            workStationId: workStationId
+        )
+        if let encoded = try? JSONEncoder().encode(snapshot),
+           let string = String(data: encoded, encoding: .utf8) {
+            context[Self.snapshotV2ContextKey] = string
+            defaults.set(string, forKey: Self.snapshotV2CacheKey)
+        }
         context["route_station_id"] = stationId
         context["route_requested_at"] = Date().timeIntervalSince1970
         do {
@@ -78,6 +92,17 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         if let ids = context["favorite_ids"] as? [String] {
             favoriteIds = Set(ids)
             defaults.set(ids, forKey: Self.favoritesCacheKey)
+        }
+        if let snapshot = context[Self.snapshotV2ContextKey] as? String,
+           let data = snapshot.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode(WatchFavoritesSnapshotV2.self, from: data) {
+            favoriteIds = decoded.favoriteIds
+            homeStationId = decoded.homeStationId
+            workStationId = decoded.workStationId
+            defaults.set(Array(decoded.favoriteIds), forKey: Self.favoritesCacheKey)
+            defaults.set(decoded.homeStationId, forKey: Self.homeStationCacheKey)
+            defaults.set(decoded.workStationId, forKey: Self.workStationCacheKey)
+            defaults.set(snapshot, forKey: Self.snapshotV2CacheKey)
         }
         if let homeStationId = context["home_station_id"] as? String {
             let trimmed = homeStationId.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -149,4 +174,18 @@ enum WatchMonitoringAccent {
     case good
     case warning
     case error
+}
+
+private struct WatchFavoritesSnapshotV2: Codable {
+    let categories: [WatchFavoriteCategory]?
+    let stationCategory: [String: String]?
+    let favoriteIds: Set<String>
+    let homeStationId: String?
+    let workStationId: String?
+}
+
+private struct WatchFavoriteCategory: Codable {
+    let id: String
+    let label: String
+    let isSystem: Bool
 }

@@ -25,6 +25,7 @@ import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
 import com.gcaguilar.biciradar.core.local.createNativeDriver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
@@ -40,6 +41,8 @@ import kotlinx.cinterop.value
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import okio.FileSystem
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSBundle
@@ -108,9 +111,12 @@ class IOSPlatformBindings(
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   private var database: BiciRadarDatabase? = null
   override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    override fun create(): BiciRadarDatabase? {
+    override fun create(json: Json): BiciRadarDatabase? {
       if (database == null) {
-        database = BiciRadarDatabase(createNativeDriver())
+        val driver = createNativeDriver()
+        val db = BiciRadarDatabase(driver)
+        LegacyBlobToRelationalMigration.ensure(driver, db, json)
+        database = db
       }
       return database
     }
@@ -144,10 +150,14 @@ private class IOSMapSupport : MapSupport {
       ?.trim()
       ?.takeUnless { it.startsWith("$(") }
       .orEmpty()
+    val googleMapsUrl = NSURL.URLWithString("comgooglemaps://")
+    val googleMapsInstalled = googleMapsUrl != null &&
+      UIApplication.sharedApplication.canOpenURL(googleMapsUrl)
     return MapSupportStatus(
       embeddedProvider = EmbeddedMapProvider.AppleMapKit,
       googleMapsSdkLinked = NSClassFromString("GMSServices") != null && NSClassFromString("GMSMapView") != null,
       googleMapsApiKeyConfigured = apiKey.isNotBlank(),
+      googleMapsAppInstalled = googleMapsInstalled,
     )
   }
 }
@@ -345,7 +355,17 @@ private class IOSRouteLauncher : RouteLauncher {
   }
 
   private fun preferredMapApp(): PreferredMapApp =
-    settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
+    when (settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps) {
+      PreferredMapApp.GoogleMaps -> {
+        if (isGoogleMapsInstalled()) PreferredMapApp.GoogleMaps else PreferredMapApp.AppleMaps
+      }
+      PreferredMapApp.AppleMaps -> PreferredMapApp.AppleMaps
+    }
+
+  private fun isGoogleMapsInstalled(): Boolean {
+    val url = NSURL.URLWithString("comgooglemaps://") ?: return false
+    return UIApplication.sharedApplication.canOpenURL(url)
+  }
 
   private fun launchGoogleMapsWeb(destination: GeoPoint): Boolean {
     val url = NSURL.URLWithString(
@@ -376,6 +396,9 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
           put(IOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
           snapshot.homeStationId?.let { put(IOSFavoritesCache.homeContextKey, it) }
           snapshot.workStationId?.let { put(IOSFavoritesCache.workContextKey, it) }
+          runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }
+            .getOrNull()
+            ?.let { put(IOSFavoritesCache.snapshotContextKey, it) }
         },
         error = errorPtr.ptr,
       )
@@ -387,7 +410,7 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
   }
 
   override suspend fun latestFavorites(): FavoritesSyncSnapshot? = IOSFavoritesCache.read()
-    .takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null }
+    .takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null || it.stationCategory.isNotEmpty() }
 }
 
 private object IOSFavoritesCache {
@@ -397,6 +420,8 @@ private object IOSFavoritesCache {
   const val workCacheKey = "bizizaragoza.watch.work_station_id"
   const val homeContextKey = "home_station_id"
   const val workContextKey = "work_station_id"
+  const val snapshotCacheKey = "bizizaragoza.watch.favorite_categories_v2"
+  const val snapshotContextKey = "favorite_categories_v2"
 
   fun read(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
     favoriteIds = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
@@ -405,12 +430,18 @@ private object IOSFavoritesCache {
       .toSet(),
     homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
     workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
-  )
+  ).let { legacy ->
+    val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
+    runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
+      .getOrNull() ?: legacy
+  }
 
   fun persist(snapshot: FavoritesSyncSnapshot) {
     NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
     NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = homeCacheKey)
     NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = workCacheKey)
+    val encoded = runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }.getOrNull()
+    NSUserDefaults.standardUserDefaults.setObject(encoded, forKey = snapshotCacheKey)
   }
 }
 

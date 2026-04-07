@@ -1,11 +1,21 @@
 package com.gcaguilar.biciradar.core
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.loadSurfaceBundleFromDb
+import com.gcaguilar.biciradar.core.local.persistSurfaceBundleRelational
+import com.gcaguilar.biciradar.core.local.surfaceBundleFromRows
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -28,12 +38,29 @@ class SurfaceSnapshotRepositoryImpl(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
   private val stationsRepository: StationsRepository,
+  private val scope: CoroutineScope,
   private val database: BiciRadarDatabase? = null,
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
   private var bootstrapped = false
 
   override val bundle: StateFlow<SurfaceSnapshotBundle?> = mutableBundle.asStateFlow()
+
+  init {
+    val db = database
+    if (db != null) {
+      scope.launch {
+        combine(
+          db.biciradarQueries.getSurfaceHeader().asFlow().mapToOneOrNull(Dispatchers.Default),
+          db.biciradarQueries.getAllSurfaceStationRows().asFlow().mapToList(Dispatchers.Default),
+          db.biciradarQueries.getSurfaceMonitoring().asFlow().mapToOneOrNull(Dispatchers.Default),
+        ) { header, rows, mon ->
+          if (header == null) null
+          else surfaceBundleFromRows(header, rows, mon)
+        }.collect { mutableBundle.value = it }
+      }
+    }
+  }
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
@@ -138,11 +165,12 @@ class SurfaceSnapshotRepositoryImpl(
         deleteLegacyFile()
       } else {
         persistToFile(snapshot)
+        mutableBundle.value = snapshot
       }
     } else {
       persistToFile(snapshot)
+      mutableBundle.value = snapshot
     }
-    mutableBundle.value = snapshot
   }
 
   private fun emptyBundle(): SurfaceSnapshotBundle {
@@ -169,9 +197,7 @@ class SurfaceSnapshotRepositoryImpl(
     val legacyBundle = readFromFile()
     if (legacyBundle == null) return dbBundle
     if (dbBundle != null) {
-      if (dbBundle == legacyBundle) {
-        deleteLegacyFile()
-      }
+      deleteLegacyFile()
       return dbBundle
     }
     val migrated = persistToDatabase(legacyBundle)
@@ -184,10 +210,7 @@ class SurfaceSnapshotRepositoryImpl(
 
   private fun readFromDatabase(): SurfaceSnapshotBundle? {
     val db = database ?: return null
-    return runCatching {
-      val row = db.biciradarQueries.getSurfaceSnapshotBundle().executeAsOneOrNull() ?: return@runCatching null
-      json.decodeFromString<SurfaceSnapshotBundle>(row)
-    }.getOrNull()
+    return runCatching { loadSurfaceBundleFromDb(db) }.getOrNull()
   }
 
   private fun readFromFile(): SurfaceSnapshotBundle? {
@@ -201,9 +224,7 @@ class SurfaceSnapshotRepositoryImpl(
   private fun persistToDatabase(snapshot: SurfaceSnapshotBundle): Boolean {
     val db = database ?: return false
     return runCatching {
-      db.biciradarQueries.upsertSurfaceSnapshotBundle(
-        bundleJson = json.encodeToString(snapshot),
-      )
+      persistSurfaceBundleRelational(db, snapshot)
     }.isSuccess
   }
 

@@ -72,10 +72,25 @@ fun computeStationsFreshness(
 
 @Serializable
 data class FavoritesSyncSnapshot(
+  val categories: List<FavoriteCategory> = emptyList(),
+  val stationCategory: Map<String, String> = emptyMap(),
   val favoriteIds: Set<String> = emptySet(),
   val homeStationId: String? = null,
   val workStationId: String? = null,
 )
+
+@Serializable
+data class FavoriteCategory(
+  val id: String,
+  val label: String,
+  val isSystem: Boolean = false,
+)
+
+object FavoriteCategoryIds {
+  const val FAVORITE = "favorite"
+  const val HOME = "home"
+  const val WORK = "work"
+}
 
 @Serializable
 sealed interface AssistantAction {

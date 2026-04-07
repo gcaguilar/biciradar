@@ -6,9 +6,10 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class SavedPlaceAlertsUiState(
@@ -18,16 +19,17 @@ data class SavedPlaceAlertsUiState(
 class SavedPlaceAlertsViewModel(
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
 ) : ViewModel() {
-
-  private val _uiState = MutableStateFlow(SavedPlaceAlertsUiState())
-  val uiState: StateFlow<SavedPlaceAlertsUiState> = _uiState.asStateFlow()
+  val uiState: StateFlow<SavedPlaceAlertsUiState> = savedPlaceAlertsRepository.rules
+    .map { rules -> SavedPlaceAlertsUiState(rules = rules) }
+    .stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue = SavedPlaceAlertsUiState(rules = savedPlaceAlertsRepository.rules.value),
+    )
 
   init {
     viewModelScope.launch {
       savedPlaceAlertsRepository.bootstrap()
-      savedPlaceAlertsRepository.rules.collect { rules ->
-        _uiState.value = SavedPlaceAlertsUiState(rules = rules)
-      }
     }
   }
 

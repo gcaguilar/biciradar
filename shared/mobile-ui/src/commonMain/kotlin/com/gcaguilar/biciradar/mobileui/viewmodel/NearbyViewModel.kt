@@ -12,10 +12,13 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class NearbyUiState(
@@ -40,90 +43,64 @@ class NearbyViewModel(
   private val settingsRepository: SettingsRepository,
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
+  private val _refreshCountdownSeconds = MutableStateFlow(0)
 
-  private val _uiState = MutableStateFlow(NearbyUiState())
-  val uiState: StateFlow<NearbyUiState> = _uiState.asStateFlow()
+  val uiState: StateFlow<NearbyUiState> = combine(
+    stationsRepository.state,
+    favoritesRepository.favoriteIds,
+    settingsRepository.searchRadiusMeters,
+    _refreshCountdownSeconds,
+  ) { stationsState, favoriteIds, radius, countdown ->
+    NearbyUiState(
+      stations = stationsState.stations,
+      favoriteIds = favoriteIds,
+      isLoading = stationsState.isLoading,
+      errorMessage = stationsState.errorMessage,
+      refreshCountdownSeconds = countdown,
+      nearestSelection = selectNearbyStation(stationsState.stations, radius),
+      searchRadiusMeters = radius,
+      dataFreshness = stationsState.freshness,
+      lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+    )
+  }.stateIn(
+    viewModelScope,
+    SharingStarted.Eagerly,
+    NearbyUiState(),
+  )
 
   /** Set to true while the Nearby screen is visible; false when it goes off-screen. */
   private val _isActive = MutableStateFlow(false)
-  private val _refreshCountdownSeconds = MutableStateFlow(0)
-
-  private var latestStations: List<Station> = emptyList()
-  private var latestFavoriteIds: Set<String> = emptySet()
-  private var latestSearchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS
-  private var latestIsLoading: Boolean = false
-  private var latestErrorMessage: String? = null
-  private var latestDataFreshness: DataFreshness = DataFreshness.Unavailable
-  private var latestLastUpdatedEpoch: Long? = null
-
   init {
-    viewModelScope.launch {
-      stationsRepository.state.collect { state ->
-        latestStations = state.stations
-        latestIsLoading = state.isLoading
-        latestErrorMessage = state.errorMessage
-        latestDataFreshness = state.freshness
-        latestLastUpdatedEpoch = state.lastUpdatedEpoch
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      favoritesRepository.favoriteIds.collect { ids ->
-        latestFavoriteIds = ids
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      settingsRepository.searchRadiusMeters.collect { radius ->
-        latestSearchRadiusMeters = radius
-        publishUiState()
-      }
-    }
-
-    viewModelScope.launch {
-      _refreshCountdownSeconds.collect {
-        publishUiState()
-      }
-    }
-
     viewModelScope.launch {
       val intervalSeconds = 300
       while (true) {
         _isActive.first { it }
         for (remaining in intervalSeconds downTo 1) {
           if (!_isActive.value) break
-          _refreshCountdownSeconds.value = remaining
+          _refreshCountdownSeconds.update { remaining }
           delay(1_000)
         }
         if (!_isActive.value) {
-          _refreshCountdownSeconds.value = 0
+          _refreshCountdownSeconds.update { 0 }
           continue
         }
-        _refreshCountdownSeconds.value = 0
+        _refreshCountdownSeconds.update { 0 }
         val ids = stationsRepository.state.value.stations.take(20).map { it.id }
         stationsRepository.refreshAvailability(ids)
       }
     }
   }
 
-  private fun publishUiState() {
-    _uiState.value = NearbyUiState(
-      stations = latestStations,
-      favoriteIds = latestFavoriteIds,
-      isLoading = latestIsLoading,
-      errorMessage = latestErrorMessage,
-      refreshCountdownSeconds = _refreshCountdownSeconds.value,
-      nearestSelection = selectNearbyStation(latestStations, latestSearchRadiusMeters),
-      searchRadiusMeters = latestSearchRadiusMeters,
-      dataFreshness = latestDataFreshness,
-      lastUpdatedEpoch = latestLastUpdatedEpoch,
-    )
-  }
-
   fun setActive(active: Boolean) {
-    _isActive.value = active
+    _isActive.update { active }
+    if (active) {
+      viewModelScope.launch {
+        val snapshot = stationsRepository.state.value
+        if (snapshot.stations.isEmpty() && !snapshot.isLoading && snapshot.errorMessage == null) {
+          stationsRepository.loadIfNeeded()
+        }
+      }
+    }
   }
 
   fun onRetry() {

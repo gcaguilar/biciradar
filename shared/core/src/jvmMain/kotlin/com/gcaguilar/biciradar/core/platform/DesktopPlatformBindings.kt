@@ -27,6 +27,7 @@ import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
 import com.gcaguilar.biciradar.core.local.createJdbcDriver
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -60,11 +61,12 @@ class DesktopPlatformBindings(
     ?: "desktop-dev"
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
   override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    override fun create(): BiciRadarDatabase? {
+    override fun create(json: Json): BiciRadarDatabase? {
       if (database == null) {
-        database = BiciRadarDatabase(
-          createJdbcDriver("${storageDirectory.rootPath}/biciradar.db"),
-        )
+        val driver = createJdbcDriver("${storageDirectory.rootPath}/biciradar.db")
+        val db = BiciRadarDatabase(driver)
+        LegacyBlobToRelationalMigration.ensure(driver, db, json)
+        database = db
       }
       return database
     }

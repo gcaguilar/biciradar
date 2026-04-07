@@ -60,6 +60,8 @@ internal fun savedPlaceAlertTargetLabel(target: SavedPlaceAlertTarget): String =
   is SavedPlaceAlertTarget.Work -> stringResource(Res.string.savedPlaceAlertsTargetWork)
   is SavedPlaceAlertTarget.FavoriteStation ->
     stringResource(Res.string.savedPlaceAlertsTargetFavorite, target.stationName ?: target.stationId)
+  is SavedPlaceAlertTarget.CategoryStation ->
+    target.categoryLabel ?: target.categoryId
 }
 
 @Composable

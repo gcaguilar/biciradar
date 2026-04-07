@@ -63,6 +63,7 @@ kotlin {
     commonTest.dependencies {
       implementation(libs.coroutines.test)
       implementation(libs.kotlin.test)
+      implementation(libs.turbine)
     }
     androidMain.dependencies {
       implementation(libs.maps.compose)

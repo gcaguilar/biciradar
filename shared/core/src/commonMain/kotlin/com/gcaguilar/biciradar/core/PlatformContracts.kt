@@ -49,7 +49,7 @@ interface DatabaseProvider {
 }
 
 interface DatabaseFactory {
-  fun create(): BiciRadarDatabase?
+  fun create(json: Json = Json { ignoreUnknownKeys = true }): BiciRadarDatabase?
 }
 
 interface PlatformBindings {

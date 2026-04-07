@@ -30,6 +30,7 @@ import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
@@ -107,9 +108,13 @@ class AppRootViewModelTest {
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
       appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
       appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
+
+    assertEquals(false, viewModel.uiState.value.startupLaunchReady)
+    assertEquals(null, viewModel.uiState.value.cityConfigured)
 
     viewModel.onRefreshSignal()
     advanceUntilIdle()
@@ -117,6 +122,7 @@ class AppRootViewModelTest {
     assertTrue(viewModel.uiState.value.settingsBootstrapped)
     assertTrue(viewModel.uiState.value.favoritesBootstrapped)
     assertTrue(viewModel.uiState.value.startupLaunchReady)
+    assertEquals(true, viewModel.uiState.value.cityConfigured)
     assertNotNull(viewModel.uiState.value.changelogPresentation)
     assertEquals("0.21.0", viewModel.uiState.value.changelogPresentation?.highlightedVersion)
   }
@@ -166,6 +172,7 @@ class AppRootViewModelTest {
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
       appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
       appInitializer = appInitializer,
       appVersion = "0.21.0",
     )
@@ -173,6 +180,7 @@ class AppRootViewModelTest {
     advanceUntilIdle()
 
     assertEquals(null, viewModel.uiState.value.changelogPresentation)
+    assertEquals(true, viewModel.uiState.value.cityConfigured)
     assertEquals("0.21.0", settingsRepository.lastSeenChangelogAppVersion.value)
   }
 
@@ -224,6 +232,7 @@ class AppRootViewModelTest {
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
       appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
       appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
@@ -281,6 +290,7 @@ class AppRootViewModelTest {
     val viewModel = AppRootViewModel(
       startupUseCase = startupUseCase,
       appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
       appInitializer = appInitializer,
       appVersion = "0.19.1",
     )
@@ -297,6 +307,184 @@ class AppRootViewModelTest {
     assertEquals("0.19.1", settingsRepository.lastSeenChangelogAppVersion.value)
     assertEquals(null, viewModel.uiState.value.changelogPresentation)
   }
+
+  @Test
+  fun `city configured in ui state reacts to checklist changes after bootstrap`() = runTest(dispatcher) {
+    val settingsRepository = FakeAppRootSettingsRepository(
+      onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = false),
+    )
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+
+    val startupUseCase = StartupUseCase(
+      settingsRepository = settingsRepository,
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
+      appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
+      reviewPrompter = AppRootFakeReviewPrompter(),
+      settingsAggregationUseCase = settingsAggregationUseCase,
+      appVersion = "0.21.0",
+    )
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+    val appInitializer = AppInitializer(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
+      appInitializer = appInitializer,
+      appVersion = "0.21.0",
+    )
+
+    advanceUntilIdle()
+    assertEquals(true, viewModel.uiState.value.settingsBootstrapped)
+    assertEquals(false, viewModel.uiState.value.cityConfigured)
+
+    settingsRepository.setOnboardingChecklist(OnboardingChecklistSnapshot(cityConfirmed = true))
+    advanceUntilIdle()
+    assertEquals(true, viewModel.uiState.value.cityConfigured)
+
+    settingsRepository.setOnboardingChecklist(OnboardingChecklistSnapshot(cityConfirmed = false))
+    advanceUntilIdle()
+    assertEquals(false, viewModel.uiState.value.cityConfigured)
+  }
+
+  @Test
+  fun `refresh signal triggers station refresh and marks initial load finished`() = runTest(dispatcher) {
+    val settingsRepository = FakeAppRootSettingsRepository(
+      onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true),
+    )
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+
+    val startupUseCase = StartupUseCase(
+      settingsRepository = settingsRepository,
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
+      appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
+      reviewPrompter = AppRootFakeReviewPrompter(),
+      settingsAggregationUseCase = settingsAggregationUseCase,
+      appVersion = "0.21.0",
+    )
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+    val appInitializer = AppInitializer(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
+      appInitializer = appInitializer,
+      appVersion = "0.21.0",
+    )
+
+    advanceUntilIdle()
+    // Bootstrap ends with maybeRefreshStations(), and refreshStations() syncs favorites then force-refreshes.
+    assertEquals(2, favoritesRepository.syncCount)
+    assertEquals(1, stationsRepository.forceRefreshCount)
+    assertEquals(true, viewModel.uiState.value.initialLoadAttemptFinished)
+
+    viewModel.onRefreshSignal()
+    advanceUntilIdle()
+
+    assertEquals(3, favoritesRepository.syncCount)
+    assertEquals(2, stationsRepository.forceRefreshCount)
+    assertEquals(true, viewModel.uiState.value.initialLoadAttemptFinished)
+    assertEquals(true, viewModel.uiState.value.startupLaunchReady)
+  }
+
+  @Test
+  fun `manual onboarding from settings ignores temporary suppression`() = runTest(dispatcher) {
+    val settingsRepository = FakeAppRootSettingsRepository(
+      onboardingChecklist = OnboardingChecklistSnapshot(
+        cityConfirmed = true,
+        featureHighlightsSeen = true,
+        locationDecisionMade = true,
+        notificationsDecisionMade = true,
+      ),
+    )
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+
+    val startupUseCase = StartupUseCase(
+      settingsRepository = settingsRepository,
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
+      appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
+      reviewPrompter = AppRootFakeReviewPrompter(),
+      settingsAggregationUseCase = settingsAggregationUseCase,
+      appVersion = "0.21.0",
+    )
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+    val appInitializer = AppInitializer(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
+      appInitializer = appInitializer,
+      appVersion = "0.21.0",
+    )
+
+    advanceUntilIdle()
+    assertEquals(true, viewModel.uiState.value.shouldShowGuidedOnboarding)
+
+    viewModel.onOnboardingOpenFavoritesRequested()
+    advanceUntilIdle()
+    assertEquals(false, viewModel.uiState.value.shouldShowGuidedOnboarding)
+
+    viewModel.onOnboardingOpenedFromSettings()
+    advanceUntilIdle()
+    assertEquals(true, viewModel.uiState.value.shouldShowGuidedOnboarding)
+  }
+
 }
 
 private class FakeAppRootSettingsRepository(
@@ -415,6 +603,7 @@ private class AppRootFakeSavedPlaceAlertsRepository : SavedPlaceAlertsRepository
   override suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean) = Unit
   override suspend fun removeRule(ruleId: String) = Unit
   override suspend fun removeRuleForTarget(target: SavedPlaceAlertTarget) = Unit
+  override suspend fun removeRulesForCity(cityId: String) = Unit
   override suspend fun setRuleEnabled(ruleId: String, enabled: Boolean) = Unit
   override suspend fun replaceAll(rules: List<SavedPlaceAlertRule>) = Unit
 }

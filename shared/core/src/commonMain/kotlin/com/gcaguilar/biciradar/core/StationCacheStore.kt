@@ -57,6 +57,24 @@ internal class StationCacheStore(
     }
   }
 
+  fun updateAvailability(availability: Map<String, Pair<Int, Int>>, refreshedAt: Long) {
+    if (availability.isEmpty()) return
+    try {
+      database.transaction {
+        availability.forEach { (stationId, counts) ->
+          database.biciradarQueries.updateStationBikeDockCounts(
+            bikesAvailable = counts.first.toLong(),
+            slotsFree = counts.second.toLong(),
+            updatedAt = refreshedAt,
+            id = stationId,
+          )
+        }
+      }
+    } catch (_: Exception) {
+      // Silently fail - cache is optional
+    }
+  }
+
   fun save(cityId: String, stations: List<Station>) {
     try {
       database.transaction {

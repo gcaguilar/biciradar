@@ -2,6 +2,7 @@
 agp = "9.1.0"
 composeMultiplatform = "1.10.3"
 coroutines = "1.10.2"
+turbine = "1.2.1"
 kotlin = "2.3.20"
 ktor = "3.4.2"
 metro = "0.12.1"
@@ -54,6 +55,7 @@ androidx-wear-ongoing = { module = "androidx.wear:wear-ongoing", version.ref = "
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }

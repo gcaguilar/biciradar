@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.FavoriteCategoryIds
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
@@ -262,9 +263,27 @@ internal fun StationDetailScreen(
         }
         if (isFavorite || isHomeStation || isWorkStation) {
           item {
-            val homeTarget = SavedPlaceAlertTarget.Home(station.id, savedPlaceAlertsCityId, station.name)
-            val workTarget = SavedPlaceAlertTarget.Work(station.id, savedPlaceAlertsCityId, station.name)
-            val favoriteTarget = SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name)
+            val homeTarget = SavedPlaceAlertTarget.CategoryStation(
+              stationId = station.id,
+              cityId = savedPlaceAlertsCityId,
+              stationName = station.name,
+              categoryId = FavoriteCategoryIds.HOME,
+              categoryLabel = stringResource(Res.string.home),
+            )
+            val workTarget = SavedPlaceAlertTarget.CategoryStation(
+              stationId = station.id,
+              cityId = savedPlaceAlertsCityId,
+              stationName = station.name,
+              categoryId = FavoriteCategoryIds.WORK,
+              categoryLabel = stringResource(Res.string.work),
+            )
+            val favoriteTarget = SavedPlaceAlertTarget.CategoryStation(
+              stationId = station.id,
+              cityId = savedPlaceAlertsCityId,
+              stationName = station.name,
+              categoryId = FavoriteCategoryIds.FAVORITE,
+              categoryLabel = stringResource(Res.string.favorite),
+            )
             Card(
               colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
             ) {

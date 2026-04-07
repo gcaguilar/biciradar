@@ -20,16 +20,20 @@ class CityChangeUseCaseTest {
       stationsRepository = stationsRepository,
     )
 
-    useCase.execute(city = City.BARCELONA, markCityConfirmed = true)
+    useCase.execute(city = City.BARCELONA)
 
     assertEquals(City.BARCELONA, settingsRepository.selectedCity.value)
     assertTrue(settingsRepository.onboardingChecklist.value.cityConfirmed)
+    assertEquals(
+      listOf("updateOnboardingChecklist", "setSelectedCity"),
+      settingsRepository.calls.take(2),
+    )
     assertEquals(1, favoritesRepository.clearAllCount)
     assertEquals(1, stationsRepository.forceRefreshCount)
   }
 
   @Test
-  fun `change city can preserve favorites and onboarding state`() = runTest {
+  fun `change city can preserve favorites and still confirms city`() = runTest {
     val settingsRepository = FakeCityChangeSettingsRepository(
       onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = false),
     )
@@ -44,12 +48,11 @@ class CityChangeUseCaseTest {
     useCase.execute(
       city = City.MADRID,
       clearFavorites = false,
-      markCityConfirmed = false,
     )
 
     assertEquals(City.MADRID, settingsRepository.selectedCity.value)
     assertEquals(0, favoritesRepository.clearAllCount)
-    assertEquals(false, settingsRepository.onboardingChecklist.value.cityConfirmed)
+    assertEquals(true, settingsRepository.onboardingChecklist.value.cityConfirmed)
     assertEquals(1, stationsRepository.forceRefreshCount)
   }
 }
@@ -57,6 +60,7 @@ class CityChangeUseCaseTest {
 private class FakeCityChangeSettingsRepository(
   onboardingChecklist: OnboardingChecklistSnapshot,
 ) : SettingsRepository {
+  val calls = mutableListOf<String>()
   override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
   override val preferredMapApp = MutableStateFlow(PreferredMapApp.GoogleMaps)
   override val lastSeenChangelogVersion = MutableStateFlow(0)
@@ -78,6 +82,7 @@ private class FakeCityChangeSettingsRepository(
   override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
   override suspend fun setSelectedCity(city: City) {
+    calls += "setSelectedCity"
     selectedCity.value = city
   }
   override suspend fun setHasCompletedOnboarding(completed: Boolean) {
@@ -88,6 +93,7 @@ private class FakeCityChangeSettingsRepository(
     hasCompletedOnboarding.value = snapshot.isCompleted()
   }
   override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
+    calls += "updateOnboardingChecklist"
     val updated = transform(onboardingChecklist.value)
     onboardingChecklist.value = updated
     hasCompletedOnboarding.value = updated.isCompleted()

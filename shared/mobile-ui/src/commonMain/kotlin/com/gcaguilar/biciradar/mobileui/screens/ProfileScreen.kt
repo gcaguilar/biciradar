@@ -90,6 +90,7 @@ internal fun ProfileScreen(
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
   onThemePreferenceSelected: (ThemePreference) -> Unit,
   onCitySelected: (City) -> Unit,
+  canSelectGoogleMapsInIos: Boolean,
   showProfileSetupCard: Boolean,
   onShowChangelog: () -> Unit,
   onOpenOnboarding: () -> Unit,
@@ -231,7 +232,7 @@ internal fun ProfileScreen(
           }
         }
       }
-      if (mobilePlatform == MobileUiPlatform.IOS) {
+      if (mobilePlatform == MobileUiPlatform.IOS && canSelectGoogleMapsInIos) {
         item {
           Card(
             colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),

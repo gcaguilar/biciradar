@@ -10,6 +10,7 @@ data class MapSupportStatus(
   val embeddedProvider: EmbeddedMapProvider,
   val googleMapsSdkLinked: Boolean,
   val googleMapsApiKeyConfigured: Boolean,
+  val googleMapsAppInstalled: Boolean = false,
 )
 
 interface MapSupport {

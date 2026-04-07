@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -45,6 +46,7 @@ class SurfaceRepositoryTest {
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
+      scope = this,
     )
 
     repository.bootstrap()
@@ -84,6 +86,7 @@ class SurfaceRepositoryTest {
           lastUpdatedEpoch = 2_000L,
         ),
       ),
+      scope = this,
     )
 
     repository.bootstrap()

@@ -97,7 +97,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -218,6 +217,11 @@ internal class AppState {
 @Composable
 private fun rememberAppState(): AppState = remember { AppState() }
 
+internal fun shouldNavigateToFavoritesAfterOnboarding(
+  hasPendingFavoritesNavigation: Boolean,
+  shouldShowGuidedOnboarding: Boolean,
+): Boolean = hasPendingFavoritesNavigation && !shouldShowGuidedOnboarding
+
 /**
  * Creates and remembers all ViewModel factories needed for navigation.
  */
@@ -246,6 +250,7 @@ private fun rememberViewModelFactories(
   val mapEnvironmental = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
       environmentalRepository = graph.environmentalRepository,
+      settingsRepository = graph.settingsRepository,
     )
   }
   val shortcuts = remember(graph) {
@@ -270,8 +275,8 @@ private fun rememberViewModelFactories(
       settingsRepository = graph.settingsRepository,
       stationsRepository = graph.stationsRepository,
       favoritesRepository = graph.favoritesRepository,
-      permissionPrompter = platformBindings.permissionPrompter,
-      localNotifier = platformBindings.localNotifier,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      canSelectGoogleMapsInIos = platformBindings.mapSupport.currentStatus().googleMapsAppInstalled,
     )
   }
   val savedPlaceAlerts = remember(graph) {
@@ -436,15 +441,20 @@ fun BiziMobileApp(
   val searchRadiusMeters by settingsRepository.searchRadiusMeters.collectAsState()
   val preferredMapApp by settingsRepository.preferredMapApp.collectAsState()
   val themePreference by settingsRepository.themePreference.collectAsState()
+  val canSelectGoogleMapsInIos = remember(mobilePlatform, mapSupportStatus) {
+    mobilePlatform != MobileUiPlatform.IOS || mapSupportStatus.googleMapsAppInstalled
+  }
   val isMapReady = when {
     mobilePlatform == MobileUiPlatform.IOS && preferredMapApp == PreferredMapApp.GoogleMaps ->
-      mapSupportStatus.googleMapsSdkLinked
+      mapSupportStatus.googleMapsSdkLinked && canSelectGoogleMapsInIos
     mobilePlatform == MobileUiPlatform.IOS -> false
     else -> mapSupportStatus.isGoogleMapsReady()
   }
-  val onboardingChecklist by settingsRepository.onboardingChecklist.collectAsState()
+  val onboardingChecklist = appRootUiState.onboardingChecklist
   var showFeedbackDialog by remember { mutableStateOf(false) }
-  var showOnboardingFromProfile by rememberSaveable { mutableStateOf(false) }
+  var pendingOnboardingFavoritesNavigation by remember { mutableStateOf(false) }
+  val isCityConfigured = !(appRootUiState.isCitySelectionRequired)
+  val shouldShowGuidedOnboarding = appRootUiState.shouldShowGuidedOnboarding
 
   LaunchedEffect(graph) {
     platformBindings.onGraphCreated(graph)
@@ -455,6 +465,17 @@ fun BiziMobileApp(
 
   LaunchedEffect(refreshKey) {
     appRootViewModel.onRefreshSignal()
+  }
+
+  LaunchedEffect(shouldShowGuidedOnboarding, pendingOnboardingFavoritesNavigation, navController) {
+    if (shouldNavigateToFavoritesAfterOnboarding(
+        hasPendingFavoritesNavigation = pendingOnboardingFavoritesNavigation,
+        shouldShowGuidedOnboarding = shouldShowGuidedOnboarding,
+      )
+    ) {
+      navController.navigate(Screen.Favorites) { launchSingleTop = true }
+      pendingOnboardingFavoritesNavigation = false
+    }
   }
 
   val nearestSelection = remember(stationsState.stations, searchRadiusMeters) {
@@ -500,19 +521,16 @@ fun BiziMobileApp(
               CircularProgressIndicator()
             }
           }
-          !onboardingChecklist.isCompleted() && !onboardingChecklist.cityConfirmed -> {
+          !isCityConfigured -> {
             CitySelectionScreen(
               onCitySelected = { city ->
                 scope.launch {
-                  graph.changeCityUseCase.execute(
-                    city = city,
-                    markCityConfirmed = true,
-                  )
+                  graph.changeCityUseCase.execute(city = city)
                 }
               },
             )
           }
-          !onboardingChecklist.isCompleted() -> {
+          shouldShowGuidedOnboarding -> {
             val onboardingCallbacks = remember(
               scope,
               platformBindings,
@@ -521,53 +539,38 @@ fun BiziMobileApp(
             ) {
               GuidedOnboardingCallbacks(
                 onContinueFeatureHighlights = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist { it.copy(featureHighlightsSeen = true) }
-                  }
+                  appRootViewModel.onOnboardingFeatureHighlightsContinued()
                 },
                 onRequestLocationPermission = {
                   scope.launch {
                     platformBindings.permissionPrompter.requestLocationPermission()
-                    settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
                   }
+                  appRootViewModel.onOnboardingLocationDecisionMade()
                 },
                 onDismissLocationStep = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
-                  }
+                  appRootViewModel.onOnboardingLocationDecisionMade()
                 },
                 onRequestNotificationsPermission = {
                   scope.launch {
                     platformBindings.localNotifier.requestPermission()
-                    settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
                   }
+                  appRootViewModel.onOnboardingNotificationsDecisionMade()
                 },
                 onDismissNotificationsStep = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
-                  }
+                  appRootViewModel.onOnboardingNotificationsDecisionMade()
                 },
                 onOpenFavorites = {
-                  runCatching {
-                    navController.navigate(Screen.Favorites) { launchSingleTop = true }
-                  }
+                  appRootViewModel.onOnboardingOpenFavoritesRequested()
+                  pendingOnboardingFavoritesNavigation = true
                 },
                 onDismissFirstFavoriteStep = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
-                  }
+                  appRootViewModel.onOnboardingFirstFavoriteDismissed()
                 },
                 onDismissSavedPlacesStep = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
-                  }
+                  appRootViewModel.onOnboardingSavedPlacesDismissed()
                 },
                 onCompleteSurfacesStep = {
-                  scope.launch {
-                    settingsRepository.updateOnboardingChecklist {
-                      it.copy(surfacesDiscovered = true).markCompleted()
-                    }
-                  }
+                  appRootViewModel.onOnboardingSurfacesCompleted()
                 },
               )
             }
@@ -607,7 +610,7 @@ fun BiziMobileApp(
                     favoritesRepository = favoritesRepository,
                     graph = graph,
                     platformBindings = platformBindings,
-                    onOpenOnboarding = { showOnboardingFromProfile = true },
+                    onOpenOnboarding = appRootViewModel::onOnboardingOpenedFromSettings,
                     onShowChangelogManual = appRootViewModel::showChangelogHistory,
                   )
 

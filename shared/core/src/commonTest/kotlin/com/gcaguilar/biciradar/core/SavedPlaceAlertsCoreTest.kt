@@ -4,12 +4,17 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
 class SavedPlaceAlertsCoreTest {
+  private fun testCoroutineScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
   @Test
   fun `saved place alerts repository persists rules across instances`() = runTest {
     val root = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-alerts-${Random.nextInt()}"
@@ -21,6 +26,7 @@ class SavedPlaceAlertsCoreTest {
       fileSystem = FileSystem.SYSTEM,
       json = json,
       storageDirectoryProvider = storage,
+      scope = testCoroutineScope(),
     )
     repo.bootstrap()
     val target = SavedPlaceAlertTarget.Home("station-home", "zaragoza", "Casa")
@@ -33,6 +39,7 @@ class SavedPlaceAlertsCoreTest {
       fileSystem = FileSystem.SYSTEM,
       json = json,
       storageDirectoryProvider = storage,
+      scope = testCoroutineScope(),
     )
     repoReloaded.bootstrap()
     assertEquals(1, repoReloaded.currentRules().size)

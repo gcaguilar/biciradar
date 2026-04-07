@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
@@ -48,6 +49,8 @@ internal class AppRootViewModelFactory(
       appVersion = appVersion,
     )
 
+    val resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase()
+
     val surfaceManagementUseCase = SurfaceManagementUseCase(
       surfaceSnapshotRepository = surfaceSnapshotRepository,
       surfaceMonitoringRepository = surfaceMonitoringRepository,
@@ -66,6 +69,7 @@ internal class AppRootViewModelFactory(
     return AppRootViewModel(
       startupUseCase = startupUseCase,
       appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = resolveOnboardingPresentationUseCase,
       appInitializer = appInitializer,
       appVersion = appVersion,
     )

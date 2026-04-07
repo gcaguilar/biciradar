@@ -10,6 +10,8 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     static let workStationCacheKey = "bizizaragoza.watch.work_station_id"
     static let monitoringSessionCacheKey = "bizizaragoza.watch.monitoring_session"
     static let monitoringSessionContextKey = "monitoring_session"
+    static let snapshotV2CacheKey = "bizizaragoza.watch.favorite_categories_v2"
+    static let snapshotV2ContextKey = "favorite_categories_v2"
 
     @Published private(set) var favoriteIds: Set<String> = []
     @Published private(set) var homeStationId: String?
@@ -87,6 +89,12 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         if let ids = context["favorite_ids"] as? [String] {
             applyFavoriteIds(Set(ids))
         }
+        if let snapshot = context[Self.snapshotV2ContextKey] as? String,
+           let data = snapshot.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode(FavoritesSyncSnapshotFile.self, from: data) {
+            apply(snapshot: decoded)
+            defaults.set(snapshot, forKey: Self.snapshotV2CacheKey)
+        }
         if let homeStationId = stringValue(from: context, key: "home_station_id") {
             applyHomeStationId(homeStationId)
         } else if context.keys.contains("home_station_id") {
@@ -115,6 +123,18 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         ]
         context["home_station_id"] = currentHomeStationId() ?? ""
         context["work_station_id"] = currentWorkStationId() ?? ""
+        let snapshot = FavoritesSyncSnapshotFile(
+            categories: [],
+            stationCategory: [:],
+            favoriteIds: currentFavoriteIds(),
+            homeStationId: currentHomeStationId(),
+            workStationId: currentWorkStationId()
+        )
+        if let encoded = try? JSONEncoder().encode(snapshot),
+           let string = String(data: encoded, encoding: .utf8) {
+            context[Self.snapshotV2ContextKey] = string
+            defaults.set(string, forKey: Self.snapshotV2CacheKey)
+        }
         if let monitoringSessionData = defaults.data(forKey: Self.monitoringSessionCacheKey) {
             context[Self.monitoringSessionContextKey] = monitoringSessionData
         }
@@ -192,10 +212,32 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     }
 }
 
-private struct FavoritesSyncSnapshotFile: Decodable {
+private struct FavoritesSyncSnapshotFile: Codable {
+    let categories: [FavoriteCategoryFile]?
+    let stationCategory: [String: String]?
     let favoriteIds: Set<String>
     let homeStationId: String?
     let workStationId: String?
+
+    init(
+        categories: [FavoriteCategoryFile]? = nil,
+        stationCategory: [String: String]? = nil,
+        favoriteIds: Set<String>,
+        homeStationId: String?,
+        workStationId: String?
+    ) {
+        self.categories = categories
+        self.stationCategory = stationCategory
+        self.favoriteIds = favoriteIds
+        self.homeStationId = homeStationId
+        self.workStationId = workStationId
+    }
+}
+
+private struct FavoriteCategoryFile: Codable {
+    let id: String
+    let label: String
+    let isSystem: Bool
 }
 
 private struct WatchConnectivityMonitoringSession: Codable {

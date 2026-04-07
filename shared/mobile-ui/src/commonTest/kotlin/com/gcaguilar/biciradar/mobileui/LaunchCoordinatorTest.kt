@@ -59,6 +59,7 @@ class LaunchCoordinatorTest {
     assertEquals(City.BARCELONA, settingsRepository.selectedCity.value)
     assertEquals(1, favoritesRepository.clearAllCount)
     assertEquals(1, stationsRepository.forceRefreshCount)
+    assertEquals(true, settingsRepository.onboardingChecklist.value.cityConfirmed)
     assertEquals(Screen.Nearby, resolution?.screen)
   }
 

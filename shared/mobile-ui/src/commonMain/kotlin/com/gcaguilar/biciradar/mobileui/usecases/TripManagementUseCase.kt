@@ -45,6 +45,14 @@ class TripManagementUseCase(
     tripRepository.dismissAlert()
   }
 
+  suspend fun preferredMonitoringDurationSeconds(): Int? {
+    return settingsRepository.preferredMonitoringDurationSeconds()
+  }
+
+  suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int) {
+    settingsRepository.setPreferredMonitoringDurationSeconds(durationSeconds)
+  }
+
   val nearestStationWithSlots: String?
     get() = tripState.value.nearestStationWithSlots?.id
 }

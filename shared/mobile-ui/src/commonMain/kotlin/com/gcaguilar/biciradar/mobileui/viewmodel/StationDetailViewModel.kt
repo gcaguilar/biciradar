@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class StationDetailUiState(
@@ -90,14 +91,16 @@ class StationDetailViewModel(
 
   fun refreshPatterns() {
     viewModelScope.launch {
-      patternState.value = patternState.value.copy(loading = true, error = false)
+      patternState.update { it.copy(loading = true, error = false) }
       val result = stationDetailUseCase.fetchStationPatterns(stationId)
       val patterns = result.getOrNull()
-      patternState.value = patternState.value.copy(
-        patterns = patterns.orEmpty(),
-        loading = false,
-        error = patterns == null,
-      )
+      patternState.update {
+        it.copy(
+          patterns = patterns.orEmpty(),
+          loading = false,
+          error = patterns == null,
+        )
+      }
     }
   }
 

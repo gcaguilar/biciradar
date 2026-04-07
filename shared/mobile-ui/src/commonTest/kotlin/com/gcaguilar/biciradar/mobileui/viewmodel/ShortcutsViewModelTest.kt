@@ -14,6 +14,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,6 +27,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ShortcutsViewModelTest {
@@ -71,6 +73,49 @@ class ShortcutsViewModelTest {
     assertEquals("resolved:1:1:900", viewModel.uiState.value.latestAnswer)
     assertEquals(900, viewModel.uiState.value.searchRadiusMeters)
   }
+
+  @Test
+  fun `latest request result wins when older request finishes later`() = runTest(dispatcher) {
+    val resolver = ControllableAssistantIntentResolver()
+    val viewModel = ShortcutsViewModel(
+      assistantIntentResolver = resolver,
+      stationsRepository = FakeShortcutsStationsRepository(
+        StationsState(
+          stations = listOf(
+            Station(
+              id = "station-1",
+              name = "Plaza Espana",
+              address = "Centro",
+              location = GeoPoint(41.65, -0.88),
+              bikesAvailable = 7,
+              slotsFree = 5,
+              distanceMeters = 120,
+            ),
+          ),
+        ),
+      ),
+      favoritesRepository = FakeShortcutsFavoritesRepository(setOf("station-1")),
+      settingsRepository = FakeShortcutsSettingsRepository(searchRadiusMeters = 900),
+    )
+
+    viewModel.resolveInitialAction(AssistantAction.NearestStation)
+    viewModel.resolveInitialAction(AssistantAction.NearestStation)
+    advanceUntilIdle()
+
+    resolver.completeRequest(
+      index = 1,
+      resolution = AssistantResolution(spokenResponse = "newest-response"),
+    )
+    advanceUntilIdle()
+    assertEquals("newest-response", viewModel.uiState.value.latestAnswer)
+
+    resolver.completeRequest(
+      index = 0,
+      resolution = AssistantResolution(spokenResponse = "stale-response"),
+    )
+    advanceUntilIdle()
+    assertEquals("newest-response", viewModel.uiState.value.latestAnswer)
+  }
 }
 
 private class RecordingAssistantIntentResolver : AssistantIntentResolver {
@@ -82,6 +127,27 @@ private class RecordingAssistantIntentResolver : AssistantIntentResolver {
   ): AssistantResolution = AssistantResolution(
     spokenResponse = "resolved:${stationsState.stations.size}:${favoriteIds.size}:$searchRadiusMeters",
   )
+}
+
+private class ControllableAssistantIntentResolver : AssistantIntentResolver {
+  private val pendingRequests = mutableListOf<CompletableDeferred<AssistantResolution>>()
+
+  override suspend fun resolve(
+    action: AssistantAction,
+    stationsState: StationsState,
+    favoriteIds: Set<String>,
+    searchRadiusMeters: Int,
+  ): AssistantResolution {
+    val deferred = CompletableDeferred<AssistantResolution>()
+    pendingRequests += deferred
+    return deferred.await()
+  }
+
+  fun completeRequest(index: Int, resolution: AssistantResolution) {
+    val request = pendingRequests.getOrNull(index)
+    assertNotNull(request, "Expected pending request at index $index")
+    request.complete(resolution)
+  }
 }
 
 private class FakeShortcutsStationsRepository(

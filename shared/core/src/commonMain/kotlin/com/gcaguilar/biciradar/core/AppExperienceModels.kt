@@ -215,6 +215,7 @@ enum class SavedPlaceKind {
   Favorite,
   Home,
   Work,
+  Category,
 }
 
 @Serializable
@@ -228,6 +229,10 @@ sealed interface SavedPlaceAlertTarget {
     SavedPlaceKind.Favorite -> "favorite:$stationId:$cityId"
     SavedPlaceKind.Home -> "home:$stationId:$cityId"
     SavedPlaceKind.Work -> "work:$stationId:$cityId"
+    SavedPlaceKind.Category -> {
+      val categoryId = (this as? CategoryStation)?.categoryId ?: "unknown"
+      "category:$categoryId:$stationId:$cityId"
+    }
   }
 
   @Serializable
@@ -258,6 +263,18 @@ sealed interface SavedPlaceAlertTarget {
     override val stationName: String? = null,
   ) : SavedPlaceAlertTarget {
     override val kind: SavedPlaceKind = SavedPlaceKind.Work
+  }
+
+  @Serializable
+  @SerialName("category_station")
+  data class CategoryStation(
+    override val stationId: String,
+    override val cityId: String,
+    override val stationName: String? = null,
+    val categoryId: String,
+    val categoryLabel: String? = null,
+  ) : SavedPlaceAlertTarget {
+    override val kind: SavedPlaceKind = SavedPlaceKind.Category
   }
 }
 

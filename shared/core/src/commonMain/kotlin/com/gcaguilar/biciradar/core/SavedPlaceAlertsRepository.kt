@@ -1,11 +1,16 @@
 package com.gcaguilar.biciradar.core
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -22,6 +27,7 @@ interface SavedPlaceAlertsRepository {
   suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean = true)
   suspend fun removeRule(ruleId: String)
   suspend fun removeRuleForTarget(target: SavedPlaceAlertTarget)
+  suspend fun removeRulesForCity(cityId: String)
   suspend fun setRuleEnabled(ruleId: String, enabled: Boolean)
   suspend fun replaceAll(rules: List<SavedPlaceAlertRule>)
 }
@@ -31,6 +37,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
+  private val scope: CoroutineScope,
   private val database: BiciRadarDatabase? = null,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
@@ -38,9 +45,26 @@ class SavedPlaceAlertsRepositoryImpl(
 
   override val rules: StateFlow<List<SavedPlaceAlertRule>> = mutableRules.asStateFlow()
 
+  init {
+    database?.let { db ->
+      scope.launch {
+        db.biciradarQueries.getAllSavedPlaceAlertRules()
+          .asFlow()
+          .mapToList(Dispatchers.Default)
+          .collect { rows ->
+            mutableRules.value = rows.mapNotNull { it.toRule() }.sortedBy { it.id }
+          }
+      }
+    }
+  }
+
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    mutableRules.value = readPersistedRules()
+    if (database != null) {
+      migrateLegacyAlertsIfNeeded()
+    } else {
+      mutableRules.value = readPersistedRules()
+    }
     bootstrapped = true
   }
 
@@ -74,6 +98,11 @@ class SavedPlaceAlertsRepositoryImpl(
     removeRule(target.identityKey())
   }
 
+  override suspend fun removeRulesForCity(cityId: String) {
+    if (!bootstrapped) bootstrap()
+    persist(mutableRules.value.filterNot { rule -> rule.target.cityId == cityId })
+  }
+
   override suspend fun setRuleEnabled(ruleId: String, enabled: Boolean) {
     if (!bootstrapped) bootstrap()
     persist(
@@ -92,16 +121,32 @@ class SavedPlaceAlertsRepositoryImpl(
 
   private fun persist(rules: List<SavedPlaceAlertRule>) {
     if (database != null) {
-      val persisted = persistToDatabase(rules)
-      if (persisted) {
+      if (persistToDatabase(rules)) {
         deleteLegacyFile()
-      } else {
-        persistToFile(rules)
       }
     } else {
       persistToFile(rules)
+      mutableRules.value = rules
     }
-    mutableRules.value = rules
+  }
+
+  /** When DB is present, rules are driven by the query flow after writes. */
+  private fun migrateLegacyAlertsIfNeeded() {
+    val db = database ?: return
+    val dbRules = readFromDatabase().orEmpty()
+    val legacyRules = readFromFile()
+    val dbHasData = dbRules.isNotEmpty()
+    val legacyHasData = legacyRules.isNotEmpty()
+    if (!legacyHasData) return
+    if (dbHasData) {
+      if (dbRules == legacyRules) {
+        deleteLegacyFile()
+      }
+      return
+    }
+    if (persistToDatabase(legacyRules)) {
+      deleteLegacyFile()
+    }
   }
 
   private fun readPersistedRules(): List<SavedPlaceAlertRule> {
@@ -142,22 +187,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private fun readFromDatabase(): List<SavedPlaceAlertRule>? {
     val db = database ?: return null
     return runCatching {
-      db.biciradarQueries.getAllSavedPlaceAlertRules().executeAsList().mapNotNull { row ->
-        val target = runCatching { json.decodeFromString<SavedPlaceAlertTarget>(row.target_json) }.getOrNull()
-        val condition = runCatching { json.decodeFromString<SavedPlaceAlertCondition>(row.condition_json) }.getOrNull()
-        if (target == null || condition == null) {
-          null
-        } else {
-          SavedPlaceAlertRule(
-            id = row.id,
-            target = target,
-            condition = condition,
-            isEnabled = row.is_enabled != 0L,
-            lastTriggeredEpoch = row.last_triggered_epoch,
-            lastConditionMatched = row.last_condition_matched != 0L,
-          )
-        }
-      }
+      db.biciradarQueries.getAllSavedPlaceAlertRules().executeAsList().mapNotNull { it.toRule() }
     }.getOrNull()
   }
 
@@ -167,13 +197,21 @@ class SavedPlaceAlertsRepositoryImpl(
       db.transaction {
         db.biciradarQueries.deleteAllSavedPlaceAlertRules()
         rules.forEach { rule ->
+          val params = rule.toRelationalRow()
           db.biciradarQueries.upsertSavedPlaceAlertRule(
-            id = rule.id,
-            targetJson = json.encodeToString(rule.target),
-            conditionJson = json.encodeToString(rule.condition),
+            id = params.id,
+            targetKind = params.targetKind,
+            targetStationId = params.targetStationId,
+            targetCityId = params.targetCityId,
+            targetStationName = params.targetStationName,
+            targetCategoryId = params.targetCategoryId,
+            targetCategoryLabel = params.targetCategoryLabel,
+            conditionKind = params.conditionKind,
+            conditionThreshold = params.conditionThreshold,
             isEnabled = if (rule.isEnabled) 1L else 0L,
             lastTriggeredEpoch = rule.lastTriggeredEpoch,
             lastConditionMatched = if (rule.lastConditionMatched) 1L else 0L,
+            lastObservedValue = rule.lastObservedValue?.toLong(),
           )
         }
       }
@@ -284,3 +322,88 @@ fun SavedPlaceAlertTrigger.notificationBody(): String = when (condition) {
 private data class SavedPlaceAlertsSnapshot(
   val rules: List<SavedPlaceAlertRule> = emptyList(),
 )
+
+private data class RelationalAlertRow(
+  val id: String,
+  val targetKind: String,
+  val targetStationId: String,
+  val targetCityId: String,
+  val targetStationName: String?,
+  val targetCategoryId: String?,
+  val targetCategoryLabel: String?,
+  val conditionKind: String,
+  val conditionThreshold: Long?,
+)
+
+private fun SavedPlaceAlertRule.toRelationalRow(): RelationalAlertRow {
+  val cat = target as? SavedPlaceAlertTarget.CategoryStation
+  return RelationalAlertRow(
+    id = id,
+    targetKind = target.kind.name,
+    targetStationId = target.stationId,
+    targetCityId = target.cityId,
+    targetStationName = target.stationName,
+    targetCategoryId = cat?.categoryId,
+    targetCategoryLabel = cat?.categoryLabel,
+    conditionKind = condition.toKindString(),
+    conditionThreshold = condition.thresholdOrNull(),
+  )
+}
+
+private fun SavedPlaceAlertCondition.toKindString(): String = when (this) {
+  is SavedPlaceAlertCondition.BikesAtLeast -> "BikesAtLeast"
+  is SavedPlaceAlertCondition.DocksAtLeast -> "DocksAtLeast"
+  SavedPlaceAlertCondition.BikesEqualsZero -> "BikesEqualsZero"
+  SavedPlaceAlertCondition.DocksEqualsZero -> "DocksEqualsZero"
+}
+
+private fun SavedPlaceAlertCondition.thresholdOrNull(): Long? = when (this) {
+  is SavedPlaceAlertCondition.BikesAtLeast -> count.toLong()
+  is SavedPlaceAlertCondition.DocksAtLeast -> count.toLong()
+  else -> null
+}
+
+@Suppress("ComplexMethod")
+private fun Saved_place_alert_rules.toRule(): SavedPlaceAlertRule? {
+  val kind = runCatching { SavedPlaceKind.valueOf(target_kind) }.getOrNull() ?: return null
+  val target: SavedPlaceAlertTarget = when (kind) {
+    SavedPlaceKind.Favorite -> SavedPlaceAlertTarget.FavoriteStation(
+      stationId = target_station_id,
+      cityId = target_city_id,
+      stationName = target_station_name,
+    )
+    SavedPlaceKind.Home -> SavedPlaceAlertTarget.Home(
+      stationId = target_station_id,
+      cityId = target_city_id,
+      stationName = target_station_name,
+    )
+    SavedPlaceKind.Work -> SavedPlaceAlertTarget.Work(
+      stationId = target_station_id,
+      cityId = target_city_id,
+      stationName = target_station_name,
+    )
+    SavedPlaceKind.Category -> SavedPlaceAlertTarget.CategoryStation(
+      stationId = target_station_id,
+      cityId = target_city_id,
+      stationName = target_station_name,
+      categoryId = target_category_id ?: return null,
+      categoryLabel = target_category_label,
+    )
+  }
+  val condition = when (condition_kind) {
+    "BikesAtLeast" -> SavedPlaceAlertCondition.BikesAtLeast(condition_threshold?.toInt() ?: return null)
+    "DocksAtLeast" -> SavedPlaceAlertCondition.DocksAtLeast(condition_threshold?.toInt() ?: return null)
+    "BikesEqualsZero" -> SavedPlaceAlertCondition.BikesEqualsZero
+    "DocksEqualsZero" -> SavedPlaceAlertCondition.DocksEqualsZero
+    else -> return null
+  }
+  return SavedPlaceAlertRule(
+    id = id,
+    target = target,
+    condition = condition,
+    isEnabled = is_enabled != 0L,
+    lastTriggeredEpoch = last_triggered_epoch,
+    lastObservedValue = last_observed_value?.toInt(),
+    lastConditionMatched = last_condition_matched != 0L,
+  )
+}

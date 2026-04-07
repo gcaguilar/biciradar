@@ -24,6 +24,7 @@ import kotlinx.serialization.json.Json
 interface SharedGraph {
   val assistantIntentResolver: AssistantIntentResolver
   val changeCityUseCase: ChangeCityUseCase
+  val isCityConfiguredUseCase: IsCityConfiguredUseCase
   val datosBiziApi: DatosBiziApi
   val environmentalRepository: EnvironmentalRepository
   val engagementRepository: EngagementRepository
@@ -70,7 +71,8 @@ interface SharedGraph {
   @Provides
   fun provideDatabase(
     databaseFactory: DatabaseFactory?,
-  ): BiciRadarDatabase? = databaseFactory?.create()
+    json: Json,
+  ): BiciRadarDatabase? = databaseFactory?.create(json)
 
   @SingleIn(AppScope::class)
   @Provides
@@ -107,7 +109,7 @@ interface SharedGraph {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideSettingsRepository(implementation: SettingsRepositoryImpl): SettingsRepository = implementation
+  fun provideSettingsRepository(factory: SettingsRepositoryFactory): SettingsRepository = factory.create()
 
   @SingleIn(AppScope::class)
   @Provides

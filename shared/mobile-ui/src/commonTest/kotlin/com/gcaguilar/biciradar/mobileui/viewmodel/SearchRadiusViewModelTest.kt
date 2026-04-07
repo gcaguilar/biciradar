@@ -9,7 +9,6 @@ import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
 import com.gcaguilar.biciradar.core.PreferredMapApp
@@ -25,7 +24,6 @@ import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
-import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.geo.GeoApi
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
@@ -46,6 +44,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchRadiusViewModelTest {
@@ -133,7 +132,7 @@ class SearchRadiusViewModelTest {
   }
 
   @Test
-  fun `profile view model shows setup card when onboarding is complete but setup requirements are missing`() = runTest(dispatcher) {
+  fun `profile view model shows setup card when onboarding is not complete`() = runTest(dispatcher) {
     val settingsRepository = FakeSettingsRepository()
     val favoritesRepository = FakeFavoritesRepository().apply {
       favoriteIds.value = setOf("home")
@@ -149,10 +148,9 @@ class SearchRadiusViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
-      permissionPrompter = FakePermissionPrompter(hasLocationPermission = false),
-      localNotifier = FakeLocalNotifier(hasPermission = false),
+      canSelectGoogleMapsInIos = true,
     )
-
+    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
     advanceUntilIdle()
     assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
   }
@@ -160,6 +158,7 @@ class SearchRadiusViewModelTest {
   @Test
   fun `profile view model clears favorites and refreshes stations when changing city`() = runTest(dispatcher) {
     val settingsRepository = FakeSettingsRepository(city = City.ZARAGOZA)
+    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
     val favoritesRepository = FakeFavoritesRepository().apply {
       favoriteIds.value = setOf("home")
     }
@@ -172,8 +171,7 @@ class SearchRadiusViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
-      permissionPrompter = FakePermissionPrompter(hasLocationPermission = true),
-      localNotifier = FakeLocalNotifier(hasPermission = true),
+      canSelectGoogleMapsInIos = true,
     )
 
     advanceUntilIdle()
@@ -183,6 +181,7 @@ class SearchRadiusViewModelTest {
     assertEquals(City.MADRID, settingsRepository.selectedCity.value)
     assertEquals(1, favoritesRepository.clearAllCalls)
     assertEquals(1, stationsRepository.forceRefreshCalls)
+    assertTrue(settingsRepository.onboardingChecklist.value.cityConfirmed)
   }
 }
 
@@ -323,21 +322,6 @@ private class FakeGooglePlacesApi : GooglePlacesApi {
   override suspend fun reverseGeocode(location: GeoPoint, apiKey: String): String? = null
   override suspend fun autocompleteWithStatus(query: String, biasLocation: GeoPoint?, apiKey: String): AutocompleteResult =
     AutocompleteResult(predictions = emptyList(), status = "OK")
-}
-
-private class FakePermissionPrompter(
-  private val hasLocationPermission: Boolean,
-) : PermissionPrompter {
-  override suspend fun hasLocationPermission(): Boolean = hasLocationPermission
-  override suspend fun requestLocationPermission(): Boolean = hasLocationPermission
-}
-
-private class FakeLocalNotifier(
-  private val hasPermission: Boolean,
-) : LocalNotifier {
-  override suspend fun hasPermission(): Boolean = hasPermission
-  override suspend fun requestPermission(): Boolean = hasPermission
-  override suspend fun notify(title: String, body: String) = Unit
 }
 
 private fun station(distanceMeters: Int) = Station(

@@ -4,6 +4,9 @@ import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 
 
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.delay
@@ -18,6 +21,8 @@ import okio.Path.Companion.toPath
 import okio.FileSystem
 
 class CoreRepositoryTest {
+  private fun testCoroutineScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
   @Test
   fun `distanceBetween returns stable Zaragoza distance ordering`() {
     val origin = GeoPoint(41.6488, -0.8891)
@@ -41,6 +46,7 @@ class CoreRepositoryTest {
 
         override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
       },
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -59,6 +65,7 @@ class CoreRepositoryTest {
       storageDirectoryProvider = object : StorageDirectoryProvider {
         override val rootPath: String = temporaryRoot
       },
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -77,6 +84,7 @@ class CoreRepositoryTest {
       storageDirectoryProvider = object : StorageDirectoryProvider {
         override val rootPath: String = temporaryRoot
       },
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -109,6 +117,7 @@ class CoreRepositoryTest {
           favoriteIds = setOf("station-watch"),
         )
       },
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -135,13 +144,15 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = watchBridge,
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
 
+    assertEquals(1, watchBridge.pushedSnapshots.size)
     assertEquals(
-      listOf(FavoritesSyncSnapshot(favoriteIds = setOf("station-local", "station-watch"))),
-      watchBridge.pushedSnapshots,
+      setOf("station-local", "station-watch"),
+      watchBridge.pushedSnapshots.single().favoriteIds,
     )
   }
 
@@ -167,6 +178,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = watchBridge,
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -179,16 +191,10 @@ class CoreRepositoryTest {
 
     assertEquals(setOf("station-watch", "station-remote"), repository.favoriteIds.value)
     assertEquals("station-home", repository.currentHomeStationId())
-    assertEquals(
-      listOf(
-        FavoritesSyncSnapshot(favoriteIds = setOf("station-watch")),
-        FavoritesSyncSnapshot(
-          favoriteIds = setOf("station-watch", "station-remote"),
-          homeStationId = "station-home",
-        ),
-      ),
-      watchBridge.pushedSnapshots,
-    )
+    assertEquals(2, watchBridge.pushedSnapshots.size)
+    assertEquals(setOf("station-watch"), watchBridge.pushedSnapshots[0].favoriteIds)
+    assertEquals(setOf("station-watch", "station-remote"), watchBridge.pushedSnapshots[1].favoriteIds)
+    assertEquals("station-home", watchBridge.pushedSnapshots[1].homeStationId)
   }
 
   @Test
@@ -202,6 +208,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = watchBridge,
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -209,14 +216,10 @@ class CoreRepositoryTest {
     repository.toggle("station-2")
     repository.toggle("station-1")
 
-    assertEquals(
-      listOf(
-        FavoritesSyncSnapshot(favoriteIds = setOf("station-1")),
-        FavoritesSyncSnapshot(favoriteIds = setOf("station-1", "station-2")),
-        FavoritesSyncSnapshot(favoriteIds = setOf("station-2")),
-      ),
-      watchBridge.pushedSnapshots,
-    )
+    assertEquals(3, watchBridge.pushedSnapshots.size)
+    assertEquals(setOf("station-1"), watchBridge.pushedSnapshots[0].favoriteIds)
+    assertEquals(setOf("station-1", "station-2"), watchBridge.pushedSnapshots[1].favoriteIds)
+    assertEquals(setOf("station-2"), watchBridge.pushedSnapshots[2].favoriteIds)
   }
 
   @Test
@@ -236,6 +239,7 @@ class CoreRepositoryTest {
           return FavoritesSyncSnapshot(favoriteIds = setOf("station-watch"))
         }
       },
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -253,6 +257,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = RecordingWatchSyncBridge(),
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -274,6 +279,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       watchSyncBridge = RecordingWatchSyncBridge(),
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -300,6 +306,7 @@ class CoreRepositoryTest {
           workStationId = "station-work",
         ),
       ),
+      scope = testCoroutineScope(),
     )
 
     repository.bootstrap()
@@ -362,6 +369,7 @@ class CoreRepositoryTest {
         override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
       },
       database = null,
+      scope = testCoroutineScope(),
     )
 
     repository.loadIfNeeded()
@@ -428,6 +436,7 @@ class CoreRepositoryTest {
         override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
       },
       database = null,
+      scope = testCoroutineScope(),
     )
 
     repository.loadIfNeeded()

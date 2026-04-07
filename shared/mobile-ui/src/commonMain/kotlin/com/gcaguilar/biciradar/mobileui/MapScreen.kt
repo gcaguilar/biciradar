@@ -42,10 +42,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -117,17 +114,29 @@ internal fun MapScreen(
   onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  activeFilters: Set<MapFilter>,
+  onToggleFilter: (MapFilter, Set<MapFilter>) -> Unit,
+  onAvailableFiltersChange: (Set<MapFilter>) -> Unit,
+  selectedMapStationId: String?,
+  hasExplicitMapSelection: Boolean,
+  isCardDismissed: Boolean,
+  showEnvironmentalSheet: Boolean,
+  recenterRequestToken: Int,
+  onStationSelectedOnMap: (String) -> Unit,
+  onStationCardDismissed: () -> Unit,
+  onRecenterRequested: () -> Unit,
+  onEnvironmentalSheetShown: () -> Unit,
+  onEnvironmentalSheetDismissed: () -> Unit,
+  onClearEnvironmentalFilters: () -> Unit,
+  onReconcileSelection: (List<Station>, com.gcaguilar.biciradar.core.NearbyStationSelection, String) -> Unit,
   environmentalSnapshots: List<MapEnvironmentalZoneSnapshot>,
   onEnvironmentalLayerChanged: (MapEnvironmentalLayer?) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val nearestStation = nearestSelection.highlightedStation
-  var selectedMapStationId by rememberSaveable { mutableStateOf<String?>(null) }
-  var hasExplicitMapSelection by rememberSaveable { mutableStateOf(false) }
-  var isCardDismissed by rememberSaveable { mutableStateOf(false) }
-  var showEnvironmentalSheet by rememberSaveable { mutableStateOf(false) }
-  var activeFilters by rememberSaveable(stateSaver = MapFilterSetSaver) { mutableStateOf(emptySet<MapFilter>()) }
-  var recenterRequestToken by rememberSaveable { mutableStateOf(0) }
+  val availableFilters = remember(stations) {
+    availableMapFilters(stations)
+  }
   val activeEnvironmentalLayer = remember(activeFilters) {
     activeEnvironmentalLayerForFilters(activeFilters)
   }
@@ -144,25 +153,16 @@ internal fun MapScreen(
   }
   LaunchedEffect(activeEnvironmentalLayer) {
     if (activeEnvironmentalLayer == null) {
-      showEnvironmentalSheet = false
+      onEnvironmentalSheetDismissed()
     }
     onEnvironmentalLayerChanged(activeEnvironmentalLayer)
   }
-
-  LaunchedEffect(selectedMapStationId) {
-    isCardDismissed = false
+  LaunchedEffect(availableFilters) {
+    onAvailableFiltersChange(availableFilters)
   }
 
   LaunchedEffect(mapStations, nearestStation?.id, searchQuery) {
-    val hasSelectedStation = selectedMapStationId != null && mapStations.any { station -> station.id == selectedMapStationId }
-    if (!hasSelectedStation) {
-      selectedMapStationId = if (searchQuery.isNotBlank()) {
-        mapStations.firstOrNull()?.id
-      } else {
-        nearestStation?.takeIf { nearest -> mapStations.any { it.id == nearest.id } }?.id ?: mapStations.firstOrNull()?.id
-      }
-      hasExplicitMapSelection = false
-    }
+    onReconcileSelection(mapStations, nearestSelection, searchQuery)
   }
 
   val selectedMapStation = remember(selectedMapStationId, mapStations, nearestStation, searchQuery) {
@@ -175,13 +175,6 @@ internal fun MapScreen(
   }
   val mapIsShowingNearestSelection = !hasExplicitMapSelection && selectedMapStation?.id == nearestStation?.id
   val mapIsShowingNearestFallback = selectedMapStation?.id == nearestStation?.id && nearestSelection.usesFallback
-
-  LaunchedEffect(searchQuery, mapStations) {
-    if (searchQuery.isBlank()) return@LaunchedEffect
-    val firstMatch = mapStations.firstOrNull() ?: return@LaunchedEffect
-    selectedMapStationId = firstMatch.id
-    hasExplicitMapSelection = false
-  }
 
   Box(
     modifier = Modifier
@@ -217,8 +210,7 @@ internal fun MapScreen(
       highlightedStationId = selectedMapStation?.id,
       isMapReady = isMapReady,
       onStationSelected = { station ->
-        hasExplicitMapSelection = true
-        selectedMapStationId = station.id
+        onStationSelectedOnMap(station.id)
       },
       recenterRequestToken = recenterRequestToken,
       environmentalOverlay = platformEnvironmentalOverlay,
@@ -240,12 +232,9 @@ internal fun MapScreen(
       if (mobilePlatform != MobileUiPlatform.Desktop) {
         MapFiltersPanel(
           activeFilters = activeFilters,
+          availableFilters = availableFilters,
           onToggleFilter = { filter ->
-            val next = toggleMapFilterSelection(activeFilters, filter)
-            activeFilters = next
-            if (isEnvironmentalMapFilter(filter)) {
-              showEnvironmentalSheet = filter in next
-            }
+            onToggleFilter(filter, availableFilters)
           },
         )
       }
@@ -325,7 +314,7 @@ internal fun MapScreen(
               onFavoriteToggle = { onFavoriteToggle(station) },
               onOpenStationDetails = { onStationSelected(station) },
               onQuickRoute = { onQuickRoute(station) },
-              onDismiss = { isCardDismissed = true },
+              onDismiss = onStationCardDismissed,
             )
           }
         }
@@ -333,11 +322,8 @@ internal fun MapScreen(
           MapControls(
             enabled = userLocation != null || mapStations.isNotEmpty(),
             showEnvironmentalButton = activeEnvironmentalLayer != null,
-            onRecenterClick = {
-              recenterRequestToken += 1
-              isCardDismissed = false
-            },
-            onEnvironmentalClick = { showEnvironmentalSheet = true },
+            onRecenterClick = onRecenterRequested,
+            onEnvironmentalClick = onEnvironmentalSheetShown,
           )
         }
       }
@@ -347,17 +333,14 @@ internal fun MapScreen(
     if (activeEnvironmentalLayer != null && showEnvironmentalSheet) {
       val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
       ModalBottomSheet(
-        onDismissRequest = { showEnvironmentalSheet = false },
+        onDismissRequest = onEnvironmentalSheetDismissed,
         sheetState = sheetState,
         containerColor = LocalBiziColors.current.surface,
       ) {
         EnvironmentalLayerCard(
           layer = activeEnvironmentalLayer,
           zones = if (environmentalSnapshots.isNotEmpty()) environmentalSnapshots else estimatedEnvironmentalSnapshots,
-          onClear = {
-            showEnvironmentalSheet = false
-            activeFilters = clearEnvironmentalMapFilters(activeFilters)
-          },
+          onClear = onClearEnvironmentalFilters,
         )
       }
     }

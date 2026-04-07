@@ -2,8 +2,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
-import com.gcaguilar.biciradar.core.LocalNotifier
-import com.gcaguilar.biciradar.core.PermissionPrompter
+import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
 
@@ -11,8 +10,8 @@ class ProfileViewModelFactory(
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
-  private val permissionPrompter: PermissionPrompter,
-  private val localNotifier: LocalNotifier,
+  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
+  private val canSelectGoogleMapsInIos: Boolean,
 ) {
   fun create(): ProfileViewModel = ProfileViewModel(
     settingsRepository = settingsRepository,
@@ -21,8 +20,8 @@ class ProfileViewModelFactory(
       settingsRepository = settingsRepository,
       favoritesRepository = favoritesRepository,
       stationsRepository = stationsRepository,
+      savedPlaceAlertsRepository = savedPlaceAlertsRepository,
     ),
-    permissionPrompter = permissionPrompter,
-    localNotifier = localNotifier,
+    canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
   )
 }

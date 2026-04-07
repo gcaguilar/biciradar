@@ -42,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun MapFiltersPanel(
   activeFilters: Set<MapFilter>,
+  availableFilters: Set<MapFilter>,
   onToggleFilter: (MapFilter) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -49,7 +50,7 @@ internal fun MapFiltersPanel(
     modifier = modifier.horizontalScroll(rememberScrollState()),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    MapFilter.entries.forEach { filter ->
+    MapFilter.entries.filter { it in availableFilters }.forEach { filter ->
       MapFilterChip(
         filter = filter,
         label = stringResource(filter.labelKey),

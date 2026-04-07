@@ -36,6 +36,7 @@ import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
 import com.gcaguilar.biciradar.core.local.createAndroidDriver
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -76,9 +77,12 @@ class AndroidPlatformBindings(
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
   override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
     private var database: BiciRadarDatabase? = null
-    override fun create(): BiciRadarDatabase? {
+    override fun create(json: Json): BiciRadarDatabase? {
       if (database == null) {
-        database = BiciRadarDatabase(createAndroidDriver(context))
+        val driver = createAndroidDriver(context)
+        val db = BiciRadarDatabase(driver)
+        LegacyBlobToRelationalMigration.ensure(driver, db, json)
+        database = db
       }
       return database
     }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.FavoriteCategory
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -144,9 +145,15 @@ internal object BiziMobileAppContent {
     paddingValues: PaddingValues,
     savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
     savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
+    categories: List<FavoriteCategory> = emptyList(),
+    stationCategory: Map<String, String> = emptyMap(),
+    onCreateCustomCategory: (String) -> Unit = {},
+    onAssignCandidateToCategory: (String) -> Unit = {},
+    onRemoveCustomCategory: (String) -> Unit = {},
+    onClearCategoryAssignment: (String) -> Unit = {},
     onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)? = null,
     onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)? = null,
-  ) = FavoritesScreen(
+  ) = com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen(
     mobilePlatform = mobilePlatform,
     onOpenAssistant = onOpenAssistant,
     allStations = allStations,
@@ -171,6 +178,12 @@ internal object BiziMobileAppContent {
     paddingValues = paddingValues,
     savedPlaceAlertsCityId = savedPlaceAlertsCityId,
     savedPlaceAlertRules = savedPlaceAlertRules,
+    categories = categories,
+    stationCategory = stationCategory,
+    onCreateCustomCategory = onCreateCustomCategory,
+    onAssignCandidateToCategory = onAssignCandidateToCategory,
+    onRemoveCustomCategory = onRemoveCustomCategory,
+    onClearCategoryAssignment = onClearCategoryAssignment,
     onUpsertSavedPlaceAlert = onUpsertSavedPlaceAlert,
     onRemoveSavedPlaceAlertForTarget = onRemoveSavedPlaceAlertForTarget,
   )
@@ -189,7 +202,7 @@ internal object BiziMobileAppContent {
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    FavoritesScreen(
+    com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen(
       mobilePlatform = mobilePlatform,
       onOpenAssistant = onOpenAssistant,
       allStations = uiState.allStations,
@@ -214,6 +227,12 @@ internal object BiziMobileAppContent {
       paddingValues = paddingValues,
       savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
       savedPlaceAlertRules = uiState.savedPlaceAlertRules,
+      categories = uiState.categories,
+      stationCategory = uiState.stationCategory,
+      onCreateCustomCategory = viewModel::onCreateCustomCategory,
+      onAssignCandidateToCategory = viewModel::onAssignCandidateToCategory,
+      onRemoveCustomCategory = viewModel::onRemoveCustomCategory,
+      onClearCategoryAssignment = viewModel::onClearCategoryAssignment,
       onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
       onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
     )
@@ -231,6 +250,7 @@ internal object BiziMobileAppContent {
     onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
     onThemePreferenceSelected: (ThemePreference) -> Unit,
     onCitySelected: (City) -> Unit,
+    canSelectGoogleMapsInIos: Boolean = true,
     showProfileSetupCard: Boolean = false,
     onShowChangelog: () -> Unit = {},
     onOpenFeedback: () -> Unit = {},
@@ -247,6 +267,7 @@ internal object BiziMobileAppContent {
     onPreferredMapAppSelected = onPreferredMapAppSelected,
     onThemePreferenceSelected = onThemePreferenceSelected,
     onCitySelected = onCitySelected,
+    canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
     showProfileSetupCard = showProfileSetupCard,
     onShowChangelog = onShowChangelog,
     onOpenOnboarding = onOpenOnboarding,
@@ -275,6 +296,7 @@ internal object BiziMobileAppContent {
       onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
       onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
       onCitySelected = viewModel::onCitySelected,
+      canSelectGoogleMapsInIos = uiState.canSelectGoogleMapsInIos,
       showProfileSetupCard = uiState.showProfileSetupCard,
       onShowChangelog = onShowChangelogManual,
       onOpenOnboarding = onOpenOnboarding,
@@ -374,6 +396,21 @@ internal object BiziMobileAppContent {
       onRetry = onRetry,
       onFavoriteToggle = onFavoriteToggle,
       onQuickRoute = onQuickRoute,
+      activeFilters = uiState.persistedActiveFilters,
+      onToggleFilter = viewModel::onToggleFilter,
+      onAvailableFiltersChange = viewModel::onAvailableFiltersChanged,
+      selectedMapStationId = uiState.selectedMapStationId,
+      hasExplicitMapSelection = uiState.hasExplicitMapSelection,
+      isCardDismissed = uiState.isCardDismissed,
+      showEnvironmentalSheet = uiState.showEnvironmentalSheet,
+      recenterRequestToken = uiState.recenterRequestToken,
+      onStationSelectedOnMap = viewModel::onStationSelected,
+      onStationCardDismissed = viewModel::onStationCardDismissed,
+      onRecenterRequested = viewModel::onRecenterRequested,
+      onEnvironmentalSheetShown = viewModel::onEnvironmentalSheetShown,
+      onEnvironmentalSheetDismissed = viewModel::onEnvironmentalSheetDismissed,
+      onClearEnvironmentalFilters = viewModel::onClearEnvironmentalFilters,
+      onReconcileSelection = viewModel::reconcileSelection,
       environmentalSnapshots = uiState.zones,
       onEnvironmentalLayerChanged = viewModel::onEnvironmentalLayerChanged,
       paddingValues = paddingValues,

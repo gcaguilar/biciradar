@@ -39,6 +39,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +54,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.FavoriteCategory
+import com.gcaguilar.biciradar.core.FavoriteCategoryIds
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
@@ -83,6 +86,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyDescr
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSubtitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.home
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.homeAndWork
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.homeAndWorkDescription
@@ -135,10 +139,17 @@ internal fun FavoritesScreen(
   paddingValues: PaddingValues,
   savedPlaceAlertsCityId: String,
   savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+  categories: List<FavoriteCategory>,
+  stationCategory: Map<String, String>,
+  onCreateCustomCategory: (String) -> Unit,
+  onAssignCandidateToCategory: (String) -> Unit,
+  onRemoveCustomCategory: (String) -> Unit,
+  onClearCategoryAssignment: (String) -> Unit,
   onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)?,
   onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)?,
 ) {
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
+  var newCategoryName by remember { mutableStateOf("") }
   val upsertAlert = onUpsertSavedPlaceAlert
   val removeAlertForTarget = onRemoveSavedPlaceAlertForTarget
   if (upsertAlert != null && removeAlertForTarget != null) {
@@ -242,6 +253,50 @@ internal fun FavoritesScreen(
           )
         }
       }
+      val customCategories = categories.filterNot { it.id in setOf(FavoriteCategoryIds.FAVORITE, FavoriteCategoryIds.HOME, FavoriteCategoryIds.WORK) }
+      if (customCategories.isNotEmpty() || assignmentCandidate != null) {
+        item {
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+              Text("Categorias custom", fontWeight = FontWeight.SemiBold)
+              Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.OutlinedTextField(
+                  value = newCategoryName,
+                  onValueChange = { newCategoryName = it },
+                  modifier = Modifier.weight(1f),
+                  singleLine = true,
+                  label = { Text("Nueva categoria") },
+                )
+                TextButton(onClick = {
+                  val label = newCategoryName.trim()
+                  if (label.isNotBlank()) {
+                    onCreateCustomCategory(label)
+                    newCategoryName = ""
+                  }
+                }) { Text("Crear") }
+              }
+              customCategories.forEach { category ->
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  Text(category.label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                  Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (assignmentCandidate != null) {
+                      TextButton(onClick = { onAssignCandidateToCategory(category.id) }) { Text("Asignar busqueda") }
+                    }
+                    TextButton(onClick = { onRemoveCustomCategory(category.id) }) { Text("Eliminar") }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       item {
         SavedPlaceCard(
           mobilePlatform = mobilePlatform,
@@ -256,7 +311,13 @@ internal fun FavoritesScreen(
             val s = homeStation
             if (s != null && upsertAlert != null) {
               {
-                val t = SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name)
+                val t = SavedPlaceAlertTarget.CategoryStation(
+                  stationId = s.id,
+                  cityId = savedPlaceAlertsCityId,
+                  stationName = s.name,
+                  categoryId = FavoriteCategoryIds.HOME,
+                  categoryLabel = "Casa",
+                )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
@@ -266,7 +327,13 @@ internal fun FavoritesScreen(
           savedPlaceAlertActive = homeStation?.let { s ->
             findSavedPlaceAlertRule(
               savedPlaceAlertRules,
-              SavedPlaceAlertTarget.Home(s.id, savedPlaceAlertsCityId, s.name),
+              SavedPlaceAlertTarget.CategoryStation(
+                stationId = s.id,
+                cityId = savedPlaceAlertsCityId,
+                stationName = s.name,
+                categoryId = FavoriteCategoryIds.HOME,
+                categoryLabel = "Casa",
+              ),
             ) != null
           } == true,
         )
@@ -285,7 +352,13 @@ internal fun FavoritesScreen(
             val s = workStation
             if (s != null && upsertAlert != null) {
               {
-                val t = SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name)
+                val t = SavedPlaceAlertTarget.CategoryStation(
+                  stationId = s.id,
+                  cityId = savedPlaceAlertsCityId,
+                  stationName = s.name,
+                  categoryId = FavoriteCategoryIds.WORK,
+                  categoryLabel = "Trabajo",
+                )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
@@ -295,10 +368,61 @@ internal fun FavoritesScreen(
           savedPlaceAlertActive = workStation?.let { s ->
             findSavedPlaceAlertRule(
               savedPlaceAlertRules,
-              SavedPlaceAlertTarget.Work(s.id, savedPlaceAlertsCityId, s.name),
+              SavedPlaceAlertTarget.CategoryStation(
+                stationId = s.id,
+                cityId = savedPlaceAlertsCityId,
+                stationName = s.name,
+                categoryId = FavoriteCategoryIds.WORK,
+                categoryLabel = "Trabajo",
+              ),
             ) != null
           } == true,
         )
+      }
+      customCategories.forEach { category ->
+        item(key = "custom-category-${category.id}") {
+          val assignedStationId = stationCategory.entries.firstOrNull { it.value == category.id }?.key
+          val assignedStation = allStations.find { it.id == assignedStationId }
+          SavedPlaceCard(
+            mobilePlatform = mobilePlatform,
+            title = category.label,
+            station = assignedStation,
+            assignmentCandidate = assignmentCandidate,
+            onAssignCandidate = { onAssignCandidateToCategory(category.id) },
+            onClear = { onClearCategoryAssignment(category.id) },
+            onOpenStationDetails = onStationSelected,
+            onQuickRoute = onQuickRoute,
+            onSavedPlaceAlertClick = run {
+              val s = assignedStation
+              if (s != null && upsertAlert != null) {
+                {
+                  val t = SavedPlaceAlertTarget.CategoryStation(
+                    stationId = s.id,
+                    cityId = savedPlaceAlertsCityId,
+                    stationName = s.name,
+                    categoryId = category.id,
+                    categoryLabel = category.label,
+                  )
+                  alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
+                }
+              } else {
+                null
+              }
+            },
+            savedPlaceAlertActive = assignedStation?.let { s ->
+              findSavedPlaceAlertRule(
+                savedPlaceAlertRules,
+                SavedPlaceAlertTarget.CategoryStation(
+                  stationId = s.id,
+                  cityId = savedPlaceAlertsCityId,
+                  stationName = s.name,
+                  categoryId = category.id,
+                  categoryLabel = category.label,
+                ),
+              ) != null
+            } == true,
+          )
+        }
       }
       item {
         AnimatedVisibility(
@@ -327,7 +451,13 @@ internal fun FavoritesScreen(
             onRemoveFavorite = { onRemoveFavorite(station) },
             onSavedPlaceAlertClick = if (upsertAlert != null) {
               {
-                val t = SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name)
+                val t = SavedPlaceAlertTarget.CategoryStation(
+                  stationId = station.id,
+                  cityId = savedPlaceAlertsCityId,
+                  stationName = station.name,
+                  categoryId = FavoriteCategoryIds.FAVORITE,
+                  categoryLabel = "Favorita",
+                )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
             } else {
@@ -335,7 +465,13 @@ internal fun FavoritesScreen(
             },
             savedPlaceAlertActive = findSavedPlaceAlertRule(
               savedPlaceAlertRules,
-              SavedPlaceAlertTarget.FavoriteStation(station.id, savedPlaceAlertsCityId, station.name),
+              SavedPlaceAlertTarget.CategoryStation(
+                stationId = station.id,
+                cityId = savedPlaceAlertsCityId,
+                stationName = station.name,
+                categoryId = FavoriteCategoryIds.FAVORITE,
+                categoryLabel = "Favorita",
+              ),
             ) != null,
           )
         }

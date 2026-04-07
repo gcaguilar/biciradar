@@ -36,23 +36,130 @@ CREATE TABLE favorite_roles (
   work_station_id TEXT
 );
 
+CREATE TABLE favorite_categories (
+  id TEXT PRIMARY KEY NOT NULL,
+  label TEXT NOT NULL,
+  is_system INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE favorite_station_category (
+  station_id TEXT PRIMARY KEY NOT NULL,
+  category_id TEXT NOT NULL
+);
+
+-- Saved-place alerts (relational; no JSON blobs)
 CREATE TABLE saved_place_alert_rules (
   id TEXT PRIMARY KEY NOT NULL,
-  target_json TEXT NOT NULL,
-  condition_json TEXT NOT NULL,
+  target_kind TEXT NOT NULL,
+  target_station_id TEXT NOT NULL,
+  target_city_id TEXT NOT NULL,
+  target_station_name TEXT,
+  target_category_id TEXT,
+  target_category_label TEXT,
+  condition_kind TEXT NOT NULL,
+  condition_threshold INTEGER,
   is_enabled INTEGER NOT NULL,
   last_triggered_epoch INTEGER,
-  last_condition_matched INTEGER NOT NULL
+  last_condition_matched INTEGER NOT NULL,
+  last_observed_value INTEGER
 );
 
-CREATE TABLE settings_snapshot (
+-- App settings: single logical row id = 1
+CREATE TABLE app_settings (
   id INTEGER PRIMARY KEY NOT NULL,
-  snapshot_json TEXT NOT NULL
+  search_radius_meters INTEGER NOT NULL,
+  preferred_map_app TEXT NOT NULL,
+  last_seen_changelog_version INTEGER NOT NULL,
+  last_seen_changelog_app_version TEXT,
+  theme_preference TEXT NOT NULL,
+  selected_city_id TEXT NOT NULL,
+  has_completed_onboarding INTEGER NOT NULL,
+  onboarding_city_confirmed INTEGER NOT NULL,
+  onboarding_feature_highlights_seen INTEGER NOT NULL,
+  onboarding_location_decision_made INTEGER NOT NULL,
+  onboarding_notifications_decision_made INTEGER NOT NULL,
+  onboarding_first_station_saved INTEGER NOT NULL,
+  onboarding_saved_places_configured INTEGER NOT NULL,
+  onboarding_surfaces_discovered INTEGER NOT NULL,
+  onboarding_completed_at_epoch INTEGER,
+  engagement_installed_at_epoch INTEGER NOT NULL DEFAULT 0,
+  engagement_last_session_epoch INTEGER,
+  engagement_useful_sessions_count INTEGER NOT NULL DEFAULT 0,
+  engagement_favorites_saved_count INTEGER NOT NULL DEFAULT 0,
+  engagement_routes_opened_count INTEGER NOT NULL DEFAULT 0,
+  engagement_monitorings_completed_count INTEGER NOT NULL DEFAULT 0,
+  engagement_repeated_error_count INTEGER NOT NULL DEFAULT 0,
+  engagement_expired_data_events_count INTEGER NOT NULL DEFAULT 0,
+  engagement_unavailable_data_events_count INTEGER NOT NULL DEFAULT 0,
+  engagement_last_feedback_nudge_at_epoch INTEGER,
+  engagement_last_feedback_dismissed_at_epoch INTEGER,
+  engagement_last_feedback_opened_at_epoch INTEGER,
+  engagement_last_feedback_nudged_version TEXT,
+  engagement_last_review_requested_at_epoch INTEGER,
+  engagement_last_review_requested_version TEXT,
+  engagement_dismissed_update_version TEXT,
+  engagement_last_update_check_at_epoch INTEGER,
+  engagement_last_update_banner_dismissed_at_epoch INTEGER,
+  preferred_monitoring_duration_seconds INTEGER
 );
 
-CREATE TABLE surface_snapshot_bundle (
+CREATE TABLE settings_map_filter_name (
+  name TEXT PRIMARY KEY NOT NULL
+);
+
+CREATE TABLE surface_header (
   id INTEGER PRIMARY KEY NOT NULL,
-  bundle_json TEXT NOT NULL
+  generated_at_epoch INTEGER NOT NULL,
+  state_has_location INTEGER NOT NULL,
+  state_has_notifications INTEGER NOT NULL,
+  state_has_favorite INTEGER NOT NULL,
+  state_is_data_fresh INTEGER NOT NULL,
+  state_last_sync_epoch INTEGER,
+  state_city_id TEXT NOT NULL,
+  state_city_name TEXT NOT NULL,
+  state_user_latitude REAL,
+  state_user_longitude REAL
+);
+
+CREATE TABLE surface_station_row (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  role TEXT NOT NULL,
+  slot_index INTEGER NOT NULL DEFAULT 0,
+  station_id TEXT NOT NULL,
+  name_short TEXT NOT NULL,
+  name_full TEXT NOT NULL,
+  city_id TEXT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  bikes_available INTEGER NOT NULL,
+  docks_available INTEGER NOT NULL,
+  status_text_short TEXT NOT NULL,
+  status_level TEXT NOT NULL,
+  last_updated_epoch INTEGER NOT NULL,
+  distance_meters INTEGER,
+  is_favorite INTEGER NOT NULL,
+  alternative_station_id TEXT,
+  alternative_station_name TEXT,
+  alternative_distance_meters INTEGER
+);
+
+CREATE TABLE surface_monitoring (
+  id INTEGER PRIMARY KEY NOT NULL,
+  station_id TEXT,
+  station_name TEXT,
+  city_id TEXT,
+  kind TEXT,
+  status TEXT,
+  bikes_available INTEGER,
+  docks_available INTEGER,
+  status_level TEXT,
+  started_at_epoch INTEGER,
+  expires_at_epoch INTEGER,
+  last_updated_epoch INTEGER,
+  is_active INTEGER,
+  alternative_station_id TEXT,
+  alternative_station_name TEXT,
+  alternative_distance_meters INTEGER
 );
 
 -- Queries
@@ -65,6 +172,13 @@ SELECT * FROM cache_metadata LIMIT 1;
 insertStation:
 INSERT INTO stations (id, name, address, latitude, longitude, bikes_available, slots_free, ebikes_available, regular_bikes_available, updated_at)
 VALUES (:id, :name, :address, :latitude, :longitude, :bikesAvailable, :slotsFree, :ebikesAvailable, :regularBikesAvailable, :updatedAt);
+
+updateStationBikeDockCounts:
+UPDATE stations
+SET bikes_available = :bikesAvailable,
+    slots_free = :slotsFree,
+    updated_at = :updatedAt
+WHERE id = :id;
 
 deleteAllStations:
 DELETE FROM stations;
@@ -117,25 +231,59 @@ clearFavoriteRoles:
 DELETE FROM favorite_roles
 WHERE id = 1;
 
+getAllFavoriteCategories:
+SELECT id, label, is_system FROM favorite_categories;
+
+insertFavoriteCategory:
+INSERT OR REPLACE INTO favorite_categories (id, label, is_system)
+VALUES (:id, :label, :isSystem);
+
+deleteAllFavoriteCategories:
+DELETE FROM favorite_categories;
+
+getAllFavoriteStationCategories:
+SELECT station_id, category_id FROM favorite_station_category;
+
+insertFavoriteStationCategory:
+INSERT OR REPLACE INTO favorite_station_category (station_id, category_id)
+VALUES (:stationId, :categoryId);
+
+deleteAllFavoriteStationCategories:
+DELETE FROM favorite_station_category;
+
 getAllSavedPlaceAlertRules:
 SELECT * FROM saved_place_alert_rules;
 
 upsertSavedPlaceAlertRule:
 INSERT OR REPLACE INTO saved_place_alert_rules (
   id,
-  target_json,
-  condition_json,
+  target_kind,
+  target_station_id,
+  target_city_id,
+  target_station_name,
+  target_category_id,
+  target_category_label,
+  condition_kind,
+  condition_threshold,
   is_enabled,
   last_triggered_epoch,
-  last_condition_matched
+  last_condition_matched,
+  last_observed_value
 )
 VALUES (
   :id,
-  :targetJson,
-  :conditionJson,
+  :targetKind,
+  :targetStationId,
+  :targetCityId,
+  :targetStationName,
+  :targetCategoryId,
+  :targetCategoryLabel,
+  :conditionKind,
+  :conditionThreshold,
   :isEnabled,
   :lastTriggeredEpoch,
-  :lastConditionMatched
+  :lastConditionMatched,
+  :lastObservedValue
 );
 
 deleteSavedPlaceAlertRule:
@@ -145,30 +293,216 @@ WHERE id = :id;
 deleteAllSavedPlaceAlertRules:
 DELETE FROM saved_place_alert_rules;
 
-getSettingsSnapshot:
-SELECT snapshot_json
-FROM settings_snapshot
-WHERE id = 1
-LIMIT 1;
+-- Settings (relational)
+getAppSettings:
+SELECT * FROM app_settings WHERE id = 1 LIMIT 1;
 
-upsertSettingsSnapshot:
-INSERT OR REPLACE INTO settings_snapshot (id, snapshot_json)
-VALUES (1, :snapshotJson);
+upsertAppSettings:
+INSERT OR REPLACE INTO app_settings (
+  id,
+  search_radius_meters,
+  preferred_map_app,
+  last_seen_changelog_version,
+  last_seen_changelog_app_version,
+  theme_preference,
+  selected_city_id,
+  has_completed_onboarding,
+  onboarding_city_confirmed,
+  onboarding_feature_highlights_seen,
+  onboarding_location_decision_made,
+  onboarding_notifications_decision_made,
+  onboarding_first_station_saved,
+  onboarding_saved_places_configured,
+  onboarding_surfaces_discovered,
+  onboarding_completed_at_epoch,
+  engagement_installed_at_epoch,
+  engagement_last_session_epoch,
+  engagement_useful_sessions_count,
+  engagement_favorites_saved_count,
+  engagement_routes_opened_count,
+  engagement_monitorings_completed_count,
+  engagement_repeated_error_count,
+  engagement_expired_data_events_count,
+  engagement_unavailable_data_events_count,
+  engagement_last_feedback_nudge_at_epoch,
+  engagement_last_feedback_dismissed_at_epoch,
+  engagement_last_feedback_opened_at_epoch,
+  engagement_last_feedback_nudged_version,
+  engagement_last_review_requested_at_epoch,
+  engagement_last_review_requested_version,
+  engagement_dismissed_update_version,
+  engagement_last_update_check_at_epoch,
+  engagement_last_update_banner_dismissed_at_epoch,
+  preferred_monitoring_duration_seconds
+)
+VALUES (
+  :id,
+  :searchRadiusMeters,
+  :preferredMapApp,
+  :lastSeenChangelogVersion,
+  :lastSeenChangelogAppVersion,
+  :themePreference,
+  :selectedCityId,
+  :hasCompletedOnboarding,
+  :onboardingCityConfirmed,
+  :onboardingFeatureHighlightsSeen,
+  :onboardingLocationDecisionMade,
+  :onboardingNotificationsDecisionMade,
+  :onboardingFirstStationSaved,
+  :onboardingSavedPlacesConfigured,
+  :onboardingSurfacesDiscovered,
+  :onboardingCompletedAtEpoch,
+  :engagementInstalledAtEpoch,
+  :engagementLastSessionEpoch,
+  :engagementUsefulSessionsCount,
+  :engagementFavoritesSavedCount,
+  :engagementRoutesOpenedCount,
+  :engagementMonitoringsCompletedCount,
+  :engagementRepeatedErrorCount,
+  :engagementExpiredDataEventsCount,
+  :engagementUnavailableDataEventsCount,
+  :engagementLastFeedbackNudgeAtEpoch,
+  :engagementLastFeedbackDismissedAtEpoch,
+  :engagementLastFeedbackOpenedAtEpoch,
+  :engagementLastFeedbackNudgedVersion,
+  :engagementLastReviewRequestedAtEpoch,
+  :engagementLastReviewRequestedVersion,
+  :engagementDismissedUpdateVersion,
+  :engagementLastUpdateCheckAtEpoch,
+  :engagementLastUpdateBannerDismissedAtEpoch,
+  :preferredMonitoringDurationSeconds
+);
 
-clearSettingsSnapshot:
-DELETE FROM settings_snapshot
-WHERE id = 1;
+deleteAllSettingsMapFilterNames:
+DELETE FROM settings_map_filter_name;
 
-getSurfaceSnapshotBundle:
-SELECT bundle_json
-FROM surface_snapshot_bundle
-WHERE id = 1
-LIMIT 1;
+insertSettingsMapFilterName:
+INSERT OR REPLACE INTO settings_map_filter_name (name)
+VALUES (:name);
 
-upsertSurfaceSnapshotBundle:
-INSERT OR REPLACE INTO surface_snapshot_bundle (id, bundle_json)
-VALUES (1, :bundleJson);
+getAllSettingsMapFilterNames:
+SELECT name FROM settings_map_filter_name;
 
-clearSurfaceSnapshotBundle:
-DELETE FROM surface_snapshot_bundle
-WHERE id = 1;
+-- Surface snapshot (relational)
+getSurfaceHeader:
+SELECT * FROM surface_header WHERE id = 1 LIMIT 1;
+
+upsertSurfaceHeader:
+INSERT OR REPLACE INTO surface_header (
+  id,
+  generated_at_epoch,
+  state_has_location,
+  state_has_notifications,
+  state_has_favorite,
+  state_is_data_fresh,
+  state_last_sync_epoch,
+  state_city_id,
+  state_city_name,
+  state_user_latitude,
+  state_user_longitude
+)
+VALUES (
+  :id,
+  :generatedAtEpoch,
+  :stateHasLocation,
+  :stateHasNotifications,
+  :stateHasFavorite,
+  :stateIsDataFresh,
+  :stateLastSyncEpoch,
+  :stateCityId,
+  :stateCityName,
+  :stateUserLatitude,
+  :stateUserLongitude  
+);
+
+deleteAllSurfaceStationRows:
+DELETE FROM surface_station_row;
+
+insertSurfaceStationRow:
+INSERT INTO surface_station_row (
+  role,
+  slot_index,
+  station_id,
+  name_short,
+  name_full,
+  city_id,
+  latitude,
+  longitude,
+  bikes_available,
+  docks_available,
+  status_text_short,
+  status_level,
+  last_updated_epoch,
+  distance_meters,
+  is_favorite,
+  alternative_station_id,
+  alternative_station_name,
+  alternative_distance_meters
+)
+VALUES (
+  :role,
+  :slotIndex,
+  :stationId,
+  :nameShort,
+  :nameFull,
+  :cityId,
+  :latitude,
+  :longitude,
+  :bikesAvailable,
+  :docksAvailable,
+  :statusTextShort,
+  :statusLevel,
+  :lastUpdatedEpoch,
+  :distanceMeters,
+  :isFavorite,
+  :alternativeStationId,
+  :alternativeStationName,
+  :alternativeDistanceMeters
+);
+
+getAllSurfaceStationRows:
+SELECT * FROM surface_station_row ORDER BY role ASC, slot_index ASC, id ASC;
+
+getSurfaceMonitoring:
+SELECT * FROM surface_monitoring WHERE id = 1 LIMIT 1;
+
+upsertSurfaceMonitoring:
+INSERT OR REPLACE INTO surface_monitoring (
+  id,
+  station_id,
+  station_name,
+  city_id,
+  kind,
+  status,
+  bikes_available,
+  docks_available,
+  status_level,
+  started_at_epoch,
+  expires_at_epoch,
+  last_updated_epoch,
+  is_active,
+  alternative_station_id,
+  alternative_station_name,
+  alternative_distance_meters
+)
+VALUES (
+  :id,
+  :stationId,
+  :stationName,
+  :cityId,
+  :kind,
+  :status,
+  :bikesAvailable,
+  :docksAvailable,
+  :statusLevel,
+  :startedAtEpoch,
+  :expiresAtEpoch,
+  :lastUpdatedEpoch,
+  :isActive,
+  :alternativeStationId,
+  :alternativeStationName,
+  :alternativeDistanceMeters
+);
+
+clearSurfaceMonitoringRow:
+DELETE FROM surface_monitoring WHERE id = 1;

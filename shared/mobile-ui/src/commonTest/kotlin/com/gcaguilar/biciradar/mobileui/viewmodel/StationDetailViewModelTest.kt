@@ -166,6 +166,7 @@ private class FakeStationDetailAlertsRepository : SavedPlaceAlertsRepository {
   override suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean) = Unit
   override suspend fun removeRule(ruleId: String) = Unit
   override suspend fun removeRuleForTarget(target: SavedPlaceAlertTarget) = Unit
+  override suspend fun removeRulesForCity(cityId: String) = Unit
   override suspend fun setRuleEnabled(ruleId: String, enabled: Boolean) = Unit
   override suspend fun replaceAll(rules: List<SavedPlaceAlertRule>) = Unit
 }
