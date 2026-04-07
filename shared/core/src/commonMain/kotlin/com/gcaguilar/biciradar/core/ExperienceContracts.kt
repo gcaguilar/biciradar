@@ -14,6 +14,9 @@ interface PermissionPrompter {
 /** In-app review (fire-and-forget). Manual profile CTA should use [openStoreWriteReview]. */
 interface ReviewPrompter {
   suspend fun requestInAppReview()
+  suspend fun requestInAppReviewOrStoreFallback() {
+    requestInAppReview()
+  }
   fun openStoreWriteReview()
 }
 

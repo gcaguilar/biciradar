@@ -307,7 +307,7 @@ internal object BiziMobileAppContent {
       onRateApp = {
         if (mobilePlatform == MobileUiPlatform.Android) {
           scope.launch {
-            platformBindings.reviewPrompter.requestInAppReview()
+            platformBindings.reviewPrompter.requestInAppReviewOrStoreFallback()
           }
         } else {
           platformBindings.reviewPrompter.openStoreWriteReview()

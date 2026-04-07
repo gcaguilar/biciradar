@@ -175,6 +175,12 @@
     <string name="changelogSavedPlaceAlertsDescription">Tokiko jakinarazpenak ezarri bizikletak edo leku askeko baldintza bat betetzen denean. Kudeatu Gogokoetatik, geltokiaren xehetasunetik eta Profilatik; biciradar://alerts esteka.</string>
     <string name="changelogEnvironmentalLayersTitle">Ingurumen geruzak mapan</string>
     <string name="changelogEnvironmentalLayersDescription">Aktibatu airearen kalitatearen eta polenaren geruzak legenda argi batekin eta datu-iturriaren xehetasunetara sarbide azkarrarekin.</string>
+    <string name="changelogOnboardingAccessTitle">Onboardingerako sarbidea ezarpenetatik</string>
+    <string name="changelogOnboardingAccessDescription">Orain onboardinga Profilatik berriro ireki dezakezu konfigurazio urratsik pendiente baduzu.</string>
+    <string name="changelogCitySearchTitle">Hiri bilaketa hobetua</string>
+    <string name="changelogCitySearchDescription">Hiri hautatzaileak bilaketa dauka onboardingean eta ezarpenetan, azentuak kontuan hartu gabe ere bat etor dadin.</string>
+    <string name="changelogAndroidReviewTitle">Androiden balorazioa fidagarriagoa</string>
+    <string name="changelogAndroidReviewDescription">Baloratzeko botoiak lehenik aplikazio barruko iritzia saiatzen du eta, erabilgarri ez badago, Play Storeko fitxa irekitzen du.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

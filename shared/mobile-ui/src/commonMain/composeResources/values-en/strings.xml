@@ -175,6 +175,12 @@
     <string name="changelogSavedPlaceAlertsDescription">Set local notifications when bikes or docks match a condition you pick. Manage from Favorites, station detail, and Profile; open with biciradar://alerts.</string>
     <string name="changelogEnvironmentalLayersTitle">Environmental map layers</string>
     <string name="changelogEnvironmentalLayersDescription">Turn on air-quality and pollen overlays with a clear legend and quick access to data-source details.</string>
+    <string name="changelogOnboardingAccessTitle">Onboarding access from settings</string>
+    <string name="changelogOnboardingAccessDescription">You can now reopen onboarding from Profile when you still have setup steps pending.</string>
+    <string name="changelogCitySearchTitle">Improved city search</string>
+    <string name="changelogCitySearchDescription">The city selector now includes search in onboarding and settings, with accent-insensitive matching.</string>
+    <string name="changelogAndroidReviewTitle">More reliable Android rating flow</string>
+    <string name="changelogAndroidReviewDescription">The rate button now tries in-app review first and falls back to Play Store when unavailable.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

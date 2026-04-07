@@ -175,6 +175,12 @@
     <string name="changelogSavedPlaceAlertsDescription">Configura avisos locales cuando haya bicis o huecos según la condición que elijas. Gestión desde Favoritas, detalle de estación y Perfil; enlace biciradar://alerts.</string>
     <string name="changelogEnvironmentalLayersTitle">Capas ambientales en el mapa</string>
     <string name="changelogEnvironmentalLayersDescription">Activa vistas de calidad del aire y polen con una leyenda clara y acceso rápido al detalle de la fuente de datos.</string>
+    <string name="changelogOnboardingAccessTitle">Acceso al onboarding desde ajustes</string>
+    <string name="changelogOnboardingAccessDescription">Ahora puedes retomar el onboarding desde Perfil cuando te quede alguna configuración pendiente.</string>
+    <string name="changelogCitySearchTitle">Buscador de ciudades mejorado</string>
+    <string name="changelogCitySearchDescription">El selector de ciudad incluye búsqueda en onboarding y ajustes, con soporte para acentos y variantes sin tildes.</string>
+    <string name="changelogAndroidReviewTitle">Valoración en Android más fiable</string>
+    <string name="changelogAndroidReviewDescription">El botón de valorar intenta primero la reseña integrada y, si no está disponible, abre la ficha en Play Store.</string>
     <string name="destinationPlaceholder">Escribe una dirección o lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

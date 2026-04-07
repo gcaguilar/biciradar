@@ -79,6 +79,27 @@ internal class AndroidReviewPrompter(
     openStoreUri("market://details?id=${context.packageName}&showAllReviews=true")
   }
 
+  override suspend fun requestInAppReviewOrStoreFallback() {
+    val activity = activityProvider()
+    if (activity == null) {
+      openStoreWriteReview()
+      return
+    }
+    val manager = ReviewManagerFactory.create(context)
+    val info = runCatching { manager.requestReviewFlow().await() }.getOrNull()
+    if (info == null) {
+      openStoreWriteReview()
+      return
+    }
+    val launched = runCatching {
+      manager.launchReviewFlow(activity, info).await()
+      true
+    }.getOrDefault(false)
+    if (!launched) {
+      openStoreWriteReview()
+    }
+  }
+
   private fun openStoreUri(uriString: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).apply {
       addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
