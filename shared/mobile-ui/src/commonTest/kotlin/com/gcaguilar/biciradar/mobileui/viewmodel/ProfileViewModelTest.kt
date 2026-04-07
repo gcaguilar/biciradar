@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +40,7 @@ class ProfileViewModelTest {
   }
 
   @Test
-  fun `runtime checklist controls setup card visibility`() = runTest(dispatcher) {
+  fun `incomplete checklist always shows setup card`() = runTest(dispatcher) {
     val settingsRepository = ProfileTestSettingsRepository()
     val favoritesRepository = ProfileTestFavoritesRepository()
     val stationsRepository = ProfileTestStationsRepository()
@@ -51,6 +52,7 @@ class ProfileViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
+      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
       canSelectGoogleMapsInIos = true,
     )
 
@@ -64,7 +66,7 @@ class ProfileViewModelTest {
 
     settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
     advanceUntilIdle()
-    assertEquals(false, viewModel.uiState.value.showProfileSetupCard)
+    assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
   }
 
   @Test
@@ -80,6 +82,7 @@ class ProfileViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
+      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
       canSelectGoogleMapsInIos = true,
     )
 

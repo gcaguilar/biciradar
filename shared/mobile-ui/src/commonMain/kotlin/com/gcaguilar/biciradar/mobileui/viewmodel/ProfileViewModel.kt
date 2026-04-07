@@ -9,6 +9,7 @@ import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,10 +38,11 @@ data class ShortcutGuide(
   val icon: String,
 )
 
-class ProfileViewModel(
+internal class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
   private val changeCityUseCase: ChangeCityUseCase,
+  private val settingsAggregationUseCase: SettingsAggregationUseCase,
   private val canSelectGoogleMapsInIos: Boolean,
 ) : ViewModel() {
   private val latestAnswer = MutableStateFlow("Ask about stations, favorites, or routes")
@@ -60,7 +62,7 @@ class ProfileViewModel(
       canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
       themePreference = themePreference,
       selectedCity = selectedCity,
-      showProfileSetupCard = checklist.cityConfirmed && !checklist.isCompleted(),
+      showProfileSetupCard = settingsAggregationUseCase.shouldShowProfileSetupSection(checklist),
     )
   }
 

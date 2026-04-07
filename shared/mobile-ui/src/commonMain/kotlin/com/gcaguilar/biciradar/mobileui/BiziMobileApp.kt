@@ -1122,7 +1122,18 @@ private fun CitySelectionScreen(
   onCitySelected: (City) -> Unit,
 ) {
   val colors = LocalBiziColors.current
+  var searchQuery by remember { mutableStateOf("") }
   val sortedCities = remember { City.entries.sortedBy { it.displayName } }
+  val normalizedQuery = remember(searchQuery) { searchQuery.trim().normalizedForSearch() }
+  val filteredCities = remember(normalizedQuery, sortedCities) {
+    if (normalizedQuery.isBlank()) {
+      sortedCities
+    } else {
+      sortedCities.filter { city ->
+        city.displayName.normalizedForSearch().contains(normalizedQuery)
+      }
+    }
+  }
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -1144,13 +1155,35 @@ private fun CitySelectionScreen(
       style = MaterialTheme.typography.bodyMedium,
       color = colors.muted,
     )
-    Spacer(modifier = Modifier.height(32.dp))
+    Spacer(modifier = Modifier.height(20.dp))
+    OutlinedTextField(
+      value = searchQuery,
+      onValueChange = { searchQuery = it },
+      modifier = Modifier.fillMaxWidth(),
+      singleLine = true,
+      placeholder = { Text(stringResource(Res.string.citySelectionSearchPlaceholder)) },
+      colors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = colors.surface,
+        unfocusedContainerColor = colors.surface,
+      ),
+    )
+    Spacer(modifier = Modifier.height(12.dp))
     LazyColumn(
       modifier = Modifier.weight(1f),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      items(sortedCities.size) { index ->
-        val city = sortedCities[index]
+      if (filteredCities.isEmpty()) {
+        item {
+          Text(
+            text = stringResource(Res.string.citySelectionSearchNoResults),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.muted,
+            modifier = Modifier.padding(vertical = 8.dp),
+          )
+        }
+      }
+      items(filteredCities.size) { index ->
+        val city = filteredCities[index]
         Card(
           modifier = Modifier
             .fillMaxWidth()

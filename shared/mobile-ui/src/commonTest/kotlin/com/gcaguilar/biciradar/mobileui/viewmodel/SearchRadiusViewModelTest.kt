@@ -29,6 +29,7 @@ import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
 import kotlinx.coroutines.Dispatchers
@@ -148,6 +149,7 @@ class SearchRadiusViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
+      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
       canSelectGoogleMapsInIos = true,
     )
     settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
@@ -171,6 +173,7 @@ class SearchRadiusViewModelTest {
         favoritesRepository = favoritesRepository,
         stationsRepository = stationsRepository,
       ),
+      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
       canSelectGoogleMapsInIos = true,
     )
 

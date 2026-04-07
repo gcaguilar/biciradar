@@ -5,8 +5,9 @@ import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 
-class ProfileViewModelFactory(
+internal class ProfileViewModelFactory(
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
@@ -22,6 +23,7 @@ class ProfileViewModelFactory(
       stationsRepository = stationsRepository,
       savedPlaceAlertsRepository = savedPlaceAlertsRepository,
     ),
+    settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
     canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
   )
 }

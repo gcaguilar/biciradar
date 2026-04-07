@@ -230,6 +230,8 @@
     <string name="preparingAndroidExperience">Preparing the Android experience…</string>
     <string name="selectedCity">Selected city</string>
     <string name="citySelectionSubtitle">Choose your city to show the correct stations.</string>
+    <string name="citySelectionSearchPlaceholder">Search city</string>
+    <string name="citySelectionSearchNoResults">No cities match your search</string>
     <string name="usagePattern">Usage pattern</string>
     <string name="noUsagePatternData">No usage pattern data available.</string>
     <string name="noDataForDayType">No data for this day type.</string>

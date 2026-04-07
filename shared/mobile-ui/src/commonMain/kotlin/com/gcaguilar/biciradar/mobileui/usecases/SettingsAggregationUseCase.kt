@@ -33,6 +33,13 @@ internal class SettingsAggregationUseCase(
   }
 
   /**
+   * Determines if settings should display the onboarding setup section.
+   */
+  fun shouldShowProfileSetupSection(checklist: OnboardingChecklistSnapshot): Boolean {
+    return !checklist.isCompleted()
+  }
+
+  /**
    * Gets the current onboarding checklist state.
    */
   fun currentOnboardingChecklist(): OnboardingChecklistSnapshot {

@@ -22,6 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,6 +41,7 @@ import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.RadiusSelectionButton
+import com.gcaguilar.biciradar.mobileui.normalizedForSearch
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
 import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -48,6 +50,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearanceDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSubtitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchNoResults
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchPlaceholder
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.close
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dark
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceDescription
@@ -392,10 +396,25 @@ private fun CitySelector(
 ) {
   val colors = LocalBiziColors.current
   var expanded by remember { mutableStateOf(false) }
+  var searchQuery by remember { mutableStateOf("") }
+  val sortedCities = remember { City.entries.sortedBy { it.displayName } }
+  val normalizedQuery = remember(searchQuery) { searchQuery.trim().normalizedForSearch() }
+  val filteredCities = remember(normalizedQuery, sortedCities) {
+    if (normalizedQuery.isBlank()) {
+      sortedCities
+    } else {
+      sortedCities.filter { city ->
+        city.displayName.normalizedForSearch().contains(normalizedQuery)
+      }
+    }
+  }
 
   Box {
     androidx.compose.material3.OutlinedButton(
-      onClick = { expanded = true },
+      onClick = {
+        searchQuery = ""
+        expanded = true
+      },
       modifier = Modifier.fillMaxWidth(),
       border = androidx.compose.foundation.BorderStroke(1.dp, colors.panel),
       colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
@@ -419,10 +438,22 @@ private fun CitySelector(
 
     DropdownMenu(
       expanded = expanded,
-      onDismissRequest = { expanded = false },
+      onDismissRequest = {
+        searchQuery = ""
+        expanded = false
+      },
       modifier = Modifier.background(colors.surface),
     ) {
-      City.entries.sortedBy { it.displayName }.forEach { city ->
+      OutlinedTextField(
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 8.dp, vertical = 4.dp),
+        singleLine = true,
+        placeholder = { Text(stringResource(Res.string.citySelectionSearchPlaceholder)) },
+      )
+      filteredCities.forEach { city ->
         DropdownMenuItem(
           text = {
             Text(
@@ -444,6 +475,18 @@ private fun CitySelector(
               )
             }
           },
+        )
+      }
+      if (filteredCities.isEmpty()) {
+        DropdownMenuItem(
+          text = {
+            Text(
+              text = stringResource(Res.string.citySelectionSearchNoResults),
+              color = colors.muted,
+            )
+          },
+          onClick = {},
+          enabled = false,
         )
       }
     }

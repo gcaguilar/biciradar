@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
@@ -23,6 +24,7 @@ import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
+import kotlinx.coroutines.launch
 
 internal object BiziMobileAppContent {
   @Composable
@@ -284,6 +286,7 @@ internal object BiziMobileAppContent {
     platformBindings: PlatformBindings,
     onShowChangelogManual: () -> Unit,
   ) {
+    val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     ProfileScreen(
       mobilePlatform = mobilePlatform,
@@ -302,7 +305,13 @@ internal object BiziMobileAppContent {
       onOpenOnboarding = onOpenOnboarding,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
       onRateApp = {
-        platformBindings.reviewPrompter.openStoreWriteReview()
+        if (mobilePlatform == MobileUiPlatform.Android) {
+          scope.launch {
+            platformBindings.reviewPrompter.requestInAppReview()
+          }
+        } else {
+          platformBindings.reviewPrompter.openStoreWriteReview()
+        }
       },
     )
   }
