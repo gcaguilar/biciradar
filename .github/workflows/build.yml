@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - main
-    # Evita Android/iOS/Gradle cuando el push solo toca la landing (deploy-landing.yml ya cubre eso).
-    paths-ignore:
-      - "landing/**"
   workflow_dispatch:
 
 permissions:
