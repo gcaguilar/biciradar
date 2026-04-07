@@ -471,6 +471,59 @@ private val SAVED_PLACE_ALERT_RULES_DDL: String =
 
 private val CORE_RELATIONAL_DDL: List<String> = listOf(
   """
+    CREATE TABLE IF NOT EXISTS stations (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      address TEXT,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      bikes_available INTEGER NOT NULL,
+      slots_free INTEGER NOT NULL,
+      ebikes_available INTEGER NOT NULL DEFAULT 0,
+      regular_bikes_available INTEGER NOT NULL DEFAULT 0,
+      updated_at INTEGER NOT NULL
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS cache_metadata (
+      city_id TEXT PRIMARY KEY NOT NULL,
+      last_updated INTEGER NOT NULL
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS environmental_cache (
+      zone_key TEXT PRIMARY KEY NOT NULL,
+      air_quality_index INTEGER,
+      pollen_index INTEGER,
+      updated_at INTEGER NOT NULL
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS favorite_ids (
+      station_id TEXT PRIMARY KEY NOT NULL
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS favorite_roles (
+      id INTEGER PRIMARY KEY NOT NULL,
+      home_station_id TEXT,
+      work_station_id TEXT
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS favorite_categories (
+      id TEXT PRIMARY KEY NOT NULL,
+      label TEXT NOT NULL,
+      is_system INTEGER NOT NULL DEFAULT 0
+    )
+  """.trimIndent().replace("\n", " "),
+  """
+    CREATE TABLE IF NOT EXISTS favorite_station_category (
+      station_id TEXT PRIMARY KEY NOT NULL,
+      category_id TEXT NOT NULL
+    )
+  """.trimIndent().replace("\n", " "),
+  """
     CREATE TABLE IF NOT EXISTS app_settings (
       id INTEGER PRIMARY KEY NOT NULL,
       search_radius_meters INTEGER NOT NULL,
