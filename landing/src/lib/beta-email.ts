@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import type { BetaLeadRecord } from './beta-form';
 import { bikeSystemLabelForCity } from './beta-city-system';
 import { localeToHtmlLang, normalizeLocale } from './i18n';
+import { appStoreUrlForLocale, playStoreUrlForLocale, siteConfig } from './site-config';
 
 function getResendClient() {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -14,10 +15,6 @@ function getResendClient() {
 
 function getFromAddress() {
   return process.env.RESEND_FROM?.trim() || '';
-}
-
-function getNotifyTo() {
-  return process.env.RESEND_BETA_NOTIFY_TO?.trim() || '';
 }
 
 function escapeHtml(value: string) {
@@ -35,42 +32,46 @@ const OS_LABEL: Record<BetaLeadRecord['operatingSystem'], string> = {
   both: 'iOS + Android',
 };
 
-function buildTeamNotification(record: BetaLeadRecord) {
+function buildUserConfirmation(record: BetaLeadRecord) {
+  const locale = normalizeLocale(record.locale);
+  const appStoreUrl = appStoreUrlForLocale(locale);
+  const playStoreUrl = playStoreUrlForLocale(locale);
+  const testersGroupUrl = siteConfig.googleTestersGroupUrl;
+  const supportEmail = siteConfig.contactEmail;
   const system = record.city ? bikeSystemLabelForCity(record.city) : null;
   const os = OS_LABEL[record.operatingSystem];
-  const locale = normalizeLocale(record.locale);
-  const subject = system
-    ? `BiciRadar beta · ${record.email} · ${system} · ${os}`
-    : `BiciRadar beta · ${record.email} · ${os}`;
-
-  const lines: string[] = [
-    `Email: ${record.email}`,
-    ...(system ? [`Sistema de bici: ${system}`] : ['Sistema de bici: (sin ciudad en página)']),
-    `Plataforma: ${os}`,
-    `Idioma formulario: ${locale}`,
-    `Consentimiento: sí`,
+  const isEnglish = locale === 'en';
+  const subject = isEnglish ? 'Your BiciRadar beta request is confirmed' : 'Hemos recibido tu solicitud beta en BiciRadar';
+  const intro = isEnglish
+    ? 'Thanks for signing up for BiciRadar beta. We have received your request.'
+    : 'Gracias por apuntarte a la beta de BiciRadar. Hemos recibido tu solicitud.';
+  const osMessage =
+    record.operatingSystem === 'ios'
+      ? isEnglish
+        ? `For iPhone, you can already download the app here: ${appStoreUrl}`
+        : `Si usas iPhone, ya puedes descargar la app desde aquí: ${appStoreUrl}`
+      : record.operatingSystem === 'android'
+        ? isEnglish
+          ? `For Android, join the testers group first (${testersGroupUrl}) and then install from Google Play: ${playStoreUrl}`
+          : `Si usas Android, primero únete al grupo de testers (${testersGroupUrl}) y después instala desde Google Play: ${playStoreUrl}`
+        : isEnglish
+          ? `For iPhone use App Store (${appStoreUrl}) and for Android join testers (${testersGroupUrl}) and then Google Play (${playStoreUrl}).`
+          : `Si usas ambos, en iPhone usa App Store (${appStoreUrl}) y en Android únete a testers (${testersGroupUrl}) y después Google Play (${playStoreUrl}).`;
+  const details = [
+    ...(system
+      ? [isEnglish ? `Detected bike system page: ${system}` : `Sistema detectado de tu página: ${system}`]
+      : []),
+    isEnglish ? `Selected platform: ${os}` : `Plataforma seleccionada: ${os}`,
   ];
+  const closing = isEnglish
+    ? `If you have any questions, write to ${supportEmail}.`
+    : `Si tienes cualquier duda, escríbenos a ${supportEmail}.`;
+  const text = [intro, '', osMessage, ...details, '', closing].join('\n');
+  const html = `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6"><p>${escapeHtml(intro)}</p><p>${escapeHtml(
+    osMessage,
+  )}</p><ul>${details.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul><p>${escapeHtml(closing)}</p></div>`;
 
-  if (record.pagePath) {
-    lines.push(`Página: ${record.pagePath}`);
-  }
-  if (record.referrer) {
-    lines.push(`Referrer: ${record.referrer}`);
-  }
-  if (record.userAgent) {
-    lines.push(`User-Agent: ${record.userAgent}`);
-  }
-  if (record.ip) {
-    lines.push(`IP: ${record.ip}`);
-  }
-  if (Object.keys(record.utm).length > 0) {
-    lines.push(`UTM: ${JSON.stringify(record.utm)}`);
-  }
-
-  const text = lines.join('\n');
-  const html = `<pre style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.5">${escapeHtml(text)}</pre>`;
-
-  return { subject, html, text };
+  return { subject, text, html };
 }
 
 export type SendBetaSignupEmailResult =
@@ -78,12 +79,11 @@ export type SendBetaSignupEmailResult =
   | { ok: true; skipped?: false }
   | { ok: false; reason: string };
 
-/** When `RESEND_API_KEY` is unset, skips send and returns ok (local/dev). Otherwise requires from, to, and a successful Resend response (`error` is checked — the SDK does not throw). */
+/** When `RESEND_API_KEY` is unset, skips send and returns ok (local/dev). Otherwise requires a valid sender and a successful Resend response (`error` is checked — the SDK does not throw). */
 export async function sendBetaSignupEmails(record: BetaLeadRecord): Promise<SendBetaSignupEmailResult> {
   const apiKeyConfigured = Boolean(process.env.RESEND_API_KEY?.trim());
   const resend = getResendClient();
   const from = getFromAddress();
-  const to = getNotifyTo();
 
   if (!apiKeyConfigured) {
     return { ok: true, skipped: true };
@@ -95,35 +95,27 @@ export async function sendBetaSignupEmails(record: BetaLeadRecord): Promise<Send
     return { ok: false, reason };
   }
 
-  if (!to) {
-    const reason = 'Email notify misconfigured: RESEND_BETA_NOTIFY_TO is missing.';
-    console.error(reason);
-    return { ok: false, reason };
-  }
-
-  const { subject, html, text } = buildTeamNotification(record);
   const locale = normalizeLocale(record.locale);
 
   try {
-    const { error } = await resend.emails.send({
+    const userEmail = buildUserConfirmation(record);
+    const { error: userError } = await resend.emails.send({
       from,
-      to: [to],
-      subject,
-      html,
-      text,
+      to: [record.email],
+      subject: userEmail.subject,
+      html: userEmail.html,
+      text: userEmail.text,
       headers: {
         'Content-Language': localeToHtmlLang[locale],
       },
     });
-
-    if (error) {
-      console.error('Resend rejected beta notify email', error);
-      return { ok: false, reason: error.message || 'Email provider rejected the message.' };
+    if (userError) {
+      console.error('Resend rejected beta user confirmation email', userError);
+      return { ok: false, reason: userError.message || 'Email provider rejected the message.' };
     }
-
     return { ok: true };
   } catch (error) {
-    console.error('Failed to send beta notify email', error);
+    console.error('Failed to send beta user confirmation email', error);
     return {
       ok: false,
       reason: error instanceof Error ? error.message : 'Unexpected error while sending email.',

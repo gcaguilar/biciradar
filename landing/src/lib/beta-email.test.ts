@@ -31,17 +31,15 @@ describe('sendBetaSignupEmails', () => {
   beforeEach(() => {
     process.env.RESEND_API_KEY = 'resend_test_key';
     process.env.RESEND_FROM = 'BiciRadar <team@biciradar.app>';
-    process.env.RESEND_BETA_NOTIFY_TO = 'ops@biciradar.app';
   });
 
   afterEach(() => {
     vi.clearAllMocks();
     delete process.env.RESEND_API_KEY;
     delete process.env.RESEND_FROM;
-    delete process.env.RESEND_BETA_NOTIFY_TO;
   });
 
-  it('sends a team notification with system and platform in subject', async () => {
+  it('sends a user confirmation email with app links', async () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
@@ -51,13 +49,13 @@ describe('sendBetaSignupEmails', () => {
     expect(resendSend).toHaveBeenCalledTimes(1);
     expect(resendSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: ['ops@biciradar.app'],
-        subject: 'BiciRadar beta · user@example.com · BiciMAD · Android',
-        text: expect.stringContaining('user@example.com'),
+        to: ['user@example.com'],
+        subject: 'Your BiciRadar beta request is confirmed',
       }),
     );
-    const payload = resendSend.mock.calls[0][0] as { html: string; headers: Record<string, string> };
-    expect(payload.html).toContain('BiciMAD');
+    const payload = resendSend.mock.calls[0][0] as { text: string; headers: Record<string, string> };
+    expect(payload.text).toContain('Google Play');
+    expect(payload.text).toContain('groups.google.com/g/testers-biciradar');
     expect(payload.headers['Content-Language']).toBe('en');
   });
 

@@ -44,17 +44,15 @@ describe('POST /api/beta-signup', () => {
   beforeEach(() => {
     process.env.RESEND_API_KEY = 'resend_test_key';
     process.env.RESEND_FROM = 'BiciRadar <team@biciradar.app>';
-    process.env.RESEND_BETA_NOTIFY_TO = 'ops@biciradar.app';
   });
 
   afterEach(() => {
     vi.clearAllMocks();
     delete process.env.RESEND_API_KEY;
     delete process.env.RESEND_FROM;
-    delete process.env.RESEND_BETA_NOTIFY_TO;
   });
 
-  it('returns success and sends team notification email', async () => {
+  it('returns success and sends external confirmation email', async () => {
     const resendModule = await import('resend');
     const resendSend = (resendModule as any).__resendSend as ReturnType<typeof vi.fn>;
 
@@ -66,10 +64,9 @@ describe('POST /api/beta-signup', () => {
     expect(body.redirectPath).toMatch(/beta-thanks/);
     expect(body.redirectPath).toMatch(/os=android/);
     expect(resendSend).toHaveBeenCalledTimes(1);
-    const payload = resendSend.mock.calls[0][0] as { to: string[]; subject: string };
-    expect(payload.to).toEqual(['ops@biciradar.app']);
-    expect(payload.subject).toContain('user@example.com');
-    expect(payload.subject).toContain('Bicing');
+    const externalPayload = resendSend.mock.calls[0][0] as { to: string[]; subject: string };
+    expect(externalPayload.to).toEqual(['user@example.com']);
+    expect(externalPayload.subject).toContain('confirmed');
   });
 
   it('accepts signup from home without cityPageKey and omits system from subject', async () => {
@@ -98,8 +95,7 @@ describe('POST /api/beta-signup', () => {
     expect(body.ok).toBe(true);
     expect(body.redirectPath).toMatch(/os=ios/);
     const payload = resendSend.mock.calls[0][0] as { subject: string };
-    expect(payload.subject).toBe('BiciRadar beta · home@example.com · iOS');
-    expect(payload.subject).not.toContain('BiciMAD');
+    expect(payload.subject).toContain('confirmed');
   });
 
   it('keeps signup successful when Resend reports an error', async () => {
