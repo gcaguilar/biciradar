@@ -38,6 +38,6 @@ interface TripGraph {
         /**
          * Crea un nuevo TripGraph.
          */
-        fun create(): TripGraph
+        fun createTripGraph(): TripGraph
     }
 }

@@ -60,7 +60,7 @@ interface SharedGraph {
 
     // APIs y servicios de plataforma
     val assistantIntentResolver: AssistantIntentResolver
-    val datosBiziApi: DatadosBiziApi
+    val datosBiziApi: DatosBiziApi
     val geoApi: GeoApi
     val geoSearchUseCase: GeoSearchUseCase
     val googlePlacesApi: GooglePlacesApi

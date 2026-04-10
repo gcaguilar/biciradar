@@ -45,6 +45,6 @@ interface OnboardingGraph {
         /**
          * Crea un nuevo OnboardingGraph.
          */
-        fun create(): OnboardingGraph
+        fun createOnboardingGraph(): OnboardingGraph
     }
 }

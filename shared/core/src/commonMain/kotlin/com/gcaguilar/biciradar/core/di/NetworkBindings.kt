@@ -2,7 +2,8 @@ package com.gcaguilar.biciradar.core.di
 
 import com.gcaguilar.biciradar.core.BiziApi
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
-import com.gcaguilar.biciradar.core.DatadosBiziApi
+import com.gcaguilar.biciradar.core.DatosBiziApi
+import com.gcaguilar.biciradar.core.DatosBiziApiImpl
 import com.gcaguilar.biciradar.core.GbfsBiziApi
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.GooglePlacesApiImpl
@@ -41,8 +42,8 @@ object NetworkBindings {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun provideDatosBiziApi(httpClient: HttpClient): DatadosBiziApi =
-        com.gcaguilar.biciradar.core.DatadosBiziApiImpl(httpClient)
+    fun provideDatosBiziApi(httpClient: HttpClient): DatosBiziApi =
+        DatosBiziApiImpl(httpClient)
 
     @SingleIn(AppScope::class)
     @Provides

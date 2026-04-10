@@ -2,10 +2,10 @@ package com.gcaguilar.biciradar.core.di
 
 import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.NoOpStationsCacheManager
+import com.gcaguilar.biciradar.core.StationCacheStore
 import com.gcaguilar.biciradar.core.StationsCacheManager
 import com.gcaguilar.biciradar.core.StationsCacheManagerImpl
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
-import com.gcaguilar.biciradar.core.local.StationCacheStore
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
 import dev.zacsweers.metro.Provides

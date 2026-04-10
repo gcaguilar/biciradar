@@ -1,10 +1,9 @@
 package com.gcaguilar.biciradar.core.geo
 
-import com.gcaguilar.biciradar.core.AppScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GoogleMapsApiKey
 import com.gcaguilar.biciradar.core.GooglePlacesApi
-import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
@@ -15,11 +14,8 @@ import kotlinx.coroutines.CancellationException
  * Reverse geocoding is only repeated if the user has moved more than
  * [MIN_DISTANCE_METERS] from the last successfully reverse-geocoded position,
  * preventing a flood of requests when the device is slowly drifting.
- *
- * Registrado automáticamente en el grafo vía @ContributesBinding.
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 @Inject
 class ReverseGeocodeUseCase(
     private val geoApi: GeoApi,
