@@ -31,42 +31,44 @@ import kotlinx.coroutines.launch
  * - Estilo Material You
  * - Acciones de compartir y favoritos
  * - Integración con App Functions
+ *
+ * Las dependencias se proporcionan a través de [TripMonitorServiceProvider] vía Intent extras,
+ * eliminando la necesidad de reflection o holders estáticos (SOLID - DIP).
  */
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val notificationManager by lazy {
     getSystemService(NotificationManager::class.java)
   }
-  
+
   private var countdownJob: Job? = null
   private var currentSession: SurfaceMonitoringSession? = null
   private var favoritesRepository: FavoritesRepository? = null
+  private var surfaceMonitoringRepository: SurfaceMonitoringRepository? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onCreate() {
     super.onCreate()
     ensureNotificationChannel()
-    favoritesRepository = SurfaceMonitoringRepositoryHolder.repository?.let { repo ->
-      try {
-        val field = repo.javaClass.getDeclaredField("favoritesRepository")
-        field.isAccessible = true
-        field.get(repo) as? FavoritesRepository
-      } catch (e: Exception) {
-        null
-      }
-    }
     startForeground(
       FOREGROUND_NOTIFICATION_ID,
       buildForegroundNotification(text = "Preparando monitorización..."),
     )
-    observeMonitoringState()
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    // Extraer dependencias del provider pasado en el Intent
+    val provider = intent?.getParcelableExtra<TripMonitorServiceProvider>(EXTRA_SERVICE_PROVIDER)
+    if (provider != null) {
+      surfaceMonitoringRepository = provider.surfaceMonitoringRepository
+      favoritesRepository = provider.favoritesRepository
+      observeMonitoringState()
+    }
+
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
-        SurfaceMonitoringRepositoryHolder.repository?.stopMonitoring()
+        surfaceMonitoringRepository?.stopMonitoring()
         stopSelf()
         return START_NOT_STICKY
       }
@@ -99,7 +101,7 @@ class TripMonitorService : Service() {
   }
 
   private fun observeMonitoringState() {
-    val repository = SurfaceMonitoringRepositoryHolder.repository
+    val repository = surfaceMonitoringRepository
     if (repository == null) {
       stopSelf()
       return
@@ -156,17 +158,17 @@ class TripMonitorService : Service() {
    */
   private fun buildForegroundNotification(
     session: SurfaceMonitoringSession? = null,
-    text: String = session?.let { 
-      monitoringNotificationBody(it, it.remainingSeconds()) 
+    text: String = session?.let {
+      monitoringNotificationBody(it, it.remainingSeconds())
     }.orEmpty(),
   ): Notification {
     val openIntent = session?.stationId?.let(::stationPendingIntent)
       ?: appPendingIntent(Uri.parse("biciradar://favorites"))
-    
-    val isFavorite = session?.stationId?.let { 
-      favoritesRepository?.favoriteIds?.value?.contains(it) 
+
+    val isFavorite = session?.stationId?.let {
+      favoritesRepository?.favoriteIds?.value?.contains(it)
     } ?: false
-    
+
     val builder = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(android.R.drawable.ic_menu_directions)
       .setContentTitle(session?.let(::monitoringNotificationTitle) ?: "BiciRadar")
@@ -191,15 +193,15 @@ class TripMonitorService : Service() {
 
     // Acción: Favorito (si hay sesión)
     session?.stationId?.let { stationId ->
-      val favoriteIcon = if (isFavorite) 
+      val favoriteIcon = if (isFavorite)
         android.R.drawable.btn_star_big_on
-      else 
+      else
         android.R.drawable.btn_star_big_off
-      val favoriteLabel = if (isFavorite) 
+      val favoriteLabel = if (isFavorite)
         getString(R.string.notification_action_remove_favorite)
-      else 
+      else
         getString(R.string.notification_action_add_favorite)
-      
+
       builder.addAction(
         favoriteIcon,
         favoriteLabel,
@@ -332,14 +334,23 @@ class TripMonitorService : Service() {
     private const val ACTION_SHARE = "com.gcaguilar.biciradar.action.SHARE"
     private const val EXTRA_STATION_ID = "station_id"
     private const val EXTRA_STATION_NAME = "station_name"
+    private const val EXTRA_SERVICE_PROVIDER = "service_provider"
     private const val CHANNEL_ID = "bizi_station_monitoring_v2"
     private const val FOREGROUND_NOTIFICATION_ID = 1001
     private const val STOP_REQUEST_CODE = 401
     private const val TOGGLE_FAVORITE_REQUEST_CODE = 402
     private const val SHARE_REQUEST_CODE = 403
 
-    fun start(context: Context) {
-      val intent = Intent(context, TripMonitorService::class.java)
+    /**
+     * Inicia el servicio con las dependencias proporcionadas.
+     *
+     * @param context El contexto de Android
+     * @param provider El provider con las dependencias inyectadas
+     */
+    fun start(context: Context, provider: TripMonitorServiceProvider) {
+      val intent = Intent(context, TripMonitorService::class.java).apply {
+        putExtra(EXTRA_SERVICE_PROVIDER, provider)
+      }
       context.startForegroundService(intent)
     }
 
@@ -352,7 +363,9 @@ class TripMonitorService : Service() {
 
 /**
  * Holder estático para acceder al SurfaceMonitoringRepository desde el servicio.
+ * @deprecated Usar TripMonitorServiceProvider en su lugar
  */
+@Deprecated("Usar TripMonitorServiceProvider para inyección de dependencias")
 object SurfaceMonitoringRepositoryHolder {
   @Volatile
   var repository: SurfaceMonitoringRepository? = null

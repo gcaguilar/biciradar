@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import com.gcaguilar.biciradar.core.AppConfiguration
+import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
         refreshKey = refreshNonce,
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
-        onSurfaceMonitoringRepositoryReady = { repo -> wireMonitoringService(repo) },
+        onSurfaceMonitoringRepositoryReady = { repo, favoritesRepo -> wireMonitoringService(repo, favoritesRepo) },
         onSurfaceSnapshotRepositoryReady = { repo -> wireWidgets(repo) },
         onStartupReadyChanged = { ready -> startupReady = ready },
         useInAppStartupSplash = false,
@@ -132,7 +133,7 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     appSurfaceScope?.cancel()
     appSurfaceScope = null
-    SurfaceMonitoringRepositoryHolder.repository = null
+    TripMonitorServiceProvider.cleanup()
     super.onDestroy()
   }
 
@@ -143,8 +144,7 @@ class MainActivity : ComponentActivity() {
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
   }
 
-  private fun wireMonitoringService(repo: SurfaceMonitoringRepository) {
-    SurfaceMonitoringRepositoryHolder.repository = repo
+  private fun wireMonitoringService(repo: SurfaceMonitoringRepository, favoritesRepo: FavoritesRepository) {
     appSurfaceScope?.cancel()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     appSurfaceScope = scope
@@ -153,7 +153,11 @@ class MainActivity : ComponentActivity() {
       .onEach { state ->
         val shouldRun = state?.isActive == true
         if (shouldRun && !serviceRunning) {
-          TripMonitorService.start(applicationContext)
+          val provider = TripMonitorServiceProvider(
+            surfaceMonitoringRepository = repo,
+            favoritesRepository = favoritesRepo,
+          )
+          TripMonitorService.start(applicationContext, provider)
           serviceRunning = true
         } else if (!shouldRun && serviceRunning) {
           TripMonitorService.stop(applicationContext)

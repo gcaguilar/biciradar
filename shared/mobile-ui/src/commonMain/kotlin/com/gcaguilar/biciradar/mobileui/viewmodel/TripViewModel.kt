@@ -37,6 +37,9 @@ data class TripUiState(
   val isReverseGeocoding: Boolean = false,
   val pickedLocation: GeoPoint? = null,
   val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
+  val mapPickerMode: TripMapPickerMode? = null,
+  val selectedMapStation: Station? = null,
+  val canConfirmMapSelection: Boolean = false,
 )
 
 class TripViewModel(
@@ -53,6 +56,9 @@ class TripViewModel(
     val mapPickerActive: Boolean = false,
     val isReverseGeocoding: Boolean = false,
     val pickedLocation: GeoPoint? = null,
+    val mapPickerMode: TripMapPickerMode? = null,
+    val selectedMapStation: Station? = null,
+    val canConfirmMapSelection: Boolean = false,
   )
 
 
@@ -72,6 +78,9 @@ class TripViewModel(
       isReverseGeocoding = transient.isReverseGeocoding,
       pickedLocation = transient.pickedLocation,
       searchRadiusMeters = radius,
+      mapPickerMode = transient.mapPickerMode,
+      selectedMapStation = transient.selectedMapStation,
+      canConfirmMapSelection = transient.canConfirmMapSelection,
     )
   }.stateIn(
     viewModelScope,
@@ -209,18 +218,32 @@ class TripViewModel(
   fun onStationPickedFromMap(station: Station) {
     transientUiState.update {
       it.copy(
-        mapPickerActive = false,
-        pickedLocation = null,
-        isLoadingSuggestions = false,
-        suggestionsError = null,
+        selectedMapStation = station,
+        canConfirmMapSelection = true,
       )
     }
+  }
 
-    viewModelScope.launch {
-      tripManagementUseCase.setDestination(
-        destination = TripDestination(name = station.name, location = station.location),
-        searchRadiusMeters = uiState.value.searchRadiusMeters,
-      )
+  fun onConfirmMapSelection() {
+    transientUiState.value.selectedMapStation?.let { station ->
+      transientUiState.update {
+        it.copy(
+          mapPickerActive = false,
+          pickedLocation = null,
+          isLoadingSuggestions = false,
+          suggestionsError = null,
+          mapPickerMode = null,
+          selectedMapStation = null,
+          canConfirmMapSelection = false,
+        )
+      }
+
+      viewModelScope.launch {
+        tripManagementUseCase.setDestination(
+          destination = TripDestination(name = station.name, location = station.location),
+          searchRadiusMeters = uiState.value.searchRadiusMeters,
+        )
+      }
     }
   }
 
@@ -287,6 +310,17 @@ class TripViewModel(
       isReverseGeocoding = false,
       pickedLocation = null,
     )
+    }
+  }
+
+  fun onCancelMapPicker() {
+    transientUiState.update {
+      it.copy(
+        mapPickerActive = false,
+        mapPickerMode = null,
+        selectedMapStation = null,
+        canConfirmMapSelection = false,
+      )
     }
   }
 }

@@ -344,4 +344,12 @@
     <string name="desktopMapPickerHint">Haz clic en la lista para seleccionar una estación o usar coordenadas fijadas.</string>
     <string name="desktopMapSelectedLocation">Ubicación seleccionada: %.5f, %.5f</string>
     <string name="desktopMapCurrentLocation">Tu ubicación actual: %.5f, %.5f</string>
+
+    <!-- Trip Map Picker -->
+    <string name="tapMapToPickStation">Toca el mapa para elegir estación</string>
+    <string name="tripConfirmDestination">Confirmar destino</string>
+    <string name="tripConfirmStation">Confirmar estación</string>
+    <string name="tripMapDestinationTitle">Elegir destino</string>
+    <string name="tripMapStationTitle">Elegir estación</string>
+    <string name="tripSelectedPoint">Punto seleccionado</string>
 </resources>
