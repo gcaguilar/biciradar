@@ -217,47 +217,49 @@ internal fun StationDetailScreen(
             }
           }
         }
-        item {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-          ) {
-            Column(
-              modifier = Modifier.padding(18.dp),
-              verticalArrangement = Arrangement.spacedBy(12.dp),
+        if (!isFavorite) {
+          item {
+            Card(
+              colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
             ) {
-              Text(stringResource(Res.string.saveThisStation), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.saveThisStationDescription),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FavoritePill(
-                  active = isFavorite,
-                  onClick = onToggleFavorite,
-                  label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
+              Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+              ) {
+                Text(stringResource(Res.string.saveThisStation), fontWeight = FontWeight.SemiBold)
+                Text(
+                  stringResource(Res.string.saveThisStationDescription),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = LocalBiziColors.current.muted,
                 )
-                SavedPlacePill(
-                  active = isHomeStation,
-                  label = stringResource(Res.string.home),
-                  onClick = onToggleHome,
-                )
-                SavedPlacePill(
-                  active = isWorkStation,
-                  label = stringResource(Res.string.work),
-                  onClick = onToggleWork,
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                  FavoritePill(
+                    active = isFavorite,
+                    onClick = onToggleFavorite,
+                    label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
+                  )
+                  SavedPlacePill(
+                    active = isHomeStation,
+                    label = stringResource(Res.string.home),
+                    onClick = onToggleHome,
+                  )
+                  SavedPlacePill(
+                    active = isWorkStation,
+                    label = stringResource(Res.string.work),
+                    onClick = onToggleWork,
+                  )
+                }
+                Text(
+                  when {
+                    isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
+                    isHomeStation -> stringResource(Res.string.stationMarkedHome)
+                    isWorkStation -> stringResource(Res.string.stationMarkedWork)
+                    else -> stringResource(Res.string.tapHomeOrWorkToAssign)
+                  },
+                  style = MaterialTheme.typography.bodySmall,
+                  color = LocalBiziColors.current.muted,
                 )
               }
-              Text(
-                when {
-                  isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
-                  isHomeStation -> stringResource(Res.string.stationMarkedHome)
-                  isWorkStation -> stringResource(Res.string.stationMarkedWork)
-                  else -> stringResource(Res.string.tapHomeOrWorkToAssign)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
             }
           }
         }
