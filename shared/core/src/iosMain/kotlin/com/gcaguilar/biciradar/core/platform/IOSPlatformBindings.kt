@@ -19,6 +19,8 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.Provider
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
@@ -139,6 +141,17 @@ class IOSPlatformBindings(
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance
   override val watchSyncBridge: WatchSyncBridge = IOSWatchSyncBridge()
 
+  /**
+   * Post-wiring de dependencias del grafo hacia componentes de plataforma.
+   * 
+   * NOTA: Idealmente IOSRouteLauncher recibiría SettingsRepository vía constructor
+   * con @Inject, pero IOSRouteLauncher se crea ANTES de que el grafo exista
+   * (es parte de IOSPlatformBindings que se pasa al grafo). 
+   * 
+   * La alternativa "pura" de Metro sería mover IOSRouteLauncher al grafo y que
+   * IOSPlatformBindings lo reciba vía constructor, pero eso requiere refactor
+   * mayor de PlatformBindings. Por ahora mantenemos este late wiring documentado.
+   */
   override fun onGraphCreated(graph: SharedGraph) {
     iosRouteLauncher.settingsRepository = graph.settingsRepository
   }
