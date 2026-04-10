@@ -70,6 +70,11 @@ import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
+import com.gcaguilar.biciradar.mobileui.components.favorites.CountBadge
+import com.gcaguilar.biciradar.mobileui.components.favorites.FavoriteDismissBackground
+import com.gcaguilar.biciradar.mobileui.components.favorites.SectionHeader
+import com.gcaguilar.biciradar.mobileui.components.favorites.SectionPill
+import com.gcaguilar.biciradar.mobileui.components.favorites.StatusPill
 import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
@@ -661,44 +666,6 @@ internal fun DismissibleFavoriteStationRow(
 }
 
 @Composable
-internal fun FavoriteDismissBackground(
-  mobilePlatform: MobileUiPlatform,
-  progress: Float,
-) {
-  val clampedProgress = progress.coerceIn(0f, 1f)
-  Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp))
-      .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
-      .padding(horizontal = 20.dp, vertical = 12.dp),
-    contentAlignment = Alignment.CenterEnd,
-  ) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-      modifier = Modifier.graphicsLayer {
-        alpha = 0.55f + (0.45f * clampedProgress)
-        scaleX = 0.92f + (0.08f * clampedProgress)
-        scaleY = 0.92f + (0.08f * clampedProgress)
-      },
-    ) {
-      Icon(
-        Icons.Filled.Delete,
-        contentDescription = null,
-        tint = LocalBiziColors.current.red,
-      )
-      Text(
-        text = if (mobilePlatform == MobileUiPlatform.IOS) stringResource(Res.string.removeFavorite) else stringResource(Res.string.deleteFavorite),
-        color = LocalBiziColors.current.red,
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.SemiBold,
-      )
-    }
-  }
-}
-
-@Composable
 internal fun SavedPlaceCard(
   mobilePlatform: MobileUiPlatform,
   title: String,
@@ -907,85 +874,6 @@ private fun FavoritesOverviewCard(
         }
       }
     }
-  }
-}
-
-@Composable
-private fun SectionHeader(
-  title: String,
-  countLabel: String,
-) {
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    horizontalArrangement = Arrangement.SpaceBetween,
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-      text = title,
-      style = MaterialTheme.typography.titleLarge,
-      fontWeight = FontWeight.SemiBold,
-    )
-    CountBadge(label = countLabel)
-  }
-}
-
-@Composable
-private fun CountBadge(
-  label: String,
-) {
-  val colors = LocalBiziColors.current
-  Surface(
-    shape = RoundedCornerShape(999.dp),
-    color = colors.panel.copy(alpha = 0.7f),
-  ) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelMedium,
-      color = colors.muted,
-      fontWeight = FontWeight.SemiBold,
-      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-    )
-  }
-}
-
-@Composable
-private fun SectionPill(
-  label: String,
-  tint: Color,
-) {
-  Surface(
-    shape = RoundedCornerShape(999.dp),
-    color = tint.copy(alpha = 0.10f),
-  ) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelMedium,
-      color = tint,
-      fontWeight = FontWeight.SemiBold,
-      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-    )
-  }
-}
-
-@Composable
-private fun StatusPill(
-  label: String,
-  active: Boolean,
-  onClick: () -> Unit,
-) {
-  val colors = LocalBiziColors.current
-  Surface(
-    shape = RoundedCornerShape(999.dp),
-    color = if (active) colors.blue.copy(alpha = 0.10f) else colors.panel.copy(alpha = 0.7f),
-    modifier = Modifier.clickable(onClick = onClick),
-  ) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.labelMedium,
-      color = if (active) colors.blue else colors.muted,
-      fontWeight = FontWeight.SemiBold,
-      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-    )
   }
 }
 
