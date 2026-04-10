@@ -151,31 +151,44 @@ private class AndroidRouteLauncher(
   private val context: Context,
 ) : RouteLauncher {
   override fun launch(station: Station) {
-    val navigationUri = Uri.parse("google.navigation:q=${station.location.latitude},${station.location.longitude}&mode=w")
-    val intent = Intent(Intent.ACTION_VIEW, navigationUri).apply {
-      setPackage("com.google.android.apps.maps")
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    val fallbackIntent = Intent(
-      Intent.ACTION_VIEW,
-      Uri.parse("geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}"),
-    ).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
-    context.startActivity(launchIntent)
+    launchGoogleMapsRoute(
+      destination = station.location,
+      mode = "w",
+      fallbackUri = Uri.parse(
+        "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
+      ),
+    )
   }
 
   override fun launchWalkToLocation(destination: GeoPoint) {
-    val navigationUri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=w")
+    launchGoogleMapsRoute(
+      destination = destination,
+      mode = "w",
+      fallbackUri = Uri.parse("geo:${destination.latitude},${destination.longitude}"),
+    )
+  }
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    launchGoogleMapsRoute(
+      destination = destination,
+      mode = "b",
+      fallbackUri = Uri.parse("geo:${destination.latitude},${destination.longitude}"),
+    )
+  }
+
+  private fun launchGoogleMapsRoute(
+    destination: GeoPoint,
+    mode: String,
+    fallbackUri: Uri,
+  ) {
+    val navigationUri = Uri.parse(
+      "google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode",
+    )
     val intent = Intent(Intent.ACTION_VIEW, navigationUri).apply {
       setPackage("com.google.android.apps.maps")
       addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
-    val fallbackIntent = Intent(
-      Intent.ACTION_VIEW,
-      Uri.parse("geo:${destination.latitude},${destination.longitude}"),
-    ).apply {
+    val fallbackIntent = Intent(Intent.ACTION_VIEW, fallbackUri).apply {
       addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent

@@ -148,6 +148,13 @@ private class WatchOSRouteLauncher : RouteLauncher {
     ) ?: return
     WKExtension.sharedExtension().openSystemURL(routeUrl)
   }
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    val routeUrl = NSURL.URLWithString(
+      "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=b",
+    ) ?: return
+    WKExtension.sharedExtension().openSystemURL(routeUrl)
+  }
 }
 
 private class WatchOSSyncBridge : WatchSyncBridge {

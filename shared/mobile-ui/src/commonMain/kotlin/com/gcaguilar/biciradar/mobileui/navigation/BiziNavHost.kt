@@ -38,6 +38,7 @@ import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory
 import com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory
+import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory
 
 @Composable
@@ -206,7 +207,38 @@ internal fun BiziNavHost(
         lastUpdatedEpoch = stationsLastUpdatedEpoch,
         stationsLoading = loading,
         onRefreshStations = onRefreshStations,
+        onOpenDestinationPicker = remember(navController) {
+          {
+            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Destination))
+          }
+        },
+        onOpenStationPicker = remember(navController) {
+          {
+            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station))
+          }
+        },
         paddingValues = PaddingValues(),
+      )
+    }
+
+    composable<Screen.TripMapPicker> { backStackEntry ->
+      val route = backStackEntry.toRoute<Screen.TripMapPicker>()
+      val tripStoreOwner = remember(backStackEntry, navController) {
+        navController.previousBackStackEntry ?: backStackEntry
+      }
+      val viewModel = viewModel(
+        viewModelStoreOwner = tripStoreOwner,
+        key = "trip",
+      ) { tripViewModelFactory.create() }
+      BiziMobileAppContent.TripMapPickerScreenContent(
+        viewModel = viewModel,
+        mobilePlatform = mobilePlatform,
+        pickerMode = route.mode,
+        userLocation = userLocation,
+        stations = stations,
+        isMapReady = isMapReady,
+        paddingValues = PaddingValues(),
+        onBack = remember(navController) { { navController.popBackStack() } },
       )
     }
 

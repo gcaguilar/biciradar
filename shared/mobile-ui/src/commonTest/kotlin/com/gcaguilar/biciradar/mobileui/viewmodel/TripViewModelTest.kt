@@ -40,6 +40,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -107,6 +108,80 @@ class TripViewModelTest {
     assertEquals(selected, viewModel.uiState.value.selectedDurationSeconds)
     assertEquals(selected, settingsRepository.lastPersistedMonitoringDuration)
   }
+
+  @Test
+  fun `map picked destination requires explicit confirmation`() = runTest(dispatcher) {
+    val location = GeoPoint(41.65, -0.88)
+    val tripRepository = TripTestTripRepository()
+    val viewModel = buildTripViewModel(
+      settingsRepository = TripTestSettingsRepository(),
+      tripRepository = tripRepository,
+      geoApi = TripTestGeoApi(
+        reverseGeocodeResults = mapOf(
+          location to GeoResult(
+            id = "geo-destination",
+            name = "Plaza de Espana",
+            address = "Centro, Zaragoza",
+            latitude = location.latitude,
+            longitude = location.longitude,
+          ),
+        ),
+      ),
+    )
+
+    viewModel.onEnterMapPicker(TripMapPickerMode.Destination)
+    viewModel.onLocationPicked(location)
+    advanceUntilIdle()
+
+    assertEquals(0, tripRepository.setDestinationCalls)
+    assertTrue(viewModel.uiState.value.canConfirmMapSelection)
+    assertEquals("Plaza de Espana", viewModel.uiState.value.selectedMapLocationLabel)
+
+    viewModel.onConfirmMapSelection()
+    advanceUntilIdle()
+
+    assertEquals(1, tripRepository.setDestinationCalls)
+    assertEquals("Plaza de Espana", tripRepository.lastDestination?.name)
+    assertEquals(location, tripRepository.lastDestination?.location)
+    assertEquals(null, viewModel.uiState.value.mapPickerMode)
+    assertFalse(viewModel.uiState.value.canConfirmMapSelection)
+  }
+
+  @Test
+  fun `confirmed station selection preserves destination and calls select station`() = runTest(dispatcher) {
+    val tripRepository = TripTestTripRepository().apply {
+      seedDestination(
+        TripDestination(
+          name = "Destino actual",
+          location = GeoPoint(41.65, -0.88),
+        ),
+      )
+    }
+    val station = Station(
+      id = "station-1",
+      name = "Plaza Espana",
+      address = "Centro, Zaragoza",
+      location = GeoPoint(41.649, -0.887),
+      bikesAvailable = 4,
+      slotsFree = 7,
+      distanceMeters = 120,
+    )
+    val viewModel = buildTripViewModel(
+      settingsRepository = TripTestSettingsRepository(),
+      tripRepository = tripRepository,
+      geoApi = TripTestGeoApi(),
+    )
+
+    viewModel.onEnterMapPicker(TripMapPickerMode.Station)
+    viewModel.onStationPickedFromMap(station)
+    viewModel.onConfirmMapSelection()
+    advanceUntilIdle()
+
+    assertEquals(listOf(station), tripRepository.selectedStations)
+    assertEquals("Destino actual", tripRepository.state.value.destination?.name)
+    assertEquals(0, tripRepository.setDestinationCalls)
+    assertEquals(station, tripRepository.state.value.nearestStationWithSlots)
+  }
 }
 
 private fun buildTripViewModel(
@@ -147,15 +222,27 @@ private class TripTestTripRepository : TripRepository {
     ),
   )
   var setDestinationCalls = 0
+  var lastDestination: TripDestination? = null
+  val selectedStations = mutableListOf<Station>()
 
   override suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int) {
     setDestinationCalls++
+    lastDestination = destination
+    state.value = state.value.copy(destination = destination)
+  }
+  override suspend fun selectStation(station: Station) {
+    selectedStations += station
+    state.value = state.value.copy(nearestStationWithSlots = station)
   }
   override suspend fun startMonitoring(durationSeconds: Int) = Unit
   override fun stopMonitoring() = Unit
   override fun clearTrip() = Unit
   override fun dismissAlert() = Unit
   override suspend fun doFinalBackgroundCheck() = Unit
+
+  fun seedDestination(destination: TripDestination) {
+    state.value = state.value.copy(destination = destination)
+  }
 }
 
 private class TripTestSettingsRepository(
@@ -207,13 +294,14 @@ private class TripTestSurfaceMonitoringRepository : SurfaceMonitoringRepository 
 
 private class TripTestGeoApi(
   private val searchResults: Map<String, List<GeoResult>> = emptyMap(),
+  private val reverseGeocodeResults: Map<GeoPoint, GeoResult> = emptyMap(),
 ) : GeoApi {
   val searchCalls = mutableListOf<String>()
   override suspend fun search(query: String): List<GeoResult> {
     searchCalls += query
     return searchResults[query] ?: searchResults.values.firstOrNull().orEmpty()
   }
-  override suspend fun reverseGeocode(location: GeoPoint): GeoResult? = null
+  override suspend fun reverseGeocode(location: GeoPoint): GeoResult? = reverseGeocodeResults[location]
 }
 
 private class TripTestGooglePlacesApi : GooglePlacesApi {
@@ -223,4 +311,3 @@ private class TripTestGooglePlacesApi : GooglePlacesApi {
   override suspend fun autocompleteWithStatus(query: String, biasLocation: GeoPoint?, apiKey: String): AutocompleteResult =
     AutocompleteResult(predictions = emptyList(), status = "OK")
 }
-

@@ -160,20 +160,24 @@ private class DesktopRouteLauncher : RouteLauncher {
   var settingsRepository: SettingsRepository? = null
 
   override fun launch(station: Station) {
-    browse(routeUrlFor(station.location))
+    browse(routeUrlFor(station.location, cycling = false))
   }
 
   override fun launchWalkToLocation(destination: GeoPoint) {
-    browse(routeUrlFor(destination))
+    browse(routeUrlFor(destination, cycling = false))
   }
 
-  private fun routeUrlFor(destination: GeoPoint): String = when (
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    browse(routeUrlFor(destination, cycling = true))
+  }
+
+  private fun routeUrlFor(destination: GeoPoint, cycling: Boolean): String = when (
     settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
   ) {
     PreferredMapApp.AppleMaps ->
-      "https://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w"
+      "https://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=${if (cycling) "b" else "w"}"
     PreferredMapApp.GoogleMaps ->
-      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=walking"
+      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=${if (cycling) "bicycling" else "walking"}"
   }
 }
 

@@ -50,6 +50,7 @@ import platform.Foundation.NSClassFromString
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
+import platform.MapKit.MKLaunchOptionsDirectionsModeCycling
 import platform.MapKit.MKLaunchOptionsDirectionsModeWalking
 import platform.MapKit.MKLaunchOptionsDirectionsModeKey
 import platform.MapKit.MKMapItem
@@ -242,25 +243,57 @@ private class IOSRouteLauncher : RouteLauncher {
     if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
       launchGoogleMapsWithFallback(
         destination = destination,
+        googleMapsMode = "walking",
         onAllGoogleFallbacksFailed = {
-          launchAppleMapsToLocation(destination)
+          launchAppleMapsToLocation(
+            destination = destination,
+            launchMode = MKLaunchOptionsDirectionsModeWalking,
+            fallbackFlag = "w",
+          )
         },
       )
       return
     }
-    launchAppleMapsToLocation(destination)
+    launchAppleMapsToLocation(
+      destination = destination,
+      launchMode = MKLaunchOptionsDirectionsModeWalking,
+      fallbackFlag = "w",
+    )
+  }
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
+      launchGoogleMapsWithFallback(
+        destination = destination,
+        googleMapsMode = "bicycling",
+        onAllGoogleFallbacksFailed = {
+          launchAppleMapsToLocation(
+            destination = destination,
+            launchMode = MKLaunchOptionsDirectionsModeCycling,
+            fallbackFlag = "b",
+          )
+        },
+      )
+      return
+    }
+    launchAppleMapsToLocation(
+      destination = destination,
+      launchMode = MKLaunchOptionsDirectionsModeCycling,
+      fallbackFlag = "b",
+    )
   }
 
   private fun launchGoogleMapsWithFallback(
     destination: GeoPoint,
+    googleMapsMode: String,
     onAllGoogleFallbacksFailed: () -> Unit,
   ) {
     val googleMapsUrl = NSURL.URLWithString(
-      "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=walking",
+      "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=$googleMapsMode",
     )
     val app = UIApplication.sharedApplication
     if (googleMapsUrl == null) {
-      if (!launchGoogleMapsWeb(destination)) onAllGoogleFallbacksFailed()
+      if (!launchGoogleMapsWeb(destination, googleMapsMode)) onAllGoogleFallbacksFailed()
       return
     }
     
@@ -278,7 +311,7 @@ private class IOSRouteLauncher : RouteLauncher {
       completionHandler = { opened ->
         if (!opened) {
           showGoogleMapsNotInstalledAlert()
-          val openedWeb = launchGoogleMapsWeb(destination)
+          val openedWeb = launchGoogleMapsWeb(destination, googleMapsMode)
           if (!openedWeb) onAllGoogleFallbacksFailed()
         }
       },
@@ -328,7 +361,11 @@ private class IOSRouteLauncher : RouteLauncher {
     )
   }
 
-  private fun launchAppleMapsToLocation(destination: GeoPoint) {
+  private fun launchAppleMapsToLocation(
+    destination: GeoPoint,
+    launchMode: String,
+    fallbackFlag: String,
+  ) {
     val mapItem = MKMapItem(
       placemark = MKPlacemark(
         coordinate = destination.toCoordinate(),
@@ -338,11 +375,11 @@ private class IOSRouteLauncher : RouteLauncher {
       name = "Destino"
     }
     val opened = mapItem.openInMapsWithLaunchOptions(
-      mapOf(MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeWalking),
+      mapOf(MKLaunchOptionsDirectionsModeKey to launchMode),
     )
     if (!opened) {
       val fallbackUrl = NSURL.URLWithString(
-        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w",
+        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=$fallbackFlag",
       )
       if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
         UIApplication.sharedApplication.openURL(
@@ -367,9 +404,9 @@ private class IOSRouteLauncher : RouteLauncher {
     return UIApplication.sharedApplication.canOpenURL(url)
   }
 
-  private fun launchGoogleMapsWeb(destination: GeoPoint): Boolean {
+  private fun launchGoogleMapsWeb(destination: GeoPoint, travelMode: String): Boolean {
     val url = NSURL.URLWithString(
-      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=walking",
+      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=$travelMode",
     ) ?: return false
     val app = UIApplication.sharedApplication
     if (!app.canOpenURL(url)) return false

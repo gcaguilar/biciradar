@@ -25,7 +25,9 @@ import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
+import com.gcaguilar.biciradar.mobileui.screens.TripMapPickerScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
+import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
 import kotlinx.coroutines.launch
 
 internal object BiziMobileAppContent {
@@ -42,6 +44,8 @@ internal object BiziMobileAppContent {
     lastUpdatedEpoch: Long?,
     stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
+    onOpenDestinationPicker: () -> Unit,
+    onOpenStationPicker: () -> Unit,
     paddingValues: PaddingValues,
   ) = TripScreen(
     viewModel = viewModel,
@@ -55,7 +59,30 @@ internal object BiziMobileAppContent {
     lastUpdatedEpoch = lastUpdatedEpoch,
     stationsLoading = stationsLoading,
     onRefreshStations = onRefreshStations,
+    onOpenDestinationPicker = onOpenDestinationPicker,
+    onOpenStationPicker = onOpenStationPicker,
     paddingValues = paddingValues,
+  )
+
+  @Composable
+  fun TripMapPickerScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
+    mobilePlatform: MobileUiPlatform,
+    pickerMode: TripMapPickerMode,
+    userLocation: GeoPoint?,
+    stations: List<Station>,
+    isMapReady: Boolean,
+    paddingValues: PaddingValues,
+    onBack: () -> Unit,
+  ) = TripMapPickerScreen(
+    viewModel = viewModel,
+    mobilePlatform = mobilePlatform,
+    pickerMode = pickerMode,
+    userLocation = userLocation,
+    stations = stations,
+    isMapReady = isMapReady,
+    paddingValues = paddingValues,
+    onBack = onBack,
   )
 
   @Composable

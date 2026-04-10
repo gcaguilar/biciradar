@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
+import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
@@ -27,6 +28,10 @@ class TripManagementUseCase(
 
   suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int) {
     tripRepository.setDestination(destination, searchRadiusMeters)
+  }
+
+  suspend fun selectStation(station: Station) {
+    tripRepository.selectStation(station)
   }
 
   suspend fun startMonitoring(durationSeconds: Int) {

@@ -39,6 +39,7 @@ data class TripUiState(
   val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
   val mapPickerMode: TripMapPickerMode? = null,
   val selectedMapStation: Station? = null,
+  val selectedMapLocationLabel: String? = null,
   val canConfirmMapSelection: Boolean = false,
 )
 
@@ -58,6 +59,7 @@ class TripViewModel(
     val pickedLocation: GeoPoint? = null,
     val mapPickerMode: TripMapPickerMode? = null,
     val selectedMapStation: Station? = null,
+    val selectedMapLocationLabel: String? = null,
     val canConfirmMapSelection: Boolean = false,
   )
 
@@ -80,6 +82,7 @@ class TripViewModel(
       searchRadiusMeters = radius,
       mapPickerMode = transient.mapPickerMode,
       selectedMapStation = transient.selectedMapStation,
+      selectedMapLocationLabel = transient.selectedMapLocationLabel,
       canConfirmMapSelection = transient.canConfirmMapSelection,
     )
   }.stateIn(
@@ -168,19 +171,16 @@ class TripViewModel(
   fun onSuggestionSelected(result: GeoResult) {
     transientUiState.update {
       it.copy(
-      isLoadingSuggestions = false,
-      suggestionsError = null,
-      mapPickerActive = false,
-      pickedLocation = null,
-    )
+        query = result.tripDisplayLabel(),
+        suggestions = emptyList(),
+        isLoadingSuggestions = false,
+        suggestionsError = null,
+      )
     }
     viewModelScope.launch {
-      tripManagementUseCase.setDestination(
-        destination = TripDestination(
-          name = result.tripDisplayLabel(),
-          location = GeoPoint(result.latitude, result.longitude),
-        ),
-        searchRadiusMeters = uiState.value.searchRadiusMeters,
+      commitDestination(
+        name = result.tripDisplayLabel(),
+        location = GeoPoint(result.latitude, result.longitude),
       )
     }
   }
@@ -188,10 +188,13 @@ class TripViewModel(
   fun onLocationPicked(location: GeoPoint) {
     transientUiState.update {
       it.copy(
-      isReverseGeocoding = true,
-      pickedLocation = location,
-      suggestionsError = null,
-    )
+        isReverseGeocoding = true,
+        pickedLocation = location,
+        selectedMapStation = null,
+        selectedMapLocationLabel = null,
+        canConfirmMapSelection = false,
+        suggestionsError = null,
+      )
     }
 
     viewModelScope.launch {
@@ -200,59 +203,78 @@ class TripViewModel(
         is GeoLocationUseCase.ReverseGeocodeResult.Fallback -> result.coordinates
       }
 
-      transientUiState.update {
-        it.copy(
-        mapPickerActive = false,
-        isReverseGeocoding = false,
-        pickedLocation = null,
-      )
+      val currentState = transientUiState.value
+      if (currentState.mapPickerMode != TripMapPickerMode.Destination || currentState.pickedLocation != location) {
+        return@launch
       }
 
-      tripManagementUseCase.setDestination(
-        destination = TripDestination(name = name, location = location),
-        searchRadiusMeters = uiState.value.searchRadiusMeters,
-      )
+      transientUiState.update {
+        it.copy(
+          isReverseGeocoding = false,
+          pickedLocation = location,
+          selectedMapLocationLabel = name,
+          canConfirmMapSelection = true,
+        )
+      }
     }
   }
 
   fun onStationPickedFromMap(station: Station) {
     transientUiState.update {
       it.copy(
+        pickedLocation = null,
         selectedMapStation = station,
+        selectedMapLocationLabel = null,
         canConfirmMapSelection = true,
       )
     }
   }
 
   fun onConfirmMapSelection() {
-    transientUiState.value.selectedMapStation?.let { station ->
-      transientUiState.update {
-        it.copy(
-          mapPickerActive = false,
-          pickedLocation = null,
-          isLoadingSuggestions = false,
-          suggestionsError = null,
-          mapPickerMode = null,
-          selectedMapStation = null,
-          canConfirmMapSelection = false,
-        )
+    val selection = transientUiState.value
+    when (selection.mapPickerMode) {
+      TripMapPickerMode.Destination -> {
+        val pickedLocation = selection.pickedLocation ?: return
+        val pickedLabel = selection.selectedMapLocationLabel ?: formatLocationLabel(pickedLocation)
+        viewModelScope.launch {
+          commitDestination(
+            name = pickedLabel,
+            location = pickedLocation,
+          )
+        }
       }
 
-      viewModelScope.launch {
-        tripManagementUseCase.setDestination(
-          destination = TripDestination(name = station.name, location = station.location),
-          searchRadiusMeters = uiState.value.searchRadiusMeters,
-        )
+      TripMapPickerMode.Station -> {
+        val selectedStation = selection.selectedMapStation ?: return
+        clearMapPickerState()
+        viewModelScope.launch {
+          tripManagementUseCase.selectStation(selectedStation)
+        }
       }
+
+      null -> Unit
+    }
+  }
+
+  fun onEnterMapPicker(mode: TripMapPickerMode) {
+    transientUiState.update {
+      it.copy(
+        mapPickerActive = true,
+        mapPickerMode = mode,
+        pickedLocation = null,
+        isReverseGeocoding = false,
+        selectedMapStation = null,
+        selectedMapLocationLabel = null,
+        canConfirmMapSelection = false,
+      )
     }
   }
 
   fun onMapPickerToggle() {
-    transientUiState.update {
-      it.copy(
-        mapPickerActive = !it.mapPickerActive,
-        pickedLocation = null,
-      )
+    if (transientUiState.value.mapPickerActive) {
+      onCancelMapPicker()
+    } else {
+      onEnterMapPicker(TripMapPickerMode.Destination)
     }
   }
 
@@ -284,12 +306,16 @@ class TripViewModel(
   fun onClearTrip() {
     transientUiState.update {
       it.copy(
-      isLoadingSuggestions = false,
-      suggestionsError = null,
-      mapPickerActive = false,
-      isReverseGeocoding = false,
-      pickedLocation = null,
-    )
+        isLoadingSuggestions = false,
+        suggestionsError = null,
+        mapPickerActive = false,
+        isReverseGeocoding = false,
+        pickedLocation = null,
+        mapPickerMode = null,
+        selectedMapStation = null,
+        selectedMapLocationLabel = null,
+        canConfirmMapSelection = false,
+      )
     }
     tripManagementUseCase.clearTrip()
     viewModelScope.launch {
@@ -304,26 +330,47 @@ class TripViewModel(
   fun onDestinationCleared() {
     transientUiState.update {
       it.copy(
-      isLoadingSuggestions = false,
-      suggestionsError = null,
-      mapPickerActive = false,
-      isReverseGeocoding = false,
-      pickedLocation = null,
-    )
+        isLoadingSuggestions = false,
+        suggestionsError = null,
+        mapPickerActive = false,
+        isReverseGeocoding = false,
+        pickedLocation = null,
+        mapPickerMode = null,
+        selectedMapStation = null,
+        selectedMapLocationLabel = null,
+        canConfirmMapSelection = false,
+      )
     }
   }
 
   fun onCancelMapPicker() {
+    clearMapPickerState()
+  }
+
+  private suspend fun commitDestination(name: String, location: GeoPoint) {
+    clearMapPickerState()
+    tripManagementUseCase.setDestination(
+      destination = TripDestination(name = name, location = location),
+      searchRadiusMeters = uiState.value.searchRadiusMeters,
+    )
+  }
+
+  private fun clearMapPickerState() {
     transientUiState.update {
       it.copy(
         mapPickerActive = false,
+        isReverseGeocoding = false,
+        pickedLocation = null,
         mapPickerMode = null,
         selectedMapStation = null,
+        selectedMapLocationLabel = null,
         canConfirmMapSelection = false,
       )
     }
   }
 }
+
+private fun formatLocationLabel(location: GeoPoint): String = "${location.latitude}, ${location.longitude}"
 
 private fun GeoResult.tripDisplayLabel(): String {
   val primaryName = name.trim()

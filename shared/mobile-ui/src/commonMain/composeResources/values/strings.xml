@@ -124,7 +124,7 @@
     <string name="slots">Huecos</string>
     <string name="openRoute">Abrir ruta</string>
     <string name="removeFromFavorites">Quitar de favoritos</string>
-    <string name="tripSubtitle">Busca la estación más cercana a tu destino y vigílala.</string>
+    <string name="tripSubtitle">Encuentra dónde dejar la bici cerca de tu destino y vigila la estación hasta llegar.</string>
     <string name="tripStationFull">Estación llena</string>
     <string name="tripStationNoLongerHasSlots">"%1$s" ya no tiene plazas libres.</string>
     <string name="tripSuggestedAlternative">Alternativa sugerida: %1$s · %2$s m — %3$s plazas.</string>
@@ -132,6 +132,7 @@
     <string name="gotIt">Entendido</string>
     <string name="whereAreYouGoing">¿Adónde vas?</string>
     <string name="walkRouteTo">Ruta a pie a %1$s</string>
+    <string name="tripBikeRouteAction">Ir en bici</string>
     <string name="tripSuggestedStation">Estación sugerida</string>
     <string name="freeSlots">Plazas libres</string>
     <string name="stopMonitoring">Parar vigilancia</string>

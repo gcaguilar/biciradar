@@ -22,6 +22,10 @@ interface RouteLauncher {
   fun launch(station: Station)
   /** Launch walking directions to [destination] (from the user's current location or a given origin). */
   fun launchWalkToLocation(destination: GeoPoint)
+  /** Launch cycling directions to [destination]. Falls back to walking when a platform does not override it. */
+  fun launchBikeToLocation(destination: GeoPoint) {
+    launchWalkToLocation(destination)
+  }
 }
 
 interface AssistantIntentResolver {

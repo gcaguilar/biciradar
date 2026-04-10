@@ -44,6 +44,7 @@ data class TripState(
 interface TripRepository {
   val state: StateFlow<TripState>
   suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int)
+  suspend fun selectStation(station: Station) = Unit
   suspend fun startMonitoring(durationSeconds: Int)
   fun stopMonitoring()
   fun clearTrip()
@@ -80,6 +81,24 @@ class TripRepositoryImpl(
       )
     }
     findNearestStation(destination.location, searchRadiusMeters)
+  }
+
+  override suspend fun selectStation(station: Station) {
+    stopMonitoring()
+    val destination = mutableState.value.destination
+    val distanceMeters = destination
+      ?.let { distanceBetween(it.location, station.location) }
+      ?: station.distanceMeters
+
+    mutableState.update {
+      it.copy(
+        nearestStationWithSlots = station.copy(distanceMeters = distanceMeters),
+        distanceToStation = distanceMeters,
+        alert = null,
+        isSearchingStation = false,
+        searchError = null,
+      )
+    }
   }
 
   private suspend fun findNearestStation(location: GeoPoint, searchRadiusMeters: Int) {
