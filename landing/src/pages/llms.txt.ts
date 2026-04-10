@@ -16,7 +16,7 @@ export const GET: APIRoute = ({ site }) => {
 
   const body = `# BiciRadar
 
-> Official public site for BiciRadar, a shared-bike availability app and beta waitlist built around official city open-data feeds.
+> Official public site for BiciRadar, a shared-bike availability app built around official city open-data feeds.
 
 ## Canonical site
 - ${homeUrl}
@@ -31,7 +31,7 @@ export const GET: APIRoute = ({ site }) => {
 - Real-time availability for bikes and free docks in public bike-share stations.
 - Favorites, alerts, widgets, watch surfaces, and quick access for daily commuting.
 - Public-facing product overview and FAQ content for end users.
-- Beta signup flow with localized landing pages and city-specific SEO pages.
+- Email link flow with localized landing pages and city-specific SEO pages.
 
 ## Platforms
 - iPhone and iOS

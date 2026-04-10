@@ -15,34 +15,34 @@ export const ca = {
     siteTagline: 'Consulta bicis i ancoratges abans d’arribar',
     defaultOgTitle: 'BiciRadar | Consulta bicis i ancoratges en temps real',
     defaultOgDescription:
-      'Mira disponibilitat en sistemes de bici compartida, desa preferides i demana accés a la beta de BiciRadar.',
+      'Mira disponibilitat en sistemes de bici compartida, desa preferides i descarrega BiciRadar.',
   },
   common: {
     skipToContent: 'Saltar al contingut',
     appStoreLabel: 'Descarrega a l’App Store',
-    androidBetaLabel: 'Sol·licita accés beta',
+    androidBetaLabel: 'Descarrega a Google Play',
     openMenu: 'Obrir navegació',
     closeMenu: 'Tancar navegació',
     backToHome: 'Tornar a la portada',
     viewCities: 'Veure ciutats',
     cityPageCta: 'Veure pàgina local',
-    heroCta: 'Entrar a la beta',
+    heroCta: 'T’ho enviem per correu',
     heroSecondaryCta: 'Veure com funciona',
-    finalCtaTitle: 'Consulta abans de pedalar',
+    finalCtaTitle: 'Descarrega-la ara o rep l’enllaç per correu',
     finalCtaDescription:
-      'Demana accés a la beta i ajuda’ns a prioritzar noves ciutats amb demanda real.',
+      'BiciRadar ja és a l’App Store i a Google Play. Si vols, deixa’ns el teu correu i t’enviarem l’enllaç.',
     cityRevisitLabel: 'Tornar a veure ciutats',
-    shareDescription: 'Comparteix la beta amb una altra persona de la teva ciutat.',
-    betaInviteLabel: 'Accés per invitació pública',
+    shareDescription: 'Comparteix BiciRadar amb una altra persona de la teva ciutat.',
+    betaInviteLabel: 'També per correu',
     faqLabel: 'Preguntes freqüents',
     thankYouShareFallback: 'Enllaç copiat. Ja el pots compartir.',
     githubAriaLabel: 'Codi font a GitHub',
   },
   home: {
     seo: {
-      title: 'BiciRadar beta | Consulta bicis i ancoratges en temps real abans d’arribar',
+      title: 'BiciRadar | Consulta bicis i ancoratges en temps real abans d’arribar',
       description:
-        'BiciRadar t’ajuda a veure disponibilitat a BiciMAD, Bicing, Sevici, Valenbisi, Bizi i més. Desa preferides, rep avisos i entra a la beta.',
+        'BiciRadar t’ajuda a veure disponibilitat a BiciMAD, Bicing, Sevici, Valenbisi, Bizi i més. Desa preferides, rep avisos i hi accedeixes ràpid des de widgets.',
     },
     header: {
       sections: [
@@ -60,10 +60,10 @@ export const ca = {
       description:
         'BiciRadar t’ajuda a veure disponibilitat en sistemes de bici compartida com BiciMAD, Bicing, Sevici i més. Desa preferides, rep avisos i accedeix ràpid des de widgets.',
       primaryCta: 'Descarrega a l’App Store',
-      secondaryCta: 'Sol·licita accés beta',
+      secondaryCta: 'Descarrega a Google Play',
       microcopy: '',
       primaryBadge: 'iPhone · Disponible ara',
-      secondaryBadge: 'Android · Beta tancada',
+      secondaryBadge: 'Android · Disponible ara',
       mockup: {
         stationLabel: 'Estació Sol',
         availability: '12 bicis · 5 ancoratges',
@@ -137,22 +137,22 @@ export const ca = {
     midCta: {
       title: 'Dos accessos ràpids segons la teva plataforma',
       description:
-        'La beta està pensada per captar demanda ara i escalar invitacions per plataforma i ciutat.',
+        'Descarrega BiciRadar ara a iPhone o Android. Si ho prefereixes, més avall t’enviarem l’enllaç per correu.',
       primaryCta: { label: 'Descarrega a l’App Store', note: 'Disponible ara a iPhone' },
-      secondaryCta: { label: 'Sol·licita accés beta', note: 'Android en accés controlat' },
+      secondaryCta: { label: 'Descarrega a Google Play', note: 'Disponible ara a Android' },
     },
     betaForm: {
-      title: 'Accés Android beta',
-      description: 'Farem servir el teu correu per enviar-te els passos i enllaços de la beta.',
+      title: 'T’ho enviem per correu',
+      description: 'Deixa’ns el teu correu i t’enviarem l’enllaç de descàrrega per a la teva plataforma.',
       honeypotLabel: 'Empresa',
       consentLabel:
-        'Accepto que BiciRadar faci servir aquestes dades per gestionar el meu accés a la beta i contactar-me sobre aquesta sol·licitud.',
-      consentHint: 'Només fem servir la informació per al procés beta.',
-      submitLabel: 'Sol·licitar accés beta',
-      loadingLabel: 'Enviant sol·licitud...',
-      successTitle: 'Sol·licitud enviada',
-      successMessage: 'Sol·licitud enviada. Gràcies pel teu interès.',
-      errorMessage: 'No hem pogut enviar la teva sol·licitud. Torna-ho a provar en uns segons.',
+        'Accepto que BiciRadar faci servir aquestes dades per enviar-me l’enllaç de descàrrega i contactar-me sobre aquesta sol·licitud.',
+      consentHint: 'Només fem servir la informació per enviar-te l’enllaç i ajudar-te amb aquesta sol·licitud.',
+      submitLabel: 'Enviar enllaç',
+      loadingLabel: 'Enviant enllaç...',
+      successTitle: 'Enllaç enviat',
+      successMessage: 'T’enviarem l’enllaç per correu d’aquí a uns minuts.',
+      errorMessage: 'No hem pogut enviar l’enllaç. Torna-ho a provar en uns segons.',
       options: {
         operatingSystems,
       },
@@ -163,9 +163,9 @@ export const ca = {
       validation: {
         required: 'Completa aquest camp.',
         email: 'Introdueix un email vàlid.',
-        consent: 'Necessitem el teu consentiment per gestionar la beta.',
+        consent: 'Necessitem el teu consentiment per enviar-te l’enllaç.',
         turnstile: 'Completa la verificació de seguretat i torna-ho a provar.',
-        server: 'Hi ha hagut un problema en enviar la teva sol·licitud.',
+        server: 'Hi ha hagut un problema en enviar l’enllaç.',
       },
     },
     faq: {
@@ -176,36 +176,35 @@ export const ca = {
         { question: 'Només serveix al mòbil?', answer: 'No. Està pensada per a mòbil i rellotge: Android, iOS, Wear OS i Apple Watch.' },
         { question: 'Les dades són fiables?', answer: 'Fa servir fonts oficials d’open data de les ciutats. Pot haver-hi petits desfasaments típics del temps real.' },
         { question: 'Per què fer servir BiciRadar com a complement?', answer: 'L’app oficial és el canal institucional; BiciRadar està optimitzada per consultar més ràpid i amb menys fricció.' },
-        { question: 'Què fareu amb les dades del formulari?', answer: 'Farem servir el teu correu per enviar-te els passos i enllaços de la beta (grup de testers a Google i descàrrega a Play o App Store). No el farem servir per a cap altre ús fora d’aquest procés.' },
+        { question: 'Què fareu amb les dades del formulari?', answer: 'Farem servir el teu correu per enviar-te els enllaços de descàrrega d’App Store o Google Play i, si cal, escriure’t sobre aquesta sol·licitud. No el farem servir per a cap altre ús.' },
       ],
     },
     footer: {
       tagline: '',
       links: [
         { label: 'Privacitat', href: 'https://gcaguilar.github.io/biciradar-privacy-policy/' },
-        { label: 'Contacte', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20beta' },
+        { label: 'Contacte', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20app' },
         { label: 'Suport', href: 'mailto:soporte@biciradar.es?subject=Suport%20BiciRadar' },
       ],
-      primaryCta: 'Entrar a la beta',
+      primaryCta: 'T’ho enviem per correu',
       note: 'BiciRadar · iPhone i Android · Dades basades en fonts oficials',
       githubLine: 'Codi obert a GitHub',
     },
   },
   thankYou: {
     seo: {
-      title: 'Gràcies per apuntar-te a la beta de BiciRadar',
+      title: 'Gràcies per demanar l’enllaç de BiciRadar',
       description:
-        'La teva sol·licitud per a la beta s’ha enviat correctament. Explora l’app, les ciutats disponibles o comparteix la beta.',
+        'La teva sol·licitud s’ha enviat correctament. Explora l’app, les ciutats disponibles o comparteix-la.',
     },
     badge: 'Sol·licitud enviada',
-    title: 'Gràcies, hem rebut la teva sol·licitud',
+    title: 'Gràcies, t’enviarem l’enllaç',
     description:
-      'El teu interès en la beta queda registrat. Pots instal·lar BiciRadar ara o explorar les pàgines locals de cada ciutat.',
+      'T’enviarem per correu l’enllaç de descàrrega. Mentrestant, pots instal·lar BiciRadar ara o explorar les pàgines locals de cada ciutat.',
     installStepByOs: {
-      ios: 'A l’iPhone: descarrega BiciRadar a l’App Store per provar-la ara.',
-      android:
-        'A Android: revisa el correu que t’enviarem amb l’enllaç a Google Play i el grup de testers.',
-      both: 'Segons el mòbil: App Store (iPhone) o les instruccions per correu per a la beta d’Android.',
+      ios: 'A l’iPhone: també pots descarregar BiciRadar ara mateix des de l’App Store.',
+      android: 'A Android: revisa el correu que t’enviarem amb l’enllaç a Google Play.',
+      both: 'Segons el mòbil: App Store a l’iPhone o Google Play a Android. També t’enviarem els enllaços per email.',
     },
     steps: [
       'Explora les pàgines locals per veure disponibilitat en temps real.',
@@ -213,7 +212,7 @@ export const ca = {
     ],
     cityLinksTitle: 'Explora ciutats disponibles mentrestant',
     cityCardCtaPrefix: 'Veure',
-    shareLabel: 'Compartir la beta',
+    shareLabel: 'Compartir BiciRadar',
     primaryCta: 'Explora ciutats disponibles mentrestant',
     appStoreCta: 'Descarregar a l’App Store',
     playStoreCta: 'Descarregar a Google Play',
@@ -221,7 +220,7 @@ export const ca = {
   },
   cityPages: {
     madrid: {
-      seo: { title: 'BiciMAD en temps real amb BiciRadar | Beta Madrid', description: 'Consulta BiciMAD abans de sortir, evita estacions buides i demana accés a la beta de BiciRadar per a Madrid.' },
+      seo: { title: 'BiciMAD en temps real amb BiciRadar | Madrid', description: 'Consulta BiciMAD abans de sortir, evita estacions buides i descarrega BiciRadar per a Madrid.' },
       badge: 'Madrid · BiciMAD',
       title: 'Consulta BiciMAD en temps real abans de sortir',
       description: 'Comprova bicis i ancoratges en estacions clau de Madrid i evita trajectes innecessaris cap a bases buides o plenes.',
@@ -234,12 +233,12 @@ export const ca = {
       faqTitle: 'FAQ Madrid',
       faq: [
         { question: 'Funciona amb BiciMAD?', answer: 'Sí. La pàgina queda preparada per a contingut específic de BiciMAD i demanda local.' },
-        { question: 'Madrid també entra a la beta d’Android?', answer: 'Sí. Pots demanar accés i convidarem usuaris per fases.' },
+        { question: 'També puc fer servir BiciRadar a Android a Madrid?', answer: 'Sí. Ja és a Google Play i, si vols, també t’enviarem l’enllaç per correu.' },
       ],
       mockup: { stationLabel: 'Estació Sol', availability: '12 bicis · 5 ancoratges' },
     },
     barcelona: {
-      seo: { title: 'Bicing en temps real amb BiciRadar | Beta Barcelona', description: 'Consulta Bicing abans de moure’t, desa preferides i demana accés a la beta de BiciRadar per a Barcelona.' },
+      seo: { title: 'Bicing en temps real amb BiciRadar | Barcelona', description: 'Consulta Bicing abans de moure’t, desa preferides i descarrega BiciRadar per a Barcelona.' },
       badge: 'Barcelona · Bicing',
       title: 'Consulta Bicing abans d’arribar a l’estació',
       description: 'Veu bicis i ancoratges lliures a Barcelona per decidir si et convé mantenir ruta, canviar de base o esperar.',
@@ -252,12 +251,12 @@ export const ca = {
       faqTitle: 'FAQ Barcelona',
       faq: [
         { question: 'Puc fer-lo servir amb Bicing si ja tinc l’app oficial?', answer: 'Sí. BiciRadar complementa l’ús diari amb consultes i accessos més ràpids.' },
-        { question: 'Barcelona tindrà invitacions beta?', answer: 'Sí. Estem recollint demanda per prioritzar accés per ciutat.' },
+        { question: 'Barcelona també està disponible a l’app?', answer: 'Sí. Barcelona ja té contingut local i continuarem prioritzant millores segons la demanda.' },
       ],
       mockup: { stationLabel: 'Pg. de Gràcia', availability: '8 bicis · 4 ancoratges' },
     },
     sevilla: {
-      seo: { title: 'Sevici en temps real amb BiciRadar | Beta Sevilla', description: 'Anticipa disponibilitat de Sevici, desa estacions preferides i demana accés a la beta de BiciRadar a Sevilla.' },
+      seo: { title: 'Sevici en temps real amb BiciRadar | Sevilla', description: 'Anticipa disponibilitat de Sevici, desa estacions preferides i descarrega BiciRadar a Sevilla.' },
       badge: 'Sevilla · Sevici',
       title: 'Consulta Sevici en temps real abans de moure’t',
       description: 'Comprova disponibilitat a Sevilla i evita arribar sense bicis o sense ancoratges quan necessites decidir ràpid.',
@@ -269,13 +268,13 @@ export const ca = {
       ],
       faqTitle: 'FAQ Sevilla',
       faq: [
-        { question: 'Sevici està previst a la beta?', answer: 'Sí. La landing ja queda preparada per captar demanda local de Sevilla amb SEO propi.' },
-        { question: 'Puc deixar les meves dades encara que no hi hagi invitació immediata?', answer: 'Sí. Guardem el teu interès per prioritzar obertures futures per ciutat.' },
+        { question: 'Sevici ja està contemplat a BiciRadar?', answer: 'Sí. Aquesta landing ja està preparada per captar interès local de Sevilla amb SEO propi.' },
+        { question: 'Puc deixar el meu correu per rebre l’enllaç?', answer: 'Sí. T’enviarem l’enllaç de descàrrega i, a més, ens ajudarà a saber des de quina ciutat ens visites.' },
       ],
       mockup: { stationLabel: 'Puerta Jerez', availability: '6 bicis · 7 ancoratges' },
     },
     valencia: {
-      seo: { title: 'Valenbisi en temps real amb BiciRadar | Beta València', description: 'Consulta Valenbisi, evita estacions completes i demana accés a la beta de BiciRadar per a València.' },
+      seo: { title: 'Valenbisi en temps real amb BiciRadar | València', description: 'Consulta Valenbisi, evita estacions completes i descarrega BiciRadar per a València.' },
       badge: 'València · Valenbisi',
       title: 'Consulta Valenbisi abans d’acostar-te a l’estació',
       description: 'Tingues visibilitat de bicis i ancoratges a València per no improvisar la devolució o la recollida sobre la marxa.',
@@ -288,12 +287,12 @@ export const ca = {
       faqTitle: 'FAQ València',
       faq: [
         { question: 'BiciRadar serveix per a Valenbisi?', answer: 'Sí. Està preparada per a pàgines i campanyes específiques de València.' },
-        { question: 'També hi haurà accés beta per a Android?', answer: 'Sí. Pots apuntar-t’hi des d’aquesta pàgina i et contactarem per email.' },
+        { question: 'També està disponible a Android?', answer: 'Sí. Ja la pots descarregar des de Google Play o demanar-nos que t’enviem l’enllaç per correu.' },
       ],
       mockup: { stationLabel: 'Colón', availability: '10 bicis · 2 ancoratges' },
     },
     zaragoza: {
-      seo: { title: 'Bizi en temps real amb BiciRadar | Beta Saragossa', description: 'Consulta Bizi a Saragossa, obre preferides i demana accés a la beta de BiciRadar amb contingut local.' },
+      seo: { title: 'Bizi en temps real amb BiciRadar | Saragossa', description: 'Consulta Bizi a Saragossa, obre preferides i descarrega BiciRadar amb contingut local.' },
       badge: 'Saragossa · Bizi',
       title: 'Consulta Bizi en temps real abans de pedalar',
       description: 'Accedeix a la disponibilitat de Bizi a Saragossa, desa estacions habituals i redueix el temps de consulta diària.',
@@ -301,11 +300,11 @@ export const ca = {
       benefits: [
         { title: 'Consulta ràpida de Bizi', description: 'Obre l’estat d’estacions freqüents en segons.' },
         { title: 'Contingut local preparat per a SEO', description: 'Cada ciutat té copy, FAQ i metadades pròpies.' },
-        { title: 'Beta escalable per ciutat', description: 'Recollim demanda de Saragossa sense duplicar l’arquitectura.' },
+        { title: 'Escalable per ciutat', description: 'Recollim demanda de Saragossa sense duplicar l’arquitectura.' },
       ],
       faqTitle: 'FAQ Saragossa',
       faq: [
-        { question: 'Saragossa està inclosa en la primera fase?', answer: 'Sí. Ja queda preparada com una de les pàgines locals inicials amb CTA a beta.' },
+        { question: 'Saragossa ja està inclosa?', answer: 'Sí. Ja és una de les pàgines locals inicials amb accés directe a l’app.' },
         { question: 'Puc compartir aquesta pàgina amb altra gent de Saragossa?', answer: 'Sí. T’animem a compartir-la per mesurar millor la demanda local.' },
       ],
       mockup: { stationLabel: 'Plaça Espanya', availability: '7 bicis · 6 ancoratges' },

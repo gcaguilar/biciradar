@@ -15,34 +15,34 @@ export const eu = {
     siteTagline: 'Kontsultatu bizikletak eta lekuak iritsi aurretik',
     defaultOgTitle: 'BiciRadar | Kontsultatu bizikletak eta leku libreak denbora errealean',
     defaultOgDescription:
-      'Ikusi bizikleta partekatuaren sistemetako erabilgarritasuna, gorde gustukoak eta eskatu BiciRadar betarako sarbidea.',
+      'Ikusi bizikleta partekatuaren sistemetako erabilgarritasuna, gorde gustukoak eta deskargatu BiciRadar.',
   },
   common: {
     skipToContent: 'Joan edukira',
     appStoreLabel: 'Deskargatu App Storen',
-    androidBetaLabel: 'Eskatu beta sarbidea',
+    androidBetaLabel: 'Deskargatu Google Play-n',
     openMenu: 'Ireki nabigazioa',
     closeMenu: 'Itxi nabigazioa',
     backToHome: 'Itzuli hasierara',
     viewCities: 'Ikusi hiriak',
     cityPageCta: 'Ikusi tokiko orria',
-    heroCta: 'Sartu betan',
+    heroCta: 'Email bidez bidaliko dizugu',
     heroSecondaryCta: 'Ikusi nola dabilen',
-    finalCtaTitle: 'Kontsultatu pedalei ekin aurretik',
+    finalCtaTitle: 'Deskargatu orain edo jaso esteka emailez',
     finalCtaDescription:
-      'Eskatu betarako sarbidea eta lagundu hurrengo hiriak benetako eskariaren arabera lehenesten.',
+      'BiciRadar dagoeneko App Storen eta Google Play-n dago. Nahi baduzu, utzi zure emaila eta esteka bidaliko dizugu.',
     cityRevisitLabel: 'Berriz ikusi hiriak',
-    shareDescription: 'Partekatu beta zure hiriko beste pertsona batekin.',
-    betaInviteLabel: 'Gonbidapen publiko bidezko sarbidea',
+    shareDescription: 'Partekatu BiciRadar zure hiriko beste norbaitekin.',
+    betaInviteLabel: 'Email bidez ere bai',
     faqLabel: 'Ohiko galderak',
     thankYouShareFallback: 'Esteka kopiatu da. Orain parteka dezakezu.',
     githubAriaLabel: 'Iturburu kodea GitHub-en',
   },
   home: {
     seo: {
-      title: 'BiciRadar beta | Kontsultatu bizikletak eta leku libreak denbora errealean iritsi aurretik',
+      title: 'BiciRadar | Kontsultatu bizikletak eta leku libreak denbora errealean iritsi aurretik',
       description:
-        'BiciRadarrek BiciMAD, Bicing, Sevici, Valenbisi, Bizi eta gehiagoko erabilgarritasuna ikusten laguntzen dizu. Gorde gustukoak, jaso abisuak eta sartu betan.',
+        'BiciRadarrek BiciMAD, Bicing, Sevici, Valenbisi, Bizi eta gehiagoko erabilgarritasuna ikusten laguntzen dizu. Gorde gustukoak, jaso abisuak eta ireki azkar widgetetatik.',
     },
     header: {
       sections: [
@@ -60,10 +60,10 @@ export const eu = {
       description:
         'BiciRadarrek BiciMAD, Bicing, Sevici eta beste bizikleta partekatu sistemetako erabilgarritasuna ikusten laguntzen dizu. Gorde gustukoak, jaso abisuak eta ireki azkar widgetetatik.',
       primaryCta: 'Deskargatu App Store-n',
-      secondaryCta: 'Eskatu beta sarbidea',
+      secondaryCta: 'Deskargatu Google Play-n',
       microcopy: '',
       primaryBadge: 'iPhone · Eskuragarri orain',
-      secondaryBadge: 'Android · Beta itxia',
+      secondaryBadge: 'Android · Eskuragarri orain',
       mockup: {
         stationLabel: 'Sol geltokia',
         availability: '12 bizikleta · 5 leku',
@@ -114,21 +114,21 @@ export const eu = {
     },
     midCta: {
       title: 'Bi sarbide azkar zure plataformaren arabera',
-      description: 'Beta orain eskaria jasotzeko eta gonbidapenak plataforma eta hiriaren arabera eskalatzeko diseinatuta dago.',
+      description: 'Deskargatu BiciRadar orain iPhone edo Android-en. Nahi baduzu, beherago esteka emailez bidaliko dizugu.',
       primaryCta: { label: 'Deskargatu App Storen', note: 'Eskuragarri orain iPhonen' },
-      secondaryCta: { label: 'Eskatu beta sarbidea', note: 'Android sarbide kontrolatuan' },
+      secondaryCta: { label: 'Deskargatu Google Play-n', note: 'Eskuragarri orain Android-en' },
     },
     betaForm: {
-      title: 'Android beta sarbidea',
-      description: 'Zure emaila beta urratsak eta estekak bidaltzeko erabiliko dugu.',
+      title: 'Email bidez bidaliko dizugu',
+      description: 'Utzi zure emaila eta zure plataformarako deskarga-esteka bidaliko dizugu.',
       honeypotLabel: 'Enpresa',
-      consentLabel: 'Onartzen dut BiciRadarrek datu hauek erabiltzea beta sarbidea kudeatzeko eta eskaera honi buruz nirekin harremanetan jartzeko.',
-      consentHint: 'Informazioa beta prozesurako bakarrik erabiltzen dugu.',
-      submitLabel: 'Eskatu beta sarbidea',
-      loadingLabel: 'Eskaera bidaltzen...',
-      successTitle: 'Eskaera bidalia',
-      successMessage: 'Eskaera bidalia. Eskerrik asko zure interesagatik.',
-      errorMessage: 'Ezin izan dugu zure eskaera bidali. Saiatu berriro segundo batzuk barru.',
+      consentLabel: 'Onartzen dut BiciRadarrek datu hauek erabiltzea deskarga-esteka bidaltzeko eta eskaera honi buruz nirekin harremanetan jartzeko.',
+      consentHint: 'Informazioa esteka bidaltzeko eta eskaera honekin laguntzeko bakarrik erabiltzen dugu.',
+      submitLabel: 'Bidali esteka',
+      loadingLabel: 'Esteka bidaltzen...',
+      successTitle: 'Esteka bidalia',
+      successMessage: 'Minutu gutxi barru esteka emailez bidaliko dizugu.',
+      errorMessage: 'Ezin izan dugu esteka bidali. Saiatu berriro segundo batzuk barru.',
       options: {
         operatingSystems,
       },
@@ -139,9 +139,9 @@ export const eu = {
       validation: {
         required: 'Bete eremu hau.',
         email: 'Sartu baliozko email bat.',
-        consent: 'Zure baimena behar dugu beta kudeatzeko.',
+        consent: 'Zure baimena behar dugu esteka bidaltzeko.',
         turnstile: 'Osatu segurtasun egiaztapena eta saiatu berriro.',
-        server: 'Arazo bat egon da zure eskaera bidaltzean.',
+        server: 'Arazo bat egon da esteka bidaltzean.',
       },
     },
     faq: {
@@ -152,36 +152,35 @@ export const eu = {
         { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
         { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
         { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
-        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila beta urratsak eta estekak bidaltzeko erabiliko dugu (Google-ko testers taldea eta Play edo App Store-ko deskarga). Ez dugu prozesu honetatik kanpo beste ezertarako erabiliko.' },
+        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila App Store edo Google Play deskarga-estekak bidaltzeko erabiliko dugu eta, beharrezkoa bada, eskaera honi buruz idatziko dizugu. Ez dugu beste ezertarako erabiliko.' },
       ],
     },
     footer: {
       tagline: '',
       links: [
         { label: 'Pribatutasuna', href: 'https://gcaguilar.github.io/biciradar-privacy-policy/' },
-        { label: 'Kontaktua', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20beta' },
+        { label: 'Kontaktua', href: 'mailto:hola@biciradar.es?subject=BiciRadar%20app' },
         { label: 'Laguntza', href: 'mailto:soporte@biciradar.es?subject=BiciRadar%20laguntza' },
       ],
-      primaryCta: 'Sartu betan',
+      primaryCta: 'Email bidez bidaliko dizugu',
       note: 'BiciRadar · iPhone eta Android · Iturri ofizialetan oinarritutako datuak',
       githubLine: 'Iturburu irekia GitHub-en',
     },
   },
   thankYou: {
     seo: {
-      title: 'Eskerrik asko BiciRadar betan apuntatzeagatik',
+      title: 'Eskerrik asko BiciRadar esteka eskatzeagatik',
       description:
-        'Zure beta eskaera ondo bidali da. Arakatu aplikazioa, eskuragarri dauden hiriak edo partekatu beta.',
+        'Zure eskaera ondo bidali da. Arakatu aplikazioa, eskuragarri dauden hiriak edo partekatu.',
     },
     badge: 'Eskaera bidalia',
-    title: 'Eskerrik asko, jaso dugu zure eskaera',
+    title: 'Eskerrik asko, esteka bidaliko dizugu',
     description:
-      'Beta interesa erregistratuta dago. BiciRadar instalatu dezakezu orain edo hiri bakoitzeko tokiko orriak arakatu.',
+      'Deskarga-esteka emailez bidaliko dizugu. Bitartean, BiciRadar instalatu dezakezu edo hiri bakoitzeko tokiko orriak arakatu.',
     installStepByOs: {
-      ios: 'iPhone-an: deskargatu BiciRadar App Store-tik orain probatzeko.',
-      android:
-        'Android-en: begiratu bidaliko dizugun emaila Google Play estekarekin eta testers taldearekin.',
-      both: 'Mugikoruaren arabera: App Store (iPhone) edo Android betarako email bidezko urratsak.',
+      ios: 'iPhone-an: BiciRadar App Store-tik deskarga dezakezu oraintxe bertan.',
+      android: 'Android-en: begiratu bidaliko dizugun emaila Google Play estekarekin.',
+      both: 'Zure mugikorraren arabera: App Store iPhone-n edo Google Play Android-en. Bi estekak ere emailez bidaliko dizkizugu.',
     },
     steps: [
       'Arakatu tokiko orriak erabilgarritasuna denbora errealean ikusteko.',
@@ -189,7 +188,7 @@ export const eu = {
     ],
     cityLinksTitle: 'Bitartean, arakatu eskuragarri dauden hiriak',
     cityCardCtaPrefix: 'Ikusi',
-    shareLabel: 'Partekatu beta',
+    shareLabel: 'Partekatu BiciRadar',
     primaryCta: 'Bitartean, arakatu eskuragarri dauden hiriak',
     appStoreCta: 'Deskargatu App Storen',
     playStoreCta: 'Deskargatu Google Play-n',
@@ -197,7 +196,7 @@ export const eu = {
   },
   cityPages: {
     madrid: {
-      seo: { title: 'BiciMAD denbora errealean BiciRadarrekin | Madril beta', description: 'Kontsultatu BiciMAD atera aurretik, saihestu estazio hutsak eta eskatu BiciRadar betarako sarbidea Madrilentzat.' },
+      seo: { title: 'BiciMAD denbora errealean BiciRadarrekin | Madril', description: 'Kontsultatu BiciMAD atera aurretik, saihestu estazio hutsak eta deskargatu BiciRadar Madrilentzat.' },
       badge: 'Madril · BiciMAD',
       title: 'Kontsultatu BiciMAD denbora errealean atera aurretik',
       description: 'Ikusi bizikletak eta lekuak Madrilgo estazio garrantzitsuetan eta saihestu alferrikako joan-etorriak oinarri huts edo beteetara.',
@@ -210,12 +209,12 @@ export const eu = {
       faqTitle: 'Madril FAQ',
       faq: [
         { question: 'BiciMADekin dabil?', answer: 'Bai. Orria BiciMADerako eduki espezifikorako eta tokiko eskariarako prestatuta dago.' },
-        { question: 'Madril Android betan ere sartzen da?', answer: 'Bai. Sarbidea eskatu dezakezu eta erabiltzaileak faseka gonbidatuko ditugu.' },
+        { question: 'BiciRadar Android-en ere erabil al dezaket Madrilen?', answer: 'Bai. Dagoeneko Google Play-n dago eta, nahi baduzu, esteka ere emailez bidaliko dizugu.' },
       ],
       mockup: { stationLabel: 'Sol geltokia', availability: '12 bizikleta · 5 leku' },
     },
     barcelona: {
-      seo: { title: 'Bicing denbora errealean BiciRadarrekin | Bartzelona beta', description: 'Kontsultatu Bicing mugitu aurretik, gorde gustukoak eta eskatu BiciRadar betarako sarbidea Bartzelonarentzat.' },
+      seo: { title: 'Bicing denbora errealean BiciRadarrekin | Bartzelona', description: 'Kontsultatu Bicing mugitu aurretik, gorde gustukoak eta deskargatu BiciRadar Bartzelonarentzat.' },
       badge: 'Bartzelona · Bicing',
       title: 'Kontsultatu Bicing estaziora iritsi aurretik',
       description: 'Ikusi bizikletak eta leku libre dauden Bartzelonan eta erabaki ibilbide bera mantendu, oinarria aldatu edo itxaron.',
@@ -228,12 +227,12 @@ export const eu = {
       faqTitle: 'Bartzelona FAQ',
       faq: [
         { question: 'Bicingekin erabili al dezaket app ofiziala badut?', answer: 'Bai. BiciRadarrek eguneroko erabilera osatzen du kontsulta eta lasterbide azkarragoekin.' },
-        { question: 'Bartzelonak beta gonbidapenak izango ditu?', answer: 'Bai. Eskaria jasotzen ari gara sarbidea hiriaren arabera lehenesteko.' },
+        { question: 'Bartzelona ere eskuragarri al dago app-ean?', answer: 'Bai. Bartzelonak dagoeneko tokiko edukia du eta hobekuntzak eskariaren arabera lehenesten jarraituko dugu.' },
       ],
       mockup: { stationLabel: 'Pg. de Gràcia', availability: '8 bizikleta · 4 leku' },
     },
     sevilla: {
-      seo: { title: 'Sevici denbora errealean BiciRadarrekin | Sevilla beta', description: 'Aurreikusi Seviciren erabilgarritasuna, gorde gustuko estazioak eta eskatu BiciRadar betarako sarbidea Sevillan.' },
+      seo: { title: 'Sevici denbora errealean BiciRadarrekin | Sevilla', description: 'Aurreikusi Seviciren erabilgarritasuna, gorde gustuko estazioak eta deskargatu BiciRadar Sevillan.' },
       badge: 'Sevilla · Sevici',
       title: 'Kontsultatu Sevici denbora errealean mugitu aurretik',
       description: 'Ikusi erabilgarritasuna Sevillan eta saihestu bizikletarik edo lekurik gabe iristea erabaki azkarra behar duzunean.',
@@ -245,13 +244,13 @@ export const eu = {
       ],
       faqTitle: 'Sevilla FAQ',
       faq: [
-        { question: 'Sevici betaren barruan dago?', answer: 'Bai. Landing-a Sevillako eskari lokala SEO propioarekin harrapatzeko prestatuta dago.' },
-        { question: 'Nire datuak utzi al ditzaket gonbidapenik berehala ez badago ere?', answer: 'Bai. Zure interesa gordetzen dugu etorkizuneko irekierak lehenesteko.' },
+        { question: 'Sevici dagoeneko BiciRadar-en sartuta al dago?', answer: 'Bai. Landing hau Sevillako tokiko interesa SEO propioarekin jasotzeko prestatuta dago.' },
+        { question: 'Nire emaila utz al dezaket esteka jasotzeko?', answer: 'Bai. Deskarga-esteka bidaliko dizugu eta, gainera, zein hiritatik zatozen ulertzen lagunduko digu.' },
       ],
       mockup: { stationLabel: 'Puerta Jerez', availability: '6 bizikleta · 7 leku' },
     },
     valencia: {
-      seo: { title: 'Valenbisi denbora errealean BiciRadarrekin | Valentzia beta', description: 'Kontsultatu Valenbisi, saihestu estazio beteak eta eskatu BiciRadar betarako sarbidea Valentziarentzat.' },
+      seo: { title: 'Valenbisi denbora errealean BiciRadarrekin | Valentzia', description: 'Kontsultatu Valenbisi, saihestu estazio beteak eta deskargatu BiciRadar Valentziarentzat.' },
       badge: 'Valentzia · Valenbisi',
       title: 'Kontsultatu Valenbisi estaziora hurbildu aurretik',
       description: 'Ikusi bizikletak eta lekuak Valentziako sarean, itzulera edo jasotzea martxan inprobisatu behar ez izateko.',
@@ -264,12 +263,12 @@ export const eu = {
       faqTitle: 'Valentzia FAQ',
       faq: [
         { question: 'BiciRadarrek Valenbisirekin balio du?', answer: 'Bai. Valentziarako orri eta kanpaina espezifikoetarako prestatuta dago.' },
-        { question: 'Android betarako sarbidea ere egongo da?', answer: 'Bai. Orrialde honetatik eman dezakezu izena eta email bidez jarriko gara harremanetan.' },
+        { question: 'Android-en ere eskuragarri al dago?', answer: 'Bai. Dagoeneko Google Play-tik deskarga dezakezu edo esteka emailez bidaltzeko eska diezagukezu.' },
       ],
       mockup: { stationLabel: 'Colón', availability: '10 bizikleta · 2 leku' },
     },
     zaragoza: {
-      seo: { title: 'Bizi denbora errealean BiciRadarrekin | Zaragoza beta', description: 'Kontsultatu Bizi Zaragozan, ireki gustukoak eta eskatu BiciRadar betarako sarbidea tokiko edukiarekin.' },
+      seo: { title: 'Bizi denbora errealean BiciRadarrekin | Zaragoza', description: 'Kontsultatu Bizi Zaragozan, ireki gustukoak eta deskargatu BiciRadar tokiko edukiarekin.' },
       badge: 'Zaragoza · Bizi',
       title: 'Kontsultatu Bizi denbora errealean pedalei ekin aurretik',
       description: 'Ireki Biziren erabilgarritasuna Zaragozan, gorde ohiko estazioak eta murriztu eguneroko kontsulten denbora.',
@@ -277,11 +276,11 @@ export const eu = {
       benefits: [
         { title: 'Biziren kontsulta azkarra', description: 'Ireki ohiko estazioen egoera segundo gutxitan.' },
         { title: 'SEO-rako prestatutako tokiko edukia', description: 'Hiri bakoitzak bere copy-a, FAQ-a eta metadata du.' },
-        { title: 'Hiriz hiriko beta eskalagarria', description: 'Zaragozako eskaria jasotzen dugu arkitektura bikoiztu gabe.' },
+        { title: 'Hiriz hiriko egitura eskalagarria', description: 'Zaragozako eskaria jasotzen dugu arkitektura bikoiztu gabe.' },
       ],
       faqTitle: 'Zaragoza FAQ',
       faq: [
-        { question: 'Zaragoza lehen fasean sartuta dago?', answer: 'Bai. Hasierako tokiko orrietako bat bezala prestatuta dago beta CTArekin.' },
+        { question: 'Zaragoza dagoeneko sartuta al dago?', answer: 'Bai. Dagoeneko app-erako sarbide zuzena duten hasierako tokiko orrietako bat da.' },
         { question: 'Orri hau Zaragozako beste pertsona batzuekin parteka dezaket?', answer: 'Bai. Partekatzea gomendatzen dizugu tokiko eskaria hobeto neurtzeko.' },
       ],
       mockup: { stationLabel: 'Espainia plaza', availability: '7 bizikleta · 6 leku' },
