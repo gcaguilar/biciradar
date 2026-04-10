@@ -1,25 +1,17 @@
 package com.gcaguilar.biciradar.core
 
-import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.di.CoreBindings
 import com.gcaguilar.biciradar.core.di.DatabaseBindings
+import com.gcaguilar.biciradar.core.di.GeoBindings
 import com.gcaguilar.biciradar.core.di.NetworkBindings
+import com.gcaguilar.biciradar.core.di.OnboardingGraph
 import com.gcaguilar.biciradar.core.di.TripGraph
-import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.geo.GeoApi
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
-import com.gcaguilar.biciradar.core.geo.InstallationIdentityRepository
-import com.gcaguilar.biciradar.core.geo.RequestSigner
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
-import com.gcaguilar.biciradar.core.geo.TokenManager
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Includes
-import dev.zacsweers.metro.Provides
-import dev.zacsweers.metro.SingleIn
-import io.ktor.client.HttpClient
-import kotlinx.serialization.json.Json
-import okio.FileSystem
 
 /**
  * Grafo de dependencias principal de la aplicación.
@@ -28,15 +20,17 @@ import okio.FileSystem
  * - [CoreBindings]: CoroutineScope, Json
  * - [DatabaseBindings]: BiciRadarDatabase, StationsCacheManager
  * - [NetworkBindings]: HttpClient, BiziApi, GooglePlacesApi
+ * - [GeoBindings]: GeoApi, TokenManager, InstallationIdentityRepository
  *
  * Además, soporta Graph Extensions para flujos con ciclo de vida independiente:
  * - [TripGraph]: Flujo de viaje/trip
+ * - [OnboardingGraph]: Flujo de onboarding
  *
  * Los repositorios se registran automáticamente mediante @ContributesBinding.
  */
 @DependencyGraph(
     AppScope::class,
-    bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class]
+    bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class]
 )
 interface SharedGraph {
     // ==================== ACCESSORS PÚBLICOS ====================
@@ -86,51 +80,11 @@ interface SharedGraph {
      */
     val tripGraphFactory: TripGraph.Factory
 
-    // ==================== PROVIDES MANUALES ====================
-    // Geo bindings - requieren configuración específica
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideInstallationIdentityRepository(
-        httpClient: HttpClient,
-        json: Json,
-        fileSystem: FileSystem,
-        storageDirectoryProvider: StorageDirectoryProvider,
-        secureKeyStore: SecureKeyStore,
-        @AppVersion appVersion: String,
-        @OsVersion osVersion: String,
-        @Platform platform: String,
-    ): InstallationIdentityRepository = InstallationIdentityRepository(
-        httpClient = httpClient,
-        json = json,
-        fileSystem = fileSystem,
-        storageDirectoryProvider = storageDirectoryProvider,
-        secureKeyStore = secureKeyStore,
-        appVersion = appVersion,
-        osVersion = osVersion,
-        platform = platform,
-    )
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideTokenManager(
-        httpClient: HttpClient,
-        json: Json,
-        identityRepo: InstallationIdentityRepository,
-    ): TokenManager = TokenManager(
-        httpClient = httpClient,
-        json = json,
-        identityRepo = identityRepo,
-    )
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideRequestSigner(
-        identityRepo: InstallationIdentityRepository,
-    ): RequestSigner = RequestSigner(identityRepo = identityRepo)
-
-    // GeoApi, GeoSearchUseCase y ReverseGeocodeUseCase se proveen automáticamente
-    // por Metro mediante sus constructores anotados con @Inject
+    /**
+     * Factory para crear grafos de onboarding aislados.
+     * Usar esto cuando se necesite un contexto de onboarding independiente.
+     */
+    val onboardingGraphFactory: OnboardingGraph.Factory
 
     // ==================== FACTORY ====================
 
