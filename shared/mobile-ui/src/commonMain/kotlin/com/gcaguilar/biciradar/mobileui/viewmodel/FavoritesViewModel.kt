@@ -135,19 +135,33 @@ class FavoritesViewModel(
 
   fun onClearHomeStation() {
     viewModelScope.launch {
-      favoritesManagementUseCase.assignStationToCategory(stationId = homeStationId() ?: return@launch, categoryId = null)
+      val stationId = homeStationId() ?: return@launch
+      favoritesManagementUseCase.assignStationToCategory(stationId = stationId, categoryId = null)
+      if (favoritesManagementUseCase.favoriteIds.value.contains(stationId)) {
+        favoritesManagementUseCase.toggleFavorite(stationId)
+      }
     }
   }
 
   fun onClearWorkStation() {
     viewModelScope.launch {
-      favoritesManagementUseCase.assignStationToCategory(stationId = workStationId() ?: return@launch, categoryId = null)
+      val stationId = workStationId() ?: return@launch
+      favoritesManagementUseCase.assignStationToCategory(stationId = stationId, categoryId = null)
+      if (favoritesManagementUseCase.favoriteIds.value.contains(stationId)) {
+        favoritesManagementUseCase.toggleFavorite(stationId)
+      }
     }
   }
 
   fun onRemoveFavorite(station: Station) {
     viewModelScope.launch {
       favoritesManagementUseCase.assignStationToCategory(station.id, null)
+    }
+  }
+
+  fun onToggleFavorite(station: Station) {
+    viewModelScope.launch {
+      favoritesManagementUseCase.toggleFavorite(station.id)
     }
   }
 
@@ -160,6 +174,12 @@ class FavoritesViewModel(
 
   fun onAssignCandidateToCategory(categoryId: String) {
     val station = uiState.value.assignmentCandidate ?: return
+    viewModelScope.launch {
+      favoritesManagementUseCase.assignStationToCategory(station.id, categoryId)
+    }
+  }
+
+  fun onAssignStationToCategory(station: Station, categoryId: String) {
     viewModelScope.launch {
       favoritesManagementUseCase.assignStationToCategory(station.id, categoryId)
     }
