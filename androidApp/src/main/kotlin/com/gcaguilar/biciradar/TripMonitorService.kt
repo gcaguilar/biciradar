@@ -31,9 +31,10 @@ import kotlinx.coroutines.launch
  * - Estilo Material You
  * - Acciones de compartir y favoritos
  * - Integración con App Functions
+ * - DI robusto vía BiziAppGraph (sin holders temporales)
  *
- * Las dependencias se proporcionan a través de [TripMonitorServiceProvider] vía Intent extras,
- * eliminando la necesidad de reflection o holders estáticos (SOLID - DIP).
+ * Las dependencias se obtienen del singleton BiziAppGraph, eliminando
+ * la fragilidad de los holders temporales y soportando recreación del Service.
  */
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -41,10 +42,14 @@ class TripMonitorService : Service() {
     getSystemService(NotificationManager::class.java)
   }
 
+  // Dependencias obtenidas del singleton de aplicación
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository
+    get() = BiziAppGraph.graph.surfaceMonitoringRepository
+  private val favoritesRepository: FavoritesRepository
+    get() = BiziAppGraph.graph.favoritesRepository
+
   private var countdownJob: Job? = null
   private var currentSession: SurfaceMonitoringSession? = null
-  private var favoritesRepository: FavoritesRepository? = null
-  private var surfaceMonitoringRepository: SurfaceMonitoringRepository? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -58,17 +63,12 @@ class TripMonitorService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    // Extraer dependencias del provider pasado en el Intent
-    val provider = intent?.getParcelableExtra<TripMonitorServiceProvider>(EXTRA_SERVICE_PROVIDER)
-    if (provider != null) {
-      surfaceMonitoringRepository = provider.surfaceMonitoringRepository
-      favoritesRepository = provider.favoritesRepository
-      observeMonitoringState()
-    }
+    // Observar estado de monitorización
+    observeMonitoringState()
 
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
-        surfaceMonitoringRepository?.stopMonitoring()
+        surfaceMonitoringRepository.stopMonitoring()
         stopSelf()
         return START_NOT_STICKY
       }
@@ -76,7 +76,7 @@ class TripMonitorService : Service() {
         val stationId = intent.getStringExtra(EXTRA_STATION_ID)
         if (stationId != null) {
           serviceScope.launch {
-            favoritesRepository?.toggle(stationId)
+            favoritesRepository.toggle(stationId)
             updateNotification()
           }
         }
@@ -101,12 +101,7 @@ class TripMonitorService : Service() {
   }
 
   private fun observeMonitoringState() {
-    val repository = surfaceMonitoringRepository
-    if (repository == null) {
-      stopSelf()
-      return
-    }
-    repository.state
+    surfaceMonitoringRepository.state
       .onEach { session: SurfaceMonitoringSession? ->
         currentSession = session
         if (session == null || !session.isActive) {
@@ -166,7 +161,7 @@ class TripMonitorService : Service() {
       ?: appPendingIntent(Uri.parse("biciradar://favorites"))
 
     val isFavorite = session?.stationId?.let {
-      favoritesRepository?.favoriteIds?.value?.contains(it)
+      favoritesRepository.favoriteIds.value.contains(it)
     } ?: false
 
     val builder = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -334,7 +329,6 @@ class TripMonitorService : Service() {
     private const val ACTION_SHARE = "com.gcaguilar.biciradar.action.SHARE"
     private const val EXTRA_STATION_ID = "station_id"
     private const val EXTRA_STATION_NAME = "station_name"
-    private const val EXTRA_SERVICE_PROVIDER = "service_provider"
     private const val CHANNEL_ID = "bizi_station_monitoring_v2"
     private const val FOREGROUND_NOTIFICATION_ID = 1001
     private const val STOP_REQUEST_CODE = 401
@@ -342,15 +336,13 @@ class TripMonitorService : Service() {
     private const val SHARE_REQUEST_CODE = 403
 
     /**
-     * Inicia el servicio con las dependencias proporcionadas.
+     * Inicia el servicio de monitorización.
+     * Las dependencias se obtienen automáticamente de BiziAppGraph.
      *
      * @param context El contexto de Android
-     * @param provider El provider con las dependencias inyectadas
      */
-    fun start(context: Context, provider: TripMonitorServiceProvider) {
-      val intent = Intent(context, TripMonitorService::class.java).apply {
-        putExtra(EXTRA_SERVICE_PROVIDER, provider)
-      }
+    fun start(context: Context) {
+      val intent = Intent(context, TripMonitorService::class.java)
       context.startForegroundService(intent)
     }
 
@@ -359,14 +351,4 @@ class TripMonitorService : Service() {
       context.stopService(intent)
     }
   }
-}
-
-/**
- * Holder estático para acceder al SurfaceMonitoringRepository desde el servicio.
- * @deprecated Usar TripMonitorServiceProvider en su lugar
- */
-@Deprecated("Usar TripMonitorServiceProvider para inyección de dependencias")
-object SurfaceMonitoringRepositoryHolder {
-  @Volatile
-  var repository: SurfaceMonitoringRepository? = null
 }
