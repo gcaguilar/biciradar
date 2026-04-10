@@ -44,6 +44,10 @@ import platform.WatchKit.WKInterfaceDevice
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
+private const val WATCH_SCREENSHOT_MODE_KEY = "bizizaragoza.watch.screenshot_mode"
+private const val WATCH_SCREENSHOT_LATITUDE_KEY = "bizizaragoza.watch.screenshot_latitude"
+private const val WATCH_SCREENSHOT_LONGITUDE_KEY = "bizizaragoza.watch.screenshot_longitude"
+private val DEFAULT_WATCH_SCREENSHOT_LOCATION = GeoPoint(latitude = 41.6488, longitude = -0.8891)
 
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
@@ -101,7 +105,25 @@ private class WatchOSStorageDirectoryProvider : StorageDirectoryProvider {
 private class WatchOSLocationProvider : LocationProvider {
   private val delegate = AppleLocationProvider()
 
-  override suspend fun currentLocation(): GeoPoint? = delegate.currentLocation()
+  override suspend fun currentLocation(): GeoPoint? = screenshotOverrideLocation() ?: delegate.currentLocation()
+
+  private fun screenshotOverrideLocation(): GeoPoint? {
+    val defaults = NSUserDefaults.standardUserDefaults
+    if (!defaults.boolForKey(WATCH_SCREENSHOT_MODE_KEY)) {
+      return null
+    }
+    val latitude = if (defaults.objectForKey(WATCH_SCREENSHOT_LATITUDE_KEY) != null) {
+      defaults.doubleForKey(WATCH_SCREENSHOT_LATITUDE_KEY)
+    } else {
+      DEFAULT_WATCH_SCREENSHOT_LOCATION.latitude
+    }
+    val longitude = if (defaults.objectForKey(WATCH_SCREENSHOT_LONGITUDE_KEY) != null) {
+      defaults.doubleForKey(WATCH_SCREENSHOT_LONGITUDE_KEY)
+    } else {
+      DEFAULT_WATCH_SCREENSHOT_LOCATION.longitude
+    }
+    return GeoPoint(latitude = latitude, longitude = longitude)
+  }
 }
 
 private class WatchOSMapSupport : MapSupport {

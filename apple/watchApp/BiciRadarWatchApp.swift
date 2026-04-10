@@ -39,8 +39,39 @@ struct BiciRadarWatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            WatchDashboardView()
+            WatchRootView()
         }
+    }
+}
+
+private enum WatchScreenshotSurface: String {
+    case dashboard
+    case stationDetail = "station_detail"
+    case monitoring
+}
+
+private let watchScreenshotModeKey = "bizizaragoza.watch.screenshot_mode"
+private let watchScreenshotSurfaceKey = "bizizaragoza.watch.screenshot_surface"
+
+private struct WatchRootView: View {
+    private let defaults = UserDefaults.standard
+
+    var body: some View {
+        switch screenshotSurface() {
+        case .dashboard:
+            WatchDashboardView()
+        case .stationDetail:
+            WatchScreenshotStationDetailView()
+        case .monitoring:
+            WatchScreenshotMonitoringView()
+        }
+    }
+
+    private func screenshotSurface() -> WatchScreenshotSurface {
+        guard defaults.bool(forKey: watchScreenshotModeKey) else {
+            return .dashboard
+        }
+        return WatchScreenshotSurface(rawValue: defaults.string(forKey: watchScreenshotSurfaceKey) ?? "") ?? .dashboard
     }
 }
 
@@ -340,6 +371,39 @@ private struct WatchStationDetailView: View {
     }
 }
 
+private struct WatchScreenshotStationDetailView: View {
+    @State private var station = sampleWatchStation
+
+    var body: some View {
+        NavigationStack {
+            WatchStationDetailView(station: station)
+        }
+        .task {
+            let resolvedStationWithBikes = try? await BiziWatchGraph.shared.nearestStationWithBikes()
+            let resolvedNearestStation = try? await BiziWatchGraph.shared.nearestStation()
+            if let resolvedStation = resolvedStationWithBikes ?? resolvedNearestStation {
+                station = resolvedStation
+            }
+        }
+    }
+}
+
+private struct WatchScreenshotMonitoringView: View {
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Monitorización") {
+                    WatchMonitoringCard(session: sampleWatchMonitoringSession)
+                }
+                Section("Cerca de ti") {
+                    StationRow(station: sampleWatchStation)
+                }
+            }
+            .navigationTitle("BiciRadar")
+        }
+    }
+}
+
 private func watchStatusColor(_ statusLevel: WatchStationStatusLevel) -> Color {
     switch statusLevel {
     case .good:
@@ -523,3 +587,27 @@ private struct StatusMessage: View {
             .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 }
+
+private let sampleWatchStation = WatchStationSnapshot(
+    id: "screenshot-station",
+    name: "19-Asalto. Servet",
+    address: "C/ Asalto - C/ Miguel Servet",
+    bikesAvailable: 10,
+    slotsFree: 12,
+    distanceMeters: 48
+)
+
+private let sampleWatchMonitoringSession = WatchConnectivityMonitoringSession(
+    stationId: "screenshot-station",
+    stationName: "19-Asalto. Servet",
+    bikesAvailable: 10,
+    docksAvailable: 12,
+    statusText: "Disponible",
+    statusLevel: "Good",
+    expiresAtEpoch: Int64(Date().timeIntervalSince1970 * 1000) + 20 * 60 * 1000,
+    lastUpdatedEpoch: Int64(Date().timeIntervalSince1970 * 1000),
+    isActive: true,
+    alternativeStationId: "screenshot-alt",
+    alternativeStationName: "96-Pomarón",
+    alternativeDistanceMeters: 211
+)
