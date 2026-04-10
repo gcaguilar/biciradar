@@ -291,6 +291,28 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `favorites repository keeps custom categories assigned to a single station`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-custom-category-${Random.nextInt()}"
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = RecordingWatchSyncBridge(),
+      scope = testCoroutineScope(),
+    )
+
+    repository.bootstrap()
+    repository.upsertCategory(id = "custom:uni", label = "Universidad")
+    repository.assignStationToCategory("station-1", "custom:uni")
+    repository.assignStationToCategory("station-2", "custom:uni")
+
+    assertEquals("custom:uni", repository.currentStationCategory("station-2"))
+    assertNull(repository.currentStationCategory("station-1"))
+  }
+
+  @Test
   fun `favorites repository merges remote home and work aliases`() = runTest {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-home-work-${Random.nextInt()}"
     val repository = FavoritesRepositoryImpl(

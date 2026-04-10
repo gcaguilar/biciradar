@@ -123,33 +123,27 @@ class FavoritesViewModel(
 
   fun onAssignHomeStation(station: Station) {
     viewModelScope.launch {
-      favoritesManagementUseCase.assignStationToCategory(station.id, FavoriteCategoryIds.HOME)
+      favoritesManagementUseCase.setHomeStationId(station.id)
     }
   }
 
   fun onAssignWorkStation(station: Station) {
     viewModelScope.launch {
-      favoritesManagementUseCase.assignStationToCategory(station.id, FavoriteCategoryIds.WORK)
+      favoritesManagementUseCase.setWorkStationId(station.id)
     }
   }
 
   fun onClearHomeStation() {
     viewModelScope.launch {
-      val stationId = homeStationId() ?: return@launch
-      favoritesManagementUseCase.assignStationToCategory(stationId = stationId, categoryId = null)
-      if (favoritesManagementUseCase.favoriteIds.value.contains(stationId)) {
-        favoritesManagementUseCase.toggleFavorite(stationId)
-      }
+      if (homeStationId() == null) return@launch
+      favoritesManagementUseCase.setHomeStationId(null)
     }
   }
 
   fun onClearWorkStation() {
     viewModelScope.launch {
-      val stationId = workStationId() ?: return@launch
-      favoritesManagementUseCase.assignStationToCategory(stationId = stationId, categoryId = null)
-      if (favoritesManagementUseCase.favoriteIds.value.contains(stationId)) {
-        favoritesManagementUseCase.toggleFavorite(stationId)
-      }
+      if (workStationId() == null) return@launch
+      favoritesManagementUseCase.setWorkStationId(null)
     }
   }
 
@@ -192,9 +186,19 @@ class FavoritesViewModel(
   }
 
   fun onClearCategoryAssignment(categoryId: String) {
-    val stationId = uiState.value.stationCategory.entries.firstOrNull { it.value == categoryId }?.key ?: return
     viewModelScope.launch {
-      favoritesManagementUseCase.assignStationToCategory(stationId, null)
+      when (categoryId) {
+        FavoriteCategoryIds.HOME -> favoritesManagementUseCase.setHomeStationId(null)
+        FavoriteCategoryIds.WORK -> favoritesManagementUseCase.setWorkStationId(null)
+        else -> {
+          uiState.value.stationCategory
+            .filterValues { it == categoryId }
+            .keys
+            .forEach { stationId ->
+              favoritesManagementUseCase.assignStationToCategory(stationId, null)
+            }
+        }
+      }
     }
   }
 

@@ -202,6 +202,9 @@ class FavoritesRepositoryImpl(
     } else {
       val exists = mutableCategories.value.any { it.id == categoryId }
       if (!exists) return
+      if (categoryId != FavoriteCategoryIds.FAVORITE) {
+        updatedAssignments.entries.removeAll { it.value == categoryId }
+      }
       updatedAssignments[normalizedStationId] = categoryId
     }
     val updatedSnapshot = currentSnapshot().copy(stationCategory = updatedAssignments).normalized()
