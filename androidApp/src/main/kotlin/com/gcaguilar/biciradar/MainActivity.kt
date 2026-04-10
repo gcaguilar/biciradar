@@ -14,9 +14,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import com.gcaguilar.biciradar.core.AppConfiguration
-import com.gcaguilar.biciradar.core.FavoritesRepository
-import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
+import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
@@ -31,8 +29,22 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+/**
+ * MainActivity que usa BiziAppGraph para obtener dependencias.
+ * 
+ * Esto elimina:
+ * - Creación duplicada de PlatformBindings
+ * - Creación duplicada de SharedGraph
+ * - Holders temporales para Services
+ */
 class MainActivity : ComponentActivity() {
-  private lateinit var platformBindings: AndroidPlatformBindings
+  
+  // Acceso al grafo singleton inicializado en Application
+  private val graph: SharedGraph
+    get() = BiziAppGraph.graph
+  
+  private val platformBindings
+    get() = BiziAppGraph.platformBindings
 
   private var locationPermissionContinuation: kotlin.coroutines.Continuation<Boolean>? = null
   private val locationPermissionLauncher = registerForActivityResult(
@@ -62,13 +74,13 @@ class MainActivity : ComponentActivity() {
   private var appSurfaceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Asegurar que el grafo está inicializado
+    if (!BiziAppGraph.isInitialized()) {
+      BiziAppGraph.initialize(application)
+    }
+    
     installSplashScreen().setKeepOnScreenCondition { !startupReady }
     super.onCreate(savedInstanceState)
-
-    platformBindings = AndroidPlatformBindings(
-      context = applicationContext,
-      appConfiguration = AppConfiguration(),
-    )
 
     platformBindings.bindLocationPermissionRequester {
       if (hasLocationPermission()) {
@@ -107,10 +119,11 @@ class MainActivity : ComponentActivity() {
     setContent {
       BiziMobileApp(
         platformBindings = platformBindings,
+        graph = graph,
         refreshKey = refreshNonce,
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
-        onSurfaceMonitoringRepositoryReady = { repo, favoritesRepo -> wireMonitoringService(repo, favoritesRepo) },
+        onSurfaceMonitoringRepositoryReady = { _, _ -> wireMonitoringService() },
         onSurfaceSnapshotRepositoryReady = { repo -> wireWidgets(repo) },
         onStartupReadyChanged = { ready -> startupReady = ready },
         useInAppStartupSplash = false,
@@ -133,7 +146,6 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     appSurfaceScope?.cancel()
     appSurfaceScope = null
-    TripMonitorServiceProvider.cleanup()
     super.onDestroy()
   }
 
@@ -144,20 +156,21 @@ class MainActivity : ComponentActivity() {
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
   }
 
-  private fun wireMonitoringService(repo: SurfaceMonitoringRepository, favoritesRepo: FavoritesRepository) {
+  /**
+   * Conecta el servicio de monitorización usando el singleton del grafo.
+   * Ya no necesita pasar dependencias - el Service las obtiene de BiziAppGraph.
+   */
+  private fun wireMonitoringService() {
     appSurfaceScope?.cancel()
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     appSurfaceScope = scope
     var serviceRunning = false
-    repo.state
+    
+    graph.surfaceMonitoringRepository.state
       .onEach { state ->
         val shouldRun = state?.isActive == true
         if (shouldRun && !serviceRunning) {
-          val provider = TripMonitorServiceProvider(
-            surfaceMonitoringRepository = repo,
-            favoritesRepository = favoritesRepo,
-          )
-          TripMonitorService.start(applicationContext, provider)
+          TripMonitorService.start(applicationContext)
           serviceRunning = true
         } else if (!shouldRun && serviceRunning) {
           TripMonitorService.stop(applicationContext)

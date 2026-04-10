@@ -26,12 +26,12 @@ class FavoriteStationTileService : Material3TileService() {
   override suspend fun MaterialScope.tileResponse(
     requestParams: RequestBuilders.TileRequest,
   ): TileBuilders.Tile {
-    val graph = SharedGraph.create(
-      platformBindings = AndroidPlatformBindings(
-        context = applicationContext,
-        appConfiguration = AppConfiguration(),
-      ),
-    )
+    // Asegurar que el grafo está inicializado
+    if (!WearAppGraph.isInitialized()) {
+      WearAppGraph.initialize(applicationContext as android.app.Application)
+    }
+    
+    val graph = WearAppGraph.graph
     graph.favoritesRepository.syncFromPeer()
     val snapshot = graph.refreshStationDataIfNeeded.execute()
     val tileState = wearFavoriteTileState(snapshot)

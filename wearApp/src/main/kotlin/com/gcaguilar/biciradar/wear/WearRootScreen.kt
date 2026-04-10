@@ -64,16 +64,17 @@ private val WearOnSurface = Color(0xFFE8EDF4)
 @Composable
 internal fun WearRoot(
   platformBindings: PlatformBindings,
+  graph: SharedGraph? = null,
   refreshKey: Int,
   launchStationId: String?,
   launchStationNonce: Int,
   screenshotSurface: WearScreenshotSurface?,
 ) {
   val context = LocalContext.current.applicationContext
-  val graph = remember(platformBindings) {
-    SharedGraph.Companion.create(platformBindings)
+  val resolvedGraph = remember(platformBindings, graph) {
+    graph ?: SharedGraph.Companion.create(platformBindings)
   }
-  val factory = remember(graph, context) { WearViewModelFactory(appContext = context, graph = graph) }
+  val factory = remember(resolvedGraph, context) { WearViewModelFactory(appContext = context, graph = graph) }
   val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }
   val uiState by viewModel.uiState.collectAsState()
   val activeMonitoring = uiState.activeMonitoring

@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.gcaguilar.biciradar.core.AppConfiguration
+import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 
 internal enum class WearScreenshotSurface(val rawValue: String) {
@@ -23,6 +23,10 @@ internal enum class WearScreenshotSurface(val rawValue: String) {
   }
 }
 
+/**
+ * Activity principal de la app Wear.
+ * Usa WearAppGraph para obtener el singleton de SharedGraph.
+ */
 class WearActivity : ComponentActivity() {
   private val locationPermissionLauncher = registerForActivityResult(
     ActivityResultContracts.RequestMultiplePermissions(),
@@ -35,16 +39,26 @@ class WearActivity : ComponentActivity() {
   private var launchStationNonce by mutableIntStateOf(0)
   private var screenshotSurface by mutableStateOf<WearScreenshotSurface?>(null)
 
+  // Acceso al grafo singleton
+  private val graph: SharedGraph
+    get() = WearAppGraph.graph
+  private val platformBindings: AndroidPlatformBindings
+    get() = WearAppGraph.platformBindings
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    
+    // Inicializar grafo si no lo está
+    if (!WearAppGraph.isInitialized()) {
+      WearAppGraph.initialize(application)
+    }
+    
     handleLaunchIntent(intent)
-    val platformBindings = AndroidPlatformBindings(
-      context = applicationContext,
-      appConfiguration = AppConfiguration(),
-    )
+    
     setContent {
       WearRoot(
         platformBindings = platformBindings,
+        graph = graph,
         refreshKey = refreshNonce,
         launchStationId = launchStationId,
         launchStationNonce = launchStationNonce,

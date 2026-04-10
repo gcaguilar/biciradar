@@ -148,65 +148,65 @@ private fun rememberViewModelFactories(
 ): ViewModelFactories {
   val trip = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
-      tripRepository = graph.tripRepository,
-      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-      geoSearchUseCase = graph.geoSearchUseCase,
-      reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
-      settingsRepository = graph.settingsRepository,
+      tripRepository = resolvedGraph.tripRepository,
+      surfaceMonitoringRepository = resolvedGraph.surfaceMonitoringRepository,
+      geoSearchUseCase = resolvedGraph.geoSearchUseCase,
+      reverseGeocodeUseCase = resolvedGraph.reverseGeocodeUseCase,
+      settingsRepository = resolvedGraph.settingsRepository,
     )
   }
   val nearby = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
-      stationsRepository = graph.stationsRepository,
-      favoritesRepository = graph.favoritesRepository,
-      routeLauncher = graph.routeLauncher,
-      settingsRepository = graph.settingsRepository,
+      stationsRepository = resolvedGraph.stationsRepository,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      routeLauncher = resolvedGraph.routeLauncher,
+      settingsRepository = resolvedGraph.settingsRepository,
     )
   }
   val mapEnvironmental = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
-      environmentalRepository = graph.environmentalRepository,
-      settingsRepository = graph.settingsRepository,
+      environmentalRepository = resolvedGraph.environmentalRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
     )
   }
   val shortcuts = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
-      assistantIntentResolver = graph.assistantIntentResolver,
-      stationsRepository = graph.stationsRepository,
-      favoritesRepository = graph.favoritesRepository,
-      settingsRepository = graph.settingsRepository,
+      assistantIntentResolver = resolvedGraph.assistantIntentResolver,
+      stationsRepository = resolvedGraph.stationsRepository,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
     )
   }
   val favorites = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
-      favoritesRepository = graph.favoritesRepository,
-      stationsRepository = graph.stationsRepository,
-      settingsRepository = graph.settingsRepository,
-      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-      routeLauncher = graph.routeLauncher,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      stationsRepository = resolvedGraph.stationsRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
+      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
+      routeLauncher = resolvedGraph.routeLauncher,
     )
   }
   val profile = remember(graph, platformBindings) {
     com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
-      settingsRepository = graph.settingsRepository,
-      stationsRepository = graph.stationsRepository,
-      favoritesRepository = graph.favoritesRepository,
-      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
+      stationsRepository = resolvedGraph.stationsRepository,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
       canSelectGoogleMapsInIos = platformBindings.mapSupport.currentStatus().googleMapsAppInstalled,
     )
   }
   val savedPlaceAlerts = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
-      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
     )
   }
   val stationDetail = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
-      favoritesRepository = graph.favoritesRepository,
-      settingsRepository = graph.settingsRepository,
-      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-      datosBiziApi = graph.datosBiziApi,
-      routeLauncher = graph.routeLauncher,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
+      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
+      datosBiziApi = resolvedGraph.datosBiziApi,
+      routeLauncher = resolvedGraph.routeLauncher,
     )
   }
   return ViewModelFactories(
@@ -291,7 +291,7 @@ private fun rememberNavigationConfig(
     onQuickRoute = onQuickRoute,
     onOpenAssistant = onOpenAssistant,
     localNotifier = platformBindings.localNotifier,
-    routeLauncher = graph.routeLauncher,
+    routeLauncher = resolvedGraph.routeLauncher,
     platformBindings = platformBindings,
     initialAssistantAction = appState.pendingAssistantAction,
     onInitialActionConsumed = onInitialActionConsumed,
@@ -302,8 +302,15 @@ private fun rememberNavigationConfig(
 }
 
 @Composable
+/**
+ * App principal de BiciRadar.
+ *
+ * @param platformBindings Bindings de plataforma
+ * @param graph Grafo de dependencias (si es null, se crea uno nuevo - no recomendado para producción)
+ */
 fun BiziMobileApp(
   platformBindings: PlatformBindings,
+  graph: SharedGraph? = null,
   modifier: Modifier = Modifier,
   refreshKey: Any? = Unit,
   launchRequest: MobileLaunchRequest? = null,
@@ -315,33 +322,33 @@ fun BiziMobileApp(
   useInAppStartupSplash: Boolean = true,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
-  val graph = remember(platformBindings) {
-    SharedGraph.Companion.create(platformBindings)
+  val resolvedGraph = remember(platformBindings, graph) {
+    graph ?: SharedGraph.Companion.create(platformBindings)
   }
   val mapSupportStatus = remember(platformBindings) { platformBindings.mapSupport.currentStatus() }
-  val stationsRepository = remember(graph) { graph.stationsRepository }
-  val favoritesRepository = remember(graph) { graph.favoritesRepository }
-  val settingsRepository = remember(graph) { graph.settingsRepository }
-  val launchCoordinator = remember(graph, platformBindings) {
+  val stationsRepository = remember(resolvedGraph) { resolvedGraph.stationsRepository }
+  val favoritesRepository = remember(resolvedGraph) { resolvedGraph.favoritesRepository }
+  val settingsRepository = remember(resolvedGraph) { resolvedGraph.settingsRepository }
+  val launchCoordinator = remember(resolvedGraph, platformBindings) {
     LaunchCoordinator(
-      changeCityUseCase = graph.changeCityUseCase,
-      favoritesRepository = graph.favoritesRepository,
+      changeCityUseCase = resolvedGraph.changeCityUseCase,
+      favoritesRepository = resolvedGraph.favoritesRepository,
       localNotifier = platformBindings.localNotifier,
-      routeLauncher = graph.routeLauncher,
-      stationsRepository = graph.stationsRepository,
-      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
+      routeLauncher = resolvedGraph.routeLauncher,
+      stationsRepository = resolvedGraph.stationsRepository,
+      surfaceMonitoringRepository = resolvedGraph.surfaceMonitoringRepository,
+      surfaceSnapshotRepository = resolvedGraph.surfaceSnapshotRepository,
     )
   }
-  val appRootViewModelFactory = remember(graph, platformBindings) {
+  val appRootViewModelFactory = remember(resolvedGraph, platformBindings) {
     AppRootViewModelFactory(
-      settingsRepository = graph.settingsRepository,
-      favoritesRepository = graph.favoritesRepository,
-      stationsRepository = graph.stationsRepository,
-      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
-      engagementRepository = graph.engagementRepository,
-      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
-      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      settingsRepository = resolvedGraph.settingsRepository,
+      favoritesRepository = resolvedGraph.favoritesRepository,
+      stationsRepository = resolvedGraph.stationsRepository,
+      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
+      engagementRepository = resolvedGraph.engagementRepository,
+      surfaceSnapshotRepository = resolvedGraph.surfaceSnapshotRepository,
+      surfaceMonitoringRepository = resolvedGraph.surfaceMonitoringRepository,
       appUpdatePrompter = platformBindings.appUpdatePrompter,
       reviewPrompter = platformBindings.reviewPrompter,
       appVersion = platformBindings.appVersion,
@@ -372,10 +379,10 @@ fun BiziMobileApp(
   val isCityConfigured = !(appRootUiState.isCitySelectionRequired)
   val shouldShowGuidedOnboarding = appRootUiState.shouldShowGuidedOnboarding
 
-  LaunchedEffect(graph) {
-    platformBindings.onGraphCreated(graph)
-    onTripRepositoryReady?.invoke(graph.tripRepository)
-    onSurfaceMonitoringRepositoryReady?.invoke(graph.surfaceMonitoringRepository, graph.favoritesRepository)
+  LaunchedEffect(resolvedGraph) {
+    platformBindings.onGraphCreated(resolvedGraph)
+    onTripRepositoryReady?.invoke(resolvedGraph.tripRepository)
+    onSurfaceMonitoringRepositoryReady?.invoke(resolvedGraph.surfaceMonitoringRepository, resolvedGraph.favoritesRepository)
     onSurfaceSnapshotRepositoryReady?.invoke(graph.surfaceSnapshotRepository)
   }
 
@@ -441,7 +448,7 @@ fun BiziMobileApp(
             CitySelectionScreen(
               onCitySelected = { city ->
                 scope.launch {
-                  graph.changeCityUseCase.execute(city = city)
+                  resolvedGraph.changeCityUseCase.execute(city = city)
                 }
               },
             )
@@ -508,7 +515,7 @@ fun BiziMobileApp(
                   StartupSplashScreen(mobilePlatform = mobilePlatform)
                 } else {
                   // Create ViewModel factories
-                  val viewModelFactories = rememberViewModelFactories(graph, platformBindings)
+                  val viewModelFactories = rememberViewModelFactories(resolvedGraph, platformBindings)
 
                   // Create navigation configuration
                   val navConfig = rememberNavigationConfig(
@@ -524,7 +531,7 @@ fun BiziMobileApp(
                     scope = scope,
                     stationsRepository = stationsRepository,
                     favoritesRepository = favoritesRepository,
-                    graph = graph,
+                    graph = resolvedGraph,
                     platformBindings = platformBindings,
                     onOpenOnboarding = appRootViewModel::onOnboardingOpenedFromSettings,
                     onShowChangelogManual = appRootViewModel::showChangelogHistory,

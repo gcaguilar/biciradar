@@ -11,17 +11,25 @@ import androidx.work.WorkerParameters
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.notificationBody
 import com.gcaguilar.biciradar.core.notificationTitle
-import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 import java.util.concurrent.TimeUnit
 
+/**
+ * Worker que evalúa reglas de alertas de lugares guardados.
+ * Usa BiziAppGraph para obtener dependencias, evitando duplicar instancias.
+ */
 class SavedPlaceAlertsWorker(
   context: Context,
   params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
   override suspend fun doWork(): Result {
     return runCatching {
-      val platformBindings = AndroidPlatformBindings(applicationContext)
-      val graph = SharedGraph.Companion.create(platformBindings)
+      // Asegurar que el grafo está inicializado
+      if (!BiziAppGraph.isInitialized()) {
+        BiziAppGraph.initialize(applicationContext as android.app.Application)
+      }
+      
+      val graph = BiziAppGraph.graph
+      val platformBindings = BiziAppGraph.platformBindings
 
       graph.settingsRepository.bootstrap()
       graph.savedPlaceAlertsRepository.bootstrap()
