@@ -1,6 +1,9 @@
 package com.gcaguilar.biciradar.core
 
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 /**
  * Abstracción para el origen de datos remoto de estaciones.
@@ -27,7 +30,10 @@ interface StationsRemoteDataSource {
 
 /**
  * Implementación del origen de datos remoto usando BiziApi.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
  */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class StationsRemoteDataSourceImpl(
   private val biziApi: BiziApi,
