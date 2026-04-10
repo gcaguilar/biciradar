@@ -1,8 +1,11 @@
 package com.gcaguilar.biciradar.core.geo
 
+import com.gcaguilar.biciradar.core.AppScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.geo.InstallationIdentityRepository.Companion.BASE_URL
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.expectSuccess
@@ -36,6 +39,12 @@ interface GeoApi {
     suspend fun reverseGeocode(location: GeoPoint): GeoResult?
 }
 
+/**
+ * Implementación de GeoApi.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class GeoApiImpl(
     private val httpClient: HttpClient,

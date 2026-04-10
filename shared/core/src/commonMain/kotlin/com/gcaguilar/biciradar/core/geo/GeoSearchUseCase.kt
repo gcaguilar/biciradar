@@ -1,8 +1,11 @@
 package com.gcaguilar.biciradar.core.geo
 
+import com.gcaguilar.biciradar.core.AppScope
 import com.gcaguilar.biciradar.core.GoogleMapsApiKey
 import com.gcaguilar.biciradar.core.GooglePlacesApi
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -13,7 +16,11 @@ import kotlinx.coroutines.sync.withLock
  * Deduplication: if a search for the exact same (normalized) query is
  * already in-flight, the second caller waits and reuses the result.
  * This is enforced via a per-key Mutex (one slot — not a full cache).
+ *
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
  */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class GeoSearchUseCase(
     private val geoApi: GeoApi,
