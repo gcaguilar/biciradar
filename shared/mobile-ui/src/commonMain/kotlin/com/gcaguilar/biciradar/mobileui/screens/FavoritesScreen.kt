@@ -28,7 +28,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,7 +74,6 @@ import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
-import com.gcaguilar.biciradar.mobileui.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
@@ -81,9 +83,38 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.currentSearchAssign
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.deleteFavorite
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.details
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.create
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.delete
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorites
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAddStation
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertActive
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionBikesPlural
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionBikesSingular
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionNoBikes
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionNoSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionSlotsPlural
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionSlotsSingular
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertInactive
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAvailabilitySummary
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesDistanceFromYou
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesCustomCategoriesTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesCustomCategoryPlaceholder
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyAlerts
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyFavoritesCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyStationsCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoAlerts
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoFavoritesCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoStationsCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneAlert
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneFavoriteCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneStationCount
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOtherSection
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOverviewDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOverviewTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesPinnedSection
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesQuickAccessTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
@@ -107,11 +138,8 @@ import org.jetbrains.compose.resources.stringResource
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Surface
 import androidx.compose.ui.graphics.Color
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcuts
 
 @Composable
 internal fun FavoritesScreen(
@@ -136,6 +164,7 @@ internal fun FavoritesScreen(
   stationsLoading: Boolean,
   onRefreshStations: () -> Unit,
   onOpenSavedPlaceAlerts: () -> Unit,
+  onOpenSearch: () -> Unit,
   paddingValues: PaddingValues,
   savedPlaceAlertsCityId: String,
   savedPlaceAlertRules: List<SavedPlaceAlertRule>,
@@ -150,24 +179,38 @@ internal fun FavoritesScreen(
 ) {
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   var newCategoryName by remember { mutableStateOf("") }
+  val colors = LocalBiziColors.current
   val upsertAlert = onUpsertSavedPlaceAlert
   val removeAlertForTarget = onRemoveSavedPlaceAlertForTarget
-  if (upsertAlert != null && removeAlertForTarget != null) {
-    alertEditor?.let { (target, rule) ->
-      SavedPlaceAlertEditorSheet(
-        target = target,
-        existingRule = rule,
-        onDismiss = { alertEditor = null },
-        onSave = { cond ->
-          upsertAlert(target, cond)
-          alertEditor = null
-        },
-        onRemove = {
-          removeAlertForTarget(target)
-          alertEditor = null
-        },
-      )
-    }
+  val customCategories = remember(categories) {
+    categories.filterNot { it.id in setOf(FavoriteCategoryIds.FAVORITE, FavoriteCategoryIds.HOME, FavoriteCategoryIds.WORK) }
+  }
+  val pinnedCount = listOfNotNull(homeStation, workStation).size
+  val activeAlertCount = savedPlaceAlertRules.count { it.isEnabled }
+  val homeLabel = stringResource(Res.string.home)
+  val workLabel = stringResource(Res.string.work)
+  val favoriteLabel = stringResource(Res.string.favorite)
+  val pageTitle = if (mobilePlatform == MobileUiPlatform.IOS) {
+    stringResource(Res.string.favorites)
+  } else {
+    stringResource(Res.string.myStations)
+  }
+  val currentAlertEditor = alertEditor
+  if (upsertAlert != null && removeAlertForTarget != null && currentAlertEditor != null) {
+    val (target, rule) = currentAlertEditor
+    SavedPlaceAlertEditorSheet(
+      target = target,
+      existingRule = rule,
+      onDismiss = { alertEditor = null },
+      onSave = { cond ->
+        upsertAlert(target, cond)
+        alertEditor = null
+      },
+      onRemove = {
+        removeAlertForTarget(target)
+        alertEditor = null
+      },
+    )
   }
   Box(
     modifier = Modifier
@@ -182,25 +225,61 @@ internal fun FavoritesScreen(
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       item {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-          Text(
-            text = if (mobilePlatform == MobileUiPlatform.IOS) stringResource(Res.string.favorites) else stringResource(Res.string.myStations),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-          )
-          Text(
-            text = stringResource(Res.string.favoritesSubtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalBiziColors.current.muted,
-          )
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.Top,
+        ) {
+          Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Text(
+              text = stringResource(Res.string.favoritesQuickAccessTitle),
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
+            Text(
+              text = pageTitle,
+              style = MaterialTheme.typography.headlineSmall,
+              fontWeight = FontWeight.Bold,
+            )
+            Text(
+              text = stringResource(Res.string.favoritesSubtitle),
+              style = MaterialTheme.typography.bodyMedium,
+              color = colors.muted,
+            )
+          }
+          Spacer(Modifier.width(12.dp))
+          Surface(
+            shape = RoundedCornerShape(18.dp),
+            color = colors.surface,
+            border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
+            modifier = Modifier.clickable(onClick = onOpenSavedPlaceAlerts),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Notifications,
+              contentDescription = null,
+              tint = colors.blue,
+              modifier = Modifier.padding(12.dp),
+            )
+          }
         }
       }
       item {
-        StationSearchField(
+        FavoritesOverviewCard(
+          mobilePlatform = mobilePlatform,
+          activeAlertCount = activeAlertCount,
+          onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+          onOpenSearch = onOpenSearch,
+        )
+      }
+      item {
+        FavoritesSearchLauncher(
           mobilePlatform = mobilePlatform,
           value = searchQuery,
-          onValueChange = onSearchQueryChange,
           label = stringResource(Res.string.favoritesSearchStation),
+          onClick = onOpenSearch,
         )
       }
       item {
@@ -212,92 +291,29 @@ internal fun FavoritesScreen(
         )
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.savedPlaceAlertsProfileSubtitle),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Text(
-              stringResource(Res.string.savedPlaceAlertsStationDetailHint),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            OutlinedButton(
-              modifier = Modifier.fillMaxWidth(),
-              onClick = onOpenSavedPlaceAlerts,
-            ) {
-              Icon(Icons.Filled.Notifications, contentDescription = null)
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(Res.string.savedPlaceAlertsProfileAction))
-            }
-          }
-        }
+        SectionHeader(
+          title = stringResource(Res.string.favoritesPinnedSection),
+          countLabel = countLabelForPinned(pinnedCount),
+        )
       }
       item {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = stringResource(Res.string.homeAndWork),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-          )
-          Text(
-            text = stringResource(Res.string.homeAndWorkDescription),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
+        val rule = homeStation?.let { station ->
+          findSavedPlaceAlertRule(
+            savedPlaceAlertRules,
+            SavedPlaceAlertTarget.CategoryStation(
+              stationId = station.id,
+              cityId = savedPlaceAlertsCityId,
+              stationName = station.name,
+              categoryId = FavoriteCategoryIds.HOME,
+              categoryLabel = homeLabel,
+            ),
           )
         }
-      }
-      val customCategories = categories.filterNot { it.id in setOf(FavoriteCategoryIds.FAVORITE, FavoriteCategoryIds.HOME, FavoriteCategoryIds.WORK) }
-      if (customCategories.isNotEmpty() || assignmentCandidate != null) {
-        item {
-          Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
-          ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-              Text("Categorias custom", fontWeight = FontWeight.SemiBold)
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.OutlinedTextField(
-                  value = newCategoryName,
-                  onValueChange = { newCategoryName = it },
-                  modifier = Modifier.weight(1f),
-                  singleLine = true,
-                  label = { Text("Nueva categoria") },
-                )
-                TextButton(onClick = {
-                  val label = newCategoryName.trim()
-                  if (label.isNotBlank()) {
-                    onCreateCustomCategory(label)
-                    newCategoryName = ""
-                  }
-                }) { Text("Crear") }
-              }
-              customCategories.forEach { category ->
-                Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically,
-                ) {
-                  Text(category.label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-                  Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (assignmentCandidate != null) {
-                      TextButton(onClick = { onAssignCandidateToCategory(category.id) }) { Text("Asignar busqueda") }
-                    }
-                    TextButton(onClick = { onRemoveCustomCategory(category.id) }) { Text("Eliminar") }
-                  }
-                }
-              }
-            }
-          }
+        val savedPlaceAlertLabel = if (rule != null) {
+          savedPlaceAlertConditionSummary(rule.condition)
+        } else {
+          null
         }
-      }
-      item {
         SavedPlaceCard(
           mobilePlatform = mobilePlatform,
           title = stringResource(Res.string.home),
@@ -316,7 +332,7 @@ internal fun FavoritesScreen(
                   cityId = savedPlaceAlertsCityId,
                   stationName = s.name,
                   categoryId = FavoriteCategoryIds.HOME,
-                  categoryLabel = "Casa",
+                  categoryLabel = homeLabel,
                 )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
@@ -324,6 +340,7 @@ internal fun FavoritesScreen(
               null
             }
           },
+          savedPlaceAlertLabel = savedPlaceAlertLabel,
           savedPlaceAlertActive = homeStation?.let { s ->
             findSavedPlaceAlertRule(
               savedPlaceAlertRules,
@@ -332,13 +349,30 @@ internal fun FavoritesScreen(
                 cityId = savedPlaceAlertsCityId,
                 stationName = s.name,
                 categoryId = FavoriteCategoryIds.HOME,
-                categoryLabel = "Casa",
+                categoryLabel = homeLabel,
               ),
             ) != null
           } == true,
         )
       }
       item {
+        val rule = workStation?.let { station ->
+          findSavedPlaceAlertRule(
+            savedPlaceAlertRules,
+            SavedPlaceAlertTarget.CategoryStation(
+              stationId = station.id,
+              cityId = savedPlaceAlertsCityId,
+              stationName = station.name,
+              categoryId = FavoriteCategoryIds.WORK,
+              categoryLabel = workLabel,
+            ),
+          )
+        }
+        val savedPlaceAlertLabel = if (rule != null) {
+          savedPlaceAlertConditionSummary(rule.condition)
+        } else {
+          null
+        }
         SavedPlaceCard(
           mobilePlatform = mobilePlatform,
           title = stringResource(Res.string.work),
@@ -357,7 +391,7 @@ internal fun FavoritesScreen(
                   cityId = savedPlaceAlertsCityId,
                   stationName = s.name,
                   categoryId = FavoriteCategoryIds.WORK,
-                  categoryLabel = "Trabajo",
+                  categoryLabel = workLabel,
                 )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
@@ -365,6 +399,7 @@ internal fun FavoritesScreen(
               null
             }
           },
+          savedPlaceAlertLabel = savedPlaceAlertLabel,
           savedPlaceAlertActive = workStation?.let { s ->
             findSavedPlaceAlertRule(
               savedPlaceAlertRules,
@@ -373,7 +408,7 @@ internal fun FavoritesScreen(
                 cityId = savedPlaceAlertsCityId,
                 stationName = s.name,
                 categoryId = FavoriteCategoryIds.WORK,
-                categoryLabel = "Trabajo",
+                categoryLabel = workLabel,
               ),
             ) != null
           } == true,
@@ -383,6 +418,23 @@ internal fun FavoritesScreen(
         item(key = "custom-category-${category.id}") {
           val assignedStationId = stationCategory.entries.firstOrNull { it.value == category.id }?.key
           val assignedStation = allStations.find { it.id == assignedStationId }
+          val rule = assignedStation?.let { station ->
+            findSavedPlaceAlertRule(
+              savedPlaceAlertRules,
+              SavedPlaceAlertTarget.CategoryStation(
+                stationId = station.id,
+                cityId = savedPlaceAlertsCityId,
+                stationName = station.name,
+                categoryId = category.id,
+                categoryLabel = category.label,
+              ),
+            )
+          }
+          val savedPlaceAlertLabel = if (rule != null) {
+            savedPlaceAlertConditionSummary(rule.condition)
+          } else {
+            null
+          }
           SavedPlaceCard(
             mobilePlatform = mobilePlatform,
             title = category.label,
@@ -409,6 +461,7 @@ internal fun FavoritesScreen(
                 null
               }
             },
+            savedPlaceAlertLabel = savedPlaceAlertLabel,
             savedPlaceAlertActive = assignedStation?.let { s ->
               findSavedPlaceAlertRule(
                 savedPlaceAlertRules,
@@ -422,6 +475,51 @@ internal fun FavoritesScreen(
               ) != null
             } == true,
           )
+        }
+      }
+      if (customCategories.isNotEmpty() || assignmentCandidate != null) {
+        item {
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+            border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
+            colors = CardDefaults.cardColors(containerColor = colors.surface),
+          ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+              Text(stringResource(Res.string.favoritesCustomCategoriesTitle), fontWeight = FontWeight.SemiBold)
+              Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.OutlinedTextField(
+                  value = newCategoryName,
+                  onValueChange = { newCategoryName = it },
+                  modifier = Modifier.weight(1f),
+                  singleLine = true,
+                  label = { Text(stringResource(Res.string.favoritesCustomCategoryPlaceholder)) },
+                )
+                TextButton(onClick = {
+                  val label = newCategoryName.trim()
+                  if (label.isNotBlank()) {
+                    onCreateCustomCategory(label)
+                    newCategoryName = ""
+                  }
+                }) { Text(stringResource(Res.string.create)) }
+              }
+              customCategories.forEach { category ->
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  Text(category.label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                  Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (assignmentCandidate != null) {
+                      TextButton(onClick = { onAssignCandidateToCategory(category.id) }) { Text(stringResource(Res.string.assignSearchResult)) }
+                    }
+                    TextButton(onClick = { onRemoveCustomCategory(category.id) }) { Text(stringResource(Res.string.delete)) }
+                  }
+                }
+              }
+            }
+          }
         }
       }
       item {
@@ -438,6 +536,12 @@ internal fun FavoritesScreen(
         }
       }
       if (stations.isNotEmpty()) {
+        item {
+          SectionHeader(
+            title = stringResource(Res.string.favoritesOtherSection),
+            countLabel = countLabelForFavorites(stations.distinctBy { it.id }.size),
+          )
+        }
         items(stations.distinctBy { it.id }, key = { it.id }) { station ->
           DismissibleFavoriteStationRow(
             mobilePlatform = mobilePlatform,
@@ -456,7 +560,7 @@ internal fun FavoritesScreen(
                   cityId = savedPlaceAlertsCityId,
                   stationName = station.name,
                   categoryId = FavoriteCategoryIds.FAVORITE,
-                  categoryLabel = "Favorita",
+                  categoryLabel = favoriteLabel,
                 )
                 alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
               }
@@ -470,7 +574,7 @@ internal fun FavoritesScreen(
                 cityId = savedPlaceAlertsCityId,
                 stationName = station.name,
                 categoryId = FavoriteCategoryIds.FAVORITE,
-                categoryLabel = "Favorita",
+                categoryLabel = favoriteLabel,
               ),
             ) != null,
           )
@@ -605,16 +709,18 @@ internal fun SavedPlaceCard(
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   onSavedPlaceAlertClick: (() -> Unit)? = null,
+  savedPlaceAlertLabel: String? = null,
   savedPlaceAlertActive: Boolean = false,
 ) {
+  val colors = LocalBiziColors.current
   val assignableCandidate = assignmentCandidate?.takeIf { it.id != station?.id }
   Card(
     modifier = Modifier
       .fillMaxWidth()
       .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 500f)),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
+    colors = CardDefaults.cardColors(containerColor = colors.surface),
   ) {
     Column(
       modifier = Modifier
@@ -622,49 +728,61 @@ internal fun SavedPlaceCard(
         .padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-      Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-      )
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        SectionPill(
+          label = title.uppercase(),
+          tint = when (title.lowercase()) {
+            stringResource(Res.string.home).lowercase() -> colors.blue
+            stringResource(Res.string.work).lowercase() -> colors.orange
+            else -> colors.muted
+          },
+        )
+        if (station != null && onSavedPlaceAlertClick != null) {
+          StatusPill(
+            label = savedPlaceAlertLabel ?: if (savedPlaceAlertActive) {
+              stringResource(Res.string.favoritesAlertActive)
+            } else {
+              stringResource(Res.string.favoritesAlertInactive)
+            },
+            active = savedPlaceAlertActive,
+            onClick = onSavedPlaceAlertClick,
+          )
+        }
+      }
       if (station != null) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(
+          modifier = Modifier.clickable { onOpenStationDetails(station) },
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
           Text(
             text = station.name,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
           )
           Text(
-            text = station.address,
+            text = stringResource(Res.string.favoritesDistanceFromYou, formatDistance(station.distanceMeters)),
             style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
+            color = colors.muted,
           )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-          StationMetricPill(
-            modifier = Modifier.weight(1f),
-            label = stringResource(Res.string.bikes),
-            value = station.bikesAvailable.toString(),
-            tint = LocalBiziColors.current.red,
-          )
-          StationMetricPill(
-            modifier = Modifier.weight(1f),
-            label = stringResource(Res.string.slots),
-            value = station.slotsFree.toString(),
-            tint = LocalBiziColors.current.blue,
-          )
-          StationMetricPill(
-            modifier = Modifier.weight(1f),
-            label = stringResource(Res.string.distance),
-            value = formatDistance(station.distanceMeters),
-            tint = LocalBiziColors.current.green,
-          )
-        }
+        Text(
+          text = stringResource(
+            Res.string.favoritesAvailabilitySummary,
+            station.bikesAvailable,
+            station.slotsFree,
+          ),
+          style = MaterialTheme.typography.bodySmall,
+          color = colors.ink,
+        )
       } else {
         Text(
           text = stringResource(Res.string.savedPlaceNotSet, title),
           style = MaterialTheme.typography.bodySmall,
-          color = LocalBiziColors.current.muted,
+          color = colors.muted,
         )
       }
       Row(
@@ -677,53 +795,35 @@ internal fun SavedPlaceCard(
             label = stringResource(Res.string.route),
             onClick = { onQuickRoute(station) },
           )
-          OutlineActionPill(
-            label = stringResource(Res.string.details),
-            tint = LocalBiziColors.current.red,
-            borderTint = LocalBiziColors.current.red.copy(alpha = 0.16f),
-            onClick = { onOpenStationDetails(station) },
-          )
         }
         if (assignableCandidate != null) {
           OutlineActionPill(
             label = stringResource(Res.string.assignSearchResult),
-            tint = LocalBiziColors.current.blue,
-            borderTint = LocalBiziColors.current.blue.copy(alpha = 0.16f),
+            tint = colors.blue,
+            borderTint = colors.blue.copy(alpha = 0.16f),
             onClick = { onAssignCandidate(assignableCandidate) },
           )
         }
         if (station != null) {
           OutlineActionPill(
             label = stringResource(Res.string.remove),
-            tint = LocalBiziColors.current.muted,
-            borderTint = LocalBiziColors.current.panel,
+            tint = colors.muted,
+            borderTint = colors.panel,
             onClick = onClear,
           )
-        }
-        if (station != null && onSavedPlaceAlertClick != null) {
-          IconButton(
-            onClick = onSavedPlaceAlertClick,
-            modifier = Modifier.size(40.dp),
-          ) {
-            Icon(
-              imageVector = if (savedPlaceAlertActive) Icons.Filled.Notifications else Icons.Outlined.Notifications,
-              contentDescription = stringResource(Res.string.savedPlaceAlertsBell),
-              tint = if (savedPlaceAlertActive) LocalBiziColors.current.blue else LocalBiziColors.current.muted,
-            )
-          }
         }
       }
       if (assignableCandidate != null) {
         Text(
           text = stringResource(Res.string.currentSearchAssignmentHint, assignableCandidate.name, title),
           style = MaterialTheme.typography.bodySmall,
-          color = LocalBiziColors.current.muted,
+          color = colors.muted,
         )
       } else if (station == null) {
         Text(
           text = stringResource(Res.string.useSearchToAssignStation),
           style = MaterialTheme.typography.bodySmall,
-          color = LocalBiziColors.current.muted,
+          color = colors.muted,
         )
       }
     }
@@ -742,4 +842,218 @@ internal fun SavedPlaceQuickAction(
     borderTint = tint.copy(alpha = 0.16f),
     onClick = onClick,
   )
+}
+
+@Composable
+private fun FavoritesOverviewCard(
+  mobilePlatform: MobileUiPlatform,
+  activeAlertCount: Int,
+  onOpenSavedPlaceAlerts: () -> Unit,
+  onOpenSearch: () -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
+    colors = CardDefaults.cardColors(containerColor = colors.surface),
+  ) {
+    Column(
+      modifier = Modifier.padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = stringResource(Res.string.favoritesOverviewTitle),
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+        )
+        CountBadge(
+          label = when (activeAlertCount) {
+            0 -> stringResource(Res.string.favoritesNoAlerts)
+            1 -> stringResource(Res.string.favoritesOneAlert)
+            else -> stringResource(Res.string.favoritesManyAlerts, activeAlertCount)
+          },
+        )
+      }
+      Text(
+        text = stringResource(Res.string.favoritesOverviewDescription),
+        style = MaterialTheme.typography.bodySmall,
+        color = colors.muted,
+      )
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        Button(
+          modifier = Modifier.weight(1f),
+          onClick = onOpenSavedPlaceAlerts,
+          colors = ButtonDefaults.buttonColors(
+            containerColor = colors.blue,
+            contentColor = colors.onAccent,
+          ),
+        ) {
+          Text(stringResource(Res.string.savedPlaceAlertsProfileAction))
+        }
+        OutlinedButton(
+          modifier = Modifier.weight(1f),
+          onClick = onOpenSearch,
+        ) {
+          Text(stringResource(Res.string.favoritesAddStation))
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun SectionHeader(
+  title: String,
+  countLabel: String,
+) {
+  Row(
+    modifier = Modifier.fillMaxWidth(),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = title,
+      style = MaterialTheme.typography.titleLarge,
+      fontWeight = FontWeight.SemiBold,
+    )
+    CountBadge(label = countLabel)
+  }
+}
+
+@Composable
+private fun CountBadge(
+  label: String,
+) {
+  val colors = LocalBiziColors.current
+  Surface(
+    shape = RoundedCornerShape(999.dp),
+    color = colors.panel.copy(alpha = 0.7f),
+  ) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.labelMedium,
+      color = colors.muted,
+      fontWeight = FontWeight.SemiBold,
+      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+    )
+  }
+}
+
+@Composable
+private fun SectionPill(
+  label: String,
+  tint: Color,
+) {
+  Surface(
+    shape = RoundedCornerShape(999.dp),
+    color = tint.copy(alpha = 0.10f),
+  ) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.labelMedium,
+      color = tint,
+      fontWeight = FontWeight.SemiBold,
+      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+    )
+  }
+}
+
+@Composable
+private fun StatusPill(
+  label: String,
+  active: Boolean,
+  onClick: () -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  Surface(
+    shape = RoundedCornerShape(999.dp),
+    color = if (active) colors.blue.copy(alpha = 0.10f) else colors.panel.copy(alpha = 0.7f),
+    modifier = Modifier.clickable(onClick = onClick),
+  ) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.labelMedium,
+      color = if (active) colors.blue else colors.muted,
+      fontWeight = FontWeight.SemiBold,
+      modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+    )
+  }
+}
+
+@Composable
+private fun FavoritesSearchLauncher(
+  mobilePlatform: MobileUiPlatform,
+  value: String,
+  label: String,
+  onClick: () -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  OutlinedButton(
+    modifier = Modifier.fillMaxWidth(),
+    onClick = onClick,
+    shape = RoundedCornerShape(20.dp),
+    border = BorderStroke(
+      1.dp,
+      if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.muted.copy(alpha = 0.18f),
+    ),
+    colors = ButtonDefaults.outlinedButtonColors(
+      containerColor = if (mobilePlatform == MobileUiPlatform.IOS) colors.fieldSurfaceIos else colors.fieldSurfaceAndroid,
+      contentColor = colors.ink,
+    ),
+  ) {
+    Icon(
+      imageVector = Icons.Filled.Search,
+      contentDescription = null,
+      tint = colors.muted,
+      modifier = Modifier.size(18.dp),
+    )
+    Spacer(Modifier.width(8.dp))
+    Text(
+      text = value.ifBlank { label },
+      color = if (value.isBlank()) colors.muted else colors.ink,
+      style = MaterialTheme.typography.bodyMedium,
+      modifier = Modifier.weight(1f),
+    )
+  }
+}
+
+@Composable
+private fun countLabelForPinned(count: Int): String = when (count) {
+  0 -> stringResource(Res.string.favoritesNoStationsCount)
+  1 -> stringResource(Res.string.favoritesOneStationCount)
+  else -> stringResource(Res.string.favoritesManyStationsCount, count)
+}
+
+@Composable
+private fun countLabelForFavorites(count: Int): String = when (count) {
+  0 -> stringResource(Res.string.favoritesNoFavoritesCount)
+  1 -> stringResource(Res.string.favoritesOneFavoriteCount)
+  else -> stringResource(Res.string.favoritesManyFavoritesCount, count)
+}
+
+@Composable
+private fun savedPlaceAlertConditionSummary(condition: SavedPlaceAlertCondition): String = when (condition) {
+  is SavedPlaceAlertCondition.BikesAtLeast ->
+    if (condition.count == 1) {
+      stringResource(Res.string.favoritesAlertConditionBikesSingular)
+    } else {
+      stringResource(Res.string.favoritesAlertConditionBikesPlural, condition.count)
+    }
+  is SavedPlaceAlertCondition.DocksAtLeast ->
+    if (condition.count == 1) {
+      stringResource(Res.string.favoritesAlertConditionSlotsSingular)
+    } else {
+      stringResource(Res.string.favoritesAlertConditionSlotsPlural, condition.count)
+    }
+  SavedPlaceAlertCondition.BikesEqualsZero -> stringResource(Res.string.favoritesAlertConditionNoBikes)
+  SavedPlaceAlertCondition.DocksEqualsZero -> stringResource(Res.string.favoritesAlertConditionNoSlots)
 }
