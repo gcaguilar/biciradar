@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
@@ -21,6 +22,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
+import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
@@ -144,6 +146,7 @@ internal object BiziMobileAppContent {
     stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
     onOpenSavedPlaceAlerts: () -> Unit,
+    onOpenSearch: () -> Unit,
     paddingValues: PaddingValues,
     savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
     savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
@@ -177,6 +180,7 @@ internal object BiziMobileAppContent {
     stationsLoading = stationsLoading,
     onRefreshStations = onRefreshStations,
     onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+    onOpenSearch = onOpenSearch,
     paddingValues = paddingValues,
     savedPlaceAlertsCityId = savedPlaceAlertsCityId,
     savedPlaceAlertRules = savedPlaceAlertRules,
@@ -201,6 +205,7 @@ internal object BiziMobileAppContent {
     stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
     onOpenSavedPlaceAlerts: () -> Unit,
+    onOpenSearch: () -> Unit,
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -226,6 +231,7 @@ internal object BiziMobileAppContent {
       stationsLoading = stationsLoading,
       onRefreshStations = onRefreshStations,
       onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
+      onOpenSearch = onOpenSearch,
       paddingValues = paddingValues,
       savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
       savedPlaceAlertRules = uiState.savedPlaceAlertRules,
@@ -237,6 +243,51 @@ internal object BiziMobileAppContent {
       onClearCategoryAssignment = viewModel::onClearCategoryAssignment,
       onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
       onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
+    )
+  }
+
+  @Composable
+  fun FavoritesSearchScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModel,
+    mobilePlatform: MobileUiPlatform,
+    onBack: () -> Unit,
+    onStationSelected: (Station) -> Unit,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    var newCategoryName by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    FavoritesSearchScreen(
+      mobilePlatform = mobilePlatform,
+      allStations = uiState.allStations,
+      favoriteStationIds = uiState.favoriteStations.mapTo(mutableSetOf()) { it.id },
+      homeStationId = uiState.homeStation?.id,
+      workStationId = uiState.workStation?.id,
+      categories = uiState.categories,
+      searchQuery = uiState.searchQuery,
+      newCategoryName = newCategoryName,
+      onSearchQueryChange = viewModel::onSearchQueryChange,
+      onNewCategoryNameChange = { newCategoryName = it },
+      onBack = onBack,
+      onOpenStationDetails = onStationSelected,
+      onToggleFavorite = viewModel::onToggleFavorite,
+      onAssignHome = { station ->
+        viewModel.onAssignHomeStation(station)
+        onBack()
+      },
+      onAssignWork = { station ->
+        viewModel.onAssignWorkStation(station)
+        onBack()
+      },
+      onAssignStationToCategory = { station, categoryId ->
+        viewModel.onAssignStationToCategory(station, categoryId)
+        onBack()
+      },
+      onCreateCustomCategory = {
+        val label = newCategoryName.trim()
+        if (label.isNotBlank()) {
+          viewModel.onCreateCustomCategory(label)
+          newCategoryName = ""
+        }
+      },
     )
   }
 

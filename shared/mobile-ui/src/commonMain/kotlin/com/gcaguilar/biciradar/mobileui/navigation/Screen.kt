@@ -13,6 +13,9 @@ sealed class Screen {
   data object Favorites : Screen()
 
   @Serializable
+  data object FavoritesSearch : Screen()
+
+  @Serializable
   data class Trip(val prefilledQuery: String? = null) : Screen()
 
   @Serializable

@@ -149,6 +149,9 @@ internal fun BiziNavHost(
         onOpenSavedPlaceAlerts = remember(navController) {
           { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
         },
+        onOpenSearch = remember(navController) {
+          { navController.navigate(Screen.FavoritesSearch) { launchSingleTop = true } }
+        },
         onStationSelected = remember(navController) { { station ->
           navController.navigate(Screen.StationDetail(station.id))
         } },
@@ -157,6 +160,25 @@ internal fun BiziNavHost(
         stationsLoading = loading,
         onRefreshStations = onRefreshStations,
         paddingValues = PaddingValues(),
+      )
+    }
+
+    composable<Screen.FavoritesSearch> { backStackEntry ->
+      val favoritesStoreOwner = remember(backStackEntry, navController) {
+        val favoritesRoute = checkNotNull(Screen.Favorites::class.qualifiedName)
+        runCatching { navController.getBackStackEntry(favoritesRoute) }.getOrDefault(backStackEntry)
+      }
+      val favoritesViewModel = viewModel(
+        viewModelStoreOwner = favoritesStoreOwner,
+        key = "favorites",
+      ) { favoritesViewModelFactory.create() }
+      BiziMobileAppContent.FavoritesSearchScreenContent(
+        viewModel = favoritesViewModel,
+        mobilePlatform = mobilePlatform,
+        onBack = remember(navController) { { navController.popBackStack() } },
+        onStationSelected = remember(navController) { { station ->
+          navController.navigate(Screen.StationDetail(station.id))
+        } },
       )
     }
 
