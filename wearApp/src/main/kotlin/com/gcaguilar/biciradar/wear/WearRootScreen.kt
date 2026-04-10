@@ -38,11 +38,16 @@ import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ProgressIndicatorDefaults
 import androidx.wear.compose.material3.Text
+import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
+import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceState
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.remainingSeconds
@@ -62,6 +67,7 @@ internal fun WearRoot(
   refreshKey: Int,
   launchStationId: String?,
   launchStationNonce: Int,
+  screenshotSurface: WearScreenshotSurface?,
 ) {
   val context = LocalContext.current.applicationContext
   val graph = remember(platformBindings) {
@@ -91,6 +97,7 @@ internal fun WearRoot(
       val errorMessage = uiState.errorMessage
 
       when {
+        screenshotSurface != null -> WearScreenshotRoot(screenshotSurface = screenshotSurface)
         selectedStation != null -> WearStationDetail(
           station = selectedStation,
           isFavorite = selectedStation.id in uiState.favoriteIds,
@@ -128,6 +135,81 @@ internal fun WearRoot(
           onStopMonitoring = viewModel::onStopMonitoring,
         )
       }
+    }
+  }
+}
+
+@Composable
+private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
+  when (screenshotSurface) {
+    WearScreenshotSurface.Dashboard -> WearScreenshotDashboard()
+
+    WearScreenshotSurface.StationDetail -> WearStationDetail(
+      station = sampleWearStation,
+      isFavorite = true,
+      savedPlaceLabel = "Casa",
+      currentMonitoring = null,
+      onBack = {},
+      onToggleFavorite = {},
+      onToggleMonitoring = {},
+      onRoute = {},
+    )
+
+    WearScreenshotSurface.Monitoring -> WearScreenshotMonitoring()
+  }
+}
+
+@Composable
+private fun WearScreenshotDashboard() {
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(horizontal = 20.dp, vertical = 28.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+  ) {
+    Text(
+      text = "BiciRadar",
+      style = MaterialTheme.typography.titleSmall,
+      color = WearPrimary,
+      fontWeight = FontWeight.Bold,
+      modifier = Modifier.align(Alignment.CenterHorizontally),
+    )
+    WearFavoriteSurfaceCard(
+      state = wearFavoriteSurfaceState(sampleWearSurfaceBundle),
+      onClick = {},
+    )
+    WearSavedPlaceSurfaceCard(
+      state = sampleWearSavedPlaceSurface,
+      onClick = {},
+    )
+  }
+}
+
+@Composable
+private fun WearScreenshotMonitoring() {
+  Column(
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(horizontal = 20.dp, vertical = 28.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
+  ) {
+    Text(
+      text = "Monitorización",
+      style = MaterialTheme.typography.titleSmall,
+      color = WearPrimary,
+      fontWeight = FontWeight.Bold,
+      modifier = Modifier.align(Alignment.CenterHorizontally),
+    )
+    WearMonitoringSurfaceCard(
+      state = wearMonitoringSurfaceState(sampleWearMonitoringSession, sampleWearMonitoringSession.remainingSeconds()),
+      onClick = {},
+    )
+    Button(
+      modifier = Modifier.fillMaxWidth(),
+      onClick = {},
+      colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+    ) {
+      Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
     }
   }
 }
@@ -749,3 +831,130 @@ private fun WearErrorScreen(
     }
   }
 }
+
+private val sampleWearStation = Station(
+  id = "wear-screenshot-home",
+  name = "19-Asalto. Servet",
+  address = "C/ Asalto - C/ Miguel Servet",
+  location = GeoPoint(latitude = 41.6488, longitude = -0.8891),
+  bikesAvailable = 10,
+  slotsFree = 12,
+  distanceMeters = 48,
+)
+
+private val sampleWearWorkStation = Station(
+  id = "wear-screenshot-work",
+  name = "96-Pomarón",
+  address = "Av. Cesáreo Alierta - Camino Cabaldós",
+  location = GeoPoint(latitude = 41.6401, longitude = -0.8725),
+  bikesAvailable = 6,
+  slotsFree = 9,
+  distanceMeters = 211,
+)
+
+private val sampleWearNearbyStation = Station(
+  id = "wear-screenshot-nearby",
+  name = "18-Plaza España",
+  address = "Plaza España",
+  location = GeoPoint(latitude = 41.6514, longitude = -0.8808),
+  bikesAvailable = 4,
+  slotsFree = 15,
+  distanceMeters = 132,
+)
+
+private val sampleWearStations = listOf(
+  sampleWearStation,
+  sampleWearNearbyStation,
+  sampleWearWorkStation,
+)
+
+private val sampleWearSavedPlaceSurface = WearSavedPlaceSurfaceState(
+  stationId = sampleWearWorkStation.id,
+  label = "Trabajo",
+  title = sampleWearWorkStation.name,
+  statusText = "Disponible",
+  statusLevel = SurfaceStatusLevel.Good,
+  bikesLabel = "🚲 ${sampleWearWorkStation.bikesAvailable}",
+  docksLabel = "🅿 ${sampleWearWorkStation.slotsFree}",
+)
+
+private val sampleWearSurfaceBundle = SurfaceSnapshotBundle(
+  generatedAtEpoch = System.currentTimeMillis(),
+  favoriteStation = SurfaceStationSnapshot(
+    id = sampleWearStation.id,
+    nameShort = "19-Asalto. Servet",
+    nameFull = sampleWearStation.name,
+    cityId = "zaragoza",
+    latitude = sampleWearStation.location.latitude,
+    longitude = sampleWearStation.location.longitude,
+    bikesAvailable = sampleWearStation.bikesAvailable,
+    docksAvailable = sampleWearStation.slotsFree,
+    statusTextShort = "Disponible",
+    statusLevel = SurfaceStatusLevel.Good,
+    lastUpdatedEpoch = System.currentTimeMillis(),
+    distanceMeters = sampleWearStation.distanceMeters,
+    isFavorite = true,
+    alternativeStationId = sampleWearWorkStation.id,
+    alternativeStationName = sampleWearWorkStation.name,
+    alternativeDistanceMeters = sampleWearWorkStation.distanceMeters,
+  ),
+  homeStation = SurfaceStationSnapshot(
+    id = sampleWearStation.id,
+    nameShort = "19-Asalto. Servet",
+    nameFull = sampleWearStation.name,
+    cityId = "zaragoza",
+    latitude = sampleWearStation.location.latitude,
+    longitude = sampleWearStation.location.longitude,
+    bikesAvailable = sampleWearStation.bikesAvailable,
+    docksAvailable = sampleWearStation.slotsFree,
+    statusTextShort = "Disponible",
+    statusLevel = SurfaceStatusLevel.Good,
+    lastUpdatedEpoch = System.currentTimeMillis(),
+    distanceMeters = sampleWearStation.distanceMeters,
+  ),
+  workStation = SurfaceStationSnapshot(
+    id = sampleWearWorkStation.id,
+    nameShort = "96-Pomarón",
+    nameFull = sampleWearWorkStation.name,
+    cityId = "zaragoza",
+    latitude = sampleWearWorkStation.location.latitude,
+    longitude = sampleWearWorkStation.location.longitude,
+    bikesAvailable = sampleWearWorkStation.bikesAvailable,
+    docksAvailable = sampleWearWorkStation.slotsFree,
+    statusTextShort = "Disponible",
+    statusLevel = SurfaceStatusLevel.Good,
+    lastUpdatedEpoch = System.currentTimeMillis(),
+    distanceMeters = sampleWearWorkStation.distanceMeters,
+  ),
+  nearbyStations = emptyList(),
+  monitoringSession = null,
+  state = SurfaceState(
+    hasLocationPermission = true,
+    hasNotificationPermission = true,
+    hasFavoriteStation = true,
+    isDataFresh = true,
+    lastSyncEpoch = System.currentTimeMillis(),
+    cityId = "zaragoza",
+    cityName = "Zaragoza",
+    userLatitude = 41.6488,
+    userLongitude = -0.8891,
+  ),
+)
+
+private val sampleWearMonitoringSession = SurfaceMonitoringSession(
+  stationId = sampleWearStation.id,
+  stationName = sampleWearStation.name,
+  cityId = "zaragoza",
+  kind = SurfaceMonitoringKind.Bikes,
+  status = SurfaceMonitoringStatus.AlternativeAvailable,
+  bikesAvailable = sampleWearStation.bikesAvailable,
+  docksAvailable = sampleWearStation.slotsFree,
+  statusLevel = SurfaceStatusLevel.Good,
+  startedAtEpoch = System.currentTimeMillis() - 2 * 60 * 1000L,
+  expiresAtEpoch = System.currentTimeMillis() + 8 * 60 * 1000L,
+  lastUpdatedEpoch = System.currentTimeMillis(),
+  isActive = true,
+  alternativeStationId = sampleWearWorkStation.id,
+  alternativeStationName = sampleWearWorkStation.name,
+  alternativeDistanceMeters = sampleWearWorkStation.distanceMeters,
+)
