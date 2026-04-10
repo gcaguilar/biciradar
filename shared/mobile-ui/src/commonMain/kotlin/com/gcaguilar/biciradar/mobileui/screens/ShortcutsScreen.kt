@@ -195,7 +195,7 @@ internal fun ShortcutsScreen(
 }
 
 private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
-  MobileUiPlatform.Android -> "Google Assistant"
+  MobileUiPlatform.Android -> "Gemini"
   MobileUiPlatform.IOS -> "Siri"
   MobileUiPlatform.Desktop -> "Asistente"
 }

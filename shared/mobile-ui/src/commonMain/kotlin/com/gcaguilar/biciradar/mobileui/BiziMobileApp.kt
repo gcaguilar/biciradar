@@ -479,14 +479,14 @@ fun BiziMobileApp(
                   appRootViewModel.onOnboardingOpenFavoritesRequested()
                   pendingOnboardingFavoritesNavigation = true
                 },
-                onDismissFirstFavoriteStep = {
-                  appRootViewModel.onOnboardingFirstFavoriteDismissed()
-                },
-                onDismissSavedPlacesStep = {
-                  appRootViewModel.onOnboardingSavedPlacesDismissed()
+                onDismissFavoritesStep = {
+                  appRootViewModel.onOnboardingFavoritesDismissed()
                 },
                 onCompleteSurfacesStep = {
                   appRootViewModel.onOnboardingSurfacesCompleted()
+                },
+                onSkipAll = {
+                  appRootViewModel.onSkipOnboarding()
                 },
               )
             }

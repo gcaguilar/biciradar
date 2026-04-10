@@ -53,7 +53,7 @@
     <string name="nearbyStationRadius">Gertuko geltokiaren erradioa</string>
     <string name="nearbyStationRadiusDescription">Erradio barruan geltokirik ez badago, aplikazioak hurbilena erakutsiko du eta distantzia adieraziko dizu.</string>
     <string name="shortcuts">Lasterbideak</string>
-    <string name="shortcutsReviewCommands">%2$s erabilita erabilgarri dauden ahots komando guztiak eta nola deitu ikusi.</string>
+    <string name="shortcutsReviewCommands">%1$s erabilita erabilgarri dauden ahots komando guztiak eta nola deitu ikusi.</string>
     <string name="openShortcutsGuide">Ireki lasterbideen gida</string>
     <string name="appearance">Itxura</string>
     <string name="appearanceDescription">Aukeratu aplikazioak sistemari jarraitzen dion edo beti gai argia edo iluna erabiltzen duen.</string>
@@ -75,7 +75,7 @@
     <string name="shortcutsAvailableOnIos">Ekintza hauek Siri eta Lasterbideetan daude erabilgarri.</string>
     <string name="shortcutsAvailableWithAssistant">%1$s-i zer eska diezaiokezun eta Bici Radar barruan nola deitu.</string>
     <string name="shortcutsIosInvocationHint">Ireki Siri edo Lasterbideak eta erabili behekoen moduko esaldi naturalak amaieran \'Bici Radarrekin\' esanez.</string>
-    <string name="shortcutsAndroidInvocationHint">Ireki Google Assistant eta probatu behekoen moduko esaldi naturalak. Beharrezkoa bada, gehitu \'Bici Radarrekin\' argitzeko.</string>
+    <string name="shortcutsAndroidInvocationHint">Ireki Gemini edo Google Assistant eta probatu behekoen moduko esaldi naturalak. Beharrezkoa bada, gehitu \'Bici Radarrekin\' argitzeko.</string>
     <string name="shortcutsCurrentRadius">Gertuko bilketen uneko erradioa: %1$s m.</string>
     <string name="latestAnswer">Azken erantzuna</string>
     <string name="distance">Distantzia</string>
@@ -91,7 +91,7 @@
     <string name="slots">Lekuak</string>
     <string name="openRoute">Ireki ibilbidea</string>
     <string name="removeFromFavorites">Kendu gogokoetatik</string>
-    <string name="tripSubtitle">Bilatu zure helmugatik hurbilen dagoen geltokia eta zaindu ezazu.</string>
+    <string name="tripSubtitle">Aurkitu zure helmugatik gertu bizikleta uzteko lekua eta zaindu geltokia heldu arte.</string>
     <string name="tripStationFull">Geltokia beteta</string>
     <string name="tripStationNoLongerHasSlots">"%1$s"-k ez du jada leku librerik.</string>
     <string name="tripSuggestedAlternative">Iradokitako alternatiba: %1$s · %2$s — %3$s leku.</string>
@@ -99,6 +99,7 @@
     <string name="gotIt">Ulertuta</string>
     <string name="whereAreYouGoing">Nora zoaz?</string>
     <string name="walkRouteTo">Oinezko ibilbidea %1$s-ra</string>
+    <string name="tripBikeRouteAction">Joan bizikletaz</string>
     <string name="tripSuggestedStation">Iradokitako geltokia</string>
     <string name="freeSlots">Leku libreak</string>
     <string name="stopMonitoring">Gelditu zaintza</string>
@@ -186,6 +187,12 @@
     <string name="cancelMap">Utzi mapa</string>
     <string name="pickOnMap">Hautatu mapan</string>
     <string name="tapMapToPickDestination">Ukitu mapa helmuga hautatzeko</string>
+    <string name="tapMapToPickStation">Ukitu mapa geltokia hautatzeko</string>
+    <string name="tripConfirmDestination">Helmuga baieztatu</string>
+    <string name="tripConfirmStation">Geltokia baieztatu</string>
+    <string name="tripMapDestinationTitle">Helmuga aukeratu</string>
+    <string name="tripMapStationTitle">Geltokia aukeratu</string>
+    <string name="tripSelectedPoint">Hautatutako puntua</string>
     <string name="suggestions">Iradokizunak</string>
     <string name="searchingNearbyStation">Gertuko geltokia bilatzen...</string>
     <string name="monitorThisStation">Zaindu geltoki hau</string>
@@ -270,9 +277,12 @@
     <string name="onboardingGoToFavorites">Joan Gogokoetara</string>
     <string name="onboardingSavedPlacesTitle">Etxea eta lana</string>
     <string name="onboardingSavedPlacesBody">Gogokoetan Etxea edo Lana marka ditzakezu.</string>
+    <string name="onboardingFavoritesTitle">Gogokoak, Etxea eta Lana</string>
+    <string name="onboardingFavoritesBody">Gorde geltoki bat edo konfiguratu Etxea eta Lana Gogokoetatik lasterbide, widget eta alerta erabilgarriagoak izateko.</string>
     <string name="onboardingSurfacesTitle">Widget-ak eta jarraipena</string>
     <string name="onboardingSurfacesBody">Gehitu widget-ak eta erabili jarraipen laburra.</string>
     <string name="onboardingFinish">Hasi</string>
+    <string name="onboardingSkip">Saltatu</string>
     <string name="profileSetupCardTitle">Osatu konfigurazioa</string>
     <string name="profileSetupCardBody">Urrats erabilgarri bat falta zaizu.</string>
     <string name="profileSetupCardAction">Onboardingarekin jarraitu</string>

@@ -30,7 +30,7 @@ class GuidedOnboardingFlowTest {
       ).guidedOnboardingStep(),
     )
     assertEquals(
-      GuidedOnboardingStep.FirstFavorite,
+      GuidedOnboardingStep.SavedPlaces,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
         featureHighlightsSeen = true,

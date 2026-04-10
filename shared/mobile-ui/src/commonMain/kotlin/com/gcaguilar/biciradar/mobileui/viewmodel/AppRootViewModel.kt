@@ -202,6 +202,14 @@ internal class AppRootViewModel(
     onboardingViewModel.onSavedPlacesDismissed()
   }
 
+  fun onOnboardingFavoritesDismissed() {
+    onboardingViewModel.onFavoritesDismissed()
+  }
+
+  fun onSkipOnboarding() {
+    onboardingViewModel.onSkipOnboarding()
+  }
+
   fun onOnboardingSurfacesCompleted() {
     onboardingViewModel.onSurfacesCompleted()
   }

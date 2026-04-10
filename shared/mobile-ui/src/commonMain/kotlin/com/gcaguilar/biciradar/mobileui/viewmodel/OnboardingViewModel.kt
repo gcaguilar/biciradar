@@ -95,6 +95,17 @@ internal class OnboardingViewModel(
     }
   }
 
+  fun onFavoritesDismissed() {
+    viewModelScope.launch {
+      startupUseCase.updateOnboardingChecklist {
+        it.copy(
+          firstStationSaved = true,
+          savedPlacesConfigured = true,
+        )
+      }
+    }
+  }
+
   fun onSkipOnboarding() {
     viewModelScope.launch {
       startupUseCase.updateOnboardingChecklist {

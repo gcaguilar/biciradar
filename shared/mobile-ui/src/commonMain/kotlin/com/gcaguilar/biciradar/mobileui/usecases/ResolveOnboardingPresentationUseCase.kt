@@ -29,7 +29,7 @@ internal class ResolveOnboardingPresentationUseCase {
     val shouldSuppressForStep =
       input.launchSource != OnboardingLaunchSource.Settings &&
         input.suppressGuidedOnboardingForNavigation &&
-        (onboardingStep == GuidedOnboardingStep.FirstFavorite || onboardingStep == GuidedOnboardingStep.SavedPlaces)
+        onboardingStep == GuidedOnboardingStep.SavedPlaces
 
     return OnboardingPresentationResult(
       onboardingChecklist = input.checklist,
@@ -38,7 +38,6 @@ internal class ResolveOnboardingPresentationUseCase {
         !input.checklist.isCompleted() &&
         !shouldSuppressForStep,
       shouldResetNavigationSuppression = input.suppressGuidedOnboardingForNavigation &&
-        onboardingStep != GuidedOnboardingStep.FirstFavorite &&
         onboardingStep != GuidedOnboardingStep.SavedPlaces,
     )
   }

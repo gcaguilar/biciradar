@@ -108,7 +108,7 @@
     <string name="shortcutsAvailableOnIos">These actions are available in Siri and Shortcuts.</string>
     <string name="shortcutsAvailableWithAssistant">What you can ask %1$s and how to invoke it inside Bici Radar.</string>
     <string name="shortcutsIosInvocationHint">Open Siri or Shortcuts and use natural phrases like the ones below ending with \"with Bici Radar\".</string>
-    <string name="shortcutsAndroidInvocationHint">Open Google Assistant and try natural phrases like the ones below. If needed, add \"with Bici Radar\" to disambiguate.</string>
+    <string name="shortcutsAndroidInvocationHint">Open Gemini or Google Assistant and try natural phrases like the ones below. If needed, add \"with Bici Radar\" to disambiguate.</string>
     <string name="shortcutsCurrentRadius">Current radius for nearby searches: %1$s m.</string>
     <string name="latestAnswer">Latest answer</string>
     <string name="distance">Distance</string>
@@ -124,7 +124,7 @@
     <string name="slots">Slots</string>
     <string name="openRoute">Open route</string>
     <string name="removeFromFavorites">Remove from favorites</string>
-    <string name="tripSubtitle">Find the nearest station to your destination and monitor it.</string>
+    <string name="tripSubtitle">Find where to leave your bike near your destination and monitor that station until you arrive.</string>
     <string name="tripStationFull">Station full</string>
     <string name="tripStationNoLongerHasSlots">"%1$s" no longer has free slots.</string>
     <string name="tripSuggestedAlternative">Suggested alternative: %1$s · %2$s — %3$s slots.</string>
@@ -132,6 +132,7 @@
     <string name="gotIt">Got it</string>
     <string name="whereAreYouGoing">Where are you going?</string>
     <string name="walkRouteTo">Walking route to %1$s</string>
+    <string name="tripBikeRouteAction">Ride there</string>
     <string name="tripSuggestedStation">Suggested station</string>
     <string name="freeSlots">Free slots</string>
     <string name="stopMonitoring">Stop monitoring</string>
@@ -219,6 +220,12 @@
     <string name="cancelMap">Cancel map</string>
     <string name="pickOnMap">Pick on map</string>
     <string name="tapMapToPickDestination">Tap the map to pick a destination</string>
+    <string name="tapMapToPickStation">Tap the map to choose a station</string>
+    <string name="tripConfirmDestination">Confirm destination</string>
+    <string name="tripConfirmStation">Confirm station</string>
+    <string name="tripMapDestinationTitle">Choose destination</string>
+    <string name="tripMapStationTitle">Choose station</string>
+    <string name="tripSelectedPoint">Selected point</string>
     <string name="suggestions">Suggestions</string>
     <string name="searchingNearbyStation">Searching nearby station...</string>
     <string name="monitorThisStation">Monitor this station</string>
@@ -305,9 +312,12 @@
     <string name="onboardingGoToFavorites">Go to Favorites</string>
     <string name="onboardingSavedPlacesTitle">Home and work</string>
     <string name="onboardingSavedPlacesBody">In Favorites you can mark stations as Home or Work for shortcuts and widgets.</string>
+    <string name="onboardingFavoritesTitle">Favorites, Home and Work</string>
+    <string name="onboardingFavoritesBody">Save a station or configure Home and Work from Favorites to unlock quicker shortcuts, widgets and alerts.</string>
     <string name="onboardingSurfacesTitle">Widgets and monitoring</string>
     <string name="onboardingSurfacesBody">Add home screen widgets and use short monitoring from a station’s detail screen.</string>
     <string name="onboardingFinish">Get started</string>
+    <string name="onboardingSkip">Skip</string>
     <string name="profileSetupCardTitle">Finish setup</string>
     <string name="profileSetupCardBody">You’re missing a useful step (permissions, favorites, or Home/Work).</string>
     <string name="profileSetupCardAction">Continue onboarding</string>

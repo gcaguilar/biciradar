@@ -485,6 +485,63 @@ class AppRootViewModelTest {
     assertEquals(true, viewModel.uiState.value.shouldShowGuidedOnboarding)
   }
 
+  @Test
+  fun `skip onboarding marks every milestone as completed`() = runTest(dispatcher) {
+    val settingsRepository = FakeAppRootSettingsRepository(
+      onboardingChecklist = OnboardingChecklistSnapshot(cityConfirmed = true),
+    )
+    val favoritesRepository = FakeAppRootFavoritesRepository()
+    val stationsRepository = FakeAppRootStationsRepository()
+    val engagementRepository = FakeEngagementRepository()
+
+    val startupUseCase = StartupUseCase(
+      settingsRepository = settingsRepository,
+      favoritesRepository = favoritesRepository,
+      stationsRepository = stationsRepository,
+    )
+    val settingsAggregationUseCase = SettingsAggregationUseCase(
+      settingsRepository = settingsRepository,
+    )
+    val appLifecycleUseCase = AppLifecycleUseCase(
+      engagementRepository = engagementRepository,
+      appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
+      reviewPrompter = AppRootFakeReviewPrompter(),
+      settingsAggregationUseCase = settingsAggregationUseCase,
+      appVersion = "0.21.0",
+    )
+    val surfaceManagementUseCase = SurfaceManagementUseCase(
+      surfaceSnapshotRepository = AppRootFakeSurfaceSnapshotRepository(),
+      surfaceMonitoringRepository = AppRootFakeSurfaceMonitoringRepository(),
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+    )
+    val appInitializer = AppInitializer(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
+      surfaceManagementUseCase = surfaceManagementUseCase,
+      clock = { 1L },
+    )
+    val viewModel = AppRootViewModel(
+      startupUseCase = startupUseCase,
+      appLifecycleUseCase = appLifecycleUseCase,
+      resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
+      appInitializer = appInitializer,
+      appVersion = "0.21.0",
+    )
+
+    advanceUntilIdle()
+    assertTrue(viewModel.uiState.value.shouldShowGuidedOnboarding)
+
+    viewModel.onSkipOnboarding()
+    advanceUntilIdle()
+
+    assertTrue(settingsRepository.onboardingChecklist.value.isCompleted())
+    assertTrue(settingsRepository.onboardingChecklist.value.firstStationSaved)
+    assertTrue(settingsRepository.onboardingChecklist.value.savedPlacesConfigured)
+    assertTrue(settingsRepository.onboardingChecklist.value.surfacesDiscovered)
+    assertEquals(false, viewModel.uiState.value.shouldShowGuidedOnboarding)
+  }
+
 }
 
 private class FakeAppRootSettingsRepository(

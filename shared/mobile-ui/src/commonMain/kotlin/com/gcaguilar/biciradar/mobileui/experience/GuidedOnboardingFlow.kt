@@ -19,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,7 +35,6 @@ enum class GuidedOnboardingStep {
   FeatureHighlights,
   LocationPermission,
   NotificationsPermission,
-  FirstFavorite,
   SavedPlaces,
   Surfaces,
   Completed,
@@ -47,9 +47,9 @@ data class GuidedOnboardingCallbacks(
   val onRequestNotificationsPermission: () -> Unit,
   val onDismissNotificationsStep: () -> Unit,
   val onOpenFavorites: () -> Unit,
-  val onDismissFirstFavoriteStep: () -> Unit,
-  val onDismissSavedPlacesStep: () -> Unit,
+  val onDismissFavoritesStep: () -> Unit,
   val onCompleteSurfacesStep: () -> Unit,
+  val onSkipAll: () -> Unit,
 )
 
 internal fun OnboardingChecklistSnapshot.guidedOnboardingStep(): GuidedOnboardingStep = when {
@@ -57,8 +57,7 @@ internal fun OnboardingChecklistSnapshot.guidedOnboardingStep(): GuidedOnboardin
   !featureHighlightsSeen -> GuidedOnboardingStep.FeatureHighlights
   !locationDecisionMade -> GuidedOnboardingStep.LocationPermission
   !notificationsDecisionMade -> GuidedOnboardingStep.NotificationsPermission
-  !firstStationSaved -> GuidedOnboardingStep.FirstFavorite
-  !savedPlacesConfigured -> GuidedOnboardingStep.SavedPlaces
+  !firstStationSaved || !savedPlacesConfigured -> GuidedOnboardingStep.SavedPlaces
   !surfacesDiscovered -> GuidedOnboardingStep.Surfaces
   else -> GuidedOnboardingStep.Completed
 }
@@ -72,97 +71,96 @@ fun GuidedOnboardingFlow(
   if (step == GuidedOnboardingStep.FeatureHighlights) {
     GuidedOnboardingHighlightsScreen(
       onContinue = callbacks.onContinueFeatureHighlights,
+      onSkipAll = callbacks.onSkipAll,
     )
     return
   }
 
-  Column(
+  Box(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
       .windowInsetsPadding(WindowInsets.statusBars)
-      .padding(24.dp),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    when (step) {
-      GuidedOnboardingStep.FeatureHighlights -> Unit
-      GuidedOnboardingStep.LocationPermission -> {
-        Text(stringResource(Res.string.onboardingLocationTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.onboardingLocationBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Button(
-          onClick = callbacks.onRequestLocationPermission,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingAllow)) }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-          onClick = callbacks.onDismissLocationStep,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingLater)) }
-      }
+    TextButton(
+      onClick = callbacks.onSkipAll,
+      modifier = Modifier
+        .align(Alignment.TopEnd)
+        .padding(horizontal = 24.dp),
+    ) {
+      Text(stringResource(Res.string.onboardingSkip))
+    }
 
-      GuidedOnboardingStep.NotificationsPermission -> {
-        Text(stringResource(Res.string.onboardingNotificationsTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.onboardingNotificationsBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Button(
-          onClick = callbacks.onRequestNotificationsPermission,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingAllow)) }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-          onClick = callbacks.onDismissNotificationsStep,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingLater)) }
-      }
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(24.dp),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      when (step) {
+        GuidedOnboardingStep.FeatureHighlights -> Unit
+        GuidedOnboardingStep.LocationPermission -> {
+          Text(stringResource(Res.string.onboardingLocationTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Spacer(Modifier.height(12.dp))
+          Text(stringResource(Res.string.onboardingLocationBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Spacer(Modifier.height(24.dp))
+          Button(
+            onClick = callbacks.onRequestLocationPermission,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingAllow)) }
+          Spacer(Modifier.height(8.dp))
+          OutlinedButton(
+            onClick = callbacks.onDismissLocationStep,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingLater)) }
+        }
 
-      GuidedOnboardingStep.FirstFavorite -> {
-        Text(stringResource(Res.string.onboardingFavoriteTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.onboardingFavoriteBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Button(
-          onClick = callbacks.onOpenFavorites,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingGoToFavorites)) }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-          onClick = callbacks.onDismissFirstFavoriteStep,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingLater)) }
-      }
+        GuidedOnboardingStep.NotificationsPermission -> {
+          Text(stringResource(Res.string.onboardingNotificationsTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Spacer(Modifier.height(12.dp))
+          Text(stringResource(Res.string.onboardingNotificationsBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Spacer(Modifier.height(24.dp))
+          Button(
+            onClick = callbacks.onRequestNotificationsPermission,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingAllow)) }
+          Spacer(Modifier.height(8.dp))
+          OutlinedButton(
+            onClick = callbacks.onDismissNotificationsStep,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingLater)) }
+        }
 
-      GuidedOnboardingStep.SavedPlaces -> {
-        Text(stringResource(Res.string.onboardingSavedPlacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.onboardingSavedPlacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Button(
-          onClick = callbacks.onOpenFavorites,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingGoToFavorites)) }
-        Spacer(Modifier.height(8.dp))
-        OutlinedButton(
-          onClick = callbacks.onDismissSavedPlacesStep,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingLater)) }
-      }
+        GuidedOnboardingStep.SavedPlaces -> {
+          Text(stringResource(Res.string.onboardingFavoritesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Spacer(Modifier.height(12.dp))
+          Text(stringResource(Res.string.onboardingFavoritesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Spacer(Modifier.height(24.dp))
+          Button(
+            onClick = callbacks.onOpenFavorites,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingGoToFavorites)) }
+          Spacer(Modifier.height(8.dp))
+          OutlinedButton(
+            onClick = callbacks.onDismissFavoritesStep,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingLater)) }
+        }
 
-      GuidedOnboardingStep.Surfaces -> {
-        Text(stringResource(Res.string.onboardingSurfacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(Res.string.onboardingSurfacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Button(
-          onClick = callbacks.onCompleteSurfacesStep,
-          modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(Res.string.onboardingFinish)) }
-      }
+        GuidedOnboardingStep.Surfaces -> {
+          Text(stringResource(Res.string.onboardingSurfacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Spacer(Modifier.height(12.dp))
+          Text(stringResource(Res.string.onboardingSurfacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Spacer(Modifier.height(24.dp))
+          Button(
+            onClick = callbacks.onCompleteSurfacesStep,
+            modifier = Modifier.fillMaxWidth(),
+          ) { Text(stringResource(Res.string.onboardingFinish)) }
+        }
 
-      GuidedOnboardingStep.Completed -> Unit
+        GuidedOnboardingStep.Completed -> Unit
+      }
     }
   }
 }
@@ -170,6 +168,7 @@ fun GuidedOnboardingFlow(
 @Composable
 private fun GuidedOnboardingHighlightsScreen(
   onContinue: () -> Unit,
+  onSkipAll: () -> Unit,
 ) {
   val featureCards = remember {
     listOf(
@@ -186,6 +185,14 @@ private fun GuidedOnboardingHighlightsScreen(
       .background(MaterialTheme.colorScheme.background)
       .windowInsetsPadding(WindowInsets.statusBars),
   ) {
+    TextButton(
+      onClick = onSkipAll,
+      modifier = Modifier
+        .align(Alignment.TopEnd)
+        .padding(horizontal = 24.dp),
+    ) {
+      Text(stringResource(Res.string.onboardingSkip))
+    }
     Column(
       modifier = Modifier
         .fillMaxSize()

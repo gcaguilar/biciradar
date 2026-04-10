@@ -335,6 +335,7 @@ internal object BiziMobileAppContent {
     onShowChangelog: () -> Unit = {},
     onOpenFeedback: () -> Unit = {},
     onOpenOnboarding: () -> Unit = {},
+    onOpenShortcuts: () -> Unit = {},
     onRateApp: () -> Unit = {},
   ) = ProfileScreen(
     mobilePlatform = mobilePlatform,
@@ -351,6 +352,7 @@ internal object BiziMobileAppContent {
     showProfileSetupCard = showProfileSetupCard,
     onShowChangelog = onShowChangelog,
     onOpenOnboarding = onOpenOnboarding,
+    onOpenShortcuts = onOpenShortcuts,
     onOpenFeedback = onOpenFeedback,
     onRateApp = onRateApp,
   )
@@ -361,6 +363,7 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
     onOpenOnboarding: () -> Unit,
+    onOpenShortcuts: () -> Unit,
     platformBindings: PlatformBindings,
     onShowChangelogManual: () -> Unit,
   ) {
@@ -381,6 +384,7 @@ internal object BiziMobileAppContent {
       showProfileSetupCard = uiState.showProfileSetupCard,
       onShowChangelog = onShowChangelogManual,
       onOpenOnboarding = onOpenOnboarding,
+      onOpenShortcuts = onOpenShortcuts,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
       onRateApp = {
         if (mobilePlatform == MobileUiPlatform.Android) {

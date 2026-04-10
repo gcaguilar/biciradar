@@ -78,8 +78,11 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.rateApp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.selectedCity
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.settings
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcuts
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewCommands
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.openShortcutsGuide
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -98,6 +101,7 @@ internal fun ProfileScreen(
   showProfileSetupCard: Boolean,
   onShowChangelog: () -> Unit,
   onOpenOnboarding: () -> Unit,
+  onOpenShortcuts: () -> Unit,
   onOpenFeedback: () -> Unit,
   onRateApp: () -> Unit,
 ) {
@@ -147,6 +151,24 @@ internal fun ProfileScreen(
               ) {
                 Text(stringResource(Res.string.profileSetupCardAction), style = MaterialTheme.typography.bodySmall)
               }
+            }
+          }
+        }
+      }
+      item {
+        Card(
+          modifier = Modifier.fillMaxWidth(),
+          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+        ) {
+          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(stringResource(Res.string.shortcuts), fontWeight = FontWeight.SemiBold)
+            Text(
+              stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.profileAssistantName()),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
+            TextButton(onClick = onOpenShortcuts, contentPadding = PaddingValues(0.dp)) {
+              Text(stringResource(Res.string.openShortcutsGuide), style = MaterialTheme.typography.bodySmall)
             }
           }
         }
@@ -387,6 +409,12 @@ internal fun ProfileScreen(
       },
     )
   }
+}
+
+private fun MobileUiPlatform.profileAssistantName(): String = when (this) {
+  MobileUiPlatform.Android -> "Gemini"
+  MobileUiPlatform.IOS -> "Siri"
+  MobileUiPlatform.Desktop -> "Asistente"
 }
 
 @Composable

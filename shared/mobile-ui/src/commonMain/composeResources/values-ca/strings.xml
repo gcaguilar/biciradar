@@ -53,7 +53,7 @@
     <string name="nearbyStationRadius">Radi per a l\'estació propera</string>
     <string name="nearbyStationRadiusDescription">Si no hi ha estacions dins del radi, l\'app igualment mostrarà la más propera i n\'indicarà la distància.</string>
     <string name="shortcuts">Dreceres</string>
-    <string name="shortcutsReviewCommands">Consulta totes les ordras de veu disponibles i com invocar-les amb %2$s.</string>
+    <string name="shortcutsReviewCommands">Consulta totes les ordras de veu disponibles i com invocar-les amb %1$s.</string>
     <string name="openShortcutsGuide">Obre la guia de dreceres</string>
     <string name="appearance">Aparença</string>
     <string name="appearanceDescription">Tria si l\'app segueix el sistema o sempre fa servir el tema clar o fosc.</string>
@@ -75,7 +75,7 @@
     <string name="shortcutsAvailableOnIos">Aquestes accions estan disponibles a Siri i Dreceres.</string>
     <string name="shortcutsAvailableWithAssistant">Què pots demanar a %1$s i com invocar-ho dins de Bici Radar.</string>
     <string name="shortcutsIosInvocationHint">Obre Siri o Dreceres i fes servir frases naturals com les de sota acabant amb \'amb Bici Radar\'.</string>
-    <string name="shortcutsAndroidInvocationHint">Obre Google Assistant i prova frases naturals com les de sota. Si cal, afegeix \'amb Bici Radar\' per desambigar.</string>
+    <string name="shortcutsAndroidInvocationHint">Obre Gemini o Google Assistant i prova frases naturals com les de sota. Si cal, afegeix \'amb Bici Radar\' per desambiguar.</string>
     <string name="shortcutsCurrentRadius">Radi actual per a cerques properes: %1$s m.</string>
     <string name="latestAnswer">Última resposta</string>
     <string name="distance">Distància</string>
@@ -91,7 +91,7 @@
     <string name="slots">Ancoratges</string>
     <string name="openRoute">Obre la ruta</string>
     <string name="removeFromFavorites">Treu de favorits</string>
-    <string name="tripSubtitle">Busca l\'estació más propera al teu destí i vigila-la.</string>
+    <string name="tripSubtitle">Troba on deixar la bici prop del teu destí i vigila l\'estació fins que hi arribis.</string>
     <string name="tripStationFull">Estació plena</string>
     <string name="tripStationNoLongerHasSlots">\"%1$s\" ja no té places lliures.</string>
     <string name="tripSuggestedAlternative">Alternativa suggerida: %1$s · %2$s — %3$s places.</string>
@@ -99,6 +99,7 @@
     <string name="gotIt">Entesos</string>
     <string name="whereAreYouGoing">On vas?</string>
     <string name="walkRouteTo">Ruta a peu cap a %1$s</string>
+    <string name="tripBikeRouteAction">Anar-hi en bici</string>
     <string name="tripSuggestedStation">Estació suggerida</string>
     <string name="freeSlots">Places lliures</string>
     <string name="stopMonitoring">Atura la vigilància</string>
@@ -186,6 +187,12 @@
     <string name="cancelMap">Cancela·la mapa</string>
     <string name="pickOnMap">Escull al mapa</string>
     <string name="tapMapToPickDestination">Toca el mapa per escollir el destí</string>
+    <string name="tapMapToPickStation">Toca el mapa per triar estació</string>
+    <string name="tripConfirmDestination">Confirmar destí</string>
+    <string name="tripConfirmStation">Confirmar estació</string>
+    <string name="tripMapDestinationTitle">Triar destí</string>
+    <string name="tripMapStationTitle">Triar estació</string>
+    <string name="tripSelectedPoint">Punt seleccionat</string>
     <string name="suggestions">Suggeriments</string>
     <string name="searchingNearbyStation">Buscant estació propera...</string>
     <string name="monitorThisStation">Vigila aquesta estació</string>
@@ -270,9 +277,12 @@
     <string name="onboardingGoToFavorites">Anar a Favorites</string>
     <string name="onboardingSavedPlacesTitle">Casa i feina</string>
     <string name="onboardingSavedPlacesBody">A Favorites pots marcar Casa o Feina per a dreceres i widgets.</string>
+    <string name="onboardingFavoritesTitle">Favorites, Casa i Feina</string>
+    <string name="onboardingFavoritesBody">Desa una estació o configura Casa i Feina des de Favorites per tenir dreceres, widgets i alertes més útils.</string>
     <string name="onboardingSurfacesTitle">Widgets i monitorització</string>
     <string name="onboardingSurfacesBody">Afegeix widgets i usa la monitorització curta des del detall d\'estació.</string>
     <string name="onboardingFinish">Començar</string>
+    <string name="onboardingSkip">Saltar</string>
     <string name="profileSetupCardTitle">Completa la configuració</string>
     <string name="profileSetupCardBody">Et falta algun pas útil.</string>
     <string name="profileSetupCardAction">Continuar onboarding</string>
