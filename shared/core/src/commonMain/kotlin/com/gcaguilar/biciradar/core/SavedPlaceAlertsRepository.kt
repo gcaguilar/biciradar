@@ -4,7 +4,10 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,6 +35,12 @@ interface SavedPlaceAlertsRepository {
   suspend fun replaceAll(rules: List<SavedPlaceAlertRule>)
 }
 
+/**
+ * Implementación de SavedPlaceAlertsRepository.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class SavedPlaceAlertsRepositoryImpl(
   private val fileSystem: FileSystem,

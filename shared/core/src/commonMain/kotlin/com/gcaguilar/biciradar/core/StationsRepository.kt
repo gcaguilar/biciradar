@@ -2,7 +2,10 @@ package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.toDomain
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,7 +46,11 @@ private data class StationsSession(
  * - [cacheManager]: Gestiona el caché local
  * - [locationProvider]: Proporciona la ubicación actual
  * - [settingsRepository]: Accede a la configuración (ciudad seleccionada)
+ *
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
  */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class StationsRepositoryImpl(
   private val remoteDataSource: StationsRemoteDataSource,

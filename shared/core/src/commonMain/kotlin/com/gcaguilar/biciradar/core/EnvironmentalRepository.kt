@@ -2,7 +2,10 @@ package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -22,6 +25,12 @@ interface EnvironmentalRepository {
   suspend fun readingAt(latitude: Double, longitude: Double): EnvironmentalReading?
 }
 
+/**
+ * Implementación de EnvironmentalRepository.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class EnvironmentalRepositoryImpl(
   private val httpClient: HttpClient,

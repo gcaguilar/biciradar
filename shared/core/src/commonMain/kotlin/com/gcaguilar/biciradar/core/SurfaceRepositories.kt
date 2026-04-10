@@ -8,7 +8,10 @@ import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.loadSurfaceBundleFromDb
 import com.gcaguilar.biciradar.core.local.persistSurfaceBundleRelational
 import com.gcaguilar.biciradar.core.local.surfaceBundleFromRows
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +32,12 @@ interface SurfaceSnapshotRepository {
   fun currentBundle(): SurfaceSnapshotBundle?
 }
 
+/**
+ * Implementación de SurfaceSnapshotRepository.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class SurfaceSnapshotRepositoryImpl(
   private val fileSystem: FileSystem,

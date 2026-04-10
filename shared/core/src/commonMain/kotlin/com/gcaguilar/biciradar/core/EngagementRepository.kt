@@ -1,7 +1,10 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.StateFlow
 
 private const val DAY_MILLIS = 24 * 60 * 60 * 1000L
@@ -32,6 +35,12 @@ interface EngagementRepository {
   ): ReviewEligibility
 }
 
+/**
+ * Implementación de EngagementRepository.
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class EngagementRepositoryImpl(
   private val settingsRepository: SettingsRepository,
