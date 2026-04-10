@@ -101,46 +101,20 @@ interface SharedGraph {
     NoOpStationsCacheManager()
   }
 
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideStationsRepository(implementation: StationsRepositoryImpl): StationsRepository = implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideFavoritesRepository(implementation: FavoritesRepositoryImpl): FavoritesRepository = implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideEngagementRepository(implementation: EngagementRepositoryImpl): EngagementRepository = implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideEnvironmentalRepository(implementation: EnvironmentalRepositoryImpl): EnvironmentalRepository = implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideSavedPlaceAlertsRepository(implementation: SavedPlaceAlertsRepositoryImpl): SavedPlaceAlertsRepository =
-    implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideSettingsRepository(factory: SettingsRepositoryFactory): SettingsRepository = factory.create()
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideSurfaceSnapshotRepository(implementation: SurfaceSnapshotRepositoryImpl): SurfaceSnapshotRepository = implementation
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideSurfaceMonitoringRepository(implementation: SurfaceMonitoringRepositoryImpl): SurfaceMonitoringRepository = implementation
+  // Repositorios se proveen automáticamente mediante @ContributesBinding:
+  // - StationsRepository (@ContributesBinding(AppScope::class))
+  // - FavoritesRepository (@ContributesBinding(AppScope::class))
+  // - EngagementRepository (@ContributesBinding(AppScope::class))
+  // - EnvironmentalRepository (@ContributesBinding(AppScope::class))
+  // - SavedPlaceAlertsRepository (@ContributesBinding(AppScope::class))
+  // - SettingsRepository (@ContributesBinding(AppScope::class))
+  // - SurfaceSnapshotRepository (@ContributesBinding(AppScope::class))
+  // - SurfaceMonitoringRepository (@ContributesBinding(AppScope::class))
+  // - TripRepository (@ContributesBinding(AppScope::class))
 
   @SingleIn(AppScope::class)
   @Provides
   fun provideGooglePlacesApi(httpClient: HttpClient): GooglePlacesApi = GooglePlacesApiImpl(httpClient)
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideTripRepository(implementation: TripRepositoryImpl): TripRepository = implementation
 
   // ------------------------------------------------------------------
   // Geo / datosbizi.com
@@ -186,45 +160,8 @@ interface SharedGraph {
     identityRepo: InstallationIdentityRepository,
   ): RequestSigner = RequestSigner(identityRepo = identityRepo)
 
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideGeoApi(
-    httpClient: HttpClient,
-    json: Json,
-    tokenManager: TokenManager,
-    identityRepo: InstallationIdentityRepository,
-    requestSigner: RequestSigner,
-  ): GeoApi = GeoApiImpl(
-    httpClient = httpClient,
-    json = json,
-    tokenManager = tokenManager,
-    identityRepo = identityRepo,
-    requestSigner = requestSigner,
-  )
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideGeoSearchUseCase(
-    geoApi: GeoApi,
-    googlePlacesApi: GooglePlacesApi,
-    @GoogleMapsApiKey googleMapsApiKey: String?,
-  ): GeoSearchUseCase = GeoSearchUseCase(
-    geoApi = geoApi,
-    googlePlacesApi = googlePlacesApi,
-    googleMapsApiKey = googleMapsApiKey,
-  )
-
-  @SingleIn(AppScope::class)
-  @Provides
-  fun provideReverseGeocodeUseCase(
-    geoApi: GeoApi,
-    googlePlacesApi: GooglePlacesApi,
-    @GoogleMapsApiKey googleMapsApiKey: String?,
-  ): ReverseGeocodeUseCase = ReverseGeocodeUseCase(
-    geoApi = geoApi,
-    googlePlacesApi = googlePlacesApi,
-    googleMapsApiKey = googleMapsApiKey,
-  )
+  // GeoApi, GeoSearchUseCase y ReverseGeocodeUseCase se proveen automáticamente
+  // por Metro mediante sus constructores anotados con @Inject
 
   @DependencyGraph.Factory
   fun interface Factory {

@@ -7,7 +7,10 @@ import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.normalizeLegacyOnboardingForMigration
 import com.gcaguilar.biciradar.core.local.settingsSnapshotFromDbRow
 import com.gcaguilar.biciradar.core.local.upsertSettingsFromSnapshot
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,36 +73,21 @@ interface SettingsRepository {
 }
 
 /**
- * Constructs [SettingsRepository] for the process. Persistent storage is provided by [BiciRadarDatabase]
- * when non-null (single source of truth); otherwise JSON file under [StorageDirectoryProvider].
- */
-@Inject
-class SettingsRepositoryFactory(
-  private val fileSystem: FileSystem,
-  private val json: Json,
-  private val storageDirectoryProvider: StorageDirectoryProvider,
-  private val scope: CoroutineScope,
-  private val database: BiciRadarDatabase?,
-) {
-  fun create(): SettingsRepository = SettingsRepositoryImpl(
-    fileSystem = fileSystem,
-    json = json,
-    storageDirectoryProvider = storageDirectoryProvider,
-    scope = scope,
-    database = database,
-  )
-}
-
-/**
  * Settings are read from storage (database or file) on every mutation and after external DB changes via
  * [BiciRadarDatabase] queries. In-memory state mirrors the latest decoded snapshot only.
+ *
+ * Registrado automáticamente en el grafo vía @ContributesBinding.
+ * El parámetro [database] es nullable - Metro inyecta null si no hay binding disponible.
  */
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
+@Inject
 class SettingsRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val storageDirectoryProvider: StorageDirectoryProvider,
   private val scope: CoroutineScope,
-  private val database: BiciRadarDatabase? = null,
+  private val database: BiciRadarDatabase?,
 ) : SettingsRepository {
   private val persistMutex = Mutex()
   private val readModel = MutableStateFlow(normalizeLegacyOnboardingForMigration(SettingsSnapshot()))
