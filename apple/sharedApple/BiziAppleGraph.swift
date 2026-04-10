@@ -17,9 +17,11 @@ actor BiziAppleGraph {
         appConfiguration: AppConfiguration.companion.createDefault()
     )
 
-    private lazy var graph: any SharedGraph = SharedGraphCompanion.shared.create(
-        platformBindings: bindings
-    )
+    private lazy var graph: any SharedGraph = {
+        let g = SharedGraphCompanion.shared.create(platformBindings: bindings)
+        bindings.onGraphCreated(graph: g)
+        return g
+    }()
     private var hasBootstrapped = false
 
     func refreshData(forceRefresh: Bool = false) async throws {
