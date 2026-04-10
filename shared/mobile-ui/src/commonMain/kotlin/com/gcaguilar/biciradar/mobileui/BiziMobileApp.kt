@@ -148,65 +148,65 @@ private fun rememberViewModelFactories(
 ): ViewModelFactories {
   val trip = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModelFactory(
-      tripRepository = resolvedGraph.tripRepository,
-      surfaceMonitoringRepository = resolvedGraph.surfaceMonitoringRepository,
-      geoSearchUseCase = resolvedGraph.geoSearchUseCase,
-      reverseGeocodeUseCase = resolvedGraph.reverseGeocodeUseCase,
-      settingsRepository = resolvedGraph.settingsRepository,
+      tripRepository = graph.tripRepository,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      geoSearchUseCase = graph.geoSearchUseCase,
+      reverseGeocodeUseCase = graph.reverseGeocodeUseCase,
+      settingsRepository = graph.settingsRepository,
     )
   }
   val nearby = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModelFactory(
-      stationsRepository = resolvedGraph.stationsRepository,
-      favoritesRepository = resolvedGraph.favoritesRepository,
-      routeLauncher = resolvedGraph.routeLauncher,
-      settingsRepository = resolvedGraph.settingsRepository,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      routeLauncher = graph.routeLauncher,
+      settingsRepository = graph.settingsRepository,
     )
   }
   val mapEnvironmental = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModelFactory(
-      environmentalRepository = resolvedGraph.environmentalRepository,
-      settingsRepository = resolvedGraph.settingsRepository,
+      environmentalRepository = graph.environmentalRepository,
+      settingsRepository = graph.settingsRepository,
     )
   }
   val shortcuts = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModelFactory(
-      assistantIntentResolver = resolvedGraph.assistantIntentResolver,
-      stationsRepository = resolvedGraph.stationsRepository,
-      favoritesRepository = resolvedGraph.favoritesRepository,
-      settingsRepository = resolvedGraph.settingsRepository,
+      assistantIntentResolver = graph.assistantIntentResolver,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      settingsRepository = graph.settingsRepository,
     )
   }
   val favorites = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory(
-      favoritesRepository = resolvedGraph.favoritesRepository,
-      stationsRepository = resolvedGraph.stationsRepository,
-      settingsRepository = resolvedGraph.settingsRepository,
-      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
-      routeLauncher = resolvedGraph.routeLauncher,
+      favoritesRepository = graph.favoritesRepository,
+      stationsRepository = graph.stationsRepository,
+      settingsRepository = graph.settingsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      routeLauncher = graph.routeLauncher,
     )
   }
   val profile = remember(graph, platformBindings) {
     com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModelFactory(
-      settingsRepository = resolvedGraph.settingsRepository,
-      stationsRepository = resolvedGraph.stationsRepository,
-      favoritesRepository = resolvedGraph.favoritesRepository,
-      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
+      settingsRepository = graph.settingsRepository,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
       canSelectGoogleMapsInIos = platformBindings.mapSupport.currentStatus().googleMapsAppInstalled,
     )
   }
   val savedPlaceAlerts = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModelFactory(
-      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
     )
   }
   val stationDetail = remember(graph) {
     com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModelFactory(
-      favoritesRepository = resolvedGraph.favoritesRepository,
-      settingsRepository = resolvedGraph.settingsRepository,
-      savedPlaceAlertsRepository = resolvedGraph.savedPlaceAlertsRepository,
-      datosBiziApi = resolvedGraph.datosBiziApi,
-      routeLauncher = resolvedGraph.routeLauncher,
+      favoritesRepository = graph.favoritesRepository,
+      settingsRepository = graph.settingsRepository,
+      savedPlaceAlertsRepository = graph.savedPlaceAlertsRepository,
+      datosBiziApi = graph.datosBiziApi,
+      routeLauncher = graph.routeLauncher,
     )
   }
   return ViewModelFactories(
@@ -291,7 +291,7 @@ private fun rememberNavigationConfig(
     onQuickRoute = onQuickRoute,
     onOpenAssistant = onOpenAssistant,
     localNotifier = platformBindings.localNotifier,
-    routeLauncher = resolvedGraph.routeLauncher,
+    routeLauncher = graph.routeLauncher,
     platformBindings = platformBindings,
     initialAssistantAction = appState.pendingAssistantAction,
     onInitialActionConsumed = onInitialActionConsumed,
@@ -383,7 +383,7 @@ fun BiziMobileApp(
     platformBindings.onGraphCreated(resolvedGraph)
     onTripRepositoryReady?.invoke(resolvedGraph.tripRepository)
     onSurfaceMonitoringRepositoryReady?.invoke(resolvedGraph.surfaceMonitoringRepository, resolvedGraph.favoritesRepository)
-    onSurfaceSnapshotRepositoryReady?.invoke(graph.surfaceSnapshotRepository)
+    onSurfaceSnapshotRepositoryReady?.invoke(resolvedGraph.surfaceSnapshotRepository)
   }
 
   LaunchedEffect(refreshKey) {

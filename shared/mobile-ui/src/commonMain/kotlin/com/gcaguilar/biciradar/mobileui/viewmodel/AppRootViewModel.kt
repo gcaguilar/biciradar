@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
+import com.gcaguilar.biciradar.core.ReviewEligibility
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
+import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingLaunchSource
@@ -26,7 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal data class ChangelogPresentation(
-  val sections: List<com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection>,
+  val sections: List<ChangelogVersionSection>,
   val highlightedVersion: String? = null,
   val persistSeenVersion: String? = null,
 )
@@ -53,7 +55,7 @@ internal data class AppRootRuntimeState(
   val latestHomeStationId: String?,
   val latestWorkStationId: String?,
   val latestOnboardingCompleted: Boolean,
-  val latestOnboardingChecklist: com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot,
+  val latestOnboardingChecklist: OnboardingChecklistSnapshot,
   val pendingRefreshSignals: Int = 0,
   // Estados runtime de sub-módulos (antes en ViewModels separados)
   val updateCheckInFlight: Boolean = false,
@@ -489,14 +491,15 @@ internal class AppRootViewModel(
             _uiState.update {
               it.copy(
                 topUpdateBanner = TopUpdateBanner.Available(
-                  version = update.versionName,
-                  flexible = update.flexible,
+                    version = update.versionName,
+                    flexible = update.isFlexibleAllowed,
+                    storeUrl = update.storeUrl,
                 )
               )
             }
           }
           is UpdateAvailabilityState.Downloaded -> {
-            _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded) }
+            _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(update.versionName)) }
           }
           else -> { /* No hay update */ }
         }
@@ -513,7 +516,7 @@ internal class AppRootViewModel(
         delay(3_000)
         val status = appLifecycleUseCase.checkForUpdate()
         if (status is UpdateAvailabilityState.Downloaded) {
-          _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded) }
+          _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(status.versionName)) }
           break
         }
       }
@@ -523,16 +526,25 @@ internal class AppRootViewModel(
 
   private fun maybeShowFeedbackNudge(isOnboardingCompleted: Boolean) {
     if (!isOnboardingCompleted) return
-    val shouldShow = appLifecycleUseCase.shouldShowFeedbackNudge(clock())
+    val shouldShow = appLifecycleUseCase.shouldShowFeedbackNudge(appVersion, clock())
     if (shouldShow) {
       _uiState.update { it.copy(showFeedbackNudge = true) }
     }
   }
 
   private fun maybeRequestInAppReview(isOnboardingCompleted: Boolean, dataFreshness: DataFreshness) {
-    if (!isOnboardingCompleted || dataFreshness == DataFreshness.LOADING) return
+    if (!isOnboardingCompleted) return
     viewModelScope.launch {
-      appLifecycleUseCase.maybeRequestReview(clock())
+      val eligibility = appLifecycleUseCase.checkReviewEligibility(
+        appVersion = appVersion,
+        onboardingCompleted = isOnboardingCompleted,
+        currentFreshness = dataFreshness,
+        nowEpoch = clock(),
+      )
+      if (eligibility.isEligible) {
+        appLifecycleUseCase.requestInAppReview()
+        appLifecycleUseCase.markReviewPrompted(appVersion, clock())
+      }
     }
   }
 

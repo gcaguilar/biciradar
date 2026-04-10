@@ -216,6 +216,7 @@ private class IOSRouteLauncher : RouteLauncher {
     if (preferredMapApp() == PreferredMapApp.GoogleMaps) {
       launchGoogleMapsWithFallback(
         destination = station.location,
+        googleMapsMode = "walking",
         onAllGoogleFallbacksFailed = { launchAppleMaps(station) },
       )
       return
