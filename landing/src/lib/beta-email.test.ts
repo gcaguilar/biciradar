@@ -50,12 +50,12 @@ describe('sendBetaSignupEmails', () => {
     expect(resendSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: ['user@example.com'],
-        subject: 'Your BiciRadar beta request is confirmed',
+        subject: 'Your BiciRadar download links',
       }),
     );
     const payload = resendSend.mock.calls[0][0] as { text: string; headers: Record<string, string> };
     expect(payload.text).toContain('Google Play');
-    expect(payload.text).toContain('groups.google.com/g/testers-biciradar');
+    expect(payload.text).not.toContain('groups.google.com/g/testers-biciradar');
     expect(payload.headers['Content-Language']).toBe('en');
   });
 

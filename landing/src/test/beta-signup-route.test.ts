@@ -66,7 +66,7 @@ describe('POST /api/beta-signup', () => {
     expect(resendSend).toHaveBeenCalledTimes(1);
     const externalPayload = resendSend.mock.calls[0][0] as { to: string[]; subject: string };
     expect(externalPayload.to).toEqual(['user@example.com']);
-    expect(externalPayload.subject).toContain('confirmed');
+    expect(externalPayload.subject).toContain('download links');
   });
 
   it('accepts signup from home without cityPageKey and omits system from subject', async () => {
@@ -95,7 +95,7 @@ describe('POST /api/beta-signup', () => {
     expect(body.ok).toBe(true);
     expect(body.redirectPath).toMatch(/os=ios/);
     const payload = resendSend.mock.calls[0][0] as { subject: string };
-    expect(payload.subject).toContain('confirmed');
+    expect(payload.subject).toContain('download links');
   });
 
   it('keeps signup successful when Resend reports an error', async () => {

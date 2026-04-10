@@ -34,6 +34,5 @@ export const siteConfig = {
   contactEmail: 'hola@biciradar.es',
   appStoreUrl: appStoreUrlByLocale.es,
   playStoreUrl: playStoreUrlForLocale('es'),
-  googleTestersGroupUrl: 'https://groups.google.com/g/testers-biciradar',
   githubUrl: 'https://github.com/gcaguilar/biciradar',
 } as const;

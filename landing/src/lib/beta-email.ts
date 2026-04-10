@@ -36,15 +36,14 @@ function buildUserConfirmation(record: BetaLeadRecord) {
   const locale = normalizeLocale(record.locale);
   const appStoreUrl = appStoreUrlForLocale(locale);
   const playStoreUrl = playStoreUrlForLocale(locale);
-  const testersGroupUrl = siteConfig.googleTestersGroupUrl;
   const supportEmail = siteConfig.contactEmail;
   const system = record.city ? bikeSystemLabelForCity(record.city) : null;
   const os = OS_LABEL[record.operatingSystem];
   const isEnglish = locale === 'en';
-  const subject = isEnglish ? 'Your BiciRadar beta request is confirmed' : 'Hemos recibido tu solicitud beta en BiciRadar';
+  const subject = isEnglish ? 'Your BiciRadar download links' : 'Te enviamos los enlaces de BiciRadar';
   const intro = isEnglish
-    ? 'Thanks for signing up for BiciRadar beta. We have received your request.'
-    : 'Gracias por apuntarte a la beta de BiciRadar. Hemos recibido tu solicitud.';
+    ? 'Thanks for leaving your email. Here are your BiciRadar download links.'
+    : 'Gracias por dejarnos tu correo. Aquí tienes los enlaces para descargar BiciRadar.';
   const osMessage =
     record.operatingSystem === 'ios'
       ? isEnglish
@@ -52,11 +51,11 @@ function buildUserConfirmation(record: BetaLeadRecord) {
         : `Si usas iPhone, ya puedes descargar la app desde aquí: ${appStoreUrl}`
       : record.operatingSystem === 'android'
         ? isEnglish
-          ? `For Android, join the testers group first (${testersGroupUrl}) and then install from Google Play: ${playStoreUrl}`
-          : `Si usas Android, primero únete al grupo de testers (${testersGroupUrl}) y después instala desde Google Play: ${playStoreUrl}`
+          ? `For Android, you can already download the app from Google Play: ${playStoreUrl}`
+          : `Si usas Android, ya puedes descargar la app desde Google Play: ${playStoreUrl}`
         : isEnglish
-          ? `For iPhone use App Store (${appStoreUrl}) and for Android join testers (${testersGroupUrl}) and then Google Play (${playStoreUrl}).`
-          : `Si usas ambos, en iPhone usa App Store (${appStoreUrl}) y en Android únete a testers (${testersGroupUrl}) y después Google Play (${playStoreUrl}).`;
+          ? `For iPhone, use the App Store (${appStoreUrl}). For Android, use Google Play (${playStoreUrl}).`
+          : `Si usas ambos, en iPhone usa App Store (${appStoreUrl}) y en Android usa Google Play (${playStoreUrl}).`;
   const details = [
     ...(system
       ? [isEnglish ? `Detected bike system page: ${system}` : `Sistema detectado de tu página: ${system}`]
