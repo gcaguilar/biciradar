@@ -81,30 +81,36 @@ class DbFirstReactiveRepositoryJvmTest {
       override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
     }
 
-    val stationsRepository = StationsRepositoryImpl(
-      biziApi = object : BiziApi {
-        override suspend fun fetchStations(origin: GeoPoint): List<Station> = listOf(
-          Station(
-            id = "st-1",
-            name = "Plaza Espana",
-            address = "Centro",
-            location = GeoPoint(41.65, -0.88),
-            bikesAvailable = 3,
-            slotsFree = 7,
-            distanceMeters = 120,
-          ),
-        )
+    val remoteDataSource = object : StationsRemoteDataSource {
+      override suspend fun fetchStations(origin: GeoPoint): List<Station> = listOf(
+        Station(
+          id = "st-1",
+          name = "Plaza Espana",
+          address = "Centro",
+          location = GeoPoint(41.65, -0.88),
+          bikesAvailable = 3,
+          slotsFree = 7,
+          distanceMeters = 120,
+        ),
+      )
 
-        override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> = mapOf(
-          "st-1" to StationAvailability(bikesAvailable = 9, slotsFree = 1),
-        )
-      },
-      appConfiguration = AppConfiguration(),
+      override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> = mapOf(
+        "st-1" to StationAvailability(bikesAvailable = 9, slotsFree = 1),
+      )
+    }
+
+    val cacheManager = StationsCacheManagerImpl(
+      database = database,
+      cacheStore = StationCacheStore(database),
+    )
+
+    val stationsRepository = StationsRepositoryImpl(
+      remoteDataSource = remoteDataSource,
+      cacheManager = cacheManager,
       locationProvider = object : LocationProvider {
         override suspend fun currentLocation(): GeoPoint? = null
       },
       settingsRepository = settingsRepository,
-      database = database,
       scope = backgroundScope,
     )
 

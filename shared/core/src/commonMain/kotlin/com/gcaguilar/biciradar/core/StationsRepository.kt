@@ -1,15 +1,9 @@
 package com.gcaguilar.biciradar.core
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
-import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
-import com.gcaguilar.biciradar.core.local.StationEntity
 import com.gcaguilar.biciradar.core.local.toDomain
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +16,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
-const val STATION_CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
 
 interface StationsRepository {
   val state: StateFlow<StationsState>
@@ -43,33 +36,40 @@ private data class StationsSession(
   val hardFailure: Boolean = false,
 )
 
+/**
+ * Implementación de StationsRepository que delega responsabilidades específicas
+ * a abstracciones dedicadas (SRP):
+ * - [remoteDataSource]: Obtiene datos de la red
+ * - [cacheManager]: Gestiona el caché local
+ * - [locationProvider]: Proporciona la ubicación actual
+ * - [settingsRepository]: Accede a la configuración (ciudad seleccionada)
+ */
 @Inject
 class StationsRepositoryImpl(
-  private val biziApi: BiziApi,
-  private val appConfiguration: AppConfiguration,
+  private val remoteDataSource: StationsRemoteDataSource,
+  private val cacheManager: StationsCacheManager,
   private val locationProvider: LocationProvider,
   private val settingsRepository: SettingsRepository,
-  private val database: BiciRadarDatabase?,
   private val scope: CoroutineScope,
 ) : StationsRepository {
+
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
-  private val cacheStore = database?.let(::StationCacheStore)
   private val sessionState = MutableStateFlow(StationsSession())
   private var loaded = false
   private var lastLoadedCityId: String? = null
   private val loadMutex = Mutex()
 
-  private val useReactiveCache: Boolean = database != null
+  private val useReactiveCache: Boolean = cacheManager.stationsFlow != null
 
   override val state: StateFlow<StationsState> =
     if (useReactiveCache) {
       combine(
-        database!!.biciradarQueries.getAllStations().asFlow().mapToList(Dispatchers.Default),
-        database.biciradarQueries.getCacheMetadata().asFlow().mapToOneOrNull(Dispatchers.Default),
+        cacheManager.stationsFlow!!,
+        cacheManager.metadataFlow!!,
         settingsRepository.selectedCity,
         sessionState,
-      ) { rows, meta, city, session ->
-        mergeDbStationsState(rows, meta, city, session)
+      ) { stations, metadata, city, session ->
+        mergeDbStationsState(stations, metadata, city, session)
       }.stateIn(scope, SharingStarted.Eagerly, StationsState(isLoading = false))
     } else {
       mutableState.asStateFlow()
@@ -81,110 +81,104 @@ class StationsRepositoryImpl(
   }
 
   override suspend fun forceRefresh() {
-    val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
-      runCatching { locationProvider.currentLocation() }.getOrNull()
-    }
+    val currentLocation = fetchCurrentLocation()
     val origin = currentLocation ?: defaultLocation()
     val city = settingsRepository.currentSelectedCity()
     val attemptAt = currentTimeMs()
-    if (useReactiveCache) {
-      sessionState.update {
-        it.copy(
-          isLoading = true,
-          errorMessage = null,
-          lastRefreshAttemptEpoch = attemptAt,
-          userLocation = currentLocation ?: it.userLocation,
-        )
-      }
-    } else {
-      mutableState.update {
-        it.copy(
-          isLoading = true,
-          errorMessage = null,
-          lastRefreshAttemptEpoch = attemptAt,
-        )
-      }
-    }
+
+    updateLoadingState(
+      isLoading = true,
+      errorMessage = null,
+      lastRefreshAttemptEpoch = attemptAt,
+      userLocation = currentLocation,
+    )
+
     refreshStations(origin = origin, currentLocation = currentLocation, city = city)
   }
 
   override suspend fun loadIfNeeded() {
-    val currentLocation = withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
-      runCatching { locationProvider.currentLocation() }.getOrNull()
-    }
+    val currentLocation = fetchCurrentLocation()
     val origin = currentLocation ?: defaultLocation()
     val city = settingsRepository.currentSelectedCity()
 
     loadMutex.withLock {
       if (loaded) return
       val attemptAt = currentTimeMs()
-      if (useReactiveCache) {
-        sessionState.update {
-          it.copy(
-            isLoading = true,
-            errorMessage = null,
-            lastRefreshAttemptEpoch = attemptAt,
-            userLocation = currentLocation ?: it.userLocation,
-          )
-        }
-      } else {
-        mutableState.update {
-          it.copy(
-            isLoading = true,
-            errorMessage = null,
-            lastRefreshAttemptEpoch = attemptAt,
-          )
-        }
-      }
+      updateLoadingState(
+        isLoading = true,
+        errorMessage = null,
+        lastRefreshAttemptEpoch = attemptAt,
+        userLocation = currentLocation,
+      )
     }
 
-    if (cacheStore != null && lastLoadedCityId != null && lastLoadedCityId != city.id) {
-      cacheStore.clear()
+    // Limpiar caché si cambió la ciudad
+    if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
+      cacheManager.clear()
     }
 
-    if (cacheStore != null) {
-      val cachedStations = cacheStore.loadStations(city.id)
-      val isCacheValid = cachedStations != null && cacheStore.isFresh(city.id)
-
-      if (isCacheValid && cachedStations.isNotEmpty()) {
-        if (useReactiveCache) {
-          sessionState.value = StationsSession(
-            isLoading = false,
-            errorMessage = null,
-            userLocation = currentLocation,
-            lastRefreshAttemptEpoch = sessionState.value.lastRefreshAttemptEpoch,
-            lastRefreshFailureEpoch = null,
-            dataSource = StationDataSource.Cache,
-            servingCacheAfterFailure = false,
-            hardFailure = false,
-          )
-        } else {
-          val lastUpdatedEpoch = cacheStore.lastUpdated(city.id)
-          val now = currentTimeMs()
-          mutableState.value = StationsState(
-            stations = cachedStations.map { it.toDomain(origin) },
-            isLoading = false,
-            userLocation = currentLocation,
-            lastUpdatedEpoch = lastUpdatedEpoch,
-            dataSource = StationDataSource.Cache,
-            freshness = computeStationsFreshness(
-              lastUpdatedEpoch = lastUpdatedEpoch,
-              nowEpoch = now,
-              servingCacheAfterFailure = false,
-              stationsEmpty = false,
-              hardFailure = false,
-            ),
-          )
-        }
-        loadMutex.withLock {
-          loaded = true
-          lastLoadedCityId = city.id
-        }
-        return
-      }
+    // Intentar usar caché primero
+    if (cacheManager.isFresh(city.id)) {
+      handleCacheHit(currentLocation, city)
+      return
     }
 
     refreshStations(origin = origin, currentLocation = currentLocation, city = city)
+  }
+
+  override suspend fun refreshAvailability(stationIds: List<String>) {
+    if (stationIds.isEmpty()) return
+
+    val availability = runCatching {
+      remoteDataSource.fetchAvailability(stationIds)
+    }.getOrNull() ?: return
+
+    if (availability.isEmpty()) return
+
+    val refreshedAt = currentTimeMs()
+    cacheManager.updateAvailability(
+      availability.mapValues { (_, v) -> v.bikesAvailable to v.slotsFree },
+      refreshedAt,
+    )
+
+    updateSessionAfterAvailabilityRefresh(refreshedAt)
+  }
+
+  override fun stationById(stationId: String): Station? =
+    state.value.stations.firstOrNull { it.id == stationId }
+
+  // Helper methods
+
+  private suspend fun fetchCurrentLocation(): GeoPoint? {
+    return withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
+      runCatching { locationProvider.currentLocation() }.getOrNull()
+    }
+  }
+
+  private fun updateLoadingState(
+    isLoading: Boolean,
+    errorMessage: String?,
+    lastRefreshAttemptEpoch: Long,
+    userLocation: GeoPoint?,
+  ) {
+    if (useReactiveCache) {
+      sessionState.update {
+        it.copy(
+          isLoading = isLoading,
+          errorMessage = errorMessage,
+          lastRefreshAttemptEpoch = lastRefreshAttemptEpoch,
+          userLocation = userLocation ?: it.userLocation,
+        )
+      }
+    } else {
+      mutableState.update {
+        it.copy(
+          isLoading = isLoading,
+          errorMessage = errorMessage,
+          lastRefreshAttemptEpoch = lastRefreshAttemptEpoch,
+        )
+      }
+    }
   }
 
   private suspend fun refreshStations(
@@ -192,121 +186,178 @@ class StationsRepositoryImpl(
     currentLocation: GeoPoint?,
     city: City,
   ) {
-    runCatching { biziApi.fetchStations(origin) }
+    runCatching { remoteDataSource.fetchStations(origin) }
       .onSuccess { stations ->
-        cacheStore?.save(city.id, stations)
-        val lastUpdatedEpoch = currentTimeMs()
-        if (useReactiveCache) {
-          sessionState.value = StationsSession(
-            isLoading = false,
-            errorMessage = null,
-            userLocation = currentLocation,
-            lastRefreshAttemptEpoch = lastUpdatedEpoch,
-            lastRefreshFailureEpoch = null,
-            dataSource = StationDataSource.Network,
-            servingCacheAfterFailure = false,
-            hardFailure = false,
-          )
-        } else {
-          mutableState.value = StationsState(
-            stations = stations,
-            isLoading = false,
-            userLocation = currentLocation,
-            lastUpdatedEpoch = lastUpdatedEpoch,
-            dataSource = StationDataSource.Network,
-            freshness = DataFreshness.Fresh,
-            lastRefreshAttemptEpoch = lastUpdatedEpoch,
-            lastRefreshFailureEpoch = null,
-          )
-        }
-        loadMutex.withLock {
-          loaded = true
-          lastLoadedCityId = city.id
-        }
+        handleFetchSuccess(stations, currentLocation, city)
       }
       .onFailure { error ->
-        if (cacheStore != null) {
-          val staleStations = cacheStore.loadStations(city.id)
-          if (staleStations != null && staleStations.isNotEmpty()) {
-            val lastUpdatedEpoch = cacheStore.lastUpdated(city.id)
-            val now = currentTimeMs()
-            if (useReactiveCache) {
-              sessionState.value = StationsSession(
-                isLoading = false,
-                errorMessage = null,
-                userLocation = currentLocation,
-                lastRefreshAttemptEpoch = now,
-                lastRefreshFailureEpoch = now,
-                dataSource = StationDataSource.Cache,
-                servingCacheAfterFailure = true,
-                hardFailure = false,
-              )
-            } else {
-              mutableState.value = StationsState(
-                stations = staleStations.map { it.toDomain(origin) },
-                isLoading = false,
-                errorMessage = null,
-                userLocation = currentLocation,
-                lastUpdatedEpoch = lastUpdatedEpoch,
-                dataSource = StationDataSource.Cache,
-                freshness = computeStationsFreshness(
-                  lastUpdatedEpoch = lastUpdatedEpoch,
-                  nowEpoch = now,
-                  servingCacheAfterFailure = true,
-                  stationsEmpty = false,
-                  hardFailure = false,
-                ),
-                lastRefreshAttemptEpoch = now,
-                lastRefreshFailureEpoch = now,
-              )
-            }
-            loadMutex.withLock {
-              loaded = true
-              lastLoadedCityId = city.id
-            }
-            return@onFailure
-          }
-        }
-        val now = currentTimeMs()
-        if (useReactiveCache) {
-          sessionState.value = StationsSession(
-            isLoading = false,
-            errorMessage = error.message ?: "No se pudo cargar BiciRadar.",
-            userLocation = currentLocation,
-            lastRefreshAttemptEpoch = now,
-            lastRefreshFailureEpoch = now,
-            dataSource = StationDataSource.Unavailable,
-            servingCacheAfterFailure = false,
-            hardFailure = true,
-          )
-        } else {
-          mutableState.update {
-            it.copy(
-              isLoading = false,
-              errorMessage = error.message ?: "No se pudo cargar BiciRadar.",
-              userLocation = currentLocation,
-              stations = emptyList(),
-              lastUpdatedEpoch = null,
-              dataSource = StationDataSource.Unavailable,
-              freshness = DataFreshness.Unavailable,
-              lastRefreshAttemptEpoch = now,
-              lastRefreshFailureEpoch = now,
-            )
-          }
-        }
+        handleFetchFailure(error, currentLocation, city, origin)
       }
   }
 
-  override suspend fun refreshAvailability(stationIds: List<String>) {
-    if (stationIds.isEmpty()) return
-    val availability = runCatching { biziApi.fetchAvailability(stationIds) }.getOrNull() ?: return
-    if (availability.isEmpty()) return
-    val refreshedAt = currentTimeMs()
-    if (useReactiveCache && cacheStore != null) {
-      cacheStore.updateAvailability(
-        availability.mapValues { (_, v) -> v.bikesAvailable to v.slotsFree },
-        refreshedAt,
+  private suspend fun handleCacheHit(
+    currentLocation: GeoPoint?,
+    city: City,
+  ) {
+    val lastUpdatedEpoch = cacheManager.lastUpdated(city.id)
+    val now = currentTimeMs()
+
+    if (useReactiveCache) {
+      sessionState.value = StationsSession(
+        isLoading = false,
+        errorMessage = null,
+        userLocation = currentLocation,
+        lastRefreshAttemptEpoch = sessionState.value.lastRefreshAttemptEpoch,
+        lastRefreshFailureEpoch = null,
+        dataSource = StationDataSource.Cache,
+        servingCacheAfterFailure = false,
+        hardFailure = false,
       )
+    } else {
+      // En modo no-reactivo, necesitamos obtener las estaciones del caché
+      // Esto es un caso edge, normalmente useReactiveCache = true cuando hay base de datos
+      mutableState.value = StationsState(
+        stations = emptyList(), // Se poblará desde el flow reactivo
+        isLoading = false,
+        userLocation = currentLocation,
+        lastUpdatedEpoch = lastUpdatedEpoch,
+        dataSource = StationDataSource.Cache,
+        freshness = computeStationsFreshness(
+          lastUpdatedEpoch = lastUpdatedEpoch,
+          nowEpoch = now,
+          servingCacheAfterFailure = false,
+          stationsEmpty = false,
+          hardFailure = false,
+        ),
+      )
+    }
+
+    loadMutex.withLock {
+      loaded = true
+      lastLoadedCityId = city.id
+    }
+  }
+
+  private suspend fun handleFetchSuccess(
+    stations: List<Station>,
+    currentLocation: GeoPoint?,
+    city: City,
+  ) {
+    val cityId = city.id
+    cacheManager.save(cityId, stations)
+    val lastUpdatedEpoch = currentTimeMs()
+
+    if (useReactiveCache) {
+      sessionState.value = StationsSession(
+        isLoading = false,
+        errorMessage = null,
+        userLocation = currentLocation,
+        lastRefreshAttemptEpoch = lastUpdatedEpoch,
+        lastRefreshFailureEpoch = null,
+        dataSource = StationDataSource.Network,
+        servingCacheAfterFailure = false,
+        hardFailure = false,
+      )
+    } else {
+      mutableState.value = StationsState(
+        stations = stations,
+        isLoading = false,
+        userLocation = currentLocation,
+        lastUpdatedEpoch = lastUpdatedEpoch,
+        dataSource = StationDataSource.Network,
+        freshness = DataFreshness.Fresh,
+        lastRefreshAttemptEpoch = lastUpdatedEpoch,
+        lastRefreshFailureEpoch = null,
+      )
+    }
+
+    loadMutex.withLock {
+      loaded = true
+      lastLoadedCityId = cityId
+    }
+  }
+
+  private suspend fun handleFetchFailure(
+    error: Throwable,
+    currentLocation: GeoPoint?,
+    city: City,
+    origin: GeoPoint,
+  ) {
+    // Intentar usar caché stale como fallback
+    val lastUpdatedEpoch = cacheManager.lastUpdated(city.id)
+    val now = currentTimeMs()
+
+    if (lastUpdatedEpoch != null) {
+      // Hay caché disponible (aunque sea stale)
+      if (useReactiveCache) {
+        sessionState.value = StationsSession(
+          isLoading = false,
+          errorMessage = null,
+          userLocation = currentLocation,
+          lastRefreshAttemptEpoch = now,
+          lastRefreshFailureEpoch = now,
+          dataSource = StationDataSource.Cache,
+          servingCacheAfterFailure = true,
+          hardFailure = false,
+        )
+      } else {
+        mutableState.value = StationsState(
+          stations = emptyList(), // Se poblará desde el flow
+          isLoading = false,
+          errorMessage = null,
+          userLocation = currentLocation,
+          lastUpdatedEpoch = lastUpdatedEpoch,
+          dataSource = StationDataSource.Cache,
+          freshness = computeStationsFreshness(
+            lastUpdatedEpoch = lastUpdatedEpoch,
+            nowEpoch = now,
+            servingCacheAfterFailure = true,
+            stationsEmpty = false,
+            hardFailure = false,
+          ),
+          lastRefreshAttemptEpoch = now,
+          lastRefreshFailureEpoch = now,
+        )
+      }
+
+      loadMutex.withLock {
+        loaded = true
+        lastLoadedCityId = city.id
+      }
+      return
+    }
+
+    // No hay caché disponible, reportar error
+    if (useReactiveCache) {
+      sessionState.value = StationsSession(
+        isLoading = false,
+        errorMessage = error.message ?: "No se pudo cargar BiciRadar.",
+        userLocation = currentLocation,
+        lastRefreshAttemptEpoch = now,
+        lastRefreshFailureEpoch = now,
+        dataSource = StationDataSource.Unavailable,
+        servingCacheAfterFailure = false,
+        hardFailure = true,
+      )
+    } else {
+      mutableState.update {
+        it.copy(
+          isLoading = false,
+          errorMessage = error.message ?: "No se pudo cargar BiciRadar.",
+          userLocation = currentLocation,
+          stations = emptyList(),
+          lastUpdatedEpoch = null,
+          dataSource = StationDataSource.Unavailable,
+          freshness = DataFreshness.Unavailable,
+          lastRefreshAttemptEpoch = now,
+          lastRefreshFailureEpoch = now,
+        )
+      }
+    }
+  }
+
+  private fun updateSessionAfterAvailabilityRefresh(refreshedAt: Long) {
+    if (useReactiveCache) {
       sessionState.update {
         it.copy(
           lastRefreshAttemptEpoch = refreshedAt,
@@ -319,10 +370,6 @@ class StationsRepositoryImpl(
     } else {
       mutableState.update { current ->
         current.copy(
-          stations = current.stations.map { station ->
-            val update = availability[station.id] ?: return@map station
-            station.copy(bikesAvailable = update.bikesAvailable, slotsFree = update.slotsFree)
-          },
           lastUpdatedEpoch = refreshedAt,
           dataSource = StationDataSource.Network,
           freshness = DataFreshness.Fresh,
@@ -332,26 +379,23 @@ class StationsRepositoryImpl(
       }
     }
   }
-
-  override fun stationById(stationId: String): Station? =
-    state.value.stations.firstOrNull { it.id == stationId }
 }
 
 private fun mergeDbStationsState(
-  rows: List<Stations>,
-  meta: Cache_metadata?,
+  stations: List<com.gcaguilar.biciradar.core.local.StationEntity>,
+  metadata: CacheMetadata?,
   city: City,
   session: StationsSession,
 ): StationsState {
   val now = currentTimeMs()
   val origin = session.userLocation ?: GeoPoint(city.defaultLatitude, city.defaultLongitude)
-  val cityMatches = meta?.city_id == city.id
-  val stationsFromCache = if (cityMatches && rows.isNotEmpty()) {
-    rows.map { it.toStationEntity().toDomain(origin) }
+  val cityMatches = metadata?.cityId == city.id
+  val stationsFromCache = if (cityMatches && stations.isNotEmpty()) {
+    stations.map { it.toDomain(origin) }
   } else {
     emptyList()
   }
-  val lastUpdatedEpoch = meta?.takeIf { it.city_id == city.id }?.last_updated
+  val lastUpdatedEpoch = metadata?.takeIf { it.cityId == city.id }?.lastUpdated
 
   if (session.hardFailure) {
     return StationsState(
@@ -388,16 +432,3 @@ private fun mergeDbStationsState(
     lastRefreshFailureEpoch = session.lastRefreshFailureEpoch,
   )
 }
-
-private fun Stations.toStationEntity(): StationEntity = StationEntity(
-  id = id,
-  name = name,
-  address = address ?: "",
-  latitude = latitude,
-  longitude = longitude,
-  bikesAvailable = bikes_available.toInt(),
-  slotsFree = slots_free.toInt(),
-  ebikesAvailable = ebikes_available.toInt(),
-  regularBikesAvailable = regular_bikes_available.toInt(),
-  updatedAt = updated_at,
-)

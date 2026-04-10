@@ -88,6 +88,21 @@ interface SharedGraph {
 
   @SingleIn(AppScope::class)
   @Provides
+  fun provideStationsRemoteDataSource(biziApi: BiziApi): StationsRemoteDataSource =
+    StationsRemoteDataSourceImpl(biziApi)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideStationsCacheManager(
+    database: BiciRadarDatabase?,
+  ): StationsCacheManager = if (database != null) {
+    StationsCacheManagerImpl(database, StationCacheStore(database))
+  } else {
+    NoOpStationsCacheManager()
+  }
+
+  @SingleIn(AppScope::class)
+  @Provides
   fun provideStationsRepository(implementation: StationsRepositoryImpl): StationsRepository = implementation
 
   @SingleIn(AppScope::class)

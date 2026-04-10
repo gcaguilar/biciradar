@@ -4,7 +4,12 @@ import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.StationEntity
 
-internal class StationCacheStore(
+/**
+ * Intervalo de refresco del caché de estaciones (5 minutos).
+ */
+const val STATION_CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
+
+class StationCacheStore(
   private val database: BiciRadarDatabase,
 ) {
   fun loadStations(cityId: String): List<StationEntity>? {
