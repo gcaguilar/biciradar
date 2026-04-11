@@ -523,6 +523,7 @@ private val CORE_RELATIONAL_DDL: List<String> = listOf(
       category_id TEXT NOT NULL
     )
   """.trimIndent().replace("\n", " "),
+  SAVED_PLACE_ALERT_RULES_DDL,
   """
     CREATE TABLE IF NOT EXISTS app_settings (
       id INTEGER PRIMARY KEY NOT NULL,
