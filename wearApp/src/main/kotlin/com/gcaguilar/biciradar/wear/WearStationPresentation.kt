@@ -15,22 +15,24 @@ internal fun sortWearFavoriteStations(
   stations: List<Station>,
   homeStationId: String?,
   workStationId: String?,
-): List<Station> = stations.sortedWith(
-  compareByDescending<Station> { it.id == homeStationId }
-    .thenByDescending { it.id == workStationId }
-    .thenBy { it.distanceMeters }
-    .thenBy { it.name },
-)
+): List<Station> =
+  stations.sortedWith(
+    compareByDescending<Station> { it.id == homeStationId }
+      .thenByDescending { it.id == workStationId }
+      .thenBy { it.distanceMeters }
+      .thenBy { it.name },
+  )
 
 internal fun wearSavedPlaceLabel(
   stationId: String,
   homeStationId: String?,
   workStationId: String?,
-): String? = when (stationId) {
-  homeStationId -> "Casa"
-  workStationId -> "Trabajo"
-  else -> null
-}
+): String? =
+  when (stationId) {
+    homeStationId -> "Casa"
+    workStationId -> "Trabajo"
+    else -> null
+  }
 
 internal enum class WearFavoriteSurfaceKind {
   Favorite,
@@ -99,23 +101,26 @@ internal fun wearFavoriteSurfaceState(
     )
   }
   return when {
-    snapshot?.state?.hasFavoriteStation == false -> WearFavoriteSurfaceState(
-      kind = WearFavoriteSurfaceKind.ConfigureFavorite,
-      title = "Sin favorita",
-      supportingText = "Configúrala en la app",
-    )
+    snapshot?.state?.hasFavoriteStation == false ->
+      WearFavoriteSurfaceState(
+        kind = WearFavoriteSurfaceKind.ConfigureFavorite,
+        title = "Sin favorita",
+        supportingText = "Configúrala en la app",
+      )
 
-    snapshot?.state?.isDataFresh == false -> WearFavoriteSurfaceState(
-      kind = WearFavoriteSurfaceKind.OpenAppToRefresh,
-      title = "Datos stale",
-      supportingText = "Abre la app para actualizar",
-    )
+    snapshot?.state?.isDataFresh == false ->
+      WearFavoriteSurfaceState(
+        kind = WearFavoriteSurfaceKind.OpenAppToRefresh,
+        title = "Datos stale",
+        supportingText = "Abre la app para actualizar",
+      )
 
-    else -> WearFavoriteSurfaceState(
-      kind = WearFavoriteSurfaceKind.DataUnavailable,
-      title = "Datos no disponibles",
-      supportingText = snapshot?.state?.cityName ?: "BiciRadar",
-    )
+    else ->
+      WearFavoriteSurfaceState(
+        kind = WearFavoriteSurfaceKind.DataUnavailable,
+        title = "Datos no disponibles",
+        supportingText = snapshot?.state?.cityName ?: "BiciRadar",
+      )
   }
 }
 
@@ -128,10 +133,11 @@ internal fun wearFavoriteTileState(
     WearFavoriteSurfaceKind.Favorite -> {
       val favorite = snapshot?.favoriteStation
       val metrics = listOfNotNull(surface.bikesLabel, surface.docksLabel).joinToString("  ")
-      val alternative = favorite?.alternativeStationName?.let { name ->
-        val distance = favorite.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
-        "Alt: $name$distance"
-      }
+      val alternative =
+        favorite?.alternativeStationName?.let { name ->
+          val distance = favorite.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
+          "Alt: $name$distance"
+        }
       WearFavoriteTileState(
         title = surface.title,
         body = listOfNotNull(metrics.takeIf { it.isNotBlank() }, alternative).joinToString(" · "),
@@ -143,61 +149,74 @@ internal fun wearFavoriteTileState(
 
     WearFavoriteSurfaceKind.ConfigureFavorite,
     WearFavoriteSurfaceKind.OpenAppToRefresh,
-    WearFavoriteSurfaceKind.DataUnavailable -> WearFavoriteTileState(
-      title = surface.title,
-      body = surface.supportingText,
-      label = snapshot?.state?.cityName,
-      stationId = surface.stationId,
-    )
+    WearFavoriteSurfaceKind.DataUnavailable,
+    ->
+      WearFavoriteTileState(
+        title = surface.title,
+        body = surface.supportingText,
+        label = snapshot?.state?.cityName,
+        stationId = surface.stationId,
+      )
   }
 }
 
 internal fun wearMonitoringSurfaceState(
   session: SurfaceMonitoringSession,
   remainingSeconds: Int,
-): WearMonitoringSurfaceState = WearMonitoringSurfaceState(
-  stationId = session.stationId,
-  title = session.stationName,
-  statusText = wearMonitoringStatusText(session.status, session.kind),
-  statusLevel = session.statusLevel,
-  countdownText = wearMonitoringCountdownText(remainingSeconds),
-  bikesLabel = "🚲 ${session.bikesAvailable}",
-  docksLabel = "🅿 ${session.docksAvailable}",
-  alternativeText = session.alternativeStationName?.let { name ->
-    val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
-    "Alt: $name$distance"
-  },
-)
+): WearMonitoringSurfaceState =
+  WearMonitoringSurfaceState(
+    stationId = session.stationId,
+    title = session.stationName,
+    statusText = wearMonitoringStatusText(session.status, session.kind),
+    statusLevel = session.statusLevel,
+    countdownText = wearMonitoringCountdownText(remainingSeconds),
+    bikesLabel = "🚲 ${session.bikesAvailable}",
+    docksLabel = "🅿 ${session.docksAvailable}",
+    alternativeText =
+      session.alternativeStationName?.let { name ->
+        val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
+        "Alt: $name$distance"
+      },
+  )
 
 internal fun wearSavedPlaceSurfaceStates(
   stations: List<Station>,
   homeStationId: String?,
   workStationId: String?,
-): List<WearSavedPlaceSurfaceState> = buildList {
-  homeStationId
-    ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
-    ?.let { station ->
-      add(station.toWearSavedPlaceSurfaceState(label = "Casa"))
-    }
-  workStationId
-    ?.takeIf { it != homeStationId }
-    ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
-    ?.let { station ->
-      add(station.toWearSavedPlaceSurfaceState(label = "Trabajo"))
-    }
-}
+): List<WearSavedPlaceSurfaceState> =
+  buildList {
+    homeStationId
+      ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
+      ?.let { station ->
+        add(station.toWearSavedPlaceSurfaceState(label = "Casa"))
+      }
+    workStationId
+      ?.takeIf { it != homeStationId }
+      ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
+      ?.let { station ->
+        add(station.toWearSavedPlaceSurfaceState(label = "Trabajo"))
+      }
+  }
 
 private fun wearMonitoringStatusText(
   status: SurfaceMonitoringStatus,
   kind: SurfaceMonitoringKind,
-): String = when (status) {
-  SurfaceMonitoringStatus.Monitoring -> if (kind == SurfaceMonitoringKind.Docks) "Monitorizando huecos" else "Monitorizando bicis"
-  SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
-  SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
-  SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
-  SurfaceMonitoringStatus.Ended -> "Finalizada"
-  SurfaceMonitoringStatus.Expired -> "Expirada"
-}
+): String =
+  when (status) {
+    SurfaceMonitoringStatus.Monitoring ->
+      if (kind ==
+        SurfaceMonitoringKind.Docks
+      ) {
+        "Monitorizando huecos"
+      } else {
+        "Monitorizando bicis"
+      }
+    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
+    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
+    SurfaceMonitoringStatus.Ended -> "Finalizada"
+    SurfaceMonitoringStatus.Expired -> "Expirada"
+  }
 
 private fun wearMonitoringCountdownText(remainingSeconds: Int): String {
   val minutes = remainingSeconds / 60

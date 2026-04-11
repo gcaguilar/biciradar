@@ -7,9 +7,9 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -67,45 +67,47 @@ internal data class BiziColors(
   val dismissAlphaBase: Float,
 )
 
-internal val LightBiziColors = BiziColors(
-  background = BiziLight,
-  groupedBackground = BiziGrouped,
-  surface = Color.White,
-  ink = BiziInk,
-  muted = BiziMuted,
-  panel = BiziPanel,
-  red = BiziPrimary,
-  blue = BiziTertiary,
-  green = BiziSecondary,
-  orange = BiziOrange,
-  purple = BiziNeutral,
-  onAccent = Color.White,
-  navBar = Color.White,
-  navBarIos = Color.White.copy(alpha = 0.96f),
-  fieldSurfaceIos = Color.White,
-  fieldSurfaceAndroid = BiziPanel,
-  dismissAlphaBase = 0.10f,
-)
+internal val LightBiziColors =
+  BiziColors(
+    background = BiziLight,
+    groupedBackground = BiziGrouped,
+    surface = Color.White,
+    ink = BiziInk,
+    muted = BiziMuted,
+    panel = BiziPanel,
+    red = BiziPrimary,
+    blue = BiziTertiary,
+    green = BiziSecondary,
+    orange = BiziOrange,
+    purple = BiziNeutral,
+    onAccent = Color.White,
+    navBar = Color.White,
+    navBarIos = Color.White.copy(alpha = 0.96f),
+    fieldSurfaceIos = Color.White,
+    fieldSurfaceAndroid = BiziPanel,
+    dismissAlphaBase = 0.10f,
+  )
 
-internal val DarkBiziColors = BiziColors(
-  background = BiziDarkBackground,
-  groupedBackground = BiziDarkGrouped,
-  surface = BiziDarkSurface,
-  ink = BiziDarkInk,
-  muted = BiziDarkMuted,
-  panel = BiziDarkPanel,
-  red = BiziDarkPrimary,
-  blue = BiziDarkTertiary,
-  green = BiziDarkSecondary,
-  orange = BiziOrange,
-  purple = BiziDarkNeutral,
-  onAccent = Color.White,
-  navBar = BiziDarkSurface,
-  navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
-  fieldSurfaceIos = BiziDarkSurface,
-  fieldSurfaceAndroid = BiziDarkPanel,
-  dismissAlphaBase = 0.16f,
-)
+internal val DarkBiziColors =
+  BiziColors(
+    background = BiziDarkBackground,
+    groupedBackground = BiziDarkGrouped,
+    surface = BiziDarkSurface,
+    ink = BiziDarkInk,
+    muted = BiziDarkMuted,
+    panel = BiziDarkPanel,
+    red = BiziDarkPrimary,
+    blue = BiziDarkTertiary,
+    green = BiziDarkSecondary,
+    orange = BiziOrange,
+    purple = BiziDarkNeutral,
+    onAccent = Color.White,
+    navBar = BiziDarkSurface,
+    navBarIos = BiziDarkSurface.copy(alpha = 0.96f),
+    fieldSurfaceIos = BiziDarkSurface,
+    fieldSurfaceAndroid = BiziDarkPanel,
+    dismissAlphaBase = 0.16f,
+  )
 
 internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
 internal val LocalIsDarkTheme = staticCompositionLocalOf { false }
@@ -125,29 +127,32 @@ internal fun BiziTheme(
   themePreference: ThemePreference = ThemePreference.System,
   content: @Composable () -> Unit,
 ) {
-  val isDark = when (themePreference) {
-    ThemePreference.Light -> false
-    ThemePreference.Dark -> true
-    ThemePreference.System -> isSystemInDarkTheme()
-  }
+  val isDark =
+    when (themePreference) {
+      ThemePreference.Light -> false
+      ThemePreference.Dark -> true
+      ThemePreference.System -> isSystemInDarkTheme()
+    }
   val dynamicColorScheme = platformDynamicColorScheme(isDark)
-  val colors = dynamicColorScheme?.let { dynamicScheme ->
-    dynamicBiziColors(dynamicScheme, mobilePlatform, isDark)
-  } ?: if (isDark) {
-    DarkBiziColors
-  } else {
-    LightBiziColors
-  }
+  val colors =
+    dynamicColorScheme?.let { dynamicScheme ->
+      dynamicBiziColors(dynamicScheme, mobilePlatform, isDark)
+    } ?: if (isDark) {
+      DarkBiziColors
+    } else {
+      LightBiziColors
+    }
   CompositionLocalProvider(
     LocalBiziColors provides colors,
     LocalIsDarkTheme provides isDark,
   ) {
     MaterialTheme(
-      colorScheme = dynamicColorScheme ?: biziColorScheme(
-        isDark = isDark,
-        colors = colors,
-        mobilePlatform = mobilePlatform,
-      ),
+      colorScheme =
+        dynamicColorScheme ?: biziColorScheme(
+          isDark = isDark,
+          colors = colors,
+          mobilePlatform = mobilePlatform,
+        ),
       motionScheme = MotionScheme.expressive(),
       content = content,
     )
@@ -159,7 +164,9 @@ internal fun rememberBiziWindowLayout(): BiziWindowLayout {
   val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
   return when {
     windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) &&
-      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Expanded
+      windowSizeClass.isHeightAtLeastBreakpoint(
+        WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND,
+      ) -> BiziWindowLayout.Expanded
     windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
       windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Medium
     else -> BiziWindowLayout.Compact
@@ -212,25 +219,26 @@ internal fun dynamicBiziColors(
   colorScheme: ColorScheme,
   mobilePlatform: MobileUiPlatform,
   isDark: Boolean,
-): BiziColors = BiziColors(
-  background = colorScheme.background,
-  groupedBackground = if (mobilePlatform == MobileUiPlatform.IOS) colorScheme.surface else colorScheme.background,
-  surface = colorScheme.surface,
-  ink = colorScheme.onSurface,
-  muted = colorScheme.onSurfaceVariant,
-  panel = colorScheme.surfaceVariant,
-  red = colorScheme.primary,
-  blue = colorScheme.tertiary,
-  green = colorScheme.secondary,
-  orange = colorScheme.tertiary,
-  purple = colorScheme.secondary,
-  onAccent = colorScheme.onPrimary,
-  navBar = colorScheme.surface,
-  navBarIos = colorScheme.surface.copy(alpha = 0.96f),
-  fieldSurfaceIos = colorScheme.surface,
-  fieldSurfaceAndroid = colorScheme.surfaceVariant,
-  dismissAlphaBase = if (isDark) 0.16f else 0.10f,
-)
+): BiziColors =
+  BiziColors(
+    background = colorScheme.background,
+    groupedBackground = if (mobilePlatform == MobileUiPlatform.IOS) colorScheme.surface else colorScheme.background,
+    surface = colorScheme.surface,
+    ink = colorScheme.onSurface,
+    muted = colorScheme.onSurfaceVariant,
+    panel = colorScheme.surfaceVariant,
+    red = colorScheme.primary,
+    blue = colorScheme.tertiary,
+    green = colorScheme.secondary,
+    orange = colorScheme.tertiary,
+    purple = colorScheme.secondary,
+    onAccent = colorScheme.onPrimary,
+    navBar = colorScheme.surface,
+    navBarIos = colorScheme.surface.copy(alpha = 0.96f),
+    fieldSurfaceIos = colorScheme.surface,
+    fieldSurfaceAndroid = colorScheme.surfaceVariant,
+    dismissAlphaBase = if (isDark) 0.16f else 0.10f,
+  )
 
 @Composable
 internal fun pageBackgroundColor(platform: MobileUiPlatform): Color {
@@ -240,11 +248,12 @@ internal fun pageBackgroundColor(platform: MobileUiPlatform): Color {
 
 @Composable
 internal fun Modifier.responsivePageWidth(): Modifier {
-  val maxWidth = when (LocalBiziWindowLayout.current) {
-    BiziWindowLayout.Compact -> null
-    BiziWindowLayout.Medium -> 760.dp
-    BiziWindowLayout.Expanded -> 920.dp
-  }
+  val maxWidth =
+    when (LocalBiziWindowLayout.current) {
+      BiziWindowLayout.Compact -> null
+      BiziWindowLayout.Medium -> 760.dp
+      BiziWindowLayout.Expanded -> 920.dp
+    }
   return if (maxWidth == null) {
     fillMaxSize()
   } else {

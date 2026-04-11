@@ -30,13 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
-import com.gcaguilar.biciradar.mobileui.components.ShortcutGuide
-import com.gcaguilar.biciradar.mobileui.components.ShortcutGuideCard
-import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
-import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.back
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorites
@@ -69,6 +62,13 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsAvailableW
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsCurrentRadius
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsIosInvocationHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsIosSubtitle
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.components.ShortcutGuide
+import com.gcaguilar.biciradar.mobileui.components.ShortcutGuideCard
+import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
+import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,10 +84,11 @@ internal fun ShortcutsScreen(
   val shortcutGuides = shortcutGuidesFor(mobilePlatform)
 
   Scaffold(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+        .background(pageBackgroundColor(mobilePlatform)),
     topBar = {
       TopAppBar(
         title = {
@@ -107,19 +108,21 @@ internal fun ShortcutsScreen(
     containerColor = pageBackgroundColor(mobilePlatform),
   ) { innerPadding ->
     Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(pageBackgroundColor(mobilePlatform)),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .background(pageBackgroundColor(mobilePlatform)),
       contentAlignment = Alignment.TopCenter,
     ) {
       LazyColumn(
         modifier = Modifier.responsivePageWidth(),
-        contentPadding = PaddingValues(
-          start = 16.dp,
-          top = innerPadding.calculateTopPadding() + 16.dp,
-          end = 16.dp,
-          bottom = innerPadding.calculateBottomPadding() + 16.dp,
-        ),
+        contentPadding =
+          PaddingValues(
+            start = 16.dp,
+            top = innerPadding.calculateTopPadding() + 16.dp,
+            end = 16.dp,
+            bottom = innerPadding.calculateBottomPadding() + 16.dp,
+          ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
         if (mobilePlatform == MobileUiPlatform.IOS) {
@@ -194,60 +197,65 @@ internal fun ShortcutsScreen(
   }
 }
 
-private fun MobileUiPlatform.assistantDisplayName(): String = when (this) {
-  MobileUiPlatform.Android -> "Gemini"
-  MobileUiPlatform.IOS -> "Siri"
-  MobileUiPlatform.Desktop -> "Asistente"
-}
+private fun MobileUiPlatform.assistantDisplayName(): String =
+  when (this) {
+    MobileUiPlatform.Android -> "Gemini"
+    MobileUiPlatform.IOS -> "Siri"
+    MobileUiPlatform.Desktop -> "Asistente"
+  }
 
 @Composable
-private fun shortcutGuidesFor(
-  mobilePlatform: MobileUiPlatform,
-): List<ShortcutGuide> = listOf(
-  ShortcutGuide(
-    title = stringResource(Res.string.mapNearestStationLabel),
-    description = stringResource(Res.string.guideNearestStationDescription),
-    examples = listOf(
-      stringResource(Res.string.guideNearestStationExampleNearest),
-      stringResource(Res.string.guideNearestStationExampleClosest),
+private fun shortcutGuidesFor(mobilePlatform: MobileUiPlatform): List<ShortcutGuide> =
+  listOf(
+    ShortcutGuide(
+      title = stringResource(Res.string.mapNearestStationLabel),
+      description = stringResource(Res.string.guideNearestStationDescription),
+      examples =
+        listOf(
+          stringResource(Res.string.guideNearestStationExampleNearest),
+          stringResource(Res.string.guideNearestStationExampleClosest),
+        ),
+      icon = Icons.Filled.Navigation,
     ),
-    icon = Icons.Filled.Navigation,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideNearestWithBikesOrSlots),
-    description = stringResource(Res.string.guideNearestWithBikesOrSlotsDescription),
-    examples = listOf(
-      stringResource(Res.string.guideNearestWithBikesOrSlotsExampleBikes),
-      stringResource(Res.string.guideNearestWithBikesOrSlotsExampleSlots),
+    ShortcutGuide(
+      title = stringResource(Res.string.guideNearestWithBikesOrSlots),
+      description = stringResource(Res.string.guideNearestWithBikesOrSlotsDescription),
+      examples =
+        listOf(
+          stringResource(Res.string.guideNearestWithBikesOrSlotsExampleBikes),
+          stringResource(Res.string.guideNearestWithBikesOrSlotsExampleSlots),
+        ),
+      icon = Icons.AutoMirrored.Filled.DirectionsBike,
     ),
-    icon = Icons.AutoMirrored.Filled.DirectionsBike,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideStationStatus),
-    description = stringResource(Res.string.guideStationStatusDescription),
-    examples = listOf(
-      stringResource(Res.string.guideStationStatusExampleHome),
-      stringResource(Res.string.guideStationStatusExampleHomeBikes),
-      stringResource(Res.string.guideStationStatusExampleStationSlots),
+    ShortcutGuide(
+      title = stringResource(Res.string.guideStationStatus),
+      description = stringResource(Res.string.guideStationStatusDescription),
+      examples =
+        listOf(
+          stringResource(Res.string.guideStationStatusExampleHome),
+          stringResource(Res.string.guideStationStatusExampleHomeBikes),
+          stringResource(Res.string.guideStationStatusExampleStationSlots),
+        ),
+      icon = Icons.Filled.Search,
     ),
-    icon = Icons.Filled.Search,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.favorites),
-    description = stringResource(Res.string.guideFavoritesDescription),
-    examples = listOf(
-      stringResource(Res.string.guideFavoritesExampleOpen),
-      stringResource(Res.string.guideFavoritesExampleWork),
+    ShortcutGuide(
+      title = stringResource(Res.string.favorites),
+      description = stringResource(Res.string.guideFavoritesDescription),
+      examples =
+        listOf(
+          stringResource(Res.string.guideFavoritesExampleOpen),
+          stringResource(Res.string.guideFavoritesExampleWork),
+        ),
+      icon = Icons.Filled.Favorite,
     ),
-    icon = Icons.Filled.Favorite,
-  ),
-  ShortcutGuide(
-    title = stringResource(Res.string.guideRouteToStation),
-    description = stringResource(Res.string.guideRouteToStationDescription),
-    examples = listOf(
-      stringResource(Res.string.guideRouteToStationExamplePlazaEspana),
-      stringResource(Res.string.guideRouteToStationExampleWork),
+    ShortcutGuide(
+      title = stringResource(Res.string.guideRouteToStation),
+      description = stringResource(Res.string.guideRouteToStationDescription),
+      examples =
+        listOf(
+          stringResource(Res.string.guideRouteToStationExamplePlazaEspana),
+          stringResource(Res.string.guideRouteToStationExampleWork),
+        ),
+      icon = Icons.Filled.Directions,
     ),
-    icon = Icons.Filled.Directions,
-  ),
-)
+  )

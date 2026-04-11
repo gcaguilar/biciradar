@@ -11,10 +11,11 @@ class NearbyViewModelFactory(
   private val settingsRepository: SettingsRepository,
   private val routeLauncher: RouteLauncher,
 ) {
-  fun create(): NearbyViewModel = NearbyViewModel(
-    stationsRepository = stationsRepository,
-    favoritesRepository = favoritesRepository,
-    settingsRepository = settingsRepository,
-    routeLauncher = routeLauncher,
-  )
+  fun create(): NearbyViewModel =
+    NearbyViewModel(
+      stationsRepository = stationsRepository,
+      favoritesRepository = favoritesRepository,
+      settingsRepository = settingsRepository,
+      routeLauncher = routeLauncher,
+    )
 }

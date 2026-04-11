@@ -2,8 +2,8 @@ package com.gcaguilar.biciradar.mobileui.initialization
 
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
-import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import kotlinx.coroutines.delay
 
@@ -28,7 +28,6 @@ internal class AppInitializer(
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
   private val clock: () -> Long,
 ) {
-
   /**
    * Initializes settings repository.
    * @return true if initialization completed
@@ -92,9 +91,7 @@ internal class AppInitializer(
    *
    * @param onMinimumSplashElapsed Callback when minimum splash time has elapsed
    */
-  suspend fun startMinimumSplashTimer(
-    onMinimumSplashElapsed: () -> Unit,
-  ) {
+  suspend fun startMinimumSplashTimer(onMinimumSplashElapsed: () -> Unit) {
     delay(700)
     onMinimumSplashElapsed()
   }
@@ -123,23 +120,17 @@ internal class AppInitializer(
   /**
    * Checks if onboarding is completed.
    */
-  fun isOnboardingCompleted(): Boolean {
-    return startupUseCase.isOnboardingCompleted()
-  }
+  fun isOnboardingCompleted(): Boolean = startupUseCase.isOnboardingCompleted()
 
   /**
    * Gets the current onboarding checklist.
    */
-  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot {
-    return startupUseCase.currentOnboardingChecklist()
-  }
+  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot = startupUseCase.currentOnboardingChecklist()
 
   /**
    * Updates the onboarding checklist.
    */
-  suspend fun updateOnboardingChecklist(
-    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
-  ) {
+  suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
     startupUseCase.updateOnboardingChecklist(transform)
   }
 }

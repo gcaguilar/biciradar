@@ -13,10 +13,13 @@ import androidx.compose.runtime.setValue
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 
-internal enum class WearScreenshotSurface(val rawValue: String) {
+internal enum class WearScreenshotSurface(
+  val rawValue: String,
+) {
   Dashboard("dashboard"),
   StationDetail("station_detail"),
-  Monitoring("monitoring");
+  Monitoring("monitoring"),
+  ;
 
   companion object {
     fun from(rawValue: String?): WearScreenshotSurface? = entries.firstOrNull { it.rawValue == rawValue }
@@ -28,11 +31,12 @@ internal enum class WearScreenshotSurface(val rawValue: String) {
  * Usa WearAppGraph para obtener el singleton de SharedGraph.
  */
 class WearActivity : ComponentActivity() {
-  private val locationPermissionLauncher = registerForActivityResult(
-    ActivityResultContracts.RequestMultiplePermissions(),
-  ) {
-    refreshNonce += 1
-  }
+  private val locationPermissionLauncher =
+    registerForActivityResult(
+      ActivityResultContracts.RequestMultiplePermissions(),
+    ) {
+      refreshNonce += 1
+    }
 
   private var refreshNonce by mutableIntStateOf(0)
   private var launchStationId by mutableStateOf<String?>(null)
@@ -47,14 +51,14 @@ class WearActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    
+
     // Inicializar grafo si no lo está
     if (!WearAppGraph.isInitialized()) {
       WearAppGraph.initialize(application)
     }
-    
+
     handleLaunchIntent(intent)
-    
+
     setContent {
       WearRoot(
         platformBindings = platformBindings,
@@ -81,11 +85,12 @@ class WearActivity : ComponentActivity() {
 
   private fun handleLaunchIntent(intent: Intent?) {
     screenshotSurface = WearScreenshotSurface.from(intent?.getStringExtra(EXTRA_SCREENSHOT_SURFACE))
-    launchStationId = if (intent?.action == ACTION_OPEN_STATION) {
-      intent.getStringExtra(EXTRA_OPEN_STATION_ID)
-    } else {
-      null
-    }
+    launchStationId =
+      if (intent?.action == ACTION_OPEN_STATION) {
+        intent.getStringExtra(EXTRA_OPEN_STATION_ID)
+      } else {
+        null
+      }
     launchStationNonce += 1
   }
 

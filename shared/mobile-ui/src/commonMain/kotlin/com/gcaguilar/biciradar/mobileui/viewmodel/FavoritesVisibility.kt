@@ -9,7 +9,8 @@ internal fun visibleFavoriteStations(
   workStationId: String?,
 ): List<Station> {
   val pinnedIds = setOfNotNull(homeStationId, workStationId)
-  return stations.filter { station ->
-    station.id in favoriteIds && station.id !in pinnedIds
-  }.distinctBy { it.id }
+  return stations
+    .filter { station ->
+      station.id in favoriteIds && station.id !in pinnedIds
+    }.distinctBy { it.id }
 }

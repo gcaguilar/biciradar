@@ -16,13 +16,17 @@ sealed class Screen {
   data object FavoritesSearch : Screen()
 
   @Serializable
-  data class Trip(val prefilledQuery: String? = null) : Screen()
+  data class Trip(
+    val prefilledQuery: String? = null,
+  ) : Screen()
 
   @Serializable
   data object TripDestinationSearch : Screen()
 
   @Serializable
-  data class TripMapPicker(val mode: String) : Screen()
+  data class TripMapPicker(
+    val mode: String,
+  ) : Screen()
 
   @Serializable
   data object Profile : Screen()
@@ -34,7 +38,9 @@ sealed class Screen {
   data object SavedPlaceAlerts : Screen()
 
   @Serializable
-  data class StationDetail(val stationId: String) : Screen()
+  data class StationDetail(
+    val stationId: String,
+  ) : Screen()
 
   @Serializable
   data object CitySelection : Screen()
@@ -48,6 +54,8 @@ object DeepLinks {
   const val SAVED_PLACE_ALERTS_URI = "${BASE_URI}alerts"
 
   fun stationDetail(stationId: String) = "${BASE_URI}station/$stationId"
+
   fun monitor(stationId: String) = "${BASE_URI}monitor/$stationId"
+
   fun city(cityId: String) = "${BASE_URI}city/$cityId"
 }

@@ -26,11 +26,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
-import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
-import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.close
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.details
@@ -42,6 +37,11 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapStationDistanceS
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
+import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
+import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -82,8 +82,9 @@ internal fun StationDetailBottomSheet(
     colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
   ) {
     Column(
-      modifier = Modifier
-        .padding(horizontal = 14.dp, vertical = 13.dp),
+      modifier =
+        Modifier
+          .padding(horizontal = 14.dp, vertical = 13.dp),
       verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
       // Header con etiqueta y botón cerrar
@@ -127,21 +128,22 @@ internal fun StationDetailBottomSheet(
 
       // Resumen con distancia, bicis y slots
       Text(
-        text = if (isFallbackSelection) {
-          stringResource(
-            Res.string.mapNearestFallbackSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        } else {
-          stringResource(
-            Res.string.mapStationDistanceSummary,
-            formatDistance(station.distanceMeters),
-            station.bikesAvailable,
-            station.slotsFree,
-          )
-        },
+        text =
+          if (isFallbackSelection) {
+            stringResource(
+              Res.string.mapNearestFallbackSummary,
+              formatDistance(station.distanceMeters),
+              station.bikesAvailable,
+              station.slotsFree,
+            )
+          } else {
+            stringResource(
+              Res.string.mapStationDistanceSummary,
+              formatDistance(station.distanceMeters),
+              station.bikesAvailable,
+              station.slotsFree,
+            )
+          },
         color = overlayBody,
         style = MaterialTheme.typography.bodyMedium,
       )
@@ -173,7 +175,14 @@ internal fun StationDetailBottomSheet(
         OutlineActionPill(
           label = stringResource(Res.string.details),
           tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
-          borderTint = if (mobilePlatform == MobileUiPlatform.IOS) c.red.copy(alpha = 0.16f) else c.onAccent.copy(alpha = 0.32f),
+          borderTint =
+            if (mobilePlatform ==
+              MobileUiPlatform.IOS
+            ) {
+              c.red.copy(alpha = 0.16f)
+            } else {
+              c.onAccent.copy(alpha = 0.32f)
+            },
           onClick = { onOpenStationDetails(station) },
         )
       }
@@ -182,10 +191,13 @@ internal fun StationDetailBottomSheet(
 }
 
 @Composable
-private fun getHeaderLabel(isFallbackSelection: Boolean, isShowingNearestSelection: Boolean, searchRadiusMeters: Int): String {
-  return when {
+private fun getHeaderLabel(
+  isFallbackSelection: Boolean,
+  isShowingNearestSelection: Boolean,
+  searchRadiusMeters: Int,
+): String =
+  when {
     isFallbackSelection -> stringResource(Res.string.mapNoStationsWithinRadius, searchRadiusMeters)
     isShowingNearestSelection -> stringResource(Res.string.mapNearestStationLabel)
     else -> stringResource(Res.string.mapSelectedStationLabel)
   }
-}

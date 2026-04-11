@@ -19,13 +19,14 @@ data class SavedPlaceAlertsUiState(
 class SavedPlaceAlertsViewModel(
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
 ) : ViewModel() {
-  val uiState: StateFlow<SavedPlaceAlertsUiState> = savedPlaceAlertsRepository.rules
-    .map { rules -> SavedPlaceAlertsUiState(rules = rules) }
-    .stateIn(
-      scope = viewModelScope,
-      started = SharingStarted.Eagerly,
-      initialValue = SavedPlaceAlertsUiState(rules = savedPlaceAlertsRepository.rules.value),
-    )
+  val uiState: StateFlow<SavedPlaceAlertsUiState> =
+    savedPlaceAlertsRepository.rules
+      .map { rules -> SavedPlaceAlertsUiState(rules = rules) }
+      .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = SavedPlaceAlertsUiState(rules = savedPlaceAlertsRepository.rules.value),
+      )
 
   init {
     viewModelScope.launch {
@@ -33,13 +34,19 @@ class SavedPlaceAlertsViewModel(
     }
   }
 
-  fun onSetEnabled(ruleId: String, enabled: Boolean) {
+  fun onSetEnabled(
+    ruleId: String,
+    enabled: Boolean,
+  ) {
     viewModelScope.launch {
       savedPlaceAlertsRepository.setRuleEnabled(ruleId, enabled)
     }
   }
 
-  fun onUpsert(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
+  fun onUpsert(
+    target: SavedPlaceAlertTarget,
+    condition: SavedPlaceAlertCondition,
+  ) {
     viewModelScope.launch {
       savedPlaceAlertsRepository.upsertRule(target, condition)
     }

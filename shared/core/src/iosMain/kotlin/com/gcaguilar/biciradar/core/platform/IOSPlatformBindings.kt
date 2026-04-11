@@ -2,25 +2,23 @@ package com.gcaguilar.biciradar.core.platform
 
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
-import com.gcaguilar.biciradar.core.ExternalLinks
-import com.gcaguilar.biciradar.core.PermissionPrompter
-import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.DatabaseFactory
-import com.gcaguilar.biciradar.core.EmbeddedMapProvider
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
+import com.gcaguilar.biciradar.core.EmbeddedMapProvider
+import com.gcaguilar.biciradar.core.ExternalLinks
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
 import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
+import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
-import dev.zacsweers.metro.Inject
-import dev.zacsweers.metro.Provider
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
@@ -40,30 +38,28 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okio.FileSystem
-import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSBundle
 import platform.Foundation.NSClassFromString
 import platform.Foundation.NSFileManager
-import platform.Foundation.NSUserDefaults
+import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSURL
+import platform.Foundation.NSUserDefaults
 import platform.MapKit.MKLaunchOptionsDirectionsModeCycling
-import platform.MapKit.MKLaunchOptionsDirectionsModeWalking
 import platform.MapKit.MKLaunchOptionsDirectionsModeKey
+import platform.MapKit.MKLaunchOptionsDirectionsModeWalking
 import platform.MapKit.MKMapItem
 import platform.MapKit.MKPlacemark
-import platform.UIKit.UIApplication
-import platform.UIKit.UIDevice
+import platform.UIKit.UIAlertAction
+import platform.UIKit.UIAlertActionStyleCancel
+import platform.UIKit.UIAlertActionStyleDefault
 import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
-import platform.UIKit.UIAlertAction
-import platform.UIKit.UIAlertActionStyleDefault
-import platform.UIKit.UIAlertActionStyleCancel
+import platform.UIKit.UIApplication
+import platform.UIKit.UIDevice
 import platform.UserNotifications.UNAuthorizationOptionAlert
 import platform.UserNotifications.UNAuthorizationOptionBadge
 import platform.UserNotifications.UNAuthorizationOptionSound
@@ -74,6 +70,8 @@ import platform.UserNotifications.UNTimeIntervalNotificationTrigger
 import platform.UserNotifications.UNUserNotificationCenter
 import platform.WatchConnectivity.WCSession
 import platform.WatchConnectivity.WCSessionActivationStateActivated
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
@@ -84,52 +82,58 @@ class IOSPlatformBindings(
 ) : PlatformBindings {
   private val fileSystemInstance: FileSystem = FileSystem.SYSTEM
   private val storageDirectoryProviderInstance = IOSStorageDirectoryProvider()
-  private val json = Json {
-    ignoreUnknownKeys = true
-    explicitNulls = false
-  }
+  private val json =
+    Json {
+      ignoreUnknownKeys = true
+      explicitNulls = false
+    }
 
   private val iosRouteLauncher = IOSRouteLauncher()
-  private val iosExperienceJson = Json {
-    ignoreUnknownKeys = true
-    explicitNulls = false
-  }
+  private val iosExperienceJson =
+    Json {
+      ignoreUnknownKeys = true
+      explicitNulls = false
+    }
   private val iosUpdateHttpClient = IOSHttpClientFactory().create(iosExperienceJson)
 
-  override val appVersion: String = NSBundle.mainBundle
-    .objectForInfoDictionaryKey("CFBundleShortVersionString")
-    ?.toString()
-    ?.trim()
-    ?.takeIf { it.isNotBlank() } ?: "unknown"
+  override val appVersion: String =
+    NSBundle.mainBundle
+      .objectForInfoDictionaryKey("CFBundleShortVersionString")
+      ?.toString()
+      ?.trim()
+      ?.takeIf { it.isNotBlank() } ?: "unknown"
 
   override val permissionPrompter: PermissionPrompter = IOSPermissionPrompterImpl()
   override val externalLinks: ExternalLinks = IOSExternalLinksImpl(appConfiguration)
   override val reviewPrompter: ReviewPrompter = IOSReviewPrompterImpl(appConfiguration)
-  override val appUpdatePrompter: AppUpdatePrompter = IOSAppUpdatePrompterImpl(
-    appConfiguration = appConfiguration,
-    httpClient = iosUpdateHttpClient,
-    json = iosExperienceJson,
-    currentAppVersion = appVersion,
-  )
+  override val appUpdatePrompter: AppUpdatePrompter =
+    IOSAppUpdatePrompterImpl(
+      appConfiguration = appConfiguration,
+      httpClient = iosUpdateHttpClient,
+      json = iosExperienceJson,
+      currentAppVersion = appVersion,
+    )
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   private var database: BiciRadarDatabase? = null
-  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    override fun create(json: Json): BiciRadarDatabase? {
-      if (database == null) {
-        val driver = createNativeDriver()
-        val db = BiciRadarDatabase(driver)
-        LegacyBlobToRelationalMigration.ensure(driver, db, json)
-        database = db
+  override val databaseFactory: DatabaseFactory =
+    object : DatabaseFactory {
+      override fun create(json: Json): BiciRadarDatabase? {
+        if (database == null) {
+          val driver = createNativeDriver()
+          val db = BiciRadarDatabase(driver)
+          LegacyBlobToRelationalMigration.ensure(driver, db, json)
+          database = db
+        }
+        return database
       }
-      return database
     }
-  }
   override val fileSystem: FileSystem = fileSystemInstance
-  override val googleMapsApiKey: String? = NSBundle.mainBundle
-    .objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
-    ?.toString()
-    ?.trim()
-    ?.takeUnless { it.startsWith("$(") || it.isBlank() }
+  override val googleMapsApiKey: String? =
+    NSBundle.mainBundle
+      .objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
+      ?.toString()
+      ?.trim()
+      ?.takeUnless { it.startsWith("$(") || it.isBlank() }
   override val httpClientFactory: BiziHttpClientFactory = IOSHttpClientFactory()
   override val localNotifier: LocalNotifier = IOSLocalNotifier()
   override val locationProvider: LocationProvider = IOSLocationProvider()
@@ -143,11 +147,11 @@ class IOSPlatformBindings(
 
   /**
    * Post-wiring de dependencias del grafo hacia componentes de plataforma.
-   * 
+   *
    * NOTA: Idealmente IOSRouteLauncher recibiría SettingsRepository vía constructor
    * con @Inject, pero IOSRouteLauncher se crea ANTES de que el grafo exista
-   * (es parte de IOSPlatformBindings que se pasa al grafo). 
-   * 
+   * (es parte de IOSPlatformBindings que se pasa al grafo).
+   *
    * La alternativa "pura" de Metro sería mover IOSRouteLauncher al grafo y que
    * IOSPlatformBindings lo reciba vía constructor, pero eso requiere refactor
    * mayor de PlatformBindings. Por ahora mantenemos este late wiring documentado.
@@ -159,14 +163,17 @@ class IOSPlatformBindings(
 
 private class IOSMapSupport : MapSupport {
   override fun currentStatus(): MapSupportStatus {
-    val apiKey = NSBundle.mainBundle.objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
-      ?.toString()
-      ?.trim()
-      ?.takeUnless { it.startsWith("$(") }
-      .orEmpty()
+    val apiKey =
+      NSBundle.mainBundle
+        .objectForInfoDictionaryKey("BiziGoogleMapsApiKey")
+        ?.toString()
+        ?.trim()
+        ?.takeUnless { it.startsWith("$(") }
+        .orEmpty()
     val googleMapsUrl = NSURL.URLWithString("comgooglemaps://")
-    val googleMapsInstalled = googleMapsUrl != null &&
-      UIApplication.sharedApplication.canOpenURL(googleMapsUrl)
+    val googleMapsInstalled =
+      googleMapsUrl != null &&
+        UIApplication.sharedApplication.canOpenURL(googleMapsUrl)
     return MapSupportStatus(
       embeddedProvider = EmbeddedMapProvider.AppleMapKit,
       googleMapsSdkLinked = NSClassFromString("GMSServices") != null && NSClassFromString("GMSMapView") != null,
@@ -177,17 +184,18 @@ private class IOSMapSupport : MapSupport {
 }
 
 private class IOSHttpClientFactory : BiziHttpClientFactory {
-  override fun create(json: Json): HttpClient = HttpClient(Darwin) {
-    expectSuccess = true
-    install(HttpTimeout) {
-      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
-      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
-      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+  override fun create(json: Json): HttpClient =
+    HttpClient(Darwin) {
+      expectSuccess = true
+      install(HttpTimeout) {
+        requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+        connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+        socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      }
+      install(ContentNegotiation) {
+        json(json)
+      }
     }
-    install(ContentNegotiation) {
-      json(json)
-    }
-  }
 }
 
 private class IOSStorageDirectoryProvider : StorageDirectoryProvider {
@@ -195,9 +203,10 @@ private class IOSStorageDirectoryProvider : StorageDirectoryProvider {
 }
 
 private fun iosSharedStorageRootPath(): String? {
-  val containerUrl = NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier(
-    IOS_APP_GROUP_IDENTIFIER,
-  ) ?: return null
+  val containerUrl =
+    NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier(
+      IOS_APP_GROUP_IDENTIFIER,
+    ) ?: return null
   val path = containerUrl.path ?: return null
   return "$path/bizi"
 }
@@ -225,25 +234,29 @@ private class IOSRouteLauncher : RouteLauncher {
   }
 
   private fun launchAppleMaps(station: Station) {
-    val mapItem = MKMapItem(
-      placemark = MKPlacemark(
-        coordinate = station.location.toCoordinate(),
-        addressDictionary = null,
-      ),
-    ).apply {
-      name = station.name
-    }
+    val mapItem =
+      MKMapItem(
+        placemark =
+          MKPlacemark(
+            coordinate = station.location.toCoordinate(),
+            addressDictionary = null,
+          ),
+      ).apply {
+        name = station.name
+      }
 
-    val openedInMaps = mapItem.openInMapsWithLaunchOptions(
-      mapOf(
-        MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeWalking,
-      ),
-    )
+    val openedInMaps =
+      mapItem.openInMapsWithLaunchOptions(
+        mapOf(
+          MKLaunchOptionsDirectionsModeKey to MKLaunchOptionsDirectionsModeWalking,
+        ),
+      )
     if (openedInMaps) return
 
-    val fallbackUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
-    )
+    val fallbackUrl =
+      NSURL.URLWithString(
+        "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
+      )
     if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
       UIApplication.sharedApplication.openURL(
         url = fallbackUrl,
@@ -302,15 +315,16 @@ private class IOSRouteLauncher : RouteLauncher {
     googleMapsMode: String,
     onAllGoogleFallbacksFailed: () -> Unit,
   ) {
-    val googleMapsUrl = NSURL.URLWithString(
-      "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=$googleMapsMode",
-    )
+    val googleMapsUrl =
+      NSURL.URLWithString(
+        "comgooglemaps://?daddr=${destination.latitude},${destination.longitude}&directionsmode=$googleMapsMode",
+      )
     val app = UIApplication.sharedApplication
     if (googleMapsUrl == null) {
       if (!launchGoogleMapsWeb(destination, googleMapsMode)) onAllGoogleFallbacksFailed()
       return
     }
-    
+
     // Check if Google Maps app is installed
     if (!app.canOpenURL(googleMapsUrl)) {
       // Show alert and fallback to Apple Maps
@@ -318,7 +332,7 @@ private class IOSRouteLauncher : RouteLauncher {
       onAllGoogleFallbacksFailed()
       return
     }
-    
+
     app.openURL(
       url = googleMapsUrl,
       options = emptyMap<Any?, Any>(),
@@ -331,15 +345,16 @@ private class IOSRouteLauncher : RouteLauncher {
       },
     )
   }
-  
+
   @OptIn(ExperimentalForeignApi::class)
   private fun showGoogleMapsNotInstalledAlert() {
-    val alertController = UIAlertController.alertControllerWithTitle(
-      title = "Google Maps no instalado",
-      message = "Para obtener la mejor experiencia de navegación, instala Google Maps desde el App Store. Se abrirá Apple Maps como alternativa.",
-      preferredStyle = UIAlertControllerStyleAlert,
-    )
-    
+    val alertController =
+      UIAlertController.alertControllerWithTitle(
+        title = "Google Maps no instalado",
+        message = "Para obtener la mejor experiencia de navegación, instala Google Maps desde el App Store. Se abrirá Apple Maps como alternativa.",
+        preferredStyle = UIAlertControllerStyleAlert,
+      )
+
     alertController.addAction(
       UIAlertAction.actionWithTitle(
         title = "Abrir App Store",
@@ -354,17 +369,17 @@ private class IOSRouteLauncher : RouteLauncher {
             )
           }
         },
-      )
+      ),
     )
-    
+
     alertController.addAction(
       UIAlertAction.actionWithTitle(
         title = "Continuar con Apple Maps",
         style = UIAlertActionStyleCancel,
         handler = null,
-      )
+      ),
     )
-    
+
     // Get the top view controller to present the alert
     val keyWindow = UIApplication.sharedApplication.keyWindow
     val rootViewController = keyWindow?.rootViewController
@@ -380,21 +395,25 @@ private class IOSRouteLauncher : RouteLauncher {
     launchMode: String,
     fallbackFlag: String,
   ) {
-    val mapItem = MKMapItem(
-      placemark = MKPlacemark(
-        coordinate = destination.toCoordinate(),
-        addressDictionary = null,
-      ),
-    ).apply {
-      name = "Destino"
-    }
-    val opened = mapItem.openInMapsWithLaunchOptions(
-      mapOf(MKLaunchOptionsDirectionsModeKey to launchMode),
-    )
-    if (!opened) {
-      val fallbackUrl = NSURL.URLWithString(
-        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=$fallbackFlag",
+    val mapItem =
+      MKMapItem(
+        placemark =
+          MKPlacemark(
+            coordinate = destination.toCoordinate(),
+            addressDictionary = null,
+          ),
+      ).apply {
+        name = "Destino"
+      }
+    val opened =
+      mapItem.openInMapsWithLaunchOptions(
+        mapOf(MKLaunchOptionsDirectionsModeKey to launchMode),
       )
+    if (!opened) {
+      val fallbackUrl =
+        NSURL.URLWithString(
+          "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=$fallbackFlag",
+        )
       if (fallbackUrl != null && UIApplication.sharedApplication.canOpenURL(fallbackUrl)) {
         UIApplication.sharedApplication.openURL(
           url = fallbackUrl,
@@ -418,10 +437,14 @@ private class IOSRouteLauncher : RouteLauncher {
     return UIApplication.sharedApplication.canOpenURL(url)
   }
 
-  private fun launchGoogleMapsWeb(destination: GeoPoint, travelMode: String): Boolean {
-    val url = NSURL.URLWithString(
-      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=$travelMode",
-    ) ?: return false
+  private fun launchGoogleMapsWeb(
+    destination: GeoPoint,
+    travelMode: String,
+  ): Boolean {
+    val url =
+      NSURL.URLWithString(
+        "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=$travelMode",
+      ) ?: return false
     val app = UIApplication.sharedApplication
     if (!app.canOpenURL(url)) return false
     app.openURL(
@@ -442,17 +465,18 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
     if (session.activationState != WCSessionActivationStateActivated) return
     memScoped {
       val errorPtr = alloc<ObjCObjectVar<platform.Foundation.NSError?>>()
-      val updated = session.updateApplicationContext(
-        buildMap {
-          put(IOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
-          snapshot.homeStationId?.let { put(IOSFavoritesCache.homeContextKey, it) }
-          snapshot.workStationId?.let { put(IOSFavoritesCache.workContextKey, it) }
-          runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }
-            .getOrNull()
-            ?.let { put(IOSFavoritesCache.snapshotContextKey, it) }
-        },
-        error = errorPtr.ptr,
-      )
+      val updated =
+        session.updateApplicationContext(
+          buildMap {
+            put(IOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
+            snapshot.homeStationId?.let { put(IOSFavoritesCache.homeContextKey, it) }
+            snapshot.workStationId?.let { put(IOSFavoritesCache.workContextKey, it) }
+            runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }
+              .getOrNull()
+              ?.let { put(IOSFavoritesCache.snapshotContextKey, it) }
+          },
+          error = errorPtr.ptr,
+        )
       if (!updated) {
         val msg = errorPtr.value?.localizedDescription ?: "unknown error"
         println("[IOSWatchSyncBridge] updateApplicationContext failed: $msg")
@@ -460,8 +484,15 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
     }
   }
 
-  override suspend fun latestFavorites(): FavoritesSyncSnapshot? = IOSFavoritesCache.read()
-    .takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null || it.stationCategory.isNotEmpty() }
+  override suspend fun latestFavorites(): FavoritesSyncSnapshot? =
+    IOSFavoritesCache
+      .read()
+      .takeIf {
+        it.favoriteIds.isNotEmpty() ||
+          it.homeStationId != null ||
+          it.workStationId != null ||
+          it.stationCategory.isNotEmpty()
+      }
 }
 
 private object IOSFavoritesCache {
@@ -474,18 +505,21 @@ private object IOSFavoritesCache {
   const val snapshotCacheKey = "bizizaragoza.watch.favorite_categories_v2"
   const val snapshotContextKey = "favorite_categories_v2"
 
-  fun read(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
-    favoriteIds = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
-      .orEmpty()
-      .filterIsInstance<String>()
-      .toSet(),
-    homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
-    workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
-  ).let { legacy ->
-    val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
-    runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
-      .getOrNull() ?: legacy
-  }
+  fun read(): FavoritesSyncSnapshot =
+    FavoritesSyncSnapshot(
+      favoriteIds =
+        NSUserDefaults.standardUserDefaults
+          .arrayForKey(cacheKey)
+          .orEmpty()
+          .filterIsInstance<String>()
+          .toSet(),
+      homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
+      workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
+    ).let { legacy ->
+      val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
+      runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
+        .getOrNull() ?: legacy
+    }
 
   fun persist(snapshot: FavoritesSyncSnapshot) {
     NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
@@ -500,31 +534,38 @@ private object IOSFavoritesCache {
 private class IOSLocalNotifier : LocalNotifier {
   private val center = UNUserNotificationCenter.currentNotificationCenter()
 
-  override suspend fun hasPermission(): Boolean = suspendCoroutine { cont ->
-    center.getNotificationSettingsWithCompletionHandler { settings ->
-      cont.resume(settings?.authorizationStatus == UNAuthorizationStatusAuthorized)
+  override suspend fun hasPermission(): Boolean =
+    suspendCoroutine { cont ->
+      center.getNotificationSettingsWithCompletionHandler { settings ->
+        cont.resume(settings?.authorizationStatus == UNAuthorizationStatusAuthorized)
+      }
     }
-  }
 
-  override suspend fun requestPermission(): Boolean = suspendCoroutine { cont ->
-    center.requestAuthorizationWithOptions(
-      options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
-    ) { result, _ ->
-      cont.resume(result)
+  override suspend fun requestPermission(): Boolean =
+    suspendCoroutine { cont ->
+      center.requestAuthorizationWithOptions(
+        options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
+      ) { result, _ ->
+        cont.resume(result)
+      }
     }
-  }
 
-  override suspend fun notify(title: String, body: String) {
-    val content = UNMutableNotificationContent().apply {
-      setTitle(title)
-      setBody(body)
-    }
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) {
+    val content =
+      UNMutableNotificationContent().apply {
+        setTitle(title)
+        setBody(body)
+      }
     val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(0.1, repeats = false)
-    val request = UNNotificationRequest.requestWithIdentifier(
-      identifier = "bizi_trip_${kotlin.random.Random.nextLong()}",
-      content = content,
-      trigger = trigger,
-    )
+    val request =
+      UNNotificationRequest.requestWithIdentifier(
+        identifier = "bizi_trip_${kotlin.random.Random.nextLong()}",
+        content = content,
+        trigger = trigger,
+      )
     center.addNotificationRequest(request) { _ -> }
   }
 }

@@ -21,9 +21,10 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
   companion object {
     fun updateAll(context: Context) {
       val manager = AppWidgetManager.getInstance(context)
-      val ids = manager.getAppWidgetIds(
-        ComponentName(context, NearbyStationsWidgetProvider::class.java),
-      )
+      val ids =
+        manager.getAppWidgetIds(
+          ComponentName(context, NearbyStationsWidgetProvider::class.java),
+        )
       if (ids.isNotEmpty()) {
         updateWidgets(context, manager, ids)
       }
@@ -65,9 +66,30 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
         return views
       }
 
-      bindStationRow(context, views, R.id.widget_row_one, R.id.widget_row_one_name, R.id.widget_row_one_meta, stations.getOrNull(0))
-      bindStationRow(context, views, R.id.widget_row_two, R.id.widget_row_two_name, R.id.widget_row_two_meta, stations.getOrNull(1))
-      bindStationRow(context, views, R.id.widget_row_three, R.id.widget_row_three_name, R.id.widget_row_three_meta, stations.getOrNull(2))
+      bindStationRow(
+        context,
+        views,
+        R.id.widget_row_one,
+        R.id.widget_row_one_name,
+        R.id.widget_row_one_meta,
+        stations.getOrNull(0),
+      )
+      bindStationRow(
+        context,
+        views,
+        R.id.widget_row_two,
+        R.id.widget_row_two_name,
+        R.id.widget_row_two_meta,
+        stations.getOrNull(1),
+      )
+      bindStationRow(
+        context,
+        views,
+        R.id.widget_row_three,
+        R.id.widget_row_three_name,
+        R.id.widget_row_three_meta,
+        stations.getOrNull(2),
+      )
       views.setTextViewText(R.id.widget_nearby_empty, "")
       views.setOnClickPendingIntent(
         R.id.widget_nearby_root,
@@ -97,7 +119,10 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
       )
     }
 
-    private fun deepLinkPendingIntent(context: Context, uri: Uri): PendingIntent {
+    private fun deepLinkPendingIntent(
+      context: Context,
+      uri: Uri,
+    ): PendingIntent {
       val intent = Intent(Intent.ACTION_VIEW, uri, context, MainActivity::class.java)
       return PendingIntent.getActivity(
         context,

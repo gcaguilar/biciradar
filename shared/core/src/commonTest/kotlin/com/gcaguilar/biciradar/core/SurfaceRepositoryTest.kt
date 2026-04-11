@@ -2,117 +2,131 @@ package com.gcaguilar.biciradar.core
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.random.Random
 
 class SurfaceRepositoryTest {
   @Test
-  fun `surface snapshot repository prefers home station and sorts nearby by distance`() = runTest {
-    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-${Random.nextInt()}"
-    val settingsRepository = FakeSettingsRepository()
-    val favoritesRepository = FakeFavoritesRepository(
-      favoriteIds = setOf("home", "mid", "other-favorite"),
-      homeStationId = "home",
-      workStationId = "mid",
-    )
-    val stationsRepository = FakeStationsRepository(
-      StationsState(
-        stations = listOf(
-          station(id = "far", distanceMeters = 450, bikesAvailable = 9),
-          station(id = "home", distanceMeters = 120, bikesAvailable = 7),
-          station(id = "near", distanceMeters = 60, bikesAvailable = 2),
-          station(id = "mid", distanceMeters = 180, bikesAvailable = 4),
-        ),
-        isLoading = false,
-        userLocation = GeoPoint(41.65, -0.88),
-        lastUpdatedEpoch = 1_000L,
-      ),
-    )
-
-    val repository = SurfaceSnapshotRepositoryImpl(
-      fileSystem = FileSystem.SYSTEM,
-      json = testJson(),
-      localNotifier = FakeLocalNotifier(permissionGranted = true),
-      storageDirectoryProvider = object : StorageDirectoryProvider {
-        override val rootPath: String = temporaryRoot
-      },
-      settingsRepository = settingsRepository,
-      favoritesRepository = favoritesRepository,
-      stationsRepository = stationsRepository,
-      scope = this,
-    )
-
-    repository.bootstrap()
-    repository.refreshSnapshot()
-
-    val bundle = repository.currentBundle()!!
-    assertEquals("home", bundle.favoriteStation?.id)
-    assertEquals("home", bundle.homeStation?.id)
-    assertEquals("mid", bundle.workStation?.id)
-    assertEquals(listOf("near", "home", "mid"), bundle.nearbyStations.map { it.id })
-    assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/surface_snapshot.json".toPath()))
-  }
-
-  @Test
-  fun `surface snapshot hides nearby stations without location permission and preserves notification state`() = runTest {
-    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-nolocation-${Random.nextInt()}"
-    val repository = SurfaceSnapshotRepositoryImpl(
-      fileSystem = FileSystem.SYSTEM,
-      json = testJson(),
-      localNotifier = FakeLocalNotifier(permissionGranted = false),
-      storageDirectoryProvider = object : StorageDirectoryProvider {
-        override val rootPath: String = temporaryRoot
-      },
-      settingsRepository = FakeSettingsRepository(),
-      favoritesRepository = FakeFavoritesRepository(
-        favoriteIds = setOf("home"),
-        homeStationId = "home",
-      ),
-      stationsRepository = FakeStationsRepository(
-        StationsState(
-          stations = listOf(
-            station(id = "home", distanceMeters = 120),
-            station(id = "near", distanceMeters = 60),
+  fun `surface snapshot repository prefers home station and sorts nearby by distance`() =
+    runTest {
+      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-${Random.nextInt()}"
+      val settingsRepository = FakeSettingsRepository()
+      val favoritesRepository =
+        FakeFavoritesRepository(
+          favoriteIds = setOf("home", "mid", "other-favorite"),
+          homeStationId = "home",
+          workStationId = "mid",
+        )
+      val stationsRepository =
+        FakeStationsRepository(
+          StationsState(
+            stations =
+              listOf(
+                station(id = "far", distanceMeters = 450, bikesAvailable = 9),
+                station(id = "home", distanceMeters = 120, bikesAvailable = 7),
+                station(id = "near", distanceMeters = 60, bikesAvailable = 2),
+                station(id = "mid", distanceMeters = 180, bikesAvailable = 4),
+              ),
+            isLoading = false,
+            userLocation = GeoPoint(41.65, -0.88),
+            lastUpdatedEpoch = 1_000L,
           ),
-          isLoading = false,
-          userLocation = null,
-          lastUpdatedEpoch = 2_000L,
-        ),
-      ),
-      scope = this,
-    )
+        )
 
-    repository.bootstrap()
-    repository.refreshSnapshot()
+      val repository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = testJson(),
+          localNotifier = FakeLocalNotifier(permissionGranted = true),
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = temporaryRoot
+            },
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          stationsRepository = stationsRepository,
+          scope = this,
+        )
 
-    val bundle = repository.currentBundle()!!
-    assertEquals(emptyList<String>(), bundle.nearbyStations.map { it.id })
-    assertFalse(bundle.state.hasLocationPermission)
-    assertFalse(bundle.state.hasNotificationPermission)
-  }
+      repository.bootstrap()
+      repository.refreshSnapshot()
+
+      val bundle = repository.currentBundle()!!
+      assertEquals("home", bundle.favoriteStation?.id)
+      assertEquals("home", bundle.homeStation?.id)
+      assertEquals("mid", bundle.workStation?.id)
+      assertEquals(listOf("near", "home", "mid"), bundle.nearbyStations.map { it.id })
+      assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/surface_snapshot.json".toPath()))
+    }
 
   @Test
-  fun `alternative selection prioritizes higher availability before nearer station`() = runTest {
-    val monitoredStation = station(id = "monitor", latitude = 41.65, longitude = -0.88, bikesAvailable = 1, slotsFree = 6)
-    val nearLow = station(id = "near-low", latitude = 41.6503, longitude = -0.8803, bikesAvailable = 1, slotsFree = 8)
-    val farHigh = station(id = "far-high", latitude = 41.651, longitude = -0.881, bikesAvailable = 5, slotsFree = 2)
+  fun `surface snapshot hides nearby stations without location permission and preserves notification state`() =
+    runTest {
+      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-nolocation-${Random.nextInt()}"
+      val repository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = testJson(),
+          localNotifier = FakeLocalNotifier(permissionGranted = false),
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = temporaryRoot
+            },
+          settingsRepository = FakeSettingsRepository(),
+          favoritesRepository =
+            FakeFavoritesRepository(
+              favoriteIds = setOf("home"),
+              homeStationId = "home",
+            ),
+          stationsRepository =
+            FakeStationsRepository(
+              StationsState(
+                stations =
+                  listOf(
+                    station(id = "home", distanceMeters = 120),
+                    station(id = "near", distanceMeters = 60),
+                  ),
+                isLoading = false,
+                userLocation = null,
+                lastUpdatedEpoch = 2_000L,
+              ),
+            ),
+          scope = this,
+        )
 
-    val alternative = selectAlternativeStation(
-      monitoredStation = monitoredStation,
-      candidates = listOf(monitoredStation, nearLow, farHigh),
-      kind = SurfaceMonitoringKind.Bikes,
-      maxRadiusMeters = 500,
-    )
+      repository.bootstrap()
+      repository.refreshSnapshot()
 
-    assertEquals("far-high", alternative?.id)
-  }
+      val bundle = repository.currentBundle()!!
+      assertEquals(emptyList<String>(), bundle.nearbyStations.map { it.id })
+      assertFalse(bundle.state.hasLocationPermission)
+      assertFalse(bundle.state.hasNotificationPermission)
+    }
+
+  @Test
+  fun `alternative selection prioritizes higher availability before nearer station`() =
+    runTest {
+      val monitoredStation =
+        station(id = "monitor", latitude = 41.65, longitude = -0.88, bikesAvailable = 1, slotsFree = 6)
+      val nearLow = station(id = "near-low", latitude = 41.6503, longitude = -0.8803, bikesAvailable = 1, slotsFree = 8)
+      val farHigh = station(id = "far-high", latitude = 41.651, longitude = -0.881, bikesAvailable = 5, slotsFree = 2)
+
+      val alternative =
+        selectAlternativeStation(
+          monitoredStation = monitoredStation,
+          candidates = listOf(monitoredStation, nearLow, farHigh),
+          kind = SurfaceMonitoringKind.Bikes,
+          maxRadiusMeters = 500,
+        )
+
+      assertEquals("far-high", alternative?.id)
+    }
 
   @Test
   fun `surface helpers format relative time and status levels`() {
@@ -134,8 +148,13 @@ private class FakeLocalNotifier(
   private val permissionGranted: Boolean,
 ) : LocalNotifier {
   override suspend fun hasPermission(): Boolean = permissionGranted
+
   override suspend fun requestPermission(): Boolean = permissionGranted
-  override suspend fun notify(title: String, body: String) = Unit
+
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) = Unit
 }
 
 private fun station(
@@ -145,20 +164,22 @@ private fun station(
   longitude: Double = -0.88,
   bikesAvailable: Int = 6,
   slotsFree: Int = 5,
-): Station = Station(
-  id = id,
-  name = id,
-  address = id,
-  location = GeoPoint(latitude, longitude),
-  bikesAvailable = bikesAvailable,
-  slotsFree = slotsFree,
-  distanceMeters = distanceMeters,
-)
+): Station =
+  Station(
+    id = id,
+    name = id,
+    address = id,
+    location = GeoPoint(latitude, longitude),
+    bikesAvailable = bikesAvailable,
+    slotsFree = slotsFree,
+    distanceMeters = distanceMeters,
+  )
 
-private fun testJson(): Json = Json {
-  ignoreUnknownKeys = true
-  explicitNulls = false
-}
+private fun testJson(): Json =
+  Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
 
 private class FakeStationsRepository(
   initialState: StationsState,
@@ -250,7 +271,9 @@ private class FakeSettingsRepository(
 
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
 
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) = Unit
 
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
 }

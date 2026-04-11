@@ -1,4 +1,4 @@
-    package com.gcaguilar.biciradar.mobileui
+package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.runtime.compositionLocalOf
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -7,6 +7,7 @@ import platform.UIKit.UIView
 
 interface StationMapViewFactory {
   fun createView(): UIView
+
   fun updateView(
     view: UIView,
     stations: List<Station>,

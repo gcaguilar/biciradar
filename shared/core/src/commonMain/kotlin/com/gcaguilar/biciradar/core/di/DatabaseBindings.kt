@@ -21,20 +21,19 @@ import kotlinx.serialization.json.Json
  */
 @BindingContainer
 object DatabaseBindings {
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideDatabase(
-        databaseFactory: DatabaseFactory?,
-        json: Json,
-    ): BiciRadarDatabase? = databaseFactory?.create(json)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideDatabase(
+    databaseFactory: DatabaseFactory?,
+    json: Json,
+  ): BiciRadarDatabase? = databaseFactory?.create(json)
 
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideStationsCacheManager(
-        database: BiciRadarDatabase?,
-    ): StationsCacheManager = if (database != null) {
-        StationsCacheManagerImpl(database, StationCacheStore(database))
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideStationsCacheManager(database: BiciRadarDatabase?): StationsCacheManager =
+    if (database != null) {
+      StationsCacheManagerImpl(database, StationCacheStore(database))
     } else {
-        NoOpStationsCacheManager()
+      NoOpStationsCacheManager()
     }
 }

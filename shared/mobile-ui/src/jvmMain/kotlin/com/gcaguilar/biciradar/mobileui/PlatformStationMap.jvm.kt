@@ -54,10 +54,11 @@ internal actual fun PlatformStationMap(
     color = c.surface,
   ) {
     Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(c.surface)
-        .padding(16.dp),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .background(c.surface)
+          .padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Row(
@@ -83,11 +84,12 @@ internal actual fun PlatformStationMap(
             color = c.ink,
           )
           Text(
-            text = if (onMapClick == null) {
-              stringResource(Res.string.desktopMapPlaceholderBody)
-            } else {
-              stringResource(Res.string.desktopMapPickerHint)
-            },
+            text =
+              if (onMapClick == null) {
+                stringResource(Res.string.desktopMapPlaceholderBody)
+              } else {
+                stringResource(Res.string.desktopMapPickerHint)
+              },
             style = MaterialTheme.typography.bodySmall,
             color = c.muted,
           )
@@ -96,11 +98,12 @@ internal actual fun PlatformStationMap(
 
       pinLocation?.let { location ->
         Text(
-          text = stringResource(
-            Res.string.desktopMapSelectedLocation,
-            location.latitude,
-            location.longitude,
-          ),
+          text =
+            stringResource(
+              Res.string.desktopMapSelectedLocation,
+              location.latitude,
+              location.longitude,
+            ),
           style = MaterialTheme.typography.bodySmall,
           color = c.red,
         )
@@ -108,11 +111,12 @@ internal actual fun PlatformStationMap(
 
       userLocation?.let { location ->
         Text(
-          text = stringResource(
-            Res.string.desktopMapCurrentLocation,
-            location.latitude,
-            location.longitude,
-          ),
+          text =
+            stringResource(
+              Res.string.desktopMapCurrentLocation,
+              location.latitude,
+              location.longitude,
+            ),
           style = MaterialTheme.typography.bodySmall,
           color = c.muted,
         )
@@ -140,21 +144,24 @@ internal actual fun PlatformStationMap(
           ) { station ->
             val highlighted = station.id == highlightedStationId
             Surface(
-              modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onStationSelected(station) },
+              modifier =
+                Modifier
+                  .fillMaxWidth()
+                  .clickable { onStationSelected(station) },
               shape = RoundedCornerShape(18.dp),
               color = if (highlighted) c.red.copy(alpha = 0.06f) else c.surface,
-              border = BorderStroke(
-                width = 1.dp,
-                color = if (highlighted) c.red.copy(alpha = 0.24f) else c.panel,
-              ),
+              border =
+                BorderStroke(
+                  width = 1.dp,
+                  color = if (highlighted) c.red.copy(alpha = 0.24f) else c.panel,
+                ),
               tonalElevation = if (highlighted) 2.dp else 0.dp,
             ) {
               Row(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(horizontal = 14.dp, vertical = 12.dp),
+                modifier =
+                  Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
               ) {

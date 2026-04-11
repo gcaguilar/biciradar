@@ -23,51 +23,52 @@ import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 
 @Composable
 internal fun ErrorState(
-    title: String,
-    description: String,
-    primaryAction: String? = null,
-    onPrimaryAction: (() -> Unit)? = null,
-    secondaryAction: String? = null,
-    onSecondaryAction: (() -> Unit)? = null,
+  title: String,
+  description: String,
+  primaryAction: String? = null,
+  onPrimaryAction: (() -> Unit)? = null,
+  secondaryAction: String? = null,
+  onSecondaryAction: (() -> Unit)? = null,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-            color = LocalBiziColors.current.ink,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalBiziColors.current.muted,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        if (primaryAction != null && onPrimaryAction != null) {
-            Button(
-                onClick = onPrimaryAction,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(primaryAction)
-            }
-        }
-        if (secondaryAction != null && onSecondaryAction != null) {
-            OutlinedButton(
-                onClick = onSecondaryAction,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(secondaryAction)
-            }
-        }
+  Column(
+    modifier =
+      Modifier
+        .fillMaxWidth()
+        .padding(24.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(16.dp),
+  ) {
+    Text(
+      text = title,
+      style = MaterialTheme.typography.titleLarge,
+      fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+      color = LocalBiziColors.current.ink,
+      textAlign = TextAlign.Center,
+    )
+    Text(
+      text = description,
+      style = MaterialTheme.typography.bodyMedium,
+      color = LocalBiziColors.current.muted,
+      textAlign = TextAlign.Center,
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    if (primaryAction != null && onPrimaryAction != null) {
+      Button(
+        onClick = onPrimaryAction,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp))
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(primaryAction)
+      }
     }
+    if (secondaryAction != null && onSecondaryAction != null) {
+      OutlinedButton(
+        onClick = onSecondaryAction,
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        Text(secondaryAction)
+      }
+    }
+  }
 }

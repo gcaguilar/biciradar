@@ -5,15 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
 
 enum class GuidedOnboardingStep {
@@ -52,15 +52,16 @@ data class GuidedOnboardingCallbacks(
   val onSkipAll: () -> Unit,
 )
 
-internal fun OnboardingChecklistSnapshot.guidedOnboardingStep(): GuidedOnboardingStep = when {
-  isCompleted() -> GuidedOnboardingStep.Completed
-  !featureHighlightsSeen -> GuidedOnboardingStep.FeatureHighlights
-  !locationDecisionMade -> GuidedOnboardingStep.LocationPermission
-  !notificationsDecisionMade -> GuidedOnboardingStep.NotificationsPermission
-  !firstStationSaved || !savedPlacesConfigured -> GuidedOnboardingStep.SavedPlaces
-  !surfacesDiscovered -> GuidedOnboardingStep.Surfaces
-  else -> GuidedOnboardingStep.Completed
-}
+internal fun OnboardingChecklistSnapshot.guidedOnboardingStep(): GuidedOnboardingStep =
+  when {
+    isCompleted() -> GuidedOnboardingStep.Completed
+    !featureHighlightsSeen -> GuidedOnboardingStep.FeatureHighlights
+    !locationDecisionMade -> GuidedOnboardingStep.LocationPermission
+    !notificationsDecisionMade -> GuidedOnboardingStep.NotificationsPermission
+    !firstStationSaved || !savedPlacesConfigured -> GuidedOnboardingStep.SavedPlaces
+    !surfacesDiscovered -> GuidedOnboardingStep.Surfaces
+    else -> GuidedOnboardingStep.Completed
+  }
 
 @Composable
 fun GuidedOnboardingFlow(
@@ -77,33 +78,44 @@ fun GuidedOnboardingFlow(
   }
 
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
-      .windowInsetsPadding(WindowInsets.statusBars)
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+        .windowInsetsPadding(WindowInsets.statusBars),
   ) {
     TextButton(
       onClick = callbacks.onSkipAll,
-      modifier = Modifier
-        .align(Alignment.TopEnd)
-        .padding(horizontal = 24.dp),
+      modifier =
+        Modifier
+          .align(Alignment.TopEnd)
+          .padding(horizontal = 24.dp),
     ) {
       Text(stringResource(Res.string.onboardingSkip))
     }
 
     Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(24.dp),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .padding(24.dp),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       when (step) {
         GuidedOnboardingStep.FeatureHighlights -> Unit
         GuidedOnboardingStep.LocationPermission -> {
-          Text(stringResource(Res.string.onboardingLocationTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Text(
+            stringResource(Res.string.onboardingLocationTitle),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+          )
           Spacer(Modifier.height(12.dp))
-          Text(stringResource(Res.string.onboardingLocationBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+            stringResource(Res.string.onboardingLocationBody),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
           Spacer(Modifier.height(24.dp))
           Button(
             onClick = callbacks.onRequestLocationPermission,
@@ -117,9 +129,17 @@ fun GuidedOnboardingFlow(
         }
 
         GuidedOnboardingStep.NotificationsPermission -> {
-          Text(stringResource(Res.string.onboardingNotificationsTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Text(
+            stringResource(Res.string.onboardingNotificationsTitle),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+          )
           Spacer(Modifier.height(12.dp))
-          Text(stringResource(Res.string.onboardingNotificationsBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+            stringResource(Res.string.onboardingNotificationsBody),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
           Spacer(Modifier.height(24.dp))
           Button(
             onClick = callbacks.onRequestNotificationsPermission,
@@ -133,9 +153,17 @@ fun GuidedOnboardingFlow(
         }
 
         GuidedOnboardingStep.SavedPlaces -> {
-          Text(stringResource(Res.string.onboardingFavoritesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Text(
+            stringResource(Res.string.onboardingFavoritesTitle),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+          )
           Spacer(Modifier.height(12.dp))
-          Text(stringResource(Res.string.onboardingFavoritesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+            stringResource(Res.string.onboardingFavoritesBody),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
           Spacer(Modifier.height(24.dp))
           Button(
             onClick = callbacks.onOpenFavorites,
@@ -149,9 +177,17 @@ fun GuidedOnboardingFlow(
         }
 
         GuidedOnboardingStep.Surfaces -> {
-          Text(stringResource(Res.string.onboardingSurfacesTitle), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+          Text(
+            stringResource(Res.string.onboardingSurfacesTitle),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+          )
           Spacer(Modifier.height(12.dp))
-          Text(stringResource(Res.string.onboardingSurfacesBody), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+          Text(
+            stringResource(Res.string.onboardingSurfacesBody),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
           Spacer(Modifier.height(24.dp))
           Button(
             onClick = callbacks.onCompleteSurfacesStep,
@@ -170,34 +206,38 @@ private fun GuidedOnboardingHighlightsScreen(
   onContinue: () -> Unit,
   onSkipAll: () -> Unit,
 ) {
-  val featureCards = remember {
-    listOf(
-      Res.string.onboardingFeatureNearbyTitle to Res.string.onboardingFeatureNearbyBody,
-      Res.string.onboardingFeatureSavedTitle to Res.string.onboardingFeatureSavedBody,
-      Res.string.onboardingFeatureAlertsTitle to Res.string.onboardingFeatureAlertsBody,
-      Res.string.onboardingFeatureRoutesTitle to Res.string.onboardingFeatureRoutesBody,
-    )
-  }
+  val featureCards =
+    remember {
+      listOf(
+        Res.string.onboardingFeatureNearbyTitle to Res.string.onboardingFeatureNearbyBody,
+        Res.string.onboardingFeatureSavedTitle to Res.string.onboardingFeatureSavedBody,
+        Res.string.onboardingFeatureAlertsTitle to Res.string.onboardingFeatureAlertsBody,
+        Res.string.onboardingFeatureRoutesTitle to Res.string.onboardingFeatureRoutesBody,
+      )
+    }
 
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
-      .windowInsetsPadding(WindowInsets.statusBars),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+        .windowInsetsPadding(WindowInsets.statusBars),
   ) {
     TextButton(
       onClick = onSkipAll,
-      modifier = Modifier
-        .align(Alignment.TopEnd)
-        .padding(horizontal = 24.dp),
+      modifier =
+        Modifier
+          .align(Alignment.TopEnd)
+          .padding(horizontal = 24.dp),
     ) {
       Text(stringResource(Res.string.onboardingSkip))
     }
     Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-        .padding(24.dp),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .verticalScroll(rememberScrollState())
+          .padding(24.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
       horizontalAlignment = Alignment.Start,
     ) {

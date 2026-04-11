@@ -22,7 +22,10 @@ data class EnvironmentalReading(
 )
 
 interface EnvironmentalRepository {
-  suspend fun readingAt(latitude: Double, longitude: Double): EnvironmentalReading?
+  suspend fun readingAt(
+    latitude: Double,
+    longitude: Double,
+  ): EnvironmentalReading?
 }
 
 /**
@@ -39,7 +42,10 @@ class EnvironmentalRepositoryImpl(
   private val cacheMutex = Mutex()
   private val readingCache = mutableMapOf<String, CachedEnvironmentalReading>()
 
-  override suspend fun readingAt(latitude: Double, longitude: Double): EnvironmentalReading? {
+  override suspend fun readingAt(
+    latitude: Double,
+    longitude: Double,
+  ): EnvironmentalReading? {
     val cacheKey = cacheKey(latitude, longitude)
     val now = currentTimeMs()
     cacheMutex.withLock {
@@ -53,53 +59,69 @@ class EnvironmentalRepositoryImpl(
         return persisted.reading
       }
     }
-    val response = runCatching {
-      httpClient.get("https://air-quality-api.open-meteo.com/v1/air-quality") {
-        parameter("latitude", latitude)
-        parameter("longitude", longitude)
-        parameter(
-          "current",
-          "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
-        )
-        parameter(
-          "hourly",
-          "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
-        )
-      }.body<OpenMeteoAirQualityResponse>()
-    }.getOrNull() ?: return null
+    val response =
+      runCatching {
+        httpClient
+          .get("https://air-quality-api.open-meteo.com/v1/air-quality") {
+            parameter("latitude", latitude)
+            parameter("longitude", longitude)
+            parameter(
+              "current",
+              "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
+            )
+            parameter(
+              "hourly",
+              "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
+            )
+          }.body<OpenMeteoAirQualityResponse>()
+      }.getOrNull() ?: return null
     val current = response.current ?: return null
-    val currentPollenValues = listOfNotNull(
-      current.alderPollen,
-      current.birchPollen,
-      current.grassPollen,
-      current.mugwortPollen,
-      current.olivePollen,
-      current.ragweedPollen,
-    )
-    val hourlyPollenMax = response.hourly?.maxPollen()
-    val pollenRaw = listOfNotNull(
-      hourlyPollenMax,
-      currentPollenValues.maxOrNull(),
-    ).maxOrNull()
-    val pollenIndex = pollenRaw?.roundToInt()?.coerceIn(0, 100)
-    val hourlyAqi = response.hourly?.usAqi?.firstOrNull { it != null }?.toInt()
-      ?: response.hourly?.europeanAqi?.firstOrNull { it != null }?.toInt()
-    val freshReading = EnvironmentalReading(
-      airQualityIndex = (current.usAqi?.toInt() ?: current.europeanAqi?.toInt() ?: hourlyAqi)?.coerceIn(0, 500),
-      pollenIndex = pollenIndex,
-    )
-    cacheMutex.withLock {
-      readingCache[cacheKey] = CachedEnvironmentalReading(
-        reading = freshReading,
-        savedAtEpochMs = now,
+    val currentPollenValues =
+      listOfNotNull(
+        current.alderPollen,
+        current.birchPollen,
+        current.grassPollen,
+        current.mugwortPollen,
+        current.olivePollen,
+        current.ragweedPollen,
       )
+    val hourlyPollenMax = response.hourly?.maxPollen()
+    val pollenRaw =
+      listOfNotNull(
+        hourlyPollenMax,
+        currentPollenValues.maxOrNull(),
+      ).maxOrNull()
+    val pollenIndex = pollenRaw?.roundToInt()?.coerceIn(0, 100)
+    val hourlyAqi =
+      response.hourly
+        ?.usAqi
+        ?.firstOrNull { it != null }
+        ?.toInt()
+        ?: response.hourly
+          ?.europeanAqi
+          ?.firstOrNull { it != null }
+          ?.toInt()
+    val freshReading =
+      EnvironmentalReading(
+        airQualityIndex = (current.usAqi?.toInt() ?: current.europeanAqi?.toInt() ?: hourlyAqi)?.coerceIn(0, 500),
+        pollenIndex = pollenIndex,
+      )
+    cacheMutex.withLock {
+      readingCache[cacheKey] =
+        CachedEnvironmentalReading(
+          reading = freshReading,
+          savedAtEpochMs = now,
+        )
     }
     saveToDatabase(cacheKey, freshReading, now)
     deleteExpiredFromDatabase(now)
     return freshReading
   }
 
-  private fun cacheKey(latitude: Double, longitude: Double): String {
+  private fun cacheKey(
+    latitude: Double,
+    longitude: Double,
+  ): String {
     // 3 decimals (~110m) avoids collapsing nearby zones into one cache bucket.
     val lat = (latitude * 1000.0).roundToInt() / 1000.0
     val lon = (longitude * 1000.0).roundToInt() / 1000.0
@@ -111,17 +133,22 @@ class EnvironmentalRepositoryImpl(
     return runCatching {
       db.biciradarQueries.getEnvironmentalReadingByZoneKey(zoneKey).executeAsOneOrNull()?.let { row ->
         CachedEnvironmentalReading(
-          reading = EnvironmentalReading(
-            airQualityIndex = row.air_quality_index?.toInt(),
-            pollenIndex = row.pollen_index?.toInt(),
-          ),
+          reading =
+            EnvironmentalReading(
+              airQualityIndex = row.air_quality_index?.toInt(),
+              pollenIndex = row.pollen_index?.toInt(),
+            ),
           savedAtEpochMs = row.updated_at,
         )
       }
     }.getOrNull()
   }
 
-  private fun saveToDatabase(zoneKey: String, reading: EnvironmentalReading, updatedAt: Long) {
+  private fun saveToDatabase(
+    zoneKey: String,
+    reading: EnvironmentalReading,
+    updatedAt: Long,
+  ) {
     val db = database ?: return
     runCatching {
       db.biciradarQueries.upsertEnvironmentalReading(
@@ -179,14 +206,15 @@ private data class OpenMeteoAirQualityHourly(
   @SerialName("ragweed_pollen") val ragweedPollen: List<Double?> = emptyList(),
 )
 
-private fun OpenMeteoAirQualityHourly.maxPollen(): Double? = listOf(
-  alderPollen,
-  birchPollen,
-  grassPollen,
-  mugwortPollen,
-  olivePollen,
-  ragweedPollen,
-).asSequence()
-  .flatMap { it.asSequence() }
-  .filterNotNull()
-  .maxOrNull()
+private fun OpenMeteoAirQualityHourly.maxPollen(): Double? =
+  listOf(
+    alderPollen,
+    birchPollen,
+    grassPollen,
+    mugwortPollen,
+    olivePollen,
+    ragweedPollen,
+  ).asSequence()
+    .flatMap { it.asSequence() }
+    .filterNotNull()
+    .maxOrNull()

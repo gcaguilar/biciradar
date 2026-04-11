@@ -57,7 +57,10 @@ interface StationsCacheManager {
    * @param cityId ID de la ciudad
    * @param stations Lista de estaciones a guardar
    */
-  suspend fun save(cityId: String, stations: List<Station>)
+  suspend fun save(
+    cityId: String,
+    stations: List<Station>,
+  )
 
   /**
    * Actualiza la disponibilidad de estaciones en el caché.
@@ -83,9 +86,9 @@ class StationsCacheManagerImpl(
   private val database: BiciRadarDatabase,
   private val cacheStore: StationCacheStore,
 ) : StationsCacheManager {
-
   override val stationsFlow: Flow<List<StationEntity>>? =
-    database.biciradarQueries.getAllStations()
+    database.biciradarQueries
+      .getAllStations()
       .asFlow()
       .mapToList(Dispatchers.Default)
       .map { rows ->
@@ -106,7 +109,8 @@ class StationsCacheManagerImpl(
       }
 
   override val metadataFlow: Flow<CacheMetadata?>? =
-    database.biciradarQueries.getCacheMetadata()
+    database.biciradarQueries
+      .getCacheMetadata()
       .asFlow()
       .mapToOneOrNull(Dispatchers.Default)
       .map { meta ->
@@ -118,15 +122,14 @@ class StationsCacheManagerImpl(
         }
       }
 
-  override fun isFresh(cityId: String): Boolean {
-    return cacheStore.isFresh(cityId)
-  }
+  override fun isFresh(cityId: String): Boolean = cacheStore.isFresh(cityId)
 
-  override fun lastUpdated(cityId: String): Long? {
-    return cacheStore.lastUpdated(cityId)
-  }
+  override fun lastUpdated(cityId: String): Long? = cacheStore.lastUpdated(cityId)
 
-  override suspend fun save(cityId: String, stations: List<Station>) {
+  override suspend fun save(
+    cityId: String,
+    stations: List<Station>,
+  ) {
     cacheStore.save(cityId, stations)
   }
 
@@ -148,9 +151,20 @@ class StationsCacheManagerImpl(
 class NoOpStationsCacheManager : StationsCacheManager {
   override val stationsFlow: Flow<List<StationEntity>>? = null
   override val metadataFlow: Flow<CacheMetadata?>? = null
+
   override fun isFresh(cityId: String): Boolean = false
+
   override fun lastUpdated(cityId: String): Long? = null
-  override suspend fun save(cityId: String, stations: List<Station>) {}
-  override suspend fun updateAvailability(availability: Map<String, Pair<Int, Int>>, refreshedAt: Long) {}
+
+  override suspend fun save(
+    cityId: String,
+    stations: List<Station>,
+  ) {}
+
+  override suspend fun updateAvailability(
+    availability: Map<String, Pair<Int, Int>>,
+    refreshedAt: Long,
+  ) {}
+
   override suspend fun clear() {}
 }

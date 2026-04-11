@@ -5,7 +5,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OnboardingFavoritesNavigationTest {
-
   @Test
   fun shouldNavigate_whenPendingAndOnboardingHidden() {
     assertTrue(

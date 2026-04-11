@@ -24,9 +24,7 @@ internal data class ShortcutGuide(
 )
 
 @Composable
-internal fun ShortcutGuideCard(
-  guide: ShortcutGuide,
-) {
+internal fun ShortcutGuideCard(guide: ShortcutGuide) {
   Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
     Column(
       modifier = Modifier.padding(18.dp),

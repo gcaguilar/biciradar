@@ -29,19 +29,40 @@ interface FavoritesRepository {
   val workStationId: StateFlow<String?>
   val categories: StateFlow<List<FavoriteCategory>> get() = MutableStateFlow(systemCategories())
   val stationCategory: StateFlow<Map<String, String>> get() = MutableStateFlow(emptyMap())
+
   suspend fun bootstrap()
+
   suspend fun syncFromPeer() = Unit
+
   suspend fun toggle(stationId: String)
+
   suspend fun setHomeStationId(stationId: String?)
+
   suspend fun setWorkStationId(stationId: String?)
-  suspend fun upsertCategory(id: String, label: String, isSystem: Boolean = false) = Unit
+
+  suspend fun upsertCategory(
+    id: String,
+    label: String,
+    isSystem: Boolean = false,
+  ) = Unit
+
   suspend fun removeCategory(categoryId: String) = Unit
-  suspend fun assignStationToCategory(stationId: String, categoryId: String?) = Unit
+
+  suspend fun assignStationToCategory(
+    stationId: String,
+    categoryId: String?,
+  ) = Unit
+
   fun currentCategories(): List<FavoriteCategory> = categories.value
+
   fun currentStationCategory(stationId: String): String? = stationCategory.value[stationId]
+
   suspend fun clearAll()
+
   fun isFavorite(stationId: String): Boolean
+
   fun currentHomeStationId(): String?
+
   fun currentWorkStationId(): String?
 }
 
@@ -71,18 +92,31 @@ class FavoritesRepositoryImpl(
     database?.let { db ->
       scope.launch {
         combine(
-          db.biciradarQueries.getAllFavoriteCategories().asFlow().mapToList(Dispatchers.Default),
-          db.biciradarQueries.getAllFavoriteStationCategories().asFlow().mapToList(Dispatchers.Default),
-          db.biciradarQueries.getAllFavoriteIds().asFlow().mapToList(Dispatchers.Default),
-          db.biciradarQueries.getFavoriteRoles().asFlow().mapToOneOrNull(Dispatchers.Default),
+          db.biciradarQueries
+            .getAllFavoriteCategories()
+            .asFlow()
+            .mapToList(Dispatchers.Default),
+          db.biciradarQueries
+            .getAllFavoriteStationCategories()
+            .asFlow()
+            .mapToList(Dispatchers.Default),
+          db.biciradarQueries
+            .getAllFavoriteIds()
+            .asFlow()
+            .mapToList(Dispatchers.Default),
+          db.biciradarQueries
+            .getFavoriteRoles()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.Default),
         ) { categoryRows, stationRows, favoriteIdStrings, roles ->
-          val categories = categoryRows.map {
-            FavoriteCategory(
-              id = it.id,
-              label = it.label,
-              isSystem = it.is_system != 0L,
-            )
-          }
+          val categories =
+            categoryRows.map {
+              FavoriteCategory(
+                id = it.id,
+                label = it.label,
+                isSystem = it.is_system != 0L,
+              )
+            }
           val stationCategory = stationRows.associate { row -> row.station_id to row.category_id }
           val ids = favoriteIdStrings.toSet()
           FavoritesSyncSnapshot(
@@ -170,21 +204,27 @@ class FavoritesRepositoryImpl(
     }
   }
 
-  override suspend fun upsertCategory(id: String, label: String, isSystem: Boolean) {
+  override suspend fun upsertCategory(
+    id: String,
+    label: String,
+    isSystem: Boolean,
+  ) {
     if (!bootstrapped) bootstrap()
     val normalizedId = id.trim()
     val normalizedLabel = label.trim()
     if (normalizedId.isBlank() || normalizedLabel.isBlank()) return
     val existing = mutableCategories.value.associateBy { it.id }.toMutableMap()
     val previous = existing[normalizedId]
-    existing[normalizedId] = FavoriteCategory(
-      id = normalizedId,
-      label = normalizedLabel,
-      isSystem = previous?.isSystem ?: isSystem,
-    )
-    val updatedSnapshot = currentSnapshot()
-      .copy(categories = existing.values.sortedBy { it.label.lowercase() })
-      .normalized()
+    existing[normalizedId] =
+      FavoriteCategory(
+        id = normalizedId,
+        label = normalizedLabel,
+        isSystem = previous?.isSystem ?: isSystem,
+      )
+    val updatedSnapshot =
+      currentSnapshot()
+        .copy(categories = existing.values.sortedBy { it.label.lowercase() })
+        .normalized()
     persist(updatedSnapshot)
   }
 
@@ -194,14 +234,19 @@ class FavoritesRepositoryImpl(
     if (target.isSystem) return
     val updatedCategories = mutableCategories.value.filterNot { it.id == categoryId }
     val updatedAssignments = mutableStationCategory.value.filterValues { it != categoryId }
-    val updatedSnapshot = currentSnapshot().copy(
-      categories = updatedCategories,
-      stationCategory = updatedAssignments,
-    ).normalized()
+    val updatedSnapshot =
+      currentSnapshot()
+        .copy(
+          categories = updatedCategories,
+          stationCategory = updatedAssignments,
+        ).normalized()
     persist(updatedSnapshot)
   }
 
-  override suspend fun assignStationToCategory(stationId: String, categoryId: String?) {
+  override suspend fun assignStationToCategory(
+    stationId: String,
+    categoryId: String?,
+  ) {
     if (!bootstrapped) bootstrap()
     val normalizedStationId = stationId.trim()
     if (normalizedStationId.isBlank()) return
@@ -221,7 +266,9 @@ class FavoritesRepositoryImpl(
   }
 
   override fun isFavorite(stationId: String): Boolean = mutableFavoriteIds.value.contains(stationId)
+
   override fun currentHomeStationId(): String? = mutableHomeStationId.value
+
   override fun currentWorkStationId(): String? = mutableWorkStationId.value
 
   private fun favoritesPath() = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
@@ -260,30 +307,33 @@ class FavoritesRepositoryImpl(
     }
   }
 
-  private fun currentSnapshot(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
-    categories = mutableCategories.value,
-    stationCategory = mutableStationCategory.value,
-    favoriteIds = mutableFavoriteIds.value,
-    homeStationId = mutableHomeStationId.value,
-    workStationId = mutableWorkStationId.value,
-  )
+  private fun currentSnapshot(): FavoritesSyncSnapshot =
+    FavoritesSyncSnapshot(
+      categories = mutableCategories.value,
+      stationCategory = mutableStationCategory.value,
+      favoriteIds = mutableFavoriteIds.value,
+      homeStationId = mutableHomeStationId.value,
+      workStationId = mutableWorkStationId.value,
+    )
 
   private suspend fun syncMergedSnapshot(
     localSnapshot: FavoritesSyncSnapshot,
     pushIfChanged: Boolean,
   ) {
     val normalizedLocal = localSnapshot.normalized()
-    val remoteSnapshot = withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.latestFavorites()
-    } ?: FavoritesSyncSnapshot()
+    val remoteSnapshot =
+      withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+        watchSyncBridge.latestFavorites()
+      } ?: FavoritesSyncSnapshot()
     val normalizedRemote = remoteSnapshot.normalized()
-    val mergedSnapshot = FavoritesSyncSnapshot(
-      categories = mergeCategories(normalizedLocal.categories, normalizedRemote.categories),
-      stationCategory = normalizedLocal.stationCategory + normalizedRemote.stationCategory,
-      favoriteIds = normalizedLocal.favoriteIds + normalizedRemote.favoriteIds,
-      homeStationId = normalizedLocal.homeStationId ?: normalizedRemote.homeStationId,
-      workStationId = normalizedLocal.workStationId ?: normalizedRemote.workStationId,
-    ).normalized()
+    val mergedSnapshot =
+      FavoritesSyncSnapshot(
+        categories = mergeCategories(normalizedLocal.categories, normalizedRemote.categories),
+        stationCategory = normalizedLocal.stationCategory + normalizedRemote.stationCategory,
+        favoriteIds = normalizedLocal.favoriteIds + normalizedRemote.favoriteIds,
+        homeStationId = normalizedLocal.homeStationId ?: normalizedRemote.homeStationId,
+        workStationId = normalizedLocal.workStationId ?: normalizedRemote.workStationId,
+      ).normalized()
     val existingSnapshot = currentSnapshot()
     val hasChanged = mergedSnapshot != existingSnapshot
     if (hasChanged) {
@@ -303,8 +353,14 @@ class FavoritesRepositoryImpl(
     mutableCategories.value = normalized.categories
     mutableStationCategory.value = normalized.stationCategory
     mutableFavoriteIds.value = normalized.stationCategory.filterValues { it == FavoriteCategoryIds.FAVORITE }.keys
-    mutableHomeStationId.value = normalized.stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.HOME }?.key
-    mutableWorkStationId.value = normalized.stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.WORK }?.key
+    mutableHomeStationId.value =
+      normalized.stationCategory.entries
+        .firstOrNull { it.value == FavoriteCategoryIds.HOME }
+        ?.key
+    mutableWorkStationId.value =
+      normalized.stationCategory.entries
+        .firstOrNull { it.value == FavoriteCategoryIds.WORK }
+        ?.key
   }
 
   private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
@@ -325,16 +381,24 @@ class FavoritesRepositoryImpl(
   private fun readDatabaseSnapshot(): FavoritesSyncSnapshot? {
     val db = database ?: return null
     return runCatching {
-      val categories = db.biciradarQueries.getAllFavoriteCategories().executeAsList().map {
-        FavoriteCategory(
-          id = it.id,
-          label = it.label,
-          isSystem = it.is_system != 0L,
-        )
-      }
-      val stationCategory = db.biciradarQueries.getAllFavoriteStationCategories().executeAsList()
-        .associate { it.station_id to it.category_id }
-      val ids = db.biciradarQueries.getAllFavoriteIds().executeAsList().toSet()
+      val categories =
+        db.biciradarQueries.getAllFavoriteCategories().executeAsList().map {
+          FavoriteCategory(
+            id = it.id,
+            label = it.label,
+            isSystem = it.is_system != 0L,
+          )
+        }
+      val stationCategory =
+        db.biciradarQueries
+          .getAllFavoriteStationCategories()
+          .executeAsList()
+          .associate { it.station_id to it.category_id }
+      val ids =
+        db.biciradarQueries
+          .getAllFavoriteIds()
+          .executeAsList()
+          .toSet()
       val roles = db.biciradarQueries.getFavoriteRoles().executeAsOneOrNull()
       FavoritesSyncSnapshot(
         categories = categories,
@@ -363,14 +427,21 @@ class FavoritesRepositoryImpl(
           db.biciradarQueries.insertFavoriteStationCategory(stationId, categoryId)
         }
         db.biciradarQueries.deleteAllFavoriteIds()
-        val legacyFavoriteIds = snapshot.stationCategory
-          .filterValues { it == FavoriteCategoryIds.FAVORITE }
-          .keys
+        val legacyFavoriteIds =
+          snapshot.stationCategory
+            .filterValues { it == FavoriteCategoryIds.FAVORITE }
+            .keys
         legacyFavoriteIds.forEach { stationId ->
           db.biciradarQueries.insertFavoriteId(stationId)
         }
-        val legacyHomeId = snapshot.stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.HOME }?.key
-        val legacyWorkId = snapshot.stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.WORK }?.key
+        val legacyHomeId =
+          snapshot.stationCategory.entries
+            .firstOrNull { it.value == FavoriteCategoryIds.HOME }
+            ?.key
+        val legacyWorkId =
+          snapshot.stationCategory.entries
+            .firstOrNull { it.value == FavoriteCategoryIds.WORK }
+            ?.key
         if (legacyHomeId == null && legacyWorkId == null) {
           db.biciradarQueries.clearFavoriteRoles()
         } else {
@@ -399,16 +470,17 @@ class FavoritesRepositoryImpl(
 
 private fun FavoritesSyncSnapshot.normalized(): FavoritesSyncSnapshot {
   val baseCategories = mergeCategories(systemCategories(), categories)
-  val normalizedMap = when {
-    stationCategory.isNotEmpty() -> stationCategory.toMutableMap()
-    else -> {
-      val migrated = mutableMapOf<String, String>()
-      favoriteIds.forEach { migrated[it] = FavoriteCategoryIds.FAVORITE }
-      homeStationId?.let { migrated[it] = FavoriteCategoryIds.HOME }
-      workStationId?.let { migrated[it] = FavoriteCategoryIds.WORK }
-      migrated
+  val normalizedMap =
+    when {
+      stationCategory.isNotEmpty() -> stationCategory.toMutableMap()
+      else -> {
+        val migrated = mutableMapOf<String, String>()
+        favoriteIds.forEach { migrated[it] = FavoriteCategoryIds.FAVORITE }
+        homeStationId?.let { migrated[it] = FavoriteCategoryIds.HOME }
+        workStationId?.let { migrated[it] = FavoriteCategoryIds.WORK }
+        migrated
+      }
     }
-  }
   normalizedMap.entries.removeAll { (_, categoryId) -> baseCategories.none { it.id == categoryId } }
   val legacyFavoriteIds = normalizedMap.filterValues { it == FavoriteCategoryIds.FAVORITE }.keys
   val legacyHomeId = normalizedMap.entries.firstOrNull { it.value == FavoriteCategoryIds.HOME }?.key
@@ -428,11 +500,12 @@ private fun FavoritesSyncSnapshot.hasData(): Boolean =
     homeStationId != null ||
     workStationId != null
 
-private fun systemCategories(): List<FavoriteCategory> = listOf(
-  FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
-  FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
-  FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
-)
+private fun systemCategories(): List<FavoriteCategory> =
+  listOf(
+    FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
+    FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
+    FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
+  )
 
 private fun mergeCategories(
   first: List<FavoriteCategory>,
@@ -441,11 +514,12 @@ private fun mergeCategories(
   val merged = linkedMapOf<String, FavoriteCategory>()
   (first + second).forEach { category ->
     val existing = merged[category.id]
-    merged[category.id] = if (existing == null) {
-      category
-    } else {
-      category.copy(isSystem = existing.isSystem || category.isSystem)
-    }
+    merged[category.id] =
+      if (existing == null) {
+        category
+      } else {
+        category.copy(isSystem = existing.isSystem || category.isSystem)
+      }
   }
   return merged.values.toList()
 }

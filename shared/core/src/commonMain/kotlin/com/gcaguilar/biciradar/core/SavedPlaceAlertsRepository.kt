@@ -24,14 +24,30 @@ private const val ALERT_COOLDOWN_MILLIS = 60L * 60L * 1000L
 
 interface SavedPlaceAlertsRepository {
   val rules: StateFlow<List<SavedPlaceAlertRule>>
+
   suspend fun bootstrap()
+
   fun currentRules(): List<SavedPlaceAlertRule>
+
   fun ruleForTarget(target: SavedPlaceAlertTarget): SavedPlaceAlertRule?
-  suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition, enabled: Boolean = true)
+
+  suspend fun upsertRule(
+    target: SavedPlaceAlertTarget,
+    condition: SavedPlaceAlertCondition,
+    enabled: Boolean = true,
+  )
+
   suspend fun removeRule(ruleId: String)
+
   suspend fun removeRuleForTarget(target: SavedPlaceAlertTarget)
+
   suspend fun removeRulesForCity(cityId: String)
-  suspend fun setRuleEnabled(ruleId: String, enabled: Boolean)
+
+  suspend fun setRuleEnabled(
+    ruleId: String,
+    enabled: Boolean,
+  )
+
   suspend fun replaceAll(rules: List<SavedPlaceAlertRule>)
 }
 
@@ -57,7 +73,8 @@ class SavedPlaceAlertsRepositoryImpl(
   init {
     database?.let { db ->
       scope.launch {
-        db.biciradarQueries.getAllSavedPlaceAlertRules()
+        db.biciradarQueries
+          .getAllSavedPlaceAlertRules()
           .asFlow()
           .mapToList(Dispatchers.Default)
           .collect { rows ->
@@ -84,13 +101,14 @@ class SavedPlaceAlertsRepositoryImpl(
     enabled: Boolean,
   ) {
     if (!bootstrapped) bootstrap()
-    val updated = mutableRules.value.filterNot { it.target.identityKey() == target.identityKey() } +
-      SavedPlaceAlertRule(
-        id = target.identityKey(),
-        target = target,
-        condition = condition,
-        isEnabled = enabled,
-      )
+    val updated =
+      mutableRules.value.filterNot { it.target.identityKey() == target.identityKey() } +
+        SavedPlaceAlertRule(
+          id = target.identityKey(),
+          target = target,
+          condition = condition,
+          isEnabled = enabled,
+        )
     persist(updated.sortedBy { it.id })
   }
 
@@ -108,7 +126,10 @@ class SavedPlaceAlertsRepositoryImpl(
     persist(mutableRules.value.filterNot { rule -> rule.target.cityId == cityId })
   }
 
-  override suspend fun setRuleEnabled(ruleId: String, enabled: Boolean) {
+  override suspend fun setRuleEnabled(
+    ruleId: String,
+    enabled: Boolean,
+  ) {
     if (!bootstrapped) bootstrap()
     persist(
       mutableRules.value.map { rule ->
@@ -173,7 +194,10 @@ class SavedPlaceAlertsRepositoryImpl(
   private fun readFromDatabase(): List<SavedPlaceAlertRule>? {
     val db = database ?: return null
     return runCatching {
-      db.biciradarQueries.getAllSavedPlaceAlertRules().executeAsList().mapNotNull { it.toRule() }
+      db.biciradarQueries
+        .getAllSavedPlaceAlertRules()
+        .executeAsList()
+        .mapNotNull { it.toRule() }
     }.getOrNull()
   }
 
@@ -245,23 +269,25 @@ class SavedPlaceAlertsEvaluator {
       val shouldTrigger = station != null && matches && !rule.lastConditionMatched && cooldownSatisfied
 
       if (shouldTrigger) {
-        triggers += SavedPlaceAlertTrigger(
-          ruleId = rule.id,
-          target = rule.target,
-          stationId = station.id,
-          stationName = station.name,
-          cityId = rule.target.cityId,
-          condition = rule.condition,
-          triggeredAtEpoch = nowEpoch,
-          bikesAvailable = station.bikesAvailable,
-          docksAvailable = station.slotsFree,
-        )
+        triggers +=
+          SavedPlaceAlertTrigger(
+            ruleId = rule.id,
+            target = rule.target,
+            stationId = station.id,
+            stationName = station.name,
+            cityId = rule.target.cityId,
+            condition = rule.condition,
+            triggeredAtEpoch = nowEpoch,
+            bikesAvailable = station.bikesAvailable,
+            docksAvailable = station.slotsFree,
+          )
       }
 
-      updatedRules += rule.copy(
-        lastTriggeredEpoch = if (shouldTrigger) nowEpoch else rule.lastTriggeredEpoch,
-        lastConditionMatched = matches,
-      )
+      updatedRules +=
+        rule.copy(
+          lastTriggeredEpoch = if (shouldTrigger) nowEpoch else rule.lastTriggeredEpoch,
+          lastConditionMatched = matches,
+        )
     }
 
     return SavedPlaceAlertEvaluation(
@@ -276,33 +302,37 @@ data class SavedPlaceAlertEvaluation(
   val triggers: List<SavedPlaceAlertTrigger>,
 )
 
-fun SavedPlaceAlertCondition.displayTitle(): String = when (this) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> "Bicis disponibles"
-  is SavedPlaceAlertCondition.DocksAtLeast -> "Huecos disponibles"
-  SavedPlaceAlertCondition.BikesEqualsZero -> "Sin bicis"
-  SavedPlaceAlertCondition.DocksEqualsZero -> "Sin huecos"
-}
+fun SavedPlaceAlertCondition.displayTitle(): String =
+  when (this) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> "Bicis disponibles"
+    is SavedPlaceAlertCondition.DocksAtLeast -> "Huecos disponibles"
+    SavedPlaceAlertCondition.BikesEqualsZero -> "Sin bicis"
+    SavedPlaceAlertCondition.DocksEqualsZero -> "Sin huecos"
+  }
 
-fun SavedPlaceAlertCondition.displayDescription(): String = when (this) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> "Avisar cuando haya al menos $count bicis"
-  is SavedPlaceAlertCondition.DocksAtLeast -> "Avisar cuando haya al menos $count huecos"
-  SavedPlaceAlertCondition.BikesEqualsZero -> "Avisar cuando se quede sin bicis"
-  SavedPlaceAlertCondition.DocksEqualsZero -> "Avisar cuando se quede sin huecos"
-}
+fun SavedPlaceAlertCondition.displayDescription(): String =
+  when (this) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> "Avisar cuando haya al menos $count bicis"
+    is SavedPlaceAlertCondition.DocksAtLeast -> "Avisar cuando haya al menos $count huecos"
+    SavedPlaceAlertCondition.BikesEqualsZero -> "Avisar cuando se quede sin bicis"
+    SavedPlaceAlertCondition.DocksEqualsZero -> "Avisar cuando se quede sin huecos"
+  }
 
-fun SavedPlaceAlertTrigger.notificationTitle(): String = when (condition) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> "$stationName ya tiene bicis"
-  is SavedPlaceAlertCondition.DocksAtLeast -> "$stationName ya tiene huecos"
-  SavedPlaceAlertCondition.BikesEqualsZero -> "$stationName se ha quedado sin bicis"
-  SavedPlaceAlertCondition.DocksEqualsZero -> "$stationName se ha quedado sin huecos"
-}
+fun SavedPlaceAlertTrigger.notificationTitle(): String =
+  when (condition) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> "$stationName ya tiene bicis"
+    is SavedPlaceAlertCondition.DocksAtLeast -> "$stationName ya tiene huecos"
+    SavedPlaceAlertCondition.BikesEqualsZero -> "$stationName se ha quedado sin bicis"
+    SavedPlaceAlertCondition.DocksEqualsZero -> "$stationName se ha quedado sin huecos"
+  }
 
-fun SavedPlaceAlertTrigger.notificationBody(): String = when (condition) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> "$bikesAvailable bicis · $docksAvailable huecos"
-  is SavedPlaceAlertCondition.DocksAtLeast -> "$bikesAvailable bicis · $docksAvailable huecos"
-  SavedPlaceAlertCondition.BikesEqualsZero -> "$docksAvailable huecos libres"
-  SavedPlaceAlertCondition.DocksEqualsZero -> "$bikesAvailable bicis disponibles"
-}
+fun SavedPlaceAlertTrigger.notificationBody(): String =
+  when (condition) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> "$bikesAvailable bicis · $docksAvailable huecos"
+    is SavedPlaceAlertCondition.DocksAtLeast -> "$bikesAvailable bicis · $docksAvailable huecos"
+    SavedPlaceAlertCondition.BikesEqualsZero -> "$docksAvailable huecos libres"
+    SavedPlaceAlertCondition.DocksEqualsZero -> "$bikesAvailable bicis disponibles"
+  }
 
 @Serializable
 private data class SavedPlaceAlertsSnapshot(
@@ -336,53 +366,61 @@ private fun SavedPlaceAlertRule.toRelationalRow(): RelationalAlertRow {
   )
 }
 
-private fun SavedPlaceAlertCondition.toKindString(): String = when (this) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> "BikesAtLeast"
-  is SavedPlaceAlertCondition.DocksAtLeast -> "DocksAtLeast"
-  SavedPlaceAlertCondition.BikesEqualsZero -> "BikesEqualsZero"
-  SavedPlaceAlertCondition.DocksEqualsZero -> "DocksEqualsZero"
-}
+private fun SavedPlaceAlertCondition.toKindString(): String =
+  when (this) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> "BikesAtLeast"
+    is SavedPlaceAlertCondition.DocksAtLeast -> "DocksAtLeast"
+    SavedPlaceAlertCondition.BikesEqualsZero -> "BikesEqualsZero"
+    SavedPlaceAlertCondition.DocksEqualsZero -> "DocksEqualsZero"
+  }
 
-private fun SavedPlaceAlertCondition.thresholdOrNull(): Long? = when (this) {
-  is SavedPlaceAlertCondition.BikesAtLeast -> count.toLong()
-  is SavedPlaceAlertCondition.DocksAtLeast -> count.toLong()
-  else -> null
-}
+private fun SavedPlaceAlertCondition.thresholdOrNull(): Long? =
+  when (this) {
+    is SavedPlaceAlertCondition.BikesAtLeast -> count.toLong()
+    is SavedPlaceAlertCondition.DocksAtLeast -> count.toLong()
+    else -> null
+  }
 
 @Suppress("ComplexMethod")
 private fun Saved_place_alert_rules.toRule(): SavedPlaceAlertRule? {
   val kind = runCatching { SavedPlaceKind.valueOf(target_kind) }.getOrNull() ?: return null
-  val target: SavedPlaceAlertTarget = when (kind) {
-    SavedPlaceKind.Favorite -> SavedPlaceAlertTarget.FavoriteStation(
-      stationId = target_station_id,
-      cityId = target_city_id,
-      stationName = target_station_name,
-    )
-    SavedPlaceKind.Home -> SavedPlaceAlertTarget.Home(
-      stationId = target_station_id,
-      cityId = target_city_id,
-      stationName = target_station_name,
-    )
-    SavedPlaceKind.Work -> SavedPlaceAlertTarget.Work(
-      stationId = target_station_id,
-      cityId = target_city_id,
-      stationName = target_station_name,
-    )
-    SavedPlaceKind.Category -> SavedPlaceAlertTarget.CategoryStation(
-      stationId = target_station_id,
-      cityId = target_city_id,
-      stationName = target_station_name,
-      categoryId = target_category_id ?: return null,
-      categoryLabel = target_category_label,
-    )
-  }
-  val condition = when (condition_kind) {
-    "BikesAtLeast" -> SavedPlaceAlertCondition.BikesAtLeast(condition_threshold?.toInt() ?: return null)
-    "DocksAtLeast" -> SavedPlaceAlertCondition.DocksAtLeast(condition_threshold?.toInt() ?: return null)
-    "BikesEqualsZero" -> SavedPlaceAlertCondition.BikesEqualsZero
-    "DocksEqualsZero" -> SavedPlaceAlertCondition.DocksEqualsZero
-    else -> return null
-  }
+  val target: SavedPlaceAlertTarget =
+    when (kind) {
+      SavedPlaceKind.Favorite ->
+        SavedPlaceAlertTarget.FavoriteStation(
+          stationId = target_station_id,
+          cityId = target_city_id,
+          stationName = target_station_name,
+        )
+      SavedPlaceKind.Home ->
+        SavedPlaceAlertTarget.Home(
+          stationId = target_station_id,
+          cityId = target_city_id,
+          stationName = target_station_name,
+        )
+      SavedPlaceKind.Work ->
+        SavedPlaceAlertTarget.Work(
+          stationId = target_station_id,
+          cityId = target_city_id,
+          stationName = target_station_name,
+        )
+      SavedPlaceKind.Category ->
+        SavedPlaceAlertTarget.CategoryStation(
+          stationId = target_station_id,
+          cityId = target_city_id,
+          stationName = target_station_name,
+          categoryId = target_category_id ?: return null,
+          categoryLabel = target_category_label,
+        )
+    }
+  val condition =
+    when (condition_kind) {
+      "BikesAtLeast" -> SavedPlaceAlertCondition.BikesAtLeast(condition_threshold?.toInt() ?: return null)
+      "DocksAtLeast" -> SavedPlaceAlertCondition.DocksAtLeast(condition_threshold?.toInt() ?: return null)
+      "BikesEqualsZero" -> SavedPlaceAlertCondition.BikesEqualsZero
+      "DocksEqualsZero" -> SavedPlaceAlertCondition.DocksEqualsZero
+      else -> return null
+    }
   return SavedPlaceAlertRule(
     id = id,
     target = target,

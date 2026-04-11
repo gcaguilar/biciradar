@@ -23,28 +23,28 @@ import dev.zacsweers.metro.GraphExtension
  */
 @GraphExtension(OnboardingScope::class)
 interface OnboardingGraph {
-    /**
-     * SettingsRepository para gestionar preferencias durante onboarding.
-     */
-    val settingsRepository: SettingsRepository
+  /**
+   * SettingsRepository para gestionar preferencias durante onboarding.
+   */
+  val settingsRepository: SettingsRepository
 
-    /**
-     * FavoritesRepository para gestionar favoritos durante onboarding.
-     */
-    val favoritesRepository: FavoritesRepository
+  /**
+   * FavoritesRepository para gestionar favoritos durante onboarding.
+   */
+  val favoritesRepository: FavoritesRepository
 
+  /**
+   * Factory para crear instancias de OnboardingGraph.
+   *
+   * La factory se contribuye al AppScope padre para que esté disponible
+   * desde el grafo base.
+   */
+  @ContributesTo(AppScope::class)
+  @GraphExtension.Factory
+  interface Factory {
     /**
-     * Factory para crear instancias de OnboardingGraph.
-     *
-     * La factory se contribuye al AppScope padre para que esté disponible
-     * desde el grafo base.
+     * Crea un nuevo OnboardingGraph.
      */
-    @ContributesTo(AppScope::class)
-    @GraphExtension.Factory
-    interface Factory {
-        /**
-         * Crea un nuevo OnboardingGraph.
-         */
-        fun createOnboardingGraph(): OnboardingGraph
-    }
+    fun createOnboardingGraph(): OnboardingGraph
+  }
 }

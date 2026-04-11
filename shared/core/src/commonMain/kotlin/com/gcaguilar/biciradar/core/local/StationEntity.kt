@@ -33,16 +33,20 @@ fun StationEntity.toDomain(origin: GeoPoint): Station {
   )
 }
 
-private fun distanceBetween(origin: GeoPoint, destination: GeoPoint): Int {
+private fun distanceBetween(
+  origin: GeoPoint,
+  destination: GeoPoint,
+): Int {
   val earthRadius = 6371000.0
   val lat1Rad = origin.latitude * PI / 180.0
   val lat2Rad = destination.latitude * PI / 180.0
   val deltaLat = (destination.latitude - origin.latitude) * PI / 180.0
   val deltaLon = (destination.longitude - origin.longitude) * PI / 180.0
 
-  val a = sin(deltaLat / 2) * sin(deltaLat / 2) +
-    cos(lat1Rad) * cos(lat2Rad) *
-    sin(deltaLon / 2) * sin(deltaLon / 2)
+  val a =
+    sin(deltaLat / 2) * sin(deltaLat / 2) +
+      cos(lat1Rad) * cos(lat2Rad) *
+      sin(deltaLon / 2) * sin(deltaLon / 2)
   val c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
   return (earthRadius * c).toInt()

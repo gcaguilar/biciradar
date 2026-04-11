@@ -32,40 +32,43 @@ import com.gcaguilar.biciradar.mobileui.rememberBiziWindowLayout
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeProvider(
-    mobilePlatform: MobileUiPlatform,
-    themePreference: ThemePreference = ThemePreference.System,
-    content: @Composable () -> Unit,
+  mobilePlatform: MobileUiPlatform,
+  themePreference: ThemePreference = ThemePreference.System,
+  content: @Composable () -> Unit,
 ) {
-    val isDark = when (themePreference) {
-        ThemePreference.Light -> false
-        ThemePreference.Dark -> true
-        ThemePreference.System -> androidx.compose.foundation.isSystemInDarkTheme()
+  val isDark =
+    when (themePreference) {
+      ThemePreference.Light -> false
+      ThemePreference.Dark -> true
+      ThemePreference.System -> androidx.compose.foundation.isSystemInDarkTheme()
     }
-    val dynamicColorScheme = platformDynamicColorScheme(isDark)
-    val colors = dynamicColorScheme?.let { dynamicScheme ->
-        dynamicBiziColors(dynamicScheme, mobilePlatform, isDark)
+  val dynamicColorScheme = platformDynamicColorScheme(isDark)
+  val colors =
+    dynamicColorScheme?.let { dynamicScheme ->
+      dynamicBiziColors(dynamicScheme, mobilePlatform, isDark)
     } ?: if (isDark) {
-        DarkBiziColors
+      DarkBiziColors
     } else {
-        LightBiziColors
+      LightBiziColors
     }
-    val windowLayout = rememberBiziWindowLayout()
-    
-    CompositionLocalProvider(
-        LocalBiziColors provides colors,
-        LocalIsDarkTheme provides isDark,
-        LocalBiziWindowLayout provides windowLayout,
-    ) {
-        MaterialTheme(
-            colorScheme = dynamicColorScheme ?: biziColorScheme(
-                isDark = isDark,
-                colors = colors,
-                mobilePlatform = mobilePlatform,
-            ),
-            motionScheme = MotionScheme.expressive(),
-            content = content,
-        )
-    }
+  val windowLayout = rememberBiziWindowLayout()
+
+  CompositionLocalProvider(
+    LocalBiziColors provides colors,
+    LocalIsDarkTheme provides isDark,
+    LocalBiziWindowLayout provides windowLayout,
+  ) {
+    MaterialTheme(
+      colorScheme =
+        dynamicColorScheme ?: biziColorScheme(
+          isDark = isDark,
+          colors = colors,
+          mobilePlatform = mobilePlatform,
+        ),
+      motionScheme = MotionScheme.expressive(),
+      content = content,
+    )
+  }
 }
 
 /**
@@ -73,8 +76,8 @@ fun ThemeProvider(
  */
 @Composable
 fun pageBackgroundColor(platform: MobileUiPlatform): Color {
-    val c = LocalBiziColors.current
-    return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
+  val c = LocalBiziColors.current
+  return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
 }
 
 /**
@@ -82,14 +85,15 @@ fun pageBackgroundColor(platform: MobileUiPlatform): Color {
  */
 @Composable
 fun Modifier.responsivePageWidth(): Modifier {
-    val maxWidth = when (LocalBiziWindowLayout.current) {
-        BiziWindowLayout.Compact -> null
-        BiziWindowLayout.Medium -> 760.dp
-        BiziWindowLayout.Expanded -> 920.dp
+  val maxWidth =
+    when (LocalBiziWindowLayout.current) {
+      BiziWindowLayout.Compact -> null
+      BiziWindowLayout.Medium -> 760.dp
+      BiziWindowLayout.Expanded -> 920.dp
     }
-    return if (maxWidth == null) {
-        this.fillMaxSize()
-    } else {
-        this.fillMaxSize().widthIn(max = maxWidth)
-    }
+  return if (maxWidth == null) {
+    this.fillMaxSize()
+  } else {
+    this.fillMaxSize().widthIn(max = maxWidth)
+  }
 }

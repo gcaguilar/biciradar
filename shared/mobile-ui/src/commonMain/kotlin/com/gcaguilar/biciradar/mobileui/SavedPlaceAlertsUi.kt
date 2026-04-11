@@ -55,24 +55,26 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTit
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun savedPlaceAlertTargetLabel(target: SavedPlaceAlertTarget): String = when (target) {
-  is SavedPlaceAlertTarget.Home -> stringResource(Res.string.savedPlaceAlertsTargetHome)
-  is SavedPlaceAlertTarget.Work -> stringResource(Res.string.savedPlaceAlertsTargetWork)
-  is SavedPlaceAlertTarget.FavoriteStation ->
-    stringResource(Res.string.savedPlaceAlertsTargetFavorite, target.stationName ?: target.stationId)
-  is SavedPlaceAlertTarget.CategoryStation ->
-    target.categoryLabel ?: target.categoryId
-}
+internal fun savedPlaceAlertTargetLabel(target: SavedPlaceAlertTarget): String =
+  when (target) {
+    is SavedPlaceAlertTarget.Home -> stringResource(Res.string.savedPlaceAlertsTargetHome)
+    is SavedPlaceAlertTarget.Work -> stringResource(Res.string.savedPlaceAlertsTargetWork)
+    is SavedPlaceAlertTarget.FavoriteStation ->
+      stringResource(Res.string.savedPlaceAlertsTargetFavorite, target.stationName ?: target.stationId)
+    is SavedPlaceAlertTarget.CategoryStation ->
+      target.categoryLabel ?: target.categoryId
+  }
 
 @Composable
-private fun savedPlaceAlertConditionLabel(condition: SavedPlaceAlertCondition): String = when (condition) {
-  is SavedPlaceAlertCondition.BikesAtLeast ->
-    if (condition.count == 1) stringResource(Res.string.alertPresetBikesAtLeast1) else "${condition.count}+"
-  is SavedPlaceAlertCondition.DocksAtLeast ->
-    if (condition.count == 1) stringResource(Res.string.alertPresetDocksAtLeast1) else "${condition.count}+"
-  SavedPlaceAlertCondition.BikesEqualsZero -> stringResource(Res.string.alertPresetBikesZero)
-  SavedPlaceAlertCondition.DocksEqualsZero -> stringResource(Res.string.alertPresetDocksZero)
-}
+private fun savedPlaceAlertConditionLabel(condition: SavedPlaceAlertCondition): String =
+  when (condition) {
+    is SavedPlaceAlertCondition.BikesAtLeast ->
+      if (condition.count == 1) stringResource(Res.string.alertPresetBikesAtLeast1) else "${condition.count}+"
+    is SavedPlaceAlertCondition.DocksAtLeast ->
+      if (condition.count == 1) stringResource(Res.string.alertPresetDocksAtLeast1) else "${condition.count}+"
+    SavedPlaceAlertCondition.BikesEqualsZero -> stringResource(Res.string.alertPresetBikesZero)
+    SavedPlaceAlertCondition.DocksEqualsZero -> stringResource(Res.string.alertPresetDocksZero)
+  }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,12 +108,13 @@ internal fun SavedPlaceAlertEditorSheet(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
       Spacer(Modifier.padding(8.dp))
-      val presets: List<Pair<String, SavedPlaceAlertCondition>> = listOf(
-        stringResource(Res.string.alertPresetBikesAtLeast1) to SavedPlaceAlertCondition.BikesAtLeast(1),
-        stringResource(Res.string.alertPresetDocksAtLeast1) to SavedPlaceAlertCondition.DocksAtLeast(1),
-        stringResource(Res.string.alertPresetBikesZero) to SavedPlaceAlertCondition.BikesEqualsZero,
-        stringResource(Res.string.alertPresetDocksZero) to SavedPlaceAlertCondition.DocksEqualsZero,
-      )
+      val presets: List<Pair<String, SavedPlaceAlertCondition>> =
+        listOf(
+          stringResource(Res.string.alertPresetBikesAtLeast1) to SavedPlaceAlertCondition.BikesAtLeast(1),
+          stringResource(Res.string.alertPresetDocksAtLeast1) to SavedPlaceAlertCondition.DocksAtLeast(1),
+          stringResource(Res.string.alertPresetBikesZero) to SavedPlaceAlertCondition.BikesEqualsZero,
+          stringResource(Res.string.alertPresetDocksZero) to SavedPlaceAlertCondition.DocksEqualsZero,
+        )
       presets.forEach { (label, cond) ->
         TextButton(
           onClick = {
@@ -157,9 +160,10 @@ internal fun SavedPlaceAlertsListScreen(
   PlatformBackHandler(enabled = true, onBack = onBack)
   var editor: Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>? by remember { mutableStateOf(null) }
   Scaffold(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues),
     topBar = {
       TopAppBar(
         title = {

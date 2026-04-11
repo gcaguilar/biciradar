@@ -2,10 +2,7 @@ package com.gcaguilar.biciradar.mobileui.components.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -41,23 +38,25 @@ internal fun StationMapMarker(
   val occupancyRatio = if (total > 0) bikesAvailable.toFloat() / total else 0f
 
   // Color basado en disponibilidad
-  val markerColor = when {
-    bikesAvailable == 0 -> c.red
-    occupancyRatio > 0.7f -> c.green
-    occupancyRatio > 0.3f -> c.orange
-    else -> c.blue
-  }
+  val markerColor =
+    when {
+      bikesAvailable == 0 -> c.red
+      occupancyRatio > 0.7f -> c.green
+      occupancyRatio > 0.3f -> c.orange
+      else -> c.blue
+    }
 
   // Tamaño basado en si está destacado
   val size = if (isHighlighted) 44.dp else 36.dp
   val strokeWidth = if (isHighlighted) 3.dp else 2.dp
 
   Box(
-    modifier = modifier
-      .size(size)
-      .clip(CircleShape)
-      .background(if (isFavorite) c.purple else markerColor)
-      .clickable(onClick = onClick),
+    modifier =
+      modifier
+        .size(size)
+        .clip(CircleShape)
+        .background(if (isFavorite) c.purple else markerColor)
+        .clickable(onClick = onClick),
     contentAlignment = Alignment.Center,
   ) {
     Text(
@@ -85,10 +84,11 @@ internal fun StationDotMarker(
   val size = if (isHighlighted) 16.dp else 12.dp
 
   Box(
-    modifier = modifier
-      .size(size)
-      .clip(CircleShape)
-      .background(c.red)
-      .clickable(onClick = onClick),
+    modifier =
+      modifier
+        .size(size)
+        .clip(CircleShape)
+        .background(c.red)
+        .clickable(onClick = onClick),
   )
 }

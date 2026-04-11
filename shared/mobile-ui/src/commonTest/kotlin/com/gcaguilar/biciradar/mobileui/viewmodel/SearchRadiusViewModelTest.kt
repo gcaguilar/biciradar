@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import com.gcaguilar.biciradar.core.AutocompleteResult
-import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
+import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
@@ -62,130 +62,148 @@ class SearchRadiusViewModelTest {
   }
 
   @Test
-  fun `nearby view model reflects search radius updates from settings`() = runTest(dispatcher) {
-    val settingsRepository = FakeSettingsRepository(searchRadius = 300)
-    val viewModel = NearbyViewModel(
-      stationsRepository = FakeStationsRepository(
-        StationsState(stations = listOf(station(distanceMeters = 650))),
-      ),
-      favoritesRepository = FakeFavoritesRepository(),
-      settingsRepository = settingsRepository,
-      routeLauncher = NoOpRouteLauncher,
-    )
+  fun `nearby view model reflects search radius updates from settings`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeSettingsRepository(searchRadius = 300)
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository =
+            FakeStationsRepository(
+              StationsState(stations = listOf(station(distanceMeters = 650))),
+            ),
+          favoritesRepository = FakeFavoritesRepository(),
+          settingsRepository = settingsRepository,
+          routeLauncher = NoOpRouteLauncher,
+        )
 
-    advanceUntilIdle()
-    assertEquals(300, viewModel.uiState.value.searchRadiusMeters)
-    assertEquals(300, viewModel.uiState.value.nearestSelection.radiusMeters)
+      advanceUntilIdle()
+      assertEquals(300, viewModel.uiState.value.searchRadiusMeters)
+      assertEquals(300, viewModel.uiState.value.nearestSelection.radiusMeters)
 
-    settingsRepository.searchRadiusMeters.value = 1500
+      settingsRepository.searchRadiusMeters.value = 1500
 
-    advanceUntilIdle()
-    assertEquals(1500, viewModel.uiState.value.searchRadiusMeters)
-    assertEquals(1500, viewModel.uiState.value.nearestSelection.radiusMeters)
-  }
-
-  @Test
-  fun `trip view model uses latest settings radius when selecting a suggestion`() = runTest(dispatcher) {
-    val settingsRepository = FakeSettingsRepository(searchRadius = 300)
-    val tripRepository = FakeTripRepository()
-    val tripManagementUseCase = TripManagementUseCase(
-      tripRepository = tripRepository,
-      settingsRepository = settingsRepository,
-    )
-    val surfaceMonitoringUseCase = SurfaceMonitoringUseCase(
-      surfaceMonitoringRepository = FakeSurfaceMonitoringRepository(),
-    )
-    val geoLocationUseCase = GeoLocationUseCase(
-      geoSearchUseCase = GeoSearchUseCase(
-        geoApi = FakeGeoApi(),
-        googlePlacesApi = FakeGooglePlacesApi(),
-        googleMapsApiKey = null,
-      ),
-      reverseGeocodeUseCase = ReverseGeocodeUseCase(
-        geoApi = FakeGeoApi(),
-        googlePlacesApi = FakeGooglePlacesApi(),
-        googleMapsApiKey = null,
-      ),
-    )
-    val viewModel = TripViewModel(
-      tripManagementUseCase = tripManagementUseCase,
-      surfaceMonitoringUseCase = surfaceMonitoringUseCase,
-      geoLocationUseCase = geoLocationUseCase,
-    )
-
-    advanceUntilIdle()
-    settingsRepository.searchRadiusMeters.value = 2000
-    advanceUntilIdle()
-
-    viewModel.onSuggestionSelected(
-      GeoResult(
-        id = "dest-1",
-        name = "Destino",
-        address = "Centro, Zaragoza",
-        latitude = 41.65,
-        longitude = -0.88,
-      ),
-    )
-
-    advanceUntilIdle()
-    assertEquals(2000, tripRepository.lastSearchRadiusMeters)
-    assertEquals("Destino, Centro, Zaragoza", tripRepository.lastDestination?.name)
-  }
-
-  @Test
-  fun `profile view model shows setup card when onboarding is not complete`() = runTest(dispatcher) {
-    val settingsRepository = FakeSettingsRepository()
-    val favoritesRepository = FakeFavoritesRepository().apply {
-      favoriteIds.value = setOf("home")
-      homeStationId.value = "home"
-      workStationId.value = "work"
+      advanceUntilIdle()
+      assertEquals(1500, viewModel.uiState.value.searchRadiusMeters)
+      assertEquals(1500, viewModel.uiState.value.nearestSelection.radiusMeters)
     }
-    val stationsRepository = FakeStationsRepository()
-    val viewModel = ProfileViewModel(
-      settingsRepository = settingsRepository,
-      favoritesRepository = favoritesRepository,
-      changeCityUseCase = ChangeCityUseCase(
-        settingsRepository = settingsRepository,
-        favoritesRepository = favoritesRepository,
-        stationsRepository = stationsRepository,
-      ),
-      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
-      canSelectGoogleMapsInIos = true,
-    )
-    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
-    advanceUntilIdle()
-    assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
-  }
 
   @Test
-  fun `profile view model clears favorites and refreshes stations when changing city`() = runTest(dispatcher) {
-    val settingsRepository = FakeSettingsRepository(city = City.ZARAGOZA)
-    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
-    val favoritesRepository = FakeFavoritesRepository().apply {
-      favoriteIds.value = setOf("home")
+  fun `trip view model uses latest settings radius when selecting a suggestion`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeSettingsRepository(searchRadius = 300)
+      val tripRepository = FakeTripRepository()
+      val tripManagementUseCase =
+        TripManagementUseCase(
+          tripRepository = tripRepository,
+          settingsRepository = settingsRepository,
+        )
+      val surfaceMonitoringUseCase =
+        SurfaceMonitoringUseCase(
+          surfaceMonitoringRepository = FakeSurfaceMonitoringRepository(),
+        )
+      val geoLocationUseCase =
+        GeoLocationUseCase(
+          geoSearchUseCase =
+            GeoSearchUseCase(
+              geoApi = FakeGeoApi(),
+              googlePlacesApi = FakeGooglePlacesApi(),
+              googleMapsApiKey = null,
+            ),
+          reverseGeocodeUseCase =
+            ReverseGeocodeUseCase(
+              geoApi = FakeGeoApi(),
+              googlePlacesApi = FakeGooglePlacesApi(),
+              googleMapsApiKey = null,
+            ),
+        )
+      val viewModel =
+        TripViewModel(
+          tripManagementUseCase = tripManagementUseCase,
+          surfaceMonitoringUseCase = surfaceMonitoringUseCase,
+          geoLocationUseCase = geoLocationUseCase,
+        )
+
+      advanceUntilIdle()
+      settingsRepository.searchRadiusMeters.value = 2000
+      advanceUntilIdle()
+
+      viewModel.onSuggestionSelected(
+        GeoResult(
+          id = "dest-1",
+          name = "Destino",
+          address = "Centro, Zaragoza",
+          latitude = 41.65,
+          longitude = -0.88,
+        ),
+      )
+
+      advanceUntilIdle()
+      assertEquals(2000, tripRepository.lastSearchRadiusMeters)
+      assertEquals("Destino, Centro, Zaragoza", tripRepository.lastDestination?.name)
     }
-    val stationsRepository = FakeStationsRepository()
-    val viewModel = ProfileViewModel(
-      settingsRepository = settingsRepository,
-      favoritesRepository = favoritesRepository,
-      changeCityUseCase = ChangeCityUseCase(
-        settingsRepository = settingsRepository,
-        favoritesRepository = favoritesRepository,
-        stationsRepository = stationsRepository,
-      ),
-      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
-      canSelectGoogleMapsInIos = true,
-    )
 
-    advanceUntilIdle()
-    viewModel.onCitySelected(City.MADRID)
-    advanceUntilIdle()
+  @Test
+  fun `profile view model shows setup card when onboarding is not complete`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeSettingsRepository()
+      val favoritesRepository =
+        FakeFavoritesRepository().apply {
+          favoriteIds.value = setOf("home")
+          homeStationId.value = "home"
+          workStationId.value = "work"
+        }
+      val stationsRepository = FakeStationsRepository()
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          canSelectGoogleMapsInIos = true,
+        )
+      settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
+      advanceUntilIdle()
+      assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
+    }
 
-    assertEquals(City.MADRID, settingsRepository.selectedCity.value)
-    assertEquals(1, favoritesRepository.clearAllCalls)
-    assertEquals(1, stationsRepository.forceRefreshCalls)
-    assertTrue(settingsRepository.onboardingChecklist.value.cityConfirmed)
-  }
+  @Test
+  fun `profile view model clears favorites and refreshes stations when changing city`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeSettingsRepository(city = City.ZARAGOZA)
+      settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
+      val favoritesRepository =
+        FakeFavoritesRepository().apply {
+          favoriteIds.value = setOf("home")
+        }
+      val stationsRepository = FakeStationsRepository()
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          canSelectGoogleMapsInIos = true,
+        )
+
+      advanceUntilIdle()
+      viewModel.onCitySelected(City.MADRID)
+      advanceUntilIdle()
+
+      assertEquals(City.MADRID, settingsRepository.selectedCity.value)
+      assertEquals(1, favoritesRepository.clearAllCalls)
+      assertEquals(1, stationsRepository.forceRefreshCalls)
+      assertTrue(settingsRepository.onboardingChecklist.value.cityConfirmed)
+    }
 }
 
 private class FakeSettingsRepository(
@@ -203,38 +221,55 @@ private class FakeSettingsRepository(
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
 
   override suspend fun bootstrap() = Unit
+
   override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
   override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
   override fun currentSelectedCity(): City = selectedCity.value
+
   override fun currentLastSeenChangelogAppVersion(): String? = lastSeenChangelogAppVersion.value
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) {
     this.searchRadiusMeters.value = searchRadiusMeters
   }
+
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) {
     this.preferredMapApp.value = preferredMapApp
   }
+
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
   override suspend fun setLastSeenChangelogAppVersion(version: String?) {
     lastSeenChangelogAppVersion.value = version
   }
+
   override suspend fun setThemePreference(preference: ThemePreference) {
     themePreference.value = preference
   }
+
   override suspend fun setSelectedCity(city: City) {
     selectedCity.value = city
   }
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) {
     hasCompletedOnboarding.value = completed
   }
+
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) {
     onboardingChecklist.value = snapshot
   }
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
+
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) {
     onboardingChecklist.value = transform(onboardingChecklist.value)
   }
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) {
     engagementSnapshot.value = snapshot
   }
+
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 }
 
@@ -243,11 +278,15 @@ private class FakeStationsRepository(
 ) : StationsRepository {
   override val state: MutableStateFlow<StationsState> = MutableStateFlow(initialState)
   var forceRefreshCalls: Int = 0
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() {
     forceRefreshCalls++
   }
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
 }
 
@@ -258,24 +297,33 @@ private class FakeFavoritesRepository : FavoritesRepository {
   var clearAllCalls: Int = 0
 
   override suspend fun bootstrap() = Unit
+
   override suspend fun syncFromPeer() = Unit
+
   override suspend fun toggle(stationId: String) = Unit
+
   override suspend fun setHomeStationId(stationId: String?) {
     homeStationId.value = stationId
   }
+
   override suspend fun setWorkStationId(stationId: String?) {
     workStationId.value = stationId
   }
+
   override suspend fun clearAll() {
     clearAllCalls++
   }
+
   override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
   override fun currentHomeStationId(): String? = homeStationId.value
+
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
 private object NoOpRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
 
@@ -284,21 +332,30 @@ private class FakeTripRepository : TripRepository {
   var lastDestination: TripDestination? = null
   var lastSearchRadiusMeters: Int? = null
 
-  override suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int) {
+  override suspend fun setDestination(
+    destination: TripDestination,
+    searchRadiusMeters: Int,
+  ) {
     lastDestination = destination
     lastSearchRadiusMeters = searchRadiusMeters
   }
 
   override suspend fun startMonitoring(durationSeconds: Int) = Unit
+
   override fun stopMonitoring() = Unit
+
   override fun clearTrip() = Unit
+
   override fun dismissAlert() = Unit
+
   override suspend fun doFinalBackgroundCheck() = Unit
 }
 
 private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   override val state: StateFlow<SurfaceMonitoringSession?> = MutableStateFlow(null)
+
   override suspend fun bootstrap() = Unit
+
   override suspend fun startMonitoring(
     stationId: String,
     durationSeconds: Int,
@@ -311,28 +368,47 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   ): Boolean = true
 
   override fun stopMonitoring() = Unit
+
   override suspend fun clearMonitoring() = Unit
 }
 
 private class FakeGeoApi : GeoApi {
   override suspend fun search(query: String): List<GeoResult> = emptyList()
+
   override suspend fun reverseGeocode(location: GeoPoint): GeoResult? = null
 }
 
 private class FakeGooglePlacesApi : GooglePlacesApi {
-  override suspend fun autocomplete(query: String, biasLocation: GeoPoint?, apiKey: String): List<PlacePrediction> = emptyList()
-  override suspend fun placeDetails(placeId: String, apiKey: String): PlaceDetails? = null
-  override suspend fun reverseGeocode(location: GeoPoint, apiKey: String): String? = null
-  override suspend fun autocompleteWithStatus(query: String, biasLocation: GeoPoint?, apiKey: String): AutocompleteResult =
-    AutocompleteResult(predictions = emptyList(), status = "OK")
+  override suspend fun autocomplete(
+    query: String,
+    biasLocation: GeoPoint?,
+    apiKey: String,
+  ): List<PlacePrediction> = emptyList()
+
+  override suspend fun placeDetails(
+    placeId: String,
+    apiKey: String,
+  ): PlaceDetails? = null
+
+  override suspend fun reverseGeocode(
+    location: GeoPoint,
+    apiKey: String,
+  ): String? = null
+
+  override suspend fun autocompleteWithStatus(
+    query: String,
+    biasLocation: GeoPoint?,
+    apiKey: String,
+  ): AutocompleteResult = AutocompleteResult(predictions = emptyList(), status = "OK")
 }
 
-private fun station(distanceMeters: Int) = Station(
-  id = "station-$distanceMeters",
-  name = "Station $distanceMeters",
-  address = "Centro",
-  location = GeoPoint(41.65, -0.88),
-  bikesAvailable = 4,
-  slotsFree = 6,
-  distanceMeters = distanceMeters,
-)
+private fun station(distanceMeters: Int) =
+  Station(
+    id = "station-$distanceMeters",
+    name = "Station $distanceMeters",
+    address = "Centro",
+    location = GeoPoint(41.65, -0.88),
+    bikesAvailable = 4,
+    slotsFree = 6,
+    distanceMeters = distanceMeters,
+  )

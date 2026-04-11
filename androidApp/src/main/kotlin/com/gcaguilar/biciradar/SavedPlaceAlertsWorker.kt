@@ -8,7 +8,6 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.notificationBody
 import com.gcaguilar.biciradar.core.notificationTitle
 import java.util.concurrent.TimeUnit
@@ -21,13 +20,13 @@ class SavedPlaceAlertsWorker(
   context: Context,
   params: WorkerParameters,
 ) : CoroutineWorker(context, params) {
-  override suspend fun doWork(): Result {
-    return runCatching {
+  override suspend fun doWork(): Result =
+    runCatching {
       // Asegurar que el grafo está inicializado
       if (!BiziAppGraph.isInitialized()) {
         BiziAppGraph.initialize(applicationContext as android.app.Application)
       }
-      
+
       val graph = BiziAppGraph.graph
       val platformBindings = BiziAppGraph.platformBindings
 
@@ -35,10 +34,11 @@ class SavedPlaceAlertsWorker(
       graph.savedPlaceAlertsRepository.bootstrap()
       graph.stationsRepository.forceRefresh()
 
-      val evaluation = graph.savedPlaceAlertsEvaluator.evaluate(
-        rules = graph.savedPlaceAlertsRepository.currentRules(),
-        stationsState = graph.stationsRepository.state.value,
-      )
+      val evaluation =
+        graph.savedPlaceAlertsEvaluator.evaluate(
+          rules = graph.savedPlaceAlertsRepository.currentRules(),
+          stationsState = graph.stationsRepository.state.value,
+        )
 
       if (evaluation.updatedRules != graph.savedPlaceAlertsRepository.currentRules()) {
         graph.savedPlaceAlertsRepository.replaceAll(evaluation.updatedRules)
@@ -57,19 +57,19 @@ class SavedPlaceAlertsWorker(
     }.getOrElse {
       Result.retry()
     }
-  }
 
   companion object {
     private const val UNIQUE_WORK_NAME = "saved-place-alerts-worker"
 
     fun schedule(context: Context) {
-      val request = PeriodicWorkRequestBuilder<SavedPlaceAlertsWorker>(15, TimeUnit.MINUTES)
-        .setConstraints(
-          Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build(),
-        )
-        .build()
+      val request =
+        PeriodicWorkRequestBuilder<SavedPlaceAlertsWorker>(15, TimeUnit.MINUTES)
+          .setConstraints(
+            Constraints
+              .Builder()
+              .setRequiredNetworkType(NetworkType.CONNECTED)
+              .build(),
+          ).build()
       WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         UNIQUE_WORK_NAME,
         ExistingPeriodicWorkPolicy.UPDATE,

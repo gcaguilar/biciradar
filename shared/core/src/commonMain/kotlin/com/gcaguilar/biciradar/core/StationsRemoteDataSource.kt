@@ -38,11 +38,8 @@ interface StationsRemoteDataSource {
 class StationsRemoteDataSourceImpl(
   private val biziApi: BiziApi,
 ) : StationsRemoteDataSource {
-  override suspend fun fetchStations(origin: GeoPoint): List<Station> {
-    return biziApi.fetchStations(origin)
-  }
+  override suspend fun fetchStations(origin: GeoPoint): List<Station> = biziApi.fetchStations(origin)
 
-  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
-    return biziApi.fetchAvailability(stationIds)
-  }
+  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> =
+    biziApi.fetchAvailability(stationIds)
 }

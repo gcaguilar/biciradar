@@ -2,9 +2,9 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import app.cash.turbine.test
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.EnvironmentalReading
 import com.gcaguilar.biciradar.core.EnvironmentalRepository
-import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.NearbyStationSelection
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
@@ -12,8 +12,8 @@ import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
-import com.gcaguilar.biciradar.mobileui.MapFilter
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer
+import com.gcaguilar.biciradar.mobileui.MapFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,259 +44,289 @@ class MapEnvironmentalViewModelTest {
   }
 
   @Test
-  fun `loads environmental snapshots from repository when a layer becomes active`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository()
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
+  fun `loads environmental snapshots from repository when a layer becomes active`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeMapEnvironmentalSettingsRepository()
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
 
-    viewModel.onStationsChanged(
-      listOf(
-        station("ne", 41.7, -0.8),
-        station("nw", 41.7, -0.9),
-        station("se", 41.6, -0.8),
-        station("sw", 41.6, -0.9),
-      ),
-    )
-    viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.AirQuality)
+      viewModel.onStationsChanged(
+        listOf(
+          station("ne", 41.7, -0.8),
+          station("nw", 41.7, -0.9),
+          station("se", 41.6, -0.8),
+          station("sw", 41.6, -0.9),
+        ),
+      )
+      viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.AirQuality)
 
-    viewModel.uiState.test {
-      skipItems(1)
-      advanceUntilIdle()
-      val state = awaitItem()
-      assertEquals(4, state.zones.size)
-      assertEquals(listOf(10, 20, 30, 40), state.zones.map { it.airQualityScore })
-      assertEquals(1, settingsRepository.bootstrapCalls)
-      cancelAndIgnoreRemainingEvents()
+      viewModel.uiState.test {
+        skipItems(1)
+        advanceUntilIdle()
+        val state = awaitItem()
+        assertEquals(4, state.zones.size)
+        assertEquals(listOf(10, 20, 30, 40), state.zones.map { it.airQualityScore })
+        assertEquals(1, settingsRepository.bootstrapCalls)
+        cancelAndIgnoreRemainingEvents()
+      }
     }
-  }
 
   @Test
-  fun `clears snapshots when environmental layer is removed`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository()
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
+  fun `clears snapshots when environmental layer is removed`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeMapEnvironmentalSettingsRepository()
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
 
-    viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
-    viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
-    advanceUntilIdle()
-    assertEquals(1, viewModel.uiState.value.zones.size)
+      viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
+      viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
+      advanceUntilIdle()
+      assertEquals(1, viewModel.uiState.value.zones.size)
 
-    viewModel.onEnvironmentalLayerChanged(null)
-    advanceUntilIdle()
+      viewModel.onEnvironmentalLayerChanged(null)
+      advanceUntilIdle()
 
-    assertEquals(emptyList(), viewModel.uiState.value.zones)
-  }
-
-  @Test
-  fun `reacts when stations arrive after the environmental layer is already active`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository()
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
-
-    viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
-    advanceUntilIdle()
-    assertEquals(emptyList(), viewModel.uiState.value.zones)
-
-    viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
-    advanceUntilIdle()
-
-    assertEquals(1, viewModel.uiState.value.zones.size)
-    assertEquals(listOf(5), viewModel.uiState.value.zones.map { it.pollenScore })
-  }
+      assertEquals(emptyList(), viewModel.uiState.value.zones)
+    }
 
   @Test
-  fun `loads persisted filters on bootstrap and persists when updated`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository(
-      persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name),
-    )
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
+  fun `reacts when stations arrive after the environmental layer is already active`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeMapEnvironmentalSettingsRepository()
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
 
-    advanceUntilIdle()
-    assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
+      viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
+      advanceUntilIdle()
+      assertEquals(emptyList(), viewModel.uiState.value.zones)
 
-    viewModel.onPersistedMapFiltersChanged(setOf(MapFilter.POLLEN))
-    advanceUntilIdle()
+      viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
+      advanceUntilIdle()
 
-    assertEquals(setOf(MapFilter.POLLEN), viewModel.uiState.value.persistedActiveFilters)
-    assertEquals(
-      listOf(setOf(MapFilter.POLLEN.name)),
-      settingsRepository.persistedFilterWrites,
-    )
-  }
-
-  @Test
-  fun `onToggleFilter sanitizes and controls environmental sheet visibility`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository()
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
-    advanceUntilIdle()
-
-    val availableFilters = setOf(MapFilter.ONLY_BIKES, MapFilter.POLLEN)
-    viewModel.onToggleFilter(MapFilter.POLLEN, availableFilters)
-    advanceUntilIdle()
-    assertEquals(setOf(MapFilter.POLLEN), viewModel.uiState.value.persistedActiveFilters)
-    assertTrue(viewModel.uiState.value.showEnvironmentalSheet)
-
-    viewModel.onToggleFilter(MapFilter.POLLEN, availableFilters)
-    advanceUntilIdle()
-    assertEquals(emptySet(), viewModel.uiState.value.persistedActiveFilters)
-    assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
-
-    assertEquals(
-      listOf(
-        setOf(MapFilter.POLLEN.name),
-        emptySet<String>(),
-      ),
-      settingsRepository.persistedFilterWrites,
-    )
-  }
+      assertEquals(1, viewModel.uiState.value.zones.size)
+      assertEquals(
+        listOf(5),
+        viewModel.uiState.value.zones
+          .map { it.pollenScore },
+      )
+    }
 
   @Test
-  fun `onAvailableFiltersChanged sanitizes active filters and persists when changed`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository(
-      persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name, MapFilter.POLLEN.name),
-    )
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
-    advanceUntilIdle()
-    settingsRepository.persistedFilterWrites.clear()
+  fun `loads persisted filters on bootstrap and persists when updated`() =
+    runTest(dispatcher) {
+      val settingsRepository =
+        FakeMapEnvironmentalSettingsRepository(
+          persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name),
+        )
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
 
-    viewModel.onAvailableFiltersChanged(setOf(MapFilter.ONLY_BIKES))
-    advanceUntilIdle()
+      advanceUntilIdle()
+      assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
 
-    assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
-    assertEquals(
-      listOf(setOf(MapFilter.ONLY_BIKES.name)),
-      settingsRepository.persistedFilterWrites,
-    )
+      viewModel.onPersistedMapFiltersChanged(setOf(MapFilter.POLLEN))
+      advanceUntilIdle()
 
-    viewModel.onAvailableFiltersChanged(setOf(MapFilter.ONLY_BIKES))
-    advanceUntilIdle()
-    assertEquals(1, settingsRepository.persistedFilterWrites.size)
-  }
-
-  @Test
-  fun `selection and sheet events update new ui fields`() = runTest(dispatcher) {
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = FakeMapEnvironmentalSettingsRepository(),
-    )
-    advanceUntilIdle()
-
-    assertEquals(null, viewModel.uiState.value.selectedMapStationId)
-    assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
-    assertFalse(viewModel.uiState.value.isCardDismissed)
-    assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
-    assertEquals(0, viewModel.uiState.value.recenterRequestToken)
-
-    viewModel.onStationSelected("s1")
-    advanceUntilIdle()
-    assertEquals("s1", viewModel.uiState.value.selectedMapStationId)
-    assertTrue(viewModel.uiState.value.hasExplicitMapSelection)
-    assertFalse(viewModel.uiState.value.isCardDismissed)
-
-    viewModel.onStationCardDismissed()
-    advanceUntilIdle()
-    assertTrue(viewModel.uiState.value.isCardDismissed)
-
-    viewModel.onRecenterRequested()
-    advanceUntilIdle()
-    assertEquals(1, viewModel.uiState.value.recenterRequestToken)
-    assertFalse(viewModel.uiState.value.isCardDismissed)
-
-    viewModel.onEnvironmentalSheetShown()
-    advanceUntilIdle()
-    assertTrue(viewModel.uiState.value.showEnvironmentalSheet)
-    viewModel.onEnvironmentalSheetDismissed()
-    advanceUntilIdle()
-    assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
-  }
+      assertEquals(setOf(MapFilter.POLLEN), viewModel.uiState.value.persistedActiveFilters)
+      assertEquals(
+        listOf(setOf(MapFilter.POLLEN.name)),
+        settingsRepository.persistedFilterWrites,
+      )
+    }
 
   @Test
-  fun `clearing environmental filters removes environmental items hides sheet and persists`() = runTest(dispatcher) {
-    val settingsRepository = FakeMapEnvironmentalSettingsRepository(
-      persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name, MapFilter.POLLEN.name),
-    )
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = settingsRepository,
-    )
-    advanceUntilIdle()
-    viewModel.onEnvironmentalSheetShown()
-    settingsRepository.persistedFilterWrites.clear()
+  fun `onToggleFilter sanitizes and controls environmental sheet visibility`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeMapEnvironmentalSettingsRepository()
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
+      advanceUntilIdle()
 
-    viewModel.onClearEnvironmentalFilters()
-    advanceUntilIdle()
+      val availableFilters = setOf(MapFilter.ONLY_BIKES, MapFilter.POLLEN)
+      viewModel.onToggleFilter(MapFilter.POLLEN, availableFilters)
+      advanceUntilIdle()
+      assertEquals(setOf(MapFilter.POLLEN), viewModel.uiState.value.persistedActiveFilters)
+      assertTrue(viewModel.uiState.value.showEnvironmentalSheet)
 
-    assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
-    assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
-    assertEquals(
-      listOf(setOf(MapFilter.ONLY_BIKES.name)),
-      settingsRepository.persistedFilterWrites,
-    )
-  }
+      viewModel.onToggleFilter(MapFilter.POLLEN, availableFilters)
+      advanceUntilIdle()
+      assertEquals(emptySet(), viewModel.uiState.value.persistedActiveFilters)
+      assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
+
+      assertEquals(
+        listOf(
+          setOf(MapFilter.POLLEN.name),
+          emptySet<String>(),
+        ),
+        settingsRepository.persistedFilterWrites,
+      )
+    }
 
   @Test
-  fun `reconcileSelection falls back to nearest and handles search overrides`() = runTest(dispatcher) {
-    val viewModel = MapEnvironmentalViewModel(
-      environmentalRepository = FakeEnvironmentalRepository(),
-      settingsRepository = FakeMapEnvironmentalSettingsRepository(),
-    )
-    val a = station("a", 41.7, -0.8)
-    val b = station("b", 41.6, -0.9)
-    val c = station("c", 41.65, -0.88)
+  fun `onAvailableFiltersChanged sanitizes active filters and persists when changed`() =
+    runTest(dispatcher) {
+      val settingsRepository =
+        FakeMapEnvironmentalSettingsRepository(
+          persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name, MapFilter.POLLEN.name),
+        )
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
+      advanceUntilIdle()
+      settingsRepository.persistedFilterWrites.clear()
 
-    viewModel.onStationSelected("c")
-    viewModel.onStationCardDismissed()
-    advanceUntilIdle()
-    assertTrue(viewModel.uiState.value.hasExplicitMapSelection)
-    assertTrue(viewModel.uiState.value.isCardDismissed)
+      viewModel.onAvailableFiltersChanged(setOf(MapFilter.ONLY_BIKES))
+      advanceUntilIdle()
 
-    viewModel.reconcileSelection(
-      mapStations = listOf(a, b),
-      nearestSelection = NearbyStationSelection(
-        withinRadiusStation = b,
-        fallbackStation = a,
-        radiusMeters = 500,
-      ),
-      searchQuery = "",
-    )
-    advanceUntilIdle()
-    assertEquals("b", viewModel.uiState.value.selectedMapStationId)
-    assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
-    assertFalse(viewModel.uiState.value.isCardDismissed)
+      assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
+      assertEquals(
+        listOf(setOf(MapFilter.ONLY_BIKES.name)),
+        settingsRepository.persistedFilterWrites,
+      )
 
-    viewModel.reconcileSelection(
-      mapStations = listOf(a, b),
-      nearestSelection = NearbyStationSelection(
-        withinRadiusStation = b,
-        fallbackStation = a,
-        radiusMeters = 500,
-      ),
-      searchQuery = "centro",
-    )
-    advanceUntilIdle()
-    assertEquals("a", viewModel.uiState.value.selectedMapStationId)
-    assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
-  }
+      viewModel.onAvailableFiltersChanged(setOf(MapFilter.ONLY_BIKES))
+      advanceUntilIdle()
+      assertEquals(1, settingsRepository.persistedFilterWrites.size)
+    }
+
+  @Test
+  fun `selection and sheet events update new ui fields`() =
+    runTest(dispatcher) {
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+        )
+      advanceUntilIdle()
+
+      assertEquals(null, viewModel.uiState.value.selectedMapStationId)
+      assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
+      assertFalse(viewModel.uiState.value.isCardDismissed)
+      assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
+      assertEquals(0, viewModel.uiState.value.recenterRequestToken)
+
+      viewModel.onStationSelected("s1")
+      advanceUntilIdle()
+      assertEquals("s1", viewModel.uiState.value.selectedMapStationId)
+      assertTrue(viewModel.uiState.value.hasExplicitMapSelection)
+      assertFalse(viewModel.uiState.value.isCardDismissed)
+
+      viewModel.onStationCardDismissed()
+      advanceUntilIdle()
+      assertTrue(viewModel.uiState.value.isCardDismissed)
+
+      viewModel.onRecenterRequested()
+      advanceUntilIdle()
+      assertEquals(1, viewModel.uiState.value.recenterRequestToken)
+      assertFalse(viewModel.uiState.value.isCardDismissed)
+
+      viewModel.onEnvironmentalSheetShown()
+      advanceUntilIdle()
+      assertTrue(viewModel.uiState.value.showEnvironmentalSheet)
+      viewModel.onEnvironmentalSheetDismissed()
+      advanceUntilIdle()
+      assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
+    }
+
+  @Test
+  fun `clearing environmental filters removes environmental items hides sheet and persists`() =
+    runTest(dispatcher) {
+      val settingsRepository =
+        FakeMapEnvironmentalSettingsRepository(
+          persistedFilterNames = linkedSetOf(MapFilter.ONLY_BIKES.name, MapFilter.POLLEN.name),
+        )
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+        )
+      advanceUntilIdle()
+      viewModel.onEnvironmentalSheetShown()
+      settingsRepository.persistedFilterWrites.clear()
+
+      viewModel.onClearEnvironmentalFilters()
+      advanceUntilIdle()
+
+      assertEquals(setOf(MapFilter.ONLY_BIKES), viewModel.uiState.value.persistedActiveFilters)
+      assertFalse(viewModel.uiState.value.showEnvironmentalSheet)
+      assertEquals(
+        listOf(setOf(MapFilter.ONLY_BIKES.name)),
+        settingsRepository.persistedFilterWrites,
+      )
+    }
+
+  @Test
+  fun `reconcileSelection falls back to nearest and handles search overrides`() =
+    runTest(dispatcher) {
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+        )
+      val a = station("a", 41.7, -0.8)
+      val b = station("b", 41.6, -0.9)
+      val c = station("c", 41.65, -0.88)
+
+      viewModel.onStationSelected("c")
+      viewModel.onStationCardDismissed()
+      advanceUntilIdle()
+      assertTrue(viewModel.uiState.value.hasExplicitMapSelection)
+      assertTrue(viewModel.uiState.value.isCardDismissed)
+
+      viewModel.reconcileSelection(
+        mapStations = listOf(a, b),
+        nearestSelection =
+          NearbyStationSelection(
+            withinRadiusStation = b,
+            fallbackStation = a,
+            radiusMeters = 500,
+          ),
+        searchQuery = "",
+      )
+      advanceUntilIdle()
+      assertEquals("b", viewModel.uiState.value.selectedMapStationId)
+      assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
+      assertFalse(viewModel.uiState.value.isCardDismissed)
+
+      viewModel.reconcileSelection(
+        mapStations = listOf(a, b),
+        nearestSelection =
+          NearbyStationSelection(
+            withinRadiusStation = b,
+            fallbackStation = a,
+            radiusMeters = 500,
+          ),
+        searchQuery = "centro",
+      )
+      advanceUntilIdle()
+      assertEquals("a", viewModel.uiState.value.selectedMapStationId)
+      assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
+    }
 }
 
 private class FakeEnvironmentalRepository : EnvironmentalRepository {
-  override suspend fun readingAt(latitude: Double, longitude: Double): EnvironmentalReading? {
-    val key = "${latitude},${longitude}"
+  override suspend fun readingAt(
+    latitude: Double,
+    longitude: Double,
+  ): EnvironmentalReading? {
+    val key = "$latitude,$longitude"
     return when (key) {
       "41.7,-0.8" -> EnvironmentalReading(airQualityIndex = 10, pollenIndex = 1)
       "41.7,-0.9" -> EnvironmentalReading(airQualityIndex = 20, pollenIndex = 2)
@@ -308,7 +338,11 @@ private class FakeEnvironmentalRepository : EnvironmentalRepository {
   }
 }
 
-private fun station(id: String, latitude: Double, longitude: Double) = Station(
+private fun station(
+  id: String,
+  latitude: Double,
+  longitude: Double,
+) = Station(
   id = id,
   name = id,
   address = "Centro",
@@ -340,19 +374,35 @@ private class FakeMapEnvironmentalSettingsRepository(
   }
 
   override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
   override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
   override fun currentSelectedCity(): City = selectedCity.value
+
   override fun currentLastSeenChangelogAppVersion(): String? = lastSeenChangelogAppVersion.value
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
   override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
   override suspend fun setSelectedCity(city: City) = Unit
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
+
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) = Unit
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 
   override suspend fun persistedMapFilterNames(): Set<String> = storedPersistedFilterNames

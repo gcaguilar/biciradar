@@ -81,7 +81,8 @@ data class EngagementSnapshot(
   val lastUpdateCheckAtEpoch: Long? = null,
   val lastUpdateBannerDismissedAtEpoch: Long? = null,
 ) {
-  fun positiveSignalsCount(): Int = usefulSessionsCount + favoritesSavedCount + routesOpenedCount + monitoringsCompletedCount
+  fun positiveSignalsCount(): Int =
+    usefulSessionsCount + favoritesSavedCount + routesOpenedCount + monitoringsCompletedCount
 
   fun withInstallEpochIfMissing(nowEpoch: Long = currentTimeMs()): EngagementSnapshot =
     if (installedAtEpoch > 0L) this else copy(installedAtEpoch = nowEpoch)
@@ -107,32 +108,47 @@ data class EngagementSnapshot(
 
   fun markUnavailableDataEvent(): EngagementSnapshot = copy(unavailableDataEventsCount = unavailableDataEventsCount + 1)
 
-  fun markFeedbackNudged(appVersion: String, nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    lastFeedbackNudgeAtEpoch = nowEpoch,
-    lastFeedbackNudgedVersion = appVersion,
-  )
+  fun markFeedbackNudged(
+    appVersion: String,
+    nowEpoch: Long = currentTimeMs(),
+  ): EngagementSnapshot =
+    copy(
+      lastFeedbackNudgeAtEpoch = nowEpoch,
+      lastFeedbackNudgedVersion = appVersion,
+    )
 
-  fun markFeedbackDismissed(nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    lastFeedbackDismissedAtEpoch = nowEpoch,
-  )
+  fun markFeedbackDismissed(nowEpoch: Long = currentTimeMs()): EngagementSnapshot =
+    copy(
+      lastFeedbackDismissedAtEpoch = nowEpoch,
+    )
 
-  fun markFeedbackOpened(nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    lastFeedbackOpenedAtEpoch = nowEpoch,
-  )
+  fun markFeedbackOpened(nowEpoch: Long = currentTimeMs()): EngagementSnapshot =
+    copy(
+      lastFeedbackOpenedAtEpoch = nowEpoch,
+    )
 
-  fun markReviewRequested(appVersion: String, nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    lastReviewRequestedAtEpoch = nowEpoch,
-    lastReviewRequestedVersion = appVersion,
-  )
+  fun markReviewRequested(
+    appVersion: String,
+    nowEpoch: Long = currentTimeMs(),
+  ): EngagementSnapshot =
+    copy(
+      lastReviewRequestedAtEpoch = nowEpoch,
+      lastReviewRequestedVersion = appVersion,
+    )
 
-  fun markUpdateChecked(nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    lastUpdateCheckAtEpoch = nowEpoch,
-  )
+  fun markUpdateChecked(nowEpoch: Long = currentTimeMs()): EngagementSnapshot =
+    copy(
+      lastUpdateCheckAtEpoch = nowEpoch,
+    )
 
-  fun markUpdateBannerDismissed(version: String, nowEpoch: Long = currentTimeMs()): EngagementSnapshot = copy(
-    dismissedUpdateVersion = version,
-    lastUpdateBannerDismissedAtEpoch = nowEpoch,
-  )
+  fun markUpdateBannerDismissed(
+    version: String,
+    nowEpoch: Long = currentTimeMs(),
+  ): EngagementSnapshot =
+    copy(
+      dismissedUpdateVersion = version,
+      lastUpdateBannerDismissedAtEpoch = nowEpoch,
+    )
 }
 
 @Serializable
@@ -225,15 +241,16 @@ sealed interface SavedPlaceAlertTarget {
   val stationName: String?
   val kind: SavedPlaceKind
 
-  fun identityKey(): String = when (kind) {
-    SavedPlaceKind.Favorite -> "favorite:$stationId:$cityId"
-    SavedPlaceKind.Home -> "home:$stationId:$cityId"
-    SavedPlaceKind.Work -> "work:$stationId:$cityId"
-    SavedPlaceKind.Category -> {
-      val categoryId = (this as? CategoryStation)?.categoryId ?: "unknown"
-      "category:$categoryId:$stationId:$cityId"
+  fun identityKey(): String =
+    when (kind) {
+      SavedPlaceKind.Favorite -> "favorite:$stationId:$cityId"
+      SavedPlaceKind.Home -> "home:$stationId:$cityId"
+      SavedPlaceKind.Work -> "work:$stationId:$cityId"
+      SavedPlaceKind.Category -> {
+        val categoryId = (this as? CategoryStation)?.categoryId ?: "unknown"
+        "category:$categoryId:$stationId:$cityId"
+      }
     }
-  }
 
   @Serializable
   @SerialName("favorite_station")
@@ -282,11 +299,15 @@ sealed interface SavedPlaceAlertTarget {
 sealed interface SavedPlaceAlertCondition {
   @Serializable
   @SerialName("bikes_at_least")
-  data class BikesAtLeast(val count: Int) : SavedPlaceAlertCondition
+  data class BikesAtLeast(
+    val count: Int,
+  ) : SavedPlaceAlertCondition
 
   @Serializable
   @SerialName("docks_at_least")
-  data class DocksAtLeast(val count: Int) : SavedPlaceAlertCondition
+  data class DocksAtLeast(
+    val count: Int,
+  ) : SavedPlaceAlertCondition
 
   @Serializable
   @SerialName("bikes_equals_zero")
@@ -307,19 +328,21 @@ data class SavedPlaceAlertRule(
   val lastObservedValue: Int? = null,
   val lastConditionMatched: Boolean = false,
 ) {
-  fun metricValue(station: Station): Int = when (condition) {
-    is SavedPlaceAlertCondition.BikesAtLeast -> station.bikesAvailable
-    is SavedPlaceAlertCondition.DocksAtLeast -> station.slotsFree
-    SavedPlaceAlertCondition.BikesEqualsZero -> station.bikesAvailable
-    SavedPlaceAlertCondition.DocksEqualsZero -> station.slotsFree
-  }
+  fun metricValue(station: Station): Int =
+    when (condition) {
+      is SavedPlaceAlertCondition.BikesAtLeast -> station.bikesAvailable
+      is SavedPlaceAlertCondition.DocksAtLeast -> station.slotsFree
+      SavedPlaceAlertCondition.BikesEqualsZero -> station.bikesAvailable
+      SavedPlaceAlertCondition.DocksEqualsZero -> station.slotsFree
+    }
 
-  fun matches(station: Station): Boolean = when (val currentCondition = condition) {
-    is SavedPlaceAlertCondition.BikesAtLeast -> station.bikesAvailable >= currentCondition.count
-    is SavedPlaceAlertCondition.DocksAtLeast -> station.slotsFree >= currentCondition.count
-    SavedPlaceAlertCondition.BikesEqualsZero -> station.bikesAvailable == 0
-    SavedPlaceAlertCondition.DocksEqualsZero -> station.slotsFree == 0
-  }
+  fun matches(station: Station): Boolean =
+    when (val currentCondition = condition) {
+      is SavedPlaceAlertCondition.BikesAtLeast -> station.bikesAvailable >= currentCondition.count
+      is SavedPlaceAlertCondition.DocksAtLeast -> station.slotsFree >= currentCondition.count
+      SavedPlaceAlertCondition.BikesEqualsZero -> station.bikesAvailable == 0
+      SavedPlaceAlertCondition.DocksEqualsZero -> station.slotsFree == 0
+    }
 }
 
 @Serializable
@@ -363,24 +386,26 @@ fun evaluateSavedPlaceAlerts(
     val crossedThreshold = !rule.lastConditionMatched && matches
     val shouldTrigger = crossedThreshold && !withinCooldown
 
-    updatedRules += rule.copy(
-      lastObservedValue = metricValue,
-      lastConditionMatched = matches,
-      lastTriggeredEpoch = if (shouldTrigger) nowEpoch else rule.lastTriggeredEpoch,
-    )
+    updatedRules +=
+      rule.copy(
+        lastObservedValue = metricValue,
+        lastConditionMatched = matches,
+        lastTriggeredEpoch = if (shouldTrigger) nowEpoch else rule.lastTriggeredEpoch,
+      )
 
     if (shouldTrigger) {
-      triggers += SavedPlaceAlertTrigger(
-        ruleId = rule.id,
-        target = rule.target,
-        stationId = station.id,
-        stationName = station.name,
-        cityId = rule.target.cityId,
-        condition = rule.condition,
-        triggeredAtEpoch = nowEpoch,
-        bikesAvailable = station.bikesAvailable,
-        docksAvailable = station.slotsFree,
-      )
+      triggers +=
+        SavedPlaceAlertTrigger(
+          ruleId = rule.id,
+          target = rule.target,
+          stationId = station.id,
+          stationName = station.name,
+          cityId = rule.target.cityId,
+          condition = rule.condition,
+          triggeredAtEpoch = nowEpoch,
+          bikesAvailable = station.bikesAvailable,
+          docksAvailable = station.slotsFree,
+        )
     }
   }
 

@@ -38,78 +38,87 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun QuickRouteActionCard(
-    modifier: Modifier,
-    title: String,
-    emptyTitle: String,
-    selection: NearbyStationSelection,
-    icon: ImageVector,
-    tint: Color,
-    mobilePlatform: MobileUiPlatform,
-    onRoute: (Station) -> Unit,
+  modifier: Modifier,
+  title: String,
+  emptyTitle: String,
+  selection: NearbyStationSelection,
+  icon: ImageVector,
+  tint: Color,
+  mobilePlatform: MobileUiPlatform,
+  onRoute: (Station) -> Unit,
 ) {
-    val station = selection.highlightedStation
-    Card(
-        modifier = modifier
-            .clickable(enabled = station != null) {
-                station?.let(onRoute)
-            },
-        border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
-        colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+  val station = selection.highlightedStation
+  Card(
+    modifier =
+      modifier
+        .clickable(enabled = station != null) {
+          station?.let(onRoute)
+        },
+    border =
+      if (mobilePlatform ==
+        MobileUiPlatform.IOS
+      ) {
+        BorderStroke(1.dp, LocalBiziColors.current.panel)
+      } else {
+        null
+      },
+    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+  ) {
+    Column(
+      modifier =
+        Modifier
+          .padding(14.dp)
+          .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 520f)),
+      verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .padding(14.dp)
-                .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 520f)),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = LocalBiziColors.current.muted)
-            if (station == null) {
-                Text(
-                    emptyTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = tint,
-                )
-                Text(
-                    stringResource(Res.string.refreshStationsToOpenRoute),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalBiziColors.current.muted,
-                )
-            } else {
-                Text(
-                    station.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = tint,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    if (selection.usesFallback) {
-                        stringResource(
-                            Res.string.quickRouteFallbackSummary,
-                            formatDistance(selection.radiusMeters),
-                            formatDistance(station.distanceMeters),
-                        )
-                    } else {
-                        stringResource(
-                            Res.string.quickRouteDistanceSummary,
-                            formatDistance(station.distanceMeters),
-                            station.bikesAvailable,
-                            station.slotsFree,
-                        )
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalBiziColors.current.muted,
-                )
-                Text(
-                    stringResource(Res.string.openRoute),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = tint,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        }
+      Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+      Text(title, style = MaterialTheme.typography.labelSmall, color = LocalBiziColors.current.muted)
+      if (station == null) {
+        Text(
+          emptyTitle,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = tint,
+        )
+        Text(
+          stringResource(Res.string.refreshStationsToOpenRoute),
+          style = MaterialTheme.typography.bodySmall,
+          color = LocalBiziColors.current.muted,
+        )
+      } else {
+        Text(
+          station.name,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold,
+          color = tint,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+          if (selection.usesFallback) {
+            stringResource(
+              Res.string.quickRouteFallbackSummary,
+              formatDistance(selection.radiusMeters),
+              formatDistance(station.distanceMeters),
+            )
+          } else {
+            stringResource(
+              Res.string.quickRouteDistanceSummary,
+              formatDistance(station.distanceMeters),
+              station.bikesAvailable,
+              station.slotsFree,
+            )
+          },
+          style = MaterialTheme.typography.bodySmall,
+          color = LocalBiziColors.current.muted,
+        )
+        Text(
+          stringResource(Res.string.openRoute),
+          style = MaterialTheme.typography.labelMedium,
+          color = tint,
+          fontWeight = FontWeight.SemiBold,
+        )
+      }
     }
+  }
 }

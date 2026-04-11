@@ -33,7 +33,9 @@ class StationDetailUseCase(
   val alertRules: StateFlow<List<SavedPlaceAlertRule>> = savedPlaceAlertsRepository.rules
 
   fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
   fun isHomeStation(stationId: String): Boolean = homeStationId.value == stationId
+
   fun isWorkStation(stationId: String): Boolean = workStationId.value == stationId
 
   suspend fun toggleFavorite(stationId: String) {
@@ -50,15 +52,19 @@ class StationDetailUseCase(
     favoritesRepository.setWorkStationId(if (currentWorkId == stationId) null else stationId)
   }
 
-  suspend fun fetchStationPatterns(stationId: String): Result<List<StationHourlyPattern>> {
-    return runCatching { datosBiziApi.fetchPatterns(stationId) }
-  }
+  suspend fun fetchStationPatterns(stationId: String): Result<List<StationHourlyPattern>> =
+    runCatching {
+      datosBiziApi.fetchPatterns(stationId)
+    }
 
   fun launchRoute(station: Station) {
     routeLauncher.launch(station)
   }
 
-  suspend fun upsertAlertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
+  suspend fun upsertAlertRule(
+    target: SavedPlaceAlertTarget,
+    condition: SavedPlaceAlertCondition,
+  ) {
     savedPlaceAlertsRepository.upsertRule(target, condition)
   }
 
@@ -69,22 +75,23 @@ class StationDetailUseCase(
   /**
    * Observa el estado completo del detalle de una estación
    */
-  fun observeStationDetailState(stationId: String): Flow<StationDetailState> = combine(
-    favoriteIds,
-    homeStationId,
-    workStationId,
-    selectedCity,
-    alertRules,
-  ) { favorites, homeId, workId, city, rules ->
-    StationDetailState(
-      isFavorite = stationId in favorites,
-      isHomeStation = homeId == stationId,
-      isWorkStation = workId == stationId,
-      supportsUsagePatterns = city.supportsUsagePatterns,
-      savedPlaceAlertsCityId = city.id,
-      savedPlaceAlertRules = rules,
-    )
-  }
+  fun observeStationDetailState(stationId: String): Flow<StationDetailState> =
+    combine(
+      favoriteIds,
+      homeStationId,
+      workStationId,
+      selectedCity,
+      alertRules,
+    ) { favorites, homeId, workId, city, rules ->
+      StationDetailState(
+        isFavorite = stationId in favorites,
+        isHomeStation = homeId == stationId,
+        isWorkStation = workId == stationId,
+        supportsUsagePatterns = city.supportsUsagePatterns,
+        savedPlaceAlertsCityId = city.id,
+        savedPlaceAlertRules = rules,
+      )
+    }
 
   data class StationDetailState(
     val isFavorite: Boolean,

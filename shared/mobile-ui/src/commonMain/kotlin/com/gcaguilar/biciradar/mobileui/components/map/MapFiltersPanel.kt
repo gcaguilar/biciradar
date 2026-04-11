@@ -11,7 +11,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -69,15 +68,16 @@ private fun MapFilterChip(
   onClick: () -> Unit,
 ) {
   val c = LocalBiziColors.current
-  val accent = when (filter) {
-    MapFilter.BIKES_AND_SLOTS -> c.green
-    MapFilter.ONLY_BIKES -> c.blue
-    MapFilter.ONLY_SLOTS -> c.red
-    MapFilter.ONLY_EBIKES -> c.orange
-    MapFilter.ONLY_REGULAR_BIKES -> c.purple
-    MapFilter.AIR_QUALITY -> c.green
-    MapFilter.POLLEN -> c.orange
-  }
+  val accent =
+    when (filter) {
+      MapFilter.BIKES_AND_SLOTS -> c.green
+      MapFilter.ONLY_BIKES -> c.blue
+      MapFilter.ONLY_SLOTS -> c.red
+      MapFilter.ONLY_EBIKES -> c.orange
+      MapFilter.ONLY_REGULAR_BIKES -> c.purple
+      MapFilter.AIR_QUALITY -> c.green
+      MapFilter.POLLEN -> c.orange
+    }
   val backgroundColor by animateColorAsState(
     targetValue = c.surface,
     animationSpec = tween(180),
@@ -99,12 +99,12 @@ private fun MapFilterChip(
     shape = RoundedCornerShape(16.dp),
     color = backgroundColor,
     border = BorderStroke(1.dp, borderColor),
-    modifier = Modifier
-      .graphicsLayer {
-        scaleX = selectionScale
-        scaleY = selectionScale
-      }
-      .clickable(onClick = onClick),
+    modifier =
+      Modifier
+        .graphicsLayer {
+          scaleX = selectionScale
+          scaleY = selectionScale
+        }.clickable(onClick = onClick),
   ) {
     Row(
       modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -128,9 +128,10 @@ private fun MapColorDot(
   modifier: Modifier = Modifier,
 ) {
   Box(
-    modifier = modifier
-      .size(10.dp)
-      .clip(CircleShape)
-      .background(color),
+    modifier =
+      modifier
+        .size(10.dp)
+        .clip(CircleShape)
+        .background(color),
   )
 }

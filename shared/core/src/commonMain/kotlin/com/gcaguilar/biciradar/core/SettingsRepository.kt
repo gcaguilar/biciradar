@@ -31,6 +31,7 @@ import okio.Path.Companion.toPath
 interface SettingsRepository {
   val searchRadiusMeters: StateFlow<Int>
   val preferredMapApp: StateFlow<PreferredMapApp>
+
   /** Legacy integer changelog marker; kept for migration only. */
   val lastSeenChangelogVersion: StateFlow<Int>
   val lastSeenChangelogAppVersion: StateFlow<String?>
@@ -39,25 +40,45 @@ interface SettingsRepository {
   val hasCompletedOnboarding: StateFlow<Boolean>
   val onboardingChecklist: StateFlow<OnboardingChecklistSnapshot>
   val engagementSnapshot: StateFlow<EngagementSnapshot>
+
   suspend fun bootstrap()
+
   fun currentSearchRadiusMeters(): Int
+
   fun currentPreferredMapApp(): PreferredMapApp
+
   fun currentSelectedCity(): City
+
   fun currentLastSeenChangelogAppVersion(): String?
+
   suspend fun setSearchRadiusMeters(searchRadiusMeters: Int)
+
   suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp)
+
   suspend fun setLastSeenChangelogVersion(version: Int)
+
   suspend fun setLastSeenChangelogAppVersion(version: String?)
+
   suspend fun setThemePreference(preference: ThemePreference)
+
   suspend fun setSelectedCity(city: City)
+
   suspend fun setHasCompletedOnboarding(completed: Boolean)
+
   suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot)
+
   suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot)
+
   suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot)
+
   suspend fun persistedMapFilterNames(): Set<String> = emptySet()
+
   suspend fun setPersistedMapFilterNames(names: Set<String>) {}
+
   suspend fun preferredMonitoringDurationSeconds(): Int? = null
+
   suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int?) {}
+
   /**
    * Returns whether city selection is already confirmed.
    *
@@ -65,6 +86,7 @@ interface SettingsRepository {
    * implementations. Persistent implementations should override and read from storage.
    */
   suspend fun isCityConfirmedPersisted(): Boolean = onboardingChecklist.value.cityConfirmed
+
   /**
    * First launch with string-based changelog: set [lastSeenChangelogAppVersion] to [appVersion] if still null
    * (new installs + legacy int migration) so no popup is shown until a future update with a catalog entry.
@@ -98,8 +120,14 @@ class SettingsRepositoryImpl(
     if (db != null) {
       scope.launch {
         combine(
-          db.biciradarQueries.getAppSettings().asFlow().mapToOneOrNull(Dispatchers.Default),
-          db.biciradarQueries.getAllSettingsMapFilterNames().asFlow().mapToList(Dispatchers.Default),
+          db.biciradarQueries
+            .getAppSettings()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.Default),
+          db.biciradarQueries
+            .getAllSettingsMapFilterNames()
+            .asFlow()
+            .mapToList(Dispatchers.Default),
         ) { row, filterNames ->
           if (row == null) return@combine null
           settingsSnapshotFromDbRow(row, filterNames.toSet())
@@ -110,45 +138,54 @@ class SettingsRepositoryImpl(
     }
   }
 
-  override val searchRadiusMeters: StateFlow<Int> = readModel
-    .map { normalizeSearchRadiusMeters(it.searchRadiusMeters) }
-    .stateIn(
-      scope,
-      SharingStarted.Eagerly,
-      normalizeSearchRadiusMeters(DEFAULT_SEARCH_RADIUS_METERS),
-    )
+  override val searchRadiusMeters: StateFlow<Int> =
+    readModel
+      .map { normalizeSearchRadiusMeters(it.searchRadiusMeters) }
+      .stateIn(
+        scope,
+        SharingStarted.Eagerly,
+        normalizeSearchRadiusMeters(DEFAULT_SEARCH_RADIUS_METERS),
+      )
 
-  override val preferredMapApp: StateFlow<PreferredMapApp> = readModel
-    .map { it.preferredMapApp }
-    .stateIn(scope, SharingStarted.Eagerly, PreferredMapApp.AppleMaps)
+  override val preferredMapApp: StateFlow<PreferredMapApp> =
+    readModel
+      .map { it.preferredMapApp }
+      .stateIn(scope, SharingStarted.Eagerly, PreferredMapApp.AppleMaps)
 
-  override val lastSeenChangelogVersion: StateFlow<Int> = readModel
-    .map { it.lastSeenChangelogVersion }
-    .stateIn(scope, SharingStarted.Eagerly, 0)
+  override val lastSeenChangelogVersion: StateFlow<Int> =
+    readModel
+      .map { it.lastSeenChangelogVersion }
+      .stateIn(scope, SharingStarted.Eagerly, 0)
 
-  override val lastSeenChangelogAppVersion: StateFlow<String?> = readModel
-    .map { it.lastSeenChangelogAppVersion }
-    .stateIn(scope, SharingStarted.Eagerly, null)
+  override val lastSeenChangelogAppVersion: StateFlow<String?> =
+    readModel
+      .map { it.lastSeenChangelogAppVersion }
+      .stateIn(scope, SharingStarted.Eagerly, null)
 
-  override val themePreference: StateFlow<ThemePreference> = readModel
-    .map { it.themePreference }
-    .stateIn(scope, SharingStarted.Eagerly, ThemePreference.System)
+  override val themePreference: StateFlow<ThemePreference> =
+    readModel
+      .map { it.themePreference }
+      .stateIn(scope, SharingStarted.Eagerly, ThemePreference.System)
 
-  override val selectedCity: StateFlow<City> = readModel
-    .map { snapshot -> snapshot.selectedCityId.let { City.fromId(it) } ?: City.defaultCity() }
-    .stateIn(scope, SharingStarted.Eagerly, City.defaultCity())
+  override val selectedCity: StateFlow<City> =
+    readModel
+      .map { snapshot -> snapshot.selectedCityId.let { City.fromId(it) } ?: City.defaultCity() }
+      .stateIn(scope, SharingStarted.Eagerly, City.defaultCity())
 
-  override val hasCompletedOnboarding: StateFlow<Boolean> = readModel
-    .map { it.hasCompletedOnboarding }
-    .stateIn(scope, SharingStarted.Eagerly, false)
+  override val hasCompletedOnboarding: StateFlow<Boolean> =
+    readModel
+      .map { it.hasCompletedOnboarding }
+      .stateIn(scope, SharingStarted.Eagerly, false)
 
-  override val onboardingChecklist: StateFlow<OnboardingChecklistSnapshot> = readModel
-    .map { it.onboardingChecklist }
-    .stateIn(scope, SharingStarted.Eagerly, OnboardingChecklistSnapshot())
+  override val onboardingChecklist: StateFlow<OnboardingChecklistSnapshot> =
+    readModel
+      .map { it.onboardingChecklist }
+      .stateIn(scope, SharingStarted.Eagerly, OnboardingChecklistSnapshot())
 
-  override val engagementSnapshot: StateFlow<EngagementSnapshot> = readModel
-    .map { it.engagementSnapshot }
-    .stateIn(scope, SharingStarted.Eagerly, EngagementSnapshot())
+  override val engagementSnapshot: StateFlow<EngagementSnapshot> =
+    readModel
+      .map { it.engagementSnapshot }
+      .stateIn(scope, SharingStarted.Eagerly, EngagementSnapshot())
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
@@ -160,8 +197,7 @@ class SettingsRepositoryImpl(
     readModel.value = normalizeLegacyOnboardingForMigration(snapshot ?: SettingsSnapshot())
   }
 
-  override fun currentSearchRadiusMeters(): Int =
-    normalizeSearchRadiusMeters(readModel.value.searchRadiusMeters)
+  override fun currentSearchRadiusMeters(): Int = normalizeSearchRadiusMeters(readModel.value.searchRadiusMeters)
 
   override fun currentPreferredMapApp(): PreferredMapApp = readModel.value.preferredMapApp
 
@@ -226,7 +262,9 @@ class SettingsRepositoryImpl(
     }
   }
 
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) {
     mutatePersist { snap ->
       val updated = transform(snap.onboardingChecklist)
       snap.copy(
@@ -258,9 +296,8 @@ class SettingsRepositoryImpl(
     mutatePersist { it.copy(preferredMonitoringDurationSeconds = durationSeconds) }
   }
 
-  override suspend fun isCityConfirmedPersisted(): Boolean {
-    return readPersistedSnapshot()?.onboardingChecklist?.cityConfirmed ?: false
-  }
+  override suspend fun isCityConfirmedPersisted(): Boolean =
+    readPersistedSnapshot()?.onboardingChecklist?.cityConfirmed ?: false
 
   private fun settingsPath() = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
 
@@ -313,7 +350,11 @@ class SettingsRepositoryImpl(
     val db = database ?: return null
     return runCatching {
       val row = db.biciradarQueries.getAppSettings().executeAsOneOrNull() ?: return@runCatching null
-      val filters = db.biciradarQueries.getAllSettingsMapFilterNames().executeAsList().toSet()
+      val filters =
+        db.biciradarQueries
+          .getAllSettingsMapFilterNames()
+          .executeAsList()
+          .toSet()
       settingsSnapshotFromDbRow(row, filters)
     }.getOrNull()
   }

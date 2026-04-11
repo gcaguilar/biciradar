@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,10 +49,10 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSelectCategory
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchNoMatchesTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSelectCategory
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStartTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.home
@@ -96,25 +93,26 @@ internal fun FavoritesSearchScreen(
   onCreateCustomCategory: () -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
-  val searchResults = remember(allStations, searchQuery) {
-    if (searchQuery.isBlank()) {
-      emptyList()
-    } else {
-      filterStationsByQuery(allStations, searchQuery).take(12)
-    }
-  }
-  val assignableCategories = remember(categories) {
-    categories
-      .ifEmpty {
-        listOf(
-          FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
-          FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
-          FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
-        )
+  val searchResults =
+    remember(allStations, searchQuery) {
+      if (searchQuery.isBlank()) {
+        emptyList()
+      } else {
+        filterStationsByQuery(allStations, searchQuery).take(12)
       }
-      .distinctBy(FavoriteCategory::id)
-      .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.label.lowercase() }))
-  }
+    }
+  val assignableCategories =
+    remember(categories) {
+      categories
+        .ifEmpty {
+          listOf(
+            FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
+            FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
+            FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
+          )
+        }.distinctBy(FavoriteCategory::id)
+        .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.label.lowercase() }))
+    }
 
   Scaffold(
     modifier = Modifier.fillMaxSize(),
@@ -139,71 +137,74 @@ internal fun FavoritesSearchScreen(
     },
     containerColor = pageBackgroundColor(mobilePlatform),
   ) { innerPadding ->
-  LazyColumn(
-    modifier = Modifier
-      .fillMaxSize()
-      .responsivePageWidth(),
-    contentPadding = PaddingValues(
-      start = 16.dp,
-      end = 16.dp,
-      top = innerPadding.calculateTopPadding() + 16.dp,
-      bottom = innerPadding.calculateBottomPadding() + 16.dp,
-    ),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
-  ) {
-    item {
-      Text(
-        text = stringResource(Res.string.favoritesSearchSubtitle),
-        style = MaterialTheme.typography.bodySmall,
-        color = LocalBiziColors.current.muted,
-      )
-    }
-    item {
-      StationSearchField(
-        mobilePlatform = mobilePlatform,
-        value = searchQuery,
-        onValueChange = onSearchQueryChange,
-        label = stringResource(Res.string.favoritesSearchStation),
-      )
-    }
-    if (searchQuery.isBlank()) {
+    LazyColumn(
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .responsivePageWidth(),
+      contentPadding =
+        PaddingValues(
+          start = 16.dp,
+          end = 16.dp,
+          top = innerPadding.calculateTopPadding() + 16.dp,
+          bottom = innerPadding.calculateBottomPadding() + 16.dp,
+        ),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
       item {
-        EmptyStatePlaceholder(
-          title = stringResource(Res.string.favoritesSearchStartTitle),
-          description = stringResource(Res.string.useSearchToAssignStation),
+        Text(
+          text = stringResource(Res.string.favoritesSearchSubtitle),
+          style = MaterialTheme.typography.bodySmall,
+          color = LocalBiziColors.current.muted,
         )
       }
-    } else if (searchResults.isEmpty()) {
       item {
-        EmptyStatePlaceholder(
-          title = stringResource(Res.string.favoritesSearchNoMatchesTitle),
-          description = stringResource(Res.string.mapTryAnotherQuery),
-        )
-      }
-    } else {
-      items(searchResults, key = { it.id }) { station ->
-        SearchResultCard(
+        StationSearchField(
           mobilePlatform = mobilePlatform,
-          station = station,
-          categories = assignableCategories,
-          currentCategoryId = stationCategory[station.id] ?: when {
-            station.id == homeStationId -> FavoriteCategoryIds.HOME
-            station.id == workStationId -> FavoriteCategoryIds.WORK
-            station.id in favoriteStationIds -> FavoriteCategoryIds.FAVORITE
-            else -> null
-          },
-          onOpenStationDetails = { onOpenStationDetails(station) },
-          onAssignCategory = { categoryId ->
-            when (categoryId) {
-              FavoriteCategoryIds.HOME -> onAssignHome(station)
-              FavoriteCategoryIds.WORK -> onAssignWork(station)
-              else -> onAssignStationToCategory(station, categoryId)
-            }
-          },
+          value = searchQuery,
+          onValueChange = onSearchQueryChange,
+          label = stringResource(Res.string.favoritesSearchStation),
         )
       }
+      if (searchQuery.isBlank()) {
+        item {
+          EmptyStatePlaceholder(
+            title = stringResource(Res.string.favoritesSearchStartTitle),
+            description = stringResource(Res.string.useSearchToAssignStation),
+          )
+        }
+      } else if (searchResults.isEmpty()) {
+        item {
+          EmptyStatePlaceholder(
+            title = stringResource(Res.string.favoritesSearchNoMatchesTitle),
+            description = stringResource(Res.string.mapTryAnotherQuery),
+          )
+        }
+      } else {
+        items(searchResults, key = { it.id }) { station ->
+          SearchResultCard(
+            mobilePlatform = mobilePlatform,
+            station = station,
+            categories = assignableCategories,
+            currentCategoryId =
+              stationCategory[station.id] ?: when {
+                station.id == homeStationId -> FavoriteCategoryIds.HOME
+                station.id == workStationId -> FavoriteCategoryIds.WORK
+                station.id in favoriteStationIds -> FavoriteCategoryIds.FAVORITE
+                else -> null
+              },
+            onOpenStationDetails = { onOpenStationDetails(station) },
+            onAssignCategory = { categoryId ->
+              when (categoryId) {
+                FavoriteCategoryIds.HOME -> onAssignHome(station)
+                FavoriteCategoryIds.WORK -> onAssignWork(station)
+                else -> onAssignStationToCategory(station, categoryId)
+              }
+            },
+          )
+        }
+      }
     }
-  }
   }
 }
 
@@ -222,27 +223,30 @@ private fun SearchResultCard(
   val workLabel = stringResource(Res.string.work)
   val favoriteLabel = stringResource(Res.string.favorite)
   val selectCategoryLabel = stringResource(Res.string.favoritesSearchSelectCategory)
-  val currentCategoryLabel = currentCategoryId?.let { categoryId ->
-    categoryLabel(
-      categoryId = categoryId,
-      fallback = categories.firstOrNull { it.id == categoryId }?.label ?: categoryId,
-      homeLabel = homeLabel,
-      workLabel = workLabel,
-      favoriteLabel = favoriteLabel,
-    )
-  } ?: selectCategoryLabel
+  val currentCategoryLabel =
+    currentCategoryId?.let { categoryId ->
+      categoryLabel(
+        categoryId = categoryId,
+        fallback = categories.firstOrNull { it.id == categoryId }?.label ?: categoryId,
+        homeLabel = homeLabel,
+        workLabel = workLabel,
+        favoriteLabel = favoriteLabel,
+      )
+    } ?: selectCategoryLabel
   Card(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clickable(onClick = onOpenStationDetails),
+    modifier =
+      Modifier
+        .fillMaxWidth()
+        .clickable(onClick = onOpenStationDetails),
     shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
     colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(18.dp),
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -300,13 +304,14 @@ private fun SearchResultCard(
             DropdownMenuItem(
               text = {
                 Text(
-                  text = categoryLabel(
-                    categoryId = category.id,
-                    fallback = category.label,
-                    homeLabel = homeLabel,
-                    workLabel = workLabel,
-                    favoriteLabel = favoriteLabel,
-                  ),
+                  text =
+                    categoryLabel(
+                      categoryId = category.id,
+                      fallback = category.label,
+                      homeLabel = homeLabel,
+                      workLabel = workLabel,
+                      favoriteLabel = favoriteLabel,
+                    ),
                   fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 )
               },
@@ -344,10 +349,11 @@ private fun SavedPlaceChoiceButton(
     Button(
       modifier = modifier,
       onClick = onClick,
-      colors = ButtonDefaults.buttonColors(
-        containerColor = colors.blue,
-        contentColor = colors.onAccent,
-      ),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = colors.blue,
+          contentColor = colors.onAccent,
+        ),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -381,16 +387,18 @@ private fun categoryLabel(
   homeLabel: String,
   workLabel: String,
   favoriteLabel: String,
-): String = when (categoryId) {
-  FavoriteCategoryIds.HOME -> homeLabel
-  FavoriteCategoryIds.WORK -> workLabel
-  FavoriteCategoryIds.FAVORITE -> favoriteLabel
-  else -> fallback
-}
+): String =
+  when (categoryId) {
+    FavoriteCategoryIds.HOME -> homeLabel
+    FavoriteCategoryIds.WORK -> workLabel
+    FavoriteCategoryIds.FAVORITE -> favoriteLabel
+    else -> fallback
+  }
 
-private fun categorySortOrder(categoryId: String): Int = when (categoryId) {
-  FavoriteCategoryIds.HOME -> 0
-  FavoriteCategoryIds.WORK -> 1
-  FavoriteCategoryIds.FAVORITE -> 2
-  else -> 3
-}
+private fun categorySortOrder(categoryId: String): Int =
+  when (categoryId) {
+    FavoriteCategoryIds.HOME -> 0
+    FavoriteCategoryIds.WORK -> 1
+    FavoriteCategoryIds.FAVORITE -> 2
+    else -> 3
+  }

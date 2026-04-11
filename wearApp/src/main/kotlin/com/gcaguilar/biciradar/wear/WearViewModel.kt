@@ -6,14 +6,14 @@ import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SharedGraph
+import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
-import com.gcaguilar.biciradar.core.StartStationMonitoring
-import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.wear.ongoing.MonitoringOngoingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,10 +48,9 @@ internal class WearViewModel(
   private val stopStationMonitoring: StopStationMonitoring,
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
-
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
-  
+
   private val ongoingActivity = MonitoringOngoingActivity(appContext)
 
   private var latestStations: List<Station> = emptyList()
@@ -176,7 +175,7 @@ internal class WearViewModel(
           ongoingActivity.start(
             stationId = stationId,
             stationName = station.name,
-            remainingSeconds = 300 // 5 minutos por defecto
+            remainingSeconds = 300, // 5 minutos por defecto
           )
         }
       }
@@ -193,7 +192,7 @@ internal class WearViewModel(
         ongoingActivity.start(
           stationId = stationId,
           stationName = station.name,
-          remainingSeconds = 300 // 5 minutos por defecto
+          remainingSeconds = 300, // 5 minutos por defecto
         )
       }
       FavoriteStationTileService.requestUpdate(appContext)
@@ -213,17 +212,18 @@ internal class WearViewModel(
   }
 
   private fun publishUiState() {
-    _uiState.value = WearRootUiState(
-      stations = latestStations,
-      isLoading = latestIsLoading,
-      errorMessage = latestErrorMessage,
-      favoriteIds = latestFavoriteIds,
-      homeStationId = latestHomeStationId,
-      workStationId = latestWorkStationId,
-      surfaceBundle = latestSurfaceBundle,
-      selectedStationId = selectedStationId,
-      currentTab = currentTab,
-    )
+    _uiState.value =
+      WearRootUiState(
+        stations = latestStations,
+        isLoading = latestIsLoading,
+        errorMessage = latestErrorMessage,
+        favoriteIds = latestFavoriteIds,
+        homeStationId = latestHomeStationId,
+        workStationId = latestWorkStationId,
+        surfaceBundle = latestSurfaceBundle,
+        selectedStationId = selectedStationId,
+        currentTab = currentTab,
+      )
   }
 
   private suspend fun refreshWearSurface(
@@ -249,14 +249,15 @@ internal class WearViewModelFactory(
   private val appContext: Context,
   private val graph: SharedGraph,
 ) {
-  fun create(): WearViewModel = WearViewModel(
-    appContext = appContext.applicationContext,
-    stationsRepository = graph.stationsRepository,
-    favoritesRepository = graph.favoritesRepository,
-    surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
-    surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
-    startStationMonitoring = graph.startStationMonitoring,
-    stopStationMonitoring = graph.stopStationMonitoring,
-    routeLauncher = graph.routeLauncher,
-  )
+  fun create(): WearViewModel =
+    WearViewModel(
+      appContext = appContext.applicationContext,
+      stationsRepository = graph.stationsRepository,
+      favoritesRepository = graph.favoritesRepository,
+      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      startStationMonitoring = graph.startStationMonitoring,
+      stopStationMonitoring = graph.stopStationMonitoring,
+      routeLauncher = graph.routeLauncher,
+    )
 }

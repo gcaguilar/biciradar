@@ -11,6 +11,6 @@ import com.gcaguilar.biciradar.core.filterStationsByQuery
  * @return Lista filtrada de estaciones
  */
 fun filterStations(
-    stations: List<Station>,
-    searchQuery: String,
+  stations: List<Station>,
+  searchQuery: String,
 ): List<Station> = filterStationsByQuery(stations, searchQuery)

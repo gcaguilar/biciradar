@@ -23,23 +23,18 @@ internal class AppLifecycleUseCase(
   private val settingsAggregationUseCase: SettingsAggregationUseCase,
   private val appVersion: String,
 ) {
-
   // region App Updates
 
   /**
    * Checks for available app updates.
    */
-  suspend fun checkForUpdate(): UpdateAvailabilityState {
-    return appUpdatePrompter.checkForUpdate()
-  }
+  suspend fun checkForUpdate(): UpdateAvailabilityState = appUpdatePrompter.checkForUpdate()
 
   /**
    * Starts a flexible update if available.
    * @return true if the update was started successfully
    */
-  suspend fun startFlexibleUpdate(): Boolean {
-    return appUpdatePrompter.startFlexibleUpdate()
-  }
+  suspend fun startFlexibleUpdate(): Boolean = appUpdatePrompter.startFlexibleUpdate()
 
   /**
    * Completes a flexible update if it's ready to install.
@@ -74,19 +69,21 @@ internal class AppLifecycleUseCase(
     onboardingCompleted: Boolean,
     currentFreshness: DataFreshness,
     nowEpoch: Long,
-  ): ReviewEligibility {
-    return engagementRepository.reviewEligibility(
+  ): ReviewEligibility =
+    engagementRepository.reviewEligibility(
       appVersion = appVersion,
       onboardingCompleted = onboardingCompleted,
       currentFreshness = currentFreshness,
       nowEpoch = nowEpoch,
     )
-  }
 
   /**
    * Marks that a review was prompted.
    */
-  suspend fun markReviewPrompted(appVersion: String, nowEpoch: Long) {
+  suspend fun markReviewPrompted(
+    appVersion: String,
+    nowEpoch: Long,
+  ) {
     engagementRepository.markReviewPrompted(appVersion, nowEpoch)
   }
 
@@ -104,14 +101,20 @@ internal class AppLifecycleUseCase(
   /**
    * Marks that an update banner was dismissed for a specific version.
    */
-  suspend fun markUpdateBannerDismissed(version: String, nowEpoch: Long) {
+  suspend fun markUpdateBannerDismissed(
+    version: String,
+    nowEpoch: Long,
+  ) {
     engagementRepository.markUpdateBannerDismissed(version, nowEpoch)
   }
 
   /**
    * Marks that a feedback nudge was shown.
    */
-  suspend fun markFeedbackNudgeShown(appVersion: String, nowEpoch: Long) {
+  suspend fun markFeedbackNudgeShown(
+    appVersion: String,
+    nowEpoch: Long,
+  ) {
     engagementRepository.markFeedbackNudgeShown(appVersion, nowEpoch)
   }
 
@@ -132,9 +135,10 @@ internal class AppLifecycleUseCase(
   /**
    * Checks if a feedback nudge should be shown.
    */
-  fun shouldShowFeedbackNudge(appVersion: String, nowEpoch: Long): Boolean {
-    return engagementRepository.shouldShowFeedbackNudge(appVersion, nowEpoch)
-  }
+  fun shouldShowFeedbackNudge(
+    appVersion: String,
+    nowEpoch: Long,
+  ): Boolean = engagementRepository.shouldShowFeedbackNudge(appVersion, nowEpoch)
 
   /**
    * Marks that data freshness was observed.
@@ -177,11 +181,12 @@ internal class AppLifecycleUseCase(
     if (suppression.suppressed) return null
 
     val lastSeen = settingsAggregationUseCase.currentLastSeenChangelogAppVersion() ?: "0.0.0"
-    val pending = pendingChangelogVersion(
-      appVersion,
-      lastSeen,
-      ChangelogCatalog.catalogVersionSet(),
-    )
+    val pending =
+      pendingChangelogVersion(
+        appVersion,
+        lastSeen,
+        ChangelogCatalog.catalogVersionSet(),
+      )
     val entries = pending?.let { ChangelogCatalog.entriesFor(it) }.orEmpty()
 
     return if (pending != null && entries.isNotEmpty()) {
@@ -190,7 +195,9 @@ internal class AppLifecycleUseCase(
         highlightedVersion = pending,
         persistSeenVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion,
       )
-    } else null
+    } else {
+      null
+    }
   }
 
   /**
@@ -225,12 +232,14 @@ internal class AppLifecycleUseCase(
     }
 
     val normalizedCurrentVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion
-    val normalizedLastSeen = normalizeAppVersionForCatalog(
-      settingsAggregationUseCase.currentLastSeenChangelogAppVersion(),
-    )
+    val normalizedLastSeen =
+      normalizeAppVersionForCatalog(
+        settingsAggregationUseCase.currentLastSeenChangelogAppVersion(),
+      )
 
-    val shouldMarkSeen = normalizedLastSeen == null ||
-      compareAppVersionStrings(normalizedLastSeen, normalizedCurrentVersion) < 0
+    val shouldMarkSeen =
+      normalizedLastSeen == null ||
+        compareAppVersionStrings(normalizedLastSeen, normalizedCurrentVersion) < 0
 
     return ChangelogSuppressionResult(
       suppressed = true,

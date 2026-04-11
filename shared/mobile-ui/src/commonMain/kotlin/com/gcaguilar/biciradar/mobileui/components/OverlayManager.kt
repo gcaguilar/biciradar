@@ -1,18 +1,12 @@
 package com.gcaguilar.biciradar.mobileui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
+import com.gcaguilar.biciradar.mobileui.ChangelogHistoryScreen
 import com.gcaguilar.biciradar.mobileui.EngagementTopOverlays
 import com.gcaguilar.biciradar.mobileui.FeedbackDialog
-import com.gcaguilar.biciradar.mobileui.ChangelogHistoryScreen
+import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 
 /**
@@ -113,24 +107,26 @@ internal fun BoxScope.OverlayManager(
 ) {
   OverlayManager(
     mobilePlatform = mobilePlatform,
-    state = OverlayState(
-      updateBanner = updateBanner,
-      showFeedbackNudge = showFeedbackNudge,
-      showFeedbackDialog = showFeedbackDialog,
-      changelogSections = changelogSections,
-      highlightedVersion = highlightedVersion,
-      showChangelog = showChangelog,
-    ),
-    callbacks = OverlayCallbacks(
-      onDismissAvailableUpdate = onDismissAvailableUpdate,
-      onDismissDownloadedUpdate = onDismissDownloadedUpdate,
-      onStartUpdate = onStartUpdate,
-      onRestartToUpdate = onRestartToUpdate,
-      onFeedbackSend = onFeedbackSend,
-      onFeedbackDismiss = onFeedbackDismiss,
-      onFeedbackDialogDismiss = onFeedbackDialogDismiss,
-      onOpenFeedbackForm = onOpenFeedbackForm,
-      onChangelogDismiss = onChangelogDismiss,
-    ),
+    state =
+      OverlayState(
+        updateBanner = updateBanner,
+        showFeedbackNudge = showFeedbackNudge,
+        showFeedbackDialog = showFeedbackDialog,
+        changelogSections = changelogSections,
+        highlightedVersion = highlightedVersion,
+        showChangelog = showChangelog,
+      ),
+    callbacks =
+      OverlayCallbacks(
+        onDismissAvailableUpdate = onDismissAvailableUpdate,
+        onDismissDownloadedUpdate = onDismissDownloadedUpdate,
+        onStartUpdate = onStartUpdate,
+        onRestartToUpdate = onRestartToUpdate,
+        onFeedbackSend = onFeedbackSend,
+        onFeedbackDismiss = onFeedbackDismiss,
+        onFeedbackDialogDismiss = onFeedbackDialogDismiss,
+        onOpenFeedbackForm = onOpenFeedbackForm,
+        onChangelogDismiss = onChangelogDismiss,
+      ),
   )
 }

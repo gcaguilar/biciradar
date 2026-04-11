@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.components.station
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -10,10 +9,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 
@@ -74,10 +71,11 @@ internal fun StationPatternChart(
         val measured = textMeasurer.measure(text, labelStyle)
         drawText(
           textLayoutResult = measured,
-          topLeft = Offset(
-            x + barWidth / 2 - measured.size.width / 2,
-            size.height - bottomPadding + 4f,
-          ),
+          topLeft =
+            Offset(
+              x + barWidth / 2 - measured.size.width / 2,
+              size.height - bottomPadding + 4f,
+            ),
         )
       }
     }

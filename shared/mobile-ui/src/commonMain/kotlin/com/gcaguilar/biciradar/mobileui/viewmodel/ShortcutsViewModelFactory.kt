@@ -11,10 +11,11 @@ internal class ShortcutsViewModelFactory(
   private val favoritesRepository: FavoritesRepository,
   private val settingsRepository: SettingsRepository,
 ) {
-  fun create(): ShortcutsViewModel = ShortcutsViewModel(
-    assistantIntentResolver = assistantIntentResolver,
-    stationsRepository = stationsRepository,
-    favoritesRepository = favoritesRepository,
-    settingsRepository = settingsRepository,
-  )
+  fun create(): ShortcutsViewModel =
+    ShortcutsViewModel(
+      assistantIntentResolver = assistantIntentResolver,
+      stationsRepository = stationsRepository,
+      favoritesRepository = favoritesRepository,
+      settingsRepository = settingsRepository,
+    )
 }

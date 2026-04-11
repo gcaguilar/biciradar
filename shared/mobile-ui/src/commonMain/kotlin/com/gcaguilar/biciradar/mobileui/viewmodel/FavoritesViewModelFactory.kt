@@ -17,17 +17,20 @@ class FavoritesViewModelFactory(
   private val routeLauncher: RouteLauncher,
 ) {
   fun create(): FavoritesViewModel {
-    val favoritesManagementUseCase = FavoritesManagementUseCase(
-      favoritesRepository = favoritesRepository,
-      stationsRepository = stationsRepository,
-      settingsRepository = settingsRepository,
-    )
-    val savedPlaceAlertsUseCase = SavedPlaceAlertsUseCase(
-      savedPlaceAlertsRepository = savedPlaceAlertsRepository,
-    )
-    val routeLaunchUseCase = RouteLaunchUseCase(
-      routeLauncher = routeLauncher,
-    )
+    val favoritesManagementUseCase =
+      FavoritesManagementUseCase(
+        favoritesRepository = favoritesRepository,
+        stationsRepository = stationsRepository,
+        settingsRepository = settingsRepository,
+      )
+    val savedPlaceAlertsUseCase =
+      SavedPlaceAlertsUseCase(
+        savedPlaceAlertsRepository = savedPlaceAlertsRepository,
+      )
+    val routeLaunchUseCase =
+      RouteLaunchUseCase(
+        routeLauncher = routeLauncher,
+      )
 
     return FavoritesViewModel(
       favoritesManagementUseCase = favoritesManagementUseCase,

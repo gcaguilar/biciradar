@@ -6,7 +6,6 @@ import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 
 internal object AndroidAssistantShortcuts {
-
   fun reportUsed(
     context: Context,
     launchRequest: MobileLaunchRequest?,
@@ -20,24 +19,24 @@ internal object AndroidAssistantShortcuts {
 internal fun shortcutIdFor(
   launchRequest: MobileLaunchRequest?,
   assistantLaunchRequest: AssistantLaunchRequest?,
-): String? {
-  return when {
+): String? =
+  when {
     assistantLaunchRequest is AssistantLaunchRequest.StationStatus -> STATION_STATUS_ACTION
     assistantLaunchRequest is AssistantLaunchRequest.StationBikeCount -> STATION_BIKE_COUNT_ACTION
     assistantLaunchRequest is AssistantLaunchRequest.StationSlotCount -> STATION_SLOT_COUNT_ACTION
     assistantLaunchRequest is AssistantLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
     assistantLaunchRequest is AssistantLaunchRequest.SearchStation -> SHOW_STATION_ACTION
-    else -> when (launchRequest) {
-      MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
-      MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
-      MobileLaunchRequest.NearestStationWithBikes -> NEAREST_STATION_WITH_BIKES_ACTION
-      MobileLaunchRequest.NearestStationWithSlots -> NEAREST_STATION_WITH_SLOTS_ACTION
-      MobileLaunchRequest.OpenAssistant -> OPEN_ASSISTANT_ACTION
-      MobileLaunchRequest.StationStatus -> STATION_STATUS_ACTION
-      is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
-      is MobileLaunchRequest.ShowStation -> SHOW_STATION_ACTION
-      MobileLaunchRequest.SavedPlaceAlerts -> SAVED_PLACE_ALERTS_ACTION
-      else -> null
-    }
+    else ->
+      when (launchRequest) {
+        MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
+        MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
+        MobileLaunchRequest.NearestStationWithBikes -> NEAREST_STATION_WITH_BIKES_ACTION
+        MobileLaunchRequest.NearestStationWithSlots -> NEAREST_STATION_WITH_SLOTS_ACTION
+        MobileLaunchRequest.OpenAssistant -> OPEN_ASSISTANT_ACTION
+        MobileLaunchRequest.StationStatus -> STATION_STATUS_ACTION
+        is MobileLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
+        is MobileLaunchRequest.ShowStation -> SHOW_STATION_ACTION
+        MobileLaunchRequest.SavedPlaceAlerts -> SAVED_PLACE_ALERTS_ACTION
+        else -> null
+      }
   }
-}

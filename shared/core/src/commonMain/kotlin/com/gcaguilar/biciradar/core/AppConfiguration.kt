@@ -18,22 +18,25 @@ data class AppConfiguration(
   val gbfsDiscoveryUrl: String get() = city.gbfsDiscoveryUrl
 
   val iosAppStoreUrl: String?
-    get() = iosAppStoreId.takeIf { it.isNotBlank() }?.let { id ->
-      "https://apps.apple.com/app/id$id?action=write-review"
-    }
+    get() =
+      iosAppStoreId.takeIf { it.isNotBlank() }?.let { id ->
+        "https://apps.apple.com/app/id$id?action=write-review"
+      }
 
   companion object {
     fun createDefault(): AppConfiguration = AppConfiguration()
   }
 }
 
-fun AppConfiguration.stationsApiUrl(start: Int, rows: Int): String =
-  "$stationsApiUrl?start=$start&rows=$rows"
+fun AppConfiguration.stationsApiUrl(
+  start: Int,
+  rows: Int,
+): String = "$stationsApiUrl?start=$start&rows=$rows"
 
-fun AppConfiguration.stationAvailabilityUrl(stationId: String): String =
-  "$stationsApiUrl/$stationId.json"
+fun AppConfiguration.stationAvailabilityUrl(stationId: String): String = "$stationsApiUrl/$stationId.json"
 
-fun AppConfiguration.defaultLocation(): GeoPoint = GeoPoint(
-  latitude = defaultLatitude,
-  longitude = defaultLongitude,
-)
+fun AppConfiguration.defaultLocation(): GeoPoint =
+  GeoPoint(
+    latitude = defaultLatitude,
+    longitude = defaultLongitude,
+  )

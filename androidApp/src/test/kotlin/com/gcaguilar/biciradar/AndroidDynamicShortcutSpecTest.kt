@@ -20,11 +20,13 @@ class AndroidDynamicShortcutSpecTest {
 
   @Test
   fun `dynamic shortcuts add favorite station and monitoring when snapshot exists`() {
-    val shortcuts = dynamicShortcutSpecs(
-      snapshot = snapshot(
-        favoriteStation = station(id = "station-42", name = "Plaza Espana"),
-      ),
-    )
+    val shortcuts =
+      dynamicShortcutSpecs(
+        snapshot =
+          snapshot(
+            favoriteStation = station(id = "station-42", name = "Plaza Espana"),
+          ),
+      )
 
     assertEquals(
       listOf("surface_nearby", "surface_favorite_station", "surface_monitor_favorite", "surface_favorites"),
@@ -36,12 +38,14 @@ class AndroidDynamicShortcutSpecTest {
 
   @Test
   fun `dynamic shortcuts add home and work saved places when available`() {
-    val shortcuts = dynamicShortcutSpecs(
-      snapshot = snapshot(
-        homeStation = station(id = "station-home", name = "Puerta del Carmen"),
-        workStation = station(id = "station-work", name = "Plaza Aragon"),
-      ),
-    )
+    val shortcuts =
+      dynamicShortcutSpecs(
+        snapshot =
+          snapshot(
+            homeStation = station(id = "station-home", name = "Puerta del Carmen"),
+            workStation = station(id = "station-work", name = "Plaza Aragon"),
+          ),
+      )
 
     assertEquals(
       listOf("surface_nearby", "surface_home_station", "surface_work_station", "surface_favorites"),
@@ -53,14 +57,16 @@ class AndroidDynamicShortcutSpecTest {
 
   @Test
   fun `dynamic shortcuts prioritize places and monitoring within launcher limit`() {
-    val shortcuts = dynamicShortcutSpecs(
-      snapshot = snapshot(
-        favoriteStation = station(id = "station-favorite", name = "Plaza Espana"),
-        homeStation = station(id = "station-home", name = "Puerta del Carmen"),
-        workStation = station(id = "station-work", name = "Plaza Aragon"),
-      ),
-      maxShortcutCount = 5,
-    )
+    val shortcuts =
+      dynamicShortcutSpecs(
+        snapshot =
+          snapshot(
+            favoriteStation = station(id = "station-favorite", name = "Plaza Espana"),
+            homeStation = station(id = "station-home", name = "Puerta del Carmen"),
+            workStation = station(id = "station-work", name = "Plaza Aragon"),
+          ),
+        maxShortcutCount = 5,
+      )
 
     assertEquals(
       listOf(
@@ -77,13 +83,15 @@ class AndroidDynamicShortcutSpecTest {
 
   @Test
   fun `dynamic shortcuts avoid duplicate open-station entries when favorite matches a saved place`() {
-    val shortcuts = dynamicShortcutSpecs(
-      snapshot = snapshot(
-        favoriteStation = station(id = "station-home", name = "Puerta del Carmen"),
-        homeStation = station(id = "station-home", name = "Puerta del Carmen"),
-        workStation = station(id = "station-work", name = "Plaza Aragon"),
-      ),
-    )
+    val shortcuts =
+      dynamicShortcutSpecs(
+        snapshot =
+          snapshot(
+            favoriteStation = station(id = "station-home", name = "Puerta del Carmen"),
+            homeStation = station(id = "station-home", name = "Puerta del Carmen"),
+            workStation = station(id = "station-work", name = "Plaza Aragon"),
+          ),
+      )
 
     assertEquals(
       listOf(
@@ -105,25 +113,28 @@ class AndroidDynamicShortcutSpecTest {
     favoriteStation: SurfaceStationSnapshot? = null,
     homeStation: SurfaceStationSnapshot? = null,
     workStation: SurfaceStationSnapshot? = null,
-  ): SurfaceSnapshotBundle {
-    return SurfaceSnapshotBundle(
+  ): SurfaceSnapshotBundle =
+    SurfaceSnapshotBundle(
       generatedAtEpoch = 1L,
       favoriteStation = favoriteStation,
       homeStation = homeStation,
       workStation = workStation,
-      state = SurfaceState(
-        hasLocationPermission = true,
-        hasNotificationPermission = true,
-        hasFavoriteStation = favoriteStation != null,
-        isDataFresh = true,
-        cityId = "zaragoza",
-        cityName = "Zaragoza",
-      ),
+      state =
+        SurfaceState(
+          hasLocationPermission = true,
+          hasNotificationPermission = true,
+          hasFavoriteStation = favoriteStation != null,
+          isDataFresh = true,
+          cityId = "zaragoza",
+          cityName = "Zaragoza",
+        ),
     )
-  }
 
-  private fun station(id: String, name: String): SurfaceStationSnapshot {
-    return SurfaceStationSnapshot(
+  private fun station(
+    id: String,
+    name: String,
+  ): SurfaceStationSnapshot =
+    SurfaceStationSnapshot(
       id = id,
       nameShort = name,
       nameFull = name,
@@ -137,5 +148,4 @@ class AndroidDynamicShortcutSpecTest {
       lastUpdatedEpoch = 1L,
       isFavorite = true,
     )
-  }
 }

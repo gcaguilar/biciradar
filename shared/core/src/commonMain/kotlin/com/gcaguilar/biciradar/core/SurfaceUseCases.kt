@@ -15,22 +15,21 @@ class GetFavoriteStations(
     val cityId = settingsRepository.currentSelectedCity().id
     val lastUpdatedEpoch = state.lastUpdatedEpoch ?: currentTimeMs()
     val homeStationId = favoritesRepository.currentHomeStationId()
-    val snapshots = state.stations
-      .asSequence()
-      .filter { favoritesRepository.isFavorite(it.id) }
-      .sortedWith(
-        compareByDescending<Station> { it.id == homeStationId }
-          .thenBy { it.distanceMeters }
-          .thenBy { it.name },
-      )
-      .map { station ->
-        station.toSurfaceSnapshot(
-          cityId = cityId,
-          lastUpdatedEpoch = lastUpdatedEpoch,
-          isFavorite = true,
-        )
-      }
-      .toList()
+    val snapshots =
+      state.stations
+        .asSequence()
+        .filter { favoritesRepository.isFavorite(it.id) }
+        .sortedWith(
+          compareByDescending<Station> { it.id == homeStationId }
+            .thenBy { it.distanceMeters }
+            .thenBy { it.name },
+        ).map { station ->
+          station.toSurfaceSnapshot(
+            cityId = cityId,
+            lastUpdatedEpoch = lastUpdatedEpoch,
+            isFavorite = true,
+          )
+        }.toList()
     return limit?.let(snapshots::take) ?: snapshots
   }
 }
@@ -91,11 +90,12 @@ class StartStationMonitoring(
     stationId: String,
     durationSeconds: Int = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
     kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Docks,
-  ): Boolean = surfaceMonitoringRepository.startMonitoring(
-    stationId = stationId,
-    durationSeconds = durationSeconds,
-    kind = kind,
-  )
+  ): Boolean =
+    surfaceMonitoringRepository.startMonitoring(
+      stationId = stationId,
+      durationSeconds = durationSeconds,
+      kind = kind,
+    )
 }
 
 @Inject
@@ -123,12 +123,13 @@ class GetSuggestedAlternativeStation(
     stationsRepository.loadIfNeeded()
     val state = stationsRepository.state.value
     val monitoredStation = state.stations.firstOrNull { it.id == stationId } ?: return null
-    val alternative = selectAlternativeStation(
-      monitoredStation = monitoredStation,
-      candidates = state.stations,
-      kind = kind,
-      maxRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
-    ) ?: return null
+    val alternative =
+      selectAlternativeStation(
+        monitoredStation = monitoredStation,
+        candidates = state.stations,
+        kind = kind,
+        maxRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
+      ) ?: return null
     return alternative.toSurfaceSnapshot(
       cityId = settingsRepository.currentSelectedCity().id,
       lastUpdatedEpoch = state.lastUpdatedEpoch ?: currentTimeMs(),

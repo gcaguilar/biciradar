@@ -21,9 +21,10 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
   companion object {
     fun updateAll(context: Context) {
       val manager = AppWidgetManager.getInstance(context)
-      val ids = manager.getAppWidgetIds(
-        ComponentName(context, QuickActionsWidgetProvider::class.java),
-      )
+      val ids =
+        manager.getAppWidgetIds(
+          ComponentName(context, QuickActionsWidgetProvider::class.java),
+        )
       if (ids.isNotEmpty()) {
         updateWidgets(context, manager, ids)
       }
@@ -46,13 +47,14 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
     ): RemoteViews {
       val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
       val actionsState = quickActionsState(snapshot)
-      val monitorLabel = if (actionsState.requiresConfiguration) {
-        context.getString(R.string.widget_action_configure)
-      } else if (actionsState.requiresNotificationPermission) {
-        context.getString(R.string.widget_action_notifications)
-      } else {
-        context.getString(R.string.widget_action_monitor)
-      }
+      val monitorLabel =
+        if (actionsState.requiresConfiguration) {
+          context.getString(R.string.widget_action_configure)
+        } else if (actionsState.requiresNotificationPermission) {
+          context.getString(R.string.widget_action_notifications)
+        } else {
+          context.getString(R.string.widget_action_monitor)
+        }
 
       views.setTextViewText(R.id.widget_action_monitor_text, monitorLabel)
       views.setOnClickPendingIntent(
@@ -70,7 +72,10 @@ class QuickActionsWidgetProvider : AppWidgetProvider() {
       return views
     }
 
-    private fun deepLinkPendingIntent(context: Context, uri: Uri): PendingIntent {
+    private fun deepLinkPendingIntent(
+      context: Context,
+      uri: Uri,
+    ): PendingIntent {
       val intent = Intent(Intent.ACTION_VIEW, uri, context, MainActivity::class.java)
       return PendingIntent.getActivity(
         context,

@@ -20,24 +20,24 @@ import dev.zacsweers.metro.GraphExtension
  */
 @GraphExtension(TripScope::class)
 interface TripGraph {
-    /**
-     * Repositorio de trip con ciclo de vida acotado al grafo.
-     * Cada instancia de TripGraph tiene su propio TripRepository.
-     */
-    val tripRepository: TripRepository
+  /**
+   * Repositorio de trip con ciclo de vida acotado al grafo.
+   * Cada instancia de TripGraph tiene su propio TripRepository.
+   */
+  val tripRepository: TripRepository
 
+  /**
+   * Factory para crear instancias de TripGraph.
+   *
+   * La factory se contribuye al AppScope padre para que esté disponible
+   * desde el grafo base.
+   */
+  @ContributesTo(AppScope::class)
+  @GraphExtension.Factory
+  interface Factory {
     /**
-     * Factory para crear instancias de TripGraph.
-     *
-     * La factory se contribuye al AppScope padre para que esté disponible
-     * desde el grafo base.
+     * Crea un nuevo TripGraph.
      */
-    @ContributesTo(AppScope::class)
-    @GraphExtension.Factory
-    interface Factory {
-        /**
-         * Crea un nuevo TripGraph.
-         */
-        fun createTripGraph(): TripGraph
-    }
+    fun createTripGraph(): TripGraph
+  }
 }

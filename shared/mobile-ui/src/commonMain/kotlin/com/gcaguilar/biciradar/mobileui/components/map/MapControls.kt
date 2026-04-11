@@ -1,23 +1,23 @@
 package com.gcaguilar.biciradar.mobileui.components.map
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.details
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapMyLocation
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -75,9 +75,7 @@ private fun MapRecenterButton(
 }
 
 @Composable
-private fun MapEnvironmentalSheetButton(
-  onClick: () -> Unit,
-) {
+private fun MapEnvironmentalSheetButton(onClick: () -> Unit) {
   val c = LocalBiziColors.current
   Surface(
     modifier = Modifier.clickable(onClick = onClick),

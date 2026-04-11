@@ -31,8 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -63,309 +61,329 @@ import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
-import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
 import org.jetbrains.compose.resources.stringResource
 
-private fun tripGeoSuggestionSecondaryText(name: String, address: String): String? {
-    val trimmedAddress = address.trim()
-    if (trimmedAddress.isBlank()) return null
-    if (trimmedAddress.equals(name.trim(), ignoreCase = true)) return null
-    return trimmedAddress
+private fun tripGeoSuggestionSecondaryText(
+  name: String,
+  address: String,
+): String? {
+  val trimmedAddress = address.trim()
+  if (trimmedAddress.isBlank()) return null
+  if (trimmedAddress.equals(name.trim(), ignoreCase = true)) return null
+  return trimmedAddress
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TripMapPickerScreen(
-    viewModel: TripViewModel,
-    mobilePlatform: MobileUiPlatform,
-    pickerMode: TripMapPickerMode,
-    userLocation: GeoPoint?,
-    stations: List<Station>,
-    isMapReady: Boolean,
-    paddingValues: PaddingValues,
-    onBack: () -> Unit,
+  state: TripUiState,
+  mobilePlatform: MobileUiPlatform,
+  pickerMode: TripMapPickerMode,
+  userLocation: GeoPoint?,
+  stations: List<Station>,
+  isMapReady: Boolean,
+  paddingValues: PaddingValues,
+  onBack: () -> Unit,
+  onCancelMapPicker: () -> Unit,
+  onEnterMapPicker: (TripMapPickerMode) -> Unit,
+  onStationPickedFromMap: (Station) -> Unit,
+  onLocationPicked: (GeoPoint) -> Unit,
+  onQueryChange: (String) -> Unit,
+  onSuggestionSelected: (com.gcaguilar.biciradar.core.geo.GeoResult) -> Unit,
+  onConfirmMapSelection: () -> Unit,
 ) {
-    val c = LocalBiziColors.current
-    val uiState by viewModel.uiState.collectAsState()
-    var hasActivatedPicker by remember { mutableStateOf(false) }
-    val requestClose: () -> Unit = {
-        viewModel.onCancelMapPicker()
-        if (!hasActivatedPicker) {
-            onBack()
-        }
+  val c = LocalBiziColors.current
+  var hasActivatedPicker by remember { mutableStateOf(false) }
+  val requestClose: () -> Unit = {
+    onCancelMapPicker()
+    if (!hasActivatedPicker) {
+      onBack()
     }
+  }
 
-    PlatformBackHandler(
-        enabled = true,
-        onBack = requestClose,
-    )
+  PlatformBackHandler(
+    enabled = true,
+    onBack = requestClose,
+  )
 
-    LaunchedEffect(pickerMode) {
-        viewModel.onEnterMapPicker(pickerMode)
+  LaunchedEffect(pickerMode) {
+    onEnterMapPicker(pickerMode)
+  }
+
+  LaunchedEffect(state.mapPickerMode) {
+    if (state.mapPickerMode == pickerMode) {
+      hasActivatedPicker = true
+    } else if (hasActivatedPicker && !state.isReverseGeocoding) {
+      onBack()
     }
+  }
 
-    LaunchedEffect(uiState.mapPickerMode) {
-        if (uiState.mapPickerMode == pickerMode) {
-            hasActivatedPicker = true
-        } else if (hasActivatedPicker && !uiState.isReverseGeocoding) {
-            onBack()
-        }
-    }
-
-    val titleText = if (pickerMode == TripMapPickerMode.Destination) {
-        stringResource(Res.string.tripMapDestinationTitle)
+  val titleText =
+    if (pickerMode == TripMapPickerMode.Destination) {
+      stringResource(Res.string.tripMapDestinationTitle)
     } else {
-        stringResource(Res.string.tripMapStationTitle)
+      stringResource(Res.string.tripMapStationTitle)
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = titleText,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = requestClose) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.back),
-                        )
-                    }
-                },
-            )
+  Scaffold(
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues),
+    topBar = {
+      TopAppBar(
+        title = {
+          Text(
+            text = titleText,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+          )
         },
-        containerColor = pageBackgroundColor(mobilePlatform),
-    ) { innerPadding ->
+        navigationIcon = {
+          IconButton(onClick = requestClose) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = stringResource(Res.string.back),
+            )
+          }
+        },
+      )
+    },
+    containerColor = pageBackgroundColor(mobilePlatform),
+  ) { innerPadding ->
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .padding(innerPadding),
     ) {
-        PlatformStationMap(
-            modifier = Modifier.fillMaxSize(),
-            stations = stations,
-            userLocation = userLocation,
-            highlightedStationId = uiState.selectedMapStation?.id,
-            isMapReady = isMapReady,
-            onStationSelected = { station ->
-                if (pickerMode == TripMapPickerMode.Station) {
-                    viewModel.onStationPickedFromMap(station)
-                }
-            },
-            onMapClick = if (pickerMode == TripMapPickerMode.Destination) {
-                { tappedLocation -> viewModel.onLocationPicked(tappedLocation) }
+      PlatformStationMap(
+        modifier = Modifier.fillMaxSize(),
+        stations = stations,
+        userLocation = userLocation,
+        highlightedStationId = state.selectedMapStation?.id,
+        isMapReady = isMapReady,
+        onStationSelected = { station ->
+          if (pickerMode == TripMapPickerMode.Station) {
+            onStationPickedFromMap(station)
+          }
+        },
+        onMapClick =
+          if (pickerMode == TripMapPickerMode.Destination) {
+            { tappedLocation -> onLocationPicked(tappedLocation) }
+          } else {
+            null
+          },
+        pinLocation = state.pickedLocation,
+      )
+
+      Column(
+        modifier =
+          Modifier
+            .align(Alignment.TopCenter)
+            .responsivePageWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        Text(
+          text =
+            if (pickerMode == TripMapPickerMode.Destination) {
+              stringResource(Res.string.tapMapToPickDestination)
             } else {
-                null
+              stringResource(Res.string.tapMapToPickStation)
             },
-            pinLocation = uiState.pickedLocation,
+          style = MaterialTheme.typography.bodySmall,
+          color = c.muted,
         )
 
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .responsivePageWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = if (pickerMode == TripMapPickerMode.Destination) {
-                    stringResource(Res.string.tapMapToPickDestination)
-                } else {
-                    stringResource(Res.string.tapMapToPickStation)
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = c.muted,
-            )
-
-            if (pickerMode == TripMapPickerMode.Destination) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = c.surface),
-                    border = BorderStroke(1.dp, c.panel),
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        StationSearchField(
-                            mobilePlatform = mobilePlatform,
-                            value = uiState.query,
-                            onValueChange = viewModel::onQueryChange,
-                            label = stringResource(Res.string.destinationPlaceholder),
-                        )
-                        when {
-                            uiState.suggestions.isNotEmpty() -> {
-                                Text(
-                                    text = stringResource(Res.string.suggestions),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = c.muted,
-                                )
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    uiState.suggestions.take(5).forEach { prediction ->
-                                        Surface(
-                                            shape = RoundedCornerShape(14.dp),
-                                            color = c.background,
-                                            border = BorderStroke(1.dp, c.panel),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    viewModel.onSuggestionSelected(
-                                                        prediction
-                                                    )
-                                                },
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(12.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.LocationOn,
-                                                    contentDescription = null,
-                                                    tint = c.muted,
-                                                    modifier = Modifier.size(18.dp),
-                                                )
-                                                Column(
-                                                    modifier = Modifier.weight(1f),
-                                                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                                                ) {
-                                                    Text(
-                                                        text = prediction.name,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                    )
-                                                    tripGeoSuggestionSecondaryText(
-                                                        prediction.name,
-                                                        prediction.address
-                                                    )?.let { secondaryText ->
-                                                        Text(
-                                                            text = secondaryText,
-                                                            style = MaterialTheme.typography.bodySmall,
-                                                            color = c.muted,
-                                                            maxLines = 2,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            uiState.isLoadingSuggestions -> {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center,
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(22.dp),
-                                        strokeWidth = 2.dp,
-                                        color = c.red,
-                                    )
-                                }
-                            }
-
-                            uiState.suggestionsError != null -> {
-                                Text(
-                                    text = uiState.suggestionsError ?: "",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = c.red,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (uiState.isReverseGeocoding) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(c.background.copy(alpha = 0.58f)),
-                contentAlignment = Alignment.Center,
+        if (pickerMode == TripMapPickerMode.Destination) {
+          Card(
+            colors = CardDefaults.cardColors(containerColor = c.surface),
+            border = BorderStroke(1.dp, c.panel),
+          ) {
+            Column(
+              modifier = Modifier.padding(12.dp),
+              verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                CircularProgressIndicator(color = c.red)
-            }
-        }
-
-        if (uiState.canConfirmMapSelection) {
-            Card(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .responsivePageWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(containerColor = c.surface),
-                border = BorderStroke(1.dp, c.panel),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    if (pickerMode == TripMapPickerMode.Station) {
-                        val selectedStation = uiState.selectedMapStation
-                        if (selectedStation != null) {
+              StationSearchField(
+                mobilePlatform = mobilePlatform,
+                value = state.query,
+                onValueChange = onQueryChange,
+                label = stringResource(Res.string.destinationPlaceholder),
+              )
+              when {
+                state.suggestions.isNotEmpty() -> {
+                  Text(
+                    text = stringResource(Res.string.suggestions),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = c.muted,
+                  )
+                  Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                  ) {
+                    state.suggestions.take(5).forEach { prediction ->
+                      Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = c.background,
+                        border = BorderStroke(1.dp, c.panel),
+                        modifier =
+                          Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                              onSuggestionSelected(prediction)
+                            },
+                      ) {
+                        Row(
+                          modifier = Modifier.padding(12.dp),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                          Icon(
+                            imageVector = Icons.Filled.LocationOn,
+                            contentDescription = null,
+                            tint = c.muted,
+                            modifier = Modifier.size(18.dp),
+                          )
+                          Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                          ) {
                             Text(
-                                text = selectedStation.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
+                              text = prediction.name,
+                              style = MaterialTheme.typography.bodyMedium,
+                              fontWeight = FontWeight.SemiBold,
+                              maxLines = 1,
+                              overflow = TextOverflow.Ellipsis,
                             )
-                            Text(
-                                text = stringResource(
-                                    Res.string.favoritesAvailabilitySummary,
-                                    selectedStation.bikesAvailable,
-                                    selectedStation.slotsFree,
-                                ),
+                            tripGeoSuggestionSecondaryText(
+                              prediction.name,
+                              prediction.address,
+                            )?.let { secondaryText ->
+                              Text(
+                                text = secondaryText,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = c.muted,
-                            )
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                              )
+                            }
+                          }
                         }
-                    } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = stringResource(Res.string.tripSelectedPoint),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = c.muted,
-                            )
-                            Text(
-                                text = uiState.selectedMapLocationLabel
-                                    ?: uiState.pickedLocation?.let { "${it.latitude}, ${it.longitude}" }
-                                    ?: "",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
+                      }
                     }
-                    Button(
-                        onClick = viewModel::onConfirmMapSelection,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (pickerMode == TripMapPickerMode.Destination) c.red else c.blue,
-                        ),
-                    ) {
-                        Text(
-                            text = if (pickerMode == TripMapPickerMode.Destination) {
-                                stringResource(Res.string.tripConfirmDestination)
-                            } else {
-                                stringResource(Res.string.tripConfirmStation)
-                            },
-                        )
-                    }
+                  }
                 }
+
+                state.isLoadingSuggestions -> {
+                  Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                  ) {
+                    CircularProgressIndicator(
+                      modifier = Modifier.size(22.dp),
+                      strokeWidth = 2.dp,
+                      color = c.red,
+                    )
+                  }
+                }
+
+                state.suggestionsError != null -> {
+                  Text(
+                    text = state.suggestionsError ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.red,
+                  )
+                }
+              }
             }
+          }
         }
+      }
+
+      if (state.isReverseGeocoding) {
+        Box(
+          modifier =
+            Modifier
+              .fillMaxSize()
+              .background(c.background.copy(alpha = 0.58f)),
+          contentAlignment = Alignment.Center,
+        ) {
+          CircularProgressIndicator(color = c.red)
+        }
+      }
+
+      if (state.canConfirmMapSelection) {
+        Card(
+          modifier =
+            Modifier
+              .align(Alignment.BottomCenter)
+              .responsivePageWidth()
+              .padding(16.dp),
+          colors = CardDefaults.cardColors(containerColor = c.surface),
+          border = BorderStroke(1.dp, c.panel),
+        ) {
+          Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            if (pickerMode == TripMapPickerMode.Station) {
+              val selectedStation = state.selectedMapStation
+              if (selectedStation != null) {
+                Text(
+                  text = selectedStation.name,
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                  text =
+                    stringResource(
+                      Res.string.favoritesAvailabilitySummary,
+                      selectedStation.bikesAvailable,
+                      selectedStation.slotsFree,
+                    ),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = c.muted,
+                )
+              }
+            } else {
+              Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                  text = stringResource(Res.string.tripSelectedPoint),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = c.muted,
+                )
+                Text(
+                  text =
+                    state.selectedMapLocationLabel
+                      ?: state.pickedLocation?.let { "${it.latitude}, ${it.longitude}" }
+                      ?: "",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.SemiBold,
+                )
+              }
+            }
+            Button(
+              onClick = onConfirmMapSelection,
+              modifier = Modifier.fillMaxWidth(),
+              colors =
+                ButtonDefaults.buttonColors(
+                  containerColor = if (pickerMode == TripMapPickerMode.Destination) c.red else c.blue,
+                ),
+            ) {
+              Text(
+                text =
+                  if (pickerMode == TripMapPickerMode.Destination) {
+                    stringResource(Res.string.tripConfirmDestination)
+                  } else {
+                    stringResource(Res.string.tripConfirmStation)
+                  },
+              )
+            }
+          }
+        }
+      }
     }
-    }
+  }
 }

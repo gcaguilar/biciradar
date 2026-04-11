@@ -18,14 +18,15 @@ import kotlinx.serialization.json.Json
  */
 @BindingContainer
 object CoreBindings {
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideAppScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideJson(): Json = Json {
-        ignoreUnknownKeys = true
-        explicitNulls = false
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideJson(): Json =
+    Json {
+      ignoreUnknownKeys = true
+      explicitNulls = false
     }
 }

@@ -9,8 +9,8 @@ import android.content.Intent
 import android.net.Uri
 import android.text.format.DateUtils
 import android.widget.RemoteViews
-import java.io.File
 import org.json.JSONObject
+import java.io.File
 
 class FavoriteStationWidgetProvider : AppWidgetProvider() {
   override fun onUpdate(
@@ -24,9 +24,10 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
   companion object {
     fun updateAll(context: Context) {
       val manager = AppWidgetManager.getInstance(context)
-      val ids = manager.getAppWidgetIds(
-        ComponentName(context, FavoriteStationWidgetProvider::class.java),
-      )
+      val ids =
+        manager.getAppWidgetIds(
+          ComponentName(context, FavoriteStationWidgetProvider::class.java),
+        )
       if (ids.isNotEmpty()) {
         updateWidgets(context, manager, ids)
       }
@@ -93,7 +94,10 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
       return views
     }
 
-    private fun deepLinkPendingIntent(context: Context, uri: Uri): PendingIntent {
+    private fun deepLinkPendingIntent(
+      context: Context,
+      uri: Uri,
+    ): PendingIntent {
       val intent = Intent(Intent.ACTION_VIEW, uri, context, MainActivity::class.java)
       return PendingIntent.getActivity(
         context,
@@ -163,21 +167,22 @@ internal object AndroidSurfaceSnapshotReader {
     val home = root.optJSONObject("homeStation")
     val work = root.optJSONObject("workStation")
     val nearby = root.optJSONArray("nearbyStations")
-    val nearbyStations = buildList {
-      for (index in 0 until (nearby?.length() ?: 0)) {
-        val station = nearby?.optJSONObject(index) ?: continue
-        add(
-          AndroidSurfaceNearbyStation(
-            id = station.optString("id"),
-            name = station.optString("nameShort", station.optString("nameFull")),
-            bikesAvailable = station.optInt("bikesAvailable"),
-            docksAvailable = station.optInt("docksAvailable"),
-            distanceMeters = station.optInt("distanceMeters").takeIf { it > 0 },
-            statusText = station.optString("statusTextShort"),
-          ),
-        )
+    val nearbyStations =
+      buildList {
+        for (index in 0 until (nearby?.length() ?: 0)) {
+          val station = nearby?.optJSONObject(index) ?: continue
+          add(
+            AndroidSurfaceNearbyStation(
+              id = station.optString("id"),
+              name = station.optString("nameShort", station.optString("nameFull")),
+              bikesAvailable = station.optInt("bikesAvailable"),
+              docksAvailable = station.optInt("docksAvailable"),
+              distanceMeters = station.optInt("distanceMeters").takeIf { it > 0 },
+              statusText = station.optString("statusTextShort"),
+            ),
+          )
+        }
       }
-    }
     if (favorite == null) {
       return AndroidSurfaceWidgetSnapshot(
         homeStation = parseSavedPlaceStation(home),
@@ -190,14 +195,15 @@ internal object AndroidSurfaceSnapshotReader {
       )
     }
     return AndroidSurfaceWidgetSnapshot(
-      favoriteStation = AndroidSurfaceFavoriteStation(
-        id = favorite.optString("id"),
-        name = favorite.optString("nameShort", favorite.optString("nameFull")),
-        bikesAvailable = favorite.optInt("bikesAvailable"),
-        docksAvailable = favorite.optInt("docksAvailable"),
-        statusText = favorite.optString("statusTextShort"),
-        lastUpdatedEpoch = favorite.optLong("lastUpdatedEpoch").takeIf { it > 0L },
-      ),
+      favoriteStation =
+        AndroidSurfaceFavoriteStation(
+          id = favorite.optString("id"),
+          name = favorite.optString("nameShort", favorite.optString("nameFull")),
+          bikesAvailable = favorite.optInt("bikesAvailable"),
+          docksAvailable = favorite.optInt("docksAvailable"),
+          statusText = favorite.optString("statusTextShort"),
+          lastUpdatedEpoch = favorite.optLong("lastUpdatedEpoch").takeIf { it > 0L },
+        ),
       homeStation = parseSavedPlaceStation(home),
       workStation = parseSavedPlaceStation(work),
       nearbyStations = nearbyStations,

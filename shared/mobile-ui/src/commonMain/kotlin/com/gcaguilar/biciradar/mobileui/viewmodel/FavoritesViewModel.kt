@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.FavoriteCategory
 import com.gcaguilar.biciradar.core.FavoriteCategoryIds
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
@@ -32,6 +33,10 @@ data class FavoritesUiState(
   val savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
   val categories: List<FavoriteCategory> = emptyList(),
   val stationCategory: Map<String, String> = emptyMap(),
+  val newCategoryName: String = "",
+  val dataFreshness: DataFreshness = DataFreshness.Unavailable,
+  val lastUpdatedEpoch: Long? = null,
+  val stationsLoading: Boolean = false,
 )
 
 class FavoritesViewModel(
@@ -39,86 +44,106 @@ class FavoritesViewModel(
   private val savedPlaceAlertsUseCase: SavedPlaceAlertsUseCase,
   private val routeLaunchUseCase: RouteLaunchUseCase,
 ) : ViewModel() {
-
   private val searchQuery = MutableStateFlow("")
-  private val cityRulesState: StateFlow<FavoritesCityRulesState> = combine(
-    favoritesManagementUseCase.selectedCity,
-    savedPlaceAlertsUseCase.rules,
-  ) { selectedCity, alertRules ->
-    FavoritesCityRulesState(
-      selectedCity = selectedCity,
-      savedPlaceAlertRules = alertRules,
+  private val newCategoryName = MutableStateFlow("")
+  private val cityRulesState: StateFlow<FavoritesCityRulesState> =
+    combine(
+      favoritesManagementUseCase.selectedCity,
+      savedPlaceAlertsUseCase.rules,
+    ) { selectedCity, alertRules ->
+      FavoritesCityRulesState(
+        selectedCity = selectedCity,
+        savedPlaceAlertRules = alertRules,
+      )
+    }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue =
+        FavoritesCityRulesState(
+          selectedCity = favoritesManagementUseCase.selectedCity.value,
+          savedPlaceAlertRules = savedPlaceAlertsUseCase.rules.value,
+        ),
     )
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.Eagerly,
-    initialValue = FavoritesCityRulesState(
-      selectedCity = favoritesManagementUseCase.selectedCity.value,
-      savedPlaceAlertRules = savedPlaceAlertsUseCase.rules.value,
-    ),
-  )
 
-  private val relationBaseState: StateFlow<FavoritesRelationState> = combine(
-    favoritesManagementUseCase.stationsState,
-    favoritesManagementUseCase.favoriteIds,
-    favoritesManagementUseCase.homeStationId,
-    favoritesManagementUseCase.workStationId,
-    cityRulesState,
-  ) { stationsState, favoriteIds, homeStationId, workStationId, cityRulesState ->
-    FavoritesRelationState(
-      stations = stationsState.stations,
-      favoriteIds = favoriteIds,
-      homeStationId = homeStationId,
-      workStationId = workStationId,
-      categories = emptyList(),
-      stationCategory = emptyMap(),
-      selectedCity = cityRulesState.selectedCity,
-      savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
+  private val relationBaseState: StateFlow<FavoritesRelationState> =
+    combine(
+      favoritesManagementUseCase.stationsState,
+      favoritesManagementUseCase.favoriteIds,
+      favoritesManagementUseCase.homeStationId,
+      favoritesManagementUseCase.workStationId,
+      cityRulesState,
+    ) { stationsState, favoriteIds, homeStationId, workStationId, cityRulesState ->
+      FavoritesRelationState(
+        stations = stationsState.stations,
+        favoriteIds = favoriteIds,
+        homeStationId = homeStationId,
+        workStationId = workStationId,
+        categories = emptyList(),
+        stationCategory = emptyMap(),
+        selectedCity = cityRulesState.selectedCity,
+        savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
+        dataFreshness = stationsState.freshness,
+        lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+        stationsLoading = stationsState.isLoading,
+      )
+    }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue =
+        buildRelationState(
+          stations = favoritesManagementUseCase.stationsState.value.stations,
+          favoriteIds = favoritesManagementUseCase.favoriteIds.value,
+          homeStationId = favoritesManagementUseCase.homeStationId.value,
+          workStationId = favoritesManagementUseCase.workStationId.value,
+          categories = emptyList(),
+          stationCategory = emptyMap(),
+          cityRulesState = cityRulesState.value,
+          dataFreshness = favoritesManagementUseCase.stationsState.value.freshness,
+          lastUpdatedEpoch = favoritesManagementUseCase.stationsState.value.lastUpdatedEpoch,
+          stationsLoading = favoritesManagementUseCase.stationsState.value.isLoading,
+        ),
     )
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.Eagerly,
-    initialValue = buildRelationState(
-      stations = favoritesManagementUseCase.stationsState.value.stations,
-      favoriteIds = favoritesManagementUseCase.favoriteIds.value,
-      homeStationId = favoritesManagementUseCase.homeStationId.value,
-      workStationId = favoritesManagementUseCase.workStationId.value,
-      categories = emptyList(),
-      stationCategory = emptyMap(),
-      cityRulesState = cityRulesState.value,
-    ),
-  )
 
-  private val relationState: StateFlow<FavoritesRelationState> = combine(
-    relationBaseState,
-    favoritesManagementUseCase.categories,
-    favoritesManagementUseCase.stationCategory,
-  ) { base, categories, stationCategory ->
-    base.copy(categories = categories, stationCategory = stationCategory)
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.Eagerly,
-    initialValue = buildRelationState(
-      stations = favoritesManagementUseCase.stationsState.value.stations,
-      favoriteIds = favoritesManagementUseCase.favoriteIds.value,
-      homeStationId = favoritesManagementUseCase.homeStationId.value,
-      workStationId = favoritesManagementUseCase.workStationId.value,
-      categories = favoritesManagementUseCase.categories.value,
-      stationCategory = favoritesManagementUseCase.stationCategory.value,
-      cityRulesState = cityRulesState.value,
-    ),
-  )
+  private val relationState: StateFlow<FavoritesRelationState> =
+    combine(
+      relationBaseState,
+      favoritesManagementUseCase.categories,
+      favoritesManagementUseCase.stationCategory,
+    ) { base, categories, stationCategory ->
+      base.copy(categories = categories, stationCategory = stationCategory)
+    }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue =
+        buildRelationState(
+          stations = favoritesManagementUseCase.stationsState.value.stations,
+          favoriteIds = favoritesManagementUseCase.favoriteIds.value,
+          homeStationId = favoritesManagementUseCase.homeStationId.value,
+          workStationId = favoritesManagementUseCase.workStationId.value,
+          categories = favoritesManagementUseCase.categories.value,
+          stationCategory = favoritesManagementUseCase.stationCategory.value,
+          cityRulesState = cityRulesState.value,
+          dataFreshness = favoritesManagementUseCase.stationsState.value.freshness,
+          lastUpdatedEpoch = favoritesManagementUseCase.stationsState.value.lastUpdatedEpoch,
+          stationsLoading = favoritesManagementUseCase.stationsState.value.isLoading,
+        ),
+    )
 
-  val uiState: StateFlow<FavoritesUiState> = combine(relationState, searchQuery) { relation, query ->
-    relation.toUiState(query)
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.Eagerly,
-    initialValue = relationState.value.toUiState(searchQuery.value),
-  )
+  val uiState: StateFlow<FavoritesUiState> =
+    combine(relationState, searchQuery, newCategoryName) { relation, query, categoryName ->
+      relation.toUiState(query, categoryName)
+    }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue = relationState.value.toUiState(searchQuery.value, newCategoryName.value),
+    )
 
   fun onSearchQueryChange(query: String) {
     searchQuery.update { query }
+  }
+
+  fun onNewCategoryNameChange(name: String) {
+    newCategoryName.update { name }
   }
 
   fun onAssignHomeStation(station: Station) {
@@ -163,6 +188,7 @@ class FavoritesViewModel(
     viewModelScope.launch {
       val id = "custom:${label.lowercase().replace("\\s+".toRegex(), "_")}:${kotlin.random.Random.nextInt(1_000_000)}"
       favoritesManagementUseCase.upsertCategory(id = id, label = label, isSystem = false)
+      newCategoryName.update { "" }
     }
   }
 
@@ -173,7 +199,10 @@ class FavoritesViewModel(
     }
   }
 
-  fun onAssignStationToCategory(station: Station, categoryId: String) {
+  fun onAssignStationToCategory(
+    station: Station,
+    categoryId: String,
+  ) {
     viewModelScope.launch {
       favoritesManagementUseCase.assignStationToCategory(station.id, categoryId)
     }
@@ -206,7 +235,10 @@ class FavoritesViewModel(
     routeLaunchUseCase.launchRoute(station)
   }
 
-  fun onUpsertSavedPlaceAlert(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
+  fun onUpsertSavedPlaceAlert(
+    target: SavedPlaceAlertTarget,
+    condition: SavedPlaceAlertCondition,
+  ) {
     viewModelScope.launch {
       savedPlaceAlertsUseCase.upsertRule(target, condition)
     }
@@ -226,36 +258,53 @@ class FavoritesViewModel(
     categories: List<FavoriteCategory>,
     stationCategory: Map<String, String>,
     cityRulesState: FavoritesCityRulesState,
-  ): FavoritesRelationState = FavoritesRelationState(
-    stations = stations,
-    favoriteIds = favoriteIds,
-    homeStationId = homeStationId,
-    workStationId = workStationId,
-    categories = categories,
-    stationCategory = stationCategory,
-    selectedCity = cityRulesState.selectedCity,
-    savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
-  )
-
-  private fun FavoritesRelationState.toUiState(query: String): FavoritesUiState = FavoritesUiState(
-    allStations = stations,
-    favoriteStations = visibleFavoriteStations(
+    dataFreshness: DataFreshness,
+    lastUpdatedEpoch: Long?,
+    stationsLoading: Boolean,
+  ): FavoritesRelationState =
+    FavoritesRelationState(
       stations = stations,
       favoriteIds = favoriteIds,
       homeStationId = homeStationId,
       workStationId = workStationId,
-    ),
-    homeStation = stations.find { it.id == homeStationId },
-    workStation = stations.find { it.id == workStationId },
-    searchQuery = query,
-    assignmentCandidate = findStationMatchingQuery(stations, query),
-    savedPlaceAlertsCityId = selectedCity.id,
-    savedPlaceAlertRules = savedPlaceAlertRules,
-    categories = categories,
-    stationCategory = stationCategory,
-  )
+      categories = categories,
+      stationCategory = stationCategory,
+      selectedCity = cityRulesState.selectedCity,
+      savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
+      dataFreshness = dataFreshness,
+      lastUpdatedEpoch = lastUpdatedEpoch,
+      stationsLoading = stationsLoading,
+    )
+
+  private fun FavoritesRelationState.toUiState(
+    query: String,
+    categoryName: String,
+  ): FavoritesUiState =
+    FavoritesUiState(
+      allStations = stations,
+      favoriteStations =
+        visibleFavoriteStations(
+          stations = stations,
+          favoriteIds = favoriteIds,
+          homeStationId = homeStationId,
+          workStationId = workStationId,
+        ),
+      homeStation = stations.find { it.id == homeStationId },
+      workStation = stations.find { it.id == workStationId },
+      searchQuery = query,
+      assignmentCandidate = findStationMatchingQuery(stations, query),
+      savedPlaceAlertsCityId = selectedCity.id,
+      savedPlaceAlertRules = savedPlaceAlertRules,
+      categories = categories,
+      stationCategory = stationCategory,
+      newCategoryName = categoryName,
+      dataFreshness = dataFreshness,
+      lastUpdatedEpoch = lastUpdatedEpoch,
+      stationsLoading = stationsLoading,
+    )
 
   private fun homeStationId(): String? = favoritesManagementUseCase.homeStationId.value
+
   private fun workStationId(): String? = favoritesManagementUseCase.workStationId.value
 }
 
@@ -268,6 +317,9 @@ internal data class FavoritesRelationState(
   val stationCategory: Map<String, String>,
   val selectedCity: City,
   val savedPlaceAlertRules: List<SavedPlaceAlertRule>,
+  val dataFreshness: DataFreshness,
+  val lastUpdatedEpoch: Long?,
+  val stationsLoading: Boolean,
 )
 
 internal data class FavoritesCityRulesState(

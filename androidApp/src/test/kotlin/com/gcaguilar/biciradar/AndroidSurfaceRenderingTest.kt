@@ -12,10 +12,11 @@ import org.junit.Test
 class AndroidSurfaceRenderingTest {
   @Test
   fun `widget empty state prefers favorite setup before stale data`() {
-    val snapshot = AndroidSurfaceWidgetSnapshot(
-      hasFavoriteStation = false,
-      isDataFresh = false,
-    )
+    val snapshot =
+      AndroidSurfaceWidgetSnapshot(
+        hasFavoriteStation = false,
+        isDataFresh = false,
+      )
 
     assertEquals(AndroidWidgetEmptyState.ConfigureFavorite, widgetEmptyState(snapshot))
     assertEquals(
@@ -32,10 +33,11 @@ class AndroidSurfaceRenderingTest {
 
   @Test
   fun `nearby widget empty state prioritizes location permission`() {
-    val snapshot = AndroidSurfaceWidgetSnapshot(
-      hasLocationPermission = false,
-      isDataFresh = false,
-    )
+    val snapshot =
+      AndroidSurfaceWidgetSnapshot(
+        hasLocationPermission = false,
+        isDataFresh = false,
+      )
 
     assertEquals(AndroidWidgetEmptyState.NoLocationPermission, nearbyWidgetEmptyState(snapshot))
     assertEquals(
@@ -52,55 +54,60 @@ class AndroidSurfaceRenderingTest {
 
   @Test
   fun `nearby station meta includes distance when available`() {
-    val station = AndroidSurfaceNearbyStation(
-      id = "station-1",
-      name = "Plaza Espana",
-      bikesAvailable = 5,
-      docksAvailable = 7,
-      distanceMeters = 140,
-      statusText = "Disponible",
-    )
+    val station =
+      AndroidSurfaceNearbyStation(
+        id = "station-1",
+        name = "Plaza Espana",
+        bikesAvailable = 5,
+        docksAvailable = 7,
+        distanceMeters = 140,
+        statusText = "Disponible",
+      )
 
     assertEquals("5 bicis · 7 huecos · 140 m", nearbyStationMeta(station))
   }
 
   @Test
   fun `saved place meta includes counts and status`() {
-    val station = AndroidSurfaceSavedPlaceStation(
-      id = "station-1",
-      name = "Plaza Espana",
-      bikesAvailable = 5,
-      docksAvailable = 7,
-      statusText = "Disponible",
-    )
+    val station =
+      AndroidSurfaceSavedPlaceStation(
+        id = "station-1",
+        name = "Plaza Espana",
+        bikesAvailable = 5,
+        docksAvailable = 7,
+        statusText = "Disponible",
+      )
 
     assertEquals("5 bicis · 7 huecos · Disponible", savedPlaceMeta(station))
   }
 
   @Test
   fun `commute place state falls back to refresh or setup copy when place is missing`() {
-    val stale = commutePlaceState(
-      label = "Casa",
-      station = null,
-      snapshot = AndroidSurfaceWidgetSnapshot(isDataFresh = false),
-      configureSavedPlaces = "Elige tus estaciones",
-      openAppToRefresh = "Abre la app para actualizar",
-      missingTitle = "Sin configurar",
-    )
-    val configured = commutePlaceState(
-      label = "Trabajo",
-      station = AndroidSurfaceSavedPlaceStation(
-        id = "station-9",
-        name = "Delicias",
-        bikesAvailable = 4,
-        docksAvailable = 8,
-        statusText = "Disponible",
-      ),
-      snapshot = AndroidSurfaceWidgetSnapshot(),
-      configureSavedPlaces = "Elige tus estaciones",
-      openAppToRefresh = "Abre la app para actualizar",
-      missingTitle = "Sin configurar",
-    )
+    val stale =
+      commutePlaceState(
+        label = "Casa",
+        station = null,
+        snapshot = AndroidSurfaceWidgetSnapshot(isDataFresh = false),
+        configureSavedPlaces = "Elige tus estaciones",
+        openAppToRefresh = "Abre la app para actualizar",
+        missingTitle = "Sin configurar",
+      )
+    val configured =
+      commutePlaceState(
+        label = "Trabajo",
+        station =
+          AndroidSurfaceSavedPlaceStation(
+            id = "station-9",
+            name = "Delicias",
+            bikesAvailable = 4,
+            docksAvailable = 8,
+            statusText = "Disponible",
+          ),
+        snapshot = AndroidSurfaceWidgetSnapshot(),
+        configureSavedPlaces = "Elige tus estaciones",
+        openAppToRefresh = "Abre la app para actualizar",
+        missingTitle = "Sin configurar",
+      )
 
     assertEquals("Sin configurar", stale.title)
     assertEquals("Abre la app para actualizar", stale.meta)
@@ -112,19 +119,21 @@ class AndroidSurfaceRenderingTest {
 
   @Test
   fun `quick actions fall back to favorites when no favorite station exists`() {
-    val configured = quickActionsState(
-      AndroidSurfaceWidgetSnapshot(
-        favoriteStation = AndroidSurfaceFavoriteStation(
-          id = "station-9",
-          name = "Delicias",
-          bikesAvailable = 4,
-          docksAvailable = 8,
-          statusText = "Disponible",
-          lastUpdatedEpoch = 100L,
+    val configured =
+      quickActionsState(
+        AndroidSurfaceWidgetSnapshot(
+          favoriteStation =
+            AndroidSurfaceFavoriteStation(
+              id = "station-9",
+              name = "Delicias",
+              bikesAvailable = 4,
+              docksAvailable = 8,
+              statusText = "Disponible",
+              lastUpdatedEpoch = 100L,
+            ),
+          hasNotificationPermission = false,
         ),
-        hasNotificationPermission = false,
-      ),
-    )
+      )
     val empty = quickActionsState(AndroidSurfaceWidgetSnapshot())
 
     assertEquals("biciradar://monitor/station-9", configured.monitorUri)
@@ -157,12 +166,13 @@ class AndroidSurfaceRenderingTest {
 
   @Test
   fun `monitoring notification body includes state countdown and alternative distance`() {
-    val session = monitoringSession(
-      status = SurfaceMonitoringStatus.AlternativeAvailable,
-      alternativeStationId = "station-2",
-      alternativeStationName = "Paraninfo",
-      alternativeDistanceMeters = 120,
-    )
+    val session =
+      monitoringSession(
+        status = SurfaceMonitoringStatus.AlternativeAvailable,
+        alternativeStationId = "station-2",
+        alternativeStationName = "Paraninfo",
+        alternativeDistanceMeters = 120,
+      )
 
     assertEquals(
       "Alternativa sugerida · 3 bicis · 0 huecos · 1m 5s · Alt: Paraninfo (120 m)",

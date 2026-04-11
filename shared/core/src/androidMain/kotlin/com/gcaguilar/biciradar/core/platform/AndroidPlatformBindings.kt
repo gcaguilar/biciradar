@@ -13,23 +13,23 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
-import com.gcaguilar.biciradar.core.ExternalLinks
-import com.gcaguilar.biciradar.core.PermissionPrompter
-import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.DatabaseFactory
+import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.EmbeddedMapProvider
+import com.gcaguilar.biciradar.core.ExternalLinks
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
 import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
+import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
+import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
@@ -75,27 +75,34 @@ class AndroidPlatformBindings(
   override val appUpdatePrompter: AppUpdatePrompter get() = androidAppUpdatePrompter
 
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
-  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    private var database: BiciRadarDatabase? = null
-    override fun create(json: Json): BiciRadarDatabase? {
-      if (database == null) {
-        val driver = createAndroidDriver(context)
-        val db = BiciRadarDatabase(driver)
-        LegacyBlobToRelationalMigration.ensure(driver, db, json)
-        database = db
+  override val databaseFactory: DatabaseFactory =
+    object : DatabaseFactory {
+      private var database: BiciRadarDatabase? = null
+
+      override fun create(json: Json): BiciRadarDatabase? {
+        if (database == null) {
+          val driver = createAndroidDriver(context)
+          val db = BiciRadarDatabase(driver)
+          LegacyBlobToRelationalMigration.ensure(driver, db, json)
+          database = db
+        }
+        return database
       }
-      return database
     }
-  }
   override val fileSystem: FileSystem = FileSystem.SYSTEM
-  override val googleMapsApiKey: String? = runCatching {
-    val packageManager = context.packageManager
-    val applicationInfo = packageManager.getApplicationInfo(
-      context.packageName,
-      PackageManager.GET_META_DATA,
-    )
-    applicationInfo.metaData?.getString("com.google.android.geo.API_KEY")?.trim()?.takeIf { it.isNotBlank() }
-  }.getOrNull()
+  override val googleMapsApiKey: String? =
+    runCatching {
+      val packageManager = context.packageManager
+      val applicationInfo =
+        packageManager.getApplicationInfo(
+          context.packageName,
+          PackageManager.GET_META_DATA,
+        )
+      applicationInfo.metaData
+        ?.getString("com.google.android.geo.API_KEY")
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+    }.getOrNull()
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
   private val androidLocalNotifier = AndroidLocalNotifier(context)
   override val localNotifier: LocalNotifier = androidLocalNotifier
@@ -107,9 +114,10 @@ class AndroidPlatformBindings(
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = AndroidWatchSyncBridge(context)
-  override val appVersion: String = runCatching {
-    context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
-  }.getOrDefault("unknown")
+  override val appVersion: String =
+    runCatching {
+      context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+    }.getOrDefault("unknown")
 
   /** Provide an Activity-backed requester so [AndroidLocalNotifier] can actually trigger the
    *  POST_NOTIFICATIONS runtime-permission dialog on Android 13+. Call this from
@@ -128,17 +136,18 @@ class AndroidPlatformBindings(
 }
 
 private class AndroidHttpClientFactory : BiziHttpClientFactory {
-  override fun create(json: Json): HttpClient = HttpClient(OkHttp) {
-    expectSuccess = true
-    install(HttpTimeout) {
-      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
-      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
-      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+  override fun create(json: Json): HttpClient =
+    HttpClient(OkHttp) {
+      expectSuccess = true
+      install(HttpTimeout) {
+        requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+        connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+        socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      }
+      install(ContentNegotiation) {
+        json(json)
+      }
     }
-    install(ContentNegotiation) {
-      json(json)
-    }
-  }
 }
 
 private class AndroidStorageDirectoryProvider(
@@ -154,9 +163,10 @@ private class AndroidRouteLauncher(
     launchGoogleMapsRoute(
       destination = station.location,
       mode = "w",
-      fallbackUri = Uri.parse(
-        "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
-      ),
+      fallbackUri =
+        Uri.parse(
+          "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
+        ),
     )
   }
 
@@ -181,16 +191,19 @@ private class AndroidRouteLauncher(
     mode: String,
     fallbackUri: Uri,
   ) {
-    val navigationUri = Uri.parse(
-      "google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode",
-    )
-    val intent = Intent(Intent.ACTION_VIEW, navigationUri).apply {
-      setPackage("com.google.android.apps.maps")
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-    val fallbackIntent = Intent(Intent.ACTION_VIEW, fallbackUri).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
+    val navigationUri =
+      Uri.parse(
+        "google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode",
+      )
+    val intent =
+      Intent(Intent.ACTION_VIEW, navigationUri).apply {
+        setPackage("com.google.android.apps.maps")
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
+    val fallbackIntent =
+      Intent(Intent.ACTION_VIEW, fallbackUri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
     val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
     context.startActivity(launchIntent)
   }
@@ -200,14 +213,19 @@ private class AndroidMapSupport(
   private val context: Context,
 ) : MapSupport {
   override fun currentStatus(): MapSupportStatus {
-    val apiKey = runCatching {
-      val packageManager = context.packageManager
-      val applicationInfo = packageManager.getApplicationInfo(
-        context.packageName,
-        PackageManager.GET_META_DATA,
-      )
-      applicationInfo.metaData?.getString("com.google.android.geo.API_KEY").orEmpty().trim()
-    }.getOrDefault("")
+    val apiKey =
+      runCatching {
+        val packageManager = context.packageManager
+        val applicationInfo =
+          packageManager.getApplicationInfo(
+            context.packageName,
+            PackageManager.GET_META_DATA,
+          )
+        applicationInfo.metaData
+          ?.getString("com.google.android.geo.API_KEY")
+          .orEmpty()
+          .trim()
+      }.getOrDefault("")
 
     return MapSupportStatus(
       embeddedProvider = EmbeddedMapProvider.GoogleMaps,
@@ -227,25 +245,28 @@ private class AndroidLocationProvider(
   @SuppressLint("MissingPermission")
   override suspend fun currentLocation(): GeoPoint? {
     if (!hasLocationPermission()) return null
-    val currentLocation = runCatching {
-      val cancellationTokenSource = CancellationTokenSource()
-      fusedLocationClient.getCurrentLocation(
-        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-        cancellationTokenSource.token,
-      ).await()
-    }.getOrNull()
+    val currentLocation =
+      runCatching {
+        val cancellationTokenSource = CancellationTokenSource()
+        fusedLocationClient
+          .getCurrentLocation(
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            cancellationTokenSource.token,
+          ).await()
+      }.getOrNull()
 
-    val bestLocation = currentLocation ?: runCatching {
-      fusedLocationClient.lastLocation.await()
-    }.getOrNull()
+    val bestLocation =
+      currentLocation ?: runCatching {
+        fusedLocationClient.lastLocation.await()
+      }.getOrNull()
 
     return bestLocation?.let { location ->
       GeoPoint(latitude = location.latitude, longitude = location.longitude)
     }
   }
 
-  private fun hasLocationPermission(): Boolean {
-    return ContextCompat.checkSelfPermission(
+  private fun hasLocationPermission(): Boolean =
+    ContextCompat.checkSelfPermission(
       context,
       android.Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED ||
@@ -253,7 +274,6 @@ private class AndroidLocationProvider(
         context,
         android.Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
-  }
 }
 
 private class AndroidWatchSyncBridge(
@@ -264,12 +284,16 @@ private class AndroidWatchSyncBridge(
   override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
     val client = dataClient ?: return
     runCatching {
-      val request = PutDataMapRequest.create(FAVORITES_PATH).apply {
-        dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(snapshot.favoriteIds))
-        snapshot.homeStationId?.let { dataMap.putString(HOME_STATION_KEY, it) } ?: dataMap.remove(HOME_STATION_KEY)
-        snapshot.workStationId?.let { dataMap.putString(WORK_STATION_KEY, it) } ?: dataMap.remove(WORK_STATION_KEY)
-        dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
-      }.asPutDataRequest().setUrgent()
+      val request =
+        PutDataMapRequest
+          .create(FAVORITES_PATH)
+          .apply {
+            dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(snapshot.favoriteIds))
+            snapshot.homeStationId?.let { dataMap.putString(HOME_STATION_KEY, it) } ?: dataMap.remove(HOME_STATION_KEY)
+            snapshot.workStationId?.let { dataMap.putString(WORK_STATION_KEY, it) } ?: dataMap.remove(WORK_STATION_KEY)
+            dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
+          }.asPutDataRequest()
+          .setUrgent()
       client.putDataItem(request).await()
     }
   }
@@ -292,10 +316,12 @@ private class AndroidWatchSyncBridge(
     }.getOrNull()
   }
 
-  private fun buildFavoritesUri(): Uri = Uri.Builder()
-    .scheme(PutDataRequest.WEAR_URI_SCHEME)
-    .path(FAVORITES_PATH)
-    .build()
+  private fun buildFavoritesUri(): Uri =
+    Uri
+      .Builder()
+      .scheme(PutDataRequest.WEAR_URI_SCHEME)
+      .path(FAVORITES_PATH)
+      .build()
 
   private companion object {
     const val FAVORITES_PATH = "/bizi/favorites"
@@ -320,16 +346,16 @@ private class AndroidLocalNotifier(
     ensureChannel()
   }
 
-  override suspend fun hasPermission(): Boolean {
-    return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+  override suspend fun hasPermission(): Boolean =
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
       notificationManager.areNotificationsEnabled()
     } else {
-      notificationManager.areNotificationsEnabled() && ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.POST_NOTIFICATIONS,
-      ) == PackageManager.PERMISSION_GRANTED
+      notificationManager.areNotificationsEnabled() &&
+        ContextCompat.checkSelfPermission(
+          context,
+          Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
     }
-  }
 
   override suspend fun requestPermission(): Boolean {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return hasPermission()
@@ -340,26 +366,32 @@ private class AndroidLocalNotifier(
   }
 
   @SuppressLint("MissingPermission")
-  override suspend fun notify(title: String, body: String) {
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) {
     if (!requestPermission()) return
-    val notification = NotificationCompat.Builder(context, channelId)
-      .setSmallIcon(android.R.drawable.ic_dialog_info)
-      .setContentTitle(title)
-      .setContentText(body)
-      .setPriority(NotificationCompat.PRIORITY_HIGH)
-      .setAutoCancel(true)
-      .build()
+    val notification =
+      NotificationCompat
+        .Builder(context, channelId)
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
+        .setContentTitle(title)
+        .setContentText(body)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setAutoCancel(true)
+        .build()
     notificationManager.notify(System.currentTimeMillis().toInt(), notification)
   }
 
   private fun ensureChannel() {
-    val channel = NotificationChannel(
-      channelId,
-      "Bizi Viaje",
-      NotificationManager.IMPORTANCE_HIGH,
-    ).apply {
-      description = "Notificaciones de monitorización de viaje en Bizi"
-    }
+    val channel =
+      NotificationChannel(
+        channelId,
+        "Bizi Viaje",
+        NotificationManager.IMPORTANCE_HIGH,
+      ).apply {
+        description = "Notificaciones de monitorización de viaje en Bizi"
+      }
     notificationManager.createNotificationChannel(channel)
   }
 }

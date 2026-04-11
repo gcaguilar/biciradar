@@ -4,7 +4,6 @@ import com.gcaguilar.biciradar.core.compareAppVersionStrings
 import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
-import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import com.gcaguilar.biciradar.mobileui.viewmodel.ChangelogPresentation
 
 /**
@@ -23,7 +22,6 @@ internal class ChangelogUseCase(
   private val settingsRepository: com.gcaguilar.biciradar.core.SettingsRepository,
   private val appVersion: String,
 ) {
-
   /**
    * Gets the pending changelog if one should be shown to the user.
    * @return ChangelogPresentation if there's a pending changelog, null otherwise
@@ -33,11 +31,12 @@ internal class ChangelogUseCase(
     if (suppression.suppressed) return null
 
     val lastSeen = settingsRepository.currentLastSeenChangelogAppVersion() ?: "0.0.0"
-    val pending = pendingChangelogVersion(
-      appVersion,
-      lastSeen,
-      ChangelogCatalog.catalogVersionSet(),
-    )
+    val pending =
+      pendingChangelogVersion(
+        appVersion,
+        lastSeen,
+        ChangelogCatalog.catalogVersionSet(),
+      )
     val entries = pending?.let { ChangelogCatalog.entriesFor(it) }.orEmpty()
 
     return if (pending != null && entries.isNotEmpty()) {
@@ -46,7 +45,9 @@ internal class ChangelogUseCase(
         highlightedVersion = pending,
         persistSeenVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion,
       )
-    } else null
+    } else {
+      null
+    }
   }
 
   /**
@@ -54,19 +55,22 @@ internal class ChangelogUseCase(
    * This is used when onboarding is pending.
    */
   fun checkSuppression(): ChangelogSuppressionResult {
-    val onboardingCompleted = settingsRepository.onboardingChecklist.value.isCompleted() ||
-      settingsRepository.hasCompletedOnboarding.value
+    val onboardingCompleted =
+      settingsRepository.onboardingChecklist.value.isCompleted() ||
+        settingsRepository.hasCompletedOnboarding.value
     if (onboardingCompleted) {
       return ChangelogSuppressionResult(suppressed = false)
     }
 
     val normalizedCurrentVersion = normalizeAppVersionForCatalog(appVersion) ?: appVersion
-    val normalizedLastSeen = normalizeAppVersionForCatalog(
-      settingsRepository.currentLastSeenChangelogAppVersion(),
-    )
+    val normalizedLastSeen =
+      normalizeAppVersionForCatalog(
+        settingsRepository.currentLastSeenChangelogAppVersion(),
+      )
 
-    val shouldMarkSeen = normalizedLastSeen == null ||
-      compareAppVersionStrings(normalizedLastSeen, normalizedCurrentVersion) < 0
+    val shouldMarkSeen =
+      normalizedLastSeen == null ||
+        compareAppVersionStrings(normalizedLastSeen, normalizedCurrentVersion) < 0
 
     return ChangelogSuppressionResult(
       suppressed = true,

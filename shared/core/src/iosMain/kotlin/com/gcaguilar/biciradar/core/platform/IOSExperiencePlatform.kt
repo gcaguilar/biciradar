@@ -12,11 +12,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import platform.StoreKit.SKStoreReviewController
 import platform.CoreLocation.CLLocationManager
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedAlways
 import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.Foundation.NSURL
+import platform.StoreKit.SKStoreReviewController
 import platform.UIKit.UIApplication
 
 @Serializable
@@ -91,11 +91,17 @@ internal class IOSAppUpdatePrompterImpl(
     return runCatching {
       val body = httpClient.get(url).body<String>()
       val response = json.decodeFromString<ItunesLookupResponse>(body)
-      val remoteVersion = response.results.firstOrNull()?.version?.trim()?.takeIf { it.isNotBlank() }
-        ?: return@runCatching UpdateAvailabilityState.Unavailable
+      val remoteVersion =
+        response.results
+          .firstOrNull()
+          ?.version
+          ?.trim()
+          ?.takeIf { it.isNotBlank() }
+          ?: return@runCatching UpdateAvailabilityState.Unavailable
       if (compareAppVersionStrings(remoteVersion, currentAppVersion) > 0) {
-        val storeUrl = appConfiguration.iosAppStoreUrl
-          ?: "https://apps.apple.com/app/id${appConfiguration.iosAppStoreId}"
+        val storeUrl =
+          appConfiguration.iosAppStoreUrl
+            ?: "https://apps.apple.com/app/id${appConfiguration.iosAppStoreId}"
         UpdateAvailabilityState.Available(
           versionName = remoteVersion,
           storeUrl = storeUrl,
@@ -112,8 +118,9 @@ internal class IOSAppUpdatePrompterImpl(
   override suspend fun completeFlexibleUpdateIfReady(): Boolean = false
 
   override fun openStoreListing() {
-    val url = appConfiguration.iosAppStoreUrl
-      ?: "https://apps.apple.com/app/id${appConfiguration.iosAppStoreId}"
+    val url =
+      appConfiguration.iosAppStoreUrl
+        ?: "https://apps.apple.com/app/id${appConfiguration.iosAppStoreId}"
     NSURL.URLWithString(url)?.let { storeUrl ->
       UIApplication.sharedApplication.openURL(
         url = storeUrl,

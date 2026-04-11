@@ -38,20 +38,12 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.RadiusSelectionButton
-import com.gcaguilar.biciradar.mobileui.normalizedForSearch
-import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
-import com.gcaguilar.biciradar.mobileui.FeedbackDialog
-import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
-import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearanceDescription
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchNoResults
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchPlaceholder
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.close
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dark
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceDescription
@@ -69,6 +61,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationRadius
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationRadiusDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.openFeedbackForm
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.openPrivacyPolicy
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.openShortcutsGuide
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.privacyAndData
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.privacyDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSetupCardAction
@@ -82,23 +75,27 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcuts
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewCommands
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.openShortcutsGuide
+import com.gcaguilar.biciradar.mobileui.FeedbackDialog
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.RadiusSelectionButton
+import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
+import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
+import com.gcaguilar.biciradar.mobileui.responsivePageWidth
+import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ProfileScreen(
+  state: ProfileUiState,
   mobilePlatform: MobileUiPlatform,
   paddingValues: PaddingValues,
-  searchRadiusMeters: Int,
-  preferredMapApp: PreferredMapApp,
-  themePreference: ThemePreference,
-  selectedCity: City,
   onSearchRadiusSelected: (Int) -> Unit,
   onPreferredMapAppSelected: (PreferredMapApp) -> Unit,
   onThemePreferenceSelected: (ThemePreference) -> Unit,
   onCitySelected: (City) -> Unit,
-  canSelectGoogleMapsInIos: Boolean,
-  showProfileSetupCard: Boolean,
+  onCitySearchQueryChange: (String) -> Unit,
+  onClearCitySearchQuery: () -> Unit,
   onShowChangelog: () -> Unit,
   onOpenOnboarding: () -> Unit,
   onOpenShortcuts: () -> Unit,
@@ -108,10 +105,11 @@ internal fun ProfileScreen(
   var showFeedbackDialog by remember { mutableStateOf(false) }
   var showDataSourcesDialog by remember { mutableStateOf(false) }
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+        .background(pageBackgroundColor(mobilePlatform)),
     contentAlignment = Alignment.TopCenter,
   ) {
     LazyColumn(
@@ -133,7 +131,7 @@ internal fun ProfileScreen(
           )
         }
       }
-      if (showProfileSetupCard) {
+      if (state.showProfileSetupCard) {
         item {
           Card(
             colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
@@ -199,7 +197,7 @@ internal fun ProfileScreen(
               color = LocalBiziColors.current.muted,
             )
             SearchRadiusSelector(
-              selectedRadiusMeters = searchRadiusMeters,
+              selectedRadiusMeters = state.searchRadiusMeters,
               onSearchRadiusSelected = onSearchRadiusSelected,
             )
           }
@@ -217,8 +215,12 @@ internal fun ProfileScreen(
               color = LocalBiziColors.current.muted,
             )
             CitySelector(
-              selectedCity = selectedCity,
+              selectedCity = state.selectedCity,
+              searchQuery = state.citySearchQuery,
+              filteredCities = state.filteredCities,
               onCitySelected = onCitySelected,
+              onSearchQueryChange = onCitySearchQueryChange,
+              onClearSearchQuery = onClearCitySearchQuery,
             )
           }
         }
@@ -238,19 +240,19 @@ internal fun ProfileScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.System,
+                selected = state.themePreference == ThemePreference.System,
                 label = stringResource(Res.string.system),
                 onClick = { onThemePreferenceSelected(ThemePreference.System) },
               )
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.Light,
+                selected = state.themePreference == ThemePreference.Light,
                 label = stringResource(Res.string.light),
                 onClick = { onThemePreferenceSelected(ThemePreference.Light) },
               )
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
-                selected = themePreference == ThemePreference.Dark,
+                selected = state.themePreference == ThemePreference.Dark,
                 label = stringResource(Res.string.dark),
                 onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
               )
@@ -258,7 +260,7 @@ internal fun ProfileScreen(
           }
         }
       }
-      if (mobilePlatform == MobileUiPlatform.IOS && canSelectGoogleMapsInIos) {
+      if (mobilePlatform == MobileUiPlatform.IOS && state.canSelectGoogleMapsInIos) {
         item {
           Card(
             colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
@@ -273,13 +275,13 @@ internal fun ProfileScreen(
               Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
-                  selected = preferredMapApp == PreferredMapApp.AppleMaps,
+                  selected = state.preferredMapApp == PreferredMapApp.AppleMaps,
                   label = "Apple Maps",
                   onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
                 )
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
-                  selected = preferredMapApp == PreferredMapApp.GoogleMaps,
+                  selected = state.preferredMapApp == PreferredMapApp.GoogleMaps,
                   label = "Google Maps",
                   onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
                 )
@@ -362,10 +364,11 @@ internal fun ProfileScreen(
           colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
         ) {
           Column(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable { showDataSourcesDialog = true }
-              .padding(18.dp),
+            modifier =
+              Modifier
+                .fillMaxWidth()
+                .clickable { showDataSourcesDialog = true }
+                .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
           ) {
             Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
@@ -411,41 +414,36 @@ internal fun ProfileScreen(
   }
 }
 
-private fun MobileUiPlatform.profileAssistantName(): String = when (this) {
-  MobileUiPlatform.Android -> "Gemini"
-  MobileUiPlatform.IOS -> "Siri"
-  MobileUiPlatform.Desktop -> "Asistente"
-}
+private fun MobileUiPlatform.profileAssistantName(): String =
+  when (this) {
+    MobileUiPlatform.Android -> "Gemini"
+    MobileUiPlatform.IOS -> "Siri"
+    MobileUiPlatform.Desktop -> "Asistente"
+  }
 
 @Composable
 private fun CitySelector(
   selectedCity: City,
+  searchQuery: String,
+  filteredCities: List<City>,
   onCitySelected: (City) -> Unit,
+  onSearchQueryChange: (String) -> Unit,
+  onClearSearchQuery: () -> Unit,
 ) {
   val colors = LocalBiziColors.current
   var expanded by remember { mutableStateOf(false) }
-  var searchQuery by remember { mutableStateOf("") }
-  val sortedCities = remember { City.entries.sortedBy { it.displayName } }
-  val normalizedQuery = remember(searchQuery) { searchQuery.trim().normalizedForSearch() }
-  val filteredCities = remember(normalizedQuery, sortedCities) {
-    if (normalizedQuery.isBlank()) {
-      sortedCities
-    } else {
-      sortedCities.filter { city ->
-        city.displayName.normalizedForSearch().contains(normalizedQuery)
-      }
-    }
-  }
 
   Box {
     androidx.compose.material3.OutlinedButton(
       onClick = {
-        searchQuery = ""
+        onClearSearchQuery()
         expanded = true
       },
       modifier = Modifier.fillMaxWidth(),
       border = androidx.compose.foundation.BorderStroke(1.dp, colors.panel),
-      colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = colors.surface),
+      colors =
+        androidx.compose.material3.ButtonDefaults
+          .outlinedButtonColors(containerColor = colors.surface),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -467,17 +465,18 @@ private fun CitySelector(
     DropdownMenu(
       expanded = expanded,
       onDismissRequest = {
-        searchQuery = ""
+        onClearSearchQuery()
         expanded = false
       },
       modifier = Modifier.background(colors.surface),
     ) {
       OutlinedTextField(
         value = searchQuery,
-        onValueChange = { searchQuery = it },
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 8.dp, vertical = 4.dp),
+        onValueChange = onSearchQueryChange,
+        modifier =
+          Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         singleLine = true,
         placeholder = { Text(stringResource(Res.string.citySelectionSearchPlaceholder)) },
       )

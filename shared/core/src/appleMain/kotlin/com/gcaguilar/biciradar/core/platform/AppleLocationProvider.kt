@@ -31,26 +31,27 @@ internal class AppleLocationProvider : LocationProvider {
     locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
   }
 
-  override suspend fun currentLocation(): GeoPoint? = suspendCancellableCoroutine { continuation ->
-    pendingContinuation?.resume(null)
-    pendingContinuation = continuation
-    continuation.invokeOnCancellation {
-      if (pendingContinuation === continuation) {
-        pendingContinuation = null
+  override suspend fun currentLocation(): GeoPoint? =
+    suspendCancellableCoroutine { continuation ->
+      pendingContinuation?.resume(null)
+      pendingContinuation = continuation
+      continuation.invokeOnCancellation {
+        if (pendingContinuation === continuation) {
+          pendingContinuation = null
+        }
+      }
+
+      when (locationManager.authorizationStatus) {
+        kCLAuthorizationStatusAuthorizedAlways,
+        kCLAuthorizationStatusAuthorizedWhenInUse,
+        -> requestOrReturnCachedLocation()
+        kCLAuthorizationStatusNotDetermined -> locationManager.requestWhenInUseAuthorization()
+        kCLAuthorizationStatusDenied,
+        kCLAuthorizationStatusRestricted,
+        -> finish(null)
+        else -> locationManager.requestWhenInUseAuthorization()
       }
     }
-
-    when (locationManager.authorizationStatus) {
-      kCLAuthorizationStatusAuthorizedAlways,
-      kCLAuthorizationStatusAuthorizedWhenInUse,
-      -> requestOrReturnCachedLocation()
-      kCLAuthorizationStatusNotDetermined -> locationManager.requestWhenInUseAuthorization()
-      kCLAuthorizationStatusDenied,
-      kCLAuthorizationStatusRestricted,
-      -> finish(null)
-      else -> locationManager.requestWhenInUseAuthorization()
-    }
-  }
 
   private fun handleAuthorizationChange(manager: CLLocationManager) {
     when (manager.authorizationStatus) {
@@ -64,12 +65,18 @@ internal class AppleLocationProvider : LocationProvider {
     }
   }
 
-  private fun handleUpdatedLocations(manager: CLLocationManager, didUpdateLocations: List<*>) {
+  private fun handleUpdatedLocations(
+    manager: CLLocationManager,
+    didUpdateLocations: List<*>,
+  ) {
     val latestLocation = didUpdateLocations.lastOrNull() as? CLLocation
     finish(latestLocation?.toGeoPoint() ?: manager.location?.toGeoPoint())
   }
 
-  private fun handleLocationFailure(manager: CLLocationManager, didFailWithError: NSError) {
+  private fun handleLocationFailure(
+    manager: CLLocationManager,
+    didFailWithError: NSError,
+  ) {
     finish(manager.location?.toGeoPoint())
   }
 
@@ -90,25 +97,33 @@ internal class AppleLocationProvider : LocationProvider {
 
   private class Delegate(
     private val provider: AppleLocationProvider,
-  ) : NSObject(), CLLocationManagerDelegateProtocol {
+  ) : NSObject(),
+    CLLocationManagerDelegateProtocol {
     override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
       provider.handleAuthorizationChange(manager)
     }
 
-    override fun locationManager(manager: CLLocationManager, didUpdateLocations: List<*>) {
+    override fun locationManager(
+      manager: CLLocationManager,
+      didUpdateLocations: List<*>,
+    ) {
       provider.handleUpdatedLocations(manager, didUpdateLocations)
     }
 
-    override fun locationManager(manager: CLLocationManager, didFailWithError: NSError) {
+    override fun locationManager(
+      manager: CLLocationManager,
+      didFailWithError: NSError,
+    ) {
       provider.handleLocationFailure(manager, didFailWithError)
     }
   }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun CLLocation.toGeoPoint(): GeoPoint = coordinate.useContents {
-  GeoPoint(latitude = latitude, longitude = longitude)
-}
+private fun CLLocation.toGeoPoint(): GeoPoint =
+  coordinate.useContents {
+    GeoPoint(latitude = latitude, longitude = longitude)
+  }
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun GeoPoint.toCoordinate() = CLLocationCoordinate2DMake(latitude, longitude)

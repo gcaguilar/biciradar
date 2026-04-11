@@ -1,12 +1,5 @@
 package com.gcaguilar.biciradar.mobileui
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +10,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,33 +25,39 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import org.jetbrains.compose.resources.stringResource
-import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.MarkerInfoWindowContent
 import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.rememberCameraPositionState
+import org.jetbrains.compose.resources.stringResource
 
-private fun stationMarkerHue(station: Station, highlighted: Boolean): Float {
-  val base = when {
-    station.bikesAvailable > 0 && station.slotsFree > 0 -> BitmapDescriptorFactory.HUE_GREEN
-    station.bikesAvailable == 0 && station.slotsFree == 0 -> BitmapDescriptorFactory.HUE_RED
-    else -> BitmapDescriptorFactory.HUE_ORANGE
-  }
+private fun stationMarkerHue(
+  station: Station,
+  highlighted: Boolean,
+): Float {
+  val base =
+    when {
+      station.bikesAvailable > 0 && station.slotsFree > 0 -> BitmapDescriptorFactory.HUE_GREEN
+      station.bikesAvailable == 0 && station.slotsFree == 0 -> BitmapDescriptorFactory.HUE_RED
+      else -> BitmapDescriptorFactory.HUE_ORANGE
+    }
   // Highlighted: shift slightly darker by moving hue toward a distinct anchor
   return if (highlighted) {
     when (base) {
-      BitmapDescriptorFactory.HUE_GREEN -> 130f  // darker green
-      BitmapDescriptorFactory.HUE_RED -> 355f    // deeper red
-      else -> 30f                                // darker orange
+      BitmapDescriptorFactory.HUE_GREEN -> 130f // darker green
+      BitmapDescriptorFactory.HUE_RED -> 355f // deeper red
+      else -> 30f // darker orange
     }
-  } else base
+  } else {
+    base
+  }
 }
 
 @Composable
@@ -73,9 +79,10 @@ internal actual fun PlatformStationMap(
     Surface(modifier = modifier) {
       Text(
         text = stringResource(Res.string.mapUnavailableGoogleApiKey),
-        modifier = Modifier
-          .fillMaxSize()
-          .wrapContentSize(Alignment.Center),
+        modifier =
+          Modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Center),
         style = MaterialTheme.typography.bodyMedium,
         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
       )
@@ -84,42 +91,47 @@ internal actual fun PlatformStationMap(
   }
   val cameraPositionState = rememberCameraPositionState()
   val isDarkTheme = LocalIsDarkTheme.current
-  val mapStyleOptions = remember(isDarkTheme) {
-    if (isDarkTheme) MapStyleOptions(DARK_MAP_STYLE_JSON) else null
-  }
-  val mapProperties = remember(userLocation != null, mapStyleOptions) {
-    MapProperties(
-      isMyLocationEnabled = userLocation != null,
-      mapStyleOptions = mapStyleOptions,
-    )
-  }
-  val mapUiSettings = remember {
-    MapUiSettings(
-      compassEnabled = false,
-      mapToolbarEnabled = false,
-      myLocationButtonEnabled = false,
-      zoomControlsEnabled = false,
-    )
-  }
+  val mapStyleOptions =
+    remember(isDarkTheme) {
+      if (isDarkTheme) MapStyleOptions(DARK_MAP_STYLE_JSON) else null
+    }
+  val mapProperties =
+    remember(userLocation != null, mapStyleOptions) {
+      MapProperties(
+        isMyLocationEnabled = userLocation != null,
+        mapStyleOptions = mapStyleOptions,
+      )
+    }
+  val mapUiSettings =
+    remember {
+      MapUiSettings(
+        compassEnabled = false,
+        mapToolbarEnabled = false,
+        myLocationButtonEnabled = false,
+        zoomControlsEnabled = false,
+      )
+    }
   var hasZoomed by remember { mutableStateOf(false) }
 
   LaunchedEffect(userLocation, stations) {
     if (hasZoomed) return@LaunchedEffect
     val focusPoint = userLocation ?: stations.firstOrNull()?.location ?: return@LaunchedEffect
-    cameraPositionState.position = CameraPosition.fromLatLngZoom(
-      LatLng(focusPoint.latitude, focusPoint.longitude),
-      if (userLocation != null) 15f else 13f,
-    )
+    cameraPositionState.position =
+      CameraPosition.fromLatLngZoom(
+        LatLng(focusPoint.latitude, focusPoint.longitude),
+        if (userLocation != null) 15f else 13f,
+      )
     hasZoomed = true
   }
 
   LaunchedEffect(recenterRequestToken) {
     if (recenterRequestToken == 0) return@LaunchedEffect
     val focusPoint = userLocation ?: stations.firstOrNull()?.location ?: return@LaunchedEffect
-    cameraPositionState.position = CameraPosition.fromLatLngZoom(
-      LatLng(focusPoint.latitude, focusPoint.longitude),
-      if (userLocation != null) 15f else 13f,
-    )
+    cameraPositionState.position =
+      CameraPosition.fromLatLngZoom(
+        LatLng(focusPoint.latitude, focusPoint.longitude),
+        if (userLocation != null) 15f else 13f,
+      )
   }
 
   GoogleMap(
@@ -127,19 +139,23 @@ internal actual fun PlatformStationMap(
     cameraPositionState = cameraPositionState,
     properties = mapProperties,
     uiSettings = mapUiSettings,
-    onMapClick = if (onMapClick != null) {
-      { latLng -> onMapClick(GeoPoint(latLng.latitude, latLng.longitude)) }
-    } else null,
+    onMapClick =
+      if (onMapClick != null) {
+        { latLng -> onMapClick(GeoPoint(latLng.latitude, latLng.longitude)) }
+      } else {
+        null
+      },
   ) {
     environmentalOverlay?.zones?.forEach { zone ->
-      val tone = when {
-        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 50 -> Color(0xFF2E7D32)
-        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 100 -> Color(0xFFEF6C00)
-        environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality -> Color(0xFFC62828)
-        environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 10 -> Color(0xFF2E7D32)
-        environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 30 -> Color(0xFFEF6C00)
-        else -> Color(0xFFC62828)
-      }
+      val tone =
+        when {
+          environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 50 -> Color(0xFF2E7D32)
+          environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality && zone.value <= 100 -> Color(0xFFEF6C00)
+          environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality -> Color(0xFFC62828)
+          environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 10 -> Color(0xFF2E7D32)
+          environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen && zone.value <= 30 -> Color(0xFFEF6C00)
+          else -> Color(0xFFC62828)
+        }
       Circle(
         center = LatLng(zone.center.latitude, zone.center.longitude),
         radius = 450.0,
@@ -151,25 +167,28 @@ internal actual fun PlatformStationMap(
 
     stations.forEach { station ->
       key(station.id) {
-        val markerState = remember(station.location.latitude, station.location.longitude) {
-          MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
-        }
+        val markerState =
+          remember(station.location.latitude, station.location.longitude) {
+            MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
+          }
         MarkerInfoWindowContent(
           state = markerState,
           title = station.name,
           snippet = stationSnippet(station),
-          icon = BitmapDescriptorFactory.defaultMarker(
-            stationMarkerHue(station, station.id == highlightedStationId),
-          ),
+          icon =
+            BitmapDescriptorFactory.defaultMarker(
+              stationMarkerHue(station, station.id == highlightedStationId),
+            ),
           onClick = {
             onStationSelected(station)
             false
           },
         ) {
           Column(
-            modifier = Modifier
-              .background(LocalBiziColors.current.surface, RoundedCornerShape(16.dp))
-              .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier =
+              Modifier
+                .background(LocalBiziColors.current.surface, RoundedCornerShape(16.dp))
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
           ) {
             Text(
@@ -189,9 +208,10 @@ internal actual fun PlatformStationMap(
     if (pinLocation != null) {
       key("destination-pin") {
         MarkerInfoWindowContent(
-          state = remember(pinLocation.latitude, pinLocation.longitude) {
-            MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
-          },
+          state =
+            remember(pinLocation.latitude, pinLocation.longitude) {
+              MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
+            },
           title = pinTitle,
           icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
         ) {}

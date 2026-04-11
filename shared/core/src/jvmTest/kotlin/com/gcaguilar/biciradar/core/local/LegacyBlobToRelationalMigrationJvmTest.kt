@@ -1,11 +1,11 @@
 package com.gcaguilar.biciradar.core.local
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlinx.serialization.json.Json
 
 class LegacyBlobToRelationalMigrationJvmTest {
   @Test
@@ -14,28 +14,28 @@ class LegacyBlobToRelationalMigrationJvmTest {
     driver.execute(
       null,
       """
-        CREATE TABLE IF NOT EXISTS stations (
-          id TEXT PRIMARY KEY NOT NULL,
-          name TEXT NOT NULL,
-          address TEXT,
-          latitude REAL NOT NULL,
-          longitude REAL NOT NULL,
-          bikes_available INTEGER NOT NULL,
-          slots_free INTEGER NOT NULL,
-          ebikes_available INTEGER NOT NULL DEFAULT 0,
-          regular_bikes_available INTEGER NOT NULL DEFAULT 0,
-          updated_at INTEGER NOT NULL
-        )
+      CREATE TABLE IF NOT EXISTS stations (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        address TEXT,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        bikes_available INTEGER NOT NULL,
+        slots_free INTEGER NOT NULL,
+        ebikes_available INTEGER NOT NULL DEFAULT 0,
+        regular_bikes_available INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL
+      )
       """.trimIndent(),
       0,
     )
     driver.execute(
       null,
       """
-        CREATE TABLE IF NOT EXISTS cache_metadata (
-          city_id TEXT PRIMARY KEY NOT NULL,
-          last_updated INTEGER NOT NULL
-        )
+      CREATE TABLE IF NOT EXISTS cache_metadata (
+        city_id TEXT PRIMARY KEY NOT NULL,
+        last_updated INTEGER NOT NULL
+      )
       """.trimIndent(),
       0,
     )
@@ -53,28 +53,28 @@ class LegacyBlobToRelationalMigrationJvmTest {
     driver.execute(
       null,
       """
-        CREATE TABLE IF NOT EXISTS stations (
-          id TEXT PRIMARY KEY NOT NULL,
-          name TEXT NOT NULL,
-          address TEXT,
-          latitude REAL NOT NULL,
-          longitude REAL NOT NULL,
-          bikes_available INTEGER NOT NULL,
-          slots_free INTEGER NOT NULL,
-          ebikes_available INTEGER NOT NULL DEFAULT 0,
-          regular_bikes_available INTEGER NOT NULL DEFAULT 0,
-          updated_at INTEGER NOT NULL
-        )
+      CREATE TABLE IF NOT EXISTS stations (
+        id TEXT PRIMARY KEY NOT NULL,
+        name TEXT NOT NULL,
+        address TEXT,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        bikes_available INTEGER NOT NULL,
+        slots_free INTEGER NOT NULL,
+        ebikes_available INTEGER NOT NULL DEFAULT 0,
+        regular_bikes_available INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL
+      )
       """.trimIndent(),
       0,
     )
     driver.execute(
       null,
       """
-        CREATE TABLE IF NOT EXISTS cache_metadata (
-          city_id TEXT PRIMARY KEY NOT NULL,
-          last_updated INTEGER NOT NULL
-        )
+      CREATE TABLE IF NOT EXISTS cache_metadata (
+        city_id TEXT PRIMARY KEY NOT NULL,
+        last_updated INTEGER NOT NULL
+      )
       """.trimIndent(),
       0,
     )
@@ -83,18 +83,21 @@ class LegacyBlobToRelationalMigrationJvmTest {
 
     LegacyBlobToRelationalMigration.ensure(driver, database, Json)
 
-    val actualTables = driver.executeQuery(
-      null,
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
-      { cursor ->
-        val tables = mutableListOf<String>()
-        while (cursor.next().value) {
-          cursor.getString(0)?.let(tables::add)
-        }
-        app.cash.sqldelight.db.QueryResult.Value(tables)
-      },
-      0,
-    ).value
+    val actualTables =
+      driver
+        .executeQuery(
+          null,
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+          { cursor ->
+            val tables = mutableListOf<String>()
+            while (cursor.next().value) {
+              cursor.getString(0)?.let(tables::add)
+            }
+            app.cash.sqldelight.db.QueryResult
+              .Value(tables)
+          },
+          0,
+        ).value
 
     assertEquals(
       listOf(

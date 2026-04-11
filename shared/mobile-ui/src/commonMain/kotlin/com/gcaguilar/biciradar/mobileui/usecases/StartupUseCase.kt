@@ -5,7 +5,6 @@ import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -25,7 +24,6 @@ internal class StartupUseCase(
   private val favoritesRepository: FavoritesRepository,
   private val stationsRepository: StationsRepository,
 ) {
-
   // Expose repository states as flows for observation
   val stationsState: StateFlow<StationsState> = stationsRepository.state
   val favoriteIds: StateFlow<Set<String>> = favoritesRepository.favoriteIds
@@ -53,24 +51,19 @@ internal class StartupUseCase(
   /**
    * Checks if onboarding is completed based on settings.
    */
-  fun isOnboardingCompleted(): Boolean {
-    return settingsRepository.hasCompletedOnboarding.value ||
+  fun isOnboardingCompleted(): Boolean =
+    settingsRepository.hasCompletedOnboarding.value ||
       settingsRepository.onboardingChecklist.value.isCompleted()
-  }
 
   /**
    * Gets the current onboarding checklist state.
    */
-  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot {
-    return settingsRepository.onboardingChecklist.value
-  }
+  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot = settingsRepository.onboardingChecklist.value
 
   /**
    * Updates the onboarding checklist with the given transform.
    */
-  suspend fun updateOnboardingChecklist(
-    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
-  ) {
+  suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
     settingsRepository.updateOnboardingChecklist(transform)
   }
 

@@ -28,8 +28,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +44,13 @@ import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
-import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
 import org.jetbrains.compose.resources.stringResource
 
-private fun tripDestinationSecondaryText(name: String, address: String): String? {
+private fun tripDestinationSecondaryText(
+  name: String,
+  address: String,
+): String? {
   val trimmedAddress = address.trim()
   if (trimmedAddress.isBlank()) return null
   if (trimmedAddress.equals(name.trim(), ignoreCase = true)) return null
@@ -59,20 +60,22 @@ private fun tripDestinationSecondaryText(name: String, address: String): String?
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TripDestinationSearchScreen(
-  viewModel: TripViewModel,
+  state: TripUiState,
   mobilePlatform: MobileUiPlatform,
   paddingValues: PaddingValues,
   onBack: () -> Unit,
+  onQueryChange: (String) -> Unit,
+  onSuggestionSelected: (com.gcaguilar.biciradar.core.geo.GeoResult) -> Unit,
 ) {
   val colors = LocalBiziColors.current
-  val uiState by viewModel.uiState.collectAsState()
 
   PlatformBackHandler(enabled = true, onBack = onBack)
 
   Scaffold(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues),
     topBar = {
       TopAppBar(
         title = {
@@ -95,16 +98,18 @@ internal fun TripDestinationSearchScreen(
     containerColor = pageBackgroundColor(mobilePlatform),
   ) { innerPadding ->
     Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(pageBackgroundColor(mobilePlatform)),
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .background(pageBackgroundColor(mobilePlatform)),
       contentAlignment = Alignment.TopCenter,
     ) {
       Column(
-        modifier = Modifier
-          .responsivePageWidth()
-          .padding(innerPadding)
-          .padding(16.dp),
+        modifier =
+          Modifier
+            .responsivePageWidth()
+            .padding(innerPadding)
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
       ) {
         Card(
@@ -117,13 +122,13 @@ internal fun TripDestinationSearchScreen(
           ) {
             StationSearchField(
               mobilePlatform = mobilePlatform,
-              value = uiState.query,
-              onValueChange = viewModel::onQueryChange,
+              value = state.query,
+              onValueChange = onQueryChange,
               label = stringResource(Res.string.destinationPlaceholder),
             )
 
             when {
-              uiState.suggestions.isNotEmpty() -> {
+              state.suggestions.isNotEmpty() -> {
                 Text(
                   text = stringResource(Res.string.suggestions),
                   style = MaterialTheme.typography.labelMedium,
@@ -133,17 +138,18 @@ internal fun TripDestinationSearchScreen(
                   modifier = Modifier.fillMaxWidth(),
                   verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                  uiState.suggestions.take(8).forEach { prediction ->
+                  state.suggestions.take(8).forEach { prediction ->
                     Surface(
                       shape = RoundedCornerShape(14.dp),
                       color = colors.background,
                       border = BorderStroke(1.dp, colors.panel),
-                      modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                          viewModel.onSuggestionSelected(prediction)
-                          onBack()
-                        },
+                      modifier =
+                        Modifier
+                          .fillMaxWidth()
+                          .clickable {
+                            onSuggestionSelected(prediction)
+                            onBack()
+                          },
                     ) {
                       Row(
                         modifier = Modifier.padding(12.dp),
@@ -186,7 +192,7 @@ internal fun TripDestinationSearchScreen(
                 }
               }
 
-              uiState.isLoadingSuggestions -> {
+              state.isLoadingSuggestions -> {
                 Row(
                   modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.Center,
@@ -199,9 +205,9 @@ internal fun TripDestinationSearchScreen(
                 }
               }
 
-              uiState.suggestionsError != null -> {
+              state.suggestionsError != null -> {
                 Text(
-                  text = uiState.suggestionsError ?: "",
+                  text = state.suggestionsError ?: "",
                   style = MaterialTheme.typography.bodySmall,
                   color = colors.red,
                 )

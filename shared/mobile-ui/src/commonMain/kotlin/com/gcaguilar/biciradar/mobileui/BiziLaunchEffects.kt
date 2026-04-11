@@ -14,9 +14,10 @@ private fun rememberLaunchRouter(
   navController: NavHostController,
   appState: AppState,
   launchCoordinator: LaunchCoordinator,
-): LaunchRouter = remember(navController, appState, launchCoordinator) {
-  LaunchRouter(navController, appState, launchCoordinator)
-}
+): LaunchRouter =
+  remember(navController, appState, launchCoordinator) {
+    LaunchRouter(navController, appState, launchCoordinator)
+  }
 
 @Composable
 internal fun BiziLaunchEffects(
@@ -47,11 +48,12 @@ internal fun BiziLaunchEffects(
   LaunchedEffect(startupLaunchReady, appState.pendingLaunchRequest, stationsState.stations, searchRadiusMeters) {
     if (!startupLaunchReady) return@LaunchedEffect
     val request = appState.pendingLaunchRequest ?: return@LaunchedEffect
-    val resolution = launchCoordinator.resolveMobileLaunch(
-      request = request,
-      stations = stationsState.stations,
-      searchRadiusMeters = searchRadiusMeters,
-    ) ?: return@LaunchedEffect
+    val resolution =
+      launchCoordinator.resolveMobileLaunch(
+        request = request,
+        stations = stationsState.stations,
+        searchRadiusMeters = searchRadiusMeters,
+      ) ?: return@LaunchedEffect
     launchRouter.applyResolution(resolution)
     appState.pendingLaunchRequest = null
   }

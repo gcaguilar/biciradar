@@ -23,12 +23,12 @@ import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.NearbyStationSelection
+import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.mobileui.BiziMobileAppContent
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModelFactory
@@ -63,10 +63,8 @@ internal fun BiziNavHost(
   onRefreshStations: () -> Unit,
   nearestSelection: NearbyStationSelection,
   userLocation: GeoPoint?,
-  searchQuery: String,
   searchRadiusMeters: Int,
   isMapReady: Boolean,
-  onSearchQueryChange: (String) -> Unit,
   // Map interactions (still needed by MapScreen)
   onRetry: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
@@ -78,6 +76,8 @@ internal fun BiziNavHost(
   platformBindings: PlatformBindings,
   initialAssistantAction: AssistantAction?,
   onInitialActionConsumed: () -> Unit,
+  initialMapSearchQuery: String?,
+  onInitialMapSearchQueryConsumed: () -> Unit,
   onOpenOnboarding: () -> Unit,
   onShowChangelogManual: () -> Unit,
   paddingValues: PaddingValues,
@@ -89,10 +89,11 @@ internal fun BiziNavHost(
     modifier = modifier.padding(paddingValues),
   ) {
     composable<Screen.Nearby>(
-      deepLinks = listOf(
-        navDeepLink<Screen.Nearby>(basePath = "${DeepLinks.BASE_URI}nearby"),
-        navDeepLink<Screen.Nearby>(basePath = DeepLinks.HOME_URI),
-      ),
+      deepLinks =
+        listOf(
+          navDeepLink<Screen.Nearby>(basePath = "${DeepLinks.BASE_URI}nearby"),
+          navDeepLink<Screen.Nearby>(basePath = DeepLinks.HOME_URI),
+        ),
     ) {
       val nearbyViewModel = viewModel(key = "nearby") { nearbyViewModelFactory.create() }
       DisposableEffect(nearbyViewModel) {
@@ -102,9 +103,12 @@ internal fun BiziNavHost(
       BiziMobileAppContent.NearbyScreenContent(
         viewModel = nearbyViewModel,
         mobilePlatform = mobilePlatform,
-        onStationSelected = remember(navController) { { station ->
-          navController.navigate(Screen.StationDetail(station.id))
-        } },
+        onStationSelected =
+          remember(navController) {
+            { station ->
+              navController.navigate(Screen.StationDetail(station.id))
+            }
+          },
         paddingValues = PaddingValues(),
       )
     }
@@ -113,25 +117,22 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink<Screen.Map>(basePath = DeepLinks.MAP_URI)),
     ) {
       val mapEnvironmentalViewModel = viewModel(key = "map-environment") { mapEnvironmentalViewModelFactory.create() }
+      LaunchedEffect(initialMapSearchQuery) {
+        val query = initialMapSearchQuery ?: return@LaunchedEffect
+        mapEnvironmentalViewModel.onSearchQueryChange(query)
+        onInitialMapSearchQueryConsumed()
+      }
       BiziMobileAppContent.MapScreenContent(
         viewModel = mapEnvironmentalViewModel,
         mobilePlatform = mobilePlatform,
-        stations = stations,
-        favoriteIds = favoriteIds,
-        loading = loading,
-        errorMessage = errorMessage,
-        dataFreshness = stationsFreshness,
-        lastUpdatedEpoch = stationsLastUpdatedEpoch,
         onRefreshStations = onRefreshStations,
-        nearestSelection = nearestSelection,
-        searchQuery = searchQuery,
-        searchRadiusMeters = searchRadiusMeters,
-        userLocation = userLocation,
         isMapReady = isMapReady,
-        onSearchQueryChange = onSearchQueryChange,
-        onStationSelected = remember(navController) { { station ->
-          navController.navigate(Screen.StationDetail(station.id))
-        } },
+        onStationSelected =
+          remember(navController) {
+            { station ->
+              navController.navigate(Screen.StationDetail(station.id))
+            }
+          },
         onRetry = onRetry,
         onFavoriteToggle = onFavoriteToggle,
         onQuickRoute = onQuickRoute,
@@ -147,15 +148,20 @@ internal fun BiziNavHost(
         viewModel = favoritesViewModel,
         mobilePlatform = mobilePlatform,
         onOpenAssistant = onOpenAssistant,
-        onOpenSavedPlaceAlerts = remember(navController) {
-          { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
-        },
-        onOpenSearch = remember(navController) {
-          { navController.navigate(Screen.FavoritesSearch) { launchSingleTop = true } }
-        },
-        onStationSelected = remember(navController) { { station ->
-          navController.navigate(Screen.StationDetail(station.id))
-        } },
+        onOpenSavedPlaceAlerts =
+          remember(navController) {
+            { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
+          },
+        onOpenSearch =
+          remember(navController) {
+            { navController.navigate(Screen.FavoritesSearch) { launchSingleTop = true } }
+          },
+        onStationSelected =
+          remember(navController) {
+            { station ->
+              navController.navigate(Screen.StationDetail(station.id))
+            }
+          },
         dataFreshness = stationsFreshness,
         lastUpdatedEpoch = stationsLastUpdatedEpoch,
         stationsLoading = loading,
@@ -165,21 +171,26 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.FavoritesSearch> { backStackEntry ->
-      val favoritesStoreOwner = remember(backStackEntry, navController) {
-        val favoritesRoute = checkNotNull(Screen.Favorites::class.qualifiedName)
-        runCatching { navController.getBackStackEntry(favoritesRoute) }.getOrDefault(backStackEntry)
-      }
-      val favoritesViewModel = viewModel(
-        viewModelStoreOwner = favoritesStoreOwner,
-        key = "favorites",
-      ) { favoritesViewModelFactory.create() }
+      val favoritesStoreOwner =
+        remember(backStackEntry, navController) {
+          val favoritesRoute = checkNotNull(Screen.Favorites::class.qualifiedName)
+          runCatching { navController.getBackStackEntry(favoritesRoute) }.getOrDefault(backStackEntry)
+        }
+      val favoritesViewModel =
+        viewModel(
+          viewModelStoreOwner = favoritesStoreOwner,
+          key = "favorites",
+        ) { favoritesViewModelFactory.create() }
       BiziMobileAppContent.FavoritesSearchScreenContent(
         viewModel = favoritesViewModel,
         mobilePlatform = mobilePlatform,
         onBack = remember(navController) { { navController.popBackStack() } },
-        onStationSelected = remember(navController) { { station ->
-          navController.navigate(Screen.StationDetail(station.id))
-        } },
+        onStationSelected =
+          remember(navController) {
+            { station ->
+              navController.navigate(Screen.StationDetail(station.id))
+            }
+          },
       )
     }
 
@@ -200,35 +211,33 @@ internal fun BiziNavHost(
         mobilePlatform = mobilePlatform,
         localNotifier = localNotifier,
         routeLauncher = routeLauncher,
-        userLocation = userLocation,
-        stations = stations,
-        isMapReady = isMapReady,
-        dataFreshness = stationsFreshness,
-        lastUpdatedEpoch = stationsLastUpdatedEpoch,
-        stationsLoading = loading,
         onRefreshStations = onRefreshStations,
-        onOpenDestinationPicker = remember(navController) {
-          {
-            navController.navigate(Screen.TripDestinationSearch)
-          }
-        },
-        onOpenStationPicker = remember(navController) {
-          {
-            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station.name))
-          }
-        },
+        onOpenDestinationPicker =
+          remember(navController) {
+            {
+              navController.navigate(Screen.TripDestinationSearch)
+            }
+          },
+        onOpenStationPicker =
+          remember(navController) {
+            {
+              navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station.name))
+            }
+          },
         paddingValues = PaddingValues(),
       )
     }
 
     composable<Screen.TripDestinationSearch> { backStackEntry ->
-      val tripStoreOwner = remember(backStackEntry, navController) {
-        navController.previousBackStackEntry ?: backStackEntry
-      }
-      val viewModel = viewModel(
-        viewModelStoreOwner = tripStoreOwner,
-        key = "trip",
-      ) { tripViewModelFactory.create() }
+      val tripStoreOwner =
+        remember(backStackEntry, navController) {
+          navController.previousBackStackEntry ?: backStackEntry
+        }
+      val viewModel =
+        viewModel(
+          viewModelStoreOwner = tripStoreOwner,
+          key = "trip",
+        ) { tripViewModelFactory.create() }
       BiziMobileAppContent.TripDestinationSearchScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
@@ -238,19 +247,19 @@ internal fun BiziNavHost(
     }
 
     composable<Screen.TripMapPicker> { backStackEntry ->
-      val tripStoreOwner = remember(backStackEntry, navController) {
-        navController.previousBackStackEntry ?: backStackEntry
-      }
-      val viewModel = viewModel(
-        viewModelStoreOwner = tripStoreOwner,
-        key = "trip",
-      ) { tripViewModelFactory.create() }
+      val tripStoreOwner =
+        remember(backStackEntry, navController) {
+          navController.previousBackStackEntry ?: backStackEntry
+        }
+      val viewModel =
+        viewModel(
+          viewModelStoreOwner = tripStoreOwner,
+          key = "trip",
+        ) { tripViewModelFactory.create() }
       BiziMobileAppContent.TripMapPickerScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
         pickerMode = backStackEntry.decodeTripMapPickerMode(),
-        userLocation = userLocation,
-        stations = stations,
         isMapReady = isMapReady,
         paddingValues = PaddingValues(),
         onBack = remember(navController) { { navController.popBackStack() } },
@@ -266,9 +275,10 @@ internal fun BiziNavHost(
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
         onOpenOnboarding = onOpenOnboarding,
-        onOpenShortcuts = remember(navController) {
-          { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
-        },
+        onOpenShortcuts =
+          remember(navController) {
+            { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
+          },
         platformBindings = platformBindings,
         onShowChangelogManual = onShowChangelogManual,
       )
@@ -296,13 +306,14 @@ internal fun BiziNavHost(
         paddingValues = PaddingValues(),
         initialAction = initialAssistantAction,
         onInitialActionConsumed = onInitialActionConsumed,
-        onBack = remember(navController) {
-          {
-            if (!navController.popBackStack()) {
-              navController.navigate(Screen.Profile) { launchSingleTop = true }
+        onBack =
+          remember(navController) {
+            {
+              if (!navController.popBackStack()) {
+                navController.navigate(Screen.Profile) { launchSingleTop = true }
+              }
             }
-          }
-        },
+          },
       )
     }
 
@@ -310,9 +321,10 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink<Screen.StationDetail>(basePath = "${DeepLinks.BASE_URI}station")),
     ) { backStackEntry ->
       val route = backStackEntry.toRoute<Screen.StationDetail>()
-      val viewModel = viewModel(key = "station-detail-${route.stationId}") {
-        stationDetailViewModelFactory.create(route.stationId)
-      }
+      val viewModel =
+        viewModel(key = "station-detail-${route.stationId}") {
+          stationDetailViewModelFactory.create(route.stationId)
+        }
       val station = stations.firstOrNull { it.id == route.stationId }
       if (station == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -323,12 +335,7 @@ internal fun BiziNavHost(
       BiziMobileAppContent.StationDetailScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
-        station = station,
-        userLocation = userLocation,
         isMapReady = isMapReady,
-        dataFreshness = stationsFreshness,
-        lastUpdatedEpoch = stationsLastUpdatedEpoch,
-        stationsLoading = loading,
         onRefreshStations = onRefreshStations,
         onBack = remember(navController) { { navController.popBackStack() } },
       )
@@ -348,8 +355,7 @@ private fun NavBackStackEntry.decodeTripMapPickerMode(): TripMapPickerMode =
     .mapCatching { rawMode ->
       TripMapPickerMode.entries.firstOrNull { it.name == rawMode }
         ?: error("Unknown trip map picker mode: $rawMode")
-    }
-    .getOrElse { error ->
+    }.getOrElse { error ->
       println("[BiziNavHost] Falling back to station picker mode after decode failure: ${error.message}")
       TripMapPickerMode.Station
     }

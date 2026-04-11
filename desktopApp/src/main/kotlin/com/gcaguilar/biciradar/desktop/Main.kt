@@ -9,18 +9,19 @@ import androidx.compose.ui.window.rememberWindowState
 import com.gcaguilar.biciradar.core.platform.DesktopPlatformBindings
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
 
-fun main() = application {
-  val windowState = rememberWindowState(width = 1360.dp, height = 920.dp)
-  val platformBindings = DesktopPlatformBindings()
+fun main() =
+  application {
+    val windowState = rememberWindowState(width = 1360.dp, height = 920.dp)
+    val platformBindings = DesktopPlatformBindings()
 
-  Window(
-    onCloseRequest = ::exitApplication,
-    title = "BiciRadar",
-    state = windowState,
-  ) {
-    BiziMobileApp(
-      platformBindings = platformBindings,
-      modifier = Modifier.fillMaxSize(),
-    )
+    Window(
+      onCloseRequest = ::exitApplication,
+      title = "BiciRadar",
+      state = windowState,
+    ) {
+      BiziMobileApp(
+        platformBindings = platformBindings,
+        modifier = Modifier.fillMaxSize(),
+      )
+    }
   }
-}

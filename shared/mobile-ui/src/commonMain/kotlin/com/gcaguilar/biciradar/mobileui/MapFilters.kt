@@ -6,7 +6,9 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
 
-internal enum class MapFilter(val labelKey: StringResource) {
+internal enum class MapFilter(
+  val labelKey: StringResource,
+) {
   BIKES_AND_SLOTS(Res.string.mapFilterBikesAndSlots),
   ONLY_BIKES(Res.string.mapFilterOnlyBikes),
   ONLY_SLOTS(Res.string.mapFilterOnlySlots),
@@ -16,27 +18,30 @@ internal enum class MapFilter(val labelKey: StringResource) {
   POLLEN(Res.string.mapFilterPollen),
 }
 
-internal val MapFilterSetSaver: Saver<Set<MapFilter>, Any> = listSaver(
-  save = { filters -> filters.map(MapFilter::name) },
-  restore = { names ->
-    names
-      .mapNotNull { name -> MapFilter.entries.firstOrNull { it.name == name } }
-      .toSet()
-  },
-)
+internal val MapFilterSetSaver: Saver<Set<MapFilter>, Any> =
+  listSaver(
+    save = { filters -> filters.map(MapFilter::name) },
+    restore = { names ->
+      names
+        .mapNotNull { name -> MapFilter.entries.firstOrNull { it.name == name } }
+        .toSet()
+    },
+  )
 
-private val environmentalMapFilters = setOf(
-  MapFilter.AIR_QUALITY,
-  MapFilter.POLLEN,
-)
+private val environmentalMapFilters =
+  setOf(
+    MapFilter.AIR_QUALITY,
+    MapFilter.POLLEN,
+  )
 
-private val stationAvailabilityMapFilters = setOf(
-  MapFilter.BIKES_AND_SLOTS,
-  MapFilter.ONLY_BIKES,
-  MapFilter.ONLY_SLOTS,
-  MapFilter.ONLY_EBIKES,
-  MapFilter.ONLY_REGULAR_BIKES,
-)
+private val stationAvailabilityMapFilters =
+  setOf(
+    MapFilter.BIKES_AND_SLOTS,
+    MapFilter.ONLY_BIKES,
+    MapFilter.ONLY_SLOTS,
+    MapFilter.ONLY_EBIKES,
+    MapFilter.ONLY_REGULAR_BIKES,
+  )
 
 internal fun isEnvironmentalMapFilter(filter: MapFilter): Boolean = filter in environmentalMapFilters
 
@@ -51,11 +56,12 @@ internal fun toggleMapFilterSelection(
     return activeFilters - toggledFilter
   }
 
-  val filtersToReplace = if (isEnvironmentalMapFilter(toggledFilter)) {
-    environmentalMapFilters
-  } else {
-    stationAvailabilityMapFilters
-  }
+  val filtersToReplace =
+    if (isEnvironmentalMapFilter(toggledFilter)) {
+      environmentalMapFilters
+    } else {
+      stationAvailabilityMapFilters
+    }
 
   return activeFilters
     .filterNotTo(linkedSetOf()) { it in filtersToReplace }
@@ -68,19 +74,21 @@ internal fun clearEnvironmentalMapFilters(activeFilters: Set<MapFilter>): Set<Ma
 internal fun availableMapFilters(stations: List<Station>): Set<MapFilter> {
   if (stations.isEmpty()) return MapFilter.entries.toSet()
 
-  val availableAvailabilityFilters = stationAvailabilityMapFilters.filterTo(linkedSetOf()) { filter ->
-    stations.any { station ->
-      when (filter) {
-        MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
-        MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
-        MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
-        MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
-        MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
-        MapFilter.AIR_QUALITY,
-        MapFilter.POLLEN -> false
+  val availableAvailabilityFilters =
+    stationAvailabilityMapFilters.filterTo(linkedSetOf()) { filter ->
+      stations.any { station ->
+        when (filter) {
+          MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
+          MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
+          MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
+          MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
+          MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
+          MapFilter.AIR_QUALITY,
+          MapFilter.POLLEN,
+          -> false
+        }
       }
     }
-  }
 
   return linkedSetOf<MapFilter>().apply {
     addAll(availableAvailabilityFilters)
@@ -109,7 +117,8 @@ internal fun applyMapFilters(
         MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
         MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
         MapFilter.AIR_QUALITY,
-        MapFilter.POLLEN -> true
+        MapFilter.POLLEN,
+        -> true
       }
     }
   }

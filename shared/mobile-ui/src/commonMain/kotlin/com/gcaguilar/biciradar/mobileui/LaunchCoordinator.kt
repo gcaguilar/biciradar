@@ -39,85 +39,91 @@ internal class LaunchCoordinator(
     request: MobileLaunchRequest,
     stations: List<Station>,
     searchRadiusMeters: Int,
-  ): LaunchResolution? = when (request) {
-    MobileLaunchRequest.Home -> LaunchResolution(screen = Screen.Nearby)
-    MobileLaunchRequest.Map -> LaunchResolution(screen = Screen.Map)
-    MobileLaunchRequest.Favorites -> LaunchResolution(screen = Screen.Favorites)
-    MobileLaunchRequest.SavedPlaceAlerts -> LaunchResolution(screen = Screen.SavedPlaceAlerts)
-    MobileLaunchRequest.NearestStation -> {
-      val station = selectNearbyStation(stations, searchRadiusMeters).highlightedStation ?: return null
-      LaunchResolution(screen = Screen.StationDetail(station.id))
-    }
-    MobileLaunchRequest.NearestStationWithBikes -> {
-      val station = selectNearbyStationWithBikes(stations, searchRadiusMeters).highlightedStation ?: return null
-      LaunchResolution(screen = Screen.StationDetail(station.id))
-    }
-    MobileLaunchRequest.NearestStationWithSlots -> {
-      val station = selectNearbyStationWithSlots(stations, searchRadiusMeters).highlightedStation ?: return null
-      LaunchResolution(screen = Screen.StationDetail(station.id))
-    }
-    MobileLaunchRequest.OpenAssistant -> LaunchResolution(screen = Screen.Shortcuts)
-    MobileLaunchRequest.StationStatus -> {
-      val station = stations.firstOrNull() ?: return null
-      LaunchResolution(
-        screen = Screen.Shortcuts,
-        assistantAction = AssistantAction.StationStatus(station.id),
-      )
-    }
-    is MobileLaunchRequest.MonitorStation -> {
-      val station = stationsRepository.stationById(request.stationId)
-        ?: stations.firstOrNull { it.id == request.stationId }
-        ?: return null
-      val notificationsGranted = localNotifier.requestPermission()
-      surfaceSnapshotRepository.refreshSnapshot()
-      if (notificationsGranted) {
-        surfaceMonitoringRepository.startMonitoring(
-          stationId = station.id,
-          durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-          kind = SurfaceMonitoringKind.Docks,
+  ): LaunchResolution? =
+    when (request) {
+      MobileLaunchRequest.Home -> LaunchResolution(screen = Screen.Nearby)
+      MobileLaunchRequest.Map -> LaunchResolution(screen = Screen.Map)
+      MobileLaunchRequest.Favorites -> LaunchResolution(screen = Screen.Favorites)
+      MobileLaunchRequest.SavedPlaceAlerts -> LaunchResolution(screen = Screen.SavedPlaceAlerts)
+      MobileLaunchRequest.NearestStation -> {
+        val station = selectNearbyStation(stations, searchRadiusMeters).highlightedStation ?: return null
+        LaunchResolution(screen = Screen.StationDetail(station.id))
+      }
+      MobileLaunchRequest.NearestStationWithBikes -> {
+        val station = selectNearbyStationWithBikes(stations, searchRadiusMeters).highlightedStation ?: return null
+        LaunchResolution(screen = Screen.StationDetail(station.id))
+      }
+      MobileLaunchRequest.NearestStationWithSlots -> {
+        val station = selectNearbyStationWithSlots(stations, searchRadiusMeters).highlightedStation ?: return null
+        LaunchResolution(screen = Screen.StationDetail(station.id))
+      }
+      MobileLaunchRequest.OpenAssistant -> LaunchResolution(screen = Screen.Shortcuts)
+      MobileLaunchRequest.StationStatus -> {
+        val station = stations.firstOrNull() ?: return null
+        LaunchResolution(
+          screen = Screen.Shortcuts,
+          assistantAction = AssistantAction.StationStatus(station.id),
         )
       }
-      LaunchResolution(screen = Screen.StationDetail(station.id))
+      is MobileLaunchRequest.MonitorStation -> {
+        val station =
+          stationsRepository.stationById(request.stationId)
+            ?: stations.firstOrNull { it.id == request.stationId }
+            ?: return null
+        val notificationsGranted = localNotifier.requestPermission()
+        surfaceSnapshotRepository.refreshSnapshot()
+        if (notificationsGranted) {
+          surfaceMonitoringRepository.startMonitoring(
+            stationId = station.id,
+            durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+            kind = SurfaceMonitoringKind.Docks,
+          )
+        }
+        LaunchResolution(screen = Screen.StationDetail(station.id))
+      }
+      is MobileLaunchRequest.SelectCity -> {
+        val city = City.fromId(request.cityId) ?: return null
+        changeCityUseCase.execute(city = city)
+        LaunchResolution(screen = Screen.Nearby)
+      }
+      is MobileLaunchRequest.RouteToStation -> {
+        val station =
+          request.stationId?.let(stationsRepository::stationById)
+            ?: stations.firstOrNull()
+            ?: return null
+        routeLauncher.launch(station)
+        LaunchResolution()
+      }
+      is MobileLaunchRequest.ShowStation -> {
+        if (stationsRepository.stationById(request.stationId) == null) return null
+        LaunchResolution(screen = Screen.StationDetail(request.stationId))
+      }
     }
-    is MobileLaunchRequest.SelectCity -> {
-      val city = City.fromId(request.cityId) ?: return null
-      changeCityUseCase.execute(city = city)
-      LaunchResolution(screen = Screen.Nearby)
-    }
-    is MobileLaunchRequest.RouteToStation -> {
-      val station = request.stationId?.let(stationsRepository::stationById)
-        ?: stations.firstOrNull()
-        ?: return null
-      routeLauncher.launch(station)
-      LaunchResolution()
-    }
-    is MobileLaunchRequest.ShowStation -> {
-      if (stationsRepository.stationById(request.stationId) == null) return null
-      LaunchResolution(screen = Screen.StationDetail(request.stationId))
-    }
-  }
 
   fun resolveAssistantLaunch(
     request: AssistantLaunchRequest,
     stations: List<Station>,
   ): LaunchResolution {
-    val station = resolveLaunchStation(
-      stations = stations,
-      stationId = when (request) {
-        is AssistantLaunchRequest.RouteToStation -> request.stationId
-        is AssistantLaunchRequest.SearchStation -> null
-        is AssistantLaunchRequest.StationBikeCount -> request.stationId
-        is AssistantLaunchRequest.StationSlotCount -> request.stationId
-        is AssistantLaunchRequest.StationStatus -> request.stationId
-      },
-      stationQuery = when (request) {
-        is AssistantLaunchRequest.RouteToStation -> request.stationQuery
-        is AssistantLaunchRequest.SearchStation -> request.stationQuery
-        is AssistantLaunchRequest.StationBikeCount -> request.stationQuery
-        is AssistantLaunchRequest.StationSlotCount -> request.stationQuery
-        is AssistantLaunchRequest.StationStatus -> request.stationQuery
-      },
-    )
+    val station =
+      resolveLaunchStation(
+        stations = stations,
+        stationId =
+          when (request) {
+            is AssistantLaunchRequest.RouteToStation -> request.stationId
+            is AssistantLaunchRequest.SearchStation -> null
+            is AssistantLaunchRequest.StationBikeCount -> request.stationId
+            is AssistantLaunchRequest.StationSlotCount -> request.stationId
+            is AssistantLaunchRequest.StationStatus -> request.stationId
+          },
+        stationQuery =
+          when (request) {
+            is AssistantLaunchRequest.RouteToStation -> request.stationQuery
+            is AssistantLaunchRequest.SearchStation -> request.stationQuery
+            is AssistantLaunchRequest.StationBikeCount -> request.stationQuery
+            is AssistantLaunchRequest.StationSlotCount -> request.stationQuery
+            is AssistantLaunchRequest.StationStatus -> request.stationQuery
+          },
+      )
 
     return when (request) {
       is AssistantLaunchRequest.SearchStation -> {
@@ -127,21 +133,24 @@ internal class LaunchCoordinator(
           searchQuery = request.stationQuery,
         )
       }
-      is AssistantLaunchRequest.StationStatus -> assistantLaunchResolution(
-        station = station,
-        stationQuery = request.stationQuery,
-        assistantAction = { AssistantAction.StationStatus(it) },
-      )
-      is AssistantLaunchRequest.StationBikeCount -> assistantLaunchResolution(
-        station = station,
-        stationQuery = request.stationQuery,
-        assistantAction = { AssistantAction.StationBikeCount(it) },
-      )
-      is AssistantLaunchRequest.StationSlotCount -> assistantLaunchResolution(
-        station = station,
-        stationQuery = request.stationQuery,
-        assistantAction = { AssistantAction.StationSlotCount(it) },
-      )
+      is AssistantLaunchRequest.StationStatus ->
+        assistantLaunchResolution(
+          station = station,
+          stationQuery = request.stationQuery,
+          assistantAction = { AssistantAction.StationStatus(it) },
+        )
+      is AssistantLaunchRequest.StationBikeCount ->
+        assistantLaunchResolution(
+          station = station,
+          stationQuery = request.stationQuery,
+          assistantAction = { AssistantAction.StationBikeCount(it) },
+        )
+      is AssistantLaunchRequest.StationSlotCount ->
+        assistantLaunchResolution(
+          station = station,
+          stationQuery = request.stationQuery,
+          assistantAction = { AssistantAction.StationSlotCount(it) },
+        )
       is AssistantLaunchRequest.RouteToStation -> {
         if (station != null) {
           routeLauncher.launch(station)
@@ -160,8 +169,8 @@ internal class LaunchCoordinator(
     station: Station?,
     stationQuery: String?,
     assistantAction: (String) -> AssistantAction,
-  ): LaunchResolution {
-    return if (station != null) {
+  ): LaunchResolution =
+    if (station != null) {
       LaunchResolution(
         screen = Screen.Shortcuts,
         assistantAction = assistantAction(station.id),
@@ -172,18 +181,16 @@ internal class LaunchCoordinator(
         searchQuery = stationQuery.orEmpty(),
       )
     }
-  }
 
   private fun resolveLaunchStation(
     stations: List<Station>,
     stationId: String?,
     stationQuery: String?,
-  ): Station? {
-    return stationId?.let(stationsRepository::stationById) ?: findStationMatchingQueryOrPinnedAlias(
+  ): Station? =
+    stationId?.let(stationsRepository::stationById) ?: findStationMatchingQueryOrPinnedAlias(
       stations = stations,
       query = stationQuery,
       homeStationId = favoritesRepository.currentHomeStationId(),
       workStationId = favoritesRepository.currentWorkStationId(),
     )
-  }
 }

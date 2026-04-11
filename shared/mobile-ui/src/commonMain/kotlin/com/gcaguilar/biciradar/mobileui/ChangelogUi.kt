@@ -23,8 +23,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
@@ -41,9 +41,10 @@ internal fun ChangelogHistoryScreen(
   val colors = LocalBiziColors.current
   PlatformBackHandler(enabled = true, onBack = onBack)
   Surface(
-    modifier = Modifier
-      .fillMaxSize()
-      .zIndex(8f),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .zIndex(8f),
     color = pageBackgroundColor(mobilePlatform),
   ) {
     Scaffold(
@@ -73,15 +74,17 @@ internal fun ChangelogHistoryScreen(
       },
     ) { innerPadding ->
       LazyColumn(
-        modifier = Modifier
-          .fillMaxSize()
-          .responsivePageWidth(),
-        contentPadding = PaddingValues(
-          start = 16.dp,
-          end = 16.dp,
-          top = innerPadding.calculateTopPadding() + 8.dp,
-          bottom = innerPadding.calculateBottomPadding() + 24.dp,
-        ),
+        modifier =
+          Modifier
+            .fillMaxSize()
+            .responsivePageWidth(),
+        contentPadding =
+          PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = innerPadding.calculateTopPadding() + 8.dp,
+            bottom = innerPadding.calculateBottomPadding() + 24.dp,
+          ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
         items(
@@ -90,17 +93,20 @@ internal fun ChangelogHistoryScreen(
         ) { section ->
           val isHighlighted = section.versionName == highlightedVersion
           Card(
-            colors = CardDefaults.cardColors(
-              containerColor = if (isHighlighted) {
-                colors.red.copy(alpha = 0.10f)
-              } else {
-                colors.surface
-              },
-            ),
-            border = BorderStroke(
-              width = 1.dp,
-              color = if (isHighlighted) colors.red.copy(alpha = 0.24f) else colors.panel,
-            ),
+            colors =
+              CardDefaults.cardColors(
+                containerColor =
+                  if (isHighlighted) {
+                    colors.red.copy(alpha = 0.10f)
+                  } else {
+                    colors.surface
+                  },
+              ),
+            border =
+              BorderStroke(
+                width = 1.dp,
+                color = if (isHighlighted) colors.red.copy(alpha = 0.24f) else colors.panel,
+              ),
           ) {
             androidx.compose.foundation.layout.Column(
               modifier = Modifier.padding(18.dp),

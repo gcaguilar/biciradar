@@ -30,19 +30,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.RouteLauncher
-import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
@@ -51,7 +46,6 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.trip
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripBikeRouteAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationAction
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlternative
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoStationWithFreeSlotsNearby
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationFull
@@ -67,22 +61,21 @@ import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
-import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun TripScreen(
-  viewModel: TripViewModel,
+  state: TripUiState,
   mobilePlatform: MobileUiPlatform,
   localNotifier: LocalNotifier,
   routeLauncher: RouteLauncher,
-  userLocation: GeoPoint?,
-  stations: List<Station>,
-  isMapReady: Boolean,
-  dataFreshness: DataFreshness,
-  lastUpdatedEpoch: Long?,
-  stationsLoading: Boolean,
+  onDismissAlert: () -> Unit,
+  onClearTrip: () -> Unit,
+  onStopMonitoring: () -> Unit,
+  onDurationSelected: (Int) -> Unit,
+  onStartMonitoring: () -> Unit,
   onRefreshStations: () -> Unit,
   onOpenDestinationPicker: () -> Unit,
   onOpenStationPicker: () -> Unit,
@@ -90,14 +83,13 @@ internal fun TripScreen(
 ) {
   val colors = LocalBiziColors.current
   val scope = rememberCoroutineScope()
-  val uiState by viewModel.uiState.collectAsState()
-  val tripState by viewModel.tripState.collectAsState()
 
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .background(pageBackgroundColor(mobilePlatform)),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .padding(paddingValues)
+        .background(pageBackgroundColor(mobilePlatform)),
     contentAlignment = Alignment.TopCenter,
   ) {
     LazyColumn(
@@ -122,14 +114,14 @@ internal fun TripScreen(
 
       item("freshness") {
         DataFreshnessBanner(
-          freshness = dataFreshness,
-          lastUpdatedEpoch = lastUpdatedEpoch,
-          loading = stationsLoading,
+          freshness = state.dataFreshness,
+          lastUpdatedEpoch = state.lastUpdatedEpoch,
+          loading = state.stationsLoading,
           onRefresh = onRefreshStations,
         )
       }
 
-      tripState.alert?.let { alert ->
+      state.alert?.let { alert ->
         item("alert") {
           Card(
             colors = CardDefaults.cardColors(containerColor = colors.red.copy(alpha = 0.09f)),
@@ -158,12 +150,13 @@ internal fun TripScreen(
               alert.alternativeStation?.let { alternativeStation ->
                 val alternativeDistance = alert.alternativeDistanceMeters?.toString().orEmpty()
                 Text(
-                  text = stringResource(
-                    Res.string.tripSuggestedAlternative,
-                    alternativeStation.name,
-                    alternativeDistance,
-                    alternativeStation.slotsFree,
-                  ),
+                  text =
+                    stringResource(
+                      Res.string.tripSuggestedAlternative,
+                      alternativeStation.name,
+                      alternativeDistance,
+                      alternativeStation.slotsFree,
+                    ),
                   style = MaterialTheme.typography.bodyMedium,
                   fontWeight = FontWeight.SemiBold,
                 )
@@ -173,7 +166,7 @@ internal fun TripScreen(
                 color = colors.muted,
               )
               Button(
-                onClick = viewModel::onDismissAlert,
+                onClick = onDismissAlert,
                 modifier = Modifier.fillMaxWidth(),
               ) {
                 Text(stringResource(Res.string.gotIt))
@@ -197,18 +190,20 @@ internal fun TripScreen(
               fontWeight = FontWeight.Bold,
             )
             Text(
-              text = if (tripState.destination == null) {
-                stringResource(Res.string.tripSubtitle)
-              } else {
-                tripState.destination?.name.orEmpty()
-              },
-              style = if (tripState.destination == null) {
-                MaterialTheme.typography.bodyMedium
-              } else {
-                MaterialTheme.typography.titleMedium
-              },
-              color = if (tripState.destination == null) colors.muted else colors.ink,
-              maxLines = if (tripState.destination == null) 2 else 3,
+              text =
+                if (state.destination == null) {
+                  stringResource(Res.string.tripSubtitle)
+                } else {
+                  state.destination?.name.orEmpty()
+                },
+              style =
+                if (state.destination == null) {
+                  MaterialTheme.typography.bodyMedium
+                } else {
+                  MaterialTheme.typography.titleMedium
+                },
+              color = if (state.destination == null) colors.muted else colors.ink,
+              maxLines = if (state.destination == null) 2 else 3,
               overflow = TextOverflow.Ellipsis,
             )
             Button(
@@ -239,16 +234,17 @@ internal fun TripScreen(
         }
       }
 
-      tripState.destination?.let { destination ->
+      state.destination?.let { destination ->
         item("destination-summary") {
           Card(
             colors = CardDefaults.cardColors(containerColor = colors.surface),
             border = BorderStroke(1.dp, colors.panel),
           ) {
             Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+              modifier =
+                Modifier
+                  .fillMaxWidth()
+                  .padding(16.dp),
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
@@ -276,7 +272,7 @@ internal fun TripScreen(
                 )
               }
               OutlinedButton(
-                onClick = viewModel::onClearTrip,
+                onClick = onClearTrip,
               ) {
                 Icon(
                   imageVector = Icons.Filled.Close,
@@ -291,13 +287,14 @@ internal fun TripScreen(
         }
       }
 
-      if (tripState.destination != null && tripState.isSearchingStation) {
+      if (state.destination != null && state.isSearchingStation) {
         item("searching") {
           Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
             Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+              modifier =
+                Modifier
+                  .fillMaxWidth()
+                  .padding(20.dp),
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
@@ -316,14 +313,14 @@ internal fun TripScreen(
         }
       }
 
-      if (tripState.destination != null && tripState.searchError != null) {
+      if (state.destination != null && state.searchError != null) {
         item("search-error") {
           Card(
             colors = CardDefaults.cardColors(containerColor = colors.red.copy(alpha = 0.07f)),
             border = BorderStroke(1.dp, colors.red.copy(alpha = 0.18f)),
           ) {
             Text(
-              text = tripState.searchError ?: stringResource(Res.string.tripNoStationWithFreeSlotsNearby),
+              text = state.searchError ?: stringResource(Res.string.tripNoStationWithFreeSlotsNearby),
               modifier = Modifier.padding(14.dp),
               style = MaterialTheme.typography.bodyMedium,
               color = colors.red,
@@ -332,13 +329,13 @@ internal fun TripScreen(
         }
       }
 
-      val suggestedStation = tripState.nearestStationWithSlots
-      if (suggestedStation != null && !tripState.isSearchingStation) {
+      val suggestedStation = state.nearestStationWithSlots
+      if (suggestedStation != null && !state.isSearchingStation) {
         item("station") {
           Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             TripStationCard(
               station = suggestedStation,
-              distanceMeters = tripState.distanceToStation,
+              distanceMeters = state.distanceToStation,
             )
             Button(
               onClick = { routeLauncher.launchBikeToLocation(suggestedStation.location) },
@@ -356,22 +353,22 @@ internal fun TripScreen(
           }
         }
 
-        if (tripState.monitoring.isActive) {
+        if (state.monitoring.isActive) {
           item("monitoring-active") {
             TripMonitoringActiveCard(
-              monitoring = tripState.monitoring,
-              onStop = viewModel::onStopMonitoring,
+              monitoring = state.monitoring,
+              onStop = onStopMonitoring,
             )
           }
         } else {
           item("monitoring-setup") {
             TripMonitoringSetupCard(
-              selectedDurationSeconds = uiState.selectedDurationSeconds,
-              onDurationSelected = viewModel::onDurationSelected,
+              selectedDurationSeconds = state.selectedDurationSeconds,
+              onDurationSelected = onDurationSelected,
               onStartMonitoring = {
                 scope.launch {
                   if (localNotifier.requestPermission()) {
-                    viewModel.onStartMonitoring()
+                    onStartMonitoring()
                   }
                 }
               },

@@ -18,14 +18,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.freeSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedStation
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
 import org.jetbrains.compose.resources.stringResource
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.freeSlots
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedStation
 
 @Composable
 internal fun TripStationCard(

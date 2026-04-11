@@ -20,8 +20,10 @@ interface LocationProvider {
 
 interface RouteLauncher {
   fun launch(station: Station)
+
   /** Launch walking directions to [destination] (from the user's current location or a given origin). */
   fun launchWalkToLocation(destination: GeoPoint)
+
   /** Launch cycling directions to [destination]. Falls back to walking when a platform does not override it. */
   fun launchBikeToLocation(destination: GeoPoint) {
     launchWalkToLocation(destination)
@@ -39,13 +41,19 @@ interface AssistantIntentResolver {
 
 interface WatchSyncBridge {
   suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot)
+
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
 
 interface LocalNotifier {
   suspend fun hasPermission(): Boolean = true
+
   suspend fun requestPermission(): Boolean
-  suspend fun notify(title: String, body: String)
+
+  suspend fun notify(
+    title: String,
+    body: String,
+  )
 }
 
 interface DatabaseProvider {
@@ -58,16 +66,20 @@ interface DatabaseFactory {
 
 interface PlatformBindings {
   val appConfiguration: AppConfiguration
+
   @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver
   val databaseFactory: DatabaseFactory?
   val fileSystem: FileSystem
+
   @GoogleMapsApiKey val googleMapsApiKey: String?
   val httpClientFactory: BiziHttpClientFactory
   val localNotifier: LocalNotifier
   val locationProvider: LocationProvider
   val mapSupport: MapSupport
+
   @OsVersion val osVersion: String
+
   @Platform val platform: String
   val routeLauncher: RouteLauncher
   val secureKeyStore: SecureKeyStore

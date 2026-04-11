@@ -46,12 +46,22 @@ data class TripState(
 
 interface TripRepository {
   val state: StateFlow<TripState>
-  suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int)
+
+  suspend fun setDestination(
+    destination: TripDestination,
+    searchRadiusMeters: Int,
+  )
+
   suspend fun selectStation(station: Station) = Unit
+
   suspend fun startMonitoring(durationSeconds: Int)
+
   fun stopMonitoring()
+
   fun clearTrip()
+
   fun dismissAlert()
+
   /** Called by platform (e.g., iOS background task expiry) to do a final check and notify. */
   suspend fun doFinalBackgroundCheck()
 }
@@ -77,7 +87,10 @@ class TripRepositoryImpl(
   private var monitoringJob: Job? = null
   private var countdownJob: Job? = null
 
-  override suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int) {
+  override suspend fun setDestination(
+    destination: TripDestination,
+    searchRadiusMeters: Int,
+  ) {
     stopMonitoring()
     mutableState.update {
       it.copy(
@@ -95,9 +108,10 @@ class TripRepositoryImpl(
   override suspend fun selectStation(station: Station) {
     stopMonitoring()
     val destination = mutableState.value.destination
-    val distanceMeters = destination
-      ?.let { distanceBetween(it.location, station.location) }
-      ?: station.distanceMeters
+    val distanceMeters =
+      destination
+        ?.let { distanceBetween(it.location, station.location) }
+        ?: station.distanceMeters
 
     mutableState.update {
       it.copy(
@@ -110,7 +124,10 @@ class TripRepositoryImpl(
     }
   }
 
-  private suspend fun findNearestStation(location: GeoPoint, searchRadiusMeters: Int) {
+  private suspend fun findNearestStation(
+    location: GeoPoint,
+    searchRadiusMeters: Int,
+  ) {
     val stations = stationsRepository.state.value.stations
     if (stations.isEmpty()) {
       mutableState.update {
@@ -123,14 +140,17 @@ class TripRepositoryImpl(
     }
 
     // Recalculate distances relative to the destination
-    val stationsWithDistance = stations.map { station ->
-      station.copy(distanceMeters = distanceBetween(location, station.location))
-    }.sortedBy { it.distanceMeters }
+    val stationsWithDistance =
+      stations
+        .map { station ->
+          station.copy(distanceMeters = distanceBetween(location, station.location))
+        }.sortedBy { it.distanceMeters }
 
-    val selection = selectNearbyStationWithSlots(
-      stations = stationsWithDistance,
-      searchRadiusMeters = searchRadiusMeters,
-    )
+    val selection =
+      selectNearbyStationWithSlots(
+        stations = stationsWithDistance,
+        searchRadiusMeters = searchRadiusMeters,
+      )
     val chosen = selection.highlightedStation
 
     if (chosen == null) {
@@ -160,70 +180,93 @@ class TripRepositoryImpl(
     mutableState.update {
       it.copy(
         alert = null,
-        monitoring = TripMonitoringState(
-          isActive = true,
-          remainingSeconds = durationSeconds,
-          totalSeconds = durationSeconds,
-        ),
+        monitoring =
+          TripMonitoringState(
+            isActive = true,
+            remainingSeconds = durationSeconds,
+            totalSeconds = durationSeconds,
+          ),
       )
     }
 
-    countdownJob = scope.launch {
-      var remaining = durationSeconds
-      while (remaining > 0 && mutableState.value.monitoring.isActive) {
-        delay(1_000L)
-        remaining--
-        mutableState.update { it.copy(monitoring = it.monitoring.copy(remainingSeconds = remaining)) }
-      }
-      if (mutableState.value.monitoring.isActive) {
-        if (remaining == 0) {
-          scope.launch { engagementRepository.markMonitoringCompleted() }
+    countdownJob =
+      scope.launch {
+        var remaining = durationSeconds
+        while (remaining > 0 && mutableState.value.monitoring.isActive) {
+          delay(1_000L)
+          remaining--
+          mutableState.update { it.copy(monitoring = it.monitoring.copy(remainingSeconds = remaining)) }
         }
-        stopMonitoring()
-      }
-    }
-
-    monitoringJob = scope.launch {
-      var firstCheck = true
-      while (mutableState.value.monitoring.isActive) {
-        if (!firstCheck) delay(POLLING_INTERVAL_MILLIS)
-        firstCheck = false
-
-        val currentStation = mutableState.value.nearestStationWithSlots ?: break
-        val availability = runCatching {
-          biziApi.fetchAvailability(listOf(currentStation.id))
-        }.getOrNull() ?: continue
-
-        val updated = availability[currentStation.id] ?: continue
-        val updatedStation = currentStation.copy(
-          bikesAvailable = updated.bikesAvailable,
-          slotsFree = updated.slotsFree,
-        )
-        mutableState.update { it.copy(nearestStationWithSlots = updatedStation) }
-
-        if (updatedStation.slotsFree == 0) {
-          val destination = mutableState.value.destination
-          val alternative = if (destination != null) findAlternativeStation(updatedStation, destination.location) else null
-          val alert = TripAlert(
-            fullStation = updatedStation,
-            alternativeStation = alternative,
-            alternativeDistanceMeters = alternative?.distanceMeters,
-          )
-          scope.launch { engagementRepository.markMonitoringCompleted() }
+        if (mutableState.value.monitoring.isActive) {
+          if (remaining == 0) {
+            scope.launch { engagementRepository.markMonitoringCompleted() }
+          }
           stopMonitoring()
-          mutableState.update { it.copy(alert = alert) }
-          val altText = if (alternative != null) " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)." else ""
-          localNotifier.notify(
-            title = "Estación llena: ${updatedStation.name}",
-            body = "No quedan plazas libres.$altText",
-          )
-          break
         }
       }
-    }
+
+    monitoringJob =
+      scope.launch {
+        var firstCheck = true
+        while (mutableState.value.monitoring.isActive) {
+          if (!firstCheck) delay(POLLING_INTERVAL_MILLIS)
+          firstCheck = false
+
+          val currentStation = mutableState.value.nearestStationWithSlots ?: break
+          val availability =
+            runCatching {
+              biziApi.fetchAvailability(listOf(currentStation.id))
+            }.getOrNull() ?: continue
+
+          val updated = availability[currentStation.id] ?: continue
+          val updatedStation =
+            currentStation.copy(
+              bikesAvailable = updated.bikesAvailable,
+              slotsFree = updated.slotsFree,
+            )
+          mutableState.update { it.copy(nearestStationWithSlots = updatedStation) }
+
+          if (updatedStation.slotsFree == 0) {
+            val destination = mutableState.value.destination
+            val alternative =
+              if (destination !=
+                null
+              ) {
+                findAlternativeStation(updatedStation, destination.location)
+              } else {
+                null
+              }
+            val alert =
+              TripAlert(
+                fullStation = updatedStation,
+                alternativeStation = alternative,
+                alternativeDistanceMeters = alternative?.distanceMeters,
+              )
+            scope.launch { engagementRepository.markMonitoringCompleted() }
+            stopMonitoring()
+            mutableState.update { it.copy(alert = alert) }
+            val altText =
+              if (alternative !=
+                null
+              ) {
+                " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)."
+              } else {
+                ""
+              }
+            localNotifier.notify(
+              title = "Estación llena: ${updatedStation.name}",
+              body = "No quedan plazas libres.$altText",
+            )
+            break
+          }
+        }
+      }
   }
 
-  private suspend fun findAlternativeStation(fullStation: Station, destination: GeoPoint): Station? {
+  private suspend fun findAlternativeStation(
+    fullStation: Station,
+    destination: GeoPoint,
+  ): Station? {
     val stations = stationsRepository.state.value.stations
     return stations
       .filter { it.id != fullStation.id }
@@ -253,15 +296,23 @@ class TripRepositoryImpl(
     val station = mutableState.value.nearestStationWithSlots ?: return
     if (!mutableState.value.monitoring.isActive) return
 
-    val availability = runCatching {
-      biziApi.fetchAvailability(listOf(station.id))
-    }.getOrNull()
+    val availability =
+      runCatching {
+        biziApi.fetchAvailability(listOf(station.id))
+      }.getOrNull()
 
     val updated = availability?.get(station.id)
     if (updated != null && updated.slotsFree == 0) {
       val destination = mutableState.value.destination
       val alternative = if (destination != null) findAlternativeStation(station, destination.location) else null
-      val altText = if (alternative != null) " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)." else ""
+      val altText =
+        if (alternative !=
+          null
+        ) {
+          " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)."
+        } else {
+          ""
+        }
       localNotifier.notify(
         title = "Estación llena: ${station.name}",
         body = "No quedan plazas libres.$altText",

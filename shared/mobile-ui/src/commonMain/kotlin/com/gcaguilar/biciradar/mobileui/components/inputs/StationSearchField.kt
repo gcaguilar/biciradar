@@ -24,54 +24,71 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun StationSearchField(
-    mobilePlatform: MobileUiPlatform,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
+  mobilePlatform: MobileUiPlatform,
+  value: String,
+  onValueChange: (String) -> Unit,
+  label: String,
 ) {
-    val c = LocalBiziColors.current
-    OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        shape = RoundedCornerShape(20.dp),
-        leadingIcon = {
-            Icon(Icons.Filled.Search, contentDescription = null, tint = c.muted)
-        },
-        trailingIcon = if (value.isNotEmpty()) {
-            {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = stringResource(Res.string.clearSearch),
-                    tint = c.muted,
-                    modifier = Modifier.clickable { onValueChange("") },
-                )
-            }
-        } else {
-            null
-        },
-        label = if (mobilePlatform == MobileUiPlatform.Android) {
-            { Text(label) }
-        } else {
-            null
-        },
-        placeholder = { Text(label, color = c.muted) },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.fieldSurfaceIos else c.fieldSurfaceAndroid,
-            unfocusedContainerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.fieldSurfaceIos else c.fieldSurfaceAndroid,
-            focusedBorderColor = c.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
-            unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) c.panel else c.muted.copy(alpha = 0.18f),
-            focusedTextColor = c.ink,
-            unfocusedTextColor = c.ink,
-            focusedLabelColor = c.ink,
-            unfocusedLabelColor = c.muted,
-            focusedPlaceholderColor = c.muted,
-            unfocusedPlaceholderColor = c.muted,
-            focusedLeadingIconColor = c.muted,
-            unfocusedLeadingIconColor = c.muted,
-            focusedTrailingIconColor = c.muted,
-            unfocusedTrailingIconColor = c.muted,
-        ),
-    )
+  val c = LocalBiziColors.current
+  OutlinedTextField(
+    modifier = Modifier.fillMaxWidth(),
+    value = value,
+    onValueChange = onValueChange,
+    singleLine = true,
+    shape = RoundedCornerShape(20.dp),
+    leadingIcon = {
+      Icon(Icons.Filled.Search, contentDescription = null, tint = c.muted)
+    },
+    trailingIcon =
+      if (value.isNotEmpty()) {
+        {
+          Icon(
+            imageVector = Icons.Filled.Close,
+            contentDescription = stringResource(Res.string.clearSearch),
+            tint = c.muted,
+            modifier = Modifier.clickable { onValueChange("") },
+          )
+        }
+      } else {
+        null
+      },
+    label =
+      if (mobilePlatform == MobileUiPlatform.Android) {
+        { Text(label) }
+      } else {
+        null
+      },
+    placeholder = { Text(label, color = c.muted) },
+    colors =
+      OutlinedTextFieldDefaults.colors(
+        focusedContainerColor =
+          if (mobilePlatform ==
+            MobileUiPlatform.IOS
+          ) {
+            c.fieldSurfaceIos
+          } else {
+            c.fieldSurfaceAndroid
+          },
+        unfocusedContainerColor =
+          if (mobilePlatform ==
+            MobileUiPlatform.IOS
+          ) {
+            c.fieldSurfaceIos
+          } else {
+            c.fieldSurfaceAndroid
+          },
+        focusedBorderColor = c.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
+        unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) c.panel else c.muted.copy(alpha = 0.18f),
+        focusedTextColor = c.ink,
+        unfocusedTextColor = c.ink,
+        focusedLabelColor = c.ink,
+        unfocusedLabelColor = c.muted,
+        focusedPlaceholderColor = c.muted,
+        unfocusedPlaceholderColor = c.muted,
+        focusedLeadingIconColor = c.muted,
+        unfocusedLeadingIconColor = c.muted,
+        focusedTrailingIconColor = c.muted,
+        unfocusedTrailingIconColor = c.muted,
+      ),
+  )
 }

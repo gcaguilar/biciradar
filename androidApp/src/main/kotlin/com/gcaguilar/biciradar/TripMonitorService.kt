@@ -62,7 +62,11 @@ class TripMonitorService : Service() {
     )
   }
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+  override fun onStartCommand(
+    intent: Intent?,
+    flags: Int,
+    startId: Int,
+  ): Int {
     // Observar estado de monitorización
     observeMonitoringState()
 
@@ -112,8 +116,7 @@ class TripMonitorService : Service() {
         }
         startCountdown(session)
         updateWidgets()
-      }
-      .launchIn(serviceScope)
+      }.launchIn(serviceScope)
   }
 
   /**
@@ -121,15 +124,16 @@ class TripMonitorService : Service() {
    */
   private fun startCountdown(session: SurfaceMonitoringSession) {
     countdownJob?.cancel()
-    countdownJob = serviceScope.launch {
-      while (isActive && session.isActive) {
-        notificationManager.notify(
-          FOREGROUND_NOTIFICATION_ID,
-          buildForegroundNotification(session = session),
-        )
-        delay(1000)
+    countdownJob =
+      serviceScope.launch {
+        while (isActive && session.isActive) {
+          notificationManager.notify(
+            FOREGROUND_NOTIFICATION_ID,
+            buildForegroundNotification(session = session),
+          )
+          delay(1000)
+        }
       }
-    }
   }
 
   private fun updateNotification() {
@@ -153,31 +157,37 @@ class TripMonitorService : Service() {
    */
   private fun buildForegroundNotification(
     session: SurfaceMonitoringSession? = null,
-    text: String = session?.let {
-      monitoringNotificationBody(it, it.remainingSeconds())
-    }.orEmpty(),
+    text: String =
+      session
+        ?.let {
+          monitoringNotificationBody(it, it.remainingSeconds())
+        }.orEmpty(),
   ): Notification {
-    val openIntent = session?.stationId?.let(::stationPendingIntent)
-      ?: appPendingIntent(Uri.parse("biciradar://favorites"))
+    val openIntent =
+      session?.stationId?.let(::stationPendingIntent)
+        ?: appPendingIntent(Uri.parse("biciradar://favorites"))
 
-    val isFavorite = session?.stationId?.let {
-      favoritesRepository.favoriteIds.value.contains(it)
-    } ?: false
+    val isFavorite =
+      session?.stationId?.let {
+        favoritesRepository.favoriteIds.value.contains(it)
+      } ?: false
 
-    val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-      .setSmallIcon(android.R.drawable.ic_menu_directions)
-      .setContentTitle(session?.let(::monitoringNotificationTitle) ?: "BiciRadar")
-      .setContentText(text)
-      .setContentIntent(openIntent)
-      .setOngoing(true)
-      .setOnlyAlertOnce(true)
-      .setPriority(NotificationCompat.PRIORITY_LOW)
-      // Material You styling
-      .setColor(getColor(R.color.brand_primary))
-      .setColorized(true)
-      .setCategory(NotificationCompat.CATEGORY_SERVICE)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-      .setShowWhen(false)
+    val builder =
+      NotificationCompat
+        .Builder(this, CHANNEL_ID)
+        .setSmallIcon(android.R.drawable.ic_menu_directions)
+        .setContentTitle(session?.let(::monitoringNotificationTitle) ?: "BiciRadar")
+        .setContentText(text)
+        .setContentIntent(openIntent)
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        // Material You styling
+        .setColor(getColor(R.color.brand_primary))
+        .setColorized(true)
+        .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+        .setShowWhen(false)
 
     // Acción: Detener
     builder.addAction(
@@ -188,14 +198,18 @@ class TripMonitorService : Service() {
 
     // Acción: Favorito (si hay sesión)
     session?.stationId?.let { stationId ->
-      val favoriteIcon = if (isFavorite)
-        android.R.drawable.btn_star_big_on
-      else
-        android.R.drawable.btn_star_big_off
-      val favoriteLabel = if (isFavorite)
-        getString(R.string.notification_action_remove_favorite)
-      else
-        getString(R.string.notification_action_add_favorite)
+      val favoriteIcon =
+        if (isFavorite) {
+          android.R.drawable.btn_star_big_on
+        } else {
+          android.R.drawable.btn_star_big_off
+        }
+      val favoriteLabel =
+        if (isFavorite) {
+          getString(R.string.notification_action_remove_favorite)
+        } else {
+          getString(R.string.notification_action_add_favorite)
+        }
 
       builder.addAction(
         favoriteIcon,
@@ -232,33 +246,39 @@ class TripMonitorService : Service() {
     // Estilo expandido con toda la información
     if (text.isNotBlank()) {
       builder.setStyle(
-        NotificationCompat.BigTextStyle()
+        NotificationCompat
+          .BigTextStyle()
           .bigText(text)
-          .setBigContentTitle(session?.let(::monitoringNotificationTitle))
+          .setBigContentTitle(session?.let(::monitoringNotificationTitle)),
       )
     }
 
     return builder.build()
   }
 
-  private fun shareStation(stationId: String, stationName: String) {
-    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-      type = "text/plain"
-      putExtra(
-        Intent.EXTRA_TEXT,
-        "Mira esta estación de BiciMAD: $stationName - https://biciradar.com/station/$stationId"
-      )
-      putExtra(Intent.EXTRA_SUBJECT, "Estación de BiciMAD: $stationName")
-    }
+  private fun shareStation(
+    stationId: String,
+    stationName: String,
+  ) {
+    val shareIntent =
+      Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(
+          Intent.EXTRA_TEXT,
+          "Mira esta estación de BiciMAD: $stationName - https://biciradar.com/station/$stationId",
+        )
+        putExtra(Intent.EXTRA_SUBJECT, "Estación de BiciMAD: $stationName")
+      }
     val chooser = Intent.createChooser(shareIntent, "Compartir estación")
     chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     startActivity(chooser)
   }
 
   private fun stopPendingIntent(): PendingIntent {
-    val intent = Intent(this, TripMonitorService::class.java).apply {
-      action = ACTION_STOP_MONITORING
-    }
+    val intent =
+      Intent(this, TripMonitorService::class.java).apply {
+        action = ACTION_STOP_MONITORING
+      }
     return PendingIntent.getService(
       this,
       STOP_REQUEST_CODE,
@@ -268,10 +288,11 @@ class TripMonitorService : Service() {
   }
 
   private fun toggleFavoritePendingIntent(stationId: String): PendingIntent {
-    val intent = Intent(this, TripMonitorService::class.java).apply {
-      action = ACTION_TOGGLE_FAVORITE
-      putExtra(EXTRA_STATION_ID, stationId)
-    }
+    val intent =
+      Intent(this, TripMonitorService::class.java).apply {
+        action = ACTION_TOGGLE_FAVORITE
+        putExtra(EXTRA_STATION_ID, stationId)
+      }
     return PendingIntent.getService(
       this,
       TOGGLE_FAVORITE_REQUEST_CODE,
@@ -280,12 +301,16 @@ class TripMonitorService : Service() {
     )
   }
 
-  private fun sharePendingIntent(stationId: String, stationName: String): PendingIntent {
-    val intent = Intent(this, TripMonitorService::class.java).apply {
-      action = ACTION_SHARE
-      putExtra(EXTRA_STATION_ID, stationId)
-      putExtra(EXTRA_STATION_NAME, stationName)
-    }
+  private fun sharePendingIntent(
+    stationId: String,
+    stationName: String,
+  ): PendingIntent {
+    val intent =
+      Intent(this, TripMonitorService::class.java).apply {
+        action = ACTION_SHARE
+        putExtra(EXTRA_STATION_ID, stationId)
+        putExtra(EXTRA_STATION_NAME, stationName)
+      }
     return PendingIntent.getService(
       this,
       SHARE_REQUEST_CODE,
@@ -298,9 +323,10 @@ class TripMonitorService : Service() {
     appPendingIntent(Uri.parse("biciradar://station/$stationId"))
 
   private fun appPendingIntent(uri: Uri): PendingIntent {
-    val intent = Intent(Intent.ACTION_VIEW, uri, this, MainActivity::class.java).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    }
+    val intent =
+      Intent(Intent.ACTION_VIEW, uri, this, MainActivity::class.java).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+      }
     return PendingIntent.getActivity(
       this,
       uri.hashCode(),
@@ -310,16 +336,17 @@ class TripMonitorService : Service() {
   }
 
   private fun ensureNotificationChannel() {
-    val channel = NotificationChannel(
-      CHANNEL_ID,
-      getString(R.string.notification_channel_monitoring_title),
-      NotificationManager.IMPORTANCE_LOW,
-    ).apply {
-      description = getString(R.string.notification_channel_monitoring_description)
-      setShowBadge(false)
-      enableLights(false)
-      enableVibration(false)
-    }
+    val channel =
+      NotificationChannel(
+        CHANNEL_ID,
+        getString(R.string.notification_channel_monitoring_title),
+        NotificationManager.IMPORTANCE_LOW,
+      ).apply {
+        description = getString(R.string.notification_channel_monitoring_description)
+        setShowBadge(false)
+        enableLights(false)
+        enableVibration(false)
+      }
     notificationManager.createNotificationChannel(channel)
   }
 

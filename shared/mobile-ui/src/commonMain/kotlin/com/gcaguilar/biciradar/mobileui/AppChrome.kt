@@ -1,7 +1,7 @@
 package com.gcaguilar.biciradar.mobileui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -30,11 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import com.gcaguilar.biciradar.mobileui.components.BiziNavigationShell
 import org.jetbrains.compose.resources.stringResource
 
 internal sealed interface TopUpdateBanner {
   data object Hidden : TopUpdateBanner
+
   data class Available(
     val version: String,
     val flexible: Boolean,
@@ -60,12 +60,13 @@ internal fun BoxScope.EngagementTopOverlays(
 ) {
   val colors = LocalBiziColors.current
   Column(
-    modifier = Modifier
-      .align(Alignment.TopCenter)
-      .fillMaxWidth()
-      .statusBarsPadding()
-      .padding(horizontal = 12.dp, vertical = 8.dp)
-      .zIndex(4f),
+    modifier =
+      Modifier
+        .align(Alignment.TopCenter)
+        .fillMaxWidth()
+        .statusBarsPadding()
+        .padding(horizontal = 12.dp, vertical = 8.dp)
+        .zIndex(4f),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     when (val banner = updateBanner) {
@@ -198,19 +199,19 @@ internal fun FeedbackDialog(
 }
 
 @Composable
-internal fun StartupSplashScreen(
-  mobilePlatform: MobileUiPlatform,
-) {
+internal fun StartupSplashScreen(mobilePlatform: MobileUiPlatform) {
   val colors = LocalBiziColors.current
-  val backgroundColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-    colors.groupedBackground
-  } else {
-    colors.background
-  }
+  val backgroundColor =
+    if (mobilePlatform == MobileUiPlatform.IOS) {
+      colors.groupedBackground
+    } else {
+      colors.background
+    }
   Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(backgroundColor),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .background(backgroundColor),
     contentAlignment = Alignment.Center,
   ) {
     Column(
@@ -246,11 +247,12 @@ internal fun StartupSplashScreen(
         )
       }
       Text(
-        text = if (mobilePlatform == MobileUiPlatform.IOS) {
-          stringResource(Res.string.preparingIphoneExperience)
-        } else {
-          stringResource(Res.string.preparingAndroidExperience)
-        },
+        text =
+          if (mobilePlatform == MobileUiPlatform.IOS) {
+            stringResource(Res.string.preparingIphoneExperience)
+          } else {
+            stringResource(Res.string.preparingAndroidExperience)
+          },
         style = MaterialTheme.typography.labelMedium,
         color = colors.muted,
       )

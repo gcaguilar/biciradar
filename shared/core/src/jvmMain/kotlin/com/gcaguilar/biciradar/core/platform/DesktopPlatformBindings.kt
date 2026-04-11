@@ -54,37 +54,43 @@ class DesktopPlatformBindings(
   private val desktopRouteLauncher = DesktopRouteLauncher()
   private var database: BiciRadarDatabase? = null
 
-  override val appVersion: String = DesktopPlatformBindings::class.java.`package`?.implementationVersion
-    ?.takeIf { it.isNotBlank() }
-    ?: System.getProperty("biciradar.version")?.takeIf { it.isNotBlank() }
-    ?: runCatching { File("VERSION").readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }
-    ?: "desktop-dev"
+  override val appVersion: String =
+    DesktopPlatformBindings::class.java.`package`
+      ?.implementationVersion
+      ?.takeIf { it.isNotBlank() }
+      ?: System.getProperty("biciradar.version")?.takeIf { it.isNotBlank() }
+      ?: runCatching { File("VERSION").readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }
+      ?: "desktop-dev"
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
-  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    override fun create(json: Json): BiciRadarDatabase? {
-      if (database == null) {
-        val driver = createJdbcDriver("${storageDirectory.rootPath}/biciradar.db")
-        val db = BiciRadarDatabase(driver)
-        LegacyBlobToRelationalMigration.ensure(driver, db, json)
-        database = db
+  override val databaseFactory: DatabaseFactory =
+    object : DatabaseFactory {
+      override fun create(json: Json): BiciRadarDatabase? {
+        if (database == null) {
+          val driver = createJdbcDriver("${storageDirectory.rootPath}/biciradar.db")
+          val db = BiciRadarDatabase(driver)
+          LegacyBlobToRelationalMigration.ensure(driver, db, json)
+          database = db
+        }
+        return database
       }
-      return database
     }
-  }
   override val externalLinks: ExternalLinks = DesktopExternalLinks(appConfiguration)
   override val fileSystem: FileSystem = FileSystem.SYSTEM
-  override val googleMapsApiKey: String? = System.getenv("GOOGLE_MAPS_API_KEY")
-    ?.trim()
-    ?.takeIf { it.isNotBlank() }
+  override val googleMapsApiKey: String? =
+    System
+      .getenv("GOOGLE_MAPS_API_KEY")
+      ?.trim()
+      ?.takeIf { it.isNotBlank() }
   override val httpClientFactory: BiziHttpClientFactory = DesktopHttpClientFactory()
   override val appUpdatePrompter: AppUpdatePrompter = DesktopAppUpdatePrompter()
   override val localNotifier: LocalNotifier = DesktopLocalNotifier()
   override val locationProvider: LocationProvider = DesktopLocationProvider()
   override val mapSupport: MapSupport = DesktopMapSupport()
-  override val osVersion: String = listOf(
-    System.getProperty("os.name").orEmpty(),
-    System.getProperty("os.version").orEmpty(),
-  ).filter { it.isNotBlank() }.joinToString(" ")
+  override val osVersion: String =
+    listOf(
+      System.getProperty("os.name").orEmpty(),
+      System.getProperty("os.version").orEmpty(),
+    ).filter { it.isNotBlank() }.joinToString(" ")
   override val platform: String = detectDesktopPlatform()
   override val permissionPrompter: PermissionPrompter = DesktopPermissionPrompter()
   override val reviewPrompter: ReviewPrompter = DesktopReviewPrompter(appConfiguration)
@@ -99,17 +105,18 @@ class DesktopPlatformBindings(
 }
 
 private class DesktopHttpClientFactory : BiziHttpClientFactory {
-  override fun create(json: Json): HttpClient = HttpClient(CIO) {
-    expectSuccess = true
-    install(HttpTimeout) {
-      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
-      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
-      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+  override fun create(json: Json): HttpClient =
+    HttpClient(CIO) {
+      expectSuccess = true
+      install(HttpTimeout) {
+        requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+        connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+        socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      }
+      install(ContentNegotiation) {
+        json(json)
+      }
     }
-    install(ContentNegotiation) {
-      json(json)
-    }
-  }
 }
 
 private class DesktopStorageDirectoryProvider : StorageDirectoryProvider {
@@ -121,11 +128,12 @@ private class DesktopLocationProvider : LocationProvider {
 }
 
 private class DesktopMapSupport : MapSupport {
-  override fun currentStatus(): MapSupportStatus = MapSupportStatus(
-    embeddedProvider = EmbeddedMapProvider.None,
-    googleMapsSdkLinked = false,
-    googleMapsApiKeyConfigured = false,
-  )
+  override fun currentStatus(): MapSupportStatus =
+    MapSupportStatus(
+      embeddedProvider = EmbeddedMapProvider.None,
+      googleMapsSdkLinked = false,
+      googleMapsApiKeyConfigured = false,
+    )
 }
 
 private class DesktopPermissionPrompter : PermissionPrompter {
@@ -148,8 +156,9 @@ private class DesktopReviewPrompter(
   override suspend fun requestInAppReview() = Unit
 
   override fun openStoreWriteReview() {
-    val reviewUrl = appConfiguration.iosAppStoreUrl
-      ?: "https://apps.apple.com/us/search?term=BiciRadar"
+    val reviewUrl =
+      appConfiguration.iosAppStoreUrl
+        ?: "https://apps.apple.com/us/search?term=BiciRadar"
     browse(reviewUrl)
   }
 }
@@ -171,14 +180,18 @@ private class DesktopRouteLauncher : RouteLauncher {
     browse(routeUrlFor(destination, cycling = true))
   }
 
-  private fun routeUrlFor(destination: GeoPoint, cycling: Boolean): String = when (
-    settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
-  ) {
-    PreferredMapApp.AppleMaps ->
-      "https://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=${if (cycling) "b" else "w"}"
-    PreferredMapApp.GoogleMaps ->
-      "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=${if (cycling) "bicycling" else "walking"}"
-  }
+  private fun routeUrlFor(
+    destination: GeoPoint,
+    cycling: Boolean,
+  ): String =
+    when (
+      settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
+    ) {
+      PreferredMapApp.AppleMaps ->
+        "https://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=${if (cycling) "b" else "w"}"
+      PreferredMapApp.GoogleMaps ->
+        "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=${if (cycling) "bicycling" else "walking"}"
+    }
 }
 
 private class DesktopLocalNotifier : LocalNotifier {
@@ -186,7 +199,10 @@ private class DesktopLocalNotifier : LocalNotifier {
 
   override suspend fun requestPermission(): Boolean = true
 
-  override suspend fun notify(title: String, body: String) {
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) {
     if (DesktopNotifications.show(title, body)) return
     println("[BiciRadar] $title: $body")
   }
@@ -210,7 +226,10 @@ private object DesktopNotifications {
     }.getOrNull()
   }
 
-  fun show(title: String, body: String): Boolean {
+  fun show(
+    title: String,
+    body: String,
+  ): Boolean {
     val icon = trayIcon ?: return false
     icon.displayMessage(title, body, TrayIcon.MessageType.NONE)
     return true

@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.StationHourlyPattern
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.averageBikesHour
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mostBikes
@@ -28,6 +27,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mostSlots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.noDataForDayType
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.noUsagePatternData
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.usagePattern
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -58,19 +58,21 @@ internal fun StationPatternCard(
             selected = !showWeekend,
             onClick = { if (showWeekend) onToggleDayType() },
             label = { Text("L-V", style = MaterialTheme.typography.labelSmall) },
-            colors = FilterChipDefaults.filterChipColors(
-              selectedContainerColor = colors.red,
-              selectedLabelColor = colors.onAccent,
-            ),
+            colors =
+              FilterChipDefaults.filterChipColors(
+                selectedContainerColor = colors.red,
+                selectedLabelColor = colors.onAccent,
+              ),
           )
           FilterChip(
             selected = showWeekend,
             onClick = { if (!showWeekend) onToggleDayType() },
             label = { Text("S-D", style = MaterialTheme.typography.labelSmall) },
-            colors = FilterChipDefaults.filterChipColors(
-              selectedContainerColor = colors.red,
-              selectedLabelColor = colors.onAccent,
-            ),
+            colors =
+              FilterChipDefaults.filterChipColors(
+                selectedContainerColor = colors.red,
+                selectedLabelColor = colors.onAccent,
+              ),
           )
         }
       }
@@ -89,7 +91,7 @@ internal fun StationPatternCard(
             contentAlignment = Alignment.Center,
           ) {
             Text(
-                stringResource(Res.string.noUsagePatternData),
+              stringResource(Res.string.noUsagePatternData),
               style = MaterialTheme.typography.bodySmall,
               color = colors.muted,
             )
@@ -156,14 +158,20 @@ private fun PatternHintPill(
 ) {
   androidx.compose.material3.Surface(
     modifier = modifier,
-    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+    shape =
+      androidx.compose.foundation.shape
+        .RoundedCornerShape(12.dp),
     color = tint.copy(alpha = 0.12f),
   ) {
     Column(
       modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
       Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
-      Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+      Text(
+        value,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+      )
     }
   }
 }

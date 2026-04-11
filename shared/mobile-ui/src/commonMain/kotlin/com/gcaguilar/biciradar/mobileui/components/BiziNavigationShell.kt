@@ -10,7 +10,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.gcaguilar.biciradar.mobileui.BiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -42,9 +41,10 @@ internal fun BiziNavigationShell(
   }
 
   Row(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(pageBackgroundColor(mobilePlatform)),
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .background(pageBackgroundColor(mobilePlatform)),
   ) {
     MobileNavigationRail(
       mobilePlatform = mobilePlatform,
@@ -52,9 +52,10 @@ internal fun BiziNavigationShell(
     )
     VerticalDivider(color = LocalBiziColors.current.panel)
     Box(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight(),
+      modifier =
+        Modifier
+          .weight(1f)
+          .fillMaxHeight(),
     ) {
       content(PaddingValues())
     }

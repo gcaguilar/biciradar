@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 internal class SettingsAggregationUseCase(
   private val settingsRepository: SettingsRepository,
 ) {
-
   // region Onboarding State
 
   /**
@@ -27,31 +26,24 @@ internal class SettingsAggregationUseCase(
   /**
    * Checks if onboarding is completed based on settings.
    */
-  fun isOnboardingCompleted(): Boolean {
-    return settingsRepository.hasCompletedOnboarding.value ||
+  fun isOnboardingCompleted(): Boolean =
+    settingsRepository.hasCompletedOnboarding.value ||
       settingsRepository.onboardingChecklist.value.isCompleted()
-  }
 
   /**
    * Determines if settings should display the onboarding setup section.
    */
-  fun shouldShowProfileSetupSection(checklist: OnboardingChecklistSnapshot): Boolean {
-    return !checklist.isCompleted()
-  }
+  fun shouldShowProfileSetupSection(checklist: OnboardingChecklistSnapshot): Boolean = !checklist.isCompleted()
 
   /**
    * Gets the current onboarding checklist state.
    */
-  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot {
-    return settingsRepository.onboardingChecklist.value
-  }
+  fun currentOnboardingChecklist(): OnboardingChecklistSnapshot = settingsRepository.onboardingChecklist.value
 
   /**
    * Updates the onboarding checklist with the given transform.
    */
-  suspend fun updateOnboardingChecklist(
-    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
-  ) {
+  suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
     settingsRepository.updateOnboardingChecklist(transform)
   }
 
@@ -62,9 +54,7 @@ internal class SettingsAggregationUseCase(
   /**
    * Gets the current last seen changelog app version.
    */
-  fun currentLastSeenChangelogAppVersion(): String? {
-    return settingsRepository.currentLastSeenChangelogAppVersion()
-  }
+  fun currentLastSeenChangelogAppVersion(): String? = settingsRepository.currentLastSeenChangelogAppVersion()
 
   /**
    * Marks the changelog as seen for the given version.

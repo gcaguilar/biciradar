@@ -26,7 +26,9 @@ import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-private enum class MobileTab(val labelKey: StringResource) {
+private enum class MobileTab(
+  val labelKey: StringResource,
+) {
   Cerca(Res.string.nearby),
   Mapa(Res.string.map),
   Favoritos(Res.string.favorites),
@@ -34,13 +36,14 @@ private enum class MobileTab(val labelKey: StringResource) {
   Perfil(Res.string.settings),
 }
 
-private val MobileTabs = listOf(
-  MobileTab.Cerca,
-  MobileTab.Mapa,
-  MobileTab.Favoritos,
-  MobileTab.Viaje,
-  MobileTab.Perfil,
-)
+private val MobileTabs =
+  listOf(
+    MobileTab.Cerca,
+    MobileTab.Mapa,
+    MobileTab.Favoritos,
+    MobileTab.Viaje,
+    MobileTab.Perfil,
+  )
 
 @Composable
 fun BiziBottomBar(
@@ -52,11 +55,12 @@ fun BiziBottomBar(
   val currentRoute = navBackStackEntry?.destination?.route
   NavigationBar(
     modifier = modifier,
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      LocalBiziColors.current.navBarIos
-    } else {
-      LocalBiziColors.current.navBar
-    },
+    containerColor =
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        LocalBiziColors.current.navBarIos
+      } else {
+        LocalBiziColors.current.navBar
+      },
   ) {
     MobileTabs.forEach { tab ->
       val screen = tab.screen()
@@ -75,18 +79,20 @@ fun BiziBottomBar(
   }
 }
 
-private fun MobileTab.screen(): Screen = when (this) {
-  MobileTab.Cerca -> Screen.Nearby
-  MobileTab.Mapa -> Screen.Map
-  MobileTab.Favoritos -> Screen.Favorites
-  MobileTab.Viaje -> Screen.Trip()
-  MobileTab.Perfil -> Screen.Profile
-}
+private fun MobileTab.screen(): Screen =
+  when (this) {
+    MobileTab.Cerca -> Screen.Nearby
+    MobileTab.Mapa -> Screen.Map
+    MobileTab.Favoritos -> Screen.Favorites
+    MobileTab.Viaje -> Screen.Trip()
+    MobileTab.Perfil -> Screen.Profile
+  }
 
-private fun MobileTab.icon() = when (this) {
-  MobileTab.Cerca -> Icons.AutoMirrored.Filled.DirectionsBike
-  MobileTab.Mapa -> Icons.Filled.Map
-  MobileTab.Favoritos -> Icons.Filled.Favorite
-  MobileTab.Viaje -> Icons.Filled.Directions
-  MobileTab.Perfil -> Icons.Filled.Tune
-}
+private fun MobileTab.icon() =
+  when (this) {
+    MobileTab.Cerca -> Icons.AutoMirrored.Filled.DirectionsBike
+    MobileTab.Mapa -> Icons.Filled.Map
+    MobileTab.Favoritos -> Icons.Filled.Favorite
+    MobileTab.Viaje -> Icons.Filled.Directions
+    MobileTab.Perfil -> Icons.Filled.Tune
+  }

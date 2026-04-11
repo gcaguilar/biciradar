@@ -15,6 +15,7 @@ import kotlin.math.sqrt
 
 interface BiziApi {
   suspend fun fetchStations(origin: GeoPoint): List<Station>
+
   suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability>
 }
 
@@ -46,71 +47,91 @@ class GbfsBiziApi(
 
   override suspend fun fetchStations(origin: GeoPoint): List<Station> {
     val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-    val stationInfoUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_information" }?.url
-      ?: error("No station_information feed found")
-    val stationStatusUrl = discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
-      ?: error("No station_status feed found")
+    val stationInfoUrl =
+      discovery.data.en.feeds
+        .firstOrNull { it.name == "station_information" }
+        ?.url
+        ?: error("No station_information feed found")
+    val stationStatusUrl =
+      discovery.data.en.feeds
+        .firstOrNull { it.name == "station_status" }
+        ?.url
+        ?: error("No station_status feed found")
 
     val stationInfo = httpClient.get(stationInfoUrl).body<GbfsStationInfoEnvelope>()
     val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
 
     val statusById = stationStatus.data.stations.associateBy { it.stationId }
 
-    return stationInfo.data.stations.mapNotNull { info ->
-      val status = statusById[info.stationId] ?: return@mapNotNull null
-      val location = GeoPoint(info.latitude, info.longitude)
+    return stationInfo.data.stations
+      .mapNotNull { info ->
+        val status = statusById[info.stationId] ?: return@mapNotNull null
+        val location = GeoPoint(info.latitude, info.longitude)
 
-      val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
-      val ebikesCount = vehicleTypes
-        .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-        .sumOf { it.count }
-      val regularBikesCount = vehicleTypes
-        .filter { it.vehicleTypeId.contains("bike", ignoreCase = true) && !it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-        .sumOf { it.count }
+        val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
+        val ebikesCount =
+          vehicleTypes
+            .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+            .sumOf { it.count }
+        val regularBikesCount =
+          vehicleTypes
+            .filter {
+              it.vehicleTypeId.contains("bike", ignoreCase = true) &&
+                !it.vehicleTypeId.contains("ebike", ignoreCase = true)
+            }.sumOf { it.count }
 
-      Station(
-        id = info.stationId,
-        name = info.name,
-        address = info.address ?: info.name,
-        location = location,
-        bikesAvailable = status.numBikesAvailable,
-        slotsFree = status.numDocksAvailable,
-        distanceMeters = distanceBetween(origin, location),
-        sourceLabel = "GBFS",
-        ebikesAvailable = ebikesCount,
-        regularBikesAvailable = regularBikesCount,
-      )
-    }.sortedBy(Station::distanceMeters)
+        Station(
+          id = info.stationId,
+          name = info.name,
+          address = info.address ?: info.name,
+          location = location,
+          bikesAvailable = status.numBikesAvailable,
+          slotsFree = status.numDocksAvailable,
+          distanceMeters = distanceBetween(origin, location),
+          sourceLabel = "GBFS",
+          ebikesAvailable = ebikesCount,
+          regularBikesAvailable = regularBikesCount,
+        )
+      }.sortedBy(Station::distanceMeters)
   }
 
   override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
-    val stationStatusUrl = runCatching {
-      val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-      discovery.data.en.feeds.firstOrNull { it.name == "station_status" }?.url
-    }.getOrNull() ?: return emptyMap()
+    val stationStatusUrl =
+      runCatching {
+        val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+        discovery.data.en.feeds
+          .firstOrNull { it.name == "station_status" }
+          ?.url
+      }.getOrNull() ?: return emptyMap()
 
     return try {
       val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
       val statusById = stationStatus.data.stations.associateBy { it.stationId }
 
-      stationIds.mapNotNull { id ->
-        val status = statusById[id] ?: return@mapNotNull null
+      stationIds
+        .mapNotNull { id ->
+          val status = statusById[id] ?: return@mapNotNull null
 
-        val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
-        val ebikesCount = vehicleTypes
-          .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-          .sumOf { it.count }
-        val regularBikesCount = vehicleTypes
-          .filter { it.vehicleTypeId.contains("bike", ignoreCase = true) && !it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-          .sumOf { it.count }
+          val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
+          val ebikesCount =
+            vehicleTypes
+              .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
+              .sumOf { it.count }
+          val regularBikesCount =
+            vehicleTypes
+              .filter {
+                it.vehicleTypeId.contains("bike", ignoreCase = true) &&
+                  !it.vehicleTypeId.contains("ebike", ignoreCase = true)
+              }.sumOf { it.count }
 
-        id to StationAvailability(
-          bikesAvailable = status.numBikesAvailable,
-          slotsFree = status.numDocksAvailable,
-          ebikesAvailable = ebikesCount,
-          regularBikesAvailable = regularBikesCount,
-        )
-      }.toMap()
+          id to
+            StationAvailability(
+              bikesAvailable = status.numBikesAvailable,
+              slotsFree = status.numDocksAvailable,
+              ebikesAvailable = ebikesCount,
+              regularBikesAvailable = regularBikesCount,
+            )
+        }.toMap()
     } catch (e: Exception) {
       emptyMap()
     }
@@ -121,38 +142,44 @@ class CityBikesBiziApi(
   private val httpClient: HttpClient,
   private val configuration: AppConfiguration,
 ) : BiziApi {
-  override suspend fun fetchStations(origin: GeoPoint): List<Station> {
-    return runCatching {
+  override suspend fun fetchStations(origin: GeoPoint): List<Station> =
+    runCatching {
       fetchOfficialStations(origin)
     }.getOrElse {
       fetchFallbackStations(origin)
     }
-  }
 
-  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
-    return stationIds.mapNotNull { id ->
-      runCatching {
-        val station = httpClient.get(configuration.stationAvailabilityUrl(id))
-          .body<ZaragozaStation>()
-        id to StationAvailability(
-          bikesAvailable = station.bikesAvailable,
-          slotsFree = station.slotsFree,
-        )
-      }.getOrNull()
-    }.toMap()
-  }
+  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> =
+    stationIds
+      .mapNotNull { id ->
+        runCatching {
+          val station =
+            httpClient
+              .get(configuration.stationAvailabilityUrl(id))
+              .body<ZaragozaStation>()
+          id to
+            StationAvailability(
+              bikesAvailable = station.bikesAvailable,
+              slotsFree = station.slotsFree,
+            )
+        }.getOrNull()
+      }.toMap()
 
   private suspend fun fetchOfficialStations(origin: GeoPoint): List<Station> {
     val pageSize = 100
-    val firstPage = httpClient.get(configuration.stationsApiUrl(start = 0, rows = pageSize))
-      .body<ZaragozaStationsEnvelope>()
+    val firstPage =
+      httpClient
+        .get(configuration.stationsApiUrl(start = 0, rows = pageSize))
+        .body<ZaragozaStationsEnvelope>()
     val totalCount = firstPage.totalCount ?: firstPage.result.size
     val allRawStations = firstPage.result.toMutableList()
 
     var start = pageSize
     while (allRawStations.size < totalCount) {
-      val page = httpClient.get(configuration.stationsApiUrl(start = start, rows = pageSize))
-        .body<ZaragozaStationsEnvelope>()
+      val page =
+        httpClient
+          .get(configuration.stationsApiUrl(start = start, rows = pageSize))
+          .body<ZaragozaStationsEnvelope>()
       if (page.result.isEmpty()) break
       allRawStations += page.result
       start += pageSize
@@ -162,8 +189,7 @@ class CityBikesBiziApi(
       .asSequence()
       .filter { station ->
         station.geometry.coordinates.size >= 2 && station.status.equals("IN_SERVICE", ignoreCase = true)
-      }
-      .map { station ->
+      }.map { station ->
         val latitude = station.geometry.coordinates[1]
         val longitude = station.geometry.coordinates[0]
         val location = GeoPoint(latitude, longitude)
@@ -177,8 +203,7 @@ class CityBikesBiziApi(
           distanceMeters = distanceBetween(origin, location),
           sourceLabel = "Ayuntamiento de Zaragoza",
         )
-      }
-      .sortedBy(Station::distanceMeters)
+      }.sortedBy(Station::distanceMeters)
       .toList()
       .takeIf { it.isNotEmpty() }
       ?: error("Official Zaragoza Bizi feed returned no stations.")
@@ -191,7 +216,11 @@ class CityBikesBiziApi(
       Station(
         id = station.id ?: station.name,
         name = station.name,
-        address = station.extra?.address.orEmpty().ifBlank { station.name },
+        address =
+          station.extra
+            ?.address
+            .orEmpty()
+            .ifBlank { station.name },
         location = location,
         bikesAvailable = station.freeBikes ?: 0,
         slotsFree = station.emptySlots ?: 0,
@@ -202,13 +231,17 @@ class CityBikesBiziApi(
   }
 }
 
-fun distanceBetween(origin: GeoPoint, destination: GeoPoint): Int {
+fun distanceBetween(
+  origin: GeoPoint,
+  destination: GeoPoint,
+): Int {
   val earthRadiusMeters = 6_371_000.0
   val latitudeDelta = (destination.latitude - origin.latitude).toRadians()
   val longitudeDelta = (destination.longitude - origin.longitude).toRadians()
-  val a = sin(latitudeDelta / 2).pow(2) +
-    cos(origin.latitude.toRadians()) * cos(destination.latitude.toRadians()) *
-    sin(longitudeDelta / 2).pow(2)
+  val a =
+    sin(latitudeDelta / 2).pow(2) +
+      cos(origin.latitude.toRadians()) * cos(destination.latitude.toRadians()) *
+      sin(longitudeDelta / 2).pow(2)
   val c = 2 * asin(sqrt(a))
   return (earthRadiusMeters * c).roundToInt()
 }

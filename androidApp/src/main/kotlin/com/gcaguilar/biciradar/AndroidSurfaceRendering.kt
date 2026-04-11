@@ -24,17 +24,19 @@ internal data class AndroidCommutePlaceState(
   val stationId: String? = null,
 )
 
-internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState = when {
-  snapshot.favoriteStation == null && snapshot.hasFavoriteStation == false -> AndroidWidgetEmptyState.ConfigureFavorite
-  snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
-  else -> AndroidWidgetEmptyState.DataUnavailable
-}
+internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState =
+  when {
+    snapshot.favoriteStation == null && snapshot.hasFavoriteStation == false -> AndroidWidgetEmptyState.ConfigureFavorite
+    snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
+    else -> AndroidWidgetEmptyState.DataUnavailable
+  }
 
-internal fun nearbyWidgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState = when {
-  snapshot.hasLocationPermission == false -> AndroidWidgetEmptyState.NoLocationPermission
-  snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
-  else -> AndroidWidgetEmptyState.DataUnavailable
-}
+internal fun nearbyWidgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState =
+  when {
+    snapshot.hasLocationPermission == false -> AndroidWidgetEmptyState.NoLocationPermission
+    snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
+    else -> AndroidWidgetEmptyState.DataUnavailable
+  }
 
 internal fun widgetEmptyMessage(
   state: AndroidWidgetEmptyState,
@@ -42,24 +44,27 @@ internal fun widgetEmptyMessage(
   noLocationPermission: String,
   openAppToRefresh: String,
   dataUnavailable: String,
-): String = when (state) {
-  AndroidWidgetEmptyState.ConfigureFavorite -> configureFavorite
-  AndroidWidgetEmptyState.NoLocationPermission -> noLocationPermission
-  AndroidWidgetEmptyState.OpenAppToRefresh -> openAppToRefresh
-  AndroidWidgetEmptyState.DataUnavailable -> dataUnavailable
-}
-
-internal fun nearbyStationMeta(station: AndroidSurfaceNearbyStation): String = buildString {
-  append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
-  station.distanceMeters?.let { append(" · ${formatDistance(it)}") }
-}
-
-internal fun savedPlaceMeta(station: AndroidSurfaceSavedPlaceStation): String = buildString {
-  append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
-  if (station.statusText.isNotBlank()) {
-    append(" · ${station.statusText}")
+): String =
+  when (state) {
+    AndroidWidgetEmptyState.ConfigureFavorite -> configureFavorite
+    AndroidWidgetEmptyState.NoLocationPermission -> noLocationPermission
+    AndroidWidgetEmptyState.OpenAppToRefresh -> openAppToRefresh
+    AndroidWidgetEmptyState.DataUnavailable -> dataUnavailable
   }
-}
+
+internal fun nearbyStationMeta(station: AndroidSurfaceNearbyStation): String =
+  buildString {
+    append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
+    station.distanceMeters?.let { append(" · ${formatDistance(it)}") }
+  }
+
+internal fun savedPlaceMeta(station: AndroidSurfaceSavedPlaceStation): String =
+  buildString {
+    append("${station.bikesAvailable} bicis · ${station.docksAvailable} huecos")
+    if (station.statusText.isNotBlank()) {
+      append(" · ${station.statusText}")
+    }
+  }
 
 internal fun commutePlaceState(
   label: String,
@@ -68,20 +73,21 @@ internal fun commutePlaceState(
   configureSavedPlaces: String,
   openAppToRefresh: String,
   missingTitle: String,
-): AndroidCommutePlaceState = if (station != null) {
-  AndroidCommutePlaceState(
-    label = label,
-    title = station.name,
-    meta = savedPlaceMeta(station),
-    stationId = station.id,
-  )
-} else {
-  AndroidCommutePlaceState(
-    label = label,
-    title = missingTitle,
-    meta = if (snapshot.isDataFresh == false) openAppToRefresh else configureSavedPlaces,
-  )
-}
+): AndroidCommutePlaceState =
+  if (station != null) {
+    AndroidCommutePlaceState(
+      label = label,
+      title = station.name,
+      meta = savedPlaceMeta(station),
+      stationId = station.id,
+    )
+  } else {
+    AndroidCommutePlaceState(
+      label = label,
+      title = missingTitle,
+      meta = if (snapshot.isDataFresh == false) openAppToRefresh else configureSavedPlaces,
+    )
+  }
 
 internal fun quickActionsState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidQuickActionsState {
   val favoriteStationId = snapshot.favoriteStation?.id
@@ -100,38 +106,42 @@ internal fun quickActionsState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidQ
   }
 }
 
-internal fun monitoringNotificationTitle(session: SurfaceMonitoringSession): String = when (session.status) {
-  SurfaceMonitoringStatus.Monitoring -> session.stationName
-  SurfaceMonitoringStatus.ChangedToEmpty -> "${session.stationName} sin bicis"
-  SurfaceMonitoringStatus.ChangedToFull -> "${session.stationName} sin huecos"
-  SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa para ${session.stationName}"
-  SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
-  SurfaceMonitoringStatus.Expired -> "Monitorizacion finalizada"
-}
+internal fun monitoringNotificationTitle(session: SurfaceMonitoringSession): String =
+  when (session.status) {
+    SurfaceMonitoringStatus.Monitoring -> session.stationName
+    SurfaceMonitoringStatus.ChangedToEmpty -> "${session.stationName} sin bicis"
+    SurfaceMonitoringStatus.ChangedToFull -> "${session.stationName} sin huecos"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa para ${session.stationName}"
+    SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
+    SurfaceMonitoringStatus.Expired -> "Monitorizacion finalizada"
+  }
 
 internal fun monitoringNotificationBody(
   session: SurfaceMonitoringSession,
   remainingSeconds: Int,
-): String = when (session.status) {
-  SurfaceMonitoringStatus.Ended -> "${session.stationName} · Finalizada por el usuario"
-  SurfaceMonitoringStatus.Expired -> "${session.stationName} · Tiempo agotado"
-  else -> listOfNotNull(
-    monitoringNotificationStatusText(session),
-    "${session.bikesAvailable} bicis",
-    "${session.docksAvailable} huecos",
-    monitoringNotificationTimeText(remainingSeconds),
-    monitoringNotificationAlternativeText(session),
-  ).joinToString(" · ")
-}
+): String =
+  when (session.status) {
+    SurfaceMonitoringStatus.Ended -> "${session.stationName} · Finalizada por el usuario"
+    SurfaceMonitoringStatus.Expired -> "${session.stationName} · Tiempo agotado"
+    else ->
+      listOfNotNull(
+        monitoringNotificationStatusText(session),
+        "${session.bikesAvailable} bicis",
+        "${session.docksAvailable} huecos",
+        monitoringNotificationTimeText(remainingSeconds),
+        monitoringNotificationAlternativeText(session),
+      ).joinToString(" · ")
+  }
 
-private fun monitoringNotificationStatusText(session: SurfaceMonitoringSession): String = when (session.status) {
-  SurfaceMonitoringStatus.Monitoring -> "Monitorizando"
-  SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
-  SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
-  SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
-  SurfaceMonitoringStatus.Ended -> "Finalizada"
-  SurfaceMonitoringStatus.Expired -> "Finalizada"
-}
+private fun monitoringNotificationStatusText(session: SurfaceMonitoringSession): String =
+  when (session.status) {
+    SurfaceMonitoringStatus.Monitoring -> "Monitorizando"
+    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
+    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
+    SurfaceMonitoringStatus.Ended -> "Finalizada"
+    SurfaceMonitoringStatus.Expired -> "Finalizada"
+  }
 
 private fun monitoringNotificationTimeText(remainingSeconds: Int): String {
   val minutes = remainingSeconds / 60

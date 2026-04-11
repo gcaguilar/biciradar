@@ -63,16 +63,17 @@ class GuidedOnboardingFlowTest {
 
   @Test
   fun `guided onboarding reports completed when every step is done`() {
-    val checklist = OnboardingChecklistSnapshot(
-      cityConfirmed = true,
-      featureHighlightsSeen = true,
-      locationDecisionMade = true,
-      notificationsDecisionMade = true,
-      firstStationSaved = true,
-      savedPlacesConfigured = true,
-      surfacesDiscovered = true,
-      completedAtEpoch = 123L,
-    )
+    val checklist =
+      OnboardingChecklistSnapshot(
+        cityConfirmed = true,
+        featureHighlightsSeen = true,
+        locationDecisionMade = true,
+        notificationsDecisionMade = true,
+        firstStationSaved = true,
+        savedPlacesConfigured = true,
+        surfacesDiscovered = true,
+        completedAtEpoch = 123L,
+      )
 
     assertEquals(GuidedOnboardingStep.Completed, checklist.guidedOnboardingStep())
   }

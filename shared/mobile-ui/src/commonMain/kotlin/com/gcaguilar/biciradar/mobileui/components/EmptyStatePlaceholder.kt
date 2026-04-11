@@ -18,30 +18,35 @@ import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 
 @Composable
 internal fun EmptyStatePlaceholder(
-    title: String,
-    description: String,
-    primaryAction: String? = null,
-    onPrimaryAction: (() -> Unit)? = null,
+  title: String,
+  description: String,
+  primaryAction: String? = null,
+  onPrimaryAction: (() -> Unit)? = null,
 ) {
-    val c = LocalBiziColors.current
-    Card(
-        modifier = Modifier.animateContentSize(animationSpec = androidx.compose.animation.core.spring(dampingRatio = 0.9f, stiffness = 500f)),
-        colors = CardDefaults.cardColors(containerColor = c.surface),
+  val c = LocalBiziColors.current
+  Card(
+    modifier =
+      Modifier.animateContentSize(
+        animationSpec =
+          androidx.compose.animation.core
+            .spring(dampingRatio = 0.9f, stiffness = 500f),
+      ),
+    colors = CardDefaults.cardColors(containerColor = c.surface),
+  ) {
+    Column(
+      modifier = Modifier.padding(18.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+      Text(title, fontWeight = FontWeight.SemiBold, color = c.ink)
+      Text(description, style = MaterialTheme.typography.bodySmall, color = c.muted)
+      if (primaryAction != null && onPrimaryAction != null) {
+        OutlinedButton(
+          onClick = onPrimaryAction,
+          colors = ButtonDefaults.outlinedButtonColors(contentColor = c.red),
         ) {
-            Text(title, fontWeight = FontWeight.SemiBold, color = c.ink)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = c.muted)
-            if (primaryAction != null && onPrimaryAction != null) {
-                OutlinedButton(
-                    onClick = onPrimaryAction,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = c.red),
-                ) {
-                    Text(primaryAction)
-                }
-            }
+          Text(primaryAction)
         }
+      }
     }
+  }
 }

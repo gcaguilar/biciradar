@@ -12,8 +12,8 @@ const val STATION_CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
 class StationCacheStore(
   private val database: BiciRadarDatabase,
 ) {
-  fun loadStations(cityId: String): List<StationEntity>? {
-    return try {
+  fun loadStations(cityId: String): List<StationEntity>? =
+    try {
       val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
         database.biciradarQueries.getAllStations().executeAsList().map { row ->
@@ -36,10 +36,9 @@ class StationCacheStore(
     } catch (_: Exception) {
       null
     }
-  }
 
-  fun isFresh(cityId: String): Boolean {
-    return try {
+  fun isFresh(cityId: String): Boolean =
+    try {
       val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
         val elapsed = currentTimeMs() - metadata.last_updated
@@ -50,19 +49,22 @@ class StationCacheStore(
     } catch (_: Exception) {
       false
     }
-  }
 
-  fun lastUpdated(cityId: String): Long? {
-    return try {
-      database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
+  fun lastUpdated(cityId: String): Long? =
+    try {
+      database.biciradarQueries
+        .getCacheMetadata()
+        .executeAsOneOrNull()
         ?.takeIf { it.city_id == cityId }
         ?.last_updated
     } catch (_: Exception) {
       null
     }
-  }
 
-  fun updateAvailability(availability: Map<String, Pair<Int, Int>>, refreshedAt: Long) {
+  fun updateAvailability(
+    availability: Map<String, Pair<Int, Int>>,
+    refreshedAt: Long,
+  ) {
     if (availability.isEmpty()) return
     try {
       database.transaction {
@@ -80,7 +82,10 @@ class StationCacheStore(
     }
   }
 
-  fun save(cityId: String, stations: List<Station>) {
+  fun save(
+    cityId: String,
+    stations: List<Station>,
+  ) {
     try {
       database.transaction {
         database.biciradarQueries.deleteAllStations()
@@ -121,7 +126,10 @@ class StationCacheStore(
   }
 
   companion object {
-    fun clearCacheForCityChange(database: BiciRadarDatabase, newCityId: String) {
+    fun clearCacheForCityChange(
+      database: BiciRadarDatabase,
+      newCityId: String,
+    ) {
       try {
         val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
         if (metadata?.city_id != newCityId) {

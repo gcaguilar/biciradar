@@ -24,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.TripMonitoringState
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import org.jetbrains.compose.resources.stringResource
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActive
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.remainingTime
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActiveDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.remainingTime
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stopMonitoring
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun TripMonitoringActiveCard(
@@ -71,7 +71,10 @@ internal fun TripMonitoringActiveCard(
         )
       }
       Text(
-        stringResource(Res.string.remainingTime, "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"),
+        stringResource(
+          Res.string.remainingTime,
+          "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
+        ),
         style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
       )

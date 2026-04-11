@@ -42,108 +42,118 @@ class NearbyViewModelTest {
   }
 
   @Test
-  fun `ui state consolidates stations favorites radius and freshness from runtime collectors`() = runTest(dispatcher) {
-    val stationsRepository = NearbyTestStationsRepository()
-    val favoritesRepository = NearbyTestFavoritesRepository()
-    val settingsRepository = NearbyTestSettingsRepository()
-    val viewModel = NearbyViewModel(
-      stationsRepository = stationsRepository,
-      favoritesRepository = favoritesRepository,
-      settingsRepository = settingsRepository,
-      routeLauncher = NearbyNoOpRouteLauncher,
-    )
+  fun `ui state consolidates stations favorites radius and freshness from runtime collectors`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val favoritesRepository = NearbyTestFavoritesRepository()
+      val settingsRepository = NearbyTestSettingsRepository()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = favoritesRepository,
+          settingsRepository = settingsRepository,
+          routeLauncher = NearbyNoOpRouteLauncher,
+        )
 
-    val station = nearbyStation(id = "s1", distanceMeters = 150)
-    stationsRepository.state.value = StationsState(
-      stations = listOf(station),
-      isLoading = false,
-      errorMessage = null,
-      freshness = DataFreshness.StaleUsable,
-      lastUpdatedEpoch = 1234L,
-    )
-    favoritesRepository.favoriteIds.value = setOf("s1")
-    settingsRepository.searchRadiusMeters.value = 300
+      val station = nearbyStation(id = "s1", distanceMeters = 150)
+      stationsRepository.state.value =
+        StationsState(
+          stations = listOf(station),
+          isLoading = false,
+          errorMessage = null,
+          freshness = DataFreshness.StaleUsable,
+          lastUpdatedEpoch = 1234L,
+        )
+      favoritesRepository.favoriteIds.value = setOf("s1")
+      settingsRepository.searchRadiusMeters.value = 300
 
-    viewModel.uiState.test {
-      skipItems(1)
-      runCurrent()
-      val state = awaitItem()
-      assertEquals(listOf(station), state.stations)
-      assertEquals(setOf("s1"), state.favoriteIds)
-      assertEquals(300, state.searchRadiusMeters)
-      assertEquals(300, state.nearestSelection.radiusMeters)
-      assertEquals("s1", state.nearestSelection.withinRadiusStation?.id)
-      assertEquals(DataFreshness.StaleUsable, state.dataFreshness)
-      assertEquals(1234L, state.lastUpdatedEpoch)
-      cancelAndIgnoreRemainingEvents()
+      viewModel.uiState.test {
+        skipItems(1)
+        runCurrent()
+        val state = awaitItem()
+        assertEquals(listOf(station), state.stations)
+        assertEquals(setOf("s1"), state.favoriteIds)
+        assertEquals(300, state.searchRadiusMeters)
+        assertEquals(300, state.nearestSelection.radiusMeters)
+        assertEquals("s1", state.nearestSelection.withinRadiusStation?.id)
+        assertEquals(DataFreshness.StaleUsable, state.dataFreshness)
+        assertEquals(1234L, state.lastUpdatedEpoch)
+        cancelAndIgnoreRemainingEvents()
+      }
     }
-  }
 
   @Test
-  fun `public actions delegate to repositories and route launcher`() = runTest(dispatcher) {
-    val stationsRepository = NearbyTestStationsRepository()
-    val favoritesRepository = NearbyTestFavoritesRepository()
-    val settingsRepository = NearbyTestSettingsRepository()
-    val routeLauncher = NearbyRecordingRouteLauncher()
-    val viewModel = NearbyViewModel(
-      stationsRepository = stationsRepository,
-      favoritesRepository = favoritesRepository,
-      settingsRepository = settingsRepository,
-      routeLauncher = routeLauncher,
-    )
-    val station = nearbyStation(id = "station-route", distanceMeters = 250)
+  fun `public actions delegate to repositories and route launcher`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val favoritesRepository = NearbyTestFavoritesRepository()
+      val settingsRepository = NearbyTestSettingsRepository()
+      val routeLauncher = NearbyRecordingRouteLauncher()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = favoritesRepository,
+          settingsRepository = settingsRepository,
+          routeLauncher = routeLauncher,
+        )
+      val station = nearbyStation(id = "station-route", distanceMeters = 250)
 
-    viewModel.onRetry()
-    viewModel.onRefresh()
-    viewModel.onFavoriteToggle(station)
-    viewModel.onQuickRoute(station)
-    runCurrent()
+      viewModel.onRetry()
+      viewModel.onRefresh()
+      viewModel.onFavoriteToggle(station)
+      viewModel.onQuickRoute(station)
+      runCurrent()
 
-    assertEquals(1, stationsRepository.loadIfNeededCalls)
-    assertEquals(1, stationsRepository.forceRefreshCalls)
-    assertEquals(listOf("station-route"), favoritesRepository.toggledIds)
-    assertEquals("station-route", routeLauncher.lastStationId)
-  }
-
-  @Test
-  fun `setActive triggers load when stations list is empty`() = runTest(dispatcher) {
-    val stationsRepository = NearbyTestStationsRepository()
-    val viewModel = NearbyViewModel(
-      stationsRepository = stationsRepository,
-      favoritesRepository = NearbyTestFavoritesRepository(),
-      settingsRepository = NearbyTestSettingsRepository(),
-      routeLauncher = NearbyNoOpRouteLauncher,
-    )
-
-    viewModel.setActive(true)
-    runCurrent()
-
-    assertEquals(1, stationsRepository.loadIfNeededCalls)
-    viewModel.setActive(false)
-    runCurrent()
-  }
+      assertEquals(1, stationsRepository.loadIfNeededCalls)
+      assertEquals(1, stationsRepository.forceRefreshCalls)
+      assertEquals(listOf("station-route"), favoritesRepository.toggledIds)
+      assertEquals("station-route", routeLauncher.lastStationId)
+    }
 
   @Test
-  fun `setActive does not load when stations already available`() = runTest(dispatcher) {
-    val stationsRepository = NearbyTestStationsRepository()
-    val viewModel = NearbyViewModel(
-      stationsRepository = stationsRepository,
-      favoritesRepository = NearbyTestFavoritesRepository(),
-      settingsRepository = NearbyTestSettingsRepository(),
-      routeLauncher = NearbyNoOpRouteLauncher,
-    )
-    stationsRepository.state.value = StationsState(
-      stations = listOf(nearbyStation(id = "s1", distanceMeters = 100)),
-      isLoading = false,
-    )
+  fun `setActive triggers load when stations list is empty`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = NearbyTestFavoritesRepository(),
+          settingsRepository = NearbyTestSettingsRepository(),
+          routeLauncher = NearbyNoOpRouteLauncher,
+        )
 
-    viewModel.setActive(true)
-    runCurrent()
+      viewModel.setActive(true)
+      runCurrent()
 
-    assertEquals(0, stationsRepository.loadIfNeededCalls)
-    viewModel.setActive(false)
-    runCurrent()
-  }
+      assertEquals(1, stationsRepository.loadIfNeededCalls)
+      viewModel.setActive(false)
+      runCurrent()
+    }
+
+  @Test
+  fun `setActive does not load when stations already available`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = NearbyTestFavoritesRepository(),
+          settingsRepository = NearbyTestSettingsRepository(),
+          routeLauncher = NearbyNoOpRouteLauncher,
+        )
+      stationsRepository.state.value =
+        StationsState(
+          stations = listOf(nearbyStation(id = "s1", distanceMeters = 100)),
+          isLoading = false,
+        )
+
+      viewModel.setActive(true)
+      runCurrent()
+
+      assertEquals(0, stationsRepository.loadIfNeededCalls)
+      viewModel.setActive(false)
+      runCurrent()
+    }
 }
 
 private class NearbyTestStationsRepository : StationsRepository {
@@ -160,6 +170,7 @@ private class NearbyTestStationsRepository : StationsRepository {
   }
 
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = state.value.stations.firstOrNull { it.id == stationId }
 }
 
@@ -170,15 +181,23 @@ private class NearbyTestFavoritesRepository : FavoritesRepository {
   val toggledIds = mutableListOf<String>()
 
   override suspend fun bootstrap() = Unit
+
   override suspend fun syncFromPeer() = Unit
+
   override suspend fun toggle(stationId: String) {
     toggledIds += stationId
   }
+
   override suspend fun setHomeStationId(stationId: String?) = Unit
+
   override suspend fun setWorkStationId(stationId: String?) = Unit
+
   override suspend fun clearAll() = Unit
+
   override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
   override fun currentHomeStationId(): String? = homeStationId.value
+
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
@@ -192,43 +211,68 @@ private class NearbyTestSettingsRepository : SettingsRepository {
   override val hasCompletedOnboarding = MutableStateFlow(true)
   override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot(completedAtEpoch = 1L))
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
+
   override suspend fun bootstrap() = Unit
+
   override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
   override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
   override fun currentSelectedCity(): City = selectedCity.value
+
   override fun currentLastSeenChangelogAppVersion(): String? = lastSeenChangelogAppVersion.value
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
   override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
   override suspend fun setSelectedCity(city: City) = Unit
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
+
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) = Unit
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 }
 
 private class NearbyRecordingRouteLauncher : RouteLauncher {
   var lastStationId: String? = null
+
   override fun launch(station: Station) {
     lastStationId = station.id
   }
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
 
 private object NearbyNoOpRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
 
-private fun nearbyStation(id: String, distanceMeters: Int): Station = Station(
-  id = id,
-  name = "Station $id",
-  address = "Centro",
-  location = GeoPoint(41.65, -0.88),
-  bikesAvailable = 4,
-  slotsFree = 6,
-  distanceMeters = distanceMeters,
-)
+private fun nearbyStation(
+  id: String,
+  distanceMeters: Int,
+): Station =
+  Station(
+    id = id,
+    name = "Station $id",
+    address = "Centro",
+    location = GeoPoint(41.65, -0.88),
+    bikesAvailable = 4,
+    slotsFree = 6,
+    distanceMeters = distanceMeters,
+  )

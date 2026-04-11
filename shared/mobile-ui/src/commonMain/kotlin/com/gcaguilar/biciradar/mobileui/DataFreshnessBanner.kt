@@ -19,8 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.epochMillisForUi
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
@@ -43,52 +43,58 @@ fun DataFreshnessBanner(
       minuteTick++
     }
   }
-  val minutes = remember(lastUpdatedEpoch, minuteTick) {
-    lastUpdatedEpoch?.let { last ->
-      ((epochMillisForUi() - last).coerceAtLeast(0L) / 60_000L).toInt().coerceAtLeast(1)
+  val minutes =
+    remember(lastUpdatedEpoch, minuteTick) {
+      lastUpdatedEpoch?.let { last ->
+        ((epochMillisForUi() - last).coerceAtLeast(0L) / 60_000L).toInt().coerceAtLeast(1)
+      }
     }
-  }
 
-  val (containerColor, textColor, message) = when (freshness) {
-    DataFreshness.Fresh -> {
-      val m = minutes ?: 1
-      Triple(
-        LocalBiziColors.current.surface,
-        LocalBiziColors.current.muted,
-        stringResource(Res.string.dataFreshnessUpdatedMinutes, m),
-      )
+  val (containerColor, textColor, message) =
+    when (freshness) {
+      DataFreshness.Fresh -> {
+        val m = minutes ?: 1
+        Triple(
+          LocalBiziColors.current.surface,
+          LocalBiziColors.current.muted,
+          stringResource(Res.string.dataFreshnessUpdatedMinutes, m),
+        )
+      }
+      DataFreshness.StaleUsable -> {
+        val m = minutes ?: 1
+        Triple(
+          LocalBiziColors.current.orange.copy(alpha = 0.12f),
+          LocalBiziColors.current.orange,
+          stringResource(Res.string.dataFreshnessStale, m),
+        )
+      }
+      DataFreshness.Expired ->
+        Triple(
+          LocalBiziColors.current.red.copy(alpha = 0.1f),
+          LocalBiziColors.current.red,
+          stringResource(Res.string.dataFreshnessExpired),
+        )
+      DataFreshness.Unavailable ->
+        Triple(
+          LocalBiziColors.current.red.copy(alpha = 0.14f),
+          LocalBiziColors.current.red,
+          stringResource(Res.string.dataFreshnessUnavailable),
+        )
     }
-    DataFreshness.StaleUsable -> {
-      val m = minutes ?: 1
-      Triple(
-        LocalBiziColors.current.orange.copy(alpha = 0.12f),
-        LocalBiziColors.current.orange,
-        stringResource(Res.string.dataFreshnessStale, m),
-      )
-    }
-    DataFreshness.Expired -> Triple(
-      LocalBiziColors.current.red.copy(alpha = 0.1f),
-      LocalBiziColors.current.red,
-      stringResource(Res.string.dataFreshnessExpired),
-    )
-    DataFreshness.Unavailable -> Triple(
-      LocalBiziColors.current.red.copy(alpha = 0.14f),
-      LocalBiziColors.current.red,
-      stringResource(Res.string.dataFreshnessUnavailable),
-    )
-  }
 
   Surface(
-    modifier = modifier
-      .fillMaxWidth()
-      .clickable(onClick = onRefresh),
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .clickable(onClick = onRefresh),
     color = containerColor,
     shape = MaterialTheme.shapes.small,
   ) {
     Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 12.dp, vertical = 8.dp),
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 12.dp, vertical = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.Center,
     ) {

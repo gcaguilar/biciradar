@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.ReviewEligibility
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
@@ -95,21 +94,21 @@ internal class AppRootViewModel(
   private val appVersion: String,
   private val clock: () -> Long = ::epochMillisForUi,
 ) : ViewModel() {
-
   private val _uiState = MutableStateFlow(AppRootUiState())
   val uiState: StateFlow<AppRootUiState> = _uiState.asStateFlow()
 
-  private val runtimeState = MutableStateFlow(
-    AppRootRuntimeState(
-      latestStationsState = startupUseCase.stationsState.value,
-      latestFavoriteCount = startupUseCase.favoriteIds.value.size,
-      latestFavoriteIds = startupUseCase.favoriteIds.value,
-      latestHomeStationId = startupUseCase.homeStationId.value,
-      latestWorkStationId = startupUseCase.workStationId.value,
-      latestOnboardingCompleted = startupUseCase.isOnboardingCompleted(),
-      latestOnboardingChecklist = startupUseCase.currentOnboardingChecklist(),
+  private val runtimeState =
+    MutableStateFlow(
+      AppRootRuntimeState(
+        latestStationsState = startupUseCase.stationsState.value,
+        latestFavoriteCount = startupUseCase.favoriteIds.value.size,
+        latestFavoriteIds = startupUseCase.favoriteIds.value,
+        latestHomeStationId = startupUseCase.homeStationId.value,
+        latestWorkStationId = startupUseCase.workStationId.value,
+        latestOnboardingCompleted = startupUseCase.isOnboardingCompleted(),
+        latestOnboardingChecklist = startupUseCase.currentOnboardingChecklist(),
+      ),
     )
-  )
 
   private val refreshJob = MutableStateFlow<Job?>(null)
   private val emptyStateRetryJob = MutableStateFlow<Job?>(null)
@@ -190,22 +189,23 @@ internal class AppRootViewModel(
   fun onSkipOnboarding() {
     viewModelScope.launch {
       startupUseCase.updateOnboardingChecklist {
-        it.copy(
-          featureHighlightsSeen = true,
-          locationDecisionMade = true,
-          notificationsDecisionMade = true,
-          firstStationSaved = true,
-          savedPlacesConfigured = true,
-          surfacesDiscovered = true,
-        ).markCompleted()
+        it
+          .copy(
+            featureHighlightsSeen = true,
+            locationDecisionMade = true,
+            notificationsDecisionMade = true,
+            firstStationSaved = true,
+            savedPlacesConfigured = true,
+            surfacesDiscovered = true,
+          ).markCompleted()
       }
     }
   }
 
   fun onOnboardingSurfacesCompleted() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { 
-        it.copy(surfacesDiscovered = true).markCompleted() 
+      startupUseCase.updateOnboardingChecklist {
+        it.copy(surfacesDiscovered = true).markCompleted()
       }
     }
   }
@@ -275,20 +275,22 @@ internal class AppRootViewModel(
   // ================== PRIVATE ==================
 
   private fun observeRepositories() {
-    val stationsAndFavorites = combine(
-      startupUseCase.stationsState,
-      startupUseCase.favoriteIds,
-      startupUseCase.homeStationId,
-    ) { stationsState, favoriteIds, homeStationId ->
-      Triple(stationsState, favoriteIds, homeStationId)
-    }
-    val onboardingAndWork = combine(
-      startupUseCase.workStationId,
-      startupUseCase.onboardingChecklist,
-      startupUseCase.hasCompletedOnboarding,
-    ) { workStationId, checklist, completed ->
-      Triple(workStationId, checklist, completed)
-    }
+    val stationsAndFavorites =
+      combine(
+        startupUseCase.stationsState,
+        startupUseCase.favoriteIds,
+        startupUseCase.homeStationId,
+      ) { stationsState, favoriteIds, homeStationId ->
+        Triple(stationsState, favoriteIds, homeStationId)
+      }
+    val onboardingAndWork =
+      combine(
+        startupUseCase.workStationId,
+        startupUseCase.onboardingChecklist,
+        startupUseCase.hasCompletedOnboarding,
+      ) { workStationId, checklist, completed ->
+        Triple(workStationId, checklist, completed)
+      }
     combine(stationsAndFavorites, onboardingAndWork) { left, right ->
       val (stationsState, favoriteIds, homeStationId) = left
       val (workStationId, checklist, completed) = right
@@ -366,11 +368,14 @@ internal class AppRootViewModel(
   private fun checkPendingChangelog() {
     val settingsBootstrapped = _uiState.value.settingsBootstrapped
     val isOnboardingComplete = runtimeState.value.latestOnboardingCompleted
-    
+
     if (!settingsBootstrapped) return
 
     val suppression = appLifecycleUseCase.checkChangelogSuppression()
-    if (suppression.suppressed && suppression.shouldMarkCurrentVersionSeen && suppression.currentVersionToMark != null) {
+    if (suppression.suppressed &&
+      suppression.shouldMarkCurrentVersionSeen &&
+      suppression.currentVersionToMark != null
+    ) {
       viewModelScope.launch {
         appLifecycleUseCase.markChangelogSeen(suppression.currentVersionToMark)
       }
@@ -456,11 +461,16 @@ internal class AppRootViewModel(
     val runtime = runtimeState.value
     _uiState.update {
       uiState.copy(
-        startupLaunchReady = uiState.settingsBootstrapped &&
-          uiState.favoritesBootstrapped &&
-          uiState.minimumSplashElapsed &&
-          (uiState.initialLoadAttemptFinished || runtime.latestStationsState.stations.isNotEmpty() || runtime.latestStationsState.errorMessage != null) &&
-          !(runtime.latestStationsState.isLoading && runtime.latestStationsState.stations.isEmpty()),
+        startupLaunchReady =
+          uiState.settingsBootstrapped &&
+            uiState.favoritesBootstrapped &&
+            uiState.minimumSplashElapsed &&
+            (
+              uiState.initialLoadAttemptFinished ||
+                runtime.latestStationsState.stations.isNotEmpty() ||
+                runtime.latestStationsState.errorMessage != null
+            ) &&
+            !(runtime.latestStationsState.isLoading && runtime.latestStationsState.stations.isEmpty()),
       )
     }
   }
@@ -468,10 +478,10 @@ internal class AppRootViewModel(
   private fun maybeRefreshExperiencePrompts() {
     val uiState = _uiState.value
     if (!uiState.settingsBootstrapped || !uiState.startupLaunchReady) return
-    
+
     val isOnboardingCompleted = runtimeState.value.latestOnboardingCompleted
     val dataFreshness = runtimeState.value.latestStationsState.freshness
-    
+
     maybeCheckForUpdates()
     maybeShowFeedbackNudge(isOnboardingCompleted)
     maybeRequestInAppReview(isOnboardingCompleted, dataFreshness)
@@ -490,11 +500,12 @@ internal class AppRootViewModel(
           is UpdateAvailabilityState.Available -> {
             _uiState.update {
               it.copy(
-                topUpdateBanner = TopUpdateBanner.Available(
+                topUpdateBanner =
+                  TopUpdateBanner.Available(
                     version = update.versionName,
                     flexible = update.isFlexibleAllowed,
                     storeUrl = update.storeUrl,
-                )
+                  ),
               )
             }
           }
@@ -511,16 +522,17 @@ internal class AppRootViewModel(
 
   private fun startUpdatePolling() {
     runtimeState.value.updatePollJob?.cancel()
-    val job = viewModelScope.launch {
-      while (true) {
-        delay(3_000)
-        val status = appLifecycleUseCase.checkForUpdate()
-        if (status is UpdateAvailabilityState.Downloaded) {
-          _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(status.versionName)) }
-          break
+    val job =
+      viewModelScope.launch {
+        while (true) {
+          delay(3_000)
+          val status = appLifecycleUseCase.checkForUpdate()
+          if (status is UpdateAvailabilityState.Downloaded) {
+            _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(status.versionName)) }
+            break
+          }
         }
       }
-    }
     runtimeState.update { it.copy(updatePollJob = job) }
   }
 
@@ -532,15 +544,19 @@ internal class AppRootViewModel(
     }
   }
 
-  private fun maybeRequestInAppReview(isOnboardingCompleted: Boolean, dataFreshness: DataFreshness) {
+  private fun maybeRequestInAppReview(
+    isOnboardingCompleted: Boolean,
+    dataFreshness: DataFreshness,
+  ) {
     if (!isOnboardingCompleted) return
     viewModelScope.launch {
-      val eligibility = appLifecycleUseCase.checkReviewEligibility(
-        appVersion = appVersion,
-        onboardingCompleted = isOnboardingCompleted,
-        currentFreshness = dataFreshness,
-        nowEpoch = clock(),
-      )
+      val eligibility =
+        appLifecycleUseCase.checkReviewEligibility(
+          appVersion = appVersion,
+          onboardingCompleted = isOnboardingCompleted,
+          currentFreshness = dataFreshness,
+          nowEpoch = clock(),
+        )
       if (eligibility.isEligible) {
         appLifecycleUseCase.requestInAppReview()
         appLifecycleUseCase.markReviewPrompted(appVersion, clock())
@@ -558,14 +574,15 @@ internal class AppRootViewModel(
     val currentCityConfigured = cityConfigured ?: currentChecklist.cityConfirmed
     val currentRuntime = runtimeState.value
 
-    val resolved = resolveOnboardingPresentationUseCase.execute(
-      OnboardingPresentationInput(
-        checklist = currentChecklist,
-        cityConfigured = currentCityConfigured,
-        suppressGuidedOnboardingForNavigation = currentRuntime.suppressGuidedOnboardingForNavigation,
-        launchSource = currentRuntime.onboardingLaunchSource,
-      ),
-    )
+    val resolved =
+      resolveOnboardingPresentationUseCase.execute(
+        OnboardingPresentationInput(
+          checklist = currentChecklist,
+          cityConfigured = currentCityConfigured,
+          suppressGuidedOnboardingForNavigation = currentRuntime.suppressGuidedOnboardingForNavigation,
+          launchSource = currentRuntime.onboardingLaunchSource,
+        ),
+      )
 
     _uiState.update {
       it.copy(
@@ -581,18 +598,20 @@ internal class AppRootViewModel(
     ) {
       runtimeState.update { currentRuntimeCopy ->
         currentRuntimeCopy.copy(
-          suppressGuidedOnboardingForNavigation = if (resolved.shouldResetNavigationSuppression) {
-            false
-          } else {
-            currentRuntimeCopy.suppressGuidedOnboardingForNavigation
-          },
-          onboardingLaunchSource = if (currentRuntimeCopy.onboardingLaunchSource == OnboardingLaunchSource.Settings &&
-            !resolved.shouldShowGuidedOnboarding
-          ) {
-            OnboardingLaunchSource.Automatic
-          } else {
-            currentRuntimeCopy.onboardingLaunchSource
-          },
+          suppressGuidedOnboardingForNavigation =
+            if (resolved.shouldResetNavigationSuppression) {
+              false
+            } else {
+              currentRuntimeCopy.suppressGuidedOnboardingForNavigation
+            },
+          onboardingLaunchSource =
+            if (currentRuntimeCopy.onboardingLaunchSource == OnboardingLaunchSource.Settings &&
+              !resolved.shouldShowGuidedOnboarding
+            ) {
+              OnboardingLaunchSource.Automatic
+            } else {
+              currentRuntimeCopy.onboardingLaunchSource
+            },
         )
       }
     }

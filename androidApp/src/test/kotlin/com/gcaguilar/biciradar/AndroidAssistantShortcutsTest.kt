@@ -2,11 +2,11 @@ package com.gcaguilar.biciradar
 
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
+import javax.xml.parsers.DocumentBuilderFactory
 
 class AndroidAssistantShortcutsTest {
   @Test
@@ -64,27 +64,30 @@ class AndroidAssistantShortcutsTest {
   fun `shortcuts xml stays aligned with reportable shortcut ids`() {
     val xml = parseShortcutsXml()
     val shortcuts = xml.getElementsByTagName("shortcut")
-    val shortcutIds = buildSet {
-      for (index in 0 until shortcuts.length) {
-        val shortcut = shortcuts.item(index)
-        val shortcutId = shortcut.attributes?.getNamedItem("android:shortcutId")?.nodeValue
-          ?: shortcut.attributes?.getNamedItem("shortcutId")?.nodeValue
-          ?: continue
-        add(shortcutId)
+    val shortcutIds =
+      buildSet {
+        for (index in 0 until shortcuts.length) {
+          val shortcut = shortcuts.item(index)
+          val shortcutId =
+            shortcut.attributes?.getNamedItem("android:shortcutId")?.nodeValue
+              ?: shortcut.attributes?.getNamedItem("shortcutId")?.nodeValue
+              ?: continue
+          add(shortcutId)
+        }
       }
-    }
 
-    val expectedIds = setOf(
-      FAVORITE_STATIONS_ACTION,
-      NEAREST_STATION_ACTION,
-      NEAREST_STATION_WITH_BIKES_ACTION,
-      NEAREST_STATION_WITH_SLOTS_ACTION,
-      STATION_STATUS_ACTION,
-      STATION_BIKE_COUNT_ACTION,
-      STATION_SLOT_COUNT_ACTION,
-      ROUTE_TO_STATION_ACTION,
-      SHOW_STATION_ACTION,
-    )
+    val expectedIds =
+      setOf(
+        FAVORITE_STATIONS_ACTION,
+        NEAREST_STATION_ACTION,
+        NEAREST_STATION_WITH_BIKES_ACTION,
+        NEAREST_STATION_WITH_SLOTS_ACTION,
+        STATION_STATUS_ACTION,
+        STATION_BIKE_COUNT_ACTION,
+        STATION_SLOT_COUNT_ACTION,
+        ROUTE_TO_STATION_ACTION,
+        SHOW_STATION_ACTION,
+      )
 
     assertEquals(expectedIds, shortcutIds)
     assertTrue(OPEN_ASSISTANT_ACTION !in shortcutIds)
@@ -98,16 +101,18 @@ class AndroidAssistantShortcutsTest {
     var foundBinding = false
     for (index in 0 until shortcuts.length) {
       val shortcut = shortcuts.item(index)
-      val shortcutId = shortcut.attributes?.getNamedItem("android:shortcutId")?.nodeValue
-        ?: shortcut.attributes?.getNamedItem("shortcutId")?.nodeValue
+      val shortcutId =
+        shortcut.attributes?.getNamedItem("android:shortcutId")?.nodeValue
+          ?: shortcut.attributes?.getNamedItem("shortcutId")?.nodeValue
       if (shortcutId != SHOW_STATION_ACTION) continue
       foundShortcut = true
       val children = shortcut.childNodes
       for (childIndex in 0 until children.length) {
         val child = children.item(childIndex)
         if (child.nodeName != "capability-binding") continue
-        val capabilityKey = child.attributes?.getNamedItem("android:key")?.nodeValue
-          ?: child.attributes?.getNamedItem("key")?.nodeValue
+        val capabilityKey =
+          child.attributes?.getNamedItem("android:key")?.nodeValue
+            ?: child.attributes?.getNamedItem("key")?.nodeValue
         if (capabilityKey == "actions.intent.GET_THING") {
           foundBinding = true
         }
@@ -118,17 +123,20 @@ class AndroidAssistantShortcutsTest {
     assertTrue("Expected show_station to bind actions.intent.GET_THING", foundBinding)
   }
 
-  private fun parseShortcutsXml() = DocumentBuilderFactory.newInstance()
-    .newDocumentBuilder()
-    .parse(shortcutsXmlFile())
+  private fun parseShortcutsXml() =
+    DocumentBuilderFactory
+      .newInstance()
+      .newDocumentBuilder()
+      .parse(shortcutsXmlFile())
 
   private fun shortcutsXmlFile(): File {
-    val candidates = listOf(
-      File("src/main/res/xml/shortcuts.xml"),
-      File("androidApp/src/main/res/xml/shortcuts.xml"),
-      File("src/androidMain/res/xml/shortcuts.xml"),
-      File("androidApp/src/androidMain/res/xml/shortcuts.xml"),
-    )
+    val candidates =
+      listOf(
+        File("src/main/res/xml/shortcuts.xml"),
+        File("androidApp/src/main/res/xml/shortcuts.xml"),
+        File("src/androidMain/res/xml/shortcuts.xml"),
+        File("androidApp/src/androidMain/res/xml/shortcuts.xml"),
+      )
     return candidates.firstOrNull(File::exists)
       ?: error("Unable to locate shortcuts.xml in $candidates")
   }

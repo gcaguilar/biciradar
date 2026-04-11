@@ -34,11 +34,13 @@ internal class ResolveOnboardingPresentationUseCase {
     return OnboardingPresentationResult(
       onboardingChecklist = input.checklist,
       isCitySelectionRequired = !input.cityConfigured,
-      shouldShowGuidedOnboarding = input.cityConfigured &&
-        !input.checklist.isCompleted() &&
-        !shouldSuppressForStep,
-      shouldResetNavigationSuppression = input.suppressGuidedOnboardingForNavigation &&
-        onboardingStep != GuidedOnboardingStep.SavedPlaces,
+      shouldShowGuidedOnboarding =
+        input.cityConfigured &&
+          !input.checklist.isCompleted() &&
+          !shouldSuppressForStep,
+      shouldResetNavigationSuppression =
+        input.suppressGuidedOnboardingForNavigation &&
+          onboardingStep != GuidedOnboardingStep.SavedPlaces,
     )
   }
 }

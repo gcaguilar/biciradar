@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.FavoriteCategory
+import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
@@ -45,7 +45,11 @@ class FavoritesManagementUseCase(
     favoritesRepository.toggle(stationId)
   }
 
-  suspend fun upsertCategory(id: String, label: String, isSystem: Boolean = false) {
+  suspend fun upsertCategory(
+    id: String,
+    label: String,
+    isSystem: Boolean = false,
+  ) {
     favoritesRepository.upsertCategory(id, label, isSystem)
   }
 
@@ -53,7 +57,10 @@ class FavoritesManagementUseCase(
     favoritesRepository.removeCategory(categoryId)
   }
 
-  suspend fun assignStationToCategory(stationId: String, categoryId: String?) {
+  suspend fun assignStationToCategory(
+    stationId: String,
+    categoryId: String?,
+  ) {
     favoritesRepository.assignStationToCategory(stationId, categoryId)
   }
 
@@ -62,21 +69,22 @@ class FavoritesManagementUseCase(
   /**
    * Combina los estados necesarios para la UI de favoritos
    */
-  fun observeFavoritesState(): Flow<FavoritesState> = combine(
-    stationsState,
-    favoriteIds,
-    homeStationId,
-    workStationId,
-    selectedCity,
-  ) { stationsState, favoriteIds, homeId, workId, city ->
-    FavoritesState(
-      stations = stationsState.stations,
-      favoriteIds = favoriteIds,
-      homeStationId = homeId,
-      workStationId = workId,
-      selectedCity = city,
-    )
-  }
+  fun observeFavoritesState(): Flow<FavoritesState> =
+    combine(
+      stationsState,
+      favoriteIds,
+      homeStationId,
+      workStationId,
+      selectedCity,
+    ) { stationsState, favoriteIds, homeId, workId, city ->
+      FavoritesState(
+        stations = stationsState.stations,
+        favoriteIds = favoriteIds,
+        homeStationId = homeId,
+        workStationId = workId,
+        selectedCity = city,
+      )
+    }
 
   data class FavoritesState(
     val stations: List<Station>,
@@ -95,7 +103,10 @@ class SavedPlaceAlertsUseCase(
 ) {
   val rules: StateFlow<List<SavedPlaceAlertRule>> = savedPlaceAlertsRepository.rules
 
-  suspend fun upsertRule(target: SavedPlaceAlertTarget, condition: SavedPlaceAlertCondition) {
+  suspend fun upsertRule(
+    target: SavedPlaceAlertTarget,
+    condition: SavedPlaceAlertCondition,
+  ) {
     savedPlaceAlertsRepository.upsertRule(target, condition)
   }
 

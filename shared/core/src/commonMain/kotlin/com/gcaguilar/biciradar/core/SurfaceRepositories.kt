@@ -26,9 +26,13 @@ import okio.Path.Companion.toPath
 
 interface SurfaceSnapshotRepository {
   val bundle: StateFlow<SurfaceSnapshotBundle?>
+
   suspend fun bootstrap()
+
   suspend fun refreshSnapshot()
+
   suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?)
+
   fun currentBundle(): SurfaceSnapshotBundle?
 }
 
@@ -60,12 +64,24 @@ class SurfaceSnapshotRepositoryImpl(
     if (db != null) {
       scope.launch {
         combine(
-          db.biciradarQueries.getSurfaceHeader().asFlow().mapToOneOrNull(Dispatchers.Default),
-          db.biciradarQueries.getAllSurfaceStationRows().asFlow().mapToList(Dispatchers.Default),
-          db.biciradarQueries.getSurfaceMonitoring().asFlow().mapToOneOrNull(Dispatchers.Default),
+          db.biciradarQueries
+            .getSurfaceHeader()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.Default),
+          db.biciradarQueries
+            .getAllSurfaceStationRows()
+            .asFlow()
+            .mapToList(Dispatchers.Default),
+          db.biciradarQueries
+            .getSurfaceMonitoring()
+            .asFlow()
+            .mapToOneOrNull(Dispatchers.Default),
         ) { header, rows, mon ->
-          if (header == null) null
-          else surfaceBundleFromRows(header, rows, mon)
+          if (header == null) {
+            null
+          } else {
+            surfaceBundleFromRows(header, rows, mon)
+          }
         }.collect { mutableBundle.value = it }
       }
     }
@@ -86,33 +102,37 @@ class SurfaceSnapshotRepositoryImpl(
     val favoriteStationId = favoriteStationId(stations)
     val homeStationId = favoritesRepository.currentHomeStationId()
     val workStationId = favoritesRepository.currentWorkStationId()
-    fun stationSnapshot(stationId: String?): SurfaceStationSnapshot? = stationId?.let { id ->
-      stations.firstOrNull { it.id == id }?.toSurfaceSnapshot(
-        cityId = city.id,
-        lastUpdatedEpoch = lastUpdatedEpoch,
-        isFavorite = favoritesRepository.isFavorite(id),
-      )
-    }
+
+    fun stationSnapshot(stationId: String?): SurfaceStationSnapshot? =
+      stationId?.let { id ->
+        stations.firstOrNull { it.id == id }?.toSurfaceSnapshot(
+          cityId = city.id,
+          lastUpdatedEpoch = lastUpdatedEpoch,
+          isFavorite = favoritesRepository.isFavorite(id),
+        )
+      }
     val favoriteStation = stationSnapshot(favoriteStationId)?.copy(isFavorite = true)
     val homeStation = stationSnapshot(homeStationId)
-    val workStation = workStationId
-      ?.takeIf { it != homeStationId }
-      ?.let(::stationSnapshot)
+    val workStation =
+      workStationId
+        ?.takeIf { it != homeStationId }
+        ?.let(::stationSnapshot)
     val hasLocationPermission = stationsState.userLocation != null
-    val nearbyStations = if (hasLocationPermission) {
-      stations
-        .sortedBy { it.distanceMeters }
-        .take(3)
-        .map { station ->
-          station.toSurfaceSnapshot(
-            cityId = city.id,
-            lastUpdatedEpoch = lastUpdatedEpoch,
-            isFavorite = station.id == favoriteStationId,
-          )
-        }
-    } else {
-      emptyList()
-    }
+    val nearbyStations =
+      if (hasLocationPermission) {
+        stations
+          .sortedBy { it.distanceMeters }
+          .take(3)
+          .map { station ->
+            station.toSurfaceSnapshot(
+              cityId = city.id,
+              lastUpdatedEpoch = lastUpdatedEpoch,
+              isFavorite = station.id == favoriteStationId,
+            )
+          }
+      } else {
+        emptyList()
+      }
     val hasNotificationPermission = localNotifier.hasPermission()
 
     val previousMonitoring = mutableBundle.value?.monitoringSession
@@ -120,25 +140,28 @@ class SurfaceSnapshotRepositoryImpl(
     val mergedHome = homeStation.mergeMonitoring(previousMonitoring)
     val mergedWork = workStation.mergeMonitoring(previousMonitoring)
 
-    val snapshot = SurfaceSnapshotBundle(
-      generatedAtEpoch = currentTimeMs(),
-      favoriteStation = mergedFavorite,
-      homeStation = mergedHome,
-      workStation = mergedWork,
-      nearbyStations = nearbyStations,
-      monitoringSession = previousMonitoring,
-      state = SurfaceState(
-        hasLocationPermission = hasLocationPermission,
-        hasNotificationPermission = hasNotificationPermission,
-        hasFavoriteStation = mergedFavorite != null,
-        isDataFresh = stationsState.lastUpdatedEpoch?.let { currentTimeMs() - it < STATION_CACHE_REFRESH_INTERVAL_MS } == true,
-        lastSyncEpoch = stationsState.lastUpdatedEpoch,
-        cityId = city.id,
-        cityName = city.displayName,
-        userLatitude = stationsState.userLocation?.latitude,
-        userLongitude = stationsState.userLocation?.longitude,
-      ),
-    )
+    val snapshot =
+      SurfaceSnapshotBundle(
+        generatedAtEpoch = currentTimeMs(),
+        favoriteStation = mergedFavorite,
+        homeStation = mergedHome,
+        workStation = mergedWork,
+        nearbyStations = nearbyStations,
+        monitoringSession = previousMonitoring,
+        state =
+          SurfaceState(
+            hasLocationPermission = hasLocationPermission,
+            hasNotificationPermission = hasNotificationPermission,
+            hasFavoriteStation = mergedFavorite != null,
+            isDataFresh =
+              stationsState.lastUpdatedEpoch?.let { currentTimeMs() - it < STATION_CACHE_REFRESH_INTERVAL_MS } == true,
+            lastSyncEpoch = stationsState.lastUpdatedEpoch,
+            cityId = city.id,
+            cityName = city.displayName,
+            userLatitude = stationsState.userLocation?.latitude,
+            userLongitude = stationsState.userLocation?.longitude,
+          ),
+      )
     persist(snapshot)
   }
 
@@ -186,15 +209,16 @@ class SurfaceSnapshotRepositoryImpl(
     val city = settingsRepository.currentSelectedCity()
     return SurfaceSnapshotBundle(
       generatedAtEpoch = currentTimeMs(),
-      state = SurfaceState(
-        hasLocationPermission = false,
-        hasNotificationPermission = false,
-        hasFavoriteStation = false,
-        isDataFresh = false,
-        lastSyncEpoch = null,
-        cityId = city.id,
-        cityName = city.displayName,
-      ),
+      state =
+        SurfaceState(
+          hasLocationPermission = false,
+          hasNotificationPermission = false,
+          hasFavoriteStation = false,
+          isDataFresh = false,
+          lastSyncEpoch = null,
+          cityId = city.id,
+          cityName = city.displayName,
+        ),
     )
   }
 
@@ -254,9 +278,7 @@ class SurfaceSnapshotRepositoryImpl(
   }
 }
 
-private fun SurfaceStationSnapshot?.mergeMonitoring(
-  session: SurfaceMonitoringSession?,
-): SurfaceStationSnapshot? {
+private fun SurfaceStationSnapshot?.mergeMonitoring(session: SurfaceMonitoringSession?): SurfaceStationSnapshot? {
   val station = this ?: return null
   if (session == null || station.id != session.stationId) return station
   return station.copy(
@@ -271,11 +293,12 @@ private fun SurfaceStationSnapshot?.mergeMonitoring(
   )
 }
 
-private fun SurfaceMonitoringStatus.surfaceTextShort(kind: SurfaceMonitoringKind): String = when (this) {
-  SurfaceMonitoringStatus.Monitoring -> "Monitorizando"
-  SurfaceMonitoringStatus.ChangedToEmpty -> if (kind == SurfaceMonitoringKind.Bikes) "Sin bicis" else "Cambio"
-  SurfaceMonitoringStatus.ChangedToFull -> if (kind == SurfaceMonitoringKind.Docks) "Sin huecos" else "Cambio"
-  SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa"
-  SurfaceMonitoringStatus.Ended -> "Finalizada"
-  SurfaceMonitoringStatus.Expired -> "Expirada"
-}
+private fun SurfaceMonitoringStatus.surfaceTextShort(kind: SurfaceMonitoringKind): String =
+  when (this) {
+    SurfaceMonitoringStatus.Monitoring -> "Monitorizando"
+    SurfaceMonitoringStatus.ChangedToEmpty -> if (kind == SurfaceMonitoringKind.Bikes) "Sin bicis" else "Cambio"
+    SurfaceMonitoringStatus.ChangedToFull -> if (kind == SurfaceMonitoringKind.Docks) "Sin huecos" else "Cambio"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa"
+    SurfaceMonitoringStatus.Ended -> "Finalizada"
+    SurfaceMonitoringStatus.Expired -> "Expirada"
+  }

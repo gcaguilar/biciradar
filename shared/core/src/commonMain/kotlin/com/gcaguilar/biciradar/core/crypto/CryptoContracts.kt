@@ -12,11 +12,11 @@ package com.gcaguilar.biciradar.core.crypto
  * bytes. The private key never leaves the platform security boundary.
  */
 expect class PlatformKeyPair {
-    /** DER-encoded RSA public key, Base64-encoded (no line breaks). */
-    val publicKeyDerBase64: String
+  /** DER-encoded RSA public key, Base64-encoded (no line breaks). */
+  val publicKeyDerBase64: String
 
-    /** Signs [data] with the private RSA key. Returns Base64-encoded signature. */
-    fun sign(data: ByteArray): String
+  /** Signs [data] with the private RSA key. Returns Base64-encoded signature. */
+  fun sign(data: ByteArray): String
 }
 
 /**
@@ -27,14 +27,14 @@ expect class PlatformKeyPair {
  * re-generating, making this function idempotent.
  */
 expect class SecureKeyStore {
-    /**
-     * Returns the existing key pair for [alias] if one exists,
-     * or generates and stores a new one.
-     */
-    fun getOrCreateKeyPair(alias: String): PlatformKeyPair
+  /**
+   * Returns the existing key pair for [alias] if one exists,
+   * or generates and stores a new one.
+   */
+  fun getOrCreateKeyPair(alias: String): PlatformKeyPair
 
-    /** Deletes the key pair stored under [alias], if any. */
-    fun deleteKeyPair(alias: String)
+  /** Deletes the key pair stored under [alias], if any. */
+  fun deleteKeyPair(alias: String)
 }
 
 internal const val INSTALLATION_KEY_ALIAS = "bizi_installation_key"

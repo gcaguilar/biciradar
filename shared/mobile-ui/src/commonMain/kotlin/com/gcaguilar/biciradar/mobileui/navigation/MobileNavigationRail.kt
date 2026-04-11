@@ -37,7 +37,9 @@ import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
-private enum class RailTab(val labelKey: StringResource) {
+private enum class RailTab(
+  val labelKey: StringResource,
+) {
   Cerca(Res.string.nearby),
   Mapa(Res.string.map),
   Favoritos(Res.string.favorites),
@@ -45,13 +47,14 @@ private enum class RailTab(val labelKey: StringResource) {
   Perfil(Res.string.settings),
 }
 
-private val RailTabs = listOf(
-  RailTab.Cerca,
-  RailTab.Mapa,
-  RailTab.Favoritos,
-  RailTab.Viaje,
-  RailTab.Perfil,
-)
+private val RailTabs =
+  listOf(
+    RailTab.Cerca,
+    RailTab.Mapa,
+    RailTab.Favoritos,
+    RailTab.Viaje,
+    RailTab.Perfil,
+  )
 
 @Composable
 fun MobileNavigationRail(
@@ -64,14 +67,16 @@ fun MobileNavigationRail(
   val colors = LocalBiziColors.current
 
   NavigationRail(
-    modifier = modifier
-      .fillMaxHeight()
-      .padding(vertical = 12.dp),
-    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) {
-      colors.navBarIos
-    } else {
-      colors.navBar
-    },
+    modifier =
+      modifier
+        .fillMaxHeight()
+        .padding(vertical = 12.dp),
+    containerColor =
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        colors.navBarIos
+      } else {
+        colors.navBar
+      },
     header = {
       Column(
         modifier = Modifier.padding(bottom = 18.dp),
@@ -114,18 +119,20 @@ fun MobileNavigationRail(
   }
 }
 
-private fun RailTab.screen(): Screen = when (this) {
-  RailTab.Cerca -> Screen.Nearby
-  RailTab.Mapa -> Screen.Map
-  RailTab.Favoritos -> Screen.Favorites
-  RailTab.Viaje -> Screen.Trip()
-  RailTab.Perfil -> Screen.Profile
-}
+private fun RailTab.screen(): Screen =
+  when (this) {
+    RailTab.Cerca -> Screen.Nearby
+    RailTab.Mapa -> Screen.Map
+    RailTab.Favoritos -> Screen.Favorites
+    RailTab.Viaje -> Screen.Trip()
+    RailTab.Perfil -> Screen.Profile
+  }
 
-private fun RailTab.icon() = when (this) {
-  RailTab.Cerca -> Icons.AutoMirrored.Filled.DirectionsBike
-  RailTab.Mapa -> Icons.Filled.Map
-  RailTab.Favoritos -> Icons.Filled.Favorite
-  RailTab.Viaje -> Icons.Filled.Directions
-  RailTab.Perfil -> Icons.Filled.Tune
-}
+private fun RailTab.icon() =
+  when (this) {
+    RailTab.Cerca -> Icons.AutoMirrored.Filled.DirectionsBike
+    RailTab.Mapa -> Icons.Filled.Map
+    RailTab.Favoritos -> Icons.Filled.Favorite
+    RailTab.Viaje -> Icons.Filled.Directions
+    RailTab.Perfil -> Icons.Filled.Tune
+  }

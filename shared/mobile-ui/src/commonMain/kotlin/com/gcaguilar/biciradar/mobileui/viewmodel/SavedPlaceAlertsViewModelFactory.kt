@@ -5,7 +5,8 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 class SavedPlaceAlertsViewModelFactory(
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
 ) {
-  fun create(): SavedPlaceAlertsViewModel = SavedPlaceAlertsViewModel(
-    savedPlaceAlertsRepository = savedPlaceAlertsRepository,
-  )
+  fun create(): SavedPlaceAlertsViewModel =
+    SavedPlaceAlertsViewModel(
+      savedPlaceAlertsRepository = savedPlaceAlertsRepository,
+    )
 }

@@ -40,20 +40,21 @@ class BiziMainViewControllerWrapper(
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private var tripRepository: TripRepository? = null
 
-  val viewController: UIViewController = ComposeUIViewController(
-    configure = { enforceStrictPlistSanityCheck = false },
-  ) {
-    CompositionLocalProvider(LocalStationMapViewFactory provides stationMapViewFactory) {
-      BiziMobileApp(
-        platformBindings = IOSPlatformBindings(),
-        launchRequest = currentLaunchRequest,
-        refreshKey = refreshNonce,
-        onTripRepositoryReady = { repo ->
-          tripRepository = repo
-        },
-      )
+  val viewController: UIViewController =
+    ComposeUIViewController(
+      configure = { enforceStrictPlistSanityCheck = false },
+    ) {
+      CompositionLocalProvider(LocalStationMapViewFactory provides stationMapViewFactory) {
+        BiziMobileApp(
+          platformBindings = IOSPlatformBindings(),
+          launchRequest = currentLaunchRequest,
+          refreshKey = refreshNonce,
+          onTripRepositoryReady = { repo ->
+            tripRepository = repo
+          },
+        )
+      }
     }
-  }
 
   fun updateLaunchRequest(request: MobileLaunchRequest?) {
     currentLaunchRequest = request

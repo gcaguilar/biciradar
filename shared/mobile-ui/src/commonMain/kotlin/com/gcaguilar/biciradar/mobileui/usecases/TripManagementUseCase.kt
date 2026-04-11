@@ -2,9 +2,9 @@ package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.SettingsRepository
+import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
-import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
@@ -26,7 +26,10 @@ class TripManagementUseCase(
   val tripState: StateFlow<TripState> = tripRepository.state
   val searchRadiusMeters: StateFlow<Int> = settingsRepository.searchRadiusMeters
 
-  suspend fun setDestination(destination: TripDestination, searchRadiusMeters: Int) {
+  suspend fun setDestination(
+    destination: TripDestination,
+    searchRadiusMeters: Int,
+  ) {
     tripRepository.setDestination(destination, searchRadiusMeters)
   }
 
@@ -50,9 +53,7 @@ class TripManagementUseCase(
     tripRepository.dismissAlert()
   }
 
-  suspend fun preferredMonitoringDurationSeconds(): Int? {
-    return settingsRepository.preferredMonitoringDurationSeconds()
-  }
+  suspend fun preferredMonitoringDurationSeconds(): Int? = settingsRepository.preferredMonitoringDurationSeconds()
 
   suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int) {
     settingsRepository.setPreferredMonitoringDurationSeconds(durationSeconds)
@@ -68,7 +69,11 @@ class TripManagementUseCase(
 class SurfaceMonitoringUseCase(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) {
-  suspend fun startMonitoring(stationId: String, durationSeconds: Int, kind: SurfaceMonitoringKind) {
+  suspend fun startMonitoring(
+    stationId: String,
+    durationSeconds: Int,
+    kind: SurfaceMonitoringKind,
+  ) {
     surfaceMonitoringRepository.startMonitoring(stationId, durationSeconds, kind)
   }
 
@@ -91,8 +96,8 @@ class GeoLocationUseCase(
   /**
    * Ejecuta búsqueda geográfica con manejo de errores tipado
    */
-  suspend fun search(query: String): GeoSearchResult {
-    return try {
+  suspend fun search(query: String): GeoSearchResult =
+    try {
       val results = geoSearchUseCase.execute(query)
       GeoSearchResult.Success(results)
     } catch (cancelled: CancellationException) {
@@ -104,13 +109,12 @@ class GeoLocationUseCase(
     } catch (error: Throwable) {
       GeoSearchResult.Error.Unknown(error.message ?: error::class.simpleName ?: "")
     }
-  }
 
   /**
    * Realiza geocodificación inversa de una ubicación
    */
-  suspend fun reverseGeocode(location: GeoPoint): ReverseGeocodeResult {
-    return try {
+  suspend fun reverseGeocode(location: GeoPoint): ReverseGeocodeResult =
+    try {
       val result = reverseGeocodeUseCase.execute(location)
       if (result != null) {
         ReverseGeocodeResult.Success(result.name)
@@ -120,19 +124,30 @@ class GeoLocationUseCase(
     } catch (error: Throwable) {
       ReverseGeocodeResult.Fallback("${location.latitude}, ${location.longitude}")
     }
-  }
 
   sealed class GeoSearchResult {
-    data class Success(val results: List<GeoResult>) : GeoSearchResult()
+    data class Success(
+      val results: List<GeoResult>,
+    ) : GeoSearchResult()
+
     sealed class Error : GeoSearchResult() {
       data object Server : Error()
+
       data object Network : Error()
-      data class Unknown(val message: String) : Error()
+
+      data class Unknown(
+        val message: String,
+      ) : Error()
     }
   }
 
   sealed class ReverseGeocodeResult {
-    data class Success(val name: String) : ReverseGeocodeResult()
-    data class Fallback(val coordinates: String) : ReverseGeocodeResult()
+    data class Success(
+      val name: String,
+    ) : ReverseGeocodeResult()
+
+    data class Fallback(
+      val coordinates: String,
+    ) : ReverseGeocodeResult()
   }
 }

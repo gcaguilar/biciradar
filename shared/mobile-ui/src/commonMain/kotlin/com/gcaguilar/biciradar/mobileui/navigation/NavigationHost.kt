@@ -2,8 +2,6 @@ package com.gcaguilar.biciradar.mobileui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.DataFreshness
@@ -39,10 +37,8 @@ internal data class NavigationHostConfig(
   val onRefreshStations: () -> Unit,
   val nearestSelection: NearbyStationSelection,
   val userLocation: GeoPoint?,
-  val searchQuery: String,
   val searchRadiusMeters: Int,
   val isMapReady: Boolean,
-  val onSearchQueryChange: (String) -> Unit,
   val onRetry: () -> Unit,
   val onFavoriteToggle: (Station) -> Unit,
   val onQuickRoute: (Station) -> Unit,
@@ -52,6 +48,8 @@ internal data class NavigationHostConfig(
   val platformBindings: PlatformBindings,
   val initialAssistantAction: AssistantAction?,
   val onInitialActionConsumed: () -> Unit,
+  val initialMapSearchQuery: String?,
+  val onInitialMapSearchQueryConsumed: () -> Unit,
   val onOpenOnboarding: () -> Unit,
   val onShowChangelogManual: () -> Unit,
   val paddingValues: PaddingValues,
@@ -100,10 +98,8 @@ internal fun NavigationHost(
     onRefreshStations = config.onRefreshStations,
     nearestSelection = config.nearestSelection,
     userLocation = config.userLocation,
-    searchQuery = config.searchQuery,
     searchRadiusMeters = config.searchRadiusMeters,
     isMapReady = config.isMapReady,
-    onSearchQueryChange = config.onSearchQueryChange,
     onRetry = config.onRetry,
     onFavoriteToggle = config.onFavoriteToggle,
     onQuickRoute = config.onQuickRoute,
@@ -113,6 +109,8 @@ internal fun NavigationHost(
     platformBindings = config.platformBindings,
     initialAssistantAction = config.initialAssistantAction,
     onInitialActionConsumed = config.onInitialActionConsumed,
+    initialMapSearchQuery = config.initialMapSearchQuery,
+    onInitialMapSearchQueryConsumed = config.onInitialMapSearchQueryConsumed,
     onOpenOnboarding = config.onOpenOnboarding,
     onShowChangelogManual = config.onShowChangelogManual,
     paddingValues = config.paddingValues,

@@ -6,39 +6,35 @@ import android.content.Intent
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.TimelineBuilders
-import androidx.wear.protolayout.modifiers.LayoutModifier
-import androidx.wear.protolayout.modifiers.clickable
-import androidx.wear.protolayout.modifiers.contentDescription
 import androidx.wear.protolayout.material3.MaterialScope
 import androidx.wear.protolayout.material3.appCard
 import androidx.wear.protolayout.material3.primaryLayout
 import androidx.wear.protolayout.material3.text
+import androidx.wear.protolayout.modifiers.LayoutModifier
+import androidx.wear.protolayout.modifiers.clickable
+import androidx.wear.protolayout.modifiers.contentDescription
 import androidx.wear.protolayout.types.layoutString
 import androidx.wear.tiles.Material3TileService
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
-import com.gcaguilar.biciradar.core.AppConfiguration
-import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 
 class FavoriteStationTileService : Material3TileService() {
-  override suspend fun MaterialScope.tileResponse(
-    requestParams: RequestBuilders.TileRequest,
-  ): TileBuilders.Tile {
+  override suspend fun MaterialScope.tileResponse(requestParams: RequestBuilders.TileRequest): TileBuilders.Tile {
     // Asegurar que el grafo está inicializado
     if (!WearAppGraph.isInitialized()) {
       WearAppGraph.initialize(applicationContext as android.app.Application)
     }
-    
+
     val graph = WearAppGraph.graph
     graph.favoritesRepository.syncFromPeer()
     val snapshot = graph.refreshStationDataIfNeeded.execute()
     val tileState = wearFavoriteTileState(snapshot)
-    val openAppClickable = protoLayoutScope.clickable(
-      pendingIntent = openAppPendingIntent(tileState.stationId),
-      id = CLICKABLE_OPEN_FAVORITE,
-    )
+    val openAppClickable =
+      protoLayoutScope.clickable(
+        pendingIntent = openAppPendingIntent(tileState.stationId),
+        id = CLICKABLE_OPEN_FAVORITE,
+      )
     val labelSlot: (MaterialScope.() -> LayoutElementBuilders.LayoutElement)? =
       tileState.label?.takeIf { it.isNotBlank() }?.let { label ->
         { text(label.layoutString) }
@@ -47,45 +43,48 @@ class FavoriteStationTileService : Material3TileService() {
       tileState.updatedText?.takeIf { it.isNotBlank() }?.let { updated ->
         { text(updated.layoutString) }
       }
-    val root = primaryLayout(
-      mainSlot = {
-        appCard(
-          onClick = openAppClickable,
-          modifier = LayoutModifier.contentDescription(tileContentDescription(tileState)),
-          height = expand(),
-          title = { text(tileState.title.layoutString) },
-          label = labelSlot,
-          time = timeSlot,
-          content = { text(tileState.body.layoutString) },
-        )
-      },
-    )
+    val root =
+      primaryLayout(
+        mainSlot = {
+          appCard(
+            onClick = openAppClickable,
+            modifier = LayoutModifier.contentDescription(tileContentDescription(tileState)),
+            height = expand(),
+            title = { text(tileState.title.layoutString) },
+            label = labelSlot,
+            time = timeSlot,
+            content = { text(tileState.body.layoutString) },
+          )
+        },
+      )
 
-    return TileBuilders.Tile.Builder()
+    return TileBuilders.Tile
+      .Builder()
       .setResourcesVersion(snapshot?.generatedAtEpoch?.toString() ?: EMPTY_TILE_RESOURCES_VERSION)
       .setFreshnessIntervalMillis(TILE_FRESHNESS_INTERVAL_MILLIS)
       .setTileTimeline(
-        TimelineBuilders.Timeline.Builder()
+        TimelineBuilders.Timeline
+          .Builder()
           .addTimelineEntry(
-            TimelineBuilders.TimelineEntry.Builder()
+            TimelineBuilders.TimelineEntry
+              .Builder()
               .setLayout(
-                LayoutElementBuilders.Layout.Builder()
+                LayoutElementBuilders.Layout
+                  .Builder()
                   .setRoot(root)
                   .build(),
-              )
-              .build(),
-          )
-          .build(),
-      )
-      .build()
+              ).build(),
+          ).build(),
+      ).build()
   }
 
   private fun openAppPendingIntent(stationId: String?): PendingIntent {
-    val intent = Intent(this, WearActivity::class.java).apply {
-      action = WearActivity.ACTION_OPEN_STATION
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-      stationId?.let { putExtra(WearActivity.EXTRA_OPEN_STATION_ID, it) }
-    }
+    val intent =
+      Intent(this, WearActivity::class.java).apply {
+        action = WearActivity.ACTION_OPEN_STATION
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        stationId?.let { putExtra(WearActivity.EXTRA_OPEN_STATION_ID, it) }
+      }
     return PendingIntent.getActivity(
       this,
       stationId?.hashCode() ?: 0,
@@ -94,21 +93,22 @@ class FavoriteStationTileService : Material3TileService() {
     )
   }
 
-  private fun tileContentDescription(state: WearFavoriteTileState): String = buildString {
-    append(state.title)
-    state.label?.takeIf { it.isNotBlank() }?.let {
-      append(", ")
-      append(it)
+  private fun tileContentDescription(state: WearFavoriteTileState): String =
+    buildString {
+      append(state.title)
+      state.label?.takeIf { it.isNotBlank() }?.let {
+        append(", ")
+        append(it)
+      }
+      if (state.body.isNotBlank()) {
+        append(", ")
+        append(state.body)
+      }
+      state.updatedText?.takeIf { it.isNotBlank() }?.let {
+        append(", ")
+        append(it)
+      }
     }
-    if (state.body.isNotBlank()) {
-      append(", ")
-      append(state.body)
-    }
-    state.updatedText?.takeIf { it.isNotBlank() }?.let {
-      append(", ")
-      append(it)
-    }
-  }
 
   companion object {
     private const val CLICKABLE_OPEN_FAVORITE = "open_favorite"

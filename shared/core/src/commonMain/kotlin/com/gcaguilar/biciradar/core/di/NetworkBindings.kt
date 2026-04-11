@@ -25,28 +25,26 @@ import kotlinx.serialization.json.Json
  */
 @BindingContainer
 object NetworkBindings {
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideHttpClient(
-        httpClientFactory: BiziHttpClientFactory,
-        json: Json,
-    ): HttpClient = httpClientFactory.create(json)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideHttpClient(
+    httpClientFactory: BiziHttpClientFactory,
+    json: Json,
+  ): HttpClient = httpClientFactory.create(json)
 
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideBiziApi(
-        appConfiguration: com.gcaguilar.biciradar.core.AppConfiguration,
-        httpClient: HttpClient,
-        settingsRepository: SettingsRepository,
-    ): BiziApi = GbfsBiziApi(httpClient, appConfiguration, settingsRepository)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideBiziApi(
+    appConfiguration: com.gcaguilar.biciradar.core.AppConfiguration,
+    httpClient: HttpClient,
+    settingsRepository: SettingsRepository,
+  ): BiziApi = GbfsBiziApi(httpClient, appConfiguration, settingsRepository)
 
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideDatosBiziApi(httpClient: HttpClient): DatosBiziApi =
-        DatosBiziApiImpl(httpClient)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideDatosBiziApi(httpClient: HttpClient): DatosBiziApi = DatosBiziApiImpl(httpClient)
 
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideGooglePlacesApi(httpClient: HttpClient): GooglePlacesApi =
-        GooglePlacesApiImpl(httpClient)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideGooglePlacesApi(httpClient: HttpClient): GooglePlacesApi = GooglePlacesApiImpl(httpClient)
 }

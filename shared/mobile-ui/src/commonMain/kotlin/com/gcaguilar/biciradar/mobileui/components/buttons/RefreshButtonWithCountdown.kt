@@ -21,26 +21,26 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun RefreshButtonWithCountdown(
-    countdown: Int,
-    loading: Boolean,
-    onRefresh: () -> Unit,
-    modifier: Modifier = Modifier,
+  countdown: Int,
+  loading: Boolean,
+  onRefresh: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        IconButton(onClick = onRefresh, enabled = !loading) {
-            Icon(Icons.Filled.Sync, contentDescription = stringResource(Res.string.refreshStations))
-        }
-        if (countdown > 0 && !loading) {
-            val minutes = countdown / 60
-            val seconds = countdown % 60
-            Text(
-                text = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s",
-                style = MaterialTheme.typography.labelSmall,
-                color = LocalBiziColors.current.muted,
-            )
-        }
+  Column(
+    modifier = modifier,
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    IconButton(onClick = onRefresh, enabled = !loading) {
+      Icon(Icons.Filled.Sync, contentDescription = stringResource(Res.string.refreshStations))
     }
+    if (countdown > 0 && !loading) {
+      val minutes = countdown / 60
+      val seconds = countdown % 60
+      Text(
+        text = if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s",
+        style = MaterialTheme.typography.labelSmall,
+        color = LocalBiziColors.current.muted,
+      )
+    }
+  }
 }

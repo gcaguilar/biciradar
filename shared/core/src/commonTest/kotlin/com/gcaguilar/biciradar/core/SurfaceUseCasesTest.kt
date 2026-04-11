@@ -9,167 +9,197 @@ import kotlin.test.assertTrue
 
 class SurfaceUseCasesTest {
   @Test
-  fun `get favorite stations prioritizes home station and respects limit`() = runTest {
-    val stationsRepository = FakeUseCaseStationsRepository(
-      StationsState(
-        stations = listOf(
-          station(id = "work", distanceMeters = 320),
-          station(id = "home", distanceMeters = 150),
-          station(id = "other", distanceMeters = 80),
-        ),
-        lastUpdatedEpoch = 5_000L,
-      ),
-    )
-    val useCase = GetFavoriteStations(
-      favoritesRepository = FakeUseCaseFavoritesRepository(
-        favoriteIds = setOf("home", "work"),
-        homeStationId = "home",
-      ),
-      settingsRepository = FakeUseCaseSettingsRepository(),
-      stationsRepository = stationsRepository,
-    )
-
-    val favorites = useCase.execute(limit = 1)
-
-    assertEquals(listOf("home"), favorites.map { it.id })
-    assertTrue(favorites.first().isFavorite)
-    assertTrue(stationsRepository.loadIfNeededCalls > 0)
-  }
-
-  @Test
-  fun `get station status uses cached snapshot before loading repository`() = runTest {
-    val stationsRepository = FakeUseCaseStationsRepository(
-      StationsState(
-        stations = listOf(station(id = "station-1")),
-        lastUpdatedEpoch = 5_000L,
-      ),
-    )
-    val cachedSnapshot = station(id = "cached", distanceMeters = 40).toSurfaceSnapshot(
-      cityId = City.ZARAGOZA.id,
-      lastUpdatedEpoch = 10_000L,
-      isFavorite = true,
-    )
-    val useCase = GetStationStatus(
-      settingsRepository = FakeUseCaseSettingsRepository(),
-      stationsRepository = stationsRepository,
-      surfaceSnapshotRepository = FakeSurfaceSnapshotRepository(
-        bundle = SurfaceSnapshotBundle(
-          generatedAtEpoch = 11_000L,
-          favoriteStation = cachedSnapshot,
-          state = defaultSurfaceState(),
-        ),
-      ),
-    )
-
-    val snapshot = useCase.execute("cached")
-
-    assertEquals("cached", snapshot?.id)
-    assertEquals(0, stationsRepository.loadIfNeededCalls)
-  }
-
-  @Test
-  fun `get station status uses saved place snapshots before loading repository`() = runTest {
-    val stationsRepository = FakeUseCaseStationsRepository(
-      StationsState(
-        stations = listOf(station(id = "station-1")),
-        lastUpdatedEpoch = 5_000L,
-      ),
-    )
-    val cachedSnapshot = station(id = "work", distanceMeters = 55).toSurfaceSnapshot(
-      cityId = City.ZARAGOZA.id,
-      lastUpdatedEpoch = 10_000L,
-    )
-    val useCase = GetStationStatus(
-      settingsRepository = FakeUseCaseSettingsRepository(),
-      stationsRepository = stationsRepository,
-      surfaceSnapshotRepository = FakeSurfaceSnapshotRepository(
-        bundle = SurfaceSnapshotBundle(
-          generatedAtEpoch = 11_000L,
-          workStation = cachedSnapshot,
-          state = defaultSurfaceState(),
-        ),
-      ),
-    )
-
-    val snapshot = useCase.execute("work")
-
-    assertEquals("work", snapshot?.id)
-    assertEquals(0, stationsRepository.loadIfNeededCalls)
-  }
-
-  @Test
-  fun `suggested alternative prefers higher availability`() = runTest {
-    val useCase = GetSuggestedAlternativeStation(
-      settingsRepository = FakeUseCaseSettingsRepository(searchRadiusMetersValue = 500),
-      stationsRepository = FakeUseCaseStationsRepository(
-        StationsState(
-          stations = listOf(
-            station(id = "origin", latitude = 41.65, longitude = -0.88, bikesAvailable = 0),
-            station(id = "near-low", latitude = 41.6502, longitude = -0.8802, bikesAvailable = 1),
-            station(id = "far-high", latitude = 41.6509, longitude = -0.8809, bikesAvailable = 4),
+  fun `get favorite stations prioritizes home station and respects limit`() =
+    runTest {
+      val stationsRepository =
+        FakeUseCaseStationsRepository(
+          StationsState(
+            stations =
+              listOf(
+                station(id = "work", distanceMeters = 320),
+                station(id = "home", distanceMeters = 150),
+                station(id = "other", distanceMeters = 80),
+              ),
+            lastUpdatedEpoch = 5_000L,
           ),
-          lastUpdatedEpoch = 8_000L,
-        ),
-      ),
-    )
+        )
+      val useCase =
+        GetFavoriteStations(
+          favoritesRepository =
+            FakeUseCaseFavoritesRepository(
+              favoriteIds = setOf("home", "work"),
+              homeStationId = "home",
+            ),
+          settingsRepository = FakeUseCaseSettingsRepository(),
+          stationsRepository = stationsRepository,
+        )
 
-    val alternative = useCase.execute(
-      stationId = "origin",
-      kind = SurfaceMonitoringKind.Bikes,
-    )
+      val favorites = useCase.execute(limit = 1)
 
-    assertEquals("far-high", alternative?.id)
-  }
+      assertEquals(listOf("home"), favorites.map { it.id })
+      assertTrue(favorites.first().isFavorite)
+      assertTrue(stationsRepository.loadIfNeededCalls > 0)
+    }
 
   @Test
-  fun `refresh station data if needed refreshes repositories and returns bundle`() = runTest {
-    val stationsRepository = FakeUseCaseStationsRepository(
-      StationsState(stations = listOf(station(id = "station-1")), lastUpdatedEpoch = 9_000L),
-    )
-    val snapshotRepository = FakeSurfaceSnapshotRepository(
-      bundle = SurfaceSnapshotBundle(
-        generatedAtEpoch = 9_000L,
-        favoriteStation = station(id = "station-1").toSurfaceSnapshot(
+  fun `get station status uses cached snapshot before loading repository`() =
+    runTest {
+      val stationsRepository =
+        FakeUseCaseStationsRepository(
+          StationsState(
+            stations = listOf(station(id = "station-1")),
+            lastUpdatedEpoch = 5_000L,
+          ),
+        )
+      val cachedSnapshot =
+        station(id = "cached", distanceMeters = 40).toSurfaceSnapshot(
           cityId = City.ZARAGOZA.id,
-          lastUpdatedEpoch = 9_000L,
+          lastUpdatedEpoch = 10_000L,
           isFavorite = true,
-        ),
-        state = defaultSurfaceState(),
-      ),
-    )
-    val useCase = RefreshStationDataIfNeeded(
-      stationsRepository = stationsRepository,
-      surfaceSnapshotRepository = snapshotRepository,
-    )
+        )
+      val useCase =
+        GetStationStatus(
+          settingsRepository = FakeUseCaseSettingsRepository(),
+          stationsRepository = stationsRepository,
+          surfaceSnapshotRepository =
+            FakeSurfaceSnapshotRepository(
+              bundle =
+                SurfaceSnapshotBundle(
+                  generatedAtEpoch = 11_000L,
+                  favoriteStation = cachedSnapshot,
+                  state = defaultSurfaceState(),
+                ),
+            ),
+        )
 
-    val bundle = useCase.execute(forceRefresh = true)
+      val snapshot = useCase.execute("cached")
 
-    assertEquals(1, stationsRepository.forceRefreshCalls)
-    assertEquals(1, snapshotRepository.refreshCalls)
-    assertEquals("station-1", bundle?.favoriteStation?.id)
-  }
+      assertEquals("cached", snapshot?.id)
+      assertEquals(0, stationsRepository.loadIfNeededCalls)
+    }
 
   @Test
-  fun `start and stop station monitoring delegate to repository`() = runTest {
-    val monitoringRepository = FakeSurfaceMonitoringRepository()
-    val startUseCase = StartStationMonitoring(monitoringRepository)
-    val stopUseCase = StopStationMonitoring(monitoringRepository)
+  fun `get station status uses saved place snapshots before loading repository`() =
+    runTest {
+      val stationsRepository =
+        FakeUseCaseStationsRepository(
+          StationsState(
+            stations = listOf(station(id = "station-1")),
+            lastUpdatedEpoch = 5_000L,
+          ),
+        )
+      val cachedSnapshot =
+        station(id = "work", distanceMeters = 55).toSurfaceSnapshot(
+          cityId = City.ZARAGOZA.id,
+          lastUpdatedEpoch = 10_000L,
+        )
+      val useCase =
+        GetStationStatus(
+          settingsRepository = FakeUseCaseSettingsRepository(),
+          stationsRepository = stationsRepository,
+          surfaceSnapshotRepository =
+            FakeSurfaceSnapshotRepository(
+              bundle =
+                SurfaceSnapshotBundle(
+                  generatedAtEpoch = 11_000L,
+                  workStation = cachedSnapshot,
+                  state = defaultSurfaceState(),
+                ),
+            ),
+        )
 
-    val started = startUseCase.execute(
-      stationId = "station-42",
-      durationSeconds = 180,
-      kind = SurfaceMonitoringKind.Bikes,
-    )
-    stopUseCase.execute(clear = false)
-    stopUseCase.execute(clear = true)
+      val snapshot = useCase.execute("work")
 
-    assertTrue(started)
-    assertEquals("station-42", monitoringRepository.lastStartedStationId)
-    assertEquals(SurfaceMonitoringKind.Bikes, monitoringRepository.lastStartedKind)
-    assertTrue(monitoringRepository.stopCalled)
-    assertTrue(monitoringRepository.clearCalled)
-    assertEquals(null, monitoringRepository.state.value)
-  }
+      assertEquals("work", snapshot?.id)
+      assertEquals(0, stationsRepository.loadIfNeededCalls)
+    }
+
+  @Test
+  fun `suggested alternative prefers higher availability`() =
+    runTest {
+      val useCase =
+        GetSuggestedAlternativeStation(
+          settingsRepository = FakeUseCaseSettingsRepository(searchRadiusMetersValue = 500),
+          stationsRepository =
+            FakeUseCaseStationsRepository(
+              StationsState(
+                stations =
+                  listOf(
+                    station(id = "origin", latitude = 41.65, longitude = -0.88, bikesAvailable = 0),
+                    station(id = "near-low", latitude = 41.6502, longitude = -0.8802, bikesAvailable = 1),
+                    station(id = "far-high", latitude = 41.6509, longitude = -0.8809, bikesAvailable = 4),
+                  ),
+                lastUpdatedEpoch = 8_000L,
+              ),
+            ),
+        )
+
+      val alternative =
+        useCase.execute(
+          stationId = "origin",
+          kind = SurfaceMonitoringKind.Bikes,
+        )
+
+      assertEquals("far-high", alternative?.id)
+    }
+
+  @Test
+  fun `refresh station data if needed refreshes repositories and returns bundle`() =
+    runTest {
+      val stationsRepository =
+        FakeUseCaseStationsRepository(
+          StationsState(stations = listOf(station(id = "station-1")), lastUpdatedEpoch = 9_000L),
+        )
+      val snapshotRepository =
+        FakeSurfaceSnapshotRepository(
+          bundle =
+            SurfaceSnapshotBundle(
+              generatedAtEpoch = 9_000L,
+              favoriteStation =
+                station(id = "station-1").toSurfaceSnapshot(
+                  cityId = City.ZARAGOZA.id,
+                  lastUpdatedEpoch = 9_000L,
+                  isFavorite = true,
+                ),
+              state = defaultSurfaceState(),
+            ),
+        )
+      val useCase =
+        RefreshStationDataIfNeeded(
+          stationsRepository = stationsRepository,
+          surfaceSnapshotRepository = snapshotRepository,
+        )
+
+      val bundle = useCase.execute(forceRefresh = true)
+
+      assertEquals(1, stationsRepository.forceRefreshCalls)
+      assertEquals(1, snapshotRepository.refreshCalls)
+      assertEquals("station-1", bundle?.favoriteStation?.id)
+    }
+
+  @Test
+  fun `start and stop station monitoring delegate to repository`() =
+    runTest {
+      val monitoringRepository = FakeSurfaceMonitoringRepository()
+      val startUseCase = StartStationMonitoring(monitoringRepository)
+      val stopUseCase = StopStationMonitoring(monitoringRepository)
+
+      val started =
+        startUseCase.execute(
+          stationId = "station-42",
+          durationSeconds = 180,
+          kind = SurfaceMonitoringKind.Bikes,
+        )
+      stopUseCase.execute(clear = false)
+      stopUseCase.execute(clear = true)
+
+      assertTrue(started)
+      assertEquals("station-42", monitoringRepository.lastStartedStationId)
+      assertEquals(SurfaceMonitoringKind.Bikes, monitoringRepository.lastStartedKind)
+      assertTrue(monitoringRepository.stopCalled)
+      assertTrue(monitoringRepository.clearCalled)
+      assertEquals(null, monitoringRepository.state.value)
+    }
 }
 
 private class FakeUseCaseStationsRepository(
@@ -202,7 +232,9 @@ private class FakeUseCaseFavoritesRepository(
   override val workStationId = MutableStateFlow(workStationId)
 
   override suspend fun bootstrap() = Unit
+
   override suspend fun toggle(stationId: String) = Unit
+
   override suspend fun setHomeStationId(stationId: String?) {
     homeStationId.value = stationId
   }
@@ -212,8 +244,11 @@ private class FakeUseCaseFavoritesRepository(
   }
 
   override suspend fun clearAll() = Unit
+
   override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
   override fun currentHomeStationId(): String? = homeStationId.value
+
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
@@ -232,20 +267,37 @@ private class FakeUseCaseSettingsRepository(
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
 
   override suspend fun bootstrap() = Unit
+
   override fun currentSearchRadiusMeters(): Int = searchRadiusMetersValue
+
   override fun currentPreferredMapApp(): PreferredMapApp = PreferredMapApp.AppleMaps
+
   override fun currentSelectedCity(): City = city
+
   override fun currentLastSeenChangelogAppVersion(): String? = null
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
   override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
+
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
   override suspend fun setSelectedCity(city: City) = Unit
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) = Unit
+
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) = Unit
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
 }
 
@@ -291,20 +343,21 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   ): Boolean {
     lastStartedStationId = stationId
     lastStartedKind = kind
-    mutableState.value = SurfaceMonitoringSession(
-      stationId = stationId,
-      stationName = stationId,
-      cityId = City.ZARAGOZA.id,
-      kind = kind,
-      status = SurfaceMonitoringStatus.Monitoring,
-      bikesAvailable = 5,
-      docksAvailable = 4,
-      statusLevel = SurfaceStatusLevel.Good,
-      startedAtEpoch = 1L,
-      expiresAtEpoch = durationSeconds.toLong() * 1_000L,
-      lastUpdatedEpoch = 1L,
-      isActive = true,
-    )
+    mutableState.value =
+      SurfaceMonitoringSession(
+        stationId = stationId,
+        stationName = stationId,
+        cityId = City.ZARAGOZA.id,
+        kind = kind,
+        status = SurfaceMonitoringStatus.Monitoring,
+        bikesAvailable = 5,
+        docksAvailable = 4,
+        statusLevel = SurfaceStatusLevel.Good,
+        startedAtEpoch = 1L,
+        expiresAtEpoch = durationSeconds.toLong() * 1_000L,
+        lastUpdatedEpoch = 1L,
+        isActive = true,
+      )
     return true
   }
 
@@ -331,22 +384,24 @@ private fun station(
   longitude: Double = -0.88,
   bikesAvailable: Int = 6,
   slotsFree: Int = 5,
-): Station = Station(
-  id = id,
-  name = id,
-  address = id,
-  location = GeoPoint(latitude, longitude),
-  bikesAvailable = bikesAvailable,
-  slotsFree = slotsFree,
-  distanceMeters = distanceMeters,
-)
+): Station =
+  Station(
+    id = id,
+    name = id,
+    address = id,
+    location = GeoPoint(latitude, longitude),
+    bikesAvailable = bikesAvailable,
+    slotsFree = slotsFree,
+    distanceMeters = distanceMeters,
+  )
 
-private fun defaultSurfaceState(): SurfaceState = SurfaceState(
-  hasLocationPermission = true,
-  hasNotificationPermission = true,
-  hasFavoriteStation = true,
-  isDataFresh = true,
-  lastSyncEpoch = 1L,
-  cityId = City.ZARAGOZA.id,
-  cityName = City.ZARAGOZA.displayName,
-)
+private fun defaultSurfaceState(): SurfaceState =
+  SurfaceState(
+    hasLocationPermission = true,
+    hasNotificationPermission = true,
+    hasFavoriteStation = true,
+    isDataFresh = true,
+    lastSyncEpoch = 1L,
+    cityId = City.ZARAGOZA.id,
+    cityName = City.ZARAGOZA.displayName,
+  )

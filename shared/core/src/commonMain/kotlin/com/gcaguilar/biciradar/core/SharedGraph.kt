@@ -29,67 +29,69 @@ import dev.zacsweers.metro.Includes
  * Los repositorios se registran automáticamente mediante @ContributesBinding.
  */
 @DependencyGraph(
-    AppScope::class,
-    bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class]
+  AppScope::class,
+  bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class],
 )
 interface SharedGraph {
-    // ==================== ACCESSORS PÚBLICOS ====================
+  // ==================== ACCESSORS PÚBLICOS ====================
 
-    // Casos de uso
-    val changeCityUseCase: ChangeCityUseCase
-    val isCityConfiguredUseCase: IsCityConfiguredUseCase
-    val getCachedStationSnapshot: GetCachedStationSnapshot
-    val getFavoriteStations: GetFavoriteStations
-    val getNearestStations: GetNearestStations
-    val getStationStatus: GetStationStatus
-    val getSuggestedAlternativeStation: GetSuggestedAlternativeStation
-    val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
-    val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator
-    val startStationMonitoring: StartStationMonitoring
-    val stopStationMonitoring: StopStationMonitoring
+  // Casos de uso
+  val changeCityUseCase: ChangeCityUseCase
+  val isCityConfiguredUseCase: IsCityConfiguredUseCase
+  val getCachedStationSnapshot: GetCachedStationSnapshot
+  val getFavoriteStations: GetFavoriteStations
+  val getNearestStations: GetNearestStations
+  val getStationStatus: GetStationStatus
+  val getSuggestedAlternativeStation: GetSuggestedAlternativeStation
+  val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
+  val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator
+  val startStationMonitoring: StartStationMonitoring
+  val stopStationMonitoring: StopStationMonitoring
 
-    // Repositorios (todos con @ContributesBinding)
-    val environmentalRepository: EnvironmentalRepository
-    val engagementRepository: EngagementRepository
-    val favoritesRepository: FavoritesRepository
-    val savedPlaceAlertsRepository: SavedPlaceAlertsRepository
-    val settingsRepository: SettingsRepository
-    val surfaceMonitoringRepository: SurfaceMonitoringRepository
-    val surfaceSnapshotRepository: SurfaceSnapshotRepository
-    val stationsRepository: StationsRepository
+  // Repositorios (todos con @ContributesBinding)
+  val environmentalRepository: EnvironmentalRepository
+  val engagementRepository: EngagementRepository
+  val favoritesRepository: FavoritesRepository
+  val savedPlaceAlertsRepository: SavedPlaceAlertsRepository
+  val settingsRepository: SettingsRepository
+  val surfaceMonitoringRepository: SurfaceMonitoringRepository
+  val surfaceSnapshotRepository: SurfaceSnapshotRepository
+  val stationsRepository: StationsRepository
 
-    // APIs y servicios de plataforma
-    val assistantIntentResolver: AssistantIntentResolver
-    val datosBiziApi: DatosBiziApi
-    val geoApi: GeoApi
-    val geoSearchUseCase: GeoSearchUseCase
-    val googlePlacesApi: GooglePlacesApi
-    val reverseGeocodeUseCase: ReverseGeocodeUseCase
-    val routeLauncher: RouteLauncher
-    val watchSyncBridge: WatchSyncBridge
+  // APIs y servicios de plataforma
+  val assistantIntentResolver: AssistantIntentResolver
+  val datosBiziApi: DatosBiziApi
+  val geoApi: GeoApi
+  val geoSearchUseCase: GeoSearchUseCase
+  val googlePlacesApi: GooglePlacesApi
+  val reverseGeocodeUseCase: ReverseGeocodeUseCase
+  val routeLauncher: RouteLauncher
+  val watchSyncBridge: WatchSyncBridge
 
-    /**
-     * Repositorio de trip global (legado).
-     * Para nuevos flujos, usar [tripGraphFactory] para crear un grafo aislado.
-     */
-    val tripRepository: TripRepository
+  /**
+   * Repositorio de trip global (legado).
+   * Para nuevos flujos, usar [tripGraphFactory] para crear un grafo aislado.
+   */
+  val tripRepository: TripRepository
 
-    /**
-     * Factory para crear grafos de trip aislados.
-     * Usar esto para iniciar un nuevo trip con su propio ciclo de vida.
-     */
-    val tripGraphFactory: TripGraph.Factory
+  /**
+   * Factory para crear grafos de trip aislados.
+   * Usar esto para iniciar un nuevo trip con su propio ciclo de vida.
+   */
+  val tripGraphFactory: TripGraph.Factory
 
-    /**
-     * Factory para crear grafos de onboarding aislados.
-     * Usar esto cuando se necesite un contexto de onboarding independiente.
-     */
-    val onboardingGraphFactory: OnboardingGraph.Factory
+  /**
+   * Factory para crear grafos de onboarding aislados.
+   * Usar esto cuando se necesite un contexto de onboarding independiente.
+   */
+  val onboardingGraphFactory: OnboardingGraph.Factory
 
-    // ==================== FACTORY ====================
+  // ==================== FACTORY ====================
 
-    @DependencyGraph.Factory
-    fun interface Factory {
-        fun create(@Includes platformBindings: PlatformBindings): SharedGraph
-    }
+  @DependencyGraph.Factory
+  fun interface Factory {
+    fun create(
+      @Includes platformBindings: PlatformBindings,
+    ): SharedGraph
+  }
 }

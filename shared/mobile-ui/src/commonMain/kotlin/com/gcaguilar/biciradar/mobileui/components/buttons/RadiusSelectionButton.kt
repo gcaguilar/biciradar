@@ -25,50 +25,58 @@ import com.gcaguilar.biciradar.mobileui.LocalBiziColors
  */
 @Composable
 internal fun RadiusSelectionButton(
-    modifier: Modifier,
-    selected: Boolean,
-    label: String,
-    onClick: () -> Unit,
+  modifier: Modifier,
+  selected: Boolean,
+  label: String,
+  onClick: () -> Unit,
 ) {
-    val containerColor by animateColorAsState(
-        targetValue = if (selected) LocalBiziColors.current.red.copy(alpha = 0.10f) else LocalBiziColors.current.surface,
-        animationSpec = tween(180),
-        label = "radius-container",
-    )
-    val borderColor by animateColorAsState(
-        targetValue = if (selected) LocalBiziColors.current.red.copy(alpha = 0.25f) else LocalBiziColors.current.panel,
-        animationSpec = tween(180),
-        label = "radius-border",
-    )
-    val textColor by animateColorAsState(
-        targetValue = if (selected) LocalBiziColors.current.red else LocalBiziColors.current.ink,
-        animationSpec = tween(180),
-        label = "radius-text",
-    )
-    val selectionScale by animateFloatAsState(
-        targetValue = if (selected) 1f else 0.98f,
-        animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
-        label = "radius-scale",
-    )
-    Surface(
-        modifier = modifier
-            .graphicsLayer {
-                scaleX = selectionScale
-                scaleY = selectionScale
-            }
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        color = containerColor,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier
-                .padding(horizontal = 14.dp, vertical = 12.dp)
-                .animateContentSize(animationSpec = tween(180)),
-            color = textColor,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+  val containerColor by animateColorAsState(
+    targetValue =
+      if (selected) {
+        LocalBiziColors.current.red.copy(
+          alpha = 0.10f,
         )
-    }
+      } else {
+        LocalBiziColors.current.surface
+      },
+    animationSpec = tween(180),
+    label = "radius-container",
+  )
+  val borderColor by animateColorAsState(
+    targetValue = if (selected) LocalBiziColors.current.red.copy(alpha = 0.25f) else LocalBiziColors.current.panel,
+    animationSpec = tween(180),
+    label = "radius-border",
+  )
+  val textColor by animateColorAsState(
+    targetValue = if (selected) LocalBiziColors.current.red else LocalBiziColors.current.ink,
+    animationSpec = tween(180),
+    label = "radius-text",
+  )
+  val selectionScale by animateFloatAsState(
+    targetValue = if (selected) 1f else 0.98f,
+    animationSpec = spring(dampingRatio = 0.82f, stiffness = 700f),
+    label = "radius-scale",
+  )
+  Surface(
+    modifier =
+      modifier
+        .graphicsLayer {
+          scaleX = selectionScale
+          scaleY = selectionScale
+        }.clickable(onClick = onClick),
+    shape = RoundedCornerShape(18.dp),
+    color = containerColor,
+    border = BorderStroke(1.dp, borderColor),
+  ) {
+    Text(
+      text = label,
+      modifier =
+        Modifier
+          .padding(horizontal = 14.dp, vertical = 12.dp)
+          .animateContentSize(animationSpec = tween(180)),
+      color = textColor,
+      style = MaterialTheme.typography.bodySmall,
+      fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+    )
+  }
 }

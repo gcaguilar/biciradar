@@ -20,10 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.deleteFavorite
+import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -41,11 +41,12 @@ internal fun FavoriteDismissBackground(
 ) {
   val clampedProgress = progress.coerceIn(0f, 1f)
   Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp))
-      .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
-      .padding(horizontal = 20.dp, vertical = 12.dp),
+    modifier =
+      Modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp))
+        .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
+        .padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,
   ) {
     Row(

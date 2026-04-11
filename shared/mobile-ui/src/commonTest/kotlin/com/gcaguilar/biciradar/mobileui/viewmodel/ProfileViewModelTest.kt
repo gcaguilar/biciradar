@@ -40,60 +40,67 @@ class ProfileViewModelTest {
   }
 
   @Test
-  fun `incomplete checklist always shows setup card`() = runTest(dispatcher) {
-    val settingsRepository = ProfileTestSettingsRepository()
-    val favoritesRepository = ProfileTestFavoritesRepository()
-    val stationsRepository = ProfileTestStationsRepository()
-    val viewModel = ProfileViewModel(
-      settingsRepository = settingsRepository,
-      favoritesRepository = favoritesRepository,
-      changeCityUseCase = ChangeCityUseCase(
-        settingsRepository = settingsRepository,
-        favoritesRepository = favoritesRepository,
-        stationsRepository = stationsRepository,
-      ),
-      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
-      canSelectGoogleMapsInIos = true,
-    )
+  fun `incomplete checklist always shows setup card`() =
+    runTest(dispatcher) {
+      val settingsRepository = ProfileTestSettingsRepository()
+      val favoritesRepository = ProfileTestFavoritesRepository()
+      val stationsRepository = ProfileTestStationsRepository()
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          canSelectGoogleMapsInIos = true,
+        )
 
-    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
-    advanceUntilIdle()
-    assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
+      settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
+      advanceUntilIdle()
+      assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
 
-    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true, completedAtEpoch = 1L)
-    advanceUntilIdle()
-    assertEquals(false, viewModel.uiState.value.showProfileSetupCard)
+      settingsRepository.onboardingChecklist.value =
+        OnboardingChecklistSnapshot(cityConfirmed = true, completedAtEpoch = 1L)
+      advanceUntilIdle()
+      assertEquals(false, viewModel.uiState.value.showProfileSetupCard)
 
-    settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
-    advanceUntilIdle()
-    assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
-  }
+      settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = false)
+      advanceUntilIdle()
+      assertEquals(true, viewModel.uiState.value.showProfileSetupCard)
+    }
 
   @Test
-  fun `city selection delegates through public method`() = runTest(dispatcher) {
-    val settingsRepository = ProfileTestSettingsRepository(city = City.ZARAGOZA)
-    val favoritesRepository = ProfileTestFavoritesRepository()
-    val stationsRepository = ProfileTestStationsRepository()
-    val viewModel = ProfileViewModel(
-      settingsRepository = settingsRepository,
-      favoritesRepository = favoritesRepository,
-      changeCityUseCase = ChangeCityUseCase(
-        settingsRepository = settingsRepository,
-        favoritesRepository = favoritesRepository,
-        stationsRepository = stationsRepository,
-      ),
-      settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
-      canSelectGoogleMapsInIos = true,
-    )
+  fun `city selection delegates through public method`() =
+    runTest(dispatcher) {
+      val settingsRepository = ProfileTestSettingsRepository(city = City.ZARAGOZA)
+      val favoritesRepository = ProfileTestFavoritesRepository()
+      val stationsRepository = ProfileTestStationsRepository()
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          canSelectGoogleMapsInIos = true,
+        )
 
-    viewModel.onCitySelected(City.MADRID)
-    advanceUntilIdle()
+      viewModel.onCitySelected(City.MADRID)
+      advanceUntilIdle()
 
-    assertEquals(City.MADRID, settingsRepository.selectedCity.value)
-    assertEquals(1, favoritesRepository.clearAllCalls)
-    assertEquals(1, stationsRepository.forceRefreshCalls)
-    assertEquals(true, settingsRepository.onboardingChecklist.value.cityConfirmed)
-  }
+      assertEquals(City.MADRID, settingsRepository.selectedCity.value)
+      assertEquals(1, favoritesRepository.clearAllCalls)
+      assertEquals(1, stationsRepository.forceRefreshCalls)
+      assertEquals(true, settingsRepository.onboardingChecklist.value.cityConfirmed)
+    }
 }
 
 private class ProfileTestSettingsRepository(
@@ -108,32 +115,50 @@ private class ProfileTestSettingsRepository(
   override val hasCompletedOnboarding = MutableStateFlow(false)
   override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot())
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
+
   override suspend fun bootstrap() = Unit
+
   override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
   override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
   override fun currentSelectedCity(): City = selectedCity.value
+
   override fun currentLastSeenChangelogAppVersion(): String? = lastSeenChangelogAppVersion.value
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
   override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
   override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
   override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
   override suspend fun setSelectedCity(city: City) {
     selectedCity.value = city
   }
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) {
     hasCompletedOnboarding.value = completed
   }
+
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) {
     onboardingChecklist.value = snapshot
     hasCompletedOnboarding.value = snapshot.isCompleted()
   }
-  override suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot) {
+
+  override suspend fun updateOnboardingChecklist(
+    transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+  ) {
     val updated = transform(onboardingChecklist.value)
     onboardingChecklist.value = updated
     hasCompletedOnboarding.value = updated.isCompleted()
   }
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 }
 
@@ -144,25 +169,37 @@ private class ProfileTestFavoritesRepository : FavoritesRepository {
   var clearAllCalls = 0
 
   override suspend fun bootstrap() = Unit
+
   override suspend fun syncFromPeer() = Unit
+
   override suspend fun toggle(stationId: String) = Unit
+
   override suspend fun setHomeStationId(stationId: String?) = Unit
+
   override suspend fun setWorkStationId(stationId: String?) = Unit
+
   override suspend fun clearAll() {
     clearAllCalls++
   }
+
   override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
   override fun currentHomeStationId(): String? = homeStationId.value
+
   override fun currentWorkStationId(): String? = workStationId.value
 }
 
 private class ProfileTestStationsRepository : StationsRepository {
   override val state = MutableStateFlow(StationsState())
   var forceRefreshCalls = 0
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() {
     forceRefreshCalls++
   }
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = null
 }

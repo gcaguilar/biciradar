@@ -30,14 +30,14 @@ import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okio.FileSystem
 import platform.Foundation.NSBundle
 import platform.Foundation.NSHomeDirectory
-import platform.Foundation.NSUserDefaults
 import platform.Foundation.NSURL
+import platform.Foundation.NSUserDefaults
 import platform.WatchConnectivity.WCSession
 import platform.WatchKit.WKExtension
 import platform.WatchKit.WKInterfaceDevice
@@ -52,24 +52,26 @@ private val DEFAULT_WATCH_SCREENSHOT_LOCATION = GeoPoint(latitude = 41.6488, lon
 class WatchOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
 ) : PlatformBindings {
-  override val appVersion: String = NSBundle.mainBundle
-    .objectForInfoDictionaryKey("CFBundleShortVersionString")
-    ?.toString()
-    ?.trim()
-    ?.takeIf { it.isNotBlank() } ?: "unknown"
+  override val appVersion: String =
+    NSBundle.mainBundle
+      .objectForInfoDictionaryKey("CFBundleShortVersionString")
+      ?.toString()
+      ?.trim()
+      ?.takeIf { it.isNotBlank() } ?: "unknown"
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   private var database: BiciRadarDatabase? = null
-  override val databaseFactory: DatabaseFactory = object : DatabaseFactory {
-    override fun create(json: Json): BiciRadarDatabase? {
-      if (database == null) {
-        val driver = createNativeDriver()
-        val db = BiciRadarDatabase(driver)
-        LegacyBlobToRelationalMigration.ensure(driver, db, json)
-        database = db
+  override val databaseFactory: DatabaseFactory =
+    object : DatabaseFactory {
+      override fun create(json: Json): BiciRadarDatabase? {
+        if (database == null) {
+          val driver = createNativeDriver()
+          val db = BiciRadarDatabase(driver)
+          LegacyBlobToRelationalMigration.ensure(driver, db, json)
+          database = db
+        }
+        return database
       }
-      return database
     }
-  }
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val googleMapsApiKey: String? = null
   override val httpClientFactory: BiziHttpClientFactory = WatchOSHttpClientFactory()
@@ -85,17 +87,18 @@ class WatchOSPlatformBindings(
 }
 
 private class WatchOSHttpClientFactory : BiziHttpClientFactory {
-  override fun create(json: Json): HttpClient = HttpClient(Darwin) {
-    expectSuccess = true
-    install(HttpTimeout) {
-      requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
-      connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
-      socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+  override fun create(json: Json): HttpClient =
+    HttpClient(Darwin) {
+      expectSuccess = true
+      install(HttpTimeout) {
+        requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+        connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS
+        socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+      }
+      install(ContentNegotiation) {
+        json(json)
+      }
     }
-    install(ContentNegotiation) {
-      json(json)
-    }
-  }
 }
 
 private class WatchOSStorageDirectoryProvider : StorageDirectoryProvider {
@@ -112,47 +115,53 @@ private class WatchOSLocationProvider : LocationProvider {
     if (!defaults.boolForKey(WATCH_SCREENSHOT_MODE_KEY)) {
       return null
     }
-    val latitude = if (defaults.objectForKey(WATCH_SCREENSHOT_LATITUDE_KEY) != null) {
-      defaults.doubleForKey(WATCH_SCREENSHOT_LATITUDE_KEY)
-    } else {
-      DEFAULT_WATCH_SCREENSHOT_LOCATION.latitude
-    }
-    val longitude = if (defaults.objectForKey(WATCH_SCREENSHOT_LONGITUDE_KEY) != null) {
-      defaults.doubleForKey(WATCH_SCREENSHOT_LONGITUDE_KEY)
-    } else {
-      DEFAULT_WATCH_SCREENSHOT_LOCATION.longitude
-    }
+    val latitude =
+      if (defaults.objectForKey(WATCH_SCREENSHOT_LATITUDE_KEY) != null) {
+        defaults.doubleForKey(WATCH_SCREENSHOT_LATITUDE_KEY)
+      } else {
+        DEFAULT_WATCH_SCREENSHOT_LOCATION.latitude
+      }
+    val longitude =
+      if (defaults.objectForKey(WATCH_SCREENSHOT_LONGITUDE_KEY) != null) {
+        defaults.doubleForKey(WATCH_SCREENSHOT_LONGITUDE_KEY)
+      } else {
+        DEFAULT_WATCH_SCREENSHOT_LOCATION.longitude
+      }
     return GeoPoint(latitude = latitude, longitude = longitude)
   }
 }
 
 private class WatchOSMapSupport : MapSupport {
-  override fun currentStatus(): MapSupportStatus = MapSupportStatus(
-    embeddedProvider = EmbeddedMapProvider.None,
-    googleMapsSdkLinked = false,
-    googleMapsApiKeyConfigured = false,
-  )
+  override fun currentStatus(): MapSupportStatus =
+    MapSupportStatus(
+      embeddedProvider = EmbeddedMapProvider.None,
+      googleMapsSdkLinked = false,
+      googleMapsApiKeyConfigured = false,
+    )
 }
 
 private class WatchOSRouteLauncher : RouteLauncher {
   override fun launch(station: Station) {
-    val routeUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
-    ) ?: return
+    val routeUrl =
+      NSURL.URLWithString(
+        "http://maps.apple.com/?daddr=${station.location.latitude},${station.location.longitude}&q=${station.name}&dirflg=w",
+      ) ?: return
     WKExtension.sharedExtension().openSystemURL(routeUrl)
   }
 
   override fun launchWalkToLocation(destination: GeoPoint) {
-    val routeUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w",
-    ) ?: return
+    val routeUrl =
+      NSURL.URLWithString(
+        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=w",
+      ) ?: return
     WKExtension.sharedExtension().openSystemURL(routeUrl)
   }
 
   override fun launchBikeToLocation(destination: GeoPoint) {
-    val routeUrl = NSURL.URLWithString(
-      "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=b",
-    ) ?: return
+    val routeUrl =
+      NSURL.URLWithString(
+        "http://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=b",
+      ) ?: return
     WKExtension.sharedExtension().openSystemURL(routeUrl)
   }
 }
@@ -177,8 +186,15 @@ private class WatchOSSyncBridge : WatchSyncBridge {
     }
   }
 
-  override suspend fun latestFavorites(): FavoritesSyncSnapshot? = WatchOSFavoritesCache.read()
-    .takeIf { it.favoriteIds.isNotEmpty() || it.homeStationId != null || it.workStationId != null || it.stationCategory.isNotEmpty() }
+  override suspend fun latestFavorites(): FavoritesSyncSnapshot? =
+    WatchOSFavoritesCache
+      .read()
+      .takeIf {
+        it.favoriteIds.isNotEmpty() ||
+          it.homeStationId != null ||
+          it.workStationId != null ||
+          it.stationCategory.isNotEmpty()
+      }
 }
 
 private object WatchOSFavoritesCache {
@@ -191,18 +207,21 @@ private object WatchOSFavoritesCache {
   const val snapshotCacheKey = "bizizaragoza.watch.favorite_categories_v2"
   const val snapshotContextKey = "favorite_categories_v2"
 
-  fun read(): FavoritesSyncSnapshot = FavoritesSyncSnapshot(
-    favoriteIds = NSUserDefaults.standardUserDefaults.arrayForKey(cacheKey)
-      .orEmpty()
-      .filterIsInstance<String>()
-      .toSet(),
-    homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
-    workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
-  ).let { legacy ->
-    val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
-    runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
-      .getOrNull() ?: legacy
-  }
+  fun read(): FavoritesSyncSnapshot =
+    FavoritesSyncSnapshot(
+      favoriteIds =
+        NSUserDefaults.standardUserDefaults
+          .arrayForKey(cacheKey)
+          .orEmpty()
+          .filterIsInstance<String>()
+          .toSet(),
+      homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
+      workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
+    ).let { legacy ->
+      val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
+      runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
+        .getOrNull() ?: legacy
+    }
 
   fun persist(snapshot: FavoritesSyncSnapshot) {
     NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
@@ -215,6 +234,11 @@ private object WatchOSFavoritesCache {
 
 private class WatchOSLocalNotifier : LocalNotifier {
   override suspend fun hasPermission(): Boolean = false
+
   override suspend fun requestPermission(): Boolean = false
-  override suspend fun notify(title: String, body: String) = Unit
+
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) = Unit
 }

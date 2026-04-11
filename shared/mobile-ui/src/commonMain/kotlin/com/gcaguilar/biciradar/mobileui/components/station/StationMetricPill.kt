@@ -17,30 +17,35 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun StationMetricPill(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    tint: Color,
+  modifier: Modifier = Modifier,
+  label: String,
+  value: String,
+  tint: Color,
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = tint.copy(alpha = 0.09f),
+  Surface(
+    modifier = modifier,
+    shape = RoundedCornerShape(16.dp),
+    color = tint.copy(alpha = 0.09f),
+  ) {
+    Column(
+      modifier =
+        Modifier
+          .padding(horizontal = 12.dp, vertical = 10.dp)
+          .animateContentSize(
+            animationSpec =
+              androidx.compose.animation.core
+                .spring(dampingRatio = 0.9f, stiffness = 550f),
+          ),
+      verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-                .animateContentSize(animationSpec = androidx.compose.animation.core.spring(dampingRatio = 0.9f, stiffness = 550f)),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+      Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
+      Text(
+        value,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
     }
+  }
 }

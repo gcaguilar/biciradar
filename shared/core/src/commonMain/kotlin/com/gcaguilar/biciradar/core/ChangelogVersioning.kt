@@ -4,7 +4,10 @@ package com.gcaguilar.biciradar.core
  * Semantic-ish version compare: splits on `.`, compares numeric segments, non-numeric suffixes sort after digits.
  * Returns negative if [a] < [b], zero if equal, positive if [a] > [b].
  */
-fun compareAppVersionStrings(a: String, b: String): Int {
+fun compareAppVersionStrings(
+  a: String,
+  b: String,
+): Int {
   val pa = parseVersion(a)
   val pb = parseVersion(b)
   val maxLen = maxOf(pa.size, pb.size)
@@ -28,7 +31,10 @@ fun normalizeAppVersionForCatalog(version: String?): String? {
   return match ?: raw.takeIf { it.any(Char::isDigit) }
 }
 
-private data class VersionPart(val number: Int, val suffix: String)
+private data class VersionPart(
+  val number: Int,
+  val suffix: String,
+)
 
 private fun parseVersion(v: String): List<VersionPart> {
   val trimmed = v.trim().ifBlank { "0" }
@@ -40,7 +46,10 @@ private fun parseVersion(v: String): List<VersionPart> {
   }
 }
 
-private fun compareVersionPart(a: VersionPart, b: VersionPart): Int {
+private fun compareVersionPart(
+  a: VersionPart,
+  b: VersionPart,
+): Int {
   val n = a.number.compareTo(b.number)
   if (n != 0) return n
   return a.suffix.compareTo(b.suffix)
@@ -60,11 +69,12 @@ fun pendingChangelogVersion(
 ): String? {
   val normalizedCurrent = normalizeAppVersionForCatalog(currentAppVersion) ?: return null
   val normalizedLastSeen = normalizeAppVersionForCatalog(lastSeenChangelogAppVersion) ?: return null
-  val newestCompatibleCatalogVersion = catalogVersions
-    .mapNotNull(::normalizeAppVersionForCatalog)
-    .filter { compareAppVersionStrings(it, normalizedCurrent) <= 0 }
-    .maxWithOrNull { a, b -> compareAppVersionStrings(a, b) }
-    ?: return null
+  val newestCompatibleCatalogVersion =
+    catalogVersions
+      .mapNotNull(::normalizeAppVersionForCatalog)
+      .filter { compareAppVersionStrings(it, normalizedCurrent) <= 0 }
+      .maxWithOrNull { a, b -> compareAppVersionStrings(a, b) }
+      ?: return null
   if (compareAppVersionStrings(newestCompatibleCatalogVersion, normalizedLastSeen) <= 0) return null
   return newestCompatibleCatalogVersion
 }

@@ -99,8 +99,8 @@ fun Station.toSurfaceSnapshot(
   lastUpdatedEpoch: Long,
   isFavorite: Boolean = false,
   alternative: Station? = null,
-): SurfaceStationSnapshot {
-  return SurfaceStationSnapshot(
+): SurfaceStationSnapshot =
+  SurfaceStationSnapshot(
     id = id,
     nameShort = surfaceStationShortName(name),
     nameFull = name,
@@ -118,29 +118,31 @@ fun Station.toSurfaceSnapshot(
     alternativeStationName = alternative?.name,
     alternativeDistanceMeters = alternative?.distanceMeters,
   )
-}
 
 fun Station.surfaceStatusLevel(
   lowAvailabilityThreshold: Int = DEFAULT_LOW_AVAILABILITY_THRESHOLD,
-): SurfaceStatusLevel = when {
-  bikesAvailable < 0 || slotsFree < 0 -> SurfaceStatusLevel.Unavailable
-  bikesAvailable == 0 -> SurfaceStatusLevel.Empty
-  slotsFree == 0 -> SurfaceStatusLevel.Full
-  bikesAvailable <= lowAvailabilityThreshold || slotsFree <= lowAvailabilityThreshold -> SurfaceStatusLevel.Low
-  else -> SurfaceStatusLevel.Good
-}
+): SurfaceStatusLevel =
+  when {
+    bikesAvailable < 0 || slotsFree < 0 -> SurfaceStatusLevel.Unavailable
+    bikesAvailable == 0 -> SurfaceStatusLevel.Empty
+    slotsFree == 0 -> SurfaceStatusLevel.Full
+    bikesAvailable <= lowAvailabilityThreshold || slotsFree <= lowAvailabilityThreshold -> SurfaceStatusLevel.Low
+    else -> SurfaceStatusLevel.Good
+  }
 
-fun Station.surfaceStatusTextShort(
-  lowAvailabilityThreshold: Int = DEFAULT_LOW_AVAILABILITY_THRESHOLD,
-): String = when (surfaceStatusLevel(lowAvailabilityThreshold)) {
-  SurfaceStatusLevel.Good -> "Disponible"
-  SurfaceStatusLevel.Low -> "Pocas"
-  SurfaceStatusLevel.Empty -> "Sin bicis"
-  SurfaceStatusLevel.Full -> "Sin huecos"
-  SurfaceStatusLevel.Unavailable -> "No disp."
-}
+fun Station.surfaceStatusTextShort(lowAvailabilityThreshold: Int = DEFAULT_LOW_AVAILABILITY_THRESHOLD): String =
+  when (surfaceStatusLevel(lowAvailabilityThreshold)) {
+    SurfaceStatusLevel.Good -> "Disponible"
+    SurfaceStatusLevel.Low -> "Pocas"
+    SurfaceStatusLevel.Empty -> "Sin bicis"
+    SurfaceStatusLevel.Full -> "Sin huecos"
+    SurfaceStatusLevel.Unavailable -> "No disp."
+  }
 
-fun surfaceStationShortName(name: String, maxLength: Int = 20): String {
+fun surfaceStationShortName(
+  name: String,
+  maxLength: Int = 20,
+): String {
   val compact = name.trim().replace(Regex("\\s+"), " ")
   if (compact.length <= maxLength) return compact
   return compact.take(maxLength - 1).trimEnd() + "…"
@@ -156,7 +158,7 @@ fun formatRelativeMinutes(
   return when {
     elapsedSeconds < 60L -> "Ahora"
     elapsedMinutes == 1L -> "Hace 1 min"
-    elapsedMinutes < 60L -> "Hace ${elapsedMinutes} min"
+    elapsedMinutes < 60L -> "Hace $elapsedMinutes min"
     else -> "Hace ${elapsedMinutes / 60L} h"
   }
 }

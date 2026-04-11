@@ -6,8 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.core.content.ContextCompat
-import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.AppConfiguration
+import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.ExternalLinks
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.ReviewPrompter
@@ -35,9 +35,10 @@ internal class AndroidExternalLinks(
   }
 
   private fun openUri(uriString: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
+    val intent =
+      Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
     context.startActivity(intent)
   }
 }
@@ -47,8 +48,8 @@ internal class AndroidPermissionPrompter(
 ) : PermissionPrompter {
   var locationPermissionRequester: (suspend () -> Boolean)? = null
 
-  override suspend fun hasLocationPermission(): Boolean {
-    return ContextCompat.checkSelfPermission(
+  override suspend fun hasLocationPermission(): Boolean =
+    ContextCompat.checkSelfPermission(
       context,
       android.Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED ||
@@ -56,7 +57,6 @@ internal class AndroidPermissionPrompter(
         context,
         android.Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
-  }
 
   override suspend fun requestLocationPermission(): Boolean {
     locationPermissionRequester?.let { return it() }
@@ -91,26 +91,29 @@ internal class AndroidReviewPrompter(
       openStoreWriteReview()
       return
     }
-    val launched = runCatching {
-      manager.launchReviewFlow(activity, info).await()
-      true
-    }.getOrDefault(false)
+    val launched =
+      runCatching {
+        manager.launchReviewFlow(activity, info).await()
+        true
+      }.getOrDefault(false)
     if (!launched) {
       openStoreWriteReview()
     }
   }
 
   private fun openStoreUri(uriString: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      setPackage("com.android.vending")
-    }
-    val fallback = Intent(
-      Intent.ACTION_VIEW,
-      Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"),
-    ).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
+    val intent =
+      Intent(Intent.ACTION_VIEW, Uri.parse(uriString)).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        setPackage("com.android.vending")
+      }
+    val fallback =
+      Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"),
+      ).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
     val target = if (intent.resolveActivity(context.packageManager) != null) intent else fallback
     context.startActivity(target)
   }
@@ -125,24 +128,28 @@ internal class AndroidAppUpdatePrompter(
   }
 
   override suspend fun checkForUpdate(): UpdateAvailabilityState {
-    val info = runCatching { appUpdateManager.requestAppUpdateInfo() }.getOrNull()
-      ?: return UpdateAvailabilityState.Unknown
+    val info =
+      runCatching { appUpdateManager.requestAppUpdateInfo() }.getOrNull()
+        ?: return UpdateAvailabilityState.Unknown
     val isDownloaded = info.installStatus() == InstallStatus.DOWNLOADED
-    val isAvailable = info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
-      info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+    val isAvailable =
+      info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
+        info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
     val versionName = info.availableVersionCode().toString()
     return when {
       isDownloaded -> UpdateAvailabilityState.Downloaded(versionName = versionName)
-      isAvailable -> UpdateAvailabilityState.Available(
-        versionName = versionName,
-        storeUrl = "market://details?id=${context.packageName}",
-        isFlexibleAllowed = true,
-      )
-      info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE -> UpdateAvailabilityState.Available(
-        versionName = versionName,
-        storeUrl = "market://details?id=${context.packageName}",
-        isFlexibleAllowed = false,
-      )
+      isAvailable ->
+        UpdateAvailabilityState.Available(
+          versionName = versionName,
+          storeUrl = "market://details?id=${context.packageName}",
+          isFlexibleAllowed = true,
+        )
+      info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE ->
+        UpdateAvailabilityState.Available(
+          versionName = versionName,
+          storeUrl = "market://details?id=${context.packageName}",
+          isFlexibleAllowed = false,
+        )
       else -> UpdateAvailabilityState.Unavailable
     }
   }
@@ -172,16 +179,18 @@ internal class AndroidAppUpdatePrompter(
   }
 
   override fun openStoreListing() {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}")).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      setPackage("com.android.vending")
-    }
-    val fallback = Intent(
-      Intent.ACTION_VIEW,
-      Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"),
-    ).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
+    val intent =
+      Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}")).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        setPackage("com.android.vending")
+      }
+    val fallback =
+      Intent(
+        Intent.ACTION_VIEW,
+        Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}"),
+      ).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
     val target = if (intent.resolveActivity(context.packageManager) != null) intent else fallback
     context.startActivity(target)
   }

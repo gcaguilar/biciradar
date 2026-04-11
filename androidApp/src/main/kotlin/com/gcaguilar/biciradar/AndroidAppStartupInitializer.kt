@@ -11,22 +11,24 @@ class AndroidAppStartupInitializer : Initializer<Unit> {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
     val notificationManager = context.getSystemService(NotificationManager::class.java) ?: return
-    val channel = NotificationChannel(
-      TRIP_NOTIFICATION_CHANNEL_ID,
-      "Bizi Viaje",
-      NotificationManager.IMPORTANCE_HIGH,
-    ).apply {
-      description = "Notificaciones de monitorizacion de viaje en Bizi"
-    }
+    val channel =
+      NotificationChannel(
+        TRIP_NOTIFICATION_CHANNEL_ID,
+        "Bizi Viaje",
+        NotificationManager.IMPORTANCE_HIGH,
+      ).apply {
+        description = "Notificaciones de monitorizacion de viaje en Bizi"
+      }
     notificationManager.createNotificationChannel(channel)
 
-    val monitoringChannel = NotificationChannel(
-      SURFACE_MONITORING_CHANNEL_ID,
-      "Bici Radar monitorizacion",
-      NotificationManager.IMPORTANCE_LOW,
-    ).apply {
-      description = "Notificacion persistente durante la monitorizacion de estaciones"
-    }
+    val monitoringChannel =
+      NotificationChannel(
+        SURFACE_MONITORING_CHANNEL_ID,
+        "Bici Radar monitorizacion",
+        NotificationManager.IMPORTANCE_LOW,
+      ).apply {
+        description = "Notificacion persistente durante la monitorizacion de estaciones"
+      }
     notificationManager.createNotificationChannel(monitoringChannel)
   }
 

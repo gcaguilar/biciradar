@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.navigation
 
 import androidx.navigation.NavHostController
-import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.mobileui.AppState
 import com.gcaguilar.biciradar.mobileui.LaunchCoordinator
 import com.gcaguilar.biciradar.mobileui.LaunchResolution
@@ -11,18 +10,38 @@ import com.gcaguilar.biciradar.mobileui.LaunchResolution
  */
 sealed interface MobileLaunchRequest {
   data object Home : MobileLaunchRequest
+
   data object Map : MobileLaunchRequest
+
   data object Favorites : MobileLaunchRequest
+
   data object SavedPlaceAlerts : MobileLaunchRequest
+
   data object NearestStation : MobileLaunchRequest
+
   data object NearestStationWithBikes : MobileLaunchRequest
+
   data object NearestStationWithSlots : MobileLaunchRequest
+
   data object OpenAssistant : MobileLaunchRequest
+
   data object StationStatus : MobileLaunchRequest
-  data class MonitorStation(val stationId: String) : MobileLaunchRequest
-  data class SelectCity(val cityId: String) : MobileLaunchRequest
-  data class RouteToStation(val stationId: String? = null) : MobileLaunchRequest
-  data class ShowStation(val stationId: String) : MobileLaunchRequest
+
+  data class MonitorStation(
+    val stationId: String,
+  ) : MobileLaunchRequest
+
+  data class SelectCity(
+    val cityId: String,
+  ) : MobileLaunchRequest
+
+  data class RouteToStation(
+    val stationId: String? = null,
+  ) : MobileLaunchRequest
+
+  data class ShowStation(
+    val stationId: String,
+  ) : MobileLaunchRequest
 }
 
 /**

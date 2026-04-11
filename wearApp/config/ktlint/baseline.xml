@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="src/main/kotlin/com/gcaguilar/biciradar/wear/WearRootScreen.kt">
+        <error line="65" column="14" source="standard:function-naming" />
+        <error line="150" column="13" source="standard:function-naming" />
+        <error line="171" column="13" source="standard:function-naming" />
+        <error line="198" column="13" source="standard:function-naming" />
+        <error line="228" column="13" source="standard:function-naming" />
+        <error line="407" column="13" source="standard:function-naming" />
+        <error line="424" column="13" source="standard:function-naming" />
+        <error line="473" column="13" source="standard:function-naming" />
+        <error line="494" column="13" source="standard:function-naming" />
+        <error line="523" column="13" source="standard:function-naming" />
+        <error line="588" column="13" source="standard:function-naming" />
+        <error line="645" column="13" source="standard:function-naming" />
+        <error line="695" column="13" source="standard:function-naming" />
+        <error line="841" column="13" source="standard:function-naming" />
+    </file>
+</baseline>

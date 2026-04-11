@@ -3,19 +3,22 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
+import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.TripAlert
 import com.gcaguilar.biciradar.core.TripDestination
-import com.gcaguilar.biciradar.core.TripState
+import com.gcaguilar.biciradar.core.TripMonitoringState
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -41,12 +44,25 @@ data class TripUiState(
   val selectedMapStation: Station? = null,
   val selectedMapLocationLabel: String? = null,
   val canConfirmMapSelection: Boolean = false,
+  val destination: TripDestination? = null,
+  val alert: TripAlert? = null,
+  val isSearchingStation: Boolean = false,
+  val searchError: String? = null,
+  val nearestStationWithSlots: Station? = null,
+  val distanceToStation: Int? = null,
+  val monitoring: TripMonitoringState = TripMonitoringState(),
+  val stations: List<Station> = emptyList(),
+  val userLocation: GeoPoint? = null,
+  val dataFreshness: DataFreshness = DataFreshness.Unavailable,
+  val lastUpdatedEpoch: Long? = null,
+  val stationsLoading: Boolean = false,
 )
 
 class TripViewModel(
   private val tripManagementUseCase: TripManagementUseCase,
   private val surfaceMonitoringUseCase: SurfaceMonitoringUseCase,
   private val geoLocationUseCase: GeoLocationUseCase,
+  private val stationsRepository: StationsRepository,
 ) : ViewModel() {
   private data class TripTransientUiState(
     val query: String = "",
@@ -63,35 +79,61 @@ class TripViewModel(
     val canConfirmMapSelection: Boolean = false,
   )
 
-
   private val transientUiState = MutableStateFlow(TripTransientUiState())
 
-  val uiState: StateFlow<TripUiState> = combine(
-    transientUiState,
-    tripManagementUseCase.searchRadiusMeters,
-  ) { transient, radius ->
-    TripUiState(
-      query = transient.query,
-      suggestions = transient.suggestions,
-      isLoadingSuggestions = transient.isLoadingSuggestions,
-      suggestionsError = transient.suggestionsError,
-      selectedDurationSeconds = transient.selectedDurationSeconds,
-      mapPickerActive = transient.mapPickerActive,
-      isReverseGeocoding = transient.isReverseGeocoding,
-      pickedLocation = transient.pickedLocation,
-      searchRadiusMeters = radius,
-      mapPickerMode = transient.mapPickerMode,
-      selectedMapStation = transient.selectedMapStation,
-      selectedMapLocationLabel = transient.selectedMapLocationLabel,
-      canConfirmMapSelection = transient.canConfirmMapSelection,
+  val uiState: StateFlow<TripUiState> =
+    combine(
+      transientUiState,
+      tripManagementUseCase.searchRadiusMeters,
+      tripManagementUseCase.tripState,
+      stationsRepository.state,
+    ) { transient, radius, tripState, stationsState ->
+      TripUiState(
+        query = transient.query,
+        suggestions = transient.suggestions,
+        isLoadingSuggestions = transient.isLoadingSuggestions,
+        suggestionsError = transient.suggestionsError,
+        selectedDurationSeconds = transient.selectedDurationSeconds,
+        mapPickerActive = transient.mapPickerActive,
+        isReverseGeocoding = transient.isReverseGeocoding,
+        pickedLocation = transient.pickedLocation,
+        searchRadiusMeters = radius,
+        mapPickerMode = transient.mapPickerMode,
+        selectedMapStation = transient.selectedMapStation,
+        selectedMapLocationLabel = transient.selectedMapLocationLabel,
+        canConfirmMapSelection = transient.canConfirmMapSelection,
+        destination = tripState.destination,
+        alert = tripState.alert,
+        isSearchingStation = tripState.isSearchingStation,
+        searchError = tripState.searchError,
+        nearestStationWithSlots = tripState.nearestStationWithSlots,
+        distanceToStation = tripState.distanceToStation,
+        monitoring = tripState.monitoring,
+        stations = stationsState.stations,
+        userLocation = stationsState.userLocation,
+        dataFreshness = stationsState.freshness,
+        lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
+        stationsLoading = stationsState.isLoading,
+      )
+    }.stateIn(
+      viewModelScope,
+      SharingStarted.Eagerly,
+      TripUiState(
+        searchRadiusMeters = tripManagementUseCase.searchRadiusMeters.value,
+        destination = tripManagementUseCase.tripState.value.destination,
+        alert = tripManagementUseCase.tripState.value.alert,
+        isSearchingStation = tripManagementUseCase.tripState.value.isSearchingStation,
+        searchError = tripManagementUseCase.tripState.value.searchError,
+        nearestStationWithSlots = tripManagementUseCase.tripState.value.nearestStationWithSlots,
+        distanceToStation = tripManagementUseCase.tripState.value.distanceToStation,
+        monitoring = tripManagementUseCase.tripState.value.monitoring,
+        stations = stationsRepository.state.value.stations,
+        userLocation = stationsRepository.state.value.userLocation,
+        dataFreshness = stationsRepository.state.value.freshness,
+        lastUpdatedEpoch = stationsRepository.state.value.lastUpdatedEpoch,
+        stationsLoading = stationsRepository.state.value.isLoading,
+      ),
     )
-  }.stateIn(
-    viewModelScope,
-    SharingStarted.Eagerly,
-    TripUiState(searchRadiusMeters = tripManagementUseCase.searchRadiusMeters.value),
-  )
-
-  val tripState: StateFlow<TripState> = tripManagementUseCase.tripState
 
   private val queryInput = MutableStateFlow("")
 
@@ -110,36 +152,38 @@ class TripViewModel(
         if (transientUiState.value.query != query) return@onEach
         transientUiState.update {
           it.copy(
-          isLoadingSuggestions = true,
-          suggestionsError = null,
-        )
+            isLoadingSuggestions = true,
+            suggestionsError = null,
+          )
         }
-        val result = try {
-          geoLocationUseCase.search(query)
-        } catch (cancelled: CancellationException) {
-          return@onEach
-        }
+        val result =
+          try {
+            geoLocationUseCase.search(query)
+          } catch (cancelled: CancellationException) {
+            return@onEach
+          }
         if (transientUiState.value.query == query) {
-          val errorMsg: String? = when (result) {
-            is GeoLocationUseCase.GeoSearchResult.Error.Server -> "Location service unavailable"
-            is GeoLocationUseCase.GeoSearchResult.Error.Network -> "Network error"
-            is GeoLocationUseCase.GeoSearchResult.Error.Unknown -> "Search error: ${result.message}"
-            else -> null
-          }
-          val suggestions = when (result) {
-            is GeoLocationUseCase.GeoSearchResult.Success -> result.results
-            else -> emptyList()
-          }
+          val errorMsg: String? =
+            when (result) {
+              is GeoLocationUseCase.GeoSearchResult.Error.Server -> "Location service unavailable"
+              is GeoLocationUseCase.GeoSearchResult.Error.Network -> "Network error"
+              is GeoLocationUseCase.GeoSearchResult.Error.Unknown -> "Search error: ${result.message}"
+              else -> null
+            }
+          val suggestions =
+            when (result) {
+              is GeoLocationUseCase.GeoSearchResult.Success -> result.results
+              else -> emptyList()
+            }
           transientUiState.update {
             it.copy(
-            suggestions = suggestions,
-            isLoadingSuggestions = false,
-            suggestionsError = errorMsg,
-          )
+              suggestions = suggestions,
+              isLoadingSuggestions = false,
+              suggestionsError = errorMsg,
+            )
           }
         }
-      }
-      .launchIn(viewModelScope)
+      }.launchIn(viewModelScope)
   }
 
   fun onQueryChange(newQuery: String) {
@@ -147,10 +191,10 @@ class TripViewModel(
     if (newQuery.isBlank()) {
       transientUiState.update {
         it.copy(
-        suggestions = emptyList(),
-        isLoadingSuggestions = false,
-        suggestionsError = null,
-      )
+          suggestions = emptyList(),
+          isLoadingSuggestions = false,
+          suggestionsError = null,
+        )
       }
       return
     }
@@ -160,11 +204,11 @@ class TripViewModel(
   fun onClearQuery() {
     transientUiState.update {
       it.copy(
-      query = "",
-      suggestions = emptyList(),
-      suggestionsError = null,
-      isLoadingSuggestions = false,
-    )
+        query = "",
+        suggestions = emptyList(),
+        suggestionsError = null,
+        isLoadingSuggestions = false,
+      )
     }
   }
 
@@ -198,10 +242,11 @@ class TripViewModel(
     }
 
     viewModelScope.launch {
-      val name = when (val result = geoLocationUseCase.reverseGeocode(location)) {
-        is GeoLocationUseCase.ReverseGeocodeResult.Success -> result.name
-        is GeoLocationUseCase.ReverseGeocodeResult.Fallback -> result.coordinates
-      }
+      val name =
+        when (val result = geoLocationUseCase.reverseGeocode(location)) {
+          is GeoLocationUseCase.ReverseGeocodeResult.Success -> result.name
+          is GeoLocationUseCase.ReverseGeocodeResult.Fallback -> result.coordinates
+        }
 
       val currentState = transientUiState.value
       if (currentState.mapPickerMode != TripMapPickerMode.Destination || currentState.pickedLocation != location) {
@@ -347,7 +392,10 @@ class TripViewModel(
     clearMapPickerState()
   }
 
-  private suspend fun commitDestination(name: String, location: GeoPoint) {
+  private suspend fun commitDestination(
+    name: String,
+    location: GeoPoint,
+  ) {
     clearMapPickerState()
     tripManagementUseCase.setDestination(
       destination = TripDestination(name = name, location = location),
@@ -376,21 +424,23 @@ private fun GeoResult.tripDisplayLabel(): String {
   val primaryName = name.trim()
   if (primaryName.isBlank()) return address.trim()
 
-  val addressParts = address
-    .split(',')
-    .map { it.trim() }
-    .filter { it.isNotBlank() }
-    .filterNot { it.equals(primaryName, ignoreCase = true) }
-    .fold(mutableListOf<String>()) { acc, part ->
-      if (acc.lastOrNull()?.equals(part, ignoreCase = true) != true) acc += part
-      acc
-    }
+  val addressParts =
+    address
+      .split(',')
+      .map { it.trim() }
+      .filter { it.isNotBlank() }
+      .filterNot { it.equals(primaryName, ignoreCase = true) }
+      .fold(mutableListOf<String>()) { acc, part ->
+        if (acc.lastOrNull()?.equals(part, ignoreCase = true) != true) acc += part
+        acc
+      }
 
   if (addressParts.isEmpty()) return primaryName
 
-  val context = addressParts
-    .take(3)
-    .joinToString(", ")
+  val context =
+    addressParts
+      .take(3)
+      .joinToString(", ")
 
   return "$primaryName, $context"
 }

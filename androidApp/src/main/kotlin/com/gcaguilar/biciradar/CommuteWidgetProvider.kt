@@ -21,9 +21,10 @@ class CommuteWidgetProvider : AppWidgetProvider() {
   companion object {
     fun updateAll(context: Context) {
       val manager = AppWidgetManager.getInstance(context)
-      val ids = manager.getAppWidgetIds(
-        ComponentName(context, CommuteWidgetProvider::class.java),
-      )
+      val ids =
+        manager.getAppWidgetIds(
+          ComponentName(context, CommuteWidgetProvider::class.java),
+        )
       if (ids.isNotEmpty()) {
         updateWidgets(context, manager, ids)
       }
@@ -45,22 +46,24 @@ class CommuteWidgetProvider : AppWidgetProvider() {
       snapshot: AndroidSurfaceWidgetSnapshot,
     ): RemoteViews {
       val views = RemoteViews(context.packageName, R.layout.widget_commute)
-      val homeState = commutePlaceState(
-        label = context.getString(R.string.widget_saved_place_home),
-        station = snapshot.homeStation,
-        snapshot = snapshot,
-        configureSavedPlaces = context.getString(R.string.widget_configure_saved_places),
-        openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
-        missingTitle = context.getString(R.string.widget_saved_place_missing_title),
-      )
-      val workState = commutePlaceState(
-        label = context.getString(R.string.widget_saved_place_work),
-        station = snapshot.workStation,
-        snapshot = snapshot,
-        configureSavedPlaces = context.getString(R.string.widget_configure_saved_places),
-        openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
-        missingTitle = context.getString(R.string.widget_saved_place_missing_title),
-      )
+      val homeState =
+        commutePlaceState(
+          label = context.getString(R.string.widget_saved_place_home),
+          station = snapshot.homeStation,
+          snapshot = snapshot,
+          configureSavedPlaces = context.getString(R.string.widget_configure_saved_places),
+          openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
+          missingTitle = context.getString(R.string.widget_saved_place_missing_title),
+        )
+      val workState =
+        commutePlaceState(
+          label = context.getString(R.string.widget_saved_place_work),
+          station = snapshot.workStation,
+          snapshot = snapshot,
+          configureSavedPlaces = context.getString(R.string.widget_configure_saved_places),
+          openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
+          missingTitle = context.getString(R.string.widget_saved_place_missing_title),
+        )
 
       views.setTextViewText(R.id.widget_commute_title, context.getString(R.string.widget_commute_title))
       bindPlaceRow(
@@ -100,15 +103,19 @@ class CommuteWidgetProvider : AppWidgetProvider() {
       views.setTextViewText(labelId, state.label)
       views.setTextViewText(nameId, state.title)
       views.setTextViewText(metaId, state.meta)
-      val target = state.stationId?.let { Uri.parse("biciradar://station/$it") }
-        ?: Uri.parse("biciradar://favorites")
+      val target =
+        state.stationId?.let { Uri.parse("biciradar://station/$it") }
+          ?: Uri.parse("biciradar://favorites")
       views.setOnClickPendingIntent(
         rowId,
         deepLinkPendingIntent(context, target),
       )
     }
 
-    private fun deepLinkPendingIntent(context: Context, uri: Uri): PendingIntent {
+    private fun deepLinkPendingIntent(
+      context: Context,
+      uri: Uri,
+    ): PendingIntent {
       val intent = Intent(Intent.ACTION_VIEW, uri, context, MainActivity::class.java)
       return PendingIntent.getActivity(
         context,

@@ -11,7 +11,6 @@ import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.FavoriteCategory
-import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
@@ -21,8 +20,8 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
-import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
+import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripDestinationSearchScreen
@@ -38,53 +37,57 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     localNotifier: LocalNotifier,
     routeLauncher: RouteLauncher,
-    userLocation: GeoPoint?,
-    stations: List<Station>,
-    isMapReady: Boolean,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
     onOpenDestinationPicker: () -> Unit,
     onOpenStationPicker: () -> Unit,
     paddingValues: PaddingValues,
-  ) = TripScreen(
-    viewModel = viewModel,
-    mobilePlatform = mobilePlatform,
-    localNotifier = localNotifier,
-    routeLauncher = routeLauncher,
-    userLocation = userLocation,
-    stations = stations,
-    isMapReady = isMapReady,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    stationsLoading = stationsLoading,
-    onRefreshStations = onRefreshStations,
-    onOpenDestinationPicker = onOpenDestinationPicker,
-    onOpenStationPicker = onOpenStationPicker,
-    paddingValues = paddingValues,
-  )
+  ) {
+    val state by viewModel.uiState.collectAsState()
+    TripScreen(
+      state = state,
+      mobilePlatform = mobilePlatform,
+      localNotifier = localNotifier,
+      routeLauncher = routeLauncher,
+      onDismissAlert = viewModel::onDismissAlert,
+      onClearTrip = viewModel::onClearTrip,
+      onStopMonitoring = viewModel::onStopMonitoring,
+      onDurationSelected = viewModel::onDurationSelected,
+      onStartMonitoring = viewModel::onStartMonitoring,
+      onRefreshStations = onRefreshStations,
+      onOpenDestinationPicker = onOpenDestinationPicker,
+      onOpenStationPicker = onOpenStationPicker,
+      paddingValues = paddingValues,
+    )
+  }
 
   @Composable
   fun TripMapPickerScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
     mobilePlatform: MobileUiPlatform,
     pickerMode: TripMapPickerMode,
-    userLocation: GeoPoint?,
-    stations: List<Station>,
     isMapReady: Boolean,
     paddingValues: PaddingValues,
     onBack: () -> Unit,
-  ) = TripMapPickerScreen(
-    viewModel = viewModel,
-    mobilePlatform = mobilePlatform,
-    pickerMode = pickerMode,
-    userLocation = userLocation,
-    stations = stations,
-    isMapReady = isMapReady,
-    paddingValues = paddingValues,
-    onBack = onBack,
-  )
+  ) {
+    val state by viewModel.uiState.collectAsState()
+    TripMapPickerScreen(
+      state = state,
+      mobilePlatform = mobilePlatform,
+      pickerMode = pickerMode,
+      userLocation = state.userLocation,
+      stations = state.stations,
+      isMapReady = isMapReady,
+      paddingValues = paddingValues,
+      onBack = onBack,
+      onCancelMapPicker = viewModel::onCancelMapPicker,
+      onEnterMapPicker = viewModel::onEnterMapPicker,
+      onStationPickedFromMap = viewModel::onStationPickedFromMap,
+      onLocationPicked = viewModel::onLocationPicked,
+      onQueryChange = viewModel::onQueryChange,
+      onSuggestionSelected = viewModel::onSuggestionSelected,
+      onConfirmMapSelection = viewModel::onConfirmMapSelection,
+    )
+  }
 
   @Composable
   fun TripDestinationSearchScreenContent(
@@ -92,47 +95,36 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
     onBack: () -> Unit,
-  ) = TripDestinationSearchScreen(
-    viewModel = viewModel,
-    mobilePlatform = mobilePlatform,
-    paddingValues = paddingValues,
-    onBack = onBack,
-  )
+  ) {
+    val state by viewModel.uiState.collectAsState()
+    TripDestinationSearchScreen(
+      state = state,
+      mobilePlatform = mobilePlatform,
+      paddingValues = paddingValues,
+      onBack = onBack,
+      onQueryChange = viewModel::onQueryChange,
+      onSuggestionSelected = viewModel::onSuggestionSelected,
+    )
+  }
 
   @Composable
   fun NearbyScreenContent(
+    state: com.gcaguilar.biciradar.mobileui.viewmodel.NearbyUiState,
     mobilePlatform: MobileUiPlatform,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    loading: Boolean,
-    errorMessage: String?,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
-    searchRadiusMeters: Int,
     onStationSelected: (Station) -> Unit,
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
-    refreshCountdownSeconds: Int,
     paddingValues: PaddingValues,
   ) = NearbyScreen(
+    state = state,
     mobilePlatform = mobilePlatform,
-    stations = stations,
-    favoriteIds = favoriteIds,
-    loading = loading,
-    errorMessage = errorMessage,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    nearestSelection = nearestSelection,
-    searchRadiusMeters = searchRadiusMeters,
     onStationSelected = onStationSelected,
     onRetry = onRetry,
     onRefresh = onRefresh,
     onFavoriteToggle = onFavoriteToggle,
     onQuickRoute = onQuickRoute,
-    refreshCountdownSeconds = refreshCountdownSeconds,
     paddingValues = paddingValues,
   )
 
@@ -145,21 +137,13 @@ internal object BiziMobileAppContent {
   ) {
     val uiState by viewModel.uiState.collectAsState()
     NearbyScreen(
+      state = uiState,
       mobilePlatform = mobilePlatform,
-      stations = uiState.stations,
-      favoriteIds = uiState.favoriteIds,
-      loading = uiState.isLoading,
-      errorMessage = uiState.errorMessage,
-      dataFreshness = uiState.dataFreshness,
-      lastUpdatedEpoch = uiState.lastUpdatedEpoch,
-      nearestSelection = uiState.nearestSelection,
-      searchRadiusMeters = uiState.searchRadiusMeters,
       onStationSelected = onStationSelected,
       onRetry = viewModel::onRetry,
       onRefresh = viewModel::onRefresh,
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
-      refreshCountdownSeconds = uiState.refreshCountdownSeconds,
       paddingValues = paddingValues,
     )
   }
@@ -353,18 +337,24 @@ internal object BiziMobileAppContent {
     onOpenShortcuts: () -> Unit = {},
     onRateApp: () -> Unit = {},
   ) = ProfileScreen(
+    state =
+      com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState(
+        searchRadiusMeters = searchRadiusMeters,
+        preferredMapApp = preferredMapApp,
+        canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
+        themePreference = themePreference,
+        selectedCity = selectedCity,
+        showProfileSetupCard = showProfileSetupCard,
+        filteredCities = City.entries.sortedBy { it.displayName },
+      ),
     mobilePlatform = mobilePlatform,
     paddingValues = paddingValues,
-    searchRadiusMeters = searchRadiusMeters,
-    preferredMapApp = preferredMapApp,
-    themePreference = themePreference,
-    selectedCity = selectedCity,
     onSearchRadiusSelected = onSearchRadiusSelected,
     onPreferredMapAppSelected = onPreferredMapAppSelected,
     onThemePreferenceSelected = onThemePreferenceSelected,
     onCitySelected = onCitySelected,
-    canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
-    showProfileSetupCard = showProfileSetupCard,
+    onCitySearchQueryChange = {},
+    onClearCitySearchQuery = {},
     onShowChangelog = onShowChangelog,
     onOpenOnboarding = onOpenOnboarding,
     onOpenShortcuts = onOpenShortcuts,
@@ -385,18 +375,15 @@ internal object BiziMobileAppContent {
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     ProfileScreen(
+      state = uiState,
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
-      searchRadiusMeters = uiState.searchRadiusMeters,
-      preferredMapApp = uiState.preferredMapApp,
-      themePreference = uiState.themePreference,
-      selectedCity = uiState.selectedCity,
       onSearchRadiusSelected = viewModel::onSearchRadiusSelected,
       onPreferredMapAppSelected = viewModel::onPreferredMapAppSelected,
       onThemePreferenceSelected = viewModel::onThemePreferenceSelected,
       onCitySelected = viewModel::onCitySelected,
-      canSelectGoogleMapsInIos = uiState.canSelectGoogleMapsInIos,
-      showProfileSetupCard = uiState.showProfileSetupCard,
+      onCitySearchQueryChange = viewModel::onCitySearchQueryChange,
+      onClearCitySearchQuery = viewModel::clearCitySearchQuery,
       onShowChangelog = onShowChangelogManual,
       onOpenOnboarding = onOpenOnboarding,
       onOpenShortcuts = onOpenShortcuts,
@@ -460,65 +447,32 @@ internal object BiziMobileAppContent {
   fun MapScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModel,
     mobilePlatform: MobileUiPlatform,
-    stations: List<Station>,
-    favoriteIds: Set<String>,
-    loading: Boolean,
-    errorMessage: String?,
-    nearestSelection: com.gcaguilar.biciradar.core.NearbyStationSelection,
-    searchQuery: String,
-    searchRadiusMeters: Int,
-    userLocation: GeoPoint?,
     isMapReady: Boolean,
-    onSearchQueryChange: (String) -> Unit,
     onStationSelected: (Station) -> Unit,
     onRetry: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
     onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    LaunchedEffect(viewModel, stations) {
-      viewModel.onStationsChanged(stations)
-    }
     MapScreen(
+      state = uiState,
       mobilePlatform = mobilePlatform,
-      stations = stations,
-      favoriteIds = favoriteIds,
-      loading = loading,
-      errorMessage = errorMessage,
-      dataFreshness = dataFreshness,
-      lastUpdatedEpoch = lastUpdatedEpoch,
       onRefreshStations = onRefreshStations,
-      nearestSelection = nearestSelection,
-      searchQuery = searchQuery,
-      searchRadiusMeters = searchRadiusMeters,
-      userLocation = userLocation,
       isMapReady = isMapReady,
-      onSearchQueryChange = onSearchQueryChange,
+      onSearchQueryChange = viewModel::onSearchQueryChange,
       onStationSelected = onStationSelected,
       onRetry = onRetry,
       onFavoriteToggle = onFavoriteToggle,
       onQuickRoute = onQuickRoute,
-      activeFilters = uiState.persistedActiveFilters,
-      onToggleFilter = viewModel::onToggleFilter,
-      onAvailableFiltersChange = viewModel::onAvailableFiltersChanged,
-      selectedMapStationId = uiState.selectedMapStationId,
-      hasExplicitMapSelection = uiState.hasExplicitMapSelection,
-      isCardDismissed = uiState.isCardDismissed,
-      showEnvironmentalSheet = uiState.showEnvironmentalSheet,
-      recenterRequestToken = uiState.recenterRequestToken,
       onStationSelectedOnMap = viewModel::onStationSelected,
       onStationCardDismissed = viewModel::onStationCardDismissed,
       onRecenterRequested = viewModel::onRecenterRequested,
       onEnvironmentalSheetShown = viewModel::onEnvironmentalSheetShown,
       onEnvironmentalSheetDismissed = viewModel::onEnvironmentalSheetDismissed,
       onClearEnvironmentalFilters = viewModel::onClearEnvironmentalFilters,
-      onReconcileSelection = viewModel::reconcileSelection,
-      environmentalSnapshots = uiState.zones,
-      onEnvironmentalLayerChanged = viewModel::onEnvironmentalLayerChanged,
+      onToggleFilter = viewModel::onToggleFilter,
       paddingValues = paddingValues,
     )
   }
@@ -527,41 +481,23 @@ internal object BiziMobileAppContent {
   fun StationDetailScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel,
     mobilePlatform: MobileUiPlatform,
-    station: Station,
-    userLocation: GeoPoint?,
     isMapReady: Boolean,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
     onRefreshStations: () -> Unit,
     onBack: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
     StationDetailScreen(
+      state = uiState,
       mobilePlatform = mobilePlatform,
-      station = station,
-      isFavorite = uiState.isFavorite,
-      isHomeStation = uiState.isHomeStation,
-      isWorkStation = uiState.isWorkStation,
-      userLocation = userLocation,
       isMapReady = isMapReady,
-      supportsUsagePatterns = uiState.supportsUsagePatterns,
-      dataFreshness = dataFreshness,
-      lastUpdatedEpoch = lastUpdatedEpoch,
-      stationsLoading = stationsLoading,
       onRefreshStations = onRefreshStations,
       onBack = onBack,
       onToggleFavorite = viewModel::onToggleFavorite,
       onToggleHome = viewModel::onToggleHome,
       onToggleWork = viewModel::onToggleWork,
-      onRoute = { viewModel.onRoute(station) },
-      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
-      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
+      onRoute = { uiState.station?.let(viewModel::onRoute) },
       onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
       onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
-      patterns = uiState.patterns,
-      patternsLoading = uiState.patternsLoading,
-      patternsError = uiState.patternsError,
     )
   }
 }

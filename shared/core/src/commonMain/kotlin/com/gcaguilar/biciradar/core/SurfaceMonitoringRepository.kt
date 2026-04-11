@@ -17,7 +17,9 @@ private const val SURFACE_MONITORING_POLLING_INTERVAL_MILLIS = 30_000L
 
 interface SurfaceMonitoringRepository {
   val state: StateFlow<SurfaceMonitoringSession?>
+
   suspend fun bootstrap()
+
   suspend fun startMonitoring(
     stationId: String,
     durationSeconds: Int = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
@@ -30,6 +32,7 @@ interface SurfaceMonitoringRepository {
   ): Boolean
 
   fun stopMonitoring()
+
   suspend fun clearMonitoring()
 }
 
@@ -67,11 +70,12 @@ class SurfaceMonitoringRepositoryImpl(
         mutableState.value = persisted
         startWorkers(persisted.stationId, persisted.kind)
       } else if (persisted.isActive) {
-        val expired = persisted.copy(
-          isActive = false,
-          status = SurfaceMonitoringStatus.Expired,
-          lastUpdatedEpoch = nowEpoch,
-        )
+        val expired =
+          persisted.copy(
+            isActive = false,
+            status = SurfaceMonitoringStatus.Expired,
+            lastUpdatedEpoch = nowEpoch,
+          )
         mutableState.value = expired
         surfaceSnapshotRepository.saveMonitoringSession(expired)
       } else {
@@ -90,20 +94,21 @@ class SurfaceMonitoringRepositoryImpl(
     stationsRepository.loadIfNeeded()
     val station = stationsRepository.stationById(stationId) ?: return false
     val nowEpoch = currentTimeMs()
-    val session = SurfaceMonitoringSession(
-      stationId = station.id,
-      stationName = station.name,
-      cityId = settingsRepository.currentSelectedCity().id,
-      kind = kind,
-      status = SurfaceMonitoringStatus.Monitoring,
-      bikesAvailable = station.bikesAvailable,
-      docksAvailable = station.slotsFree,
-      statusLevel = station.surfaceStatusLevel(),
-      startedAtEpoch = nowEpoch,
-      expiresAtEpoch = nowEpoch + (durationSeconds.coerceAtLeast(60) * 1000L),
-      lastUpdatedEpoch = nowEpoch,
-      isActive = true,
-    )
+    val session =
+      SurfaceMonitoringSession(
+        stationId = station.id,
+        stationName = station.name,
+        cityId = settingsRepository.currentSelectedCity().id,
+        kind = kind,
+        status = SurfaceMonitoringStatus.Monitoring,
+        bikesAvailable = station.bikesAvailable,
+        docksAvailable = station.slotsFree,
+        statusLevel = station.surfaceStatusLevel(),
+        startedAtEpoch = nowEpoch,
+        expiresAtEpoch = nowEpoch + (durationSeconds.coerceAtLeast(60) * 1000L),
+        lastUpdatedEpoch = nowEpoch,
+        isActive = true,
+      )
     stopInternal(updateState = false)
     mutableState.value = session
     surfaceSnapshotRepository.saveMonitoringSession(session)
@@ -119,21 +124,23 @@ class SurfaceMonitoringRepositoryImpl(
     stationsRepository.loadIfNeeded()
     val stations = stationsRepository.state.value.stations
     val homeStationId = favoritesRepository.currentHomeStationId()
-    val favoriteStationId = when {
-      homeStationId != null && stations.any { it.id == homeStationId } -> homeStationId
-      else -> stations.firstOrNull { favoritesRepository.isFavorite(it.id) }?.id
-    } ?: return false
+    val favoriteStationId =
+      when {
+        homeStationId != null && stations.any { it.id == homeStationId } -> homeStationId
+        else -> stations.firstOrNull { favoritesRepository.isFavorite(it.id) }?.id
+      } ?: return false
     return startMonitoring(favoriteStationId, durationSeconds, kind)
   }
 
   override fun stopMonitoring() {
     val current = mutableState.value ?: return
     scope.launch {
-      val ended = current.copy(
-        isActive = false,
-        status = SurfaceMonitoringStatus.Ended,
-        lastUpdatedEpoch = currentTimeMs(),
-      )
+      val ended =
+        current.copy(
+          isActive = false,
+          status = SurfaceMonitoringStatus.Ended,
+          lastUpdatedEpoch = currentTimeMs(),
+        )
       stopInternal(updateState = false)
       mutableState.value = ended
       surfaceSnapshotRepository.saveMonitoringSession(ended)
@@ -145,86 +152,106 @@ class SurfaceMonitoringRepositoryImpl(
     surfaceSnapshotRepository.saveMonitoringSession(null)
   }
 
-  private fun startWorkers(stationId: String, kind: SurfaceMonitoringKind) {
+  private fun startWorkers(
+    stationId: String,
+    kind: SurfaceMonitoringKind,
+  ) {
     countdownJob?.cancel()
     monitoringJob?.cancel()
-    countdownJob = scope.launch {
-      while (true) {
-        delay(1_000L)
-        val current = mutableState.value ?: break
-        if (!current.isActive) break
-        if (current.remainingSeconds() <= 0) {
-          finishMonitoring(status = SurfaceMonitoringStatus.Expired)
-          break
+    countdownJob =
+      scope.launch {
+        while (true) {
+          delay(1_000L)
+          val current = mutableState.value ?: break
+          if (!current.isActive) break
+          if (current.remainingSeconds() <= 0) {
+            finishMonitoring(status = SurfaceMonitoringStatus.Expired)
+            break
+          }
         }
       }
-    }
-    monitoringJob = scope.launch {
-      stationsRepository.loadIfNeeded()
-      var firstCheck = true
-      while (true) {
-        val current = mutableState.value ?: break
-        if (!current.isActive) break
-        if (!firstCheck) delay(SURFACE_MONITORING_POLLING_INTERVAL_MILLIS)
-        firstCheck = false
+    monitoringJob =
+      scope.launch {
+        stationsRepository.loadIfNeeded()
+        var firstCheck = true
+        while (true) {
+          val current = mutableState.value ?: break
+          if (!current.isActive) break
+          if (!firstCheck) delay(SURFACE_MONITORING_POLLING_INTERVAL_MILLIS)
+          firstCheck = false
 
-        val availability = runCatching {
-          biziApi.fetchAvailability(listOf(stationId))
-        }.getOrNull() ?: continue
+          val availability =
+            runCatching {
+              biziApi.fetchAvailability(listOf(stationId))
+            }.getOrNull() ?: continue
 
-        val update = availability[stationId] ?: continue
-        val nowEpoch = currentTimeMs()
-        val currentStation = stationsRepository.stationById(stationId)
-        val updatedStation = (currentStation ?: Station(
-          id = current.stationId,
-          name = current.stationName,
-          address = current.stationName,
-          location = GeoPoint(0.0, 0.0),
-          bikesAvailable = current.bikesAvailable,
-          slotsFree = current.docksAvailable,
-          distanceMeters = 0,
-        )).copy(
-          bikesAvailable = update.bikesAvailable,
-          slotsFree = update.slotsFree,
-        )
+          val update = availability[stationId] ?: continue
+          val nowEpoch = currentTimeMs()
+          val currentStation = stationsRepository.stationById(stationId)
+          val updatedStation =
+            (
+              currentStation ?: Station(
+                id = current.stationId,
+                name = current.stationName,
+                address = current.stationName,
+                location = GeoPoint(0.0, 0.0),
+                bikesAvailable = current.bikesAvailable,
+                slotsFree = current.docksAvailable,
+                distanceMeters = 0,
+              )
+            ).copy(
+              bikesAvailable = update.bikesAvailable,
+              slotsFree = update.slotsFree,
+            )
 
-        val alternative = when {
-          kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 -> findAlternativeStation(updatedStation, kind)
-          kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 -> findAlternativeStation(updatedStation, kind)
-          else -> null
-        }
+          val alternative =
+            when {
+              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 ->
+                findAlternativeStation(
+                  updatedStation,
+                  kind,
+                )
+              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 ->
+                findAlternativeStation(
+                  updatedStation,
+                  kind,
+                )
+              else -> null
+            }
 
-        val status = when {
-          kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 && alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
-          kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 && alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
-          kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 -> SurfaceMonitoringStatus.ChangedToEmpty
-          kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 -> SurfaceMonitoringStatus.ChangedToFull
-          else -> SurfaceMonitoringStatus.Monitoring
-        }
+          val status =
+            when {
+              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 && alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
+              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 && alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
+              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 -> SurfaceMonitoringStatus.ChangedToEmpty
+              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 -> SurfaceMonitoringStatus.ChangedToFull
+              else -> SurfaceMonitoringStatus.Monitoring
+            }
 
-        val session = current.copy(
-          bikesAvailable = updatedStation.bikesAvailable,
-          docksAvailable = updatedStation.slotsFree,
-          status = status,
-          statusLevel = updatedStation.surfaceStatusLevel(),
-          lastUpdatedEpoch = nowEpoch,
-          alternativeStationId = alternative?.id,
-          alternativeStationName = alternative?.name,
-          alternativeDistanceMeters = alternative?.distanceMeters,
-        )
-        mutableState.value = session
-        surfaceSnapshotRepository.saveMonitoringSession(session)
+          val session =
+            current.copy(
+              bikesAvailable = updatedStation.bikesAvailable,
+              docksAvailable = updatedStation.slotsFree,
+              status = status,
+              statusLevel = updatedStation.surfaceStatusLevel(),
+              lastUpdatedEpoch = nowEpoch,
+              alternativeStationId = alternative?.id,
+              alternativeStationName = alternative?.name,
+              alternativeDistanceMeters = alternative?.distanceMeters,
+            )
+          mutableState.value = session
+          surfaceSnapshotRepository.saveMonitoringSession(session)
 
-        if (status != SurfaceMonitoringStatus.Monitoring) {
-          localNotifier.notify(
-            title = monitoringTitle(session),
-            body = monitoringBody(session),
-          )
-          finishMonitoring(status = status, alternative = alternative)
-          break
+          if (status != SurfaceMonitoringStatus.Monitoring) {
+            localNotifier.notify(
+              title = monitoringTitle(session),
+              body = monitoringBody(session),
+            )
+            finishMonitoring(status = status, alternative = alternative)
+            break
+          }
         }
       }
-    }
   }
 
   private suspend fun finishMonitoring(
@@ -233,14 +260,15 @@ class SurfaceMonitoringRepositoryImpl(
   ) {
     val current = mutableState.value ?: return
     stopInternal(updateState = false)
-    val finished = current.copy(
-      isActive = false,
-      status = status,
-      lastUpdatedEpoch = currentTimeMs(),
-      alternativeStationId = alternative?.id ?: current.alternativeStationId,
-      alternativeStationName = alternative?.name ?: current.alternativeStationName,
-      alternativeDistanceMeters = alternative?.distanceMeters ?: current.alternativeDistanceMeters,
-    )
+    val finished =
+      current.copy(
+        isActive = false,
+        status = status,
+        lastUpdatedEpoch = currentTimeMs(),
+        alternativeStationId = alternative?.id ?: current.alternativeStationId,
+        alternativeStationName = alternative?.name ?: current.alternativeStationName,
+        alternativeDistanceMeters = alternative?.distanceMeters ?: current.alternativeDistanceMeters,
+      )
     mutableState.value = finished
     surfaceSnapshotRepository.saveMonitoringSession(finished)
     engagementRepository.markMonitoringCompleted()
@@ -259,31 +287,32 @@ class SurfaceMonitoringRepositoryImpl(
   private fun findAlternativeStation(
     monitoredStation: Station,
     kind: SurfaceMonitoringKind,
-  ): Station? {
-    return selectAlternativeStation(
+  ): Station? =
+    selectAlternativeStation(
       monitoredStation = monitoredStation,
       candidates = stationsRepository.state.value.stations,
       kind = kind,
       maxRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
     )
-  }
 
-  private fun monitoringTitle(session: SurfaceMonitoringSession): String = when (session.status) {
-    SurfaceMonitoringStatus.ChangedToEmpty -> "Estacion vacia: ${session.stationName}"
-    SurfaceMonitoringStatus.ChangedToFull -> "Estacion llena: ${session.stationName}"
-    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa disponible"
-    SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
-    SurfaceMonitoringStatus.Expired -> "Monitorizacion expirada"
-    SurfaceMonitoringStatus.Monitoring -> session.stationName
-  }
+  private fun monitoringTitle(session: SurfaceMonitoringSession): String =
+    when (session.status) {
+      SurfaceMonitoringStatus.ChangedToEmpty -> "Estacion vacia: ${session.stationName}"
+      SurfaceMonitoringStatus.ChangedToFull -> "Estacion llena: ${session.stationName}"
+      SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa disponible"
+      SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
+      SurfaceMonitoringStatus.Expired -> "Monitorizacion expirada"
+      SurfaceMonitoringStatus.Monitoring -> session.stationName
+    }
 
   private fun monitoringBody(session: SurfaceMonitoringSession): String {
-    val alternative = if (session.alternativeStationName != null) {
-      " Alternativa: ${session.alternativeStationName}" +
-        session.alternativeDistanceMeters?.let { " (${it} m)." }.orEmpty()
-    } else {
-      ""
-    }
+    val alternative =
+      if (session.alternativeStationName != null) {
+        " Alternativa: ${session.alternativeStationName}" +
+          session.alternativeDistanceMeters?.let { " ($it m)." }.orEmpty()
+      } else {
+        ""
+      }
     return when (session.status) {
       SurfaceMonitoringStatus.ChangedToEmpty -> "Ya no quedan bicis en ${session.stationName}.$alternative"
       SurfaceMonitoringStatus.ChangedToFull -> "Ya no quedan huecos libres en ${session.stationName}.$alternative"
@@ -300,24 +329,23 @@ internal fun selectAlternativeStation(
   candidates: List<Station>,
   kind: SurfaceMonitoringKind,
   maxRadiusMeters: Int,
-): Station? = candidates
-  .asSequence()
-  .filter { it.id != monitoredStation.id }
-  .map { candidate ->
-    candidate.copy(distanceMeters = distanceBetween(monitoredStation.location, candidate.location))
-  }
-  .filter { candidate ->
-    candidate.distanceMeters <= maxRadiusMeters && when (kind) {
-      SurfaceMonitoringKind.Bikes -> candidate.bikesAvailable > 0
-      SurfaceMonitoringKind.Docks -> candidate.slotsFree > 0
-    }
-  }
-  .sortedWith(
-    compareByDescending<Station> {
-      when (kind) {
-        SurfaceMonitoringKind.Bikes -> it.bikesAvailable
-        SurfaceMonitoringKind.Docks -> it.slotsFree
-      }
-    }.thenBy { it.distanceMeters },
-  )
-  .firstOrNull()
+): Station? =
+  candidates
+    .asSequence()
+    .filter { it.id != monitoredStation.id }
+    .map { candidate ->
+      candidate.copy(distanceMeters = distanceBetween(monitoredStation.location, candidate.location))
+    }.filter { candidate ->
+      candidate.distanceMeters <= maxRadiusMeters &&
+        when (kind) {
+          SurfaceMonitoringKind.Bikes -> candidate.bikesAvailable > 0
+          SurfaceMonitoringKind.Docks -> candidate.slotsFree > 0
+        }
+    }.sortedWith(
+      compareByDescending<Station> {
+        when (kind) {
+          SurfaceMonitoringKind.Bikes -> it.bikesAvailable
+          SurfaceMonitoringKind.Docks -> it.slotsFree
+        }
+      }.thenBy { it.distanceMeters },
+    ).firstOrNull()

@@ -3,15 +3,16 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
-import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
+import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.normalizedForSearch
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -30,6 +31,8 @@ data class ProfileUiState(
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
   val showProfileSetupCard: Boolean = false,
+  val citySearchQuery: String = "",
+  val filteredCities: List<City> = City.entries,
 )
 
 data class ShortcutGuide(
@@ -48,47 +51,63 @@ internal class ProfileViewModel(
   private val latestAnswer = MutableStateFlow("Ask about stations, favorites, or routes")
   private val assistantSuggestions = MutableStateFlow<List<AssistantAction>>(emptyList())
   private val shortcutGuides = MutableStateFlow<List<ShortcutGuide>>(emptyList())
+  private val citySearchQuery = MutableStateFlow("")
 
-  private val repositoryState = combine(
-    settingsRepository.searchRadiusMeters,
-    settingsRepository.preferredMapApp,
-    settingsRepository.themePreference,
-    settingsRepository.selectedCity,
-    settingsRepository.onboardingChecklist,
-  ) { searchRadius, preferredMapApp, themePreference, selectedCity, checklist ->
-    ProfileUiState(
-      searchRadiusMeters = searchRadius,
-      preferredMapApp = preferredMapApp,
-      canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
-      themePreference = themePreference,
-      selectedCity = selectedCity,
-      showProfileSetupCard = settingsAggregationUseCase.shouldShowProfileSetupSection(checklist),
-    )
-  }
-
-  val uiState: StateFlow<ProfileUiState> = combine(
-    repositoryState,
-    latestAnswer,
-    assistantSuggestions,
-    shortcutGuides,
-  ) { base, answer, suggestions, guides ->
-    val preferredMapApp = base.preferredMapApp
-    val normalizedMapApp = if (!canSelectGoogleMapsInIos && preferredMapApp == PreferredMapApp.GoogleMaps) {
-      PreferredMapApp.AppleMaps
-    } else {
-      preferredMapApp
+  private val repositoryState =
+    combine(
+      settingsRepository.searchRadiusMeters,
+      settingsRepository.preferredMapApp,
+      settingsRepository.themePreference,
+      settingsRepository.selectedCity,
+      settingsRepository.onboardingChecklist,
+    ) { searchRadius, preferredMapApp, themePreference, selectedCity, checklist ->
+      ProfileUiState(
+        searchRadiusMeters = searchRadius,
+        preferredMapApp = preferredMapApp,
+        canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
+        themePreference = themePreference,
+        selectedCity = selectedCity,
+        showProfileSetupCard = settingsAggregationUseCase.shouldShowProfileSetupSection(checklist),
+      )
     }
-    base.copy(
-      preferredMapApp = normalizedMapApp,
-      latestAnswer = answer,
-      assistantSuggestions = suggestions,
-      shortcutGuides = guides,
+
+  val uiState: StateFlow<ProfileUiState> =
+    combine(
+      repositoryState,
+      latestAnswer,
+      assistantSuggestions,
+      shortcutGuides,
+      citySearchQuery,
+    ) { base, answer, suggestions, guides, cityQuery ->
+      val preferredMapApp = base.preferredMapApp
+      val normalizedMapApp =
+        if (!canSelectGoogleMapsInIos && preferredMapApp == PreferredMapApp.GoogleMaps) {
+          PreferredMapApp.AppleMaps
+        } else {
+          preferredMapApp
+        }
+      val normalizedQuery = cityQuery.trim().normalizedForSearch()
+      val filteredCities =
+        if (normalizedQuery.isBlank()) {
+          City.entries.sortedBy { it.displayName }
+        } else {
+          City.entries
+            .sortedBy { it.displayName }
+            .filter { city -> city.displayName.normalizedForSearch().contains(normalizedQuery) }
+        }
+      base.copy(
+        preferredMapApp = normalizedMapApp,
+        latestAnswer = answer,
+        assistantSuggestions = suggestions,
+        shortcutGuides = guides,
+        citySearchQuery = cityQuery,
+        filteredCities = filteredCities,
+      )
+    }.stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.Eagerly,
+      initialValue = ProfileUiState(canSelectGoogleMapsInIos = canSelectGoogleMapsInIos),
     )
-  }.stateIn(
-    scope = viewModelScope,
-    started = SharingStarted.Eagerly,
-    initialValue = ProfileUiState(canSelectGoogleMapsInIos = canSelectGoogleMapsInIos),
-  )
 
   init {
     settingsRepository.preferredMapApp
@@ -96,8 +115,7 @@ internal class ProfileViewModel(
         if (!canSelectGoogleMapsInIos && app == PreferredMapApp.GoogleMaps) {
           settingsRepository.setPreferredMapApp(PreferredMapApp.AppleMaps)
         }
-      }
-      .launchIn(viewModelScope)
+      }.launchIn(viewModelScope)
   }
 
   fun onSearchRadiusSelected(radius: Int) {
@@ -125,6 +143,14 @@ internal class ProfileViewModel(
     viewModelScope.launch {
       changeCityUseCase.execute(city = city)
     }
+  }
+
+  fun onCitySearchQueryChange(query: String) {
+    citySearchQuery.update { query }
+  }
+
+  fun clearCitySearchQuery() {
+    citySearchQuery.update { "" }
   }
 
   fun updateLatestAnswer(answer: String) {
