@@ -6,7 +6,7 @@ import FaqList from './FaqList.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
 import BetaForm from './BetaForm.astro';
-import { appStoreUrlForLocale } from '../../lib/site-config';
+import { appStoreUrlForLocale, playStoreUrlForLocale, cityToDeepLink } from '../../lib/site-config';
 
 interface LanguageLink {
   href: string;
@@ -28,6 +28,8 @@ interface Props {
 const { content, cityKey, languageLinks, homeHref, betaHref, thankYouPath, formPagePath } = Astro.props;
 const city = content.cityPages[cityKey];
 const appStoreHref = appStoreUrlForLocale(content.locale);
+const playStoreHref = playStoreUrlForLocale(content.locale);
+const cityDeepLink = cityToDeepLink(cityKey, content.locale);
 ---
 
 <PageHeader
@@ -54,24 +56,25 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
         <div class="flex flex-col gap-3 sm:flex-row">
           <a
             class="marketing-primary-button"
-            href={betaHref}
-            data-track-event="hero_cta_click"
-            data-track-placement="city_hero"
-            data-track-city={city.badge}
-          >
-            {content.common.heroCta}
-          </a>
-          <a
-            class="marketing-secondary-button"
-            href={appStoreHref}
-            target="_blank"
-            rel="noreferrer"
+            href={cityDeepLink}
             data-track-event="store_download_click"
             data-track-store="app_store"
             data-track-placement="city_hero"
             data-track-city={city.badge}
           >
             {content.common.appStoreLabel}
+          </a>
+          <a
+            class="marketing-secondary-button"
+            href={playStoreHref}
+            target="_blank"
+            rel="noreferrer"
+            data-track-event="store_download_click"
+            data-track-store="play_store"
+            data-track-placement="city_hero"
+            data-track-city={city.badge}
+          >
+            {content.common.androidBetaLabel}
           </a>
         </div>
       </div>
@@ -126,7 +129,7 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
     </div>
 
     <div class="mt-8">
-      <FaqList items={city.faq} />
+      <FaqList items={[...content.home.faq.items, ...city.faq]} />
     </div>
   </section>
 
@@ -149,7 +152,7 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
         <p class="max-w-2xl text-sm leading-6 text-slate-300">{content.common.finalCtaDescription}</p>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-4 md:grid-cols-3">
         <a
           class="marketing-dark-action marketing-dark-action-primary"
           href={appStoreHref}
@@ -166,6 +169,20 @@ const appStoreHref = appStoreUrlForLocale(content.locale);
 
         <a
           class="marketing-dark-action marketing-dark-action-secondary"
+          href={playStoreHref}
+          target="_blank"
+          rel="noreferrer"
+          data-track-event="store_download_click"
+          data-track-store="play_store"
+          data-track-placement="city_final"
+          data-track-city={city.badge}
+        >
+          <strong>{content.common.androidBetaLabel}</strong>
+          <span>{city.badge}</span>
+        </a>
+
+        <a
+          class="marketing-dark-action marketing-dark-action-tertiary"
           href={betaHref}
           data-track-event="hero_cta_click"
           data-track-placement="city_final"

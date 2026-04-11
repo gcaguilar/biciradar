@@ -9,6 +9,20 @@ export const cityKeys = [
   'sevilla',
   'valencia',
   'zaragoza',
+  'bilbao',
+  'murcia',
+  'leon',
+  'valladolid',
+  'palma',
+  'las_palmas',
+  'a_coruna',
+  'gijon',
+  'vitoria_gasteiz',
+  'pamplona',
+  'castellon',
+  'santander',
+  'girona',
+  'gran_canaria',
 ] as const;
 export type CityKey = (typeof cityKeys)[number];
 
