@@ -7,6 +7,7 @@ End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 
 ## Download
 
+[![Get it on Google Play](https://img.shields.io/badge/Get%20it%20on-Google%20Play-34A853?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar&hl=es)
 [![Download on the App Store](https://img.shields.io/badge/Download-App%20Store-0D96F6?style=for-the-badge&logo=apple&logoColor=white)](https://apps.apple.com/es/app/biciradar/id6760931316)
 
 ## Technical stack
@@ -47,6 +48,8 @@ End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 ./gradlew :shared:mobile-ui:compileKotlinIosSimulatorArm64
 ./gradlew :androidApp:compileDebugKotlinAndroid
 ./gradlew :wearApp:compileDebugKotlinAndroid
+./gradlew ktlintCheckAll
+./gradlew ktlintFormatAll
 ./gradlew build
 ```
 

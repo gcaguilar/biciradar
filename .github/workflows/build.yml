@@ -41,6 +41,9 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
 
+      - name: Run Kotlin style checks
+        run: ./gradlew ktlintCheckAll
+
       - name: Write Android Firebase config files
         env:
           GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
