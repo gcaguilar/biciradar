@@ -69,7 +69,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
             href={appStoreHref}
             target="_blank"
             rel="noreferrer"
-            data-track-event="hero_secondary_cta_click"
+            data-track-event="store_download_click"
+            data-track-store="app_store"
             data-track-placement="hero_ios"
           >
             <span class="marketing-chip marketing-chip-primary">{content.home.hero.primaryBadge}</span>
@@ -83,7 +84,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
             href={playStoreHref}
             target="_blank"
             rel="noreferrer"
-            data-track-event="hero_play_store_click"
+            data-track-event="store_download_click"
+            data-track-store="play_store"
             data-track-placement="hero_android"
           >
             <span class="marketing-chip marketing-chip-secondary">{content.home.hero.secondaryBadge}</span>
@@ -197,7 +199,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
           href={appStoreHref}
           target="_blank"
           rel="noreferrer"
-          data-track-event="hero_secondary_cta_click"
+          data-track-event="store_download_click"
+          data-track-store="app_store"
           data-track-placement="mid_cta"
         >
           <strong>{content.home.midCta.primaryCta.label}</strong>
@@ -209,7 +212,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
           href={playStoreHref}
           target="_blank"
           rel="noreferrer"
-          data-track-event="hero_play_store_click"
+          data-track-event="store_download_click"
+          data-track-store="play_store"
           data-track-placement="mid_cta"
         >
           <strong>{content.home.midCta.secondaryCta.label}</strong>
@@ -258,7 +262,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
     href={appStoreHref}
     target="_blank"
     rel="noreferrer"
-    data-track-event="hero_secondary_cta_click"
+    data-track-event="store_download_click"
+    data-track-store="app_store"
     data-track-placement="sticky_mobile"
   >
     {content.home.hero.primaryCta}
@@ -268,7 +273,8 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
     href={playStoreHref}
     target="_blank"
     rel="noreferrer"
-    data-track-event="hero_play_store_click"
+    data-track-event="store_download_click"
+    data-track-store="play_store"
     data-track-placement="sticky_mobile"
   >
     {content.home.hero.secondaryCta}

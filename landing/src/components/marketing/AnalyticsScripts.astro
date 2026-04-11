@@ -77,6 +77,7 @@ const { locale, pageKind, cityPageKey = '' } = Astro.props;
       if (!(target instanceof HTMLElement)) return;
 
       const payload = {};
+      if (target.dataset.trackStore) payload.store = target.dataset.trackStore;
       if (target.dataset.trackCity) payload.city = target.dataset.trackCity;
       if (target.dataset.trackSystem) payload.system = target.dataset.trackSystem;
       if (target.dataset.trackLabel) payload.label = target.dataset.trackLabel;
