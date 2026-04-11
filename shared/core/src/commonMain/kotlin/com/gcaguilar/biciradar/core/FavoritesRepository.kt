@@ -252,7 +252,9 @@ class FavoritesRepositoryImpl(
   private fun readLocalSnapshot(): FavoritesSyncSnapshot {
     val snapshotPath = favoritesPath()
     return if (fileSystem.exists(snapshotPath)) {
-      json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
+      runCatching {
+        json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
+      }.getOrDefault(FavoritesSyncSnapshot())
     } else {
       FavoritesSyncSnapshot()
     }

@@ -128,6 +128,37 @@ class CoreRepositoryTest {
   }
 
   @Test
+  fun `favorites repository ignores corrupt local snapshot during bootstrap`() = runTest {
+    val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-corrupt-favorites-${Random.nextInt()}"
+    val fileSystem = FileSystem.SYSTEM
+    val rootPath = "$temporaryRoot/favorites.json".toPath()
+    fileSystem.createDirectories(rootPath.parent!!)
+    fileSystem.write(rootPath) {
+      writeUtf8("{ definitely-not-valid-json")
+    }
+
+    val repository = FavoritesRepositoryImpl(
+      fileSystem = fileSystem,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = temporaryRoot
+      },
+      watchSyncBridge = RecordingWatchSyncBridge(),
+      scope = testCoroutineScope(),
+    )
+
+    repository.bootstrap()
+
+    assertTrue(repository.favoriteIds.value.isEmpty())
+    assertNull(repository.currentHomeStationId())
+    assertNull(repository.currentWorkStationId())
+
+    repository.toggle("station-1")
+
+    assertEquals(setOf("station-1"), repository.favoriteIds.value)
+  }
+
+  @Test
   fun `favorites repository pushes merged ids back to wearable on bootstrap`() = runTest {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-bootstrap-${Random.nextInt()}"
     val fileSystem = FileSystem.SYSTEM
