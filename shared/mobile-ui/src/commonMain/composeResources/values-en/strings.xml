@@ -225,6 +225,7 @@
     <string name="tripConfirmStation">Confirm station</string>
     <string name="tripMapDestinationTitle">Choose destination</string>
     <string name="tripMapStationTitle">Choose station</string>
+    <string name="tripMapStationAction">Choose station on map</string>
     <string name="tripSelectedPoint">Selected point</string>
     <string name="suggestions">Suggestions</string>
     <string name="searchingNearbyStation">Searching nearby station...</string>

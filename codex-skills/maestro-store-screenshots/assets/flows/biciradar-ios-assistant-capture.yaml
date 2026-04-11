@@ -1,0 +1,5 @@
+appId: com.gcaguilar.biciradar.ios
+---
+- assertVisible: "Asistente y atajos"
+- assertVisible: "Estación más cercana"
+- takeScreenshot: 03-assistant

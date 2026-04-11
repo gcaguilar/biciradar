@@ -1,0 +1,67 @@
+appId: com.gcaguilar.biciradar.ios
+---
+- launchApp
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Entendido"
+    optional: true
+- tapOn:
+    text: "Cerrar"
+    optional: true
+- tapOn:
+    text: "Mapa"
+    optional: true
+- assertVisible: "Buscar estación o dirección"
+- assertVisible: "Mapa"
+- takeScreenshot: 01-home-map
+
+- openLink: "biciradar://assistant?action=favorite_stations"
+- tapOn:
+    text: "Abrir"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- tapOn:
+    text: "Open"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- assertVisible: "Mis estaciones"
+- assertVisible: "Filtrar favoritas"
+- takeScreenshot: 02-favorites
+
+- tapOn: "Mapa"
+- assertVisible: "Buscar estación o dirección"
+
+- openLink: "biciradar://assistant?action=open_assistant"
+- tapOn:
+    text: "Abrir"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- tapOn:
+    text: "Open"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- assertVisible: "Asistente y atajos"
+- assertVisible: "Estación más cercana"
+- takeScreenshot: 03-assistant
+
+- tapOn: "Cerrar"
+- openLink: "biciradar://assistant?action=station_bike_count&station_query=Plaza%20España"
+- tapOn:
+    text: "Abrir"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- tapOn:
+    text: "Open"
+    optional: true
+    waitUntilVisible: true
+    retryTapIfNoChange: true
+- assertVisible: "Plaza España"
+- assertVisible: "Estaciones disponibles"
+- takeScreenshot: 04-station-detail

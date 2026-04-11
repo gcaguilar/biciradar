@@ -1,0 +1,5 @@
+appId: com.gcaguilar.biciradar.ios
+---
+- assertVisible: "Favoritas"
+- assertVisible: "Gestionar alertas"
+- takeScreenshot: 02-favorites

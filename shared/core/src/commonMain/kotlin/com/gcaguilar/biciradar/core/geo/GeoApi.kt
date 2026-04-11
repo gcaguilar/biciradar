@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.core.geo
 
-import com.gcaguilar.biciradar.core.AppScope
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.geo.InstallationIdentityRepository.Companion.BASE_URL
+import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -19,7 +19,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**

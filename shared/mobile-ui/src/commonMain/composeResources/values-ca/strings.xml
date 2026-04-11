@@ -192,6 +192,7 @@
     <string name="tripConfirmStation">Confirmar estació</string>
     <string name="tripMapDestinationTitle">Triar destí</string>
     <string name="tripMapStationTitle">Triar estació</string>
+    <string name="tripMapStationAction">Triar estació al mapa</string>
     <string name="tripSelectedPoint">Punt seleccionat</string>
     <string name="suggestions">Suggeriments</string>
     <string name="searchingNearbyStation">Buscant estació propera...</string>

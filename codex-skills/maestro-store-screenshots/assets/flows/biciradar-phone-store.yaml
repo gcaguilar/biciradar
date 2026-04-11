@@ -1,0 +1,15 @@
+appId: com.gcaguilar.biciradar
+---
+- assertVisible: "Search station or address"
+- assertVisible: "Favorites"
+- takeScreenshot: 01-home-map
+
+- tapOn: "Favorites"
+- takeScreenshot: 02-favorites
+
+- tapOn: "Trip"
+- takeScreenshot: 03-trip
+
+- tapOn: "Map"
+- tapOn: "Details"
+- takeScreenshot: 04-station-detail

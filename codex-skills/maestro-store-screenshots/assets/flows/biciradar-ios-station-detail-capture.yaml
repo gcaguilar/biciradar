@@ -1,0 +1,5 @@
+appId: com.gcaguilar.biciradar.ios
+---
+- assertVisible: "16-Pza. España"
+- assertVisible: "Guardar esta estación"
+- takeScreenshot: 04-station-detail

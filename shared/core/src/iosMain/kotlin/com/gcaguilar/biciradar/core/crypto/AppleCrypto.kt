@@ -22,6 +22,7 @@ import platform.CoreFoundation.kCFAllocatorDefault
 import platform.CoreFoundation.kCFBooleanTrue
 import platform.CoreFoundation.kCFNumberSInt32Type
 import platform.Foundation.CFBridgingRelease
+import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSData
 import platform.Foundation.base64EncodedStringWithOptions
 import platform.Foundation.dataWithBytes
@@ -73,23 +74,28 @@ actual class PlatformKeyPair(private val alias: String) {
                 val data = SecKeyCopyExternalRepresentation(pubKey, err.ptr)
                     ?: error("Cannot export public key: ${err.value}")
                 CFRelease(pubKey)
-                (CFBridgingRelease(data) as NSData).base64EncodedStringWithOptions(0u)
+                (CFBridgingRelease(data) as? NSData)?.base64EncodedStringWithOptions(0u)
+                    ?: error("Cannot convert public key data")
             }
         }
 
     actual fun sign(data: ByteArray): String = memScoped {
         val privKey = loadPrivateKey() ?: error("No private key for alias '$alias'")
         val nsData = data.toNSData()
-        val err = alloc<CFErrorRefVar>()
-        val sigData = SecKeyCreateSignature(
-            privKey,
-            kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256,
-            nsData.asCFData(),
-            err.ptr,
-        ) ?: error("Signing failed: ${err.value}")
-        val result = (CFBridgingRelease(sigData) as NSData)
-            .base64EncodedStringWithOptions(0u)
-        result
+        val cfData = nsData.asCFData() ?: error("Cannot bridge NSData to CFData")
+        try {
+            val err = alloc<CFErrorRefVar>()
+            val sigData = SecKeyCreateSignature(
+                privKey,
+                kSecKeyAlgorithmRSASignatureMessagePKCS1v15SHA256,
+                cfData,
+                err.ptr,
+            ) ?: error("Signing failed: ${err.value}")
+            (CFBridgingRelease(sigData) as? NSData)?.base64EncodedStringWithOptions(0u)
+                ?: error("Cannot convert signature data")
+        } finally {
+            CFRelease(cfData)
+        }
     }
 }
 
@@ -153,7 +159,8 @@ private fun ByteArray.toNSData(): NSData =
     }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun NSData.asCFData() = this as platform.CoreFoundation.CFDataRef?
+private fun NSData.asCFData(): platform.CoreFoundation.CFDataRef? =
+    CFBridgingRetain(this)?.let { it as platform.CoreFoundation.CFDataRef }
 
 @OptIn(ExperimentalForeignApi::class)
 private fun MemScope.cfNumber(value: Int): CFTypeRef? {
@@ -181,7 +188,12 @@ private class CFDictionaryBuilder(
     }
 
     fun put(key: CFStringRef?, value: NSData?) {
-        CFDictionarySetValue(dict, key, value as CFTypeRef?)
+        val bridgedValue = value?.let { CFBridgingRetain(it) }
+        try {
+            CFDictionarySetValue(dict, key, bridgedValue)
+        } finally {
+            if (bridgedValue != null) CFRelease(bridgedValue)
+        }
     }
 
     fun put(key: CFStringRef?, value: platform.CoreFoundation.CFDictionaryRef?) {

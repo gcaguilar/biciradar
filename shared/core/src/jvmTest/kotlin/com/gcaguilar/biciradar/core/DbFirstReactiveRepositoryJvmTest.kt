@@ -18,6 +18,54 @@ import okio.FileSystem
 @OptIn(ExperimentalCoroutinesApi::class)
 class DbFirstReactiveRepositoryJvmTest {
   @Test
+  fun `saved place alerts bootstrap exposes existing DB rules immediately`() = runTest {
+    val database = createTestDatabase()
+    database.biciradarQueries.upsertSavedPlaceAlertRule(
+      id = "home:station-db-home:zaragoza",
+      targetKind = SavedPlaceKind.Home.name,
+      targetStationId = "station-db-home",
+      targetCityId = "zaragoza",
+      targetStationName = "Casa",
+      targetCategoryId = null,
+      targetCategoryLabel = null,
+      conditionKind = "BikesAtLeast",
+      conditionThreshold = 1L,
+      isEnabled = 1L,
+      lastTriggeredEpoch = null,
+      lastConditionMatched = 0L,
+      lastObservedValue = null,
+    )
+
+    val repository = SavedPlaceAlertsRepositoryImpl(
+      fileSystem = FileSystem.SYSTEM,
+      json = Json,
+      storageDirectoryProvider = object : StorageDirectoryProvider {
+        override val rootPath: String = FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()
+      },
+      scope = backgroundScope,
+      database = database,
+    )
+
+    repository.bootstrap()
+
+    assertEquals(
+      listOf(
+        SavedPlaceAlertRule(
+          id = "home:station-db-home:zaragoza",
+          target = SavedPlaceAlertTarget.Home(
+            stationId = "station-db-home",
+            cityId = "zaragoza",
+            stationName = "Casa",
+          ),
+          condition = SavedPlaceAlertCondition.BikesAtLeast(1),
+          isEnabled = true,
+        ),
+      ),
+      repository.currentRules(),
+    )
+  }
+
+  @Test
   fun `favorites DB writes are observed through state flow`() = runTest {
     val database = createTestDatabase()
     val repository = FavoritesRepositoryImpl(

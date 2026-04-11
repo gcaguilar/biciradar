@@ -1,0 +1,7 @@
+interface:
+  display_name: "Maestro Store Screenshots"
+  short_description: "Capture store screenshots with Maestro"
+  default_prompt: "Use $maestro-store-screenshots to capture and validate Google Play and App Store screenshots for this app."
+
+policy:
+  allow_implicit_invocation: false

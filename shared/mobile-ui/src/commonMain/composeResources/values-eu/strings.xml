@@ -192,6 +192,7 @@
     <string name="tripConfirmStation">Geltokia baieztatu</string>
     <string name="tripMapDestinationTitle">Helmuga aukeratu</string>
     <string name="tripMapStationTitle">Geltokia aukeratu</string>
+    <string name="tripMapStationAction">Geltokia mapan aukeratu</string>
     <string name="tripSelectedPoint">Hautatutako puntua</string>
     <string name="suggestions">Iradokizunak</string>
     <string name="searchingNearbyStation">Gertuko geltokia bilatzen...</string>

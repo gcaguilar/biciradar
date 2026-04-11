@@ -25,6 +25,7 @@ import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
+import com.gcaguilar.biciradar.mobileui.screens.TripDestinationSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripMapPickerScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
@@ -81,6 +82,19 @@ internal object BiziMobileAppContent {
     userLocation = userLocation,
     stations = stations,
     isMapReady = isMapReady,
+    paddingValues = paddingValues,
+    onBack = onBack,
+  )
+
+  @Composable
+  fun TripDestinationSearchScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
+    mobilePlatform: MobileUiPlatform,
+    paddingValues: PaddingValues,
+    onBack: () -> Unit,
+  ) = TripDestinationSearchScreen(
+    viewModel = viewModel,
+    mobilePlatform = mobilePlatform,
     paddingValues = paddingValues,
     onBack = onBack,
   )

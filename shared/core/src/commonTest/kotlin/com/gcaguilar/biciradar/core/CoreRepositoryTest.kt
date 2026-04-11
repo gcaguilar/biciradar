@@ -66,6 +66,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       scope = testCoroutineScope(),
+      database = null,
     )
 
     repository.bootstrap()
@@ -85,6 +86,7 @@ class CoreRepositoryTest {
         override val rootPath: String = temporaryRoot
       },
       scope = testCoroutineScope(),
+      database = null,
     )
 
     repository.bootstrap()

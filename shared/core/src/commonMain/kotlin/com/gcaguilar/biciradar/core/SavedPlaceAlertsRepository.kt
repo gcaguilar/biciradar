@@ -69,11 +69,7 @@ class SavedPlaceAlertsRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    if (database != null) {
-      migrateLegacyAlertsIfNeeded()
-    } else {
-      mutableRules.value = readPersistedRules()
-    }
+    mutableRules.value = readPersistedRules().sortedBy { it.id }
     bootstrapped = true
   }
 
@@ -136,25 +132,6 @@ class SavedPlaceAlertsRepositoryImpl(
     } else {
       persistToFile(rules)
       mutableRules.value = rules
-    }
-  }
-
-  /** When DB is present, rules are driven by the query flow after writes. */
-  private fun migrateLegacyAlertsIfNeeded() {
-    val db = database ?: return
-    val dbRules = readFromDatabase().orEmpty()
-    val legacyRules = readFromFile()
-    val dbHasData = dbRules.isNotEmpty()
-    val legacyHasData = legacyRules.isNotEmpty()
-    if (!legacyHasData) return
-    if (dbHasData) {
-      if (dbRules == legacyRules) {
-        deleteLegacyFile()
-      }
-      return
-    }
-    if (persistToDatabase(legacyRules)) {
-      deleteLegacyFile()
     }
   }
 

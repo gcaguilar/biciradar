@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +50,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.searchingNearbyStat
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.trip
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripBikeRouteAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlternative
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoStationWithFreeSlotsNearby
@@ -214,26 +216,24 @@ internal fun TripScreen(
               modifier = Modifier.fillMaxWidth(),
             ) {
               Icon(
-                imageVector = Icons.Filled.LocationOn,
+                imageVector = Icons.Filled.Search,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
               )
               Spacer(Modifier.width(8.dp))
               Text(stringResource(Res.string.tripMapDestinationTitle))
             }
-            if (tripState.destination != null) {
-              OutlinedButton(
-                onClick = onOpenStationPicker,
-                modifier = Modifier.fillMaxWidth(),
-              ) {
-                Icon(
-                  imageVector = Icons.Filled.Map,
-                  contentDescription = null,
-                  modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(Res.string.tripMapStationTitle))
-              }
+            OutlinedButton(
+              onClick = onOpenStationPicker,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Map,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(Res.string.tripMapStationAction))
             }
           }
         }

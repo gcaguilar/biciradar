@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.navigation
 
-import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
 import kotlinx.serialization.Serializable
 
 sealed class Screen {
@@ -20,7 +19,10 @@ sealed class Screen {
   data class Trip(val prefilledQuery: String? = null) : Screen()
 
   @Serializable
-  data class TripMapPicker(val mode: TripMapPickerMode) : Screen()
+  data object TripDestinationSearch : Screen()
+
+  @Serializable
+  data class TripMapPicker(val mode: String) : Screen()
 
   @Serializable
   data object Profile : Screen()

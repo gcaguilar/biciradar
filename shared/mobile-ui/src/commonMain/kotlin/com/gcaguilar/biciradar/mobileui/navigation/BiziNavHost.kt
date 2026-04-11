@@ -11,11 +11,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -186,9 +186,9 @@ internal fun BiziNavHost(
     composable<Screen.Trip>(
       deepLinks = listOf(navDeepLink<Screen.Trip>(basePath = "${DeepLinks.BASE_URI}trip")),
     ) { backStackEntry ->
-      val route = backStackEntry.toRoute<Screen.Trip>()
+      val route = backStackEntry.decodeTripRoute()
       val viewModel = viewModel(key = "trip") { tripViewModelFactory.create() }
-      var lastAppliedPrefilledQuery by rememberSaveable { mutableStateOf<String?>(null) }
+      var lastAppliedPrefilledQuery by remember { mutableStateOf<String?>(null) }
       if (route.prefilledQuery != null && route.prefilledQuery != lastAppliedPrefilledQuery) {
         LaunchedEffect(route.prefilledQuery) {
           viewModel.onQueryChange(route.prefilledQuery)
@@ -209,20 +209,35 @@ internal fun BiziNavHost(
         onRefreshStations = onRefreshStations,
         onOpenDestinationPicker = remember(navController) {
           {
-            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Destination))
+            navController.navigate(Screen.TripDestinationSearch)
           }
         },
         onOpenStationPicker = remember(navController) {
           {
-            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station))
+            navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station.name))
           }
         },
         paddingValues = PaddingValues(),
       )
     }
 
+    composable<Screen.TripDestinationSearch> { backStackEntry ->
+      val tripStoreOwner = remember(backStackEntry, navController) {
+        navController.previousBackStackEntry ?: backStackEntry
+      }
+      val viewModel = viewModel(
+        viewModelStoreOwner = tripStoreOwner,
+        key = "trip",
+      ) { tripViewModelFactory.create() }
+      BiziMobileAppContent.TripDestinationSearchScreenContent(
+        viewModel = viewModel,
+        mobilePlatform = mobilePlatform,
+        paddingValues = PaddingValues(),
+        onBack = remember(navController) { { navController.popBackStack() } },
+      )
+    }
+
     composable<Screen.TripMapPicker> { backStackEntry ->
-      val route = backStackEntry.toRoute<Screen.TripMapPicker>()
       val tripStoreOwner = remember(backStackEntry, navController) {
         navController.previousBackStackEntry ?: backStackEntry
       }
@@ -233,7 +248,7 @@ internal fun BiziNavHost(
       BiziMobileAppContent.TripMapPickerScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
-        pickerMode = route.mode,
+        pickerMode = backStackEntry.decodeTripMapPickerMode(),
         userLocation = userLocation,
         stations = stations,
         isMapReady = isMapReady,
@@ -320,3 +335,21 @@ internal fun BiziNavHost(
     }
   }
 }
+
+private fun NavBackStackEntry.decodeTripRoute(): Screen.Trip =
+  runCatching { toRoute<Screen.Trip>() }
+    .getOrElse { error ->
+      println("[BiziNavHost] Falling back to default trip route after decode failure: ${error.message}")
+      Screen.Trip()
+    }
+
+private fun NavBackStackEntry.decodeTripMapPickerMode(): TripMapPickerMode =
+  runCatching { toRoute<Screen.TripMapPicker>().mode }
+    .mapCatching { rawMode ->
+      TripMapPickerMode.entries.firstOrNull { it.name == rawMode }
+        ?: error("Unknown trip map picker mode: $rawMode")
+    }
+    .getOrElse { error ->
+      println("[BiziNavHost] Falling back to station picker mode after decode failure: ${error.message}")
+      TripMapPickerMode.Station
+    }

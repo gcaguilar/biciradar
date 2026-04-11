@@ -1,0 +1,106 @@
+appId: com.gcaguilar.biciradar
+---
+- launchApp:
+    clearState: true
+
+- tapOn:
+    text: "Search city"
+    optional: true
+    waitUntilVisible: true
+- inputText: "Zaragoza"
+- tapOn:
+    text: "Bicis eléctricas disponibles"
+    waitUntilVisible: true
+
+- tapOn:
+    text: "Continue setup"
+    optional: true
+- tapOn:
+    text: "Seguir con la configuración"
+    optional: true
+
+- tapOn:
+    text: "Later"
+    optional: true
+- tapOn:
+    text: "Más tarde"
+    optional: true
+- tapOn:
+    text: "Later"
+    optional: true
+- tapOn:
+    text: "Más tarde"
+    optional: true
+- tapOn:
+    text: "Later"
+    optional: true
+- tapOn:
+    text: "Más tarde"
+    optional: true
+- tapOn:
+    text: "Later"
+    optional: true
+- tapOn:
+    text: "Más tarde"
+    optional: true
+
+- tapOn:
+    text: "Start"
+    optional: true
+- tapOn:
+    text: "Get started"
+    optional: true
+- tapOn:
+    text: "Empezar"
+    optional: true
+
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Not now"
+    optional: true
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Get started"
+    optional: true
+- tapOn:
+    text: "Empezar"
+    optional: true
+- tapOn:
+    text: "Got it"
+    optional: true
+- tapOn:
+    text: "Entendido"
+    optional: true
+- tapOn:
+    text: "Close"
+    optional: true
+- tapOn:
+    text: "Cerrar"
+    optional: true
+- tapOn:
+    text: "Map"
+    optional: true
+- tapOn:
+    text: "Mapa"
+    optional: true
+
+- takeScreenshot: 00-bootstrap-state

@@ -355,5 +355,6 @@
     <string name="tripConfirmStation">Confirmar estación</string>
     <string name="tripMapDestinationTitle">Elegir destino</string>
     <string name="tripMapStationTitle">Elegir estación</string>
+    <string name="tripMapStationAction">Elegir estación en el mapa</string>
     <string name="tripSelectedPoint">Punto seleccionado</string>
 </resources>

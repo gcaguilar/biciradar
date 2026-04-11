@@ -1,0 +1,18 @@
+appId: com.gcaguilar.biciradar.ios
+---
+- launchApp
+- tapOn:
+    text: "Ahora no"
+    optional: true
+- tapOn:
+    text: "Entendido"
+    optional: true
+- tapOn:
+    text: "Cerrar"
+    optional: true
+- tapOn:
+    text: "Mapa"
+    optional: true
+- assertVisible: "Buscar estación o dirección"
+- assertVisible: "Mapa"
+- takeScreenshot: 01-home-map
