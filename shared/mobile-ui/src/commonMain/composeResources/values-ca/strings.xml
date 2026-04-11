@@ -182,6 +182,10 @@
     <string name="changelogCitySearchDescription">El selector de ciutat inclou cerca a l'onboarding i als ajustos, amb suport per accents i variants sense dièresi ni accent.</string>
     <string name="changelogAndroidReviewTitle">Valoració a Android més fiable</string>
     <string name="changelogAndroidReviewDescription">El botó de valorar prova primer la ressenya integrada i, si no està disponible, obre la fitxa a Play Store.</string>
+    <string name="changelogFavoritesRedesignTitle">Preferits redissenyats</string>
+    <string name="changelogFavoritesRedesignDescription">Nova pantalla de preferits amb cerca d\'estacions i categories en desar resultats de cerca.</string>
+    <string name="changelogStabilityFixesTitle">Correccions d\'estabilitat</string>
+    <string name="changelogStabilityFixesDescription">Corregits errors amb preferits corruptes, migracions de base de dades i problemes de compilació.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

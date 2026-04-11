@@ -216,6 +216,10 @@
     <string name="changelogCitySearchDescription">El selector de ciudad incluye búsqueda en onboarding y ajustes, con soporte para acentos y variantes sin tildes.</string>
     <string name="changelogAndroidReviewTitle">Valoración en Android más fiable</string>
     <string name="changelogAndroidReviewDescription">El botón de valorar intenta primero la reseña integrada y, si no está disponible, abre la ficha en Play Store.</string>
+    <string name="changelogFavoritesRedesignTitle">Favoritas rediseñadas</string>
+    <string name="changelogFavoritesRedesignDescription">Nueva pantalla de favoritas con búsqueda de estaciones y categorías al guardar resultados.</string>
+    <string name="changelogStabilityFixesTitle">Correcciones de estabilidad</string>
+    <string name="changelogStabilityFixesDescription">Corregidos fallos con favoritos corruptos, migraciones de base de datos y errores de compilación.</string>
     <string name="destinationPlaceholder">Escribe una dirección o lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

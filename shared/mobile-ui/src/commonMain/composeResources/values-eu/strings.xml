@@ -182,6 +182,10 @@
     <string name="changelogCitySearchDescription">Hiri hautatzaileak bilaketa dauka onboardingean eta ezarpenetan, azentuak kontuan hartu gabe ere bat etor dadin.</string>
     <string name="changelogAndroidReviewTitle">Androiden balorazioa fidagarriagoa</string>
     <string name="changelogAndroidReviewDescription">Baloratzeko botoiak lehenik aplikazio barruko iritzia saiatzen du eta, erabilgarri ez badago, Play Storeko fitxa irekitzen du.</string>
+    <string name="changelogFavoritesRedesignTitle">Gogokoen diseinu berria</string>
+    <string name="changelogFavoritesRedesignDescription">Gogokoen pantaila berria geltokien bilaketarekin eta bilaketa-emaitzak gordetzean kategoriekin.</string>
+    <string name="changelogStabilityFixesTitle">Egonkortasun-konponketak</string>
+    <string name="changelogStabilityFixesDescription">Konponduta hondatutako gogokoak, datu-base migrazioak eta konpilazio-erroreak.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

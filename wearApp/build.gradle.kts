@@ -8,17 +8,19 @@ plugins {
   alias(libs.plugins.google.services) apply false
 }
 
-val localProperties = Properties().apply {
-  val localPropertiesFile = rootProject.file("local.properties")
-  if (localPropertiesFile.exists()) {
-    localPropertiesFile.inputStream().use(::load)
+val localProperties =
+  Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+      localPropertiesFile.inputStream().use(::load)
+    }
   }
-}
 
 val wearApplicationId = "com.gcaguilar.biciradar"
 val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
-val firebaseCrashlyticsEnabled = firebaseConfigFile.exists() &&
-  firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
+val firebaseCrashlyticsEnabled =
+  firebaseConfigFile.exists() &&
+    firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"")
 
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -33,8 +35,8 @@ android {
     applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
-    versionCode = 29568101
-    versionName = "0.22.1"
+    versionCode = 29568103
+    versionName = "0.22.2"
   }
 
   buildFeatures {
@@ -48,14 +50,18 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
-      val keystorePassword = project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-      val keyAliasEnv = project.findProperty("BIZI_CI_KEY_ALIAS") as? String
-        ?: System.getenv("BIZI_CI_KEY_ALIAS")
-      val keyPassword = project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+      val keystorePath =
+        project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+          ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+      val keystorePassword =
+        project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+          ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+      val keyAliasEnv =
+        project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+          ?: System.getenv("BIZI_CI_KEY_ALIAS")
+      val keyPassword =
+        project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+          ?: System.getenv("BIZI_CI_KEY_PASSWORD")
 
       if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
         storeFile = file(keystorePath)

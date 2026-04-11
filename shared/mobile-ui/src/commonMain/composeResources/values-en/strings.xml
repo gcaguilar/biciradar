@@ -215,6 +215,10 @@
     <string name="changelogCitySearchDescription">The city selector now includes search in onboarding and settings, with accent-insensitive matching.</string>
     <string name="changelogAndroidReviewTitle">More reliable Android rating flow</string>
     <string name="changelogAndroidReviewDescription">The rate button now tries in-app review first and falls back to Play Store when unavailable.</string>
+    <string name="changelogFavoritesRedesignTitle">Favorites redesigned</string>
+    <string name="changelogFavoritesRedesignDescription">New favorites screen with station search and categories when saving search results.</string>
+    <string name="changelogStabilityFixesTitle">Stability fixes</string>
+    <string name="changelogStabilityFixesDescription">Fixed crashes with corrupt favorites, database migration errors, and compilation issues.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

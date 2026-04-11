@@ -8,12 +8,24 @@ plugins {
 
 val googleServicesJson = file("google-services.json")
 if (googleServicesJson.exists()) {
-  apply(plugin = libs.plugins.google.services.get().pluginId)
-  apply(plugin = libs.plugins.firebase.crashlytics.get().pluginId)
+  apply(
+    plugin =
+      libs.plugins.google.services
+        .get()
+        .pluginId,
+  )
+  apply(
+    plugin =
+      libs.plugins.firebase.crashlytics
+        .get()
+        .pluginId,
+  )
 }
 
-val googleMapsApiKey = providers.environmentVariable("GOOGLE_MAPS_API_KEY")
-  .orElse("")
+val googleMapsApiKey =
+  providers
+    .environmentVariable("GOOGLE_MAPS_API_KEY")
+    .orElse("")
 
 android {
   namespace = "com.gcaguilar.biciradar"
@@ -23,8 +35,8 @@ android {
     applicationId = "com.gcaguilar.biciradar"
     minSdk = 26
     targetSdk = 36
-    versionCode = 29568100
-    versionName = "0.22.1"
+    versionCode = 29568102
+    versionName = "0.22.2"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
   }
 
@@ -35,14 +47,18 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
-      val keystorePassword = project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-      val keyAliasEnv = project.findProperty("BIZI_CI_KEY_ALIAS") as? String
-        ?: System.getenv("BIZI_CI_KEY_ALIAS")
-      val keyPassword = project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
-        ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+      val keystorePath =
+        project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+          ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+      val keystorePassword =
+        project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+          ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+      val keyAliasEnv =
+        project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+          ?: System.getenv("BIZI_CI_KEY_ALIAS")
+      val keyPassword =
+        project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+          ?: System.getenv("BIZI_CI_KEY_PASSWORD")
 
       if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
         storeFile = file(keystorePath)
@@ -59,7 +75,7 @@ android {
       isShrinkResources = true
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
-        "proguard-rules.pro"
+        "proguard-rules.pro",
       )
       signingConfig = signingConfigs.getByName("release")
     }
