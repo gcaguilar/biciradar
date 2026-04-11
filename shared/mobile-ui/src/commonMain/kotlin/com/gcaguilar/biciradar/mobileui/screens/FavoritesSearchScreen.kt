@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,10 +18,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,18 +35,25 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.FavoriteCategory
+import com.gcaguilar.biciradar.core.FavoriteCategoryIds
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.filterStationsByQuery
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSelectCategory
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchNoMatchesTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStartTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSubtitle
@@ -70,6 +82,7 @@ internal fun FavoritesSearchScreen(
   homeStationId: String?,
   workStationId: String?,
   categories: List<FavoriteCategory>,
+  stationCategory: Map<String, String>,
   searchQuery: String,
   newCategoryName: String,
   onSearchQueryChange: (String) -> Unit,
@@ -83,12 +96,24 @@ internal fun FavoritesSearchScreen(
   onCreateCustomCategory: () -> Unit,
 ) {
   PlatformBackHandler(enabled = true, onBack = onBack)
-  val searchResults = androidx.compose.runtime.remember(allStations, searchQuery) {
+  val searchResults = remember(allStations, searchQuery) {
     if (searchQuery.isBlank()) {
       emptyList()
     } else {
       filterStationsByQuery(allStations, searchQuery).take(12)
     }
+  }
+  val assignableCategories = remember(categories) {
+    categories
+      .ifEmpty {
+        listOf(
+          FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
+          FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
+          FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
+        )
+      }
+      .distinctBy(FavoriteCategory::id)
+      .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.label.lowercase() }))
   }
 
   Scaffold(
@@ -160,11 +185,21 @@ internal fun FavoritesSearchScreen(
         SearchResultCard(
           mobilePlatform = mobilePlatform,
           station = station,
-          isHome = station.id == homeStationId,
-          isWork = station.id == workStationId,
+          categories = assignableCategories,
+          currentCategoryId = stationCategory[station.id] ?: when {
+            station.id == homeStationId -> FavoriteCategoryIds.HOME
+            station.id == workStationId -> FavoriteCategoryIds.WORK
+            station.id in favoriteStationIds -> FavoriteCategoryIds.FAVORITE
+            else -> null
+          },
           onOpenStationDetails = { onOpenStationDetails(station) },
-          onAssignHome = { onAssignHome(station) },
-          onAssignWork = { onAssignWork(station) },
+          onAssignCategory = { categoryId ->
+            when (categoryId) {
+              FavoriteCategoryIds.HOME -> onAssignHome(station)
+              FavoriteCategoryIds.WORK -> onAssignWork(station)
+              else -> onAssignStationToCategory(station, categoryId)
+            }
+          },
         )
       }
     }
@@ -176,13 +211,26 @@ internal fun FavoritesSearchScreen(
 private fun SearchResultCard(
   mobilePlatform: MobileUiPlatform,
   station: Station,
-  isHome: Boolean,
-  isWork: Boolean,
+  categories: List<FavoriteCategory>,
+  currentCategoryId: String?,
   onOpenStationDetails: () -> Unit,
-  onAssignHome: () -> Unit,
-  onAssignWork: () -> Unit,
+  onAssignCategory: (String) -> Unit,
 ) {
   val colors = LocalBiziColors.current
+  var categoryMenuExpanded by remember(station.id) { mutableStateOf(false) }
+  val homeLabel = stringResource(Res.string.home)
+  val workLabel = stringResource(Res.string.work)
+  val favoriteLabel = stringResource(Res.string.favorite)
+  val selectCategoryLabel = stringResource(Res.string.favoritesSearchSelectCategory)
+  val currentCategoryLabel = currentCategoryId?.let { categoryId ->
+    categoryLabel(
+      categoryId = categoryId,
+      fallback = categories.firstOrNull { it.id == categoryId }?.label ?: categoryId,
+      homeLabel = homeLabel,
+      workLabel = workLabel,
+      favoriteLabel = favoriteLabel,
+    )
+  } ?: selectCategoryLabel
   Card(
     modifier = Modifier
       .fillMaxWidth()
@@ -229,24 +277,55 @@ private fun SearchResultCard(
           tint = LocalBiziColors.current.green,
         )
       }
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
+      Box(modifier = Modifier.fillMaxWidth()) {
         SavedPlaceChoiceButton(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.home),
-          selected = isHome,
+          modifier = Modifier.fillMaxWidth(),
+          label = currentCategoryLabel,
+          selected = currentCategoryId != null,
           colors = colors,
-          onClick = onAssignHome,
+          onClick = { categoryMenuExpanded = true },
+          trailingIcon = {
+            Icon(
+              imageVector = Icons.Filled.ArrowDropDown,
+              contentDescription = null,
+            )
+          },
         )
-        SavedPlaceChoiceButton(
-          modifier = Modifier.weight(1f),
-          label = stringResource(Res.string.work),
-          selected = isWork,
-          colors = colors,
-          onClick = onAssignWork,
-        )
+        DropdownMenu(
+          expanded = categoryMenuExpanded,
+          onDismissRequest = { categoryMenuExpanded = false },
+        ) {
+          categories.forEach { category ->
+            val selected = category.id == currentCategoryId
+            DropdownMenuItem(
+              text = {
+                Text(
+                  text = categoryLabel(
+                    categoryId = category.id,
+                    fallback = category.label,
+                    homeLabel = homeLabel,
+                    workLabel = workLabel,
+                    favoriteLabel = favoriteLabel,
+                  ),
+                  fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                )
+              },
+              onClick = {
+                categoryMenuExpanded = false
+                onAssignCategory(category.id)
+              },
+              leadingIcon = {
+                if (selected) {
+                  Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = colors.blue,
+                  )
+                }
+              },
+            )
+          }
+        }
       }
     }
   }
@@ -259,6 +338,7 @@ private fun SavedPlaceChoiceButton(
   selected: Boolean,
   colors: com.gcaguilar.biciradar.mobileui.BiziColors,
   onClick: () -> Unit,
+  trailingIcon: @Composable (() -> Unit)? = null,
 ) {
   if (selected) {
     Button(
@@ -269,14 +349,48 @@ private fun SavedPlaceChoiceButton(
         contentColor = colors.onAccent,
       ),
     ) {
-      Text(label)
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(label)
+        trailingIcon?.invoke()
+      }
     }
   } else {
     OutlinedButton(
       modifier = modifier,
       onClick = onClick,
     ) {
-      Text(label)
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(label)
+        trailingIcon?.invoke()
+      }
     }
   }
+}
+
+private fun categoryLabel(
+  categoryId: String,
+  fallback: String,
+  homeLabel: String,
+  workLabel: String,
+  favoriteLabel: String,
+): String = when (categoryId) {
+  FavoriteCategoryIds.HOME -> homeLabel
+  FavoriteCategoryIds.WORK -> workLabel
+  FavoriteCategoryIds.FAVORITE -> favoriteLabel
+  else -> fallback
+}
+
+private fun categorySortOrder(categoryId: String): Int = when (categoryId) {
+  FavoriteCategoryIds.HOME -> 0
+  FavoriteCategoryIds.WORK -> 1
+  FavoriteCategoryIds.FAVORITE -> 2
+  else -> 3
 }

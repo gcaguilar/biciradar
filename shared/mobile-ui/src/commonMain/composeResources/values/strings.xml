@@ -68,6 +68,7 @@
     <string name="delete">Eliminar</string>
     <string name="favoritesSearchTitle">Buscar estación</string>
     <string name="favoritesSearchSubtitle">Busca una estación y asígnala a tus accesos rápidos.</string>
+    <string name="favoritesSearchSelectCategory">Seleccionar categoría</string>
     <string name="favoritesSearchStartTitle">Empieza a buscar</string>
     <string name="favoritesSearchNoMatchesTitle">Sin coincidencias</string>
     <string name="favoritesAlertConditionBikesSingular">Alerta por bici</string>

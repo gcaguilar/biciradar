@@ -303,6 +303,7 @@ internal object BiziMobileAppContent {
       homeStationId = uiState.homeStation?.id,
       workStationId = uiState.workStation?.id,
       categories = uiState.categories,
+      stationCategory = uiState.stationCategory,
       searchQuery = uiState.searchQuery,
       newCategoryName = newCategoryName,
       onSearchQueryChange = viewModel::onSearchQueryChange,
