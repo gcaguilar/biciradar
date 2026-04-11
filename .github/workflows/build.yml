@@ -2,9 +2,13 @@ name: Build and Test
 
 on:
   pull_request:
+    paths-ignore:
+      - 'landing/**'
   push:
     branches:
       - main
+    paths-ignore:
+      - 'landing/**'
   workflow_dispatch:
 
 permissions:
