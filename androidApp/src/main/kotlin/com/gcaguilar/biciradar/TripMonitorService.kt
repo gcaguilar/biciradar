@@ -10,8 +10,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.ObserveFavorites
+import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.ToggleFavoriteStation
