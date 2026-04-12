@@ -56,13 +56,13 @@ internal class ProfileViewModel(
   private val settingsAggregationUseCase: SettingsAggregationUseCase,
   @Assisted val canSelectGoogleMapsInIos: Boolean,
 ) : ViewModel() {
-
   @AssistedFactory
   @ManualViewModelAssistedFactoryKey
   @ContributesIntoMap(AppScope::class)
   interface Factory : ManualViewModelAssistedFactory {
     fun create(canSelectGoogleMapsInIos: Boolean): ProfileViewModel
   }
+
   private val latestAnswer = MutableStateFlow("Ask about stations, favorites, or routes")
   private val assistantSuggestions = MutableStateFlow<List<AssistantAction>>(emptyList())
   private val shortcutGuides = MutableStateFlow<List<ShortcutGuide>>(emptyList())

@@ -51,7 +51,6 @@ class StationDetailViewModel(
   private val stationsRepository: StationsRepository,
   @Assisted private val stationId: String,
 ) : ViewModel() {
-
   @AssistedFactory
   @ManualViewModelAssistedFactoryKey
   @ContributesIntoMap(AppScope::class)

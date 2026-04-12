@@ -28,11 +28,14 @@ import dev.zacsweers.metrox.viewmodel.ViewModelGraph
   AppScope::class,
   bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class],
 )
-internal interface MobileGraph : SharedGraph, ViewModelGraph {
-
+internal interface MobileGraph :
+  SharedGraph,
+  ViewModelGraph {
   @DependencyGraph.Factory
   fun interface Factory {
-    fun create(@Includes platformBindings: PlatformBindings): MobileGraph
+    fun create(
+      @Includes platformBindings: PlatformBindings,
+    ): MobileGraph
   }
 }
 
@@ -42,8 +45,7 @@ internal interface MobileGraph : SharedGraph, ViewModelGraph {
  *
  * Use this from Kotlin/Android. For Swift/iOS use [MobileGraphFactory.shared.create].
  */
-fun createMobileGraph(platformBindings: PlatformBindings): SharedGraph =
-  MobileGraph.Companion.create(platformBindings)
+fun createMobileGraph(platformBindings: PlatformBindings): SharedGraph = MobileGraph.Companion.create(platformBindings)
 
 /**
  * iOS-accessible singleton factory.
@@ -58,6 +60,5 @@ fun createMobileGraph(platformBindings: PlatformBindings): SharedGraph =
  * ```
  */
 object MobileGraphFactory {
-  fun create(platformBindings: PlatformBindings): SharedGraph =
-    MobileGraph.Companion.create(platformBindings)
+  fun create(platformBindings: PlatformBindings): SharedGraph = MobileGraph.Companion.create(platformBindings)
 }

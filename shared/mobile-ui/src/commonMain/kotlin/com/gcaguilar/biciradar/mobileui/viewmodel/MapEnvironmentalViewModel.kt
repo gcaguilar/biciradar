@@ -253,7 +253,10 @@ internal class MapEnvironmentalViewModel(
     persistFilters(filters)
   }
 
-  fun onToggleFilter(filter: MapFilter, availableFilters: Set<MapFilter>) {
+  fun onToggleFilter(
+    filter: MapFilter,
+    availableFilters: Set<MapFilter>,
+  ) {
     val currentFilters = mutableState.value.persistedActiveFilters
     val toggled = toggleMapFilterSelection(currentFilters, filter)
     val next = sanitizeActiveMapFilters(toggled, availableFilters)

@@ -31,6 +31,7 @@ internal class AppInitializer(
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
 ) {
   private val clock: () -> Long = ::epochMillisForUi
+
   /**
    * Initializes settings repository.
    * @return true if initialization completed

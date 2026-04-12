@@ -24,24 +24,26 @@ internal data class OnboardingPresentationResult(
   val shouldResetNavigationSuppression: Boolean,
 )
 
-internal class ResolveOnboardingPresentationUseCase @Inject constructor() {
-  fun execute(input: OnboardingPresentationInput): OnboardingPresentationResult {
-    val onboardingStep = input.checklist.guidedOnboardingStep()
-    val shouldSuppressForStep =
-      input.launchSource != OnboardingLaunchSource.Settings &&
-        input.suppressGuidedOnboardingForNavigation &&
-        onboardingStep == GuidedOnboardingStep.SavedPlaces
+internal class ResolveOnboardingPresentationUseCase
+  @Inject
+  constructor() {
+    fun execute(input: OnboardingPresentationInput): OnboardingPresentationResult {
+      val onboardingStep = input.checklist.guidedOnboardingStep()
+      val shouldSuppressForStep =
+        input.launchSource != OnboardingLaunchSource.Settings &&
+          input.suppressGuidedOnboardingForNavigation &&
+          onboardingStep == GuidedOnboardingStep.SavedPlaces
 
-    return OnboardingPresentationResult(
-      onboardingChecklist = input.checklist,
-      isCitySelectionRequired = !input.cityConfigured,
-      shouldShowGuidedOnboarding =
-        input.cityConfigured &&
-          !input.checklist.isCompleted() &&
-          !shouldSuppressForStep,
-      shouldResetNavigationSuppression =
-        input.suppressGuidedOnboardingForNavigation &&
-          onboardingStep != GuidedOnboardingStep.SavedPlaces,
-    )
+      return OnboardingPresentationResult(
+        onboardingChecklist = input.checklist,
+        isCitySelectionRequired = !input.cityConfigured,
+        shouldShowGuidedOnboarding =
+          input.cityConfigured &&
+            !input.checklist.isCompleted() &&
+            !shouldSuppressForStep,
+        shouldResetNavigationSuppression =
+          input.suppressGuidedOnboardingForNavigation &&
+            onboardingStep != GuidedOnboardingStep.SavedPlaces,
+      )
+    }
   }
-}
