@@ -66,6 +66,9 @@ class TripMonitorService : Service() {
       FOREGROUND_NOTIFICATION_ID,
       buildForegroundNotification(text = "Preparando monitorización..."),
     )
+    // Observar estado de monitorización una única vez durante el ciclo de vida del Service.
+    // No llamar desde onStartCommand: cada intent reentrega acumularía un collector adicional.
+    observeMonitoringState()
   }
 
   override fun onStartCommand(
@@ -73,9 +76,6 @@ class TripMonitorService : Service() {
     flags: Int,
     startId: Int,
   ): Int {
-    // Observar estado de monitorización
-    observeMonitoringState()
-
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
         serviceScope.launch { stopStationMonitoring.execute() }
