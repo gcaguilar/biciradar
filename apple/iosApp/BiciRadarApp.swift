@@ -27,7 +27,7 @@ struct BiciRadarApp: App {
         GoogleMapsBootstrap.configureIfAvailable()
         BiziBackgroundTaskHandler.registerTasks()
         Task {
-            try? await BiziAppShortcuts.updateAppShortcutParameters()
+            BiziAppShortcuts.updateAppShortcutParameters()
         }
     }
 
