@@ -412,18 +412,27 @@ private class TripTestGooglePlacesApi : GooglePlacesApi {
 
 private class TripTestStationsRepository : StationsRepository {
   override val state = MutableStateFlow(StationsState())
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() = Unit
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = null
 }
 
 private class TripTestLocalNotifier : LocalNotifier {
   override suspend fun requestPermission(): Boolean = true
-  override suspend fun notify(title: String, body: String) = Unit
+
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) = Unit
 }
 
 private class TripTestRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }

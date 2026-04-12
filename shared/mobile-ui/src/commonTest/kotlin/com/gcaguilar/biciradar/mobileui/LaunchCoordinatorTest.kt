@@ -92,7 +92,11 @@ class LaunchCoordinatorTest {
           localNotifier = LaunchFakeLocalNotifier(),
           routeLauncher = LaunchFakeRouteLauncher(),
           findStationById = FindStationById(stationsRepository),
-          refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, LaunchFakeSurfaceSnapshotRepository()),
+          refreshStationDataIfNeeded =
+            RefreshStationDataIfNeeded(
+              stationsRepository,
+              LaunchFakeSurfaceSnapshotRepository(),
+            ),
           startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
         )
       val stations =
@@ -129,7 +133,11 @@ class LaunchCoordinatorTest {
           localNotifier = LaunchFakeLocalNotifier(),
           routeLauncher = routeLauncher,
           findStationById = FindStationById(stationsRepository),
-          refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, LaunchFakeSurfaceSnapshotRepository()),
+          refreshStationDataIfNeeded =
+            RefreshStationDataIfNeeded(
+              stationsRepository,
+              LaunchFakeSurfaceSnapshotRepository(),
+            ),
           startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
         )
 

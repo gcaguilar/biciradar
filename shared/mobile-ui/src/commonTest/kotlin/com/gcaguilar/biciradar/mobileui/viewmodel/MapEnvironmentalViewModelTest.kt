@@ -455,9 +455,13 @@ private class FakeMapEnvironmentalSettingsRepository(
 
 private class FakeMapStationsRepository : StationsRepository {
   override val state = kotlinx.coroutines.flow.MutableStateFlow(StationsState())
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() = Unit
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = null
 }
 
@@ -465,17 +469,26 @@ private class FakeMapFavoritesRepository : FavoritesRepository {
   override val favoriteIds = kotlinx.coroutines.flow.MutableStateFlow(emptySet<String>())
   override val homeStationId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
   override val workStationId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+
   override suspend fun bootstrap() = Unit
+
   override suspend fun toggle(stationId: String) = Unit
+
   override suspend fun setHomeStationId(stationId: String?) = Unit
+
   override suspend fun setWorkStationId(stationId: String?) = Unit
+
   override suspend fun clearAll() = Unit
+
   override fun isFavorite(stationId: String): Boolean = false
+
   override fun currentHomeStationId(): String? = null
+
   override fun currentWorkStationId(): String? = null
 }
 
 private class NoOpMapRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }

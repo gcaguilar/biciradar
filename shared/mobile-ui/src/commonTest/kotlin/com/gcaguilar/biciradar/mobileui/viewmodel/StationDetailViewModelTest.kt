@@ -240,8 +240,12 @@ private object NoOpStationDetailRouteLauncher : RouteLauncher {
 
 private class FakeStationDetailStationsRepository : StationsRepository {
   override val state = MutableStateFlow(StationsState())
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() = Unit
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = null
 }

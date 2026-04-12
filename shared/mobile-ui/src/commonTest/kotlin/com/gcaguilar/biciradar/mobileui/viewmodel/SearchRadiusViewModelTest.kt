@@ -419,18 +419,27 @@ private fun station(distanceMeters: Int) =
 
 private class FakeSearchRadiusStationsRepository : StationsRepository {
   override val state = kotlinx.coroutines.flow.MutableStateFlow(StationsState())
+
   override suspend fun loadIfNeeded() = Unit
+
   override suspend fun forceRefresh() = Unit
+
   override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
   override fun stationById(stationId: String): Station? = null
 }
 
 private class FakeSearchRadiusLocalNotifier : LocalNotifier {
   override suspend fun requestPermission(): Boolean = true
-  override suspend fun notify(title: String, body: String) = Unit
+
+  override suspend fun notify(
+    title: String,
+    body: String,
+  ) = Unit
 }
 
 private class FakeSearchRadiusRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
+
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
