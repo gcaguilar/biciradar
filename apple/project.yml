@@ -133,13 +133,17 @@ targets:
         PROVISIONING_PROFILE_SPECIFIER: "BiciRadarProfile"
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        FRAMEWORK_SEARCH_PATHS[config=Debug]:
+        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]:
+          - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release]:
+        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]:
+          - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: iosApp/Info.plist
@@ -188,13 +192,17 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
-        FRAMEWORK_SEARCH_PATHS[config=Debug]:
+        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
+        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]:
+          - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release]:
+        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]:
           - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
+        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]:
+          - $(inherited)
           - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
