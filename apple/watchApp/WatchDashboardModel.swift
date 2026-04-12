@@ -91,10 +91,7 @@ final class WatchDashboardModel: ObservableObject {
     }
 
     private func friendlyMessage(for error: Error) -> String {
-        if let graphError = error as? WatchGraphError, graphError == .invalidStationsState {
-            return "No hemos podido cargar el estado de estaciones. Pulsa Actualizar para reintentar."
-        }
-        return error.localizedDescription
+        error.localizedDescription
     }
 }
 

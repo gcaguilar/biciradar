@@ -18,161 +18,85 @@ actor BiziAppleGraph {
     )
 
     private lazy var graph: any SharedGraph = {
-        let g = SharedGraphCompanion.shared.create(platformBindings: bindings)
+        let g = MobileGraphFactory.shared.create(platformBindings: bindings)
         bindings.onGraphCreated(graph: g)
         return g
     }()
     private var hasBootstrapped = false
 
+    // MARK: - Public API
+
     func refreshData(forceRefresh: Bool = false) async throws {
         try await ensureBootstrapped()
-        try await refreshStations(forceRefresh: forceRefresh)
-        try await refreshSurfaceSnapshot()
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            graph.refreshStationDataIfNeeded.execute(forceRefresh: forceRefresh) { _, error in
+                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
+            }
+        }
     }
 
     func currentSelectedCity() async throws -> City {
         try await ensureBootstrapped()
-        return graph.settingsRepository.currentSelectedCity()
+        return graph.getCurrentCity.execute()
     }
 
     func setSelectedCity(_ city: City) async throws {
         try await ensureBootstrapped()
-        guard graph.settingsRepository.currentSelectedCity().id != city.id else { return }
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.settingsRepository.setSelectedCity(city: city) { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
+            graph.updateSelectedCity.execute(city: city) { error in
+                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
             }
         }
-        try await refreshStations(forceRefresh: true)
-        try await refreshSurfaceSnapshot()
     }
 
     func nearestStation() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = try stationsState().stations.map(snapshot(from:))
-        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters())
+        return try await graph.findNearestStation.execute().map(snapshot(from:))
     }
 
     func nearestStationWithBikes() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = try stationsState().stations.map(snapshot(from:))
-        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
-            station.bikesAvailable > 0
-        }
+        return try await graph.findNearestStationWithBikes.execute().map(snapshot(from:))
     }
 
     func nearestStationWithSlots() async throws -> BiziStationSnapshot? {
         try await refreshData()
-        let snapshots = try stationsState().stations.map(snapshot(from:))
-        return selectNearestSnapshot(from: snapshots, radiusMeters: currentSearchRadiusMeters()) { station in
-            station.slotsFree > 0
-        }
+        return try await graph.findNearestStationWithSlots.execute().map(snapshot(from:))
     }
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let state = try stationsState()
-        return state.stations
-            .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
-            .map(snapshot(from:))
+        return try await graph.getFavoriteStationList.execute().map(snapshot(from:))
     }
 
     func suggestedStations(limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let state = try stationsState()
-        let favoriteIds = Set(
-            state.stations
-                .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
-                .map(\.id)
-        )
-        let homeStationId = graph.favoritesRepository.currentHomeStationId()
-        let workStationId = graph.favoritesRepository.currentWorkStationId()
-        let rankedStations = state.stations.sorted { lhs, rhs in
-            let lhsPriority = lhs.suggestionPriority(
-                favoriteIds: favoriteIds,
-                homeStationId: homeStationId,
-                workStationId: workStationId
-            )
-            let rhsPriority = rhs.suggestionPriority(
-                favoriteIds: favoriteIds,
-                homeStationId: homeStationId,
-                workStationId: workStationId
-            )
-            if lhsPriority != rhsPriority {
-                return lhsPriority > rhsPriority
-            }
-            if lhs.distanceMeters != rhs.distanceMeters {
-                return lhs.distanceMeters < rhs.distanceMeters
-            }
-            return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
-        }
-        return Array(rankedStations.prefix(limit).map(snapshot(from:)))
+        return try await graph.getSuggestedStations.execute(limit: Int32(limit)).map(snapshot(from:))
     }
 
     func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshData()
-        let snapshots = try stationsState().stations.map(snapshot(from:))
-        let normalizedQuery = normalizeStationSearchText(query)
-        guard !normalizedQuery.isEmpty else {
+        let stations = try await graph.filterStationsByQuery.execute(query: query)
+        if stations.isEmpty {
             return try await suggestedStations(limit: limit)
         }
-        let pinnedStationId = pinnedStationId(for: normalizedQuery)
-        let numericQuery = query.filter(\.isNumber)
-        return Array(
-            snapshots
-                .compactMap { snapshot -> (Int, BiziStationSnapshot)? in
-                    snapshot.searchScore(
-                        normalizedQuery: normalizedQuery,
-                        numericQuery: numericQuery,
-                        pinnedStationId: pinnedStationId
-                    ).map { ($0, snapshot) }
-                }
-                .sorted { lhs, rhs in
-                    if lhs.0 != rhs.0 {
-                        return lhs.0 > rhs.0
-                    }
-                    if lhs.1.distanceMeters != rhs.1.distanceMeters {
-                        return lhs.1.distanceMeters < rhs.1.distanceMeters
-                    }
-                    return lhs.1.name.localizedCaseInsensitiveCompare(rhs.1.name) == .orderedAscending
-                }
-                .map(\.1)
-                .prefix(limit)
-        )
+        return Array(stations.prefix(limit).map(snapshot(from:)))
     }
 
     func station(matching query: String?) async throws -> BiziStationSnapshot? {
-        guard let query else {
-            return try await suggestedStations(limit: 1).first
-        }
-        let matches = try await stationSuggestions(matching: query, limit: 1)
-        return matches.first
+        try await refreshData()
+        return try await graph.findStationMatchingQuery.execute(query: query).map(snapshot(from:))
     }
 
     func station(stationId: String) async throws -> BiziStationSnapshot? {
         try await refreshData()
-        return graph.stationsRepository.stationById(stationId: stationId).map(snapshot(from:))
+        return graph.findStationById.execute(stationId: stationId).map(snapshot(from:))
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         try await refreshData()
-        let state = try stationsState()
-        let favoriteIds = Set(
-            state.stations
-                .filter { graph.favoritesRepository.isFavorite(stationId: $0.id) }
-                .map(\.id)
-        )
         return try await withCheckedThrowingContinuation { continuation in
-            graph.assistantIntentResolver.resolve(
-                action: action,
-                stationsState: state,
-                favoriteIds: favoriteIds,
-                searchRadiusMeters: Int32(currentSearchRadiusMeters())
-            ) { resolution, error in
+            graph.resolveAssistantIntent.execute(action: action) { resolution, error in
                 if let error {
                     continuation.resume(throwing: error)
                 } else if let resolution {
@@ -185,105 +109,23 @@ actor BiziAppleGraph {
     }
 
     func routeToStation(named query: String?) async throws -> BiziStationSnapshot? {
-        guard let station = try await station(matching: query) else {
-            return nil
-        }
-        try await refreshData()
-        if let target = graph.stationsRepository.stationById(stationId: station.id) {
+        guard let station = try await station(matching: query) else { return nil }
+        if let target = graph.findStationById.execute(stationId: station.id) {
             graph.routeLauncher.launch(station: target)
         }
         return station
     }
 
-    private func bootstrapFavorites() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.favoritesRepository.bootstrap { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
-
-    private func bootstrapSettings() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.settingsRepository.bootstrap { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
-
-    private func refreshStations(forceRefresh: Bool = false) async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            let completion: (Error?) -> Void = { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-            if forceRefresh {
-                graph.stationsRepository.forceRefresh { error in completion(error) }
-            } else {
-                graph.stationsRepository.loadIfNeeded { error in completion(error) }
-            }
-        }
-    }
-
-    private func ensureBootstrapped() async throws {
-        if !hasBootstrapped {
-            try await bootstrapSettings()
-            try await bootstrapFavorites()
-            try await bootstrapSurfaceRepositories()
-            try await bootstrapSavedPlaceAlerts()
-            hasBootstrapped = true
-        }
-    }
-
-    private func bootstrapSavedPlaceAlerts() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.savedPlaceAlertsRepository.bootstrap { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
-
-    /// After a fresh [StationsState], evaluate saved-place rules and fire notifications (BG task / extensions).
+    /// Evaluates saved-place alert rules and fires platform notifications where needed.
     func deliverSavedPlaceAlertNotificationsIfNeeded() async throws {
         try await ensureBootstrapped()
-        let rules = graph.savedPlaceAlertsRepository.currentRules()
-        guard !rules.isEmpty else { return }
-
-        let state = try stationsState()
-        let evaluation = graph.savedPlaceAlertsEvaluator.evaluate(
-            rules: rules,
-            stationsState: state,
+        let triggers = try await graph.evaluateSavedPlaceAlerts.execute(
             nowEpoch: Int64(Date().timeIntervalSince1970 * 1000)
         )
-
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.savedPlaceAlertsRepository.replaceAll(rules: evaluation.updatedRules) { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-
+        guard !triggers.isEmpty else { return }
         let hasNotificationPermission = try await bindings.localNotifier.hasPermission().boolValue
         guard hasNotificationPermission else { return }
-        for trigger in evaluation.triggers {
+        for trigger in triggers {
             await MainActor.run {
                 BiziNotificationService.shared.postSavedPlaceAlert(
                     title: trigger.notificationTitle(),
@@ -294,44 +136,16 @@ actor BiziAppleGraph {
         }
     }
 
-    private func bootstrapSurfaceRepositories() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.surfaceSnapshotRepository.bootstrap { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.surfaceMonitoringRepository.bootstrap { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
+    // MARK: - Private helpers
 
-    private func refreshSurfaceSnapshot() async throws {
+    private func ensureBootstrapped() async throws {
+        guard !hasBootstrapped else { return }
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.surfaceSnapshotRepository.refreshSnapshot { error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
+            graph.bootstrapSession.execute { error in
+                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
             }
         }
-    }
-
-    private func stationsState() throws -> StationsState {
-        guard let state = graph.stationsRepository.state.value as? StationsState else {
-            throw AppleGraphError.invalidStationsState
-        }
-        return state
+        hasBootstrapped = true
     }
 
     private func snapshot(from station: Station) -> BiziStationSnapshot {
@@ -344,134 +158,15 @@ actor BiziAppleGraph {
             distanceMeters: Int(station.distanceMeters)
         )
     }
-
-    private func currentSearchRadiusMeters() -> Int {
-        Int(graph.settingsRepository.currentSearchRadiusMeters())
-    }
-
-    private func pinnedStationId(for normalizedQuery: String) -> String? {
-        switch normalizedQuery {
-        case "casa", "mi casa", "home":
-            return graph.favoritesRepository.currentHomeStationId()
-        case "trabajo", "mi trabajo", "work", "oficina", "mi oficina":
-            return graph.favoritesRepository.currentWorkStationId()
-        default:
-            return nil
-        }
-    }
-}
-
-private func selectNearestSnapshot(
-    from snapshots: [BiziStationSnapshot],
-    radiusMeters: Int,
-    predicate: (BiziStationSnapshot) -> Bool = { _ in true }
-) -> BiziStationSnapshot? {
-    snapshots.first(where: { $0.distanceMeters <= radiusMeters && predicate($0) }) ??
-        snapshots.first(where: predicate)
 }
 
 enum AppleGraphError: LocalizedError {
     case emptyAssistantResponse
-    case invalidStationsState
 
     var errorDescription: String? {
         switch self {
         case .emptyAssistantResponse:
             return "No se recibió respuesta del asistente."
-        case .invalidStationsState:
-            return "No se pudo leer el estado de estaciones del repositorio."
         }
     }
 }
-
-private func normalizeStationSearchText(_ value: String?) -> String {
-    var normalized = (value ?? "")
-        .trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale.current)
-        .lowercased()
-    normalized = normalized.replacingOccurrences(of: "\\bc/\\s*", with: " calle ", options: NSString.CompareOptions.regularExpression)
-    normalized = normalized.replacingOccurrences(of: "\\bpza\\.?\\b", with: " plaza ", options: NSString.CompareOptions.regularExpression)
-    normalized = normalized.replacingOccurrences(of: "\\bavda\\.?\\b", with: " avenida ", options: NSString.CompareOptions.regularExpression)
-    normalized = normalized.replacingOccurrences(of: "\\bav\\.?\\b", with: " avenida ", options: NSString.CompareOptions.regularExpression)
-    normalized = normalized.replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: NSString.CompareOptions.regularExpression)
-    let tokens = normalized
-        .replacingOccurrences(of: "\\s+", with: " ", options: NSString.CompareOptions.regularExpression)
-        .split(separator: " ")
-        .map(String.init)
-        .filter { !$0.isEmpty && !appleStationStopwords.contains($0) }
-    return tokens.joined(separator: " ")
-}
-
-private extension Station {
-    func suggestionPriority(
-        favoriteIds: Set<String>,
-        homeStationId: String?,
-        workStationId: String?,
-    ) -> Int {
-        if id == homeStationId { return 400 }
-        if id == workStationId { return 380 }
-        if favoriteIds.contains(id) { return 320 }
-        return 100
-    }
-}
-
-private extension BiziStationSnapshot {
-    func searchScore(
-        normalizedQuery: String,
-        numericQuery: String,
-        pinnedStationId: String?,
-    ) -> Int? {
-        if id == pinnedStationId {
-            return 1000
-        }
-
-        let normalizedName = normalizeStationSearchText(name)
-        let normalizedAddress = normalizeStationSearchText(address)
-        let normalizedId = normalizeStationSearchText(id)
-        let stationNumericId = id.filter(\.isNumber)
-        let queryTokens = Set(normalizedQuery.split(separator: " ").map(String.init))
-        let nameTokens = Set(normalizedName.split(separator: " ").map(String.init))
-        let addressTokens = Set(normalizedAddress.split(separator: " ").map(String.init))
-
-        if normalizedId == normalizedQuery || (!numericQuery.isEmpty && stationNumericId == numericQuery) {
-            return 950
-        }
-        if normalizedName == normalizedQuery {
-            return 900
-        }
-        if normalizedAddress == normalizedQuery {
-            return 860
-        }
-        if normalizedName.hasPrefix(normalizedQuery) {
-            return 820
-        }
-        if normalizedAddress.hasPrefix(normalizedQuery) {
-            return 780
-        }
-        if !queryTokens.isEmpty && queryTokens.isSubset(of: nameTokens) {
-            return 740
-        }
-        if !queryTokens.isEmpty && queryTokens.isSubset(of: addressTokens) {
-            return 700
-        }
-        if normalizedName.contains(normalizedQuery) {
-            return 660
-        }
-        if normalizedAddress.contains(normalizedQuery) {
-            return 620
-        }
-        if normalizedId.contains(normalizedQuery) || (!numericQuery.isEmpty && stationNumericId.contains(numericQuery)) {
-            return 580
-        }
-        return nil
-    }
-}
-
-private let appleStationStopwords: Set<String> = [
-    "de",
-    "del",
-    "la",
-    "las",
-    "el",
-    "los",
-]
