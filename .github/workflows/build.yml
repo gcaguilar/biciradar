@@ -31,7 +31,7 @@ jobs:
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.0
+        uses: android-actions/setup-android@v4.0.1
         
       - name: Accept Android SDK licenses non-interactively
         run: yes | sdkmanager --licenses >/dev/null
@@ -134,7 +134,7 @@ jobs:
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.0
+        uses: android-actions/setup-android@v4.0.1
 
       - name: Accept Android SDK licenses non-interactively
         run: yes | sdkmanager --licenses >/dev/null
@@ -207,7 +207,7 @@ jobs:
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.0
+        uses: android-actions/setup-android@v4.0.1
 
       - name: Accept Android SDK licenses non-interactively
         run: yes | sdkmanager --licenses >/dev/null
