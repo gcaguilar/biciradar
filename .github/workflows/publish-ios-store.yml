@@ -57,6 +57,9 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
+      - name: Build KMP iOS framework
+        run: ./gradlew :shared:mobile-ui:linkReleaseFrameworkIosArm64
+
       - name: Write iOS secrets
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
@@ -157,6 +160,9 @@ jobs:
           bundler-cache: true
         env:
           BUNDLE_FROZEN: "false"
+
+      - name: Resolve Xcode package dependencies
+        run: xcodebuild -resolvePackageDependencies -project apple/BiciRadar.xcodeproj -scheme BiciRadar -clonedSourcePackagesDirPath apple/SourcePackages
 
       - name: Build, sign and upload to App Store
         run: bundle exec fastlane ios release_to_app_store
