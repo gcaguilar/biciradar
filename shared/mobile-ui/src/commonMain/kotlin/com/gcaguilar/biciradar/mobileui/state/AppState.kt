@@ -2,49 +2,24 @@ package com.gcaguilar.biciradar.mobileui.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 
 /**
- * Estado global de la aplicación móvil.
- * Gestiona el estado compartido entre diferentes pantallas y componentes.
+ * Estado efímero de la aplicación móvil a nivel de Compose.
+ * Gestiona el estado compartido entre diferentes pantallas y composables.
  */
 @Stable
 class AppState {
-  var searchQuery = mutableStateOf("")
-    private set
-
-  var pendingAssistantAction = mutableStateOf<AssistantAction?>(null)
-    private set
-
-  var pendingLaunchRequest = mutableStateOf<MobileLaunchRequest?>(null)
-    private set
-
-  var pendingAssistantLaunchRequest = mutableStateOf<AssistantLaunchRequest?>(null)
-    private set
-
-  fun updateSearchQuery(query: String) {
-    searchQuery.value = query
-  }
-
-  fun setPendingAssistantAction(action: AssistantAction?) {
-    pendingAssistantAction.value = action
-  }
-
-  fun setPendingLaunchRequest(request: MobileLaunchRequest?) {
-    pendingLaunchRequest.value = request
-  }
-
-  fun setPendingAssistantLaunchRequest(request: AssistantLaunchRequest?) {
-    pendingAssistantLaunchRequest.value = request
-  }
-
-  fun clearPendingAssistantAction() {
-    pendingAssistantAction.value = null
-  }
+  var pendingMapSearchQuery by mutableStateOf<String?>(null)
+  var pendingAssistantAction by mutableStateOf<AssistantAction?>(null)
+  var pendingLaunchRequest by mutableStateOf<MobileLaunchRequest?>(null)
+  var pendingAssistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
 }
 
 @Composable

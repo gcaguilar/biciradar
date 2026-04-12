@@ -58,7 +58,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
@@ -76,6 +75,9 @@ import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.NavigationHost
 import com.gcaguilar.biciradar.mobileui.navigation.NavigationHostConfig
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
+import com.gcaguilar.biciradar.mobileui.state.AppState
+import com.gcaguilar.biciradar.mobileui.state.rememberAppState
+import com.gcaguilar.biciradar.mobileui.state.shouldNavigateToFavoritesAfterOnboarding
 import com.gcaguilar.biciradar.mobileui.theme.ThemeProvider
 import com.gcaguilar.biciradar.mobileui.theme.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModel
@@ -83,22 +85,6 @@ import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-
-@androidx.compose.runtime.Stable
-internal class AppState {
-  var pendingMapSearchQuery by mutableStateOf<String?>(null)
-  var pendingAssistantAction by mutableStateOf<AssistantAction?>(null)
-  var pendingLaunchRequest by mutableStateOf<MobileLaunchRequest?>(null)
-  var pendingAssistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
-}
-
-@Composable
-private fun rememberAppState(): AppState = remember { AppState() }
-
-internal fun shouldNavigateToFavoritesAfterOnboarding(
-  hasPendingFavoritesNavigation: Boolean,
-  shouldShowGuidedOnboarding: Boolean,
-): Boolean = hasPendingFavoritesNavigation && !shouldShowGuidedOnboarding
 
 /**
  * Creates and remembers the navigation configuration.
