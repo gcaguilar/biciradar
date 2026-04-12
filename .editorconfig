@@ -7,3 +7,5 @@ indent_style = space
 indent_size = 2
 insert_final_newline = true
 max_line_length = 120
+ktlint_function_naming_ignore_when_annotated_with = Composable
+ij_kotlin_packages_to_use_import_on_demand = com.gcaguilar.biciradar.mobile_ui.generated.resources

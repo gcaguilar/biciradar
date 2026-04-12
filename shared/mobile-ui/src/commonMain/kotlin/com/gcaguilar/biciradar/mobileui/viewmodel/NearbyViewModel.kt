@@ -65,14 +65,14 @@ class NearbyViewModel(
   private val settingsRepository: SettingsRepository,
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
-  private val _refreshCountdownSeconds = MutableStateFlow(0)
+  private val refreshCountdownSeconds = MutableStateFlow(0)
 
   val uiState: StateFlow<NearbyUiState> =
     combine(
       stationsRepository.state,
       favoritesRepository.favoriteIds,
       settingsRepository.searchRadiusMeters,
-      _refreshCountdownSeconds,
+      refreshCountdownSeconds,
     ) { stationsState, favoriteIds, radius, countdown ->
       NearbyUiState(
         stations = stationsState.stations,
@@ -94,23 +94,23 @@ class NearbyViewModel(
     )
 
   /** Set to true while the Nearby screen is visible; false when it goes off-screen. */
-  private val _isActive = MutableStateFlow(false)
+  private val isActive = MutableStateFlow(false)
 
   init {
     viewModelScope.launch {
       val intervalSeconds = 300
       while (true) {
-        _isActive.first { it }
+        isActive.first { it }
         for (remaining in intervalSeconds downTo 1) {
-          if (!_isActive.value) break
-          _refreshCountdownSeconds.update { remaining }
+          if (!isActive.value) break
+          refreshCountdownSeconds.update { remaining }
           delay(1_000)
         }
-        if (!_isActive.value) {
-          _refreshCountdownSeconds.update { 0 }
+        if (!isActive.value) {
+          refreshCountdownSeconds.update { 0 }
           continue
         }
-        _refreshCountdownSeconds.update { 0 }
+        refreshCountdownSeconds.update { 0 }
         val ids =
           stationsRepository.state.value.stations
             .take(20)
@@ -121,7 +121,7 @@ class NearbyViewModel(
   }
 
   fun setActive(active: Boolean) {
-    _isActive.update { active }
+    isActive.update { active }
     if (active) {
       viewModelScope.launch {
         val snapshot = stationsRepository.state.value
