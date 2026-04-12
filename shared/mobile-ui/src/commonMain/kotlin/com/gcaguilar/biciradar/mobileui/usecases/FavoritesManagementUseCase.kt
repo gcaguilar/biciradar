@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.combine
  * Use case que agrupa las operaciones relacionadas con la gestión de favoritos,
  * estaciones home/work y datos de estaciones.
  */
+@Inject
 class FavoritesManagementUseCase(
   private val favoritesRepository: FavoritesRepository,
   private val stationsRepository: StationsRepository,
@@ -66,6 +68,10 @@ class FavoritesManagementUseCase(
 
   fun stationById(stationId: String): Station? = stationsRepository.stationById(stationId)
 
+  suspend fun forceRefresh() {
+    stationsRepository.forceRefresh()
+  }
+
   /**
    * Combina los estados necesarios para la UI de favoritos
    */
@@ -98,6 +104,7 @@ class FavoritesManagementUseCase(
 /**
  * Use case para la gestión de alertas de lugares guardados
  */
+@Inject
 class SavedPlaceAlertsUseCase(
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
 ) {
@@ -118,6 +125,7 @@ class SavedPlaceAlertsUseCase(
 /**
  * Use case para el lanzamiento de rutas de navegación
  */
+@Inject
 class RouteLaunchUseCase(
   private val routeLauncher: RouteLauncher,
 ) {

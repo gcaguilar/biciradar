@@ -14,6 +14,10 @@ import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import com.gcaguilar.biciradar.mobileui.usecases.FavoritesManagementUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.RouteLaunchUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SavedPlaceAlertsUseCase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +43,9 @@ data class FavoritesUiState(
   val stationsLoading: Boolean = false,
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class FavoritesViewModel(
   private val favoritesManagementUseCase: FavoritesManagementUseCase,
   private val savedPlaceAlertsUseCase: SavedPlaceAlertsUseCase,
@@ -140,6 +147,12 @@ class FavoritesViewModel(
 
   fun onSearchQueryChange(query: String) {
     searchQuery.update { query }
+  }
+
+  fun onRefresh() {
+    viewModelScope.launch {
+      favoritesManagementUseCase.forceRefresh()
+    }
   }
 
   fun onNewCategoryNameChange(name: String) {

@@ -60,7 +60,7 @@ internal fun MapScreen(
   onEnvironmentalSheetShown: () -> Unit,
   onEnvironmentalSheetDismissed: () -> Unit,
   onClearEnvironmentalFilters: () -> Unit,
-  onToggleFilter: (MapFilter) -> Unit,
+  onToggleFilter: (MapFilter, Set<MapFilter>) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val nearestStation = state.nearestSelection.highlightedStation
@@ -134,7 +134,7 @@ internal fun MapScreen(
         MapFiltersPanel(
           activeFilters = state.persistedActiveFilters,
           availableFilters = state.availableFilters,
-          onToggleFilter = onToggleFilter,
+          onToggleFilter = { filter -> onToggleFilter(filter, state.availableFilters) },
         )
       }
       DataFreshnessBanner(

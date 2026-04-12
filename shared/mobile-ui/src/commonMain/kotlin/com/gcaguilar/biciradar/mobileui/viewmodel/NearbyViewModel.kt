@@ -13,6 +13,10 @@ import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import com.gcaguilar.biciradar.core.selectNearbyStationWithBikes
 import com.gcaguilar.biciradar.core.selectNearbyStationWithSlots
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,6 +56,9 @@ data class NearbyUiState(
     ),
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class NearbyViewModel(
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,

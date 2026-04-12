@@ -11,6 +11,13 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.normalizedForSearch
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,13 +48,21 @@ data class ShortcutGuide(
   val icon: String,
 )
 
+@AssistedInject
 internal class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
   private val changeCityUseCase: ChangeCityUseCase,
   private val settingsAggregationUseCase: SettingsAggregationUseCase,
-  private val canSelectGoogleMapsInIos: Boolean,
+  @Assisted val canSelectGoogleMapsInIos: Boolean,
 ) : ViewModel() {
+
+  @AssistedFactory
+  @ManualViewModelAssistedFactoryKey
+  @ContributesIntoMap(AppScope::class)
+  interface Factory : ManualViewModelAssistedFactory {
+    fun create(canSelectGoogleMapsInIos: Boolean): ProfileViewModel
+  }
   private val latestAnswer = MutableStateFlow("Ask about stations, favorites, or routes")
   private val assistantSuggestions = MutableStateFlow<List<AssistantAction>>(emptyList())
   private val shortcutGuides = MutableStateFlow<List<ShortcutGuide>>(emptyList())

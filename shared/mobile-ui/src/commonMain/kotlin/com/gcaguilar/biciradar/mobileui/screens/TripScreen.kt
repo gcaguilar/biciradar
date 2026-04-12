@@ -30,14 +30,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.core.LocalNotifier
-import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
@@ -62,15 +60,12 @@ import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun TripScreen(
   state: TripUiState,
   mobilePlatform: MobileUiPlatform,
-  localNotifier: LocalNotifier,
-  routeLauncher: RouteLauncher,
   onDismissAlert: () -> Unit,
   onClearTrip: () -> Unit,
   onStopMonitoring: () -> Unit,
@@ -79,10 +74,10 @@ internal fun TripScreen(
   onRefreshStations: () -> Unit,
   onOpenDestinationPicker: () -> Unit,
   onOpenStationPicker: () -> Unit,
+  onLaunchBikeRoute: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val colors = LocalBiziColors.current
-  val scope = rememberCoroutineScope()
 
   Box(
     modifier =
@@ -338,7 +333,7 @@ internal fun TripScreen(
               distanceMeters = state.distanceToStation,
             )
             Button(
-              onClick = { routeLauncher.launchBikeToLocation(suggestedStation.location) },
+              onClick = { onLaunchBikeRoute(suggestedStation) },
               modifier = Modifier.fillMaxWidth(),
               colors = ButtonDefaults.buttonColors(containerColor = colors.blue),
             ) {
@@ -365,13 +360,7 @@ internal fun TripScreen(
             TripMonitoringSetupCard(
               selectedDurationSeconds = state.selectedDurationSeconds,
               onDurationSelected = onDurationSelected,
-              onStartMonitoring = {
-                scope.launch {
-                  if (localNotifier.requestPermission()) {
-                    onStartMonitoring()
-                  }
-                }
-              },
+              onStartMonitoring = onStartMonitoring,
             )
           }
         }

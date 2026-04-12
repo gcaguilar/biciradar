@@ -5,6 +5,7 @@ import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -19,6 +20,7 @@ internal data class StartupResult(
  * Use case that handles application startup initialization.
  * Groups settings, favorites, and stations repository operations.
  */
+@Inject
 internal class StartupUseCase(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,

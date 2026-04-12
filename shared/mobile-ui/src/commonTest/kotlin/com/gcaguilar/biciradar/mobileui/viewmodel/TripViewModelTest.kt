@@ -5,13 +5,17 @@ import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
+import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
@@ -244,6 +248,9 @@ private fun buildTripViewModel(
     tripManagementUseCase = tripManagementUseCase,
     surfaceMonitoringUseCase = surfaceMonitoringUseCase,
     geoLocationUseCase = geoLocationUseCase,
+    stationsRepository = TripTestStationsRepository(),
+    localNotifier = TripTestLocalNotifier(),
+    routeLauncher = TripTestRouteLauncher(),
   )
 }
 
@@ -401,4 +408,22 @@ private class TripTestGooglePlacesApi : GooglePlacesApi {
     biasLocation: GeoPoint?,
     apiKey: String,
   ): AutocompleteResult = AutocompleteResult(predictions = emptyList(), status = "OK")
+}
+
+private class TripTestStationsRepository : StationsRepository {
+  override val state = MutableStateFlow(StationsState())
+  override suspend fun loadIfNeeded() = Unit
+  override suspend fun forceRefresh() = Unit
+  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+  override fun stationById(stationId: String): Station? = null
+}
+
+private class TripTestLocalNotifier : LocalNotifier {
+  override suspend fun requestPermission(): Boolean = true
+  override suspend fun notify(title: String, body: String) = Unit
+}
+
+private class TripTestRouteLauncher : RouteLauncher {
+  override fun launch(station: Station) = Unit
+  override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }

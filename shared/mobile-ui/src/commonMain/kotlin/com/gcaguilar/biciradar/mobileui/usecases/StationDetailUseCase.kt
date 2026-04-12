@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.combine
  * Use case que agrupa las operaciones relacionadas con el detalle de una estación,
  * incluyendo favoritos, alertas y patrones de uso.
  */
+@Inject
 class StationDetailUseCase(
   private val favoritesRepository: FavoritesRepository,
   private val settingsRepository: SettingsRepository,

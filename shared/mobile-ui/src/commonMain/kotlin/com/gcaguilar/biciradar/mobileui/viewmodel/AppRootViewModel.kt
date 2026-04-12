@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.StationsState
@@ -15,6 +16,10 @@ import com.gcaguilar.biciradar.mobileui.usecases.OnboardingLaunchSource
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingPresentationInput
 import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,14 +91,17 @@ private data class StartupSnapshot(
  *
  * SRP: Coordina la inicialización y gestiona el estado UI de toda la app.
  */
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 internal class AppRootViewModel(
   private val startupUseCase: StartupUseCase,
   private val appLifecycleUseCase: AppLifecycleUseCase,
   private val resolveOnboardingPresentationUseCase: ResolveOnboardingPresentationUseCase,
   private val appInitializer: AppInitializer,
-  private val appVersion: String,
-  private val clock: () -> Long = ::epochMillisForUi,
+  @AppVersion private val appVersion: String,
 ) : ViewModel() {
+  private val clock: () -> Long = ::epochMillisForUi
   private val _uiState = MutableStateFlow(AppRootUiState())
   val uiState: StateFlow<AppRootUiState> = _uiState.asStateFlow()
 

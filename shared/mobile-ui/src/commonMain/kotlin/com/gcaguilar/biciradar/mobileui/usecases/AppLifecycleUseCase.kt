@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
+import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.ReviewEligibility
@@ -11,17 +12,19 @@ import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
 import com.gcaguilar.biciradar.mobileui.viewmodel.ChangelogPresentation
+import dev.zacsweers.metro.Inject
 
 /**
  * Use case that handles app lifecycle-related operations.
  * Groups engagement, updates, reviews, and changelog logic.
  */
+@Inject
 internal class AppLifecycleUseCase(
   private val engagementRepository: EngagementRepository,
   private val appUpdatePrompter: AppUpdatePrompter,
   private val reviewPrompter: ReviewPrompter,
   private val settingsAggregationUseCase: SettingsAggregationUseCase,
-  private val appVersion: String,
+  @AppVersion private val appVersion: String,
 ) {
   // region App Updates
 

@@ -144,6 +144,7 @@ internal fun FavoritesScreen(
   onOpenSearch: () -> Unit,
   paddingValues: PaddingValues,
   onCreateCustomCategory: (String) -> Unit,
+  onNewCategoryNameChange: (String) -> Unit,
   onAssignCandidateToCategory: (String) -> Unit,
   onRemoveCustomCategory: (String) -> Unit,
   onClearCategoryAssignment: (String) -> Unit,
@@ -500,7 +501,7 @@ internal fun FavoritesScreen(
               Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.OutlinedTextField(
                   value = newCategoryName,
-                  onValueChange = { newCategoryName = it },
+                  onValueChange = { onNewCategoryNameChange(it) },
                   modifier = Modifier.weight(1f),
                   singleLine = true,
                   label = { Text(stringResource(Res.string.favoritesCustomCategoryPlaceholder)) },
@@ -509,7 +510,7 @@ internal fun FavoritesScreen(
                   val label = newCategoryName.trim()
                   if (label.isNotBlank()) {
                     onCreateCustomCategory(label)
-                    newCategoryName = ""
+                    onNewCategoryNameChange("")
                   }
                 }) { Text(stringResource(Res.string.create)) }
               }

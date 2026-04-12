@@ -7,6 +7,10 @@ import com.gcaguilar.biciradar.core.AssistantIntentResolver
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +28,9 @@ private data class ShortcutsRuntimeState(
   val resolveRequestVersion: Long = 0L,
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 internal class ShortcutsViewModel(
   private val assistantIntentResolver: AssistantIntentResolver,
   private val stationsRepository: StationsRepository,

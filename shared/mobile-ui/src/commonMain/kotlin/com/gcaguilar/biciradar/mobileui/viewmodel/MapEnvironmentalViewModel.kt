@@ -8,6 +8,7 @@ import com.gcaguilar.biciradar.core.EnvironmentalRepository
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.NearbyStationSelection
+import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
@@ -25,6 +26,10 @@ import com.gcaguilar.biciradar.mobileui.clearEnvironmentalMapFilters
 import com.gcaguilar.biciradar.mobileui.isEnvironmentalMapFilter
 import com.gcaguilar.biciradar.mobileui.sanitizeActiveMapFilters
 import com.gcaguilar.biciradar.mobileui.toggleMapFilterSelection
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -90,16 +95,24 @@ private data class ResolvedMapSelection(
   val hasExplicitSelection: Boolean,
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class MapEnvironmentalViewModel(
   private val environmentalRepository: EnvironmentalRepository,
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
   private val favoritesRepository: FavoritesRepository,
+  private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
   private val mutableState = MutableStateFlow(MapEnvironmentalMutableState())
   private val latestFilteredStations = MutableStateFlow(emptyList<Station>())
   private val latestLayer = MutableStateFlow<MapEnvironmentalLayer?>(null)
+
+  // Internal flows — populated either from repos (production) or via push methods (tests/external)
+  private val stationsStateInternal = MutableStateFlow(StationsState())
+  private val favoriteIdsInternal = MutableStateFlow(emptySet<String>())
 
   private val zonesState: StateFlow<List<MapEnvironmentalZoneSnapshot>> =
     combine(
@@ -121,8 +134,8 @@ internal class MapEnvironmentalViewModel(
 
   val uiState: StateFlow<MapEnvironmentalUiState> =
     combine(
-      stationsRepository.state,
-      favoritesRepository.favoriteIds,
+      stationsStateInternal,
+      favoriteIdsInternal,
       settingsRepository.searchRadiusMeters,
       mutableState,
       zonesState,
@@ -141,6 +154,14 @@ internal class MapEnvironmentalViewModel(
     )
 
   init {
+    // Forward from repos (production path)
+    stationsRepository.state
+      .onEach { stationsStateInternal.value = it }
+      .launchIn(viewModelScope)
+    favoritesRepository.favoriteIds
+      .onEach { favoriteIdsInternal.value = it }
+      .launchIn(viewModelScope)
+
     viewModelScope.launch {
       settingsRepository.bootstrap()
       val persistedFilters =
@@ -149,11 +170,18 @@ internal class MapEnvironmentalViewModel(
           .mapNotNull { name -> MapFilter.entries.firstOrNull { it.name == name } }
           .toSet()
       mutableState.update { it.copy(persistedActiveFilters = persistedFilters) }
+      // Only restore the environmental layer if filters actually specify one.
+      // Passing null here would overwrite any layer set via onEnvironmentalLayerChanged()
+      // before this coroutine ran (e.g. in tests or on rapid navigation).
+      val bootstrappedLayer = activeEnvironmentalLayerForFilters(persistedFilters)
+      if (bootstrappedLayer != null) {
+        latestLayer.value = bootstrappedLayer
+      }
     }
 
     combine(
-      stationsRepository.state,
-      favoritesRepository.favoriteIds,
+      stationsStateInternal,
+      favoriteIdsInternal,
       settingsRepository.searchRadiusMeters,
       mutableState,
     ) { stationsState, favoriteIds, searchRadiusMeters, state ->
@@ -167,18 +195,66 @@ internal class MapEnvironmentalViewModel(
       .launchIn(viewModelScope)
   }
 
+  // --- Push methods (used externally, e.g. from BiziNavHost, or in tests) ---
+
+  fun onStationsChanged(stations: List<Station>) {
+    stationsStateInternal.update { it.copy(stations = stations) }
+  }
+
+  fun onFavoriteIdsChanged(ids: Set<String>) {
+    favoriteIdsInternal.value = ids
+  }
+
+  fun onEnvironmentalLayerChanged(layer: MapEnvironmentalLayer?) {
+    latestLayer.value = layer
+  }
+
+  fun onAvailableFiltersChanged(availableFilters: Set<MapFilter>) {
+    val current = mutableState.value.persistedActiveFilters
+    val sanitized = sanitizeActiveMapFilters(current, availableFilters)
+    if (sanitized != current) {
+      mutableState.update { it.copy(persistedActiveFilters = sanitized) }
+      latestLayer.value = activeEnvironmentalLayerForFilters(sanitized)
+      persistFilters(sanitized)
+    }
+  }
+
+  fun reconcileSelection(
+    mapStations: List<Station>,
+    nearestSelection: NearbyStationSelection,
+    searchQuery: String,
+  ) {
+    val selection =
+      resolveSelection(
+        mapStations = mapStations,
+        nearestSelection = nearestSelection,
+        searchQuery = searchQuery,
+        requestedSelectedId = mutableState.value.selectedMapStationId,
+        requestedExplicitSelection = mutableState.value.hasExplicitMapSelection,
+      )
+    mutableState.update {
+      it.copy(
+        selectedMapStationId = selection.selectedId,
+        hasExplicitMapSelection = selection.hasExplicitSelection,
+        isCardDismissed = false,
+      )
+    }
+  }
+
+  // --- Filter / UI methods ---
+
   fun onSearchQueryChange(query: String) {
     mutableState.update { it.copy(searchQuery = query) }
   }
 
   fun onPersistedMapFiltersChanged(filters: Set<MapFilter>) {
     mutableState.update { it.copy(persistedActiveFilters = filters) }
+    latestLayer.value = activeEnvironmentalLayerForFilters(filters)
     persistFilters(filters)
   }
 
-  fun onToggleFilter(filter: MapFilter) {
-    val availableFilters = uiState.value.availableFilters
-    val currentFilters = uiState.value.persistedActiveFilters
+  fun onToggleFilter(filter: MapFilter, availableFilters: Set<MapFilter>) {
+    val currentFilters = mutableState.value.persistedActiveFilters
     val toggled = toggleMapFilterSelection(currentFilters, filter)
     val next = sanitizeActiveMapFilters(toggled, availableFilters)
     mutableState.update {
@@ -187,6 +263,7 @@ internal class MapEnvironmentalViewModel(
         showEnvironmentalSheet = if (isEnvironmentalMapFilter(filter)) filter in next else it.showEnvironmentalSheet,
       )
     }
+    latestLayer.value = activeEnvironmentalLayerForFilters(next)
     persistFilters(next)
   }
 
@@ -229,7 +306,24 @@ internal class MapEnvironmentalViewModel(
         showEnvironmentalSheet = false,
       )
     }
+    latestLayer.value = activeEnvironmentalLayerForFilters(next)
     persistFilters(next)
+  }
+
+  fun onRefresh() {
+    viewModelScope.launch { stationsRepository.forceRefresh() }
+  }
+
+  fun onRetry() {
+    viewModelScope.launch { stationsRepository.loadIfNeeded() }
+  }
+
+  fun onFavoriteToggle(station: Station) {
+    viewModelScope.launch { favoritesRepository.toggle(station.id) }
+  }
+
+  fun onQuickRoute(station: Station) {
+    routeLauncher.launch(station)
   }
 
   private fun buildUiState(
@@ -244,14 +338,9 @@ internal class MapEnvironmentalViewModel(
     val activeFilters = sanitizeActiveMapFilters(state.persistedActiveFilters, availableFilters)
     val mapStations = applyMapFilters(filteredStations, activeFilters)
     val nearestSelection = selectNearbyStation(stationsState.stations, searchRadiusMeters)
-    val selection =
-      resolveSelection(
-        mapStations = mapStations,
-        nearestSelection = nearestSelection,
-        searchQuery = state.searchQuery,
-        requestedSelectedId = state.selectedMapStationId,
-        requestedExplicitSelection = state.hasExplicitMapSelection,
-      )
+    // Trust mutableState directly — explicit reconciliation is done via reconcileSelection().
+    val selectedStation = state.selectedMapStationId?.let { id -> mapStations.firstOrNull { it.id == id } }
+    val activeLayer = activeEnvironmentalLayerForFilters(activeFilters)
 
     return MapEnvironmentalUiState(
       stations = mapStations,
@@ -267,23 +356,16 @@ internal class MapEnvironmentalViewModel(
       availableFilters = availableFilters,
       zones = zones,
       persistedActiveFilters = activeFilters,
-      activeEnvironmentalLayer = activeEnvironmentalLayerForFilters(activeFilters),
-      selectedMapStation = selection.selectedStation,
-      selectedMapStationId = selection.selectedId,
-      hasExplicitMapSelection = selection.hasExplicitSelection,
+      activeEnvironmentalLayer = activeLayer,
+      selectedMapStation = selectedStation,
+      selectedMapStationId = state.selectedMapStationId,
+      hasExplicitMapSelection = state.hasExplicitMapSelection,
       isShowingNearestSelection =
-        !selection.hasExplicitSelection && selection.selectedId == nearestSelection.highlightedStation?.id,
+        !state.hasExplicitMapSelection && state.selectedMapStationId == nearestSelection.highlightedStation?.id,
       isShowingNearestFallback =
-        selection.selectedId == nearestSelection.highlightedStation?.id && nearestSelection.usesFallback,
-      isCardDismissed = if (selection.selectedId != state.selectedMapStationId) false else state.isCardDismissed,
-      showEnvironmentalSheet =
-        if (activeEnvironmentalLayerForFilters(activeFilters) ==
-          null
-        ) {
-          false
-        } else {
-          state.showEnvironmentalSheet
-        },
+        state.selectedMapStationId == nearestSelection.highlightedStation?.id && nearestSelection.usesFallback,
+      isCardDismissed = state.isCardDismissed,
+      showEnvironmentalSheet = state.showEnvironmentalSheet,
       recenterRequestToken = state.recenterRequestToken,
     )
   }
@@ -294,13 +376,14 @@ internal class MapEnvironmentalViewModel(
     val sanitizedFilters = sanitizeActiveMapFilters(inputs.state.persistedActiveFilters, availableFilters)
     if (sanitizedFilters != inputs.state.persistedActiveFilters) {
       mutableState.update { it.copy(persistedActiveFilters = sanitizedFilters) }
+      latestLayer.value = activeEnvironmentalLayerForFilters(sanitizedFilters)
       persistFilters(sanitizedFilters)
       return
     }
 
-    val activeLayer = activeEnvironmentalLayerForFilters(sanitizedFilters)
     latestFilteredStations.update { filteredStations }
-    latestLayer.update { activeLayer }
+    // Note: latestLayer is NOT updated here — it is set exclusively by explicit layer/filter methods
+    // to avoid overwriting externally-pushed layers when stations or other state changes.
   }
 
   private fun persistFilters(filters: Set<MapFilter>) {

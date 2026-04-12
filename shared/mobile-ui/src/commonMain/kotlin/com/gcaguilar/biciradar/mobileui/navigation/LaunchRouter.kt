@@ -86,7 +86,7 @@ internal class LaunchRouter(
    * Applies a launch resolution by updating app state and navigating as needed.
    */
   fun applyResolution(resolution: LaunchResolution) {
-    resolution.searchQuery?.let { appState.searchQuery = it }
+    resolution.searchQuery?.let { appState.pendingMapSearchQuery = it }
     resolution.assistantAction?.let { appState.pendingAssistantAction = it }
     resolution.screen?.let { screen ->
       navController.navigate(screen) { launchSingleTop = true }

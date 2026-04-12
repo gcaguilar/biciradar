@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.usecases
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingStep
 import com.gcaguilar.biciradar.mobileui.experience.guidedOnboardingStep
+import dev.zacsweers.metro.Inject
 
 internal enum class OnboardingLaunchSource {
   Automatic,
@@ -23,7 +24,7 @@ internal data class OnboardingPresentationResult(
   val shouldResetNavigationSuppression: Boolean,
 )
 
-internal class ResolveOnboardingPresentationUseCase {
+internal class ResolveOnboardingPresentationUseCase @Inject constructor() {
   fun execute(input: OnboardingPresentationInput): OnboardingPresentationResult {
     val onboardingStep = input.checklist.guidedOnboardingStep()
     val shouldSuppressForStep =

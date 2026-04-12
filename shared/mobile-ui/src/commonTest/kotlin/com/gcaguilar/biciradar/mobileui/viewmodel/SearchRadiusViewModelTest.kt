@@ -8,6 +8,7 @@ import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
+import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
@@ -121,6 +122,9 @@ class SearchRadiusViewModelTest {
           tripManagementUseCase = tripManagementUseCase,
           surfaceMonitoringUseCase = surfaceMonitoringUseCase,
           geoLocationUseCase = geoLocationUseCase,
+          stationsRepository = FakeSearchRadiusStationsRepository(),
+          localNotifier = FakeSearchRadiusLocalNotifier(),
+          routeLauncher = FakeSearchRadiusRouteLauncher(),
         )
 
       advanceUntilIdle()
@@ -412,3 +416,21 @@ private fun station(distanceMeters: Int) =
     slotsFree = 6,
     distanceMeters = distanceMeters,
   )
+
+private class FakeSearchRadiusStationsRepository : StationsRepository {
+  override val state = kotlinx.coroutines.flow.MutableStateFlow(StationsState())
+  override suspend fun loadIfNeeded() = Unit
+  override suspend fun forceRefresh() = Unit
+  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+  override fun stationById(stationId: String): Station? = null
+}
+
+private class FakeSearchRadiusLocalNotifier : LocalNotifier {
+  override suspend fun requestPermission(): Boolean = true
+  override suspend fun notify(title: String, body: String) = Unit
+}
+
+private class FakeSearchRadiusRouteLauncher : RouteLauncher {
+  override fun launch(station: Station) = Unit
+  override fun launchWalkToLocation(destination: GeoPoint) = Unit
+}

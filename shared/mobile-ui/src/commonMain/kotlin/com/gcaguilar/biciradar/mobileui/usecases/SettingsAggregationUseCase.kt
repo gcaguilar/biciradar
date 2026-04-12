@@ -2,12 +2,14 @@ package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SettingsRepository
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Use case that aggregates settings-related operations.
  * Groups all settings repository operations to reduce direct dependencies.
  */
+@Inject
 internal class SettingsAggregationUseCase(
   private val settingsRepository: SettingsRepository,
 ) {

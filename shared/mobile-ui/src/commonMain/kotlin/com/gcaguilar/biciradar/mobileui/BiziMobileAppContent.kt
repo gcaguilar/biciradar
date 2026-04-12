@@ -6,21 +6,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
-import com.gcaguilar.biciradar.core.DataFreshness
-import com.gcaguilar.biciradar.core.FavoriteCategory
-import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
-import com.gcaguilar.biciradar.core.RouteLauncher
-import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
-import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
-import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
+import com.gcaguilar.biciradar.mobileui.screens.NearbyScreen
 import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
@@ -35,9 +29,6 @@ internal object BiziMobileAppContent {
   fun TripScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel,
     mobilePlatform: MobileUiPlatform,
-    localNotifier: LocalNotifier,
-    routeLauncher: RouteLauncher,
-    onRefreshStations: () -> Unit,
     onOpenDestinationPicker: () -> Unit,
     onOpenStationPicker: () -> Unit,
     paddingValues: PaddingValues,
@@ -46,16 +37,15 @@ internal object BiziMobileAppContent {
     TripScreen(
       state = state,
       mobilePlatform = mobilePlatform,
-      localNotifier = localNotifier,
-      routeLauncher = routeLauncher,
       onDismissAlert = viewModel::onDismissAlert,
       onClearTrip = viewModel::onClearTrip,
       onStopMonitoring = viewModel::onStopMonitoring,
       onDurationSelected = viewModel::onDurationSelected,
-      onStartMonitoring = viewModel::onStartMonitoring,
-      onRefreshStations = onRefreshStations,
+      onStartMonitoring = viewModel::onStartMonitoringRequested,
+      onRefreshStations = viewModel::onRefresh,
       onOpenDestinationPicker = onOpenDestinationPicker,
       onOpenStationPicker = onOpenStationPicker,
+      onLaunchBikeRoute = viewModel::onLaunchBikeRoute,
       paddingValues = paddingValues,
     )
   }
@@ -74,8 +64,6 @@ internal object BiziMobileAppContent {
       state = state,
       mobilePlatform = mobilePlatform,
       pickerMode = pickerMode,
-      userLocation = state.userLocation,
-      stations = state.stations,
       isMapReady = isMapReady,
       paddingValues = paddingValues,
       onBack = onBack,
@@ -150,99 +138,19 @@ internal object BiziMobileAppContent {
 
   @Composable
   fun FavoritesScreenContent(
-    mobilePlatform: MobileUiPlatform,
-    onOpenAssistant: () -> Unit,
-    allStations: List<Station>,
-    stations: List<Station>,
-    homeStation: Station?,
-    workStation: Station?,
-    searchQuery: String,
-    assignmentCandidate: Station?,
-    onSearchQueryChange: (String) -> Unit,
-    onStationSelected: (Station) -> Unit,
-    onAssignHomeStation: (Station) -> Unit,
-    onAssignWorkStation: (Station) -> Unit,
-    onClearHomeStation: () -> Unit,
-    onClearWorkStation: () -> Unit,
-    onRemoveFavorite: (Station) -> Unit,
-    onQuickRoute: (Station) -> Unit,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
-    onOpenSavedPlaceAlerts: () -> Unit,
-    onOpenSearch: () -> Unit,
-    paddingValues: PaddingValues,
-    savedPlaceAlertsCityId: String = City.ZARAGOZA.id,
-    savedPlaceAlertRules: List<SavedPlaceAlertRule> = emptyList(),
-    categories: List<FavoriteCategory> = emptyList(),
-    stationCategory: Map<String, String> = emptyMap(),
-    onCreateCustomCategory: (String) -> Unit = {},
-    onAssignCandidateToCategory: (String) -> Unit = {},
-    onRemoveCustomCategory: (String) -> Unit = {},
-    onClearCategoryAssignment: (String) -> Unit = {},
-    onUpsertSavedPlaceAlert: ((SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit)? = null,
-    onRemoveSavedPlaceAlertForTarget: ((SavedPlaceAlertTarget) -> Unit)? = null,
-  ) = com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen(
-    mobilePlatform = mobilePlatform,
-    onOpenAssistant = onOpenAssistant,
-    allStations = allStations,
-    stations = stations,
-    homeStation = homeStation,
-    workStation = workStation,
-    searchQuery = searchQuery,
-    assignmentCandidate = assignmentCandidate,
-    onSearchQueryChange = onSearchQueryChange,
-    onStationSelected = onStationSelected,
-    onAssignHomeStation = onAssignHomeStation,
-    onAssignWorkStation = onAssignWorkStation,
-    onClearHomeStation = onClearHomeStation,
-    onClearWorkStation = onClearWorkStation,
-    onRemoveFavorite = onRemoveFavorite,
-    onQuickRoute = onQuickRoute,
-    dataFreshness = dataFreshness,
-    lastUpdatedEpoch = lastUpdatedEpoch,
-    stationsLoading = stationsLoading,
-    onRefreshStations = onRefreshStations,
-    onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
-    onOpenSearch = onOpenSearch,
-    paddingValues = paddingValues,
-    savedPlaceAlertsCityId = savedPlaceAlertsCityId,
-    savedPlaceAlertRules = savedPlaceAlertRules,
-    categories = categories,
-    stationCategory = stationCategory,
-    onCreateCustomCategory = onCreateCustomCategory,
-    onAssignCandidateToCategory = onAssignCandidateToCategory,
-    onRemoveCustomCategory = onRemoveCustomCategory,
-    onClearCategoryAssignment = onClearCategoryAssignment,
-    onUpsertSavedPlaceAlert = onUpsertSavedPlaceAlert,
-    onRemoveSavedPlaceAlertForTarget = onRemoveSavedPlaceAlertForTarget,
-  )
-
-  @Composable
-  fun FavoritesScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModel,
     mobilePlatform: MobileUiPlatform,
     onOpenAssistant: () -> Unit,
     onStationSelected: (Station) -> Unit,
-    dataFreshness: DataFreshness,
-    lastUpdatedEpoch: Long?,
-    stationsLoading: Boolean,
-    onRefreshStations: () -> Unit,
     onOpenSavedPlaceAlerts: () -> Unit,
     onOpenSearch: () -> Unit,
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen(
+    FavoritesScreen(
+      state = uiState,
       mobilePlatform = mobilePlatform,
       onOpenAssistant = onOpenAssistant,
-      allStations = uiState.allStations,
-      stations = uiState.favoriteStations,
-      homeStation = uiState.homeStation,
-      workStation = uiState.workStation,
-      searchQuery = uiState.searchQuery,
-      assignmentCandidate = uiState.assignmentCandidate,
       onSearchQueryChange = viewModel::onSearchQueryChange,
       onStationSelected = onStationSelected,
       onAssignHomeStation = viewModel::onAssignHomeStation,
@@ -251,18 +159,12 @@ internal object BiziMobileAppContent {
       onClearWorkStation = viewModel::onClearWorkStation,
       onRemoveFavorite = viewModel::onRemoveFavorite,
       onQuickRoute = viewModel::onQuickRoute,
-      dataFreshness = dataFreshness,
-      lastUpdatedEpoch = lastUpdatedEpoch,
-      stationsLoading = stationsLoading,
-      onRefreshStations = onRefreshStations,
+      onRefreshStations = viewModel::onRefresh,
       onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
       onOpenSearch = onOpenSearch,
       paddingValues = paddingValues,
-      savedPlaceAlertsCityId = uiState.savedPlaceAlertsCityId,
-      savedPlaceAlertRules = uiState.savedPlaceAlertRules,
-      categories = uiState.categories,
-      stationCategory = uiState.stationCategory,
       onCreateCustomCategory = viewModel::onCreateCustomCategory,
+      onNewCategoryNameChange = viewModel::onNewCategoryNameChange,
       onAssignCandidateToCategory = viewModel::onAssignCandidateToCategory,
       onRemoveCustomCategory = viewModel::onRemoveCustomCategory,
       onClearCategoryAssignment = viewModel::onClearCategoryAssignment,
@@ -279,7 +181,6 @@ internal object BiziMobileAppContent {
     onStationSelected: (Station) -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    var newCategoryName by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
     FavoritesSearchScreen(
       mobilePlatform = mobilePlatform,
       allStations = uiState.allStations,
@@ -289,9 +190,9 @@ internal object BiziMobileAppContent {
       categories = uiState.categories,
       stationCategory = uiState.stationCategory,
       searchQuery = uiState.searchQuery,
-      newCategoryName = newCategoryName,
+      newCategoryName = uiState.newCategoryName,
       onSearchQueryChange = viewModel::onSearchQueryChange,
-      onNewCategoryNameChange = { newCategoryName = it },
+      onNewCategoryNameChange = viewModel::onNewCategoryNameChange,
       onBack = onBack,
       onOpenStationDetails = onStationSelected,
       onToggleFavorite = viewModel::onToggleFavorite,
@@ -308,10 +209,10 @@ internal object BiziMobileAppContent {
         onBack()
       },
       onCreateCustomCategory = {
-        val label = newCategoryName.trim()
+        val label = uiState.newCategoryName.trim()
         if (label.isNotBlank()) {
           viewModel.onCreateCustomCategory(label)
-          newCategoryName = ""
+          viewModel.onNewCategoryNameChange("")
         }
       },
     )
@@ -449,23 +350,19 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     isMapReady: Boolean,
     onStationSelected: (Station) -> Unit,
-    onRetry: () -> Unit,
-    onFavoriteToggle: (Station) -> Unit,
-    onQuickRoute: (Station) -> Unit,
-    onRefreshStations: () -> Unit,
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
     MapScreen(
       state = uiState,
       mobilePlatform = mobilePlatform,
-      onRefreshStations = onRefreshStations,
+      onRefreshStations = viewModel::onRefresh,
       isMapReady = isMapReady,
       onSearchQueryChange = viewModel::onSearchQueryChange,
       onStationSelected = onStationSelected,
-      onRetry = onRetry,
-      onFavoriteToggle = onFavoriteToggle,
-      onQuickRoute = onQuickRoute,
+      onRetry = viewModel::onRetry,
+      onFavoriteToggle = viewModel::onFavoriteToggle,
+      onQuickRoute = viewModel::onQuickRoute,
       onStationSelectedOnMap = viewModel::onStationSelected,
       onStationCardDismissed = viewModel::onStationCardDismissed,
       onRecenterRequested = viewModel::onRecenterRequested,
@@ -482,7 +379,6 @@ internal object BiziMobileAppContent {
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel,
     mobilePlatform: MobileUiPlatform,
     isMapReady: Boolean,
-    onRefreshStations: () -> Unit,
     onBack: () -> Unit,
   ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -490,7 +386,7 @@ internal object BiziMobileAppContent {
       state = uiState,
       mobilePlatform = mobilePlatform,
       isMapReady = isMapReady,
-      onRefreshStations = onRefreshStations,
+      onRefreshStations = viewModel::onRefresh,
       onBack = onBack,
       onToggleFavorite = viewModel::onToggleFavorite,
       onToggleHome = viewModel::onToggleHome,

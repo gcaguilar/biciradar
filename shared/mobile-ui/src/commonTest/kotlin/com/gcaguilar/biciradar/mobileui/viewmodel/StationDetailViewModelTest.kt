@@ -14,6 +14,8 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
+import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
 import kotlinx.coroutines.Dispatchers
@@ -77,8 +79,9 @@ class StationDetailViewModelTest {
 
       val viewModel =
         StationDetailViewModel(
-          stationId = "station-1",
           stationDetailUseCase = stationDetailUseCase,
+          stationsRepository = FakeStationDetailStationsRepository(),
+          stationId = "station-1",
         )
 
       advanceUntilIdle()
@@ -233,4 +236,12 @@ private object NoOpStationDetailRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
 
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
+}
+
+private class FakeStationDetailStationsRepository : StationsRepository {
+  override val state = MutableStateFlow(StationsState())
+  override suspend fun loadIfNeeded() = Unit
+  override suspend fun forceRefresh() = Unit
+  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+  override fun stationById(stationId: String): Station? = null
 }

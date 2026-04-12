@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -80,8 +81,6 @@ internal fun TripMapPickerScreen(
   state: TripUiState,
   mobilePlatform: MobileUiPlatform,
   pickerMode: TripMapPickerMode,
-  userLocation: GeoPoint?,
-  stations: List<Station>,
   isMapReady: Boolean,
   paddingValues: PaddingValues,
   onBack: () -> Unit,
@@ -160,8 +159,8 @@ internal fun TripMapPickerScreen(
     ) {
       PlatformStationMap(
         modifier = Modifier.fillMaxSize(),
-        stations = stations,
-        userLocation = userLocation,
+        stations = state.stations,
+        userLocation = state.userLocation,
         highlightedStationId = state.selectedMapStation?.id,
         isMapReady = isMapReady,
         onStationSelected = { station ->

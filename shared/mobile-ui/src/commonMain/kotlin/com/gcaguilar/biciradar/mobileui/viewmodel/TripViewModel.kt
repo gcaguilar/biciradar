@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.TripAlert
 import com.gcaguilar.biciradar.core.TripDestination
@@ -16,6 +19,10 @@ import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -58,11 +65,16 @@ data class TripUiState(
   val stationsLoading: Boolean = false,
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class TripViewModel(
   private val tripManagementUseCase: TripManagementUseCase,
   private val surfaceMonitoringUseCase: SurfaceMonitoringUseCase,
   private val geoLocationUseCase: GeoLocationUseCase,
   private val stationsRepository: StationsRepository,
+  private val localNotifier: LocalNotifier,
+  private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
   private data class TripTransientUiState(
     val query: String = "",
@@ -81,12 +93,14 @@ class TripViewModel(
 
   private val transientUiState = MutableStateFlow(TripTransientUiState())
 
+  private val effectiveStationsState: StateFlow<StationsState> = stationsRepository.state
+
   val uiState: StateFlow<TripUiState> =
     combine(
       transientUiState,
       tripManagementUseCase.searchRadiusMeters,
       tripManagementUseCase.tripState,
-      stationsRepository.state,
+      effectiveStationsState,
     ) { transient, radius, tripState, stationsState ->
       TripUiState(
         query = transient.query,
@@ -127,11 +141,11 @@ class TripViewModel(
         nearestStationWithSlots = tripManagementUseCase.tripState.value.nearestStationWithSlots,
         distanceToStation = tripManagementUseCase.tripState.value.distanceToStation,
         monitoring = tripManagementUseCase.tripState.value.monitoring,
-        stations = stationsRepository.state.value.stations,
-        userLocation = stationsRepository.state.value.userLocation,
-        dataFreshness = stationsRepository.state.value.freshness,
-        lastUpdatedEpoch = stationsRepository.state.value.lastUpdatedEpoch,
-        stationsLoading = stationsRepository.state.value.isLoading,
+        stations = effectiveStationsState.value.stations,
+        userLocation = effectiveStationsState.value.userLocation,
+        dataFreshness = effectiveStationsState.value.freshness,
+        lastUpdatedEpoch = effectiveStationsState.value.lastUpdatedEpoch,
+        stationsLoading = effectiveStationsState.value.isLoading,
       ),
     )
 
@@ -341,6 +355,21 @@ class TripViewModel(
       }
       tripManagementUseCase.startMonitoring(uiState.value.selectedDurationSeconds)
     }
+  }
+
+  fun onStartMonitoringRequested() {
+    viewModelScope.launch {
+      val hasPermission = localNotifier.requestPermission()
+      if (hasPermission) onStartMonitoring()
+    }
+  }
+
+  fun onRefresh() {
+    viewModelScope.launch { stationsRepository.forceRefresh() }
+  }
+
+  fun onLaunchBikeRoute(station: Station) {
+    routeLauncher.launchBikeToLocation(station.location)
   }
 
   fun onStopMonitoring() {

@@ -11,7 +11,15 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactory
+import dev.zacsweers.metrox.viewmodel.ManualViewModelAssistedFactoryKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,11 +45,21 @@ data class StationDetailUiState(
   val patternsError: Boolean = false,
 )
 
+@AssistedInject
 class StationDetailViewModel(
-  private val stationId: String,
   private val stationDetailUseCase: StationDetailUseCase,
   private val stationsRepository: StationsRepository,
+  @Assisted private val stationId: String,
 ) : ViewModel() {
+
+  @AssistedFactory
+  @ManualViewModelAssistedFactoryKey
+  @ContributesIntoMap(AppScope::class)
+  interface Factory : ManualViewModelAssistedFactory {
+    fun create(stationId: String): StationDetailViewModel
+  }
+
+  private val effectiveStationsState: StateFlow<StationsState> = stationsRepository.state
   private val patternState = MutableStateFlow(PatternState())
   private val cityRulesState: StateFlow<StationDetailCityRulesState> =
     combine(
@@ -93,13 +111,13 @@ class StationDetailViewModel(
     combine(
       relationState,
       patternState,
-      stationsRepository.state,
+      effectiveStationsState,
     ) { relation, patterns, stationsState ->
       relation.toUiState(patterns, stationsState)
     }.stateIn(
       scope = viewModelScope,
       started = SharingStarted.Eagerly,
-      initialValue = relationState.value.toUiState(patternState.value, stationsRepository.state.value),
+      initialValue = relationState.value.toUiState(patternState.value, effectiveStationsState.value),
     )
 
   init {
@@ -119,6 +137,10 @@ class StationDetailViewModel(
         )
       }
     }
+  }
+
+  fun onRefresh() {
+    viewModelScope.launch { stationsRepository.forceRefresh() }
   }
 
   fun onToggleFavorite() {

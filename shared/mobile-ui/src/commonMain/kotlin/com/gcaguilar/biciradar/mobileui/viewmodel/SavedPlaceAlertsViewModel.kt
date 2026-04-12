@@ -6,6 +6,10 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -16,6 +20,9 @@ data class SavedPlaceAlertsUiState(
   val rules: List<SavedPlaceAlertRule> = emptyList(),
 )
 
+@Inject
+@ViewModelKey
+@ContributesIntoMap(AppScope::class)
 class SavedPlaceAlertsViewModel(
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
 ) : ViewModel() {

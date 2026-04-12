@@ -108,7 +108,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
 
       val viewModel =
@@ -184,7 +183,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
 
       val viewModel =
@@ -253,7 +251,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
 
       val viewModel =
@@ -319,7 +316,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
 
       val viewModel =
@@ -385,7 +381,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
       val viewModel =
         AppRootViewModel(
@@ -450,7 +445,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
       val viewModel =
         AppRootViewModel(
@@ -523,7 +517,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
       val viewModel =
         AppRootViewModel(
@@ -587,7 +580,6 @@ class AppRootViewModelTest {
           appLifecycleUseCase = appLifecycleUseCase,
           savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
-          clock = { 1L },
         )
       val viewModel =
         AppRootViewModel(

@@ -5,12 +5,16 @@ import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.EnvironmentalReading
 import com.gcaguilar.biciradar.core.EnvironmentalRepository
+import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.NearbyStationSelection
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer
 import com.gcaguilar.biciradar.mobileui.MapFilter
@@ -51,8 +55,14 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
 
+      // Advance first so the internal stationsRepository.state.onEach pipeline subscribes
+      // before onStationsChanged pushes data; otherwise it would overwrite our stations.
+      advanceUntilIdle()
       viewModel.onStationsChanged(
         listOf(
           station("ne", 41.7, -0.8),
@@ -66,7 +76,10 @@ class MapEnvironmentalViewModelTest {
       viewModel.uiState.test {
         skipItems(1)
         advanceUntilIdle()
-        val state = awaitItem()
+        // uiState may emit an intermediate value (zones=[]) before the async
+        // buildEnvironmentalZones completes; expectMostRecentItem() drains the
+        // buffer and returns the final settled state.
+        val state = expectMostRecentItem()
         assertEquals(4, state.zones.size)
         assertEquals(listOf(10, 20, 30, 40), state.zones.map { it.airQualityScore })
         assertEquals(1, settingsRepository.bootstrapCalls)
@@ -82,8 +95,14 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
 
+      // Advance first so the internal stationsRepository.state.onEach pipeline subscribes
+      // before onStationsChanged pushes data; otherwise it would overwrite our stations.
+      advanceUntilIdle()
       viewModel.onStationsChanged(listOf(station("only", 41.65, -0.88)))
       viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
       advanceUntilIdle()
@@ -103,6 +122,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
 
       viewModel.onEnvironmentalLayerChanged(MapEnvironmentalLayer.Pollen)
@@ -131,6 +153,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
 
       advanceUntilIdle()
@@ -154,6 +179,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
       advanceUntilIdle()
 
@@ -188,6 +216,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
       advanceUntilIdle()
       settingsRepository.persistedFilterWrites.clear()
@@ -213,6 +244,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
       advanceUntilIdle()
 
@@ -256,6 +290,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
       advanceUntilIdle()
       viewModel.onEnvironmentalSheetShown()
@@ -279,6 +316,9 @@ class MapEnvironmentalViewModelTest {
         MapEnvironmentalViewModel(
           environmentalRepository = FakeEnvironmentalRepository(),
           settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
         )
       val a = station("a", 41.7, -0.8)
       val b = station("b", 41.6, -0.9)
@@ -411,4 +451,31 @@ private class FakeMapEnvironmentalSettingsRepository(
     storedPersistedFilterNames = names
     persistedFilterWrites += names
   }
+}
+
+private class FakeMapStationsRepository : StationsRepository {
+  override val state = kotlinx.coroutines.flow.MutableStateFlow(StationsState())
+  override suspend fun loadIfNeeded() = Unit
+  override suspend fun forceRefresh() = Unit
+  override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+  override fun stationById(stationId: String): Station? = null
+}
+
+private class FakeMapFavoritesRepository : FavoritesRepository {
+  override val favoriteIds = kotlinx.coroutines.flow.MutableStateFlow(emptySet<String>())
+  override val homeStationId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+  override val workStationId = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+  override suspend fun bootstrap() = Unit
+  override suspend fun toggle(stationId: String) = Unit
+  override suspend fun setHomeStationId(stationId: String?) = Unit
+  override suspend fun setWorkStationId(stationId: String?) = Unit
+  override suspend fun clearAll() = Unit
+  override fun isFavorite(stationId: String): Boolean = false
+  override fun currentHomeStationId(): String? = null
+  override fun currentWorkStationId(): String? = null
+}
+
+private class NoOpMapRouteLauncher : RouteLauncher {
+  override fun launch(station: Station) = Unit
+  override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }

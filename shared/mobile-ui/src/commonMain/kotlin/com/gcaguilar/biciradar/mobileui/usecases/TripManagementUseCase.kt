@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.StateFlow
 
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
  * Use case que agrupa las operaciones relacionadas con la gestión de viajes,
  * destinos y navegación.
  */
+@Inject
 class TripManagementUseCase(
   private val tripRepository: TripRepository,
   private val settingsRepository: SettingsRepository,
@@ -66,6 +68,7 @@ class TripManagementUseCase(
 /**
  * Use case para las operaciones de monitoreo en superficie
  */
+@Inject
 class SurfaceMonitoringUseCase(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) {
@@ -89,6 +92,7 @@ class SurfaceMonitoringUseCase(
 /**
  * Use case para operaciones de búsqueda geográfica y geocodificación
  */
+@Inject
 class GeoLocationUseCase(
   private val geoSearchUseCase: GeoSearchUseCase,
   private val reverseGeocodeUseCase: ReverseGeocodeUseCase,

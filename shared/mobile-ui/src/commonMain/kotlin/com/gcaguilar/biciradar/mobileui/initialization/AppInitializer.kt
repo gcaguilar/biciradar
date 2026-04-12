@@ -2,9 +2,11 @@ package com.gcaguilar.biciradar.mobileui.initialization
 
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
+import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 
 /**
@@ -21,13 +23,14 @@ internal data class InitializationResult(
  * Handles application bootstrap and initialization.
  * Coordinates settings, favorites, stations, and other repository initializations.
  */
+@Inject
 internal class AppInitializer(
   private val startupUseCase: StartupUseCase,
   private val appLifecycleUseCase: AppLifecycleUseCase,
   private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
-  private val clock: () -> Long,
 ) {
+  private val clock: () -> Long = ::epochMillisForUi
   /**
    * Initializes settings repository.
    * @return true if initialization completed

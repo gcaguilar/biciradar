@@ -16,7 +16,7 @@ class ChangelogCatalogTest {
   @Test
   fun `history is sorted from newest to oldest`() {
     assertEquals(
-      listOf("0.21.1", "0.21.0", "0.19.0", "0.18.1"),
+      listOf("0.22.2", "0.21.1", "0.21.0", "0.19.0", "0.18.1"),
       ChangelogCatalog.history().map { it.versionName },
     )
   }

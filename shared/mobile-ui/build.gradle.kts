@@ -57,6 +57,8 @@ kotlin {
       implementation(libs.jetbrains.compose.material3.adaptive)
       implementation(libs.compose.resources)
       implementation(libs.metro.runtime)
+      implementation(libs.metrox.viewmodel)
+      implementation(libs.metrox.viewmodel.compose)
       implementation(libs.androidx.lifecycle.runtime.compose)
       implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
       implementation(libs.navigation.compose)
