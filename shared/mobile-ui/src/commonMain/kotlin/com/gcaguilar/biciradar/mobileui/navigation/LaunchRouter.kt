@@ -1,9 +1,9 @@
 package com.gcaguilar.biciradar.mobileui.navigation
 
 import androidx.navigation.NavHostController
-import com.gcaguilar.biciradar.mobileui.state.AppState
 import com.gcaguilar.biciradar.mobileui.LaunchCoordinator
 import com.gcaguilar.biciradar.mobileui.LaunchResolution
+import com.gcaguilar.biciradar.mobileui.state.AppState
 
 /**
  * Sealed interface representing launch requests from mobile intents.
