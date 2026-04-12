@@ -162,7 +162,7 @@ jobs:
         run: bundle exec fastlane ios release_to_app_store
 
       - name: Upload signed iOS IPA artifact
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ios-app-store-ipa
           if-no-files-found: error

@@ -82,7 +82,7 @@ jobs:
             -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
 
       - name: Upload Android release bundle artifact
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: android-release-bundle
           if-no-files-found: error

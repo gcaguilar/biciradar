@@ -97,7 +97,7 @@ jobs:
           ./gradlew :androidApp:assembleDebug :wearApp:assembleDebug
 
       - name: Upload Android debug APKs
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: android-debug-apks
           if-no-files-found: error
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload Android test reports on failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: android-test-reports
           if-no-files-found: ignore
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload iOS test results on failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: ios-test-results
           if-no-files-found: ignore
@@ -257,7 +257,7 @@ jobs:
 
       - name: Upload watchOS test results on failure
         if: failure()
-        uses: actions/upload-artifact@v7.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: watchos-test-results
           if-no-files-found: ignore
