@@ -4,12 +4,16 @@ import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.FindStationById
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
+import com.gcaguilar.biciradar.core.ObserveFavorites
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.RefreshStationDataIfNeeded
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
+import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
@@ -37,6 +41,7 @@ class LaunchCoordinatorTest {
       val settingsRepository = LaunchFakeSettingsRepository()
       val favoritesRepository = LaunchFakeFavoritesRepository()
       val stationsRepository = LaunchFakeStationsRepository()
+      val surfaceSnapshotRepository = LaunchFakeSurfaceSnapshotRepository()
       val coordinator =
         LaunchCoordinator(
           changeCityUseCase =
@@ -45,12 +50,12 @@ class LaunchCoordinatorTest {
               favoritesRepository = favoritesRepository,
               stationsRepository = stationsRepository,
             ),
-          favoritesRepository = favoritesRepository,
+          observeFavorites = ObserveFavorites(favoritesRepository),
           localNotifier = LaunchFakeLocalNotifier(),
           routeLauncher = LaunchFakeRouteLauncher(),
-          stationsRepository = stationsRepository,
-          surfaceMonitoringRepository = LaunchFakeSurfaceMonitoringRepository(),
-          surfaceSnapshotRepository = LaunchFakeSurfaceSnapshotRepository(),
+          findStationById = FindStationById(stationsRepository),
+          refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, surfaceSnapshotRepository),
+          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
         )
 
       val resolution =
@@ -74,6 +79,7 @@ class LaunchCoordinatorTest {
         LaunchFakeFavoritesRepository().apply {
           homeStationId.value = "station-home"
         }
+      val stationsRepository = LaunchFakeStationsRepository()
       val coordinator =
         LaunchCoordinator(
           changeCityUseCase =
@@ -82,12 +88,12 @@ class LaunchCoordinatorTest {
               favoritesRepository = favoritesRepository,
               stationsRepository = LaunchFakeStationsRepository(),
             ),
-          favoritesRepository = favoritesRepository,
+          observeFavorites = ObserveFavorites(favoritesRepository),
           localNotifier = LaunchFakeLocalNotifier(),
           routeLauncher = LaunchFakeRouteLauncher(),
-          stationsRepository = LaunchFakeStationsRepository(),
-          surfaceMonitoringRepository = LaunchFakeSurfaceMonitoringRepository(),
-          surfaceSnapshotRepository = LaunchFakeSurfaceSnapshotRepository(),
+          findStationById = FindStationById(stationsRepository),
+          refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, LaunchFakeSurfaceSnapshotRepository()),
+          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
         )
       val stations =
         listOf(
@@ -110,6 +116,7 @@ class LaunchCoordinatorTest {
   fun `assistant route falls back to map with query when station is unknown`() =
     runTest {
       val routeLauncher = LaunchFakeRouteLauncher()
+      val stationsRepository = LaunchFakeStationsRepository()
       val coordinator =
         LaunchCoordinator(
           changeCityUseCase =
@@ -118,12 +125,12 @@ class LaunchCoordinatorTest {
               favoritesRepository = LaunchFakeFavoritesRepository(),
               stationsRepository = LaunchFakeStationsRepository(),
             ),
-          favoritesRepository = LaunchFakeFavoritesRepository(),
+          observeFavorites = ObserveFavorites(LaunchFakeFavoritesRepository()),
           localNotifier = LaunchFakeLocalNotifier(),
           routeLauncher = routeLauncher,
-          stationsRepository = LaunchFakeStationsRepository(),
-          surfaceMonitoringRepository = LaunchFakeSurfaceMonitoringRepository(),
-          surfaceSnapshotRepository = LaunchFakeSurfaceSnapshotRepository(),
+          findStationById = FindStationById(stationsRepository),
+          refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, LaunchFakeSurfaceSnapshotRepository()),
+          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
         )
 
       val resolution =

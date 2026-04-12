@@ -4,14 +4,14 @@ import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DEFAULT_SURFACE_MONITORING_DURATION_SECONDS
-import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.FindStationById
 import com.gcaguilar.biciradar.core.LocalNotifier
+import com.gcaguilar.biciradar.core.ObserveFavorites
+import com.gcaguilar.biciradar.core.RefreshStationDataIfNeeded
 import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
-import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
-import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.findStationMatchingQueryOrPinnedAlias
 import com.gcaguilar.biciradar.core.selectNearbyStation
 import com.gcaguilar.biciradar.core.selectNearbyStationWithBikes
@@ -28,12 +28,12 @@ internal data class LaunchResolution(
 
 internal class LaunchCoordinator(
   private val changeCityUseCase: ChangeCityUseCase,
-  private val favoritesRepository: FavoritesRepository,
+  private val observeFavorites: ObserveFavorites,
   private val localNotifier: LocalNotifier,
   private val routeLauncher: RouteLauncher,
-  private val stationsRepository: StationsRepository,
-  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
-  private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
+  private val findStationById: FindStationById,
+  private val refreshStationDataIfNeeded: RefreshStationDataIfNeeded,
+  private val startStationMonitoring: StartStationMonitoring,
 ) {
   suspend fun resolveMobileLaunch(
     request: MobileLaunchRequest,
@@ -67,13 +67,13 @@ internal class LaunchCoordinator(
       }
       is MobileLaunchRequest.MonitorStation -> {
         val station =
-          stationsRepository.stationById(request.stationId)
+          findStationById.execute(request.stationId)
             ?: stations.firstOrNull { it.id == request.stationId }
             ?: return null
         val notificationsGranted = localNotifier.requestPermission()
-        surfaceSnapshotRepository.refreshSnapshot()
+        refreshStationDataIfNeeded.execute()
         if (notificationsGranted) {
-          surfaceMonitoringRepository.startMonitoring(
+          startStationMonitoring.execute(
             stationId = station.id,
             durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
             kind = SurfaceMonitoringKind.Docks,
@@ -88,14 +88,14 @@ internal class LaunchCoordinator(
       }
       is MobileLaunchRequest.RouteToStation -> {
         val station =
-          request.stationId?.let(stationsRepository::stationById)
+          request.stationId?.let(findStationById::execute)
             ?: stations.firstOrNull()
             ?: return null
         routeLauncher.launch(station)
         LaunchResolution()
       }
       is MobileLaunchRequest.ShowStation -> {
-        if (stationsRepository.stationById(request.stationId) == null) return null
+        if (findStationById.execute(request.stationId) == null) return null
         LaunchResolution(screen = Screen.StationDetail(request.stationId))
       }
     }
@@ -187,10 +187,10 @@ internal class LaunchCoordinator(
     stationId: String?,
     stationQuery: String?,
   ): Station? =
-    stationId?.let(stationsRepository::stationById) ?: findStationMatchingQueryOrPinnedAlias(
+    stationId?.let(findStationById::execute) ?: findStationMatchingQueryOrPinnedAlias(
       stations = stations,
       query = stationQuery,
-      homeStationId = favoritesRepository.currentHomeStationId(),
-      workStationId = favoritesRepository.currentWorkStationId(),
+      homeStationId = observeFavorites.currentHomeStationId(),
+      workStationId = observeFavorites.currentWorkStationId(),
     )
 }
