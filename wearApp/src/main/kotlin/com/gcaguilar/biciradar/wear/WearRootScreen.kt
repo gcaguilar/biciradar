@@ -41,6 +41,7 @@ import androidx.wear.compose.material3.Text
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
+import com.gcaguilar.biciradar.core.di.CoreGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
@@ -73,9 +74,9 @@ internal fun WearRoot(
   val context = LocalContext.current.applicationContext
   val resolvedGraph =
     remember(platformBindings, graph) {
-      graph ?: SharedGraph.Companion.create(platformBindings)
+      graph ?: CoreGraph.Companion.create(platformBindings)
     }
-  val factory = remember(resolvedGraph, context) { WearViewModelFactory(appContext = context, graph = graph) }
+  val factory = remember(resolvedGraph, context) { WearViewModelFactory(appContext = context, graph = resolvedGraph) }
   val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }
   val uiState by viewModel.uiState.collectAsState()
   val activeMonitoring = uiState.activeMonitoring

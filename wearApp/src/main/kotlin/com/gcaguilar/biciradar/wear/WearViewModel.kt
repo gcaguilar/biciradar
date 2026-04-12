@@ -3,17 +3,22 @@ package com.gcaguilar.biciradar.wear
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.BootstrapSession
+import com.gcaguilar.biciradar.core.FindStationById
+import com.gcaguilar.biciradar.core.ObserveFavorites
+import com.gcaguilar.biciradar.core.ObserveStationsState
+import com.gcaguilar.biciradar.core.ObserveSurfaceSnapshot
+import com.gcaguilar.biciradar.core.RefreshStationAvailability
+import com.gcaguilar.biciradar.core.RefreshStationDataIfNeeded
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StopStationMonitoring
-import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
-import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
+import com.gcaguilar.biciradar.core.SyncFavoritesFromPeer
+import com.gcaguilar.biciradar.core.ToggleFavoriteStation
 import com.gcaguilar.biciradar.wear.ongoing.MonitoringOngoingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,10 +45,15 @@ internal data class WearRootUiState(
 
 internal class WearViewModel(
   private val appContext: Context,
-  private val stationsRepository: StationsRepository,
-  private val favoritesRepository: FavoritesRepository,
-  private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
-  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val observeStationsState: ObserveStationsState,
+  private val observeFavorites: ObserveFavorites,
+  private val observeSurfaceSnapshot: ObserveSurfaceSnapshot,
+  private val bootstrapSession: BootstrapSession,
+  private val syncFavoritesFromPeer: SyncFavoritesFromPeer,
+  private val toggleFavoriteStation: ToggleFavoriteStation,
+  private val refreshStationDataIfNeeded: RefreshStationDataIfNeeded,
+  private val refreshStationAvailability: RefreshStationAvailability,
+  private val findStationById: FindStationById,
   private val startStationMonitoring: StartStationMonitoring,
   private val stopStationMonitoring: StopStationMonitoring,
   private val routeLauncher: RouteLauncher,
@@ -65,7 +75,7 @@ internal class WearViewModel(
 
   init {
     viewModelScope.launch {
-      stationsRepository.state.collect { state ->
+      observeStationsState.state.collect { state ->
         latestStations = state.stations
         latestIsLoading = state.isLoading
         latestErrorMessage = state.errorMessage
@@ -74,37 +84,36 @@ internal class WearViewModel(
     }
 
     viewModelScope.launch {
-      favoritesRepository.favoriteIds.collect { ids ->
+      observeFavorites.favoriteIds.collect { ids ->
         latestFavoriteIds = ids
         publishUiState()
       }
     }
 
     viewModelScope.launch {
-      favoritesRepository.homeStationId.collect { homeStationId ->
+      observeFavorites.homeStationId.collect { homeStationId ->
         latestHomeStationId = homeStationId
         publishUiState()
       }
     }
 
     viewModelScope.launch {
-      favoritesRepository.workStationId.collect { workStationId ->
+      observeFavorites.workStationId.collect { workStationId ->
         latestWorkStationId = workStationId
         publishUiState()
       }
     }
 
     viewModelScope.launch {
-      surfaceSnapshotRepository.bundle.collect { bundle ->
+      observeSurfaceSnapshot.bundle.collect { bundle ->
         latestSurfaceBundle = bundle
         publishUiState()
       }
     }
 
     viewModelScope.launch {
-      favoritesRepository.syncFromPeer()
-      surfaceSnapshotRepository.bootstrap()
-      surfaceMonitoringRepository.bootstrap()
+      bootstrapSession.execute()
+      syncFavoritesFromPeer.execute()
       refreshWearSurface(appContext)
     }
 
@@ -145,7 +154,7 @@ internal class WearViewModel(
 
   fun onRetry() {
     viewModelScope.launch {
-      stationsRepository.loadIfNeeded()
+      refreshStationDataIfNeeded.execute()
     }
   }
 
@@ -157,7 +166,7 @@ internal class WearViewModel(
 
   fun onToggleFavorite(stationId: String) {
     viewModelScope.launch {
-      favoritesRepository.toggle(stationId)
+      toggleFavoriteStation.execute(stationId)
       refreshWearSurface(appContext)
     }
   }
@@ -169,13 +178,12 @@ internal class WearViewModel(
         ongoingActivity.stop()
       } else {
         startStationMonitoring.execute(stationId = stationId)
-        // Iniciar ongoing activity
-        val station = stationsRepository.stationById(stationId)
+        val station = findStationById.execute(stationId)
         if (station != null) {
           ongoingActivity.start(
             stationId = stationId,
             stationName = station.name,
-            remainingSeconds = 300, // 5 minutos por defecto
+            remainingSeconds = 300,
           )
         }
       }
@@ -186,13 +194,12 @@ internal class WearViewModel(
   fun onStartMonitoringFavorite(stationId: String) {
     viewModelScope.launch {
       startStationMonitoring.execute(stationId = stationId)
-      // Iniciar ongoing activity
-      val station = stationsRepository.stationById(stationId)
+      val station = findStationById.execute(stationId)
       if (station != null) {
         ongoingActivity.start(
           stationId = stationId,
           stationName = station.name,
-          remainingSeconds = 300, // 5 minutos por defecto
+          remainingSeconds = 300,
         )
       }
       FavoriteStationTileService.requestUpdate(appContext)
@@ -208,7 +215,7 @@ internal class WearViewModel(
   }
 
   fun onRoute(stationId: String) {
-    stationsRepository.stationById(stationId)?.let(routeLauncher::launch)
+    findStationById.execute(stationId)?.let(routeLauncher::launch)
   }
 
   private fun publishUiState() {
@@ -230,17 +237,16 @@ internal class WearViewModel(
     context: Context,
     forceRefresh: Boolean = false,
   ) {
-    favoritesRepository.syncFromPeer()
+    syncFavoritesFromPeer.execute()
     if (forceRefresh) {
-      stationsRepository.forceRefresh()
+      refreshStationDataIfNeeded.execute(forceRefresh = true)
     } else {
-      stationsRepository.loadIfNeeded()
+      refreshStationDataIfNeeded.execute()
       val stationIds = latestStations.take(10).map { it.id }
       if (stationIds.isNotEmpty()) {
-        stationsRepository.refreshAvailability(stationIds)
+        refreshStationAvailability.execute(stationIds)
       }
     }
-    surfaceSnapshotRepository.refreshSnapshot()
     FavoriteStationTileService.requestUpdate(context)
   }
 }
@@ -252,10 +258,15 @@ internal class WearViewModelFactory(
   fun create(): WearViewModel =
     WearViewModel(
       appContext = appContext.applicationContext,
-      stationsRepository = graph.stationsRepository,
-      favoritesRepository = graph.favoritesRepository,
-      surfaceSnapshotRepository = graph.surfaceSnapshotRepository,
-      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
+      observeStationsState = graph.observeStationsState,
+      observeFavorites = graph.observeFavorites,
+      observeSurfaceSnapshot = graph.observeSurfaceSnapshot,
+      bootstrapSession = graph.bootstrapSession,
+      syncFavoritesFromPeer = graph.syncFavoritesFromPeer,
+      toggleFavoriteStation = graph.toggleFavoriteStation,
+      refreshStationDataIfNeeded = graph.refreshStationDataIfNeeded,
+      refreshStationAvailability = graph.refreshStationAvailability,
+      findStationById = graph.findStationById,
       startStationMonitoring = graph.startStationMonitoring,
       stopStationMonitoring = graph.stopStationMonitoring,
       routeLauncher = graph.routeLauncher,

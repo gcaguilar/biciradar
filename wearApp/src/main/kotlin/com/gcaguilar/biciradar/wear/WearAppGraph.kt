@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.wear
 import android.app.Application
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.SharedGraph
+import com.gcaguilar.biciradar.core.di.CoreGraph
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
 
 /**
@@ -21,7 +22,7 @@ object WearAppGraph {
         appConfiguration = AppConfiguration(),
       )
     _platformBindings = bindings
-    _graph = SharedGraph.create(bindings)
+    _graph = CoreGraph.Companion.create(bindings)
   }
 
   val graph: SharedGraph
