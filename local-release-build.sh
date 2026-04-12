@@ -264,12 +264,19 @@ temp_keychain_password=""
 apple_inputs_ready=false
 
 capture_keychain_state() {
-  original_default_keychain="$(security default-keychain -d user | tr -d '"')"
+  original_default_keychain=""
+  if default_keychain_output="$(security default-keychain -d user 2>/dev/null)"; then
+    original_default_keychain="$(printf '%s' "$default_keychain_output" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr -d '"')"
+  fi
   original_keychains=()
   while IFS= read -r line; do
-    line="$(printf '%s' "$line" | tr -d '"')"
-    [[ -n "$line" ]] && original_keychains+=("$line")
-  done < <(security list-keychains -d user)
+    line="$(printf '%s' "$line" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | tr -d '"')"
+    [[ "$line" == /* ]] && original_keychains+=("$line")
+  done < <(security list-keychains -d user 2>/dev/null || true)
+
+  if [[ -z "$original_default_keychain" && -f "$HOME/Library/Keychains/login.keychain-db" ]]; then
+    original_default_keychain="$HOME/Library/Keychains/login.keychain-db"
+  fi
 }
 
 restore_keychain_state() {
