@@ -15,7 +15,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
@@ -123,8 +122,8 @@ class MainActivity : ComponentActivity() {
         refreshKey = refreshNonce,
         launchRequest = launchRequest,
         assistantLaunchRequest = assistantLaunchRequest,
-        onSurfaceMonitoringRepositoryReady = { _, _ -> wireMonitoringService() },
-        onSurfaceSnapshotRepositoryReady = { repo -> wireWidgets(repo) },
+        onSurfaceMonitoringRepositoryReady = { wireMonitoringService() },
+        onSurfaceSnapshotRepositoryReady = { wireWidgets() },
         onStartupReadyChanged = { ready -> startupReady = ready },
         useInAppStartupSplash = false,
       )
@@ -166,7 +165,7 @@ class MainActivity : ComponentActivity() {
     appSurfaceScope = scope
     var serviceRunning = false
 
-    graph.surfaceMonitoringRepository.state
+    graph.observeSurfaceMonitoring.state
       .onEach { state ->
         val shouldRun = state?.isActive == true
         if (shouldRun && !serviceRunning) {
@@ -179,12 +178,12 @@ class MainActivity : ComponentActivity() {
       }.launchIn(scope)
   }
 
-  private fun wireWidgets(repo: SurfaceSnapshotRepository) {
+  private fun wireWidgets() {
     val scope =
       appSurfaceScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Main).also {
         appSurfaceScope = it
       }
-    repo.bundle
+    graph.observeSurfaceSnapshot.bundle
       .onEach { snapshot ->
         FavoriteStationWidgetProvider.updateAll(applicationContext)
         NearbyStationsWidgetProvider.updateAll(applicationContext)

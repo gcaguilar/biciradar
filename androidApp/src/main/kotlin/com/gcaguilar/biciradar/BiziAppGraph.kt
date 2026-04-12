@@ -4,6 +4,7 @@ import android.app.Application
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.platform.AndroidPlatformBindings
+import com.gcaguilar.biciradar.mobileui.di.createMobileGraph
 
 /**
  * Application singleton que mantiene el SharedGraph único para toda la app.
@@ -29,7 +30,7 @@ object BiziAppGraph {
         appConfiguration = AppConfiguration(),
       )
     _platformBindings = bindings
-    _graph = SharedGraph.Companion.create(bindings)
+    _graph = createMobileGraph(bindings)
     bindings.onGraphCreated(graph)
   }
 

@@ -30,22 +30,12 @@ class SavedPlaceAlertsWorker(
       val graph = BiziAppGraph.graph
       val platformBindings = BiziAppGraph.platformBindings
 
-      graph.settingsRepository.bootstrap()
-      graph.savedPlaceAlertsRepository.bootstrap()
-      graph.stationsRepository.forceRefresh()
+      graph.bootstrapSession.execute()
 
-      val evaluation =
-        graph.savedPlaceAlertsEvaluator.evaluate(
-          rules = graph.savedPlaceAlertsRepository.currentRules(),
-          stationsState = graph.stationsRepository.state.value,
-        )
+      val triggers = graph.evaluateSavedPlaceAlerts.execute()
 
-      if (evaluation.updatedRules != graph.savedPlaceAlertsRepository.currentRules()) {
-        graph.savedPlaceAlertsRepository.replaceAll(evaluation.updatedRules)
-      }
-
-      if (evaluation.triggers.isNotEmpty() && platformBindings.localNotifier.hasPermission()) {
-        evaluation.triggers.forEach { trigger ->
+      if (triggers.isNotEmpty() && platformBindings.localNotifier.hasPermission()) {
+        triggers.forEach { trigger ->
           platformBindings.localNotifier.notify(
             trigger.notificationTitle(),
             trigger.notificationBody(),

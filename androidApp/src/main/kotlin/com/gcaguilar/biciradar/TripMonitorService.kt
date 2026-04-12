@@ -10,9 +10,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.gcaguilar.biciradar.core.FavoritesRepository
-import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
+import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
+import com.gcaguilar.biciradar.core.ObserveFavorites
+import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
+import com.gcaguilar.biciradar.core.ToggleFavoriteStation
 import com.gcaguilar.biciradar.core.remainingSeconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,10 +45,14 @@ class TripMonitorService : Service() {
   }
 
   // Dependencias obtenidas del singleton de aplicación
-  private val surfaceMonitoringRepository: SurfaceMonitoringRepository
-    get() = BiziAppGraph.graph.surfaceMonitoringRepository
-  private val favoritesRepository: FavoritesRepository
-    get() = BiziAppGraph.graph.favoritesRepository
+  private val observeSurfaceMonitoring: ObserveSurfaceMonitoring
+    get() = BiziAppGraph.graph.observeSurfaceMonitoring
+  private val observeFavorites: ObserveFavorites
+    get() = BiziAppGraph.graph.observeFavorites
+  private val stopStationMonitoring: StopStationMonitoring
+    get() = BiziAppGraph.graph.stopStationMonitoring
+  private val toggleFavoriteStation: ToggleFavoriteStation
+    get() = BiziAppGraph.graph.toggleFavoriteStation
 
   private var countdownJob: Job? = null
   private var currentSession: SurfaceMonitoringSession? = null
@@ -72,7 +78,7 @@ class TripMonitorService : Service() {
 
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
-        surfaceMonitoringRepository.stopMonitoring()
+        serviceScope.launch { stopStationMonitoring.execute() }
         stopSelf()
         return START_NOT_STICKY
       }
@@ -80,7 +86,7 @@ class TripMonitorService : Service() {
         val stationId = intent.getStringExtra(EXTRA_STATION_ID)
         if (stationId != null) {
           serviceScope.launch {
-            favoritesRepository.toggle(stationId)
+            toggleFavoriteStation.execute(stationId)
             updateNotification()
           }
         }
@@ -105,7 +111,7 @@ class TripMonitorService : Service() {
   }
 
   private fun observeMonitoringState() {
-    surfaceMonitoringRepository.state
+    observeSurfaceMonitoring.state
       .onEach { session: SurfaceMonitoringSession? ->
         currentSession = session
         if (session == null || !session.isActive) {
@@ -169,7 +175,7 @@ class TripMonitorService : Service() {
 
     val isFavorite =
       session?.stationId?.let {
-        favoritesRepository.favoriteIds.value.contains(it)
+        observeFavorites.favoriteIds.value.contains(it)
       } ?: false
 
     val builder =
