@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.StateFlow
 @SingleIn(AppScope::class)
 @Inject
 class ObserveSettings(
-    private val settingsRepository: SettingsRepository,
+  private val settingsRepository: SettingsRepository,
 ) {
-    val searchRadiusMeters: StateFlow<Int> get() = settingsRepository.searchRadiusMeters
-    val preferredMapApp: StateFlow<PreferredMapApp> get() = settingsRepository.preferredMapApp
-    val themePreference: StateFlow<ThemePreference> get() = settingsRepository.themePreference
+  val searchRadiusMeters: StateFlow<Int> get() = settingsRepository.searchRadiusMeters
+  val preferredMapApp: StateFlow<PreferredMapApp> get() = settingsRepository.preferredMapApp
+  val themePreference: StateFlow<ThemePreference> get() = settingsRepository.themePreference
 }

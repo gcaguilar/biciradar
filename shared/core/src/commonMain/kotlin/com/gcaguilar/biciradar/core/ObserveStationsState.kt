@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 @SingleIn(AppScope::class)
 @Inject
 class ObserveStationsState(
-    private val stationsRepository: StationsRepository,
+  private val stationsRepository: StationsRepository,
 ) {
-    val state: StateFlow<StationsState> get() = stationsRepository.state
+  val state: StateFlow<StationsState> get() = stationsRepository.state
 }

@@ -14,15 +14,15 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class GetFavoriteStationList(
-    private val stationsRepository: StationsRepository,
-    private val favoritesRepository: FavoritesRepository,
+  private val stationsRepository: StationsRepository,
+  private val favoritesRepository: FavoritesRepository,
 ) {
-    suspend fun execute(): List<Station> {
-        stationsRepository.loadIfNeeded()
-        return stationsRepository.state.value.stations
-            .filter { favoritesRepository.isFavorite(it.id) }
-            .sortedWith(
-                compareBy({ it.distanceMeters }, { it.name }),
-            )
-    }
+  suspend fun execute(): List<Station> {
+    stationsRepository.loadIfNeeded()
+    return stationsRepository.state.value.stations
+      .filter { favoritesRepository.isFavorite(it.id) }
+      .sortedWith(
+        compareBy({ it.distanceMeters }, { it.name }),
+      )
+  }
 }

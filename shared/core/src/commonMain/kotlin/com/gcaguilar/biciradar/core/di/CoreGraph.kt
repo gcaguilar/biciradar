@@ -18,9 +18,10 @@ import dev.zacsweers.metro.Includes
   bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class],
 )
 interface CoreGraph : SharedGraph {
-
   @DependencyGraph.Factory
   fun interface Factory {
-    fun create(@Includes platformBindings: PlatformBindings): CoreGraph
+    fun create(
+      @Includes platformBindings: PlatformBindings,
+    ): CoreGraph
   }
 }

@@ -11,7 +11,7 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class FindStationById(
-    private val stationsRepository: StationsRepository,
+  private val stationsRepository: StationsRepository,
 ) {
-    fun execute(stationId: String): Station? = stationsRepository.stationById(stationId)
+  fun execute(stationId: String): Station? = stationsRepository.stationById(stationId)
 }

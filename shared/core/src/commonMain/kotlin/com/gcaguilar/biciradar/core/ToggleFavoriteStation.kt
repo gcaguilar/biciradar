@@ -10,9 +10,9 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class ToggleFavoriteStation(
-    private val favoritesRepository: FavoritesRepository,
+  private val favoritesRepository: FavoritesRepository,
 ) {
-    suspend fun execute(stationId: String) {
-        favoritesRepository.toggle(stationId)
-    }
+  suspend fun execute(stationId: String) {
+    favoritesRepository.toggle(stationId)
+  }
 }

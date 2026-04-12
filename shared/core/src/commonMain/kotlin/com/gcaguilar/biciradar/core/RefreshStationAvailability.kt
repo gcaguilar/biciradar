@@ -13,9 +13,9 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class RefreshStationAvailability(
-    private val stationsRepository: StationsRepository,
+  private val stationsRepository: StationsRepository,
 ) {
-    suspend fun execute(stationIds: List<String>) {
-        stationsRepository.refreshAvailability(stationIds)
-    }
+  suspend fun execute(stationIds: List<String>) {
+    stationsRepository.refreshAvailability(stationIds)
+  }
 }

@@ -10,7 +10,7 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class GetCurrentCity(
-    private val settingsRepository: SettingsRepository,
+  private val settingsRepository: SettingsRepository,
 ) {
-    fun execute(): City = settingsRepository.currentSelectedCity()
+  fun execute(): City = settingsRepository.currentSelectedCity()
 }

@@ -14,15 +14,15 @@ import kotlinx.coroutines.flow.StateFlow
 @SingleIn(AppScope::class)
 @Inject
 class ObserveFavorites(
-    private val favoritesRepository: FavoritesRepository,
+  private val favoritesRepository: FavoritesRepository,
 ) {
-    val favoriteIds: StateFlow<Set<String>> get() = favoritesRepository.favoriteIds
-    val homeStationId: StateFlow<String?> get() = favoritesRepository.homeStationId
-    val workStationId: StateFlow<String?> get() = favoritesRepository.workStationId
+  val favoriteIds: StateFlow<Set<String>> get() = favoritesRepository.favoriteIds
+  val homeStationId: StateFlow<String?> get() = favoritesRepository.homeStationId
+  val workStationId: StateFlow<String?> get() = favoritesRepository.workStationId
 
-    /** Synchronous snapshot of the current home station ID (for non-reactive callers). */
-    fun currentHomeStationId(): String? = favoritesRepository.currentHomeStationId()
+  /** Synchronous snapshot of the current home station ID (for non-reactive callers). */
+  fun currentHomeStationId(): String? = favoritesRepository.currentHomeStationId()
 
-    /** Synchronous snapshot of the current work station ID (for non-reactive callers). */
-    fun currentWorkStationId(): String? = favoritesRepository.currentWorkStationId()
+  /** Synchronous snapshot of the current work station ID (for non-reactive callers). */
+  fun currentWorkStationId(): String? = favoritesRepository.currentWorkStationId()
 }

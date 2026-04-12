@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 @SingleIn(AppScope::class)
 @Inject
 class ObserveSurfaceSnapshot(
-    private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
+  private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
 ) {
-    val bundle: StateFlow<SurfaceSnapshotBundle?> get() = surfaceSnapshotRepository.bundle
+  val bundle: StateFlow<SurfaceSnapshotBundle?> get() = surfaceSnapshotRepository.bundle
 }

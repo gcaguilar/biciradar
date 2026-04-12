@@ -18,24 +18,25 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class EvaluateSavedPlaceAlerts(
-    private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
-    private val stationsRepository: StationsRepository,
-    private val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator,
+  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
+  private val stationsRepository: StationsRepository,
+  private val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator,
 ) {
-    suspend fun execute(nowEpoch: Long = currentTimeMs()): List<SavedPlaceAlertTrigger> {
-        val rules = savedPlaceAlertsRepository.currentRules()
-        if (rules.isEmpty()) return emptyList()
+  suspend fun execute(nowEpoch: Long = currentTimeMs()): List<SavedPlaceAlertTrigger> {
+    val rules = savedPlaceAlertsRepository.currentRules()
+    if (rules.isEmpty()) return emptyList()
 
-        stationsRepository.loadIfNeeded()
-        val stationsState = stationsRepository.state.value
+    stationsRepository.loadIfNeeded()
+    val stationsState = stationsRepository.state.value
 
-        val evaluation = savedPlaceAlertsEvaluator.evaluate(
-            rules = rules,
-            stationsState = stationsState,
-            nowEpoch = nowEpoch,
-        )
+    val evaluation =
+      savedPlaceAlertsEvaluator.evaluate(
+        rules = rules,
+        stationsState = stationsState,
+        nowEpoch = nowEpoch,
+      )
 
-        savedPlaceAlertsRepository.replaceAll(evaluation.updatedRules)
-        return evaluation.triggers
-    }
+    savedPlaceAlertsRepository.replaceAll(evaluation.updatedRules)
+    return evaluation.triggers
+  }
 }

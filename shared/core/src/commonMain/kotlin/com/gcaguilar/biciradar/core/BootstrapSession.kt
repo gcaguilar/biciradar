@@ -16,17 +16,17 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class BootstrapSession(
-    private val settingsRepository: SettingsRepository,
-    private val favoritesRepository: FavoritesRepository,
-    private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
-    private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
-    private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val settingsRepository: SettingsRepository,
+  private val favoritesRepository: FavoritesRepository,
+  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
+  private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) {
-    suspend fun execute() {
-        settingsRepository.bootstrap()
-        favoritesRepository.bootstrap()
-        savedPlaceAlertsRepository.bootstrap()
-        surfaceSnapshotRepository.bootstrap()
-        surfaceMonitoringRepository.bootstrap()
-    }
+  suspend fun execute() {
+    settingsRepository.bootstrap()
+    favoritesRepository.bootstrap()
+    savedPlaceAlertsRepository.bootstrap()
+    surfaceSnapshotRepository.bootstrap()
+    surfaceMonitoringRepository.bootstrap()
+  }
 }

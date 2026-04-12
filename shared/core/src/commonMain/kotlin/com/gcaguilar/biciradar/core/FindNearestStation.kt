@@ -11,15 +11,15 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class FindNearestStation(
-    private val stationsRepository: StationsRepository,
-    private val settingsRepository: SettingsRepository,
+  private val stationsRepository: StationsRepository,
+  private val settingsRepository: SettingsRepository,
 ) {
-    suspend fun execute(): Station? {
-        stationsRepository.loadIfNeeded()
-        val stations = stationsRepository.state.value.stations
-        return selectNearbyStation(
-            stations = stations,
-            searchRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
-        ).highlightedStation
-    }
+  suspend fun execute(): Station? {
+    stationsRepository.loadIfNeeded()
+    val stations = stationsRepository.state.value.stations
+    return selectNearbyStation(
+      stations = stations,
+      searchRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
+    ).highlightedStation
+  }
 }

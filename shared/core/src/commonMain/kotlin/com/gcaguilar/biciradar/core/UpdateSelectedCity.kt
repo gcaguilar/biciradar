@@ -14,12 +14,12 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class UpdateSelectedCity(
-    private val settingsRepository: SettingsRepository,
-    private val refreshStationDataIfNeeded: RefreshStationDataIfNeeded,
+  private val settingsRepository: SettingsRepository,
+  private val refreshStationDataIfNeeded: RefreshStationDataIfNeeded,
 ) {
-    suspend fun execute(city: City) {
-        if (settingsRepository.currentSelectedCity().id == city.id) return
-        settingsRepository.setSelectedCity(city)
-        refreshStationDataIfNeeded.execute(forceRefresh = true)
-    }
+  suspend fun execute(city: City) {
+    if (settingsRepository.currentSelectedCity().id == city.id) return
+    settingsRepository.setSelectedCity(city)
+    refreshStationDataIfNeeded.execute(forceRefresh = true)
+  }
 }

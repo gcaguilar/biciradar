@@ -14,22 +14,23 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class ResolveAssistantIntent(
-    private val assistantIntentResolver: AssistantIntentResolver,
-    private val stationsRepository: StationsRepository,
-    private val favoritesRepository: FavoritesRepository,
-    private val settingsRepository: SettingsRepository,
+  private val assistantIntentResolver: AssistantIntentResolver,
+  private val stationsRepository: StationsRepository,
+  private val favoritesRepository: FavoritesRepository,
+  private val settingsRepository: SettingsRepository,
 ) {
-    suspend fun execute(action: AssistantAction): AssistantResolution {
-        val state = stationsRepository.state.value
-        val favoriteIds = state.stations
-            .filter { favoritesRepository.isFavorite(it.id) }
-            .map { it.id }
-            .toSet()
-        return assistantIntentResolver.resolve(
-            action = action,
-            stationsState = state,
-            favoriteIds = favoriteIds,
-            searchRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
-        )
-    }
+  suspend fun execute(action: AssistantAction): AssistantResolution {
+    val state = stationsRepository.state.value
+    val favoriteIds =
+      state.stations
+        .filter { favoritesRepository.isFavorite(it.id) }
+        .map { it.id }
+        .toSet()
+    return assistantIntentResolver.resolve(
+      action = action,
+      stationsState = state,
+      favoriteIds = favoriteIds,
+      searchRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
+    )
+  }
 }

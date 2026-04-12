@@ -14,10 +14,11 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class GetNearbyStationList(
-    private val stationsRepository: StationsRepository,
+  private val stationsRepository: StationsRepository,
 ) {
-    suspend fun execute(limit: Int = 5): List<Station> {
-        stationsRepository.loadIfNeeded()
-        return stationsRepository.state.value.stations.take(limit)
-    }
+  suspend fun execute(limit: Int = 5): List<Station> {
+    stationsRepository.loadIfNeeded()
+    return stationsRepository.state.value.stations
+      .take(limit)
+  }
 }

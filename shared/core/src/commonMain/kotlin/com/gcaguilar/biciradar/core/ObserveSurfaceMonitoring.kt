@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 @SingleIn(AppScope::class)
 @Inject
 class ObserveSurfaceMonitoring(
-    private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) {
-    val state: StateFlow<SurfaceMonitoringSession?> get() = surfaceMonitoringRepository.state
+  val state: StateFlow<SurfaceMonitoringSession?> get() = surfaceMonitoringRepository.state
 }

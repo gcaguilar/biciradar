@@ -14,17 +14,17 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class FindStationMatchingQuery(
-    private val stationsRepository: StationsRepository,
-    private val favoritesRepository: FavoritesRepository,
+  private val stationsRepository: StationsRepository,
+  private val favoritesRepository: FavoritesRepository,
 ) {
-    suspend fun execute(query: String?): Station? {
-        stationsRepository.loadIfNeeded()
-        val stations = stationsRepository.state.value.stations
-        return findStationMatchingQueryOrPinnedAlias(
-            stations = stations,
-            query = query,
-            homeStationId = favoritesRepository.currentHomeStationId(),
-            workStationId = favoritesRepository.currentWorkStationId(),
-        )
-    }
+  suspend fun execute(query: String?): Station? {
+    stationsRepository.loadIfNeeded()
+    val stations = stationsRepository.state.value.stations
+    return findStationMatchingQueryOrPinnedAlias(
+      stations = stations,
+      query = query,
+      homeStationId = favoritesRepository.currentHomeStationId(),
+      workStationId = favoritesRepository.currentWorkStationId(),
+    )
+  }
 }

@@ -11,9 +11,9 @@ import dev.zacsweers.metro.SingleIn
 @SingleIn(AppScope::class)
 @Inject
 class SyncFavoritesFromPeer(
-    private val favoritesRepository: FavoritesRepository,
+  private val favoritesRepository: FavoritesRepository,
 ) {
-    suspend fun execute() {
-        favoritesRepository.syncFromPeer()
-    }
+  suspend fun execute() {
+    favoritesRepository.syncFromPeer()
+  }
 }
