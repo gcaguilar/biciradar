@@ -73,11 +73,6 @@ class MainActivity : ComponentActivity() {
   private var appSurfaceScope: CoroutineScope? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    // Asegurar que el grafo está inicializado
-    if (!BiziAppGraph.isInitialized()) {
-      BiziAppGraph.initialize(application)
-    }
-
     installSplashScreen().setKeepOnScreenCondition { !startupReady }
     super.onCreate(savedInstanceState)
 

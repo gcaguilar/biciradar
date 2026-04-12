@@ -7,6 +7,7 @@ import androidx.work.WorkManager
 class BiciRadarApplication : Application() {
   override fun onCreate() {
     super.onCreate()
+    BiziAppGraph.initialize(this)
     initializeWorkManagerSafely()
   }
 
