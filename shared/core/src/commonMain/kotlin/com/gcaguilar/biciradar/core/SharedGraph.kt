@@ -1,37 +1,22 @@
 package com.gcaguilar.biciradar.core
 
-import com.gcaguilar.biciradar.core.di.CoreBindings
-import com.gcaguilar.biciradar.core.di.DatabaseBindings
-import com.gcaguilar.biciradar.core.di.GeoBindings
-import com.gcaguilar.biciradar.core.di.NetworkBindings
 import com.gcaguilar.biciradar.core.di.OnboardingGraph
 import com.gcaguilar.biciradar.core.di.TripGraph
 import com.gcaguilar.biciradar.core.geo.GeoApi
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.DependencyGraph
-import dev.zacsweers.metro.Includes
 
 /**
- * Grafo de dependencias principal de la aplicación.
+ * Interfaz base de dependencias principal de la aplicación.
  *
- * Este grafo está organizado usando Binding Containers por capa funcional:
- * - [CoreBindings]: CoroutineScope, Json
- * - [DatabaseBindings]: BiciRadarDatabase, StationsCacheManager
- * - [NetworkBindings]: HttpClient, BiziApi, GooglePlacesApi
- * - [GeoBindings]: GeoApi, TokenManager, InstallationIdentityRepository
+ * Define todos los accessors de repositorios, use cases y servicios disponibles
+ * para los consumidores del grafo. Las implementaciones concretas con @DependencyGraph
+ * se declaran en los módulos hoja (shared/mobile-ui, wearApp) para que Metro pueda
+ * recoger todas las contribuciones (@ContributesBinding, @ContributesIntoMap) visibles
+ * en cada módulo de compilación.
  *
- * Además, soporta Graph Extensions para flujos con ciclo de vida independiente:
- * - [TripGraph]: Flujo de viaje/trip
- * - [OnboardingGraph]: Flujo de onboarding
- *
- * Los repositorios se registran automáticamente mediante @ContributesBinding.
+ * @see CoreGraph — grafo concreto para wearApp y tests (en shared/core/di)
  */
-@DependencyGraph(
-  AppScope::class,
-  bindingContainers = [CoreBindings::class, DatabaseBindings::class, NetworkBindings::class, GeoBindings::class],
-)
 interface SharedGraph {
   // ==================== ACCESSORS PÚBLICOS ====================
 
@@ -48,15 +33,43 @@ interface SharedGraph {
   val startStationMonitoring: StartStationMonitoring
   val stopStationMonitoring: StopStationMonitoring
 
+  // Station query / selection use cases (shared logic, consumed by iOS + watchOS extensions)
+  val getSuggestedStations: GetSuggestedStations
+  val filterStationsByQuery: FilterStationsByQuery
+  val findStationMatchingQuery: FindStationMatchingQuery
+  val findNearestStation: FindNearestStation
+  val findNearestStationWithBikes: FindNearestStationWithBikes
+  val findNearestStationWithSlots: FindNearestStationWithSlots
+  val evaluateSavedPlaceAlerts: EvaluateSavedPlaceAlerts
+
+  // Session / city / assistant use cases
+  val bootstrapSession: BootstrapSession
+  val getCurrentCity: GetCurrentCity
+  val updateSelectedCity: UpdateSelectedCity
+  val findStationById: FindStationById
+  val getFavoriteStationList: GetFavoriteStationList
+  val getNearbyStationList: GetNearbyStationList
+  val resolveAssistantIntent: ResolveAssistantIntent
+
+  // Reactive observation (Android ViewModels / Services)
+  val observeStationsState: ObserveStationsState
+  val observeFavorites: ObserveFavorites
+  val observeSurfaceSnapshot: ObserveSurfaceSnapshot
+  val observeSurfaceMonitoring: ObserveSurfaceMonitoring
+  val observeSettings: ObserveSettings
+
+  // Favorites mutations
+  val toggleFavoriteStation: ToggleFavoriteStation
+  val syncFavoritesFromPeer: SyncFavoritesFromPeer
+
+  // Station data mutations
+  val refreshStationAvailability: RefreshStationAvailability
+
   // Repositorios (todos con @ContributesBinding)
-  val environmentalRepository: EnvironmentalRepository
-  val engagementRepository: EngagementRepository
-  val favoritesRepository: FavoritesRepository
-  val savedPlaceAlertsRepository: SavedPlaceAlertsRepository
+  // NOTA: settingsRepository se mantiene aquí únicamente para el late-wiring de
+  // IOSRouteLauncher / DesktopRouteLauncher en onGraphCreated(). El resto de repos
+  // han sido reemplazados por use cases y ya no se exponen en esta interfaz.
   val settingsRepository: SettingsRepository
-  val surfaceMonitoringRepository: SurfaceMonitoringRepository
-  val surfaceSnapshotRepository: SurfaceSnapshotRepository
-  val stationsRepository: StationsRepository
 
   // APIs y servicios de plataforma
   val assistantIntentResolver: AssistantIntentResolver
@@ -85,13 +98,4 @@ interface SharedGraph {
    * Usar esto cuando se necesite un contexto de onboarding independiente.
    */
   val onboardingGraphFactory: OnboardingGraph.Factory
-
-  // ==================== FACTORY ====================
-
-  @DependencyGraph.Factory
-  fun interface Factory {
-    fun create(
-      @Includes platformBindings: PlatformBindings,
-    ): SharedGraph
-  }
 }

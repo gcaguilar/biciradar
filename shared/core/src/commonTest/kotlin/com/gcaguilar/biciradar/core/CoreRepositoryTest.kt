@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
+import com.gcaguilar.biciradar.core.di.CoreGraph
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -603,7 +604,7 @@ class CoreRepositoryTest {
   fun `shared graph memoizes stateful repositories`() {
     val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/bizizaragoza-graph-${Random.nextInt()}"
     val graph =
-      SharedGraph.Companion.create(
+      CoreGraph.Companion.create(
         object : PlatformBindings {
           override val appConfiguration: AppConfiguration = AppConfiguration()
           override val appVersion: String = "test-app"
