@@ -78,10 +78,10 @@ internal class SettingsAggregationUseCase(
 
   /**
    * Bootstraps settings repository.
+   * Propagates any exception; fallos de bootstrap de settings son críticos.
    */
-  suspend fun bootstrapSettings(): Boolean {
-    runCatching { settingsRepository.bootstrap() }
-    return true
+  suspend fun bootstrapSettings() {
+    settingsRepository.bootstrap()
   }
 
   // endregion

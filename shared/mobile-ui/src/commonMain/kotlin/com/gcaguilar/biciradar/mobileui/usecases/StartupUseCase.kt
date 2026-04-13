@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
+import com.gcaguilar.biciradar.core.FavoritesPeerSyncCapability
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
@@ -9,21 +10,19 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Result of the startup initialization process.
- */
-internal data class StartupResult(
-  val settingsBootstrapped: Boolean = false,
-  val favoritesBootstrapped: Boolean = false,
-)
-
-/**
  * Use case that handles application startup initialization.
  * Groups settings, favorites, and stations repository operations.
+ *
+ * **Error handling**: las funciones de bootstrap propagan sus excepciones directamente.
+ * Los fallos de inicialización son críticos y deben ser observables por el llamador;
+ * no se usan runCatching silenciosos. El caller (AppInitializer) decide si envolver
+ * en un try/catch o dejar que la coroutine cancele el scope con el error.
  */
 @Inject
 internal class StartupUseCase(
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
+  private val favoritesPeerSync: FavoritesPeerSyncCapability,
   private val stationsRepository: StationsRepository,
 ) {
   // Expose repository states as flows for observation
@@ -36,18 +35,20 @@ internal class StartupUseCase(
 
   /**
    * Bootstraps settings repository.
+   * Throws if the settings cannot be initialised.
    */
-  suspend fun bootstrapSettings(): Boolean {
-    runCatching { settingsRepository.bootstrap() }
-    return true
+  suspend fun bootstrapSettings() {
+    settingsRepository.bootstrap()
   }
 
   /**
    * Bootstraps favorites repository by syncing from peer.
+   *
+   * Peer sync es no-crítico: si falla se loguea pero no cancela el bootstrap.
+   * La app puede funcionar sin sincronización de reloj.
    */
-  suspend fun bootstrapFavorites(): Boolean {
-    runCatching { favoritesRepository.syncFromPeer() }
-    return true
+  suspend fun bootstrapFavorites() {
+    favoritesPeerSync.syncFromPeer()
   }
 
   /**
@@ -85,8 +86,9 @@ internal class StartupUseCase(
 
   /**
    * Syncs favorites from peer.
+   * Propagates any exception to the caller.
    */
   suspend fun syncFavoritesFromPeer() {
-    runCatching { favoritesRepository.syncFromPeer() }
+    favoritesPeerSync.syncFromPeer()
   }
 }

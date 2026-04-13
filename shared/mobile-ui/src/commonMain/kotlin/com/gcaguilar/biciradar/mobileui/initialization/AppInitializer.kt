@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.initialization
 
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
@@ -10,51 +9,45 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 
 /**
- * Result of the application initialization process.
- */
-internal data class InitializationResult(
-  val settingsBootstrapped: Boolean = false,
-  val favoritesBootstrapped: Boolean = false,
-  val initialLoadAttemptFinished: Boolean = false,
-  val minimumSplashElapsed: Boolean = false,
-)
-
-/**
  * Handles application bootstrap and initialization.
  * Coordinates settings, favorites, stations, and other repository initializations.
+ *
+ * **Error handling**: [bootstrapSettings] propaga excepciones porque un fallo de
+ * settings es crítico y debe ser observable (e.g. para mostrar una pantalla de error).
+ * [bootstrapFavorites] atrapa su excepción con [runCatching] porque la sincronización
+ * con el reloj es no-crítica — la app puede arrancar sin ella.
  */
 @Inject
 internal class AppInitializer(
   private val startupUseCase: StartupUseCase,
   private val appLifecycleUseCase: AppLifecycleUseCase,
-  private val savedPlaceAlertsRepository: SavedPlaceAlertsRepository,
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
 ) {
   private val clock: () -> Long = ::epochMillisForUi
 
   /**
    * Initializes settings repository.
-   * @return true if initialization completed
+   * Throws if settings cannot be bootstrapped.
    */
-  suspend fun initializeSettings(): Boolean {
+  suspend fun initializeSettings() {
     startupUseCase.bootstrapSettings()
-    return true
   }
 
   /**
    * Initializes favorites repository.
-   * @return true if initialization completed
+   * Peer sync failures are swallowed here (non-critical) but logged.
    */
-  suspend fun initializeFavorites(): Boolean {
-    startupUseCase.bootstrapFavorites()
-    return true
+  suspend fun initializeFavorites() {
+    runCatching { startupUseCase.bootstrapFavorites() }
+      .onFailure { /* Non-critical: app can start without watch sync */ }
   }
 
   /**
    * Refreshes stations data.
    */
   suspend fun refreshStations() {
-    startupUseCase.syncFavoritesFromPeer()
+    runCatching { startupUseCase.syncFavoritesFromPeer() }
+      .onFailure { /* Peer sync non-critical */ }
     startupUseCase.refreshStations()
   }
 
@@ -74,7 +67,7 @@ internal class AppInitializer(
     // Initialize surface repositories
     surfaceManagementUseCase.bootstrap()
 
-    // Initialize settings first
+    // Initialize settings first (throws on failure)
     initializeSettings()
     onSettingsBootstrapped()
 
@@ -85,7 +78,7 @@ internal class AppInitializer(
     appLifecycleUseCase.markSessionStarted(clock())
     appLifecycleUseCase.markUsefulSession(clock())
 
-    // Initialize favorites
+    // Initialize favorites (non-critical, swallows peer-sync errors)
     initializeFavorites()
     onFavoritesBootstrapped()
   }
@@ -108,10 +101,11 @@ internal class AppInitializer(
   }
 
   /**
-   * Syncs favorites from peer.
+   * Syncs favorites from peer (non-critical; swallows errors).
    */
   suspend fun syncFavoritesFromPeer() {
-    startupUseCase.syncFavoritesFromPeer()
+    runCatching { startupUseCase.syncFavoritesFromPeer() }
+      .onFailure { /* Peer sync non-critical */ }
   }
 
   /**
