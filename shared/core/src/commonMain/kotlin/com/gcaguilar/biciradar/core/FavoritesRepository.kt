@@ -8,6 +8,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,9 +114,9 @@ interface FavoritesCategorizationCapability {
  * - [FavoritesCategorizationCapability] — categorías personalizadas
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = FavoritesPeerSyncCapability::class)
-@ContributesBinding(AppScope::class, boundType = FavoritesCategorizationCapability::class)
+@ContributesBinding(AppScope::class, binding = binding<FavoritesRepository>())
+@ContributesBinding(AppScope::class, binding = binding<FavoritesPeerSyncCapability>())
+@ContributesBinding(AppScope::class, binding = binding<FavoritesCategorizationCapability>())
 @Inject
 class FavoritesRepositoryImpl(
   private val fileSystem: FileSystem,
@@ -124,7 +125,9 @@ class FavoritesRepositoryImpl(
   private val watchSyncBridge: WatchSyncBridge,
   private val scope: CoroutineScope,
   private val database: BiciRadarDatabase? = null,
-) : FavoritesRepository, FavoritesPeerSyncCapability, FavoritesCategorizationCapability {
+) : FavoritesRepository,
+  FavoritesPeerSyncCapability,
+  FavoritesCategorizationCapability {
   private val mutableFavoriteIds = MutableStateFlow(emptySet<String>())
   private val mutableHomeStationId = MutableStateFlow<String?>(null)
   private val mutableWorkStationId = MutableStateFlow<String?>(null)
