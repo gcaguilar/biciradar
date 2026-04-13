@@ -31,14 +31,14 @@ android {
   namespace = "com.gcaguilar.biciradar"
   compileSdk = 36
 
-  defaultConfig {
-    applicationId = "com.gcaguilar.biciradar"
-    minSdk = 26
-    targetSdk = 36
-    versionCode = 29568103
-    versionName = "0.22.3"
-    manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
-  }
+    defaultConfig {
+        applicationId = "com.gcaguilar.biciradar"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 29568104
+        versionName = "0.22.4"
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
+    }
 
   buildFeatures {
     buildConfig = true

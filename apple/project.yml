@@ -23,7 +23,7 @@ options:
 settings:
   base:
     CURRENT_PROJECT_VERSION: 29568088
-    MARKETING_VERSION: 0.22.0
+    MARKETING_VERSION: 0.22.4
     SWIFT_VERSION: "5.10"
 
 packages:
