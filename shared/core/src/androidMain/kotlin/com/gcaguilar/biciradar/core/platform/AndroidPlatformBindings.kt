@@ -25,6 +25,7 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
+import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.LogLevel
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
@@ -49,6 +50,7 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.firebase.Firebase
+import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import io.ktor.client.HttpClient
@@ -79,7 +81,8 @@ class AndroidPlatformBindings(
   override val externalLinks: ExternalLinks get() = androidExternalLinks
   override val reviewPrompter: ReviewPrompter get() = androidReviewPrompter
   override val appUpdatePrompter: AppUpdatePrompter get() = androidAppUpdatePrompter
-  override val logger: Logger = AndroidLogger()
+  override val logger: Logger = AndroidLogger(AndroidCrashlyticsReporter)
+  override val crashlyticsReporter: CrashlyticsReporter = AndroidCrashlyticsReporter
   override val remoteConfigProvider: RemoteConfigProvider = AndroidRemoteConfigProvider(logger)
 
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
@@ -143,7 +146,9 @@ class AndroidPlatformBindings(
   }
 }
 
-private class AndroidLogger : Logger {
+private class AndroidLogger(
+  private val crashlyticsReporter: CrashlyticsReporter,
+) : Logger {
   override fun log(
     level: LogLevel,
     tag: String,
@@ -154,8 +159,17 @@ private class AndroidLogger : Logger {
       LogLevel.Debug -> android.util.Log.d(tag, message, throwable)
       LogLevel.Info -> android.util.Log.i(tag, message, throwable)
       LogLevel.Warning -> android.util.Log.w(tag, message, throwable)
-      LogLevel.Error -> android.util.Log.e(tag, message, throwable)
+      LogLevel.Error -> {
+        android.util.Log.e(tag, message, throwable)
+        throwable?.let { crashlyticsReporter.reportNonFatal(it) }
+      }
     }
+  }
+}
+
+private object AndroidCrashlyticsReporter : CrashlyticsReporter {
+  override fun reportNonFatal(throwable: Throwable) {
+    runCatching { Firebase.crashlytics.recordException(throwable) }
   }
 }
 
