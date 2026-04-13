@@ -118,13 +118,12 @@ targets:
             echo "Skipping Crashlytics dSYM upload because GoogleService-Info.plist is not bundled."
             exit 0
           fi
-          candidate_scripts=(
-            "$SRCROOT/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
-            "$SRCROOT/../SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
-            "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
-          )
           run_script=""
-          for candidate in "${candidate_scripts[@]}"; do
+          for candidate in \
+            "$SRCROOT/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" \
+            "$SRCROOT/../SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" \
+            "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
+          do
             if [ -x "$candidate" ]; then
               run_script="$candidate"
               break
@@ -132,7 +131,10 @@ targets:
           done
           if [ ! -x "$run_script" ]; then
             echo "Crashlytics run script not found. Checked:"
-            printf ' - %s\n' "${candidate_scripts[@]}"
+            printf ' - %s\n' \
+              "$SRCROOT/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" \
+              "$SRCROOT/../SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" \
+              "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run"
             exit 1
           fi
           "$run_script"
