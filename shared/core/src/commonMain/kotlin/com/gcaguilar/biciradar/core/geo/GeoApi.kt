@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core.geo
 
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.geo.InstallationIdentityRepository.Companion.BASE_URL
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -51,6 +52,7 @@ class GeoApiImpl(
   private val tokenManager: TokenManager,
   private val identityRepo: InstallationIdentityRepository,
   private val requestSigner: RequestSigner,
+  private val logger: Logger = com.gcaguilar.biciradar.core.NoOpLogger,
 ) : GeoApi {
   override suspend fun search(query: String): List<GeoResult> {
     val requestBody =
@@ -71,7 +73,7 @@ class GeoApiImpl(
           lon = location.longitude,
         ),
       )
-    println("[GeoApi] >>> /geo/reverse body=$requestBody")
+    logger.debug("GeoApi", ">>> /geo/reverse body=$requestBody")
 
     val token = tokenManager.getValidToken()
     val signedHeaders =
@@ -80,7 +82,7 @@ class GeoApiImpl(
         path = "/geo/reverse",
         body = requestBody.encodeToByteArray(),
       )
-    println("[GeoApi] using installationId=${signedHeaders.installationId}")
+    logger.debug("GeoApi", "using installationId=${signedHeaders.installationId}")
 
     val response =
       try {
@@ -99,20 +101,21 @@ class GeoApiImpl(
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (ex: Throwable) {
-        println("[GeoApi] NETWORK ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}")
+        logger.warn("GeoApi", "NETWORK ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}", ex)
         throw GeoError.Network(ex)
       }
 
-    println("[GeoApi] <<< /geo/reverse status=${response.status.value}")
+    logger.debug("GeoApi", "<<< /geo/reverse status=${response.status.value}")
 
     if (response.status == HttpStatusCode.Unauthorized) {
-      println("[GeoApi] 401 on /geo/reverse — retrying with fresh token")
+      logger.warn("GeoApi", "401 on /geo/reverse — retrying with fresh token")
       return reverseGeocodeWithToken(requestBody, forceRefresh = true)
     }
     if (!response.status.isSuccess()) {
       val errorBody = response.safeBodyAsText()
-      println(
-        "[GeoApi] SERVER ERROR /geo/reverse: ${response.status.value} ${response.status.description} body=$errorBody",
+      logger.warn(
+        "GeoApi",
+        "SERVER ERROR /geo/reverse: ${response.status.value} ${response.status.description} body=$errorBody",
       )
       throw GeoError.Server(response.status.value, errorBody ?: response.status.description)
     }
@@ -120,10 +123,10 @@ class GeoApiImpl(
     val reverseResponse =
       runCatching { response.body<ReverseGeocodeResponse>() }
         .getOrElse { ex ->
-          println("[GeoApi] PARSE ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}")
+          logger.warn("GeoApi", "PARSE ERROR /geo/reverse: ${ex::class.simpleName} — ${ex.message}", ex)
           throw GeoError.Unknown(ex)
         }
-    println("[GeoApi] /geo/reverse OK address=${reverseResponse.address}")
+    logger.debug("GeoApi", "/geo/reverse OK address=${reverseResponse.address}")
     return reverseResponse.toDomain()
   }
 
@@ -134,10 +137,10 @@ class GeoApiImpl(
     bodyJson: String,
     isRetry: Boolean = false,
   ): List<GeoResult> {
-    println("[GeoApi] >>> $path retry=$isRetry body=$bodyJson")
+    logger.debug("GeoApi", ">>> $path retry=$isRetry body=$bodyJson")
 
     val token = if (isRetry) tokenManager.forceRefresh() else tokenManager.getValidToken()
-    println("[GeoApi] token acquired (expires=${token.expiresAtEpochMs})")
+    logger.debug("GeoApi", "token acquired (expires=${token.expiresAtEpochMs})")
 
     val signedHeaders =
       requestSigner.signedHeaders(
@@ -145,7 +148,7 @@ class GeoApiImpl(
         path = path,
         body = bodyJson.encodeToByteArray(),
       )
-    println("[GeoApi] using installationId=${signedHeaders.installationId}")
+    logger.debug("GeoApi", "using installationId=${signedHeaders.installationId}")
 
     val response =
       try {
@@ -164,20 +167,21 @@ class GeoApiImpl(
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (ex: Throwable) {
-        println("[GeoApi] NETWORK ERROR $path: ${ex::class.simpleName} — ${ex.message}")
+        logger.warn("GeoApi", "NETWORK ERROR $path: ${ex::class.simpleName} — ${ex.message}", ex)
         throw GeoError.Network(ex)
       }
 
-    println("[GeoApi] <<< $path status=${response.status.value}")
+    logger.debug("GeoApi", "<<< $path status=${response.status.value}")
 
     if (response.status == HttpStatusCode.Unauthorized && !isRetry) {
-      println("[GeoApi] 401 on $path — retrying with fresh token")
+      logger.warn("GeoApi", "401 on $path — retrying with fresh token")
       return executeSearchRequest(path = path, bodyJson = bodyJson, isRetry = true)
     }
     if (!response.status.isSuccess()) {
       val errorBody = response.safeBodyAsText()
-      println(
-        "[GeoApi] SERVER ERROR $path: ${response.status.value} ${response.status.description} body=$errorBody",
+      logger.warn(
+        "GeoApi",
+        "SERVER ERROR $path: ${response.status.value} ${response.status.description} body=$errorBody",
       )
       throw GeoError.Server(response.status.value, errorBody ?: response.status.description)
     }
@@ -185,10 +189,10 @@ class GeoApiImpl(
     val apiResponse =
       runCatching { response.body<GeoApiResponse>() }
         .getOrElse { ex ->
-          println("[GeoApi] PARSE ERROR $path: ${ex::class.simpleName} — ${ex.message}")
+          logger.warn("GeoApi", "PARSE ERROR $path: ${ex::class.simpleName} — ${ex.message}", ex)
           throw GeoError.Unknown(ex)
         }
-    println("[GeoApi] $path OK — ${apiResponse.results.size} results")
+    logger.debug("GeoApi", "$path OK — ${apiResponse.results.size} results")
     return apiResponse.results.map { it.toDomain() }
   }
 
@@ -221,14 +225,15 @@ class GeoApiImpl(
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (ex: Throwable) {
-        println("[GeoApi] NETWORK ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}")
+        logger.warn("GeoApi", "NETWORK ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}", ex)
         throw GeoError.Network(ex)
       }
 
     if (!response.status.isSuccess()) {
       val errorBody = response.safeBodyAsText()
-      println(
-        "[GeoApi] SERVER ERROR /geo/reverse (retry): ${response.status.value} ${response.status.description} body=$errorBody",
+      logger.warn(
+        "GeoApi",
+        "SERVER ERROR /geo/reverse (retry): ${response.status.value} ${response.status.description} body=$errorBody",
       )
       throw GeoError.Server(response.status.value, errorBody ?: response.status.description)
     }
@@ -236,7 +241,7 @@ class GeoApiImpl(
     val reverseResponse =
       runCatching { response.body<ReverseGeocodeResponse>() }
         .getOrElse { ex ->
-          println("[GeoApi] PARSE ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}")
+          logger.warn("GeoApi", "PARSE ERROR /geo/reverse (retry): ${ex::class.simpleName} — ${ex.message}", ex)
           throw GeoError.Unknown(ex)
         }
     return reverseResponse.toDomain()

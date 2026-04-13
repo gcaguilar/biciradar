@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar.core.geo
 
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.crypto.INSTALLATION_KEY_ALIAS
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
@@ -39,6 +40,7 @@ class InstallationIdentityRepository(
   private val appVersion: String,
   private val osVersion: String,
   private val platform: String,
+  private val logger: Logger = com.gcaguilar.biciradar.core.NoOpLogger,
 ) {
   @kotlin.concurrent.Volatile
   private var cached: Pair<InstallationIdentity, com.gcaguilar.biciradar.core.crypto.PlatformKeyPair>? = null
@@ -52,34 +54,35 @@ class InstallationIdentityRepository(
    */
   suspend fun getOrRegister(): Pair<InstallationIdentity, com.gcaguilar.biciradar.core.crypto.PlatformKeyPair> {
     cached?.let {
-      println("[InstallRepo] returning cached identity installationId=${it.first.installationId}")
+      logger.debug("InstallRepo", "returning cached identity installationId=${it.first.installationId}")
       return it
     }
 
     // 1. Try loading from disk
-    println("[InstallRepo] loading identity from disk...")
+    logger.debug("InstallRepo", "loading identity from disk...")
     val persisted = loadFromDisk()
 
-    println("[InstallRepo] generating/loading key pair...")
+    logger.debug("InstallRepo", "generating/loading key pair...")
     val keyPair =
       runCatching {
         secureKeyStore.getOrCreateKeyPair(INSTALLATION_KEY_ALIAS)
       }.getOrElse { ex ->
-        println("[InstallRepo] KEY PAIR ERROR: ${ex::class.simpleName} — ${ex.message}")
+        logger.warn("InstallRepo", "KEY PAIR ERROR: ${ex::class.simpleName} — ${ex.message}", ex)
         throw GeoError.Unknown(ex)
       }
-    println("[InstallRepo] key pair OK publicKey=${keyPair.publicKeyDerBase64.take(20)}...")
+    logger.debug("InstallRepo", "key pair OK publicKey=${keyPair.publicKeyDerBase64.take(20)}...")
 
     if (persisted != null) {
-      println("[InstallRepo] found persisted identity installationId=${persisted.installationId}")
+      logger.debug("InstallRepo", "found persisted identity installationId=${persisted.installationId}")
       val result = persisted to keyPair
       cached = result
       return result
     }
 
     // 2. Register with the server
-    println(
-      "[InstallRepo] no persisted identity — registering with server platform=$platform appVersion=$appVersion osVersion=$osVersion",
+    logger.info(
+      "InstallRepo",
+      "no persisted identity — registering with server platform=$platform appVersion=$appVersion osVersion=$osVersion",
     )
     val publicKeyBase64 = keyPair.publicKeyDerBase64
     val response =
@@ -101,14 +104,15 @@ class InstallationIdentityRepository(
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (ex: Throwable) {
-        println("[InstallRepo] NETWORK ERROR /install/register: ${ex::class.simpleName} — ${ex.message}")
+        logger.warn("InstallRepo", "NETWORK ERROR /install/register: ${ex::class.simpleName} — ${ex.message}", ex)
         throw GeoError.Network(ex)
       }
 
-    println("[InstallRepo] /install/register status=${response.status.value}")
+    logger.debug("InstallRepo", "/install/register status=${response.status.value}")
     if (!response.status.isSuccess()) {
-      println(
-        "[InstallRepo] SERVER ERROR /install/register: ${response.status.value} ${response.status.description}",
+      logger.warn(
+        "InstallRepo",
+        "SERVER ERROR /install/register: ${response.status.value} ${response.status.description}",
       )
       throw GeoError.Server(response.status.value, response.status.description)
     }
@@ -116,7 +120,7 @@ class InstallationIdentityRepository(
     val registerResponse =
       runCatching { response.body<RegisterResponse>() }
         .getOrElse { ex ->
-          println("[InstallRepo] PARSE ERROR /install/register: ${ex::class.simpleName} — ${ex.message}")
+          logger.warn("InstallRepo", "PARSE ERROR /install/register: ${ex::class.simpleName} — ${ex.message}", ex)
           throw GeoError.Unknown(ex)
         }
 
@@ -126,11 +130,11 @@ class InstallationIdentityRepository(
         publicKeyBase64 = publicKeyBase64,
         refreshToken = registerResponse.refreshToken,
       )
-    println("[InstallRepo] registered installationId=${identity.installationId}")
+    logger.info("InstallRepo", "registered installationId=${identity.installationId}")
 
     // 3. Persist and cache
     saveToDisk(identity)
-    println("[InstallRepo] identity persisted to disk")
+    logger.debug("InstallRepo", "identity persisted to disk")
     val result = identity to keyPair
     cached = result
     return result
@@ -145,17 +149,17 @@ class InstallationIdentityRepository(
     val updated = current.first.copy(refreshToken = newRefreshToken)
     saveToDisk(updated)
     cached = updated to current.second
-    println("[InstallRepo] refreshToken rotated and persisted")
+    logger.debug("InstallRepo", "refreshToken rotated and persisted")
   }
 
   /** Clears the persisted identity (e.g., for re-registration after a device restore). */
   suspend fun clear() {
-    println("[InstallRepo] clearing identity from cache and disk")
+    logger.debug("InstallRepo", "clearing identity from cache and disk")
     cached = null
     val path = identityPath()
     if (fileSystem.exists(path)) fileSystem.delete(path)
     secureKeyStore.deleteKeyPair(INSTALLATION_KEY_ALIAS)
-    println("[InstallRepo] identity cleared")
+    logger.debug("InstallRepo", "identity cleared")
   }
 
   // ------------------------------------------------------------------
@@ -167,13 +171,13 @@ class InstallationIdentityRepository(
   private fun loadFromDisk(): InstallationIdentity? {
     val path = identityPath()
     if (!fileSystem.exists(path)) {
-      println("[InstallRepo] no identity file at $path")
+      logger.debug("InstallRepo", "no identity file at $path")
       return null
     }
     return runCatching {
       json.decodeFromString<InstallationIdentity>(fileSystem.read(path) { readUtf8() })
     }.getOrElse { ex ->
-      println("[InstallRepo] PARSE ERROR loading identity from disk: ${ex::class.simpleName} — ${ex.message}")
+      logger.warn("InstallRepo", "PARSE ERROR loading identity from disk: ${ex::class.simpleName} — ${ex.message}", ex)
       null
     }
   }

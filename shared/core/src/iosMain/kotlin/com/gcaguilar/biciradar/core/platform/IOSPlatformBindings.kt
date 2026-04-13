@@ -11,6 +11,8 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
+import com.gcaguilar.biciradar.core.LogLevel
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.PermissionPrompter
@@ -106,6 +108,7 @@ class IOSPlatformBindings(
   override val permissionPrompter: PermissionPrompter = IOSPermissionPrompterImpl()
   override val externalLinks: ExternalLinks = IOSExternalLinksImpl(appConfiguration)
   override val reviewPrompter: ReviewPrompter = IOSReviewPrompterImpl(appConfiguration)
+  override val logger: Logger = AppleLogger()
   override val appUpdatePrompter: AppUpdatePrompter =
     IOSAppUpdatePrompterImpl(
       appConfiguration = appConfiguration,
@@ -158,6 +161,18 @@ class IOSPlatformBindings(
    */
   override fun onGraphCreated(graph: SharedGraph) {
     iosRouteLauncher.settingsRepository = graph.settingsRepository
+  }
+}
+
+private class AppleLogger : Logger {
+  override fun log(
+    level: LogLevel,
+    tag: String,
+    message: String,
+    throwable: Throwable?,
+  ) {
+    val suffix = throwable?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
+    platform.Foundation.NSLog("[$tag][${level.name}] $message$suffix")
   }
 }
 
@@ -351,7 +366,9 @@ private class IOSRouteLauncher : RouteLauncher {
     val alertController =
       UIAlertController.alertControllerWithTitle(
         title = "Google Maps no instalado",
-        message = "Para obtener la mejor experiencia de navegación, instala Google Maps desde el App Store. Se abrirá Apple Maps como alternativa.",
+        message =
+          "Para obtener la mejor experiencia de navegación, instala Google Maps desde el App Store. " +
+            "Se abrirá Apple Maps como alternativa.",
         preferredStyle = UIAlertControllerStyleAlert,
       )
 
@@ -468,18 +485,18 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
       val updated =
         session.updateApplicationContext(
           buildMap {
-            put(IOSFavoritesCache.contextKey, snapshot.favoriteIds.toList())
-            snapshot.homeStationId?.let { put(IOSFavoritesCache.homeContextKey, it) }
-            snapshot.workStationId?.let { put(IOSFavoritesCache.workContextKey, it) }
+            put(IOSFavoritesCache.CONTEXT_KEY, snapshot.favoriteIds.toList())
+            snapshot.homeStationId?.let { put(IOSFavoritesCache.HOME_CONTEXT_KEY, it) }
+            snapshot.workStationId?.let { put(IOSFavoritesCache.WORK_CONTEXT_KEY, it) }
             runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }
               .getOrNull()
-              ?.let { put(IOSFavoritesCache.snapshotContextKey, it) }
+              ?.let { put(IOSFavoritesCache.SNAPSHOT_CONTEXT_KEY, it) }
           },
           error = errorPtr.ptr,
         )
       if (!updated) {
         val msg = errorPtr.value?.localizedDescription ?: "unknown error"
-        println("[IOSWatchSyncBridge] updateApplicationContext failed: $msg")
+        AppleLogger().warn("IOSWatchSyncBridge", "updateApplicationContext failed: $msg")
       }
     }
   }
@@ -496,37 +513,37 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
 }
 
 private object IOSFavoritesCache {
-  const val cacheKey = "bizizaragoza.watch.favorite_ids"
-  const val contextKey = "favorite_ids"
-  const val homeCacheKey = "bizizaragoza.watch.home_station_id"
-  const val workCacheKey = "bizizaragoza.watch.work_station_id"
-  const val homeContextKey = "home_station_id"
-  const val workContextKey = "work_station_id"
-  const val snapshotCacheKey = "bizizaragoza.watch.favorite_categories_v2"
-  const val snapshotContextKey = "favorite_categories_v2"
+  const val CACHE_KEY = "bizizaragoza.watch.favorite_ids"
+  const val CONTEXT_KEY = "favorite_ids"
+  const val HOME_CACHE_KEY = "bizizaragoza.watch.home_station_id"
+  const val WORK_CACHE_KEY = "bizizaragoza.watch.work_station_id"
+  const val HOME_CONTEXT_KEY = "home_station_id"
+  const val WORK_CONTEXT_KEY = "work_station_id"
+  const val SNAPSHOT_CACHE_KEY = "bizizaragoza.watch.favorite_categories_v2"
+  const val SNAPSHOT_CONTEXT_KEY = "favorite_categories_v2"
 
   fun read(): FavoritesSyncSnapshot =
     FavoritesSyncSnapshot(
       favoriteIds =
         NSUserDefaults.standardUserDefaults
-          .arrayForKey(cacheKey)
+          .arrayForKey(CACHE_KEY)
           .orEmpty()
           .filterIsInstance<String>()
           .toSet(),
-      homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(homeCacheKey),
-      workStationId = NSUserDefaults.standardUserDefaults.stringForKey(workCacheKey),
+      homeStationId = NSUserDefaults.standardUserDefaults.stringForKey(HOME_CACHE_KEY),
+      workStationId = NSUserDefaults.standardUserDefaults.stringForKey(WORK_CACHE_KEY),
     ).let { legacy ->
-      val encoded = NSUserDefaults.standardUserDefaults.stringForKey(snapshotCacheKey) ?: return@let legacy
+      val encoded = NSUserDefaults.standardUserDefaults.stringForKey(SNAPSHOT_CACHE_KEY) ?: return@let legacy
       runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
         .getOrNull() ?: legacy
     }
 
   fun persist(snapshot: FavoritesSyncSnapshot) {
-    NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = cacheKey)
-    NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = homeCacheKey)
-    NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = workCacheKey)
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.favoriteIds.toList(), forKey = CACHE_KEY)
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.homeStationId, forKey = HOME_CACHE_KEY)
+    NSUserDefaults.standardUserDefaults.setObject(snapshot.workStationId, forKey = WORK_CACHE_KEY)
     val encoded = runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }.getOrNull()
-    NSUserDefaults.standardUserDefaults.setObject(encoded, forKey = snapshotCacheKey)
+    NSUserDefaults.standardUserDefaults.setObject(encoded, forKey = SNAPSHOT_CACHE_KEY)
   }
 }
 

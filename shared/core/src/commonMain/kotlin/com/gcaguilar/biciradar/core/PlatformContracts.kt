@@ -71,6 +71,7 @@ interface PlatformBindings {
   val assistantIntentResolver: AssistantIntentResolver
   val databaseFactory: DatabaseFactory?
   val fileSystem: FileSystem
+  val logger: Logger get() = NoOpLogger
 
   @GoogleMapsApiKey val googleMapsApiKey: String?
   val httpClientFactory: BiziHttpClientFactory
@@ -82,6 +83,7 @@ interface PlatformBindings {
 
   @Platform val platform: String
   val routeLauncher: RouteLauncher
+  val remoteConfigProvider: RemoteConfigProvider get() = NoOpRemoteConfigProvider
   val secureKeyStore: SecureKeyStore
   val storageDirectoryProvider: StorageDirectoryProvider
   val watchSyncBridge: WatchSyncBridge

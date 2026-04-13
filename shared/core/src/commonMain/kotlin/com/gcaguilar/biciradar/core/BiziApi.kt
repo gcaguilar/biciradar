@@ -3,6 +3,8 @@ package com.gcaguilar.biciradar.core
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.PI
@@ -41,7 +43,11 @@ class GbfsBiziApi(
   private val httpClient: HttpClient,
   private val configuration: AppConfiguration,
   private val settingsRepository: SettingsRepository? = null,
+  private val logger: Logger = NoOpLogger,
 ) : BiziApi {
+  private val stationStatusUrlCache = mutableMapOf<String, String>()
+  private val stationStatusUrlCacheLock = Mutex()
+
   private val gbfsDiscoveryUrl: String
     get() = settingsRepository?.currentSelectedCity()?.gbfsDiscoveryUrl ?: configuration.gbfsDiscoveryUrl
 
@@ -96,13 +102,8 @@ class GbfsBiziApi(
   }
 
   override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
-    val stationStatusUrl =
-      runCatching {
-        val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-        discovery.data.en.feeds
-          .firstOrNull { it.name == "station_status" }
-          ?.url
-      }.getOrNull() ?: return emptyMap()
+    val cacheKey = settingsRepository?.currentSelectedCity()?.id ?: gbfsDiscoveryUrl
+    val stationStatusUrl = getStationStatusUrl(cacheKey) ?: return emptyMap()
 
     return try {
       val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
@@ -133,8 +134,37 @@ class GbfsBiziApi(
             )
         }.toMap()
     } catch (e: Exception) {
+      invalidateStationStatusUrl(cacheKey)
+      logger.warn("GbfsBiziApi", "Failed to fetch availability for $cacheKey", e)
       emptyMap()
     }
+  }
+
+  private suspend fun getStationStatusUrl(cacheKey: String): String? {
+    stationStatusUrlCacheLock.withLock {
+      stationStatusUrlCache[cacheKey]?.let { return it }
+    }
+
+    val resolved =
+      runCatching {
+        val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
+        discovery.data.en.feeds
+          .firstOrNull { it.name == "station_status" }
+          ?.url
+      }.onFailure { error ->
+        logger.warn("GbfsBiziApi", "Failed to resolve station_status feed for $cacheKey", error)
+      }.getOrNull()
+
+    if (resolved != null) {
+      stationStatusUrlCacheLock.withLock {
+        stationStatusUrlCache[cacheKey] = resolved
+      }
+    }
+    return resolved
+  }
+
+  private fun invalidateStationStatusUrl(cacheKey: String) {
+    stationStatusUrlCache.remove(cacheKey)
   }
 }
 
@@ -227,6 +257,27 @@ class CityBikesBiziApi(
         distanceMeters = distanceBetween(origin, location),
         sourceLabel = "CityBikes",
       )
+    }
+  }
+}
+
+class RoutingBiziApi(
+  private val settingsRepository: SettingsRepository,
+  private val cityRegistry: CityRegistry,
+  private val gbfsBiziApi: GbfsBiziApi,
+  private val cityBikesBiziApi: CityBikesBiziApi,
+) : BiziApi {
+  override suspend fun fetchStations(origin: GeoPoint): List<Station> = delegate().fetchStations(origin)
+
+  override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> =
+    delegate().fetchAvailability(stationIds)
+
+  private suspend fun delegate(): BiziApi {
+    val currentCity = settingsRepository.currentSelectedCity()
+    val strategy = cityRegistry.cityById(currentCity.id)?.apiStrategy ?: currentCity.apiStrategy()
+    return when (strategy) {
+      BiziApiStrategy.CityBikes -> cityBikesBiziApi
+      BiziApiStrategy.Gbfs -> gbfsBiziApi
     }
   }
 }

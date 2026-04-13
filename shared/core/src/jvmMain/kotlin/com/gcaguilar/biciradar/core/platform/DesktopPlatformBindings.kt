@@ -12,6 +12,8 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
+import com.gcaguilar.biciradar.core.LogLevel
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.NoOpAppUpdatePrompter
@@ -76,6 +78,7 @@ class DesktopPlatformBindings(
     }
   override val externalLinks: ExternalLinks = DesktopExternalLinks(appConfiguration)
   override val fileSystem: FileSystem = FileSystem.SYSTEM
+  override val logger: Logger = DesktopLogger()
   override val googleMapsApiKey: String? =
     System
       .getenv("GOOGLE_MAPS_API_KEY")
@@ -195,6 +198,8 @@ private class DesktopRouteLauncher : RouteLauncher {
 }
 
 private class DesktopLocalNotifier : LocalNotifier {
+  private val logger: Logger = DesktopLogger()
+
   override suspend fun hasPermission(): Boolean = true
 
   override suspend fun requestPermission(): Boolean = true
@@ -204,7 +209,19 @@ private class DesktopLocalNotifier : LocalNotifier {
     body: String,
   ) {
     if (DesktopNotifications.show(title, body)) return
-    println("[BiciRadar] $title: $body")
+    logger.info("BiciRadar", "$title: $body")
+  }
+}
+
+private class DesktopLogger : Logger {
+  override fun log(
+    level: LogLevel,
+    tag: String,
+    message: String,
+    throwable: Throwable?,
+  ) {
+    val suffix = throwable?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
+    kotlin.io.println("[$tag][${level.name}] $message$suffix")
   }
 }
 

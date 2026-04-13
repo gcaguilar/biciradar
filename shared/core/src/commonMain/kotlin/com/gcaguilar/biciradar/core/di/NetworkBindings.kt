@@ -2,11 +2,15 @@ package com.gcaguilar.biciradar.core.di
 
 import com.gcaguilar.biciradar.core.BiziApi
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
+import com.gcaguilar.biciradar.core.CityBikesBiziApi
+import com.gcaguilar.biciradar.core.CityRegistry
 import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.DatosBiziApiImpl
 import com.gcaguilar.biciradar.core.GbfsBiziApi
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.GooglePlacesApiImpl
+import com.gcaguilar.biciradar.core.Logger
+import com.gcaguilar.biciradar.core.RoutingBiziApi
 import com.gcaguilar.biciradar.core.SettingsRepository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -38,7 +42,15 @@ object NetworkBindings {
     appConfiguration: com.gcaguilar.biciradar.core.AppConfiguration,
     httpClient: HttpClient,
     settingsRepository: SettingsRepository,
-  ): BiziApi = GbfsBiziApi(httpClient, appConfiguration, settingsRepository)
+    cityRegistry: CityRegistry,
+    logger: Logger,
+  ): BiziApi =
+    RoutingBiziApi(
+      settingsRepository = settingsRepository,
+      cityRegistry = cityRegistry,
+      gbfsBiziApi = GbfsBiziApi(httpClient, appConfiguration, settingsRepository, logger),
+      cityBikesBiziApi = CityBikesBiziApi(httpClient, appConfiguration),
+    )
 
   @SingleIn(AppScope::class)
   @Provides

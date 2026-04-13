@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.core.geo
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GoogleMapsApiKey
 import com.gcaguilar.biciradar.core.GooglePlacesApi
+import com.gcaguilar.biciradar.core.Logger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -21,6 +22,7 @@ class ReverseGeocodeUseCase(
   private val geoApi: GeoApi,
   private val googlePlacesApi: GooglePlacesApi,
   @param:GoogleMapsApiKey private val googleMapsApiKey: String?,
+  private val logger: Logger = com.gcaguilar.biciradar.core.NoOpLogger,
 ) {
   @kotlin.concurrent.Volatile
   private var lastLocation: GeoPoint? = null
@@ -56,14 +58,18 @@ class ReverseGeocodeUseCase(
   ): GeoResult? {
     val apiKey = googleMapsApiKey?.takeIf { it.isNotBlank() }
     if (apiKey == null) {
-      println(
-        "[GeoReverse] datosbizi reverse geocode failed without Google fallback: ${originalError::class.simpleName} ${originalError.message}",
+      logger.warn(
+        "GeoReverse",
+        "datosbizi reverse geocode failed without Google fallback: ${originalError::class.simpleName} ${originalError.message}",
+        originalError,
       )
       return null
     }
 
-    println(
-      "[GeoReverse] Falling back to Google reverse geocode after ${originalError::class.simpleName}: ${originalError.message}",
+    logger.warn(
+      "GeoReverse",
+      "Falling back to Google reverse geocode after ${originalError::class.simpleName}: ${originalError.message}",
+      originalError,
     )
     val formattedAddress = googlePlacesApi.reverseGeocode(location, apiKey) ?: return null
     val primaryLabel = formattedAddress.substringBefore(',').trim().ifBlank { formattedAddress }

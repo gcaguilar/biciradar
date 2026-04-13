@@ -25,10 +25,13 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
+import com.gcaguilar.biciradar.core.LogLevel
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
+import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.Station
@@ -45,6 +48,9 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -73,6 +79,8 @@ class AndroidPlatformBindings(
   override val externalLinks: ExternalLinks get() = androidExternalLinks
   override val reviewPrompter: ReviewPrompter get() = androidReviewPrompter
   override val appUpdatePrompter: AppUpdatePrompter get() = androidAppUpdatePrompter
+  override val logger: Logger = AndroidLogger()
+  override val remoteConfigProvider: RemoteConfigProvider = AndroidRemoteConfigProvider(logger)
 
   override val assistantIntentResolver: AssistantIntentResolver = DefaultAssistantIntentResolver()
   override val databaseFactory: DatabaseFactory =
@@ -133,6 +141,41 @@ class AndroidPlatformBindings(
   fun attachExperienceActivity(activity: Activity?) {
     experienceActivity = activity
   }
+}
+
+private class AndroidLogger : Logger {
+  override fun log(
+    level: LogLevel,
+    tag: String,
+    message: String,
+    throwable: Throwable?,
+  ) {
+    when (level) {
+      LogLevel.Debug -> android.util.Log.d(tag, message, throwable)
+      LogLevel.Info -> android.util.Log.i(tag, message, throwable)
+      LogLevel.Warning -> android.util.Log.w(tag, message, throwable)
+      LogLevel.Error -> android.util.Log.e(tag, message, throwable)
+    }
+  }
+}
+
+private class AndroidRemoteConfigProvider(
+  private val logger: Logger,
+) : RemoteConfigProvider {
+  override suspend fun getString(key: String): String? =
+    runCatching {
+      val remoteConfig = Firebase.remoteConfig
+      remoteConfig
+        .setConfigSettingsAsync(
+          remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3_600
+          },
+        ).await()
+      remoteConfig.fetchAndActivate().await()
+      remoteConfig.getString(key).takeIf { it.isNotBlank() }
+    }.onFailure { error ->
+      logger.warn("RemoteConfig", "Unable to fetch remote config key=$key", error)
+    }.getOrNull()
 }
 
 private class AndroidHttpClientFactory : BiziHttpClientFactory {

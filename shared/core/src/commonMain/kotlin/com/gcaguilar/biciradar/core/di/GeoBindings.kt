@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.core.di
 
 import com.gcaguilar.biciradar.core.AppVersion
+import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.OsVersion
 import com.gcaguilar.biciradar.core.Platform
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
@@ -38,6 +39,7 @@ object GeoBindings {
     storageDirectoryProvider: StorageDirectoryProvider,
     secureKeyStore: SecureKeyStore,
     @AppVersion appVersion: String,
+    logger: Logger,
     @OsVersion osVersion: String,
     @Platform platform: String,
   ): InstallationIdentityRepository =
@@ -48,6 +50,7 @@ object GeoBindings {
       storageDirectoryProvider = storageDirectoryProvider,
       secureKeyStore = secureKeyStore,
       appVersion = appVersion,
+      logger = logger,
       osVersion = osVersion,
       platform = platform,
     )

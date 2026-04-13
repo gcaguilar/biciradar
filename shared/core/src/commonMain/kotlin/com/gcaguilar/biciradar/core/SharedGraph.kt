@@ -41,6 +41,7 @@ interface SharedGraph {
   val findNearestStationWithBikes: FindNearestStationWithBikes
   val findNearestStationWithSlots: FindNearestStationWithSlots
   val evaluateSavedPlaceAlerts: EvaluateSavedPlaceAlerts
+  val cityRegistry: CityRegistry
 
   // Session / city / assistant use cases
   val bootstrapSession: BootstrapSession
@@ -77,8 +78,10 @@ interface SharedGraph {
   val geoApi: GeoApi
   val geoSearchUseCase: GeoSearchUseCase
   val googlePlacesApi: GooglePlacesApi
+  val logger: Logger
   val reverseGeocodeUseCase: ReverseGeocodeUseCase
   val routeLauncher: RouteLauncher
+  val remoteConfigProvider: RemoteConfigProvider
   val watchSyncBridge: WatchSyncBridge
 
   /**

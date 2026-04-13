@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.geo
 
 import com.gcaguilar.biciradar.core.GoogleMapsApiKey
 import com.gcaguilar.biciradar.core.GooglePlacesApi
+import com.gcaguilar.biciradar.core.Logger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -22,6 +23,7 @@ class GeoSearchUseCase(
   private val geoApi: GeoApi,
   private val googlePlacesApi: GooglePlacesApi,
   @param:GoogleMapsApiKey private val googleMapsApiKey: String?,
+  private val logger: Logger = com.gcaguilar.biciradar.core.NoOpLogger,
 ) {
   private val inFlight = mutableMapOf<String, Mutex>()
   private val inFlightLock = Mutex()
@@ -72,8 +74,10 @@ class GeoSearchUseCase(
           throw cancelled
         } catch (error: Throwable) {
           lastError = error
-          println(
-            "[GeoSearch] datosbizi search failed for '$candidateQuery': ${error::class.simpleName} ${error.message}",
+          logger.warn(
+            "GeoSearch",
+            "datosbizi search failed for '$candidateQuery': ${error::class.simpleName} ${error.message}",
+            error,
           )
           continue
         }
@@ -110,8 +114,10 @@ class GeoSearchUseCase(
     originalError: Throwable,
   ): List<GeoResult>? {
     val apiKey = googleMapsApiKey?.takeIf { it.isNotBlank() } ?: return null
-    println(
-      "[GeoSearch] Falling back to Google Places for '$query' after ${originalError::class.simpleName}: ${originalError.message}",
+    logger.warn(
+      "GeoSearch",
+      "Falling back to Google Places for '$query' after ${originalError::class.simpleName}: ${originalError.message}",
+      originalError,
     )
 
     val predictions =

@@ -57,10 +57,12 @@ kotlin {
     commonTest.dependencies {
       implementation(libs.coroutines.test)
       implementation(libs.kotlin.test)
+      implementation(project(":shared:test-utils"))
       implementation(libs.turbine)
     }
     androidMain.dependencies {
       implementation(libs.coroutines.play.services)
+      implementation(libs.firebase.config)
       implementation(libs.ktor.client.okhttp)
       implementation(libs.play.services.location)
       implementation(libs.play.services.wearable)
