@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.mobileui.usecases
 
+import com.gcaguilar.biciradar.core.FavoritesPeerSyncCapability
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.FavoritesPeerSyncCapability
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState

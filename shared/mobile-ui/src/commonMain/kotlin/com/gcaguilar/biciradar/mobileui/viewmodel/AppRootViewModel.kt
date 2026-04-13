@@ -120,6 +120,7 @@ internal class AppRootViewModel(
 
   private val refreshJob = MutableStateFlow<Job?>(null)
   private val emptyStateRetryJob = MutableStateFlow<Job?>(null)
+
   /** Job de polling de actualizaciones. Se gestiona aquí para no contaminar [AppRootRuntimeState]. */
   private var updatePollJob: Job? = null
 
@@ -447,9 +448,10 @@ internal class AppRootViewModel(
   }
 
   private fun startUpdatePolling() {
-    updatePollJob = engagementCoordinator.startUpdatePolling(viewModelScope) { banner ->
-      _uiState.update { it.copy(topUpdateBanner = banner) }
-    }
+    updatePollJob =
+      engagementCoordinator.startUpdatePolling(viewModelScope) { banner ->
+        _uiState.update { it.copy(topUpdateBanner = banner) }
+      }
   }
 
   private fun maybeShowFeedbackNudge(isOnboardingCompleted: Boolean) {

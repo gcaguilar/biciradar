@@ -260,7 +260,10 @@ class FavoritesViewModelTest {
     }
 }
 
-private class FakeFavoritesRepo : FavoritesRepository, FavoritesPeerSyncCapability, FavoritesCategorizationCapability {
+private class FakeFavoritesRepo :
+  FavoritesRepository,
+  FavoritesPeerSyncCapability,
+  FavoritesCategorizationCapability {
   override val favoriteIds = MutableStateFlow(emptySet<String>())
   override val homeStationId = MutableStateFlow<String?>(null)
   override val workStationId = MutableStateFlow<String?>(null)

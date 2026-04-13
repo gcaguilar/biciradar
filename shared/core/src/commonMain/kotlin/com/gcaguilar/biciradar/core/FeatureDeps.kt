@@ -64,6 +64,7 @@ interface SessionFeatureDeps {
   val updateSelectedCity: UpdateSelectedCity
   val resolveAssistantIntent: ResolveAssistantIntent
   val assistantIntentResolver: AssistantIntentResolver
+
   /** Expuesto únicamente para late-wiring de IOSRouteLauncher/DesktopRouteLauncher. */
   val settingsRepository: SettingsRepository
   val observeSettings: ObserveSettings

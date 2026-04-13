@@ -178,8 +178,8 @@ internal class EngagementCoordinator(
   fun startUpdatePolling(
     scope: CoroutineScope,
     updateUiState: (TopUpdateBanner) -> Unit,
-  ): Job {
-    return scope.launch {
+  ): Job =
+    scope.launch {
       while (true) {
         delay(3_000)
         val status = appLifecycleUseCase.checkForUpdate()
@@ -189,7 +189,6 @@ internal class EngagementCoordinator(
         }
       }
     }
-  }
 }
 
 @Inject

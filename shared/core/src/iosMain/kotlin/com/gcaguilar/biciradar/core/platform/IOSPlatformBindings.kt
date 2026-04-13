@@ -18,13 +18,13 @@ import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
+import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
-import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
