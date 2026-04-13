@@ -60,7 +60,8 @@ internal data class AppRootRuntimeState(
   val pendingRefreshSignals: Int = 0,
   // Estados runtime de sub-módulos (antes en ViewModels separados)
   val updateCheckInFlight: Boolean = false,
-  val updatePollJob: Job? = null,
+  // NOTA: updatePollJob se gestiona como campo privado en AppRootViewModel para
+  // mantener AppRootRuntimeState como dato puro (Job tiene identidad mutable).
   val suppressGuidedOnboardingForNavigation: Boolean = false,
   val onboardingLaunchSource: OnboardingLaunchSource = OnboardingLaunchSource.Automatic,
 )
@@ -119,6 +120,8 @@ internal class AppRootViewModel(
 
   private val refreshJob = MutableStateFlow<Job?>(null)
   private val emptyStateRetryJob = MutableStateFlow<Job?>(null)
+  /** Job de polling de actualizaciones. Se gestiona aquí para no contaminar [AppRootRuntimeState]. */
+  private var updatePollJob: Job? = null
 
   init {
     observeRepositories()
@@ -132,7 +135,7 @@ internal class AppRootViewModel(
    * con child ViewModels instanciados manualmente.
    */
   override fun onCleared() {
-    runtimeState.value.updatePollJob?.cancel()
+    updatePollJob?.cancel()
     refreshJob.value?.cancel()
     emptyStateRetryJob.value?.cancel()
     super.onCleared()
@@ -444,7 +447,7 @@ internal class AppRootViewModel(
   }
 
   private fun startUpdatePolling() {
-    engagementCoordinator.startUpdatePolling(viewModelScope, runtimeState) { banner ->
+    updatePollJob = engagementCoordinator.startUpdatePolling(viewModelScope) { banner ->
       _uiState.update { it.copy(topUpdateBanner = banner) }
     }
   }

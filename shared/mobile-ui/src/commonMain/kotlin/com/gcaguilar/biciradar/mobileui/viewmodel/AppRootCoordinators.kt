@@ -169,25 +169,26 @@ internal class EngagementCoordinator(
     }
   }
 
+  /**
+   * Inicia el polling de actualizaciones descargadas.
+   *
+   * Devuelve el [Job] para que el llamador (AppRootViewModel) lo gestione
+   * en su propio ciclo de vida en lugar de almacenarlo en el estado.
+   */
   fun startUpdatePolling(
     scope: CoroutineScope,
-    runtimeState: MutableStateFlow<AppRootRuntimeState>,
     updateUiState: (TopUpdateBanner) -> Unit,
   ): Job {
-    runtimeState.value.updatePollJob?.cancel()
-    return scope
-      .launch {
-        while (true) {
-          delay(3_000)
-          val status = appLifecycleUseCase.checkForUpdate()
-          if (status is UpdateAvailabilityState.Downloaded) {
-            updateUiState(TopUpdateBanner.Downloaded(status.versionName))
-            break
-          }
+    return scope.launch {
+      while (true) {
+        delay(3_000)
+        val status = appLifecycleUseCase.checkForUpdate()
+        if (status is UpdateAvailabilityState.Downloaded) {
+          updateUiState(TopUpdateBanner.Downloaded(status.versionName))
+          break
         }
-      }.also { job ->
-        runtimeState.update { it.copy(updatePollJob = job) }
       }
+    }
   }
 }
 
