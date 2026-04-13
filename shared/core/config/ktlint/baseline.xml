@@ -693,17 +693,6 @@
     <file name="src/commonMain/kotlin/com/gcaguilar/biciradar/core/local/StationEntity.kt">
         <error line="5" column="1" source="standard:no-wildcard-imports" />
     </file>
-    <file name="src/iosMain/kotlin/com/gcaguilar/biciradar/core/platform/IOSPlatformBindings.kt">
-        <error line="354" column="121" source="standard:max-line-length" />
-        <error line="499" column="13" source="standard:property-naming" />
-        <error line="500" column="13" source="standard:property-naming" />
-        <error line="501" column="13" source="standard:property-naming" />
-        <error line="502" column="13" source="standard:property-naming" />
-        <error line="503" column="13" source="standard:property-naming" />
-        <error line="504" column="13" source="standard:property-naming" />
-        <error line="505" column="13" source="standard:property-naming" />
-        <error line="506" column="13" source="standard:property-naming" />
-    </file>
     <file name="src/watchosMain/kotlin/com/gcaguilar/biciradar/core/platform/WatchOSPlatformBindings.kt">
         <error line="201" column="13" source="standard:property-naming" />
         <error line="202" column="13" source="standard:property-naming" />

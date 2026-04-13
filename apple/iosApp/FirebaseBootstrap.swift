@@ -27,7 +27,7 @@ private final class AppleCrashlyticsBridge: NSObject, IOSCrashlyticsBridge {
     static let shared = AppleCrashlyticsBridge()
 
     func reportNonFatal(throwable: KotlinThrowable) {
-        Crashlytics.crashlytics().record(error: throwable)
+        Crashlytics.crashlytics().record(error: throwable as! NSError)
     }
 }
 

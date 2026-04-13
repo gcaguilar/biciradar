@@ -1,5 +1,6 @@
 import BiziMobileUi
 import Foundation
+import WidgetKit
 
 struct BiziStationSnapshot: Identifiable, Hashable {
     let id: String
@@ -137,7 +138,7 @@ actor BiziAppleGraph {
 
     func refreshWidgetData() async throws {
         let success = try await graph.refreshWidgetDataUseCase.execute()
-        guard success else { return }
+        guard success.boolValue else { return }
         await MainActor.run {
             WidgetCenter.shared.reloadAllTimelines()
         }
