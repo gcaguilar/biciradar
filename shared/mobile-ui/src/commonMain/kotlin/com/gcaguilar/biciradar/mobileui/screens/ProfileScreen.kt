@@ -78,8 +78,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
 import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.RadiusSelectionButton
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
+import com.gcaguilar.biciradar.mobileui.components.buttons.RadiusSelectionButton
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState

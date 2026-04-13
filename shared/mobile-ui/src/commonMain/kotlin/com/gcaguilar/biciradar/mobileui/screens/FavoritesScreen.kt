@@ -121,6 +121,7 @@ import com.gcaguilar.biciradar.mobileui.components.favorites.StatusPill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
 import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
+import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesUiState
@@ -433,7 +434,7 @@ internal fun FavoritesScreen(
                   cityId = savedPlaceAlertsCityId,
                   stationName = station.name,
                   categoryId = category.id,
-                  categoryLabel = category.label,
+                  categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
                 ),
               )
             }
@@ -445,7 +446,7 @@ internal fun FavoritesScreen(
             }
           SavedPlaceCard(
             mobilePlatform = mobilePlatform,
-            title = category.label,
+            title = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
             station = assignedStation,
             assignmentCandidate = assignmentCandidate,
             onAssignCandidate = { onAssignCandidateToCategory(category.id) },
@@ -463,7 +464,7 @@ internal fun FavoritesScreen(
                         cityId = savedPlaceAlertsCityId,
                         stationName = s.name,
                         categoryId = category.id,
-                        categoryLabel = category.label,
+                        categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
                       )
                     alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
                   }
@@ -481,7 +482,7 @@ internal fun FavoritesScreen(
                     cityId = savedPlaceAlertsCityId,
                     stationName = s.name,
                     categoryId = category.id,
-                    categoryLabel = category.label,
+                    categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
                   ),
                 ) != null
               } == true,
@@ -520,7 +521,11 @@ internal fun FavoritesScreen(
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically,
                 ) {
-                  Text(category.label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                  Text(
+                    favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                  )
                   Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,

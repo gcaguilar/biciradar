@@ -159,7 +159,7 @@ internal fun BiziNavHost(
     composable<Screen.Trip>(
       deepLinks = listOf(navDeepLink<Screen.Trip>(basePath = "${DeepLinks.BASE_URI}trip")),
     ) { backStackEntry ->
-      val route = backStackEntry.decodeTripRoute()
+      val route = backStackEntry.decodeTripRoute(platformBindings.logger)
       val viewModel = metroViewModel<TripViewModel>(key = "trip")
       var lastAppliedPrefilledQuery by remember { mutableStateOf<String?>(null) }
       if (route.prefilledQuery != null && route.prefilledQuery != lastAppliedPrefilledQuery) {
@@ -222,7 +222,7 @@ internal fun BiziNavHost(
       BiziMobileAppContent.TripMapPickerScreenContent(
         viewModel = viewModel,
         mobilePlatform = mobilePlatform,
-        pickerMode = backStackEntry.decodeTripMapPickerMode(),
+        pickerMode = backStackEntry.decodeTripMapPickerMode(platformBindings.logger),
         isMapReady = isMapReady,
         paddingValues = PaddingValues(),
         onBack = remember(navController) { { navController.popBackStack() } },
@@ -303,19 +303,27 @@ internal fun BiziNavHost(
   }
 }
 
-private fun NavBackStackEntry.decodeTripRoute(): Screen.Trip =
+private fun NavBackStackEntry.decodeTripRoute(logger: com.gcaguilar.biciradar.core.Logger): Screen.Trip =
   runCatching { toRoute<Screen.Trip>() }
     .getOrElse { error ->
-      println("[BiziNavHost] Falling back to default trip route after decode failure: ${error.message}")
+      logger.warn(
+        "BiziNavHost",
+        "Falling back to default trip route after decode failure: ${error.message}",
+        error,
+      )
       Screen.Trip()
     }
 
-private fun NavBackStackEntry.decodeTripMapPickerMode(): TripMapPickerMode =
+private fun NavBackStackEntry.decodeTripMapPickerMode(logger: com.gcaguilar.biciradar.core.Logger): TripMapPickerMode =
   runCatching { toRoute<Screen.TripMapPicker>().mode }
     .mapCatching { rawMode ->
       TripMapPickerMode.entries.firstOrNull { it.name == rawMode }
         ?: error("Unknown trip map picker mode: $rawMode")
     }.getOrElse { error ->
-      println("[BiziNavHost] Falling back to station picker mode after decode failure: ${error.message}")
+      logger.warn(
+        "BiziNavHost",
+        "Falling back to station picker mode after decode failure: ${error.message}",
+        error,
+      )
       TripMapPickerMode.Station
     }

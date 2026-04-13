@@ -114,6 +114,13 @@ class SettingsRepositoryImpl(
   private val persistMutex = Mutex()
   private val readModel = MutableStateFlow(normalizeLegacyOnboardingForMigration(SettingsSnapshot()))
   private var bootstrapped = false
+  private val legacyMigrator =
+    SettingsLegacyMigrator(
+      fileSystem = fileSystem,
+      json = json,
+      storageDirectoryProvider = storageDirectoryProvider,
+      persistToDatabase = ::persistToDatabase,
+    )
 
   init {
     val db = database
@@ -299,8 +306,6 @@ class SettingsRepositoryImpl(
   override suspend fun isCityConfirmedPersisted(): Boolean =
     readPersistedSnapshot()?.onboardingChecklist?.cityConfirmed ?: false
 
-  private fun settingsPath() = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
-
   private suspend fun mutatePersist(transform: (SettingsSnapshot) -> SettingsSnapshot) {
     if (!bootstrapped) bootstrap()
     persistMutex.withLock {
@@ -313,10 +318,10 @@ class SettingsRepositoryImpl(
 
   private fun readForMutation(): SettingsSnapshot {
     readFromDatabase()?.let { return normalizeLegacyOnboardingForMigration(it) }
-    readFromFile()?.let { legacy ->
+    legacyMigrator.readLegacySnapshot()?.let { legacy ->
       if (database != null) {
         val migrated = persistToDatabase(legacy)
-        if (migrated) deleteLegacyFile()
+        if (migrated) legacyMigrator.deleteLegacyFile()
       }
       return normalizeLegacyOnboardingForMigration(legacy)
     }
@@ -325,25 +330,16 @@ class SettingsRepositoryImpl(
 
   private fun writeSnapshot(snapshot: SettingsSnapshot) {
     if (database != null) {
-      val persisted = persistToDatabase(snapshot)
-      if (persisted) deleteLegacyFile()
+      persistToDatabase(snapshot)
+      legacyMigrator.deleteLegacyFile()
     } else {
       persistToFile(snapshot)
     }
   }
 
   private fun readPersistedSnapshot(): SettingsSnapshot? {
-    if (database == null) return readFromFile()
-    val dbSnapshot = readFromDatabase()
-    if (dbSnapshot != null) {
-      deleteLegacyFile()
-      return dbSnapshot
-    }
-
-    val legacySnapshot = readFromFile() ?: return null
-    val migrated = persistToDatabase(legacySnapshot)
-    if (migrated) deleteLegacyFile()
-    return legacySnapshot
+    if (database == null) return legacyMigrator.readLegacySnapshot()
+    return legacyMigrator.migrateIfNeeded(readFromDatabase())
   }
 
   private fun readFromDatabase(): SettingsSnapshot? {
@@ -359,14 +355,6 @@ class SettingsRepositoryImpl(
     }.getOrNull()
   }
 
-  private fun readFromFile(): SettingsSnapshot? {
-    val path = settingsPath()
-    if (!fileSystem.exists(path)) return null
-    return runCatching {
-      json.decodeFromString<SettingsSnapshot>(fileSystem.read(path) { readUtf8() })
-    }.getOrNull()
-  }
-
   private fun persistToDatabase(snapshot: SettingsSnapshot): Boolean {
     val db = database ?: return false
     return runCatching {
@@ -375,18 +363,11 @@ class SettingsRepositoryImpl(
   }
 
   private fun persistToFile(snapshot: SettingsSnapshot) {
-    val path = settingsPath()
+    val path = "${storageDirectoryProvider.rootPath}/settings.json".toPath()
     val dir = path.parent ?: return
     fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(snapshot))
-    }
-  }
-
-  private fun deleteLegacyFile() {
-    val path = settingsPath()
-    if (fileSystem.exists(path)) {
-      runCatching { fileSystem.delete(path) }
     }
   }
 }

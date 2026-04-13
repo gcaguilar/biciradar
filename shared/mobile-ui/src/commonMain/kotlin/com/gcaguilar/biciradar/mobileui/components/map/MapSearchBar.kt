@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapSearchStationOrAddress
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.StationSearchField
+import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import org.jetbrains.compose.resources.stringResource
 
 /**

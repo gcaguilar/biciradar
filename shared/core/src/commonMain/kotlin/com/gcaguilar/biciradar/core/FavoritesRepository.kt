@@ -87,6 +87,13 @@ class FavoritesRepositoryImpl(
   private val mutableCategories = MutableStateFlow(systemCategories())
   private val mutableStationCategory = MutableStateFlow<Map<String, String>>(emptyMap())
   private var bootstrapped = false
+  private val legacyMigrator =
+    FavoritesLegacyMigrator(
+      fileSystem = fileSystem,
+      json = json,
+      storageDirectoryProvider = storageDirectoryProvider,
+      persistToDatabase = ::persistToDatabase,
+    )
 
   init {
     database?.let { db ->
@@ -271,40 +278,9 @@ class FavoritesRepositoryImpl(
 
   override fun currentWorkStationId(): String? = mutableWorkStationId.value
 
-  private fun favoritesPath() = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
-
   private fun readPersistedSnapshot(): FavoritesSyncSnapshot {
-    if (database == null) return readLocalSnapshot()
-    val dbSnapshot = readDatabaseSnapshot() ?: FavoritesSyncSnapshot()
-    val legacySnapshot = readLocalSnapshot()
-    val dbHasData = dbSnapshot.hasData()
-    val legacyHasData = legacySnapshot.hasData()
-
-    if (!legacyHasData) return dbSnapshot
-    if (dbHasData) {
-      if (dbSnapshot == legacySnapshot) {
-        deleteLegacyFile()
-      }
-      return dbSnapshot
-    }
-
-    val migrated = persistToDatabase(legacySnapshot)
-    if (migrated) {
-      deleteLegacyFile()
-      return legacySnapshot
-    }
-    return legacySnapshot
-  }
-
-  private fun readLocalSnapshot(): FavoritesSyncSnapshot {
-    val snapshotPath = favoritesPath()
-    return if (fileSystem.exists(snapshotPath)) {
-      runCatching {
-        json.decodeFromString<FavoritesSyncSnapshot>(fileSystem.read(snapshotPath) { readUtf8() })
-      }.getOrDefault(FavoritesSyncSnapshot())
-    } else {
-      FavoritesSyncSnapshot()
-    }
+    if (database == null) return legacyMigrator.readLegacySnapshot()
+    return legacyMigrator.migrateIfNeeded(readDatabaseSnapshot())
   }
 
   private fun currentSnapshot(): FavoritesSyncSnapshot =
@@ -338,10 +314,10 @@ class FavoritesRepositoryImpl(
     val hasChanged = mergedSnapshot != existingSnapshot
     if (hasChanged) {
       persist(mergedSnapshot)
-    } else if (!bootstrapped && mergedSnapshot.hasData()) {
+    } else if (!bootstrapped && mergedSnapshot.hasLegacyData()) {
       persist(mergedSnapshot)
     }
-    if (mergedSnapshot.hasData() && (hasChanged || !bootstrapped || pushIfChanged)) {
+    if (mergedSnapshot.hasLegacyData() && (hasChanged || !bootstrapped || pushIfChanged)) {
       withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
         watchSyncBridge.pushFavorites(mergedSnapshot)
       }
@@ -365,13 +341,9 @@ class FavoritesRepositoryImpl(
 
   private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
     if (database != null) {
-      val persisted = persistToDatabase(snapshot)
-      if (persisted) {
-        deleteLegacyFile()
-      } else {
-        applySnapshot(snapshot)
-        persistToLocalFile(snapshot)
-      }
+      persistToDatabase(snapshot)
+      legacyMigrator.deleteLegacyFile()
+      applySnapshot(snapshot)
       return
     }
     applySnapshot(snapshot)
@@ -452,18 +424,11 @@ class FavoritesRepositoryImpl(
   }
 
   private fun persistToLocalFile(snapshot: FavoritesSyncSnapshot) {
-    val path = favoritesPath()
+    val path = "${storageDirectoryProvider.rootPath}/favorites.json".toPath()
     val dir = path.parent ?: return
     fileSystem.createDirectories(dir)
     fileSystem.write(path) {
       writeUtf8(json.encodeToString(snapshot))
-    }
-  }
-
-  private fun deleteLegacyFile() {
-    val path = favoritesPath()
-    if (fileSystem.exists(path)) {
-      runCatching { fileSystem.delete(path) }
     }
   }
 }
@@ -494,7 +459,7 @@ private fun FavoritesSyncSnapshot.normalized(): FavoritesSyncSnapshot {
   )
 }
 
-private fun FavoritesSyncSnapshot.hasData(): Boolean =
+internal fun FavoritesSyncSnapshot.hasLegacyData(): Boolean =
   stationCategory.isNotEmpty() ||
     favoriteIds.isNotEmpty() ||
     homeStationId != null ||
@@ -502,9 +467,9 @@ private fun FavoritesSyncSnapshot.hasData(): Boolean =
 
 private fun systemCategories(): List<FavoriteCategory> =
   listOf(
-    FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
-    FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
-    FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
+    FavoriteCategory(FavoriteCategoryIds.FAVORITE, systemCategoryLabel(FavoriteCategoryIds.FAVORITE), isSystem = true),
+    FavoriteCategory(FavoriteCategoryIds.HOME, systemCategoryLabel(FavoriteCategoryIds.HOME), isSystem = true),
+    FavoriteCategory(FavoriteCategoryIds.WORK, systemCategoryLabel(FavoriteCategoryIds.WORK), isSystem = true),
   )
 
 private fun mergeCategories(

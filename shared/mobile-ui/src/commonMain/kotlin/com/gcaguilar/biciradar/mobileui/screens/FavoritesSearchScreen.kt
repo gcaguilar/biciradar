@@ -66,6 +66,7 @@ import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
+import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import org.jetbrains.compose.resources.stringResource
@@ -106,12 +107,12 @@ internal fun FavoritesSearchScreen(
       categories
         .ifEmpty {
           listOf(
-            FavoriteCategory(FavoriteCategoryIds.HOME, "Casa", isSystem = true),
-            FavoriteCategory(FavoriteCategoryIds.WORK, "Trabajo", isSystem = true),
-            FavoriteCategory(FavoriteCategoryIds.FAVORITE, "Favorita", isSystem = true),
+            FavoriteCategory(FavoriteCategoryIds.HOME, FavoriteCategoryIds.HOME, isSystem = true),
+            FavoriteCategory(FavoriteCategoryIds.WORK, FavoriteCategoryIds.WORK, isSystem = true),
+            FavoriteCategory(FavoriteCategoryIds.FAVORITE, FavoriteCategoryIds.FAVORITE, isSystem = true),
           )
         }.distinctBy(FavoriteCategory::id)
-        .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.label.lowercase() }))
+        .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.id.lowercase() }))
     }
 
   Scaffold(
@@ -225,7 +226,7 @@ private fun SearchResultCard(
   val selectCategoryLabel = stringResource(Res.string.favoritesSearchSelectCategory)
   val currentCategoryLabel =
     currentCategoryId?.let { categoryId ->
-      categoryLabel(
+      favoriteCategoryLabel(
         categoryId = categoryId,
         fallback = categories.firstOrNull { it.id == categoryId }?.label ?: categoryId,
         homeLabel = homeLabel,
@@ -305,7 +306,7 @@ private fun SearchResultCard(
               text = {
                 Text(
                   text =
-                    categoryLabel(
+                    favoriteCategoryLabel(
                       categoryId = category.id,
                       fallback = category.label,
                       homeLabel = homeLabel,
