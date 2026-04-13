@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,7 +37,9 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.PositionIndicator
 import androidx.wear.compose.material3.ProgressIndicatorDefaults
+import androidx.wear.compose.material3.Scaffold
 import androidx.wear.compose.material3.Text
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -259,146 +262,151 @@ private fun WearDashboard(
       workStationId = workStationId,
     )
 
-  ScalingLazyColumn(
-    modifier = Modifier.fillMaxSize(),
-    state = listState,
-    horizontalAlignment = Alignment.CenterHorizontally,
+  Scaffold(
+    positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
   ) {
-    monitoringSurface?.let { monitoring ->
+    ScalingLazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      state = listState,
+      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 32.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      monitoringSurface?.let { monitoring ->
+        item {
+          WearMonitoringSurfaceCard(
+            state = monitoring,
+            onClick = { onOpenSurfaceStation(monitoring.stationId) },
+          )
+        }
+        monitoring.alternativeText?.let {
+          activeMonitoring.alternativeStationId?.let { alternativeStationId ->
+            item {
+              Button(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                onClick = { onOpenSurfaceStation(alternativeStationId) },
+                colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+              ) {
+                Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+              }
+            }
+          }
+        }
+        item {
+          Button(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            onClick = onStopMonitoring,
+            colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+          ) {
+            Text("Detener monitorización", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+          }
+        }
+      }
+
       item {
-        WearMonitoringSurfaceCard(
-          state = monitoring,
-          onClick = { onOpenSurfaceStation(monitoring.stationId) },
+        WearFavoriteSurfaceCard(
+          state = favoriteSurface,
+          onClick = { favoriteSurface.stationId?.let(onOpenSurfaceStation) },
         )
       }
-      monitoring.alternativeText?.let {
-        activeMonitoring.alternativeStationId?.let { alternativeStationId ->
-          item {
+
+      if (favoriteSurface.kind == WearFavoriteSurfaceKind.Favorite &&
+        activeMonitoring == null &&
+        favoriteSurface.stationId != null
+      ) {
+        item {
+          Button(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            onClick = { onStartMonitoringFavorite(favoriteSurface.stationId) },
+            colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
+          ) {
+            Text("Monitorizar favorita", style = MaterialTheme.typography.labelSmall, color = Color.White)
+          }
+        }
+      }
+
+      if (savedPlaceSurfaces.isNotEmpty()) {
+        item {
+          Text(
+            text = "Trayectos",
+            style = MaterialTheme.typography.labelSmall,
+            color = WearPrimary,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(top = 4.dp),
+          )
+        }
+        items(savedPlaceSurfaces, key = { it.stationId }) { savedPlace ->
+          WearSavedPlaceSurfaceCard(
+            state = savedPlace,
+            onClick = { onRouteToSavedPlace(savedPlace.stationId) },
+          )
+        }
+      }
+
+      item {
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          WearTab.entries.forEach { tab ->
+            val isSelected = currentTab == tab
             Button(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-              onClick = { onOpenSurfaceStation(alternativeStationId) },
-              colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+              modifier = Modifier.weight(1f),
+              onClick = { onTabSelected(tab) },
+              colors =
+                ButtonDefaults.buttonColors(
+                  containerColor = if (isSelected) WearPrimary else WearSurface,
+                ),
             ) {
-              Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+              Text(
+                text = tab.name,
+                style = MaterialTheme.typography.labelSmall,
+                color = WearOnSurface,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+              )
             }
           }
         }
       }
+
+      val displayedStations =
+        when (currentTab) {
+          WearTab.Cercanas -> nearbyStations
+          WearTab.Favoritas -> favoriteStations
+        }
+
+      if (displayedStations.isEmpty()) {
+        item {
+          Text(
+            text =
+              when (currentTab) {
+                WearTab.Cercanas -> "No hay estaciones cercanas."
+                WearTab.Favoritas -> "No tienes favoritas aún."
+              },
+            color = WearNeutral,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(16.dp),
+          )
+        }
+      } else {
+        items(displayedStations, key = { it.id }) { station ->
+          WearStationRow(
+            station = station,
+            isFavorite = station.id in favoriteIds,
+            savedPlaceLabel = wearSavedPlaceLabel(station.id, homeStationId, workStationId),
+            onClick = { onStationSelected(station) },
+          )
+        }
+      }
+
       item {
+        Spacer(Modifier.height(4.dp))
         Button(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-          onClick = onStopMonitoring,
+          onClick = onRefresh,
           colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
         ) {
-          Text("Detener monitorización", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+          Text("↻  Actualizar", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
         }
-      }
-    }
-
-    item {
-      WearFavoriteSurfaceCard(
-        state = favoriteSurface,
-        onClick = { favoriteSurface.stationId?.let(onOpenSurfaceStation) },
-      )
-    }
-
-    if (favoriteSurface.kind == WearFavoriteSurfaceKind.Favorite &&
-      activeMonitoring == null &&
-      favoriteSurface.stationId != null
-    ) {
-      item {
-        Button(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-          onClick = { onStartMonitoringFavorite(favoriteSurface.stationId) },
-          colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
-        ) {
-          Text("Monitorizar favorita", style = MaterialTheme.typography.labelSmall, color = Color.White)
-        }
-      }
-    }
-
-    if (savedPlaceSurfaces.isNotEmpty()) {
-      item {
-        Text(
-          text = "Trayectos",
-          style = MaterialTheme.typography.labelSmall,
-          color = WearPrimary,
-          fontWeight = FontWeight.SemiBold,
-          modifier = Modifier.padding(top = 4.dp),
-        )
-      }
-      items(savedPlaceSurfaces, key = { it.stationId }) { savedPlace ->
-        WearSavedPlaceSurfaceCard(
-          state = savedPlace,
-          onClick = { onRouteToSavedPlace(savedPlace.stationId) },
-        )
-      }
-    }
-
-    item {
-      Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-      ) {
-        WearTab.entries.forEach { tab ->
-          val isSelected = currentTab == tab
-          Button(
-            modifier = Modifier.weight(1f),
-            onClick = { onTabSelected(tab) },
-            colors =
-              ButtonDefaults.buttonColors(
-                containerColor = if (isSelected) WearPrimary else WearSurface,
-              ),
-          ) {
-            Text(
-              text = tab.name,
-              style = MaterialTheme.typography.labelSmall,
-              color = WearOnSurface,
-              fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            )
-          }
-        }
-      }
-    }
-
-    val displayedStations =
-      when (currentTab) {
-        WearTab.Cercanas -> nearbyStations
-        WearTab.Favoritas -> favoriteStations
-      }
-
-    if (displayedStations.isEmpty()) {
-      item {
-        Text(
-          text =
-            when (currentTab) {
-              WearTab.Cercanas -> "No hay estaciones cercanas."
-              WearTab.Favoritas -> "No tienes favoritas aún."
-            },
-          color = WearNeutral,
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.bodySmall,
-          modifier = Modifier.padding(16.dp),
-        )
-      }
-    } else {
-      items(displayedStations, key = { it.id }) { station ->
-        WearStationRow(
-          station = station,
-          isFavorite = station.id in favoriteIds,
-          savedPlaceLabel = wearSavedPlaceLabel(station.id, homeStationId, workStationId),
-          onClick = { onStationSelected(station) },
-        )
-      }
-    }
-
-    item {
-      Spacer(Modifier.height(4.dp))
-      Button(
-        onClick = onRefresh,
-        colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
-      ) {
-        Text("↻  Actualizar", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
       }
     }
   }
@@ -711,118 +719,123 @@ private fun WearStationDetail(
       currentMonitoring?.isActive == true -> "Monitorizar aquí"
       else -> "Monitorizar huecos"
     }
-  ScalingLazyColumn(
-    modifier = Modifier.fillMaxSize(),
-    state = listState,
-    horizontalAlignment = Alignment.CenterHorizontally,
+  Scaffold(
+    positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
   ) {
-    item {
-      Text(
-        text = station.name,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        textAlign = TextAlign.Center,
-        color = WearOnSurface,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-      )
-    }
-    item {
-      Text(
-        text = station.address,
-        style = MaterialTheme.typography.bodySmall,
-        color = WearNeutral,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-      )
-    }
-    savedPlaceLabel?.let { label ->
+    ScalingLazyColumn(
+      modifier = Modifier.fillMaxSize(),
+      state = listState,
+      contentPadding = PaddingValues(horizontal = 16.dp, vertical = 32.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
       item {
         Text(
-          text = label,
-          style = MaterialTheme.typography.labelSmall,
+          text = station.name,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center,
+          color = WearOnSurface,
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        )
+      }
+      item {
+        Text(
+          text = station.address,
+          style = MaterialTheme.typography.bodySmall,
+          color = WearNeutral,
+          textAlign = TextAlign.Center,
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        )
+      }
+      savedPlaceLabel?.let { label ->
+        item {
+          Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = WearNeutral,
+          )
+        }
+      }
+      item {
+        Text(
+          text = station.surfaceStatusTextShort(),
+          style = MaterialTheme.typography.bodySmall,
+          color = wearStatusColor(station.surfaceStatusLevel()),
+        )
+      }
+      item {
+        Text(
+          text = formatDistance(station.distanceMeters),
+          style = MaterialTheme.typography.bodySmall,
           color = WearNeutral,
         )
       }
-    }
-    item {
-      Text(
-        text = station.surfaceStatusTextShort(),
-        style = MaterialTheme.typography.bodySmall,
-        color = wearStatusColor(station.surfaceStatusLevel()),
-      )
-    }
-    item {
-      Text(
-        text = formatDistance(station.distanceMeters),
-        style = MaterialTheme.typography.bodySmall,
-        color = WearNeutral,
-      )
-    }
-    item {
-      Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(vertical = 4.dp),
-      ) {
-        WearStatBadge(
-          label = "Bicis",
-          value = station.bikesAvailable,
-          positiveColor = WearPrimary,
-        )
-        WearStatBadge(
-          label = "Huecos",
-          value = station.slotsFree,
-          positiveColor = WearSecondary,
-        )
+      item {
+        Row(
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          modifier = Modifier.padding(vertical = 4.dp),
+        ) {
+          WearStatBadge(
+            label = "Bicis",
+            value = station.bikesAvailable,
+            positiveColor = WearPrimary,
+          )
+          WearStatBadge(
+            label = "Huecos",
+            value = station.slotsFree,
+            positiveColor = WearSecondary,
+          )
+        }
       }
-    }
-    item {
-      Button(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        onClick = onRoute,
-        colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
-      ) {
-        Text("Abrir ruta", style = MaterialTheme.typography.labelSmall, color = Color.White)
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onRoute,
+          colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
+        ) {
+          Text("Abrir ruta", style = MaterialTheme.typography.labelSmall, color = Color.White)
+        }
       }
-    }
-    item {
-      Button(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        onClick = onToggleMonitoring,
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = if (isMonitoringThisStation) WearSurface else WearPrimary,
-          ),
-      ) {
-        Text(
-          text = monitoringActionLabel,
-          style = MaterialTheme.typography.labelSmall,
-          color = if (isMonitoringThisStation) WearNeutral else Color.White,
-        )
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onToggleMonitoring,
+          colors =
+            ButtonDefaults.buttonColors(
+              containerColor = if (isMonitoringThisStation) WearSurface else WearPrimary,
+            ),
+        ) {
+          Text(
+            text = monitoringActionLabel,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isMonitoringThisStation) WearNeutral else Color.White,
+          )
+        }
       }
-    }
-    item {
-      Button(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        onClick = onToggleFavorite,
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = if (isFavorite) WearSurface else WearSecondary.copy(alpha = 0.25f),
-          ),
-      ) {
-        Text(
-          text = if (isFavorite) "★ Quitar favorita" else "☆ Añadir favorita",
-          style = MaterialTheme.typography.labelSmall,
-          color = if (isFavorite) WearNeutral else WearSecondary,
-        )
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onToggleFavorite,
+          colors =
+            ButtonDefaults.buttonColors(
+              containerColor = if (isFavorite) WearSurface else WearSecondary.copy(alpha = 0.25f),
+            ),
+        ) {
+          Text(
+            text = if (isFavorite) "★ Quitar favorita" else "☆ Añadir favorita",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isFavorite) WearNeutral else WearSecondary,
+          )
+        }
       }
-    }
-    item {
-      Button(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        onClick = onBack,
-        colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
-      ) {
-        Text("← Volver", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onBack,
+          colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
+        ) {
+          Text("← Volver", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+        }
       }
     }
   }

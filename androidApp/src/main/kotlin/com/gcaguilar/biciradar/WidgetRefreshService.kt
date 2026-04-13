@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
  * por lo que es seguro arrancarlo antes de que el usuario haya abierto la app.
  */
 class WidgetRefreshService : Service() {
-
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val notificationManager by lazy {
     getSystemService(NotificationManager::class.java)
@@ -40,8 +39,9 @@ class WidgetRefreshService : Service() {
   private var refreshJob: Job? = null
 
   private val refreshWidgetDataUseCase: RefreshWidgetDataUseCase?
-    get() = runCatching { BiziAppGraph.graph }.getOrNull()
-      ?.let { graph -> graph.refreshWidgetDataUseCase }
+    get() =
+      runCatching { BiziAppGraph.graph }
+          .getOrNull()?.refreshWidgetDataUseCase
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -128,8 +128,7 @@ class WidgetRefreshService : Service() {
         android.R.drawable.ic_menu_close_clear_cancel,
         getString(R.string.notification_action_stop),
         stopPending,
-      )
-      .build()
+      ).build()
   }
 
   private fun ensureNotificationChannel() {
