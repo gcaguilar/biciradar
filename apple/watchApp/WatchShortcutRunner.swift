@@ -60,7 +60,7 @@ struct WatchShortcutRunner {
         do {
             let favorites = try await graph.favoriteStations(favoriteIds: favoriteIds)
             guard !favorites.isEmpty else {
-                return "Todavía no tengo favoritas sincronizadas desde el iPhone."
+                return BiziDialogMessage.noFavoritesWatch
             }
             let summary = favorites
                 .prefix(3)
@@ -68,98 +68,98 @@ struct WatchShortcutRunner {
                 .joined(separator: ", ")
             return "Tus favoritas en el reloj son \(summary)."
         } catch {
-            return "No he podido consultar tus favoritas en el reloj."
+            return BiziDialogMessage.favoritesErrorWatch
         }
     }
 
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
-                return "No he encontrado esa estación para enviar la ruta al iPhone."
+                return BiziDialogMessage.routeNotFoundWatch
             }
             let requested = await routeRequester(station.id)
             return requested
                 ? "He pedido al iPhone que abra la ruta a \(station.name)."
-                : "No he podido contactar con el iPhone ahora mismo."
+                : BiziDialogMessage.routeNoContact
         } catch {
-            return "No he podido preparar esa ruta desde el reloj."
+            return BiziDialogMessage.routeErrorWatch
         }
     }
 
     func routeToStationDialog(stationId: String) async -> String {
         do {
             guard let station = try await graph.station(stationId: stationId) else {
-                return "No he encontrado esa estación para enviar la ruta al iPhone."
+                return BiziDialogMessage.routeNotFoundWatch
             }
             let requested = await routeRequester(station.id)
             return requested
                 ? "He pedido al iPhone que abra la ruta a \(station.name)."
-                : "No he podido contactar con el iPhone ahora mismo."
+                : BiziDialogMessage.routeNoContact
         } catch {
-            return "No he podido preparar esa ruta desde el reloj."
+            return BiziDialogMessage.routeErrorWatch
         }
     }
 
     func stationStatusDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar el estado de esa estación en el reloj."
+            value: { station in stationStatusText(name: station.name, bikesAvailable: station.bikesAvailable, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationStateErrorWatch
         )
     }
 
     func stationStatusDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar el estado de esa estación en el reloj."
+            value: { station in stationStatusText(name: station.name, bikesAvailable: station.bikesAvailable, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationStateErrorWatch
         )
     }
 
     func stationBikeCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar las bicis de esa estación en el reloj."
+            value: { station in stationBikeCountText(name: station.name, bikesAvailable: station.bikesAvailable) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationBikeErrorWatch
         )
     }
 
     func stationBikeCountDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar las bicis de esa estación en el reloj."
+            value: { station in stationBikeCountText(name: station.name, bikesAvailable: station.bikesAvailable) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationBikeErrorWatch
         )
     }
 
     func stationSlotCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar los huecos de esa estación en el reloj."
+            value: { station in stationSlotCountText(name: station.name, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationSlotErrorWatch
         )
     }
 
     func stationSlotCountDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en el reloj.",
-            errorMessage: "No he podido consultar los huecos de esa estación en el reloj."
+            value: { station in stationSlotCountText(name: station.name, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationSlotErrorWatch
         )
     }
 
     func savedPlaceStatusDialog(savedPlace: String) async -> String {
         await stationDetailDialog(
             stationName: savedPlace,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación guardada en el reloj.",
-            errorMessage: "No he podido consultar esa estación guardada en el reloj."
+            value: { station in stationStatusText(name: station.name, bikesAvailable: station.bikesAvailable, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFoundWatch,
+            errorMessage: BiziDialogMessage.stationStateErrorWatch
         )
     }
 

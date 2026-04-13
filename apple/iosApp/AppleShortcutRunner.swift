@@ -57,7 +57,7 @@ struct AppleShortcutRunner {
         do {
             let favorites = try await graph.favoriteStations()
             guard !favorites.isEmpty else {
-                return "Abre Bici Radar. Todavía no tienes estaciones favoritas guardadas."
+                return BiziDialogMessage.noFavoritesConfigured
             }
             let summary = favorites
                 .prefix(3)
@@ -65,7 +65,7 @@ struct AppleShortcutRunner {
                 .joined(separator: ", ")
             return "Tus favoritas en Bici Radar. Tienes \(favorites.count) en total: \(summary)."
         } catch {
-            return "Abre Bici Radar para mostrar tus favoritas."
+            return BiziDialogMessage.favoritesError
         }
     }
 
@@ -104,78 +104,74 @@ struct AppleShortcutRunner {
             await saveLaunchRequest(MobileLaunchRequestMonitorStation(stationId: favorite.id))
             return "Preparando la monitorización de tu estación favorita en Bici Radar."
         } catch {
-            return "No he podido preparar esa monitorización ahora mismo."
+            return BiziDialogMessage.monitorError
         }
     }
 
     func changeCityDialog(cityId: String) async -> String {
         guard let city = City.companion.fromId(id: cityId) else {
-            return "No he encontrado esa ciudad en Bici Radar."
+            return BiziDialogMessage.cityNotFound
         }
         do {
             try await graph.setSelectedCity(city)
             await saveLaunchRequest(MobileLaunchRequestSelectCity(cityId: city.id))
             return "Cambiando a \(city.displayName) en Bici Radar."
         } catch {
-            return "No he podido cambiar de ciudad ahora mismo."
+            return BiziDialogMessage.cityChangeError
         }
     }
 
     func stationStatusDialog(stationName: String?) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in
-                "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres."
-            },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar el estado de esa estación."
+            value: { station in stationStatusText(name: station.name, bikesAvailable: station.bikesAvailable, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationStateError
         )
     }
 
     func stationStatusDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in
-                "\(station.name) tiene \(station.bikesAvailable) bicis disponibles y \(station.slotsFree) huecos libres."
-            },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar el estado de esa estación."
+            value: { station in stationStatusText(name: station.name, bikesAvailable: station.bikesAvailable, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationStateError
         )
     }
 
     func stationBikeCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar las bicis de esa estación."
+            value: { station in stationBikeCountText(name: station.name, bikesAvailable: station.bikesAvailable) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationBikeError
         )
     }
 
     func stationBikeCountDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in "\(station.name) tiene \(station.bikesAvailable) bicis disponibles." },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar las bicis de esa estación."
+            value: { station in stationBikeCountText(name: station.name, bikesAvailable: station.bikesAvailable) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationBikeError
         )
     }
 
     func stationSlotCountDialog(stationName: String) async -> String {
         await stationDetailDialog(
             stationName: stationName,
-            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar los huecos de esa estación."
+            value: { station in stationSlotCountText(name: station.name, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationSlotError
         )
     }
 
     func stationSlotCountDialog(stationId: String) async -> String {
         await stationDetailDialog(
             stationId: stationId,
-            value: { station in "\(station.name) tiene \(station.slotsFree) huecos libres." },
-            missingMessage: "No he encontrado esa estación en Bici Radar.",
-            errorMessage: "No he podido consultar los huecos de esa estación."
+            value: { station in stationSlotCountText(name: station.name, slotsFree: station.slotsFree) },
+            missingMessage: BiziDialogMessage.stationNotFound,
+            errorMessage: BiziDialogMessage.stationSlotError
         )
     }
 
@@ -198,24 +194,24 @@ struct AppleShortcutRunner {
     func routeToStationDialog(stationName: String) async -> String {
         do {
             guard let station = try await graph.station(matching: stationName) else {
-                return "No he encontrado esa estación en Bici Radar."
+                return BiziDialogMessage.routeNotFound
             }
             await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
             return "Preparando ruta hacia \(station.name) en Bici Radar."
         } catch {
-            return "No he podido preparar esa ruta ahora mismo."
+            return BiziDialogMessage.routeError
         }
     }
 
     func routeToStationDialog(stationId: String) async -> String {
         do {
             guard let station = try await graph.station(stationId: stationId) else {
-                return "No he encontrado esa estación en Bici Radar."
+                return BiziDialogMessage.routeNotFound
             }
             await saveLaunchRequest(MobileLaunchRequestRouteToStation(stationId: station.id))
             return "Preparando ruta hacia \(station.name) en Bici Radar."
         } catch {
-            return "No he podido preparar esa ruta ahora mismo."
+            return BiziDialogMessage.routeError
         }
     }
 
