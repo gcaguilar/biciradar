@@ -6,6 +6,7 @@ import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.NoOpPermissionPrompter
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.RouteLauncher
@@ -53,6 +54,7 @@ class NearbyViewModelTest {
           favoritesRepository = favoritesRepository,
           settingsRepository = settingsRepository,
           routeLauncher = NearbyNoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
         )
 
       val station = nearbyStation(id = "s1", distanceMeters = 150)
@@ -95,6 +97,7 @@ class NearbyViewModelTest {
           favoritesRepository = favoritesRepository,
           settingsRepository = settingsRepository,
           routeLauncher = routeLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
         )
       val station = nearbyStation(id = "station-route", distanceMeters = 250)
 
@@ -120,6 +123,7 @@ class NearbyViewModelTest {
           favoritesRepository = NearbyTestFavoritesRepository(),
           settingsRepository = NearbyTestSettingsRepository(),
           routeLauncher = NearbyNoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
         )
 
       viewModel.setActive(true)
@@ -140,6 +144,7 @@ class NearbyViewModelTest {
           favoritesRepository = NearbyTestFavoritesRepository(),
           settingsRepository = NearbyTestSettingsRepository(),
           routeLauncher = NearbyNoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
         )
       stationsRepository.state.value =
         StationsState(
@@ -181,8 +186,6 @@ private class NearbyTestFavoritesRepository : FavoritesRepository {
   val toggledIds = mutableListOf<String>()
 
   override suspend fun bootstrap() = Unit
-
-  override suspend fun syncFromPeer() = Unit
 
   override suspend fun toggle(stationId: String) {
     toggledIds += stationId

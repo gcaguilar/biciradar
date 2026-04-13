@@ -9,6 +9,7 @@ import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.LocalNotifier
+import com.gcaguilar.biciradar.core.NoOpPermissionPrompter
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
@@ -75,6 +76,7 @@ class SearchRadiusViewModelTest {
           favoritesRepository = FakeFavoritesRepository(),
           settingsRepository = settingsRepository,
           routeLauncher = NoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
         )
 
       advanceUntilIdle()
@@ -301,8 +303,6 @@ private class FakeFavoritesRepository : FavoritesRepository {
   var clearAllCalls: Int = 0
 
   override suspend fun bootstrap() = Unit
-
-  override suspend fun syncFromPeer() = Unit
 
   override suspend fun toggle(stationId: String) = Unit
 

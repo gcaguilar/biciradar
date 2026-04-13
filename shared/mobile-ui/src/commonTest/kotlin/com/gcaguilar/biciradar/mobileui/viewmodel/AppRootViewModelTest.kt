@@ -65,6 +65,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
 
@@ -93,7 +94,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
@@ -146,6 +146,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
 
@@ -174,7 +175,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
@@ -220,6 +220,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
 
@@ -248,7 +249,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
@@ -291,6 +291,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
 
@@ -319,7 +320,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
@@ -366,6 +366,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
       val settingsAggregationUseCase =
@@ -390,7 +391,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
@@ -436,6 +436,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
       val settingsAggregationUseCase =
@@ -460,7 +461,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
@@ -514,6 +514,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
       val settingsAggregationUseCase =
@@ -538,7 +539,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
@@ -583,6 +583,7 @@ class AppRootViewModelTest {
         StartupUseCase(
           settingsRepository = settingsRepository,
           favoritesRepository = favoritesRepository,
+          favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
       val settingsAggregationUseCase =
@@ -607,7 +608,6 @@ class AppRootViewModelTest {
         AppInitializer(
           startupUseCase = startupUseCase,
           appLifecycleUseCase = appLifecycleUseCase,
-          savedPlaceAlertsRepository = AppRootFakeSavedPlaceAlertsRepository(),
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
