@@ -10,6 +10,19 @@ struct BiziStationSnapshot: Identifiable, Hashable {
     let distanceMeters: Int
 }
 
+// MARK: - BiziAppleGraph
+
+/// Actor que gestiona el grafo de dependencias KMP para iOS.
+///
+/// **Antes** este actor accedía al grafo KMP mediante reflexión dinámica
+/// (`NSClassFromString`, `NSSelectorFromString`, `unsafeBitCast`), lo que
+/// convertía cambios de API en fallos en runtime y dejaba la integración sin
+/// contrato compilable.
+///
+/// **Ahora** el grafo se crea una sola vez a través de `MobileGraphFactory` y
+/// todas las operaciones se delegan a `BiziAppleFacade` — una facade KMP con
+/// tipos estáticos. Cualquier cambio de API rompe la compilación de Xcode,
+/// no el runtime.
 actor BiziAppleGraph {
     static let shared = BiziAppleGraph()
 
@@ -18,180 +31,98 @@ actor BiziAppleGraph {
         remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge
     )
 
-    private lazy var graphObject: NSObject = {
-        let factoryClass = NSClassFromString("BMUMobileGraphFactory") as? NSObject.Type
-        let factory = factoryClass?.perform(NSSelectorFromString("shared"))?.takeUnretainedValue()
-        let graph = factory?.perform(
-            NSSelectorFromString("createPlatformBindings:"),
-            with: bindings
-        )?.takeUnretainedValue()
-
-        guard let graphObject = graph as? NSObject else {
-            preconditionFailure("No se pudo crear MobileGraphFactory desde BiziMobileUi.")
-        }
-
-        if let typedGraph = graphObject as? any SharedGraph {
-            bindings.onGraphCreated(graph: typedGraph)
-        }
-        return graphObject
+    /// Grafo KMP creado una sola vez. Se inicializa de forma lazy al primer acceso.
+    private lazy var graph: any SharedGraph = {
+        let graph = MobileGraphFactory.shared.create(platformBindings: bindings)
+        bindings.onGraphCreated(graph: graph)
+        return graph
     }()
-    private var hasBootstrapped = false
+
+    /// Facade tipada. Se construye la primera vez que se llama a `ensureFacade()`.
+    private var _facade: BiziAppleFacade?
 
     // MARK: - Public API
 
     func refreshData(forceRefresh: Bool = false) async throws {
-        try await ensureBootstrapped()
-        let useCase = graphProperty("refreshStationDataIfNeeded")
-        let _: SurfaceSnapshotBundle? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeForceRefresh:completionHandler:",
-            boolArg: forceRefresh
-        )
+        try await refreshIfNeeded(forceRefresh: forceRefresh)
     }
 
     func currentSelectedCity() async throws -> City {
-        try await ensureBootstrapped()
-        let useCase = graphProperty("getCurrentCity")
-        return try invokeSyncObject(on: useCase, selector: "execute")
+        let facade = try await ensureFacade()
+        return facade.currentSelectedCity()
     }
 
     func setSelectedCity(_ city: City) async throws {
-        try await ensureBootstrapped()
-        let useCase = graphProperty("updateSelectedCity")
-        try await invokeAsyncError(
-            on: useCase,
-            selector: "executeCity:completionHandler:",
-            arg: city
-        )
+        let facade = try await ensureFacade()
+        try await facade.setSelectedCity(city: city)
     }
 
     func nearestStation() async throws -> BiziStationSnapshot? {
-        try await refreshData()
-        let useCase = graphProperty("findNearestStation")
-        let station: Station? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeWithCompletionHandler:"
-        )
+        try await refreshIfNeeded()
+        let station = try await ensureFacade().nearestStation()
         return station.map(snapshot(from:))
     }
 
     func nearestStationWithBikes() async throws -> BiziStationSnapshot? {
-        try await refreshData()
-        let useCase = graphProperty("findNearestStationWithBikes")
-        let station: Station? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeWithCompletionHandler:"
-        )
+        try await refreshIfNeeded()
+        let station = try await ensureFacade().nearestStationWithBikes()
         return station.map(snapshot(from:))
     }
 
     func nearestStationWithSlots() async throws -> BiziStationSnapshot? {
-        try await refreshData()
-        let useCase = graphProperty("findNearestStationWithSlots")
-        let station: Station? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeWithCompletionHandler:"
-        )
+        try await refreshIfNeeded()
+        let station = try await ensureFacade().nearestStationWithSlots()
         return station.map(snapshot(from:))
     }
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {
-        try await refreshData()
-        let useCase = graphProperty("getFavoriteStationList")
-        let stations: [Station] = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeWithCompletionHandler:"
-        ) ?? []
+        try await refreshIfNeeded()
+        let stations = try await ensureFacade().favoriteStations()
         return stations.map(snapshot(from:))
     }
 
     func suggestedStations(limit: Int = 8) async throws -> [BiziStationSnapshot] {
-        try await refreshData()
-        let useCase = graphProperty("getSuggestedStations")
-        let stations: [Station] = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeLimit:completionHandler:",
-            int32Arg: Int32(limit)
-        ) ?? []
+        try await refreshIfNeeded()
+        let stations = try await ensureFacade().suggestedStations(limit: Int32(limit))
         return stations.map(snapshot(from:))
     }
 
     func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [BiziStationSnapshot] {
-        try await refreshData()
-        let useCase = graphProperty("filterStationsByQuery")
-        let stations: [Station] = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeQuery:completionHandler:",
-            arg: query as NSString
-        ) ?? []
-        if stations.isEmpty {
-            return try await suggestedStations(limit: limit)
-        }
-        return Array(stations.prefix(limit).map(snapshot(from:)))
+        try await refreshIfNeeded()
+        let stations = try await ensureFacade().stationSuggestions(query: query, limit: Int32(limit))
+        return stations.map(snapshot(from:))
     }
 
     func station(matching query: String?) async throws -> BiziStationSnapshot? {
-        try await refreshData()
-        let useCase = graphProperty("findStationMatchingQuery")
-        let station: Station? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeQuery:completionHandler:",
-            arg: query as NSString?
-        )
+        try await refreshIfNeeded()
+        let station = try await ensureFacade().stationMatchingQuery(query: query)
         return station.map(snapshot(from:))
     }
 
     func station(stationId: String) async throws -> BiziStationSnapshot? {
-        try await refreshData()
-        let useCase = graphProperty("findStationById")
-        let station: Station? = try invokeSyncObject(
-            on: useCase,
-            selector: "executeStationId:",
-            arg: stationId as NSString
-        )
+        try await refreshIfNeeded()
+        let facade = try await ensureFacade()
+        let station = facade.stationById(stationId: stationId)
         return station.map(snapshot(from:))
     }
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
-        try await refreshData()
-        let useCase = graphProperty("resolveAssistantIntent")
-        let resolution: AssistantResolution? = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeAction:completionHandler:",
-            arg: action as AnyObject
-        )
-        if let resolution {
-            return resolution
-        }
-        throw AppleGraphError.emptyAssistantResponse
+        try await refreshIfNeeded()
+        return try await ensureFacade().assistantResponse(action: action)
     }
 
     func routeToStation(named query: String?) async throws -> BiziStationSnapshot? {
-        guard let station = try await station(matching: query) else { return nil }
-        let useCase = graphProperty("findStationById")
-        let target: Station? = try invokeSyncObject(
-            on: useCase,
-            selector: "executeStationId:",
-            arg: station.id as NSString
-        )
-        if let target,
-           let graph = graphObject as? any SharedGraph {
-            graph.routeLauncher.launch(station: target)
-        }
-        return station
+        let facade = try await ensureFacade()
+        let station = try await facade.routeToStation(query: query)
+        return station.map(snapshot(from:))
     }
 
     func deliverSavedPlaceAlertNotificationsIfNeeded() async throws {
-        try await ensureBootstrapped()
-        let useCase = graphProperty("evaluateSavedPlaceAlerts")
-        let triggers: [SavedPlaceAlertTrigger] = try await invokeAsyncObject(
-            on: useCase,
-            selector: "executeNowEpoch:completionHandler:",
-            int64Arg: Int64(Date().timeIntervalSince1970 * 1000)
-        ) ?? []
+        let facade = try await ensureFacade()
+        let triggers = try await facade.evaluateSavedPlaceAlerts()
         guard !triggers.isEmpty else { return }
-        let hasNotificationPermission = try await bindings.localNotifier.hasPermission().boolValue
-        guard hasNotificationPermission else { return }
+        let hasPermission = try await bindings.localNotifier.hasPermission().boolValue
+        guard hasPermission else { return }
         for trigger in triggers {
             await MainActor.run {
                 BiziNotificationService.shared.postSavedPlaceAlert(
@@ -205,164 +136,18 @@ actor BiziAppleGraph {
 
     // MARK: - Private helpers
 
-    private func ensureBootstrapped() async throws {
-        guard !hasBootstrapped else { return }
-        let useCase = graphProperty("bootstrapSession")
-        try await invokeAsyncError(
-            on: useCase,
-            selector: "executeWithCompletionHandler:"
-        )
-        hasBootstrapped = true
+    private func ensureFacade() async throws -> BiziAppleFacade {
+        if let existing = _facade { return existing }
+        let newFacade = BiziAppleFacade.companion.create(graph: graph)
+        try await newFacade.bootstrap()
+        _facade = newFacade
+        return newFacade
     }
 
-    private func graphProperty(_ name: String) -> NSObject {
-        guard let value = graphObject.perform(NSSelectorFromString(name))?.takeUnretainedValue() as? NSObject else {
-            preconditionFailure("No se pudo resolver la propiedad '\(name)' del grafo iOS.")
-        }
-        return value
-    }
-
-    private func invokeSyncObject<T>(
-        on target: NSObject,
-        selector: String
-    ) throws -> T {
-        let sel = NSSelectorFromString(selector)
-        guard let value = target.perform(sel)?.takeUnretainedValue() as? T else {
-            throw AppleGraphError.missingGraphBinding(selector)
-        }
-        return value
-    }
-
-    private func invokeSyncObject<T>(
-        on target: NSObject,
-        selector: String,
-        arg: AnyObject?
-    ) throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        return target.perform(sel, with: arg)?.takeUnretainedValue() as? T
-    }
-
-    private func invokeAsyncError(
-        on target: NSObject,
-        selector: String
-    ) async throws {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, @escaping (NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            method(target, sel) { error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-            }
-        }
-    }
-
-    private func invokeAsyncError(
-        on target: NSObject,
-        selector: String,
-        arg: AnyObject
-    ) async throws {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, AnyObject, @escaping (NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            method(target, sel, arg) { error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-            }
-        }
-    }
-
-    private func invokeAsyncObject<T>(
-        on target: NSObject,
-        selector: String
-    ) async throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, @escaping (AnyObject?, NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T?, Error>) in
-            method(target, sel) { value, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: value as? T)
-                }
-            }
-        }
-    }
-
-    private func invokeAsyncObject<T>(
-        on target: NSObject,
-        selector: String,
-        arg: AnyObject?
-    ) async throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, AnyObject?, @escaping (AnyObject?, NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T?, Error>) in
-            method(target, sel, arg) { value, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: value as? T)
-                }
-            }
-        }
-    }
-
-    private func invokeAsyncObject<T>(
-        on target: NSObject,
-        selector: String,
-        boolArg: Bool
-    ) async throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, Bool, @escaping (AnyObject?, NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T?, Error>) in
-            method(target, sel, boolArg) { value, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: value as? T)
-                }
-            }
-        }
-    }
-
-    private func invokeAsyncObject<T>(
-        on target: NSObject,
-        selector: String,
-        int32Arg: Int32
-    ) async throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, Int32, @escaping (AnyObject?, NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T?, Error>) in
-            method(target, sel, int32Arg) { value, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: value as? T)
-                }
-            }
-        }
-    }
-
-    private func invokeAsyncObject<T>(
-        on target: NSObject,
-        selector: String,
-        int64Arg: Int64
-    ) async throws -> T? {
-        let sel = NSSelectorFromString(selector)
-        typealias Method = @convention(c) (AnyObject, Selector, Int64, @escaping (AnyObject?, NSError?) -> Void) -> Void
-        let method = unsafeBitCast(target.method(for: sel), to: Method.self)
-        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<T?, Error>) in
-            method(target, sel, int64Arg) { value, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: value as? T)
-                }
-            }
-        }
+    /// Refresca datos de estaciones (ignora el snapshot devuelto por la facade).
+    private func refreshIfNeeded(forceRefresh: Bool = false) async throws {
+        let facade = try await ensureFacade()
+        _ = try await facade.refreshData(forceRefresh: forceRefresh)
     }
 
     private func snapshot(from station: Station) -> BiziStationSnapshot {
@@ -376,6 +161,8 @@ actor BiziAppleGraph {
         )
     }
 }
+
+// MARK: - Errors
 
 enum AppleGraphError: LocalizedError {
     case emptyAssistantResponse
