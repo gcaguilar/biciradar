@@ -11,6 +11,7 @@
 		02B036610C3FFBF56B5E9661 /* BiciRadarWatchWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8CA65F3C3A1404B9783F42 /* BiciRadarWatchWidgets.swift */; };
 		076783DCA69B74B1CB23A910 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */; };
 		07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */; };
+		094F33A9590778EE38A1991B /* BiziSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ED889F69B12E0E79E964DC /* BiziSyncModels.swift */; };
 		098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */; };
 		0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
 		0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */; };
@@ -76,6 +77,7 @@
 		CB6A75AC78CE318E123F732E /* WatchSurfaceFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C312C0B096247B686E40CE /* WatchSurfaceFormattingTests.swift */; };
 		D39D1E161D597545C7B424A5 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */; };
 		DB6D3BEFC3555383C39614F9 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E55A8CFDB2BED84333A7249 /* WatchConnectivity.framework */; };
+		DBD2F44F4A7808C3EC1FF65D /* BiziShortcutDialogHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */; };
 		DE5D9DE6223430D70D5C6921 /* BiziAppleGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */; };
 		DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FDBEC6252D80DCAD5A52992E /* FirebaseCore */; };
 		DF7BB768E6D83FFAD266C996 /* BiziShortcutDialogHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */; };
@@ -817,6 +819,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				36336293276C532E7E55729E /* BiciRadarWatchApp.swift in Sources */,
+				DBD2F44F4A7808C3EC1FF65D /* BiziShortcutDialogHelpers.swift in Sources */,
+				094F33A9590778EE38A1991B /* BiziSyncModels.swift in Sources */,
 				820C221928C2861F1170BF3E /* BiziWatchGraph.swift in Sources */,
 				78A02D7CA5A442669E153C73 /* BiziWatchShortcuts.swift in Sources */,
 				3556ADEA6795351F69D284A4 /* WatchDashboardModel.swift in Sources */,

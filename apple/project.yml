@@ -231,6 +231,8 @@ targets:
     sources:
       - path: watchApp
       - path: watchShared
+      - path: sharedApple/BiziSyncModels.swift
+      - path: sharedApple/BiziShortcutDialogHelpers.swift
     dependencies:
       - sdk: SwiftUI.framework
       - sdk: WatchConnectivity.framework
