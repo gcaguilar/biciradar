@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.LocationProvider
+import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.LogLevel
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
@@ -83,6 +84,7 @@ private const val IOS_APP_GROUP_IDENTIFIER = "group.com.gcaguilar.biciradar"
 class IOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
   private val remoteConfigBridge: IOSRemoteConfigBridge? = null,
+  private val crashlyticsBridge: IOSCrashlyticsBridge? = null,
 ) : PlatformBindings {
   private val fileSystemInstance: FileSystem = FileSystem.SYSTEM
   private val storageDirectoryProviderInstance = IOSStorageDirectoryProvider()
@@ -110,7 +112,8 @@ class IOSPlatformBindings(
   override val permissionPrompter: PermissionPrompter = IOSPermissionPrompterImpl()
   override val externalLinks: ExternalLinks = IOSExternalLinksImpl(appConfiguration)
   override val reviewPrompter: ReviewPrompter = IOSReviewPrompterImpl(appConfiguration)
-  override val logger: Logger = AppleLogger()
+  override val logger: Logger = AppleLogger(crashlyticsBridge)
+  override val crashlyticsReporter: CrashlyticsReporter = IOSCrashlyticsReporter(crashlyticsBridge)
   override val remoteConfigProvider: RemoteConfigProvider =
     IOSRemoteConfigProvider(remoteConfigBridge, logger)
   override val appUpdatePrompter: AppUpdatePrompter =
@@ -168,7 +171,9 @@ class IOSPlatformBindings(
   }
 }
 
-private class AppleLogger : Logger {
+private class AppleLogger(
+  private val crashlyticsBridge: IOSCrashlyticsBridge?,
+) : Logger {
   override fun log(
     level: LogLevel,
     tag: String,
@@ -177,6 +182,21 @@ private class AppleLogger : Logger {
   ) {
     val suffix = throwable?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
     platform.Foundation.NSLog("[$tag][${level.name}] $message$suffix")
+    if (level == LogLevel.Error && throwable != null) {
+      crashlyticsBridge?.reportNonFatal(throwable)
+    }
+  }
+}
+
+interface IOSCrashlyticsBridge {
+  fun reportNonFatal(throwable: Throwable)
+}
+
+private class IOSCrashlyticsReporter(
+  private val bridge: IOSCrashlyticsBridge?,
+) : CrashlyticsReporter {
+  override fun reportNonFatal(throwable: Throwable) {
+    bridge?.reportNonFatal(throwable)
   }
 }
 
@@ -526,7 +546,7 @@ private class IOSWatchSyncBridge : WatchSyncBridge {
         )
       if (!updated) {
         val msg = errorPtr.value?.localizedDescription ?: "unknown error"
-        AppleLogger().warn("IOSWatchSyncBridge", "updateApplicationContext failed: $msg")
+        AppleLogger(crashlyticsBridge = null).warn("IOSWatchSyncBridge", "updateApplicationContext failed: $msg")
       }
     }
   }

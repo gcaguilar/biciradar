@@ -6,6 +6,7 @@ import FirebaseRemoteConfig
 
 enum FirebaseBootstrap {
     static let remoteConfigBridge: IOSRemoteConfigBridge = AppleFirebaseRemoteConfigBridge.shared
+    static let crashlyticsBridge: IOSCrashlyticsBridge = AppleCrashlyticsBridge.shared
 
     static func configureIfAvailable() {
         guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else { return }
@@ -19,6 +20,14 @@ enum FirebaseBootstrap {
         Crashlytics.crashlytics().setCustomValue("ios", forKey: "platform")
         Crashlytics.crashlytics().setCustomValue(Bundle.main.bundleIdentifier ?? "unknown", forKey: "bundle_id")
         Crashlytics.crashlytics().setCustomValue(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown", forKey: "app_version")
+    }
+}
+
+private final class AppleCrashlyticsBridge: NSObject, IOSCrashlyticsBridge {
+    static let shared = AppleCrashlyticsBridge()
+
+    func reportNonFatal(throwable: KotlinThrowable) {
+        Crashlytics.crashlytics().record(error: throwable)
     }
 }
 

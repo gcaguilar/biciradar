@@ -28,7 +28,8 @@ actor BiziAppleGraph {
 
     private let bindings = IOSPlatformBindings(
         appConfiguration: AppConfiguration.companion.createDefault(),
-        remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge
+        remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge,
+        crashlyticsBridge: FirebaseBootstrap.crashlyticsBridge
     )
 
     /// Grafo KMP creado una sola vez. Se inicializa de forma lazy al primer acceso.
