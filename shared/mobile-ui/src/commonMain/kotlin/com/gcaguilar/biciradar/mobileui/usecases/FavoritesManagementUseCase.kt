@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui.usecases
 
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.FavoriteCategory
+import com.gcaguilar.biciradar.core.FavoritesCategorizationCapability
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.combine
 @Inject
 class FavoritesManagementUseCase(
   private val favoritesRepository: FavoritesRepository,
+  private val favoritesCategories: FavoritesCategorizationCapability,
   private val stationsRepository: StationsRepository,
   private val settingsRepository: SettingsRepository,
 ) {
@@ -32,8 +34,8 @@ class FavoritesManagementUseCase(
   val workStationId: StateFlow<String?> = favoritesRepository.workStationId
   val stationsState: StateFlow<StationsState> = stationsRepository.state
   val selectedCity: StateFlow<City> = settingsRepository.selectedCity
-  val categories: StateFlow<List<FavoriteCategory>> = favoritesRepository.categories
-  val stationCategory: StateFlow<Map<String, String>> = favoritesRepository.stationCategory
+  val categories: StateFlow<List<FavoriteCategory>> = favoritesCategories.categories
+  val stationCategory: StateFlow<Map<String, String>> = favoritesCategories.stationCategory
 
   suspend fun setHomeStationId(stationId: String?) {
     favoritesRepository.setHomeStationId(stationId)
@@ -52,18 +54,18 @@ class FavoritesManagementUseCase(
     label: String,
     isSystem: Boolean = false,
   ) {
-    favoritesRepository.upsertCategory(id, label, isSystem)
+    favoritesCategories.upsertCategory(id, label, isSystem)
   }
 
   suspend fun removeCategory(categoryId: String) {
-    favoritesRepository.removeCategory(categoryId)
+    favoritesCategories.removeCategory(categoryId)
   }
 
   suspend fun assignStationToCategory(
     stationId: String,
     categoryId: String?,
   ) {
-    favoritesRepository.assignStationToCategory(stationId, categoryId)
+    favoritesCategories.assignStationToCategory(stationId, categoryId)
   }
 
   fun stationById(stationId: String): Station? = stationsRepository.stationById(stationId)

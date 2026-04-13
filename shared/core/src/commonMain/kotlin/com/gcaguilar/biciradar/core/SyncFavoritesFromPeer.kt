@@ -7,13 +7,15 @@ import dev.zacsweers.metro.SingleIn
 /**
  * Synchronizes favorites from a paired device (e.g. phone ↔ watch).
  * No-op on platforms where watch sync is not available.
+ *
+ * Uses [FavoritesPeerSyncCapability] to express the minimum required contract.
  */
 @SingleIn(AppScope::class)
 @Inject
 class SyncFavoritesFromPeer(
-  private val favoritesRepository: FavoritesRepository,
+  private val favoritesPeerSync: FavoritesPeerSyncCapability,
 ) {
   suspend fun execute() {
-    favoritesRepository.syncFromPeer()
+    favoritesPeerSync.syncFromPeer()
   }
 }

@@ -23,39 +23,33 @@ import okio.Path.Companion.toPath
 
 private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
 
+/**
+ * Contrato base de favoritos.
+ *
+ * Cubre las operaciones de lectura y mutación fundamentales que todas las
+ * implementaciones deben proveer: estado reactivo de favoritos, home/work,
+ * toggle y limpieza.
+ *
+ * Las capacidades opcionales se declaran en interfaces hermanas:
+ * - [FavoritesCategorizationCapability] — gestión de categorías personalizadas
+ * - [FavoritesPeerSyncCapability]       — sincronización con el reloj (WatchConnectivity)
+ *
+ * **Identidad de flows**: todas las propiedades `StateFlow` deben ser referencias
+ * estables (el mismo objeto en cada acceso). Los getters que creaban un nuevo
+ * `MutableStateFlow` por acceso han sido eliminados del interfaz base.
+ */
 interface FavoritesRepository {
   val favoriteIds: StateFlow<Set<String>>
   val homeStationId: StateFlow<String?>
   val workStationId: StateFlow<String?>
-  val categories: StateFlow<List<FavoriteCategory>> get() = MutableStateFlow(systemCategories())
-  val stationCategory: StateFlow<Map<String, String>> get() = MutableStateFlow(emptyMap())
 
   suspend fun bootstrap()
-
-  suspend fun syncFromPeer() = Unit
 
   suspend fun toggle(stationId: String)
 
   suspend fun setHomeStationId(stationId: String?)
 
   suspend fun setWorkStationId(stationId: String?)
-
-  suspend fun upsertCategory(
-    id: String,
-    label: String,
-    isSystem: Boolean = false,
-  ) = Unit
-
-  suspend fun removeCategory(categoryId: String) = Unit
-
-  suspend fun assignStationToCategory(
-    stationId: String,
-    categoryId: String?,
-  ) = Unit
-
-  fun currentCategories(): List<FavoriteCategory> = categories.value
-
-  fun currentStationCategory(stationId: String): String? = stationCategory.value[stationId]
 
   suspend fun clearAll()
 
@@ -67,11 +61,61 @@ interface FavoritesRepository {
 }
 
 /**
+ * Capacidad opcional de sincronización con el reloj.
+ *
+ * Implementada por plataformas con WatchConnectivity (iOS, Android).
+ * En watchOS y desktop se usa una implementación no-op explícita.
+ */
+interface FavoritesPeerSyncCapability {
+  /** Sincroniza el estado de favoritos con el dispositivo emparejado. */
+  suspend fun syncFromPeer()
+}
+
+/**
+ * Capacidad opcional de categorización de estaciones favoritas.
+ *
+ * Las implementaciones que no soporten categorías no deben extender este
+ * interface; los consumidores deben hacer cast explícito o usar inyección
+ * tipada para acceder a esta funcionalidad.
+ *
+ * **Identidad de flows**: [categories] y [stationCategory] deben ser
+ * referencias estables entre accesos.
+ */
+interface FavoritesCategorizationCapability {
+  val categories: StateFlow<List<FavoriteCategory>>
+  val stationCategory: StateFlow<Map<String, String>>
+
+  fun currentCategories(): List<FavoriteCategory> = categories.value
+
+  fun currentStationCategory(stationId: String): String? = stationCategory.value[stationId]
+
+  suspend fun upsertCategory(
+    id: String,
+    label: String,
+    isSystem: Boolean = false,
+  )
+
+  suspend fun removeCategory(categoryId: String)
+
+  suspend fun assignStationToCategory(
+    stationId: String,
+    categoryId: String?,
+  )
+}
+
+/**
  * Implementación de FavoritesRepository.
  * Registrado automáticamente en el grafo vía @ContributesBinding.
+ *
+ * Implementa las tres interfaces de favoritos:
+ * - [FavoritesRepository]               — contrato base
+ * - [FavoritesPeerSyncCapability]        — sincronización con reloj
+ * - [FavoritesCategorizationCapability] — categorías personalizadas
  */
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
+@ContributesBinding(AppScope::class, boundType = FavoritesPeerSyncCapability::class)
+@ContributesBinding(AppScope::class, boundType = FavoritesCategorizationCapability::class)
 @Inject
 class FavoritesRepositoryImpl(
   private val fileSystem: FileSystem,
@@ -80,7 +124,7 @@ class FavoritesRepositoryImpl(
   private val watchSyncBridge: WatchSyncBridge,
   private val scope: CoroutineScope,
   private val database: BiciRadarDatabase? = null,
-) : FavoritesRepository {
+) : FavoritesRepository, FavoritesPeerSyncCapability, FavoritesCategorizationCapability {
   private val mutableFavoriteIds = MutableStateFlow(emptySet<String>())
   private val mutableHomeStationId = MutableStateFlow<String?>(null)
   private val mutableWorkStationId = MutableStateFlow<String?>(null)

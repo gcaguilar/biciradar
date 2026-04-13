@@ -4,6 +4,8 @@ import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoriteCategory
 import com.gcaguilar.biciradar.core.FavoriteCategoryIds
+import com.gcaguilar.biciradar.core.FavoritesCategorizationCapability
+import com.gcaguilar.biciradar.core.FavoritesPeerSyncCapability
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
@@ -73,6 +75,7 @@ class FavoritesViewModelTest {
           favoritesManagementUseCase =
             FavoritesManagementUseCase(
               favoritesRepository = favoritesRepository,
+              favoritesCategories = favoritesRepository,
               stationsRepository = stationsRepository,
               settingsRepository = settingsRepository,
             ),
@@ -121,6 +124,7 @@ class FavoritesViewModelTest {
           favoritesManagementUseCase =
             FavoritesManagementUseCase(
               favoritesRepository = favoritesRepository,
+              favoritesCategories = favoritesRepository,
               stationsRepository = stationsRepository,
               settingsRepository = settingsRepository,
             ),
@@ -256,7 +260,7 @@ class FavoritesViewModelTest {
     }
 }
 
-private class FakeFavoritesRepo : FavoritesRepository {
+private class FakeFavoritesRepo : FavoritesRepository, FavoritesPeerSyncCapability, FavoritesCategorizationCapability {
   override val favoriteIds = MutableStateFlow(emptySet<String>())
   override val homeStationId = MutableStateFlow<String?>(null)
   override val workStationId = MutableStateFlow<String?>(null)

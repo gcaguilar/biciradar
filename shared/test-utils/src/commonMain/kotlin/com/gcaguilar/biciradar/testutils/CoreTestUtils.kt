@@ -5,6 +5,7 @@ import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
+import com.gcaguilar.biciradar.core.FavoritesPeerSyncCapability
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
@@ -106,7 +107,7 @@ open class FakeSettingsRepository(
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
 }
 
-open class FakeFavoritesRepository : FavoritesRepository {
+open class FakeFavoritesRepository : FavoritesRepository, FavoritesPeerSyncCapability {
   override val favoriteIds = MutableStateFlow(emptySet<String>())
   override val homeStationId = MutableStateFlow<String?>(null)
   override val workStationId = MutableStateFlow<String?>(null)
