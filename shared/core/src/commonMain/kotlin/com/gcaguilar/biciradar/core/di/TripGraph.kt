@@ -9,13 +9,20 @@ import dev.zacsweers.metro.GraphExtension
  * Graph Extension para el flujo de Trip/Viaje.
  *
  * Este grafo extiende el AppGraph base y proporciona dependencias específicas
- * para el flujo de viaje. Se crea dinámicamente cuando el usuario inicia un trip
- * y se destruye cuando el trip finaliza.
+ * para el flujo de viaje con ciclo de vida aislado. Se crea dinámicamente cuando
+ * el usuario inicia un trip y se destruye cuando el trip finaliza.
+ *
+ * **Estrategia de lifecycle**
+ * Todo nuevo código debe usar esta factory para obtener un [TripRepository] con
+ * scope acotado. El `tripRepository` global expuesto como legado en [TripFeatureDeps]
+ * está deprecado y se eliminará cuando todos los consumidores migren aquí.
  *
  * Ejemplo de uso:
- * ```
- * val tripGraph = appGraph.tripGraphFactory.create(destination, searchRadius)
+ * ```kotlin
+ * val tripGraph = sharedGraph.tripGraphFactory.createTripGraph()
  * val tripRepository = tripGraph.tripRepository
+ * // ... usar tripRepository durante la sesión de viaje ...
+ * // el scope se destruye cuando tripGraph se libera
  * ```
  */
 @GraphExtension(TripScope::class)

@@ -155,6 +155,9 @@ fun BiziMobileApp(
 
     LaunchedEffect(resolvedGraph) {
       platformBindings.onGraphCreated(resolvedGraph)
+      // TODO: migrar a tripGraphFactory.createTripGraph() cuando el wrapper iOS
+      //       gestione el ciclo de vida del TripGraph de forma aislada.
+      @Suppress("DEPRECATION")
       onTripRepositoryReady?.invoke(resolvedGraph.tripRepository)
       onSurfaceMonitoringRepositoryReady?.invoke()
       onSurfaceSnapshotRepositoryReady?.invoke()
