@@ -7,6 +7,21 @@ enum class LogLevel {
   Error,
 }
 
+/**
+ * Platform-specific crashlytics reporter.
+ *
+ * On Android: sends non-fatals to Firebase Crashlytics.
+ * On iOS: delegates to a Swift bridge that calls Crashlytics SDK.
+ * On Desktop/JVM: no-op (no crashlytics SDK available).
+ */
+interface CrashlyticsReporter {
+  fun reportNonFatal(throwable: Throwable)
+}
+
+object NoOpCrashlyticsReporter : CrashlyticsReporter {
+  override fun reportNonFatal(throwable: Throwable) = Unit
+}
+
 interface Logger {
   fun log(
     level: LogLevel,

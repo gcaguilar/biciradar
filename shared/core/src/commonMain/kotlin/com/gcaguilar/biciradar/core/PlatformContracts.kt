@@ -69,6 +69,7 @@ interface PlatformBindings {
 
   @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver
+  val crashlyticsReporter: CrashlyticsReporter get() = NoOpCrashlyticsReporter
   val databaseFactory: DatabaseFactory?
   val fileSystem: FileSystem
   val logger: Logger get() = NoOpLogger

@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
+import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
 import com.gcaguilar.biciradar.core.EmbeddedMapProvider
@@ -223,6 +224,10 @@ private class DesktopLogger : Logger {
     val suffix = throwable?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
     kotlin.io.println("[$tag][${level.name}] $message$suffix")
   }
+}
+
+private object DesktopCrashlyticsReporter : CrashlyticsReporter {
+  override fun reportNonFatal(throwable: Throwable) = Unit
 }
 
 private class DesktopWatchSyncBridge : WatchSyncBridge {
