@@ -22,6 +22,7 @@ import platform.UIKit.UIViewController
  * [BiziMainViewControllerWrapper.updateLaunchRequest] to push new launch requests
  * without recreating the Compose tree.
  */
+@Suppress("ktlint:standard:function-naming")
 fun MainViewControllerWrapper(
   launchRequest: MobileLaunchRequest? = null,
   stationMapViewFactory: StationMapViewFactory? = null,
@@ -33,6 +34,7 @@ fun MainViewControllerWrapper(
     remoteConfigBridge = remoteConfigBridge,
   )
 
+@Suppress("ktlint:standard:function-naming")
 fun RootViewController(): UIViewController = MainViewControllerWrapper().viewController
 
 class BiziMainViewControllerWrapper(
@@ -83,6 +85,7 @@ class BiziMainViewControllerWrapper(
 }
 
 // Keep legacy entry point for backward compatibility
+@Suppress("ktlint:standard:function-naming")
 fun MainViewController(
   launchRequest: MobileLaunchRequest? = null,
   stationMapViewFactory: StationMapViewFactory? = null,

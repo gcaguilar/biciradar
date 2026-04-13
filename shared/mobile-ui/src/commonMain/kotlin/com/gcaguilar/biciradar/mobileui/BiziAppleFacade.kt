@@ -132,8 +132,7 @@ class BiziAppleFacade private constructor(
    * El shell iOS es responsable de entregar las notificaciones de plataforma
    * usando los [SavedPlaceAlertTrigger] devueltos.
    */
-  suspend fun evaluateSavedPlaceAlerts(): List<SavedPlaceAlertTrigger> =
-    favorites.evaluateSavedPlaceAlerts.execute()
+  suspend fun evaluateSavedPlaceAlerts(): List<SavedPlaceAlertTrigger> = favorites.evaluateSavedPlaceAlerts.execute()
 
   // ─────────────────────────── Factory ─────────────────────────────────────
 
