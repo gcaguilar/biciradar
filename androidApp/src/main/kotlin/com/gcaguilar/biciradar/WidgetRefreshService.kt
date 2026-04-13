@@ -41,7 +41,8 @@ class WidgetRefreshService : Service() {
   private val refreshWidgetDataUseCase: RefreshWidgetDataUseCase?
     get() =
       runCatching { BiziAppGraph.graph }
-          .getOrNull()?.refreshWidgetDataUseCase
+        .getOrNull()
+        ?.refreshWidgetDataUseCase
 
   override fun onBind(intent: Intent?): IBinder? = null
 

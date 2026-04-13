@@ -334,6 +334,7 @@ targets:
       - path: watchApp/BiziWatchGraph.swift
       - path: watchApp/WatchShortcutRunner.swift
       - path: watchApp/WatchDashboardModel.swift
+      - path: sharedApple/BiziSyncModels.swift
     dependencies:
       - target: BiciRadarWatch
       - sdk: XCTest.framework

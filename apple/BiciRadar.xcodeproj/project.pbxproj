@@ -84,6 +84,7 @@
 		E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8AFA899EBAC3579700B49207 /* Localizable.strings */; };
 		EE0246B1EB5247E03B82A5BE /* WatchSurfaceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */; };
 		EE2B41863B39EDD823677BA9 /* WatchFavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C35FA87704051EDF4F0EE7 /* WatchFavoritesSyncBridgeTests.swift */; };
+		F12A93CD4E8B507DAB230F45 /* BiziSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FBDA03FBC443039D118E69 /* BiziSyncModels.swift */; };
 		F42008356E7B5D44845B262D /* BiziSharedStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A65C7005EFB08EB86AF018 /* BiziSharedStorage.swift */; };
 		F5683326B806EC706B523DD8 /* BiciRadarWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 737078EE1CB532AAEA121054 /* BiciRadarWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -871,6 +872,7 @@
 				14AB29D4AA54154DC9CB0606 /* WatchDashboardModelTests.swift in Sources */,
 				439263C7FAB0E4A937F34FE4 /* WatchFavoritesSyncBridge.swift in Sources */,
 				EE2B41863B39EDD823677BA9 /* WatchFavoritesSyncBridgeTests.swift in Sources */,
+				F12A93CD4E8B507DAB230F45 /* BiziSyncModels.swift in Sources */,
 				445515229FD1022684AC7831 /* WatchShortcutRunner.swift in Sources */,
 				C54E4CB78645F4F4511915E2 /* WatchShortcutRunnerTests.swift in Sources */,
 				CB6A75AC78CE318E123F732E /* WatchSurfaceFormattingTests.swift in Sources */,
