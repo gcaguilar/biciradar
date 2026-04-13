@@ -40,7 +40,7 @@ class CityRegistryImpl(
   private val json: Json,
   private val logger: Logger,
 ) : CityRegistry {
-  @Volatile
+  @kotlin.concurrent.Volatile
   private var cachedRemoteCities: List<CityCatalogEntry>? = null
 
   override suspend fun availableCities(): List<CityCatalogEntry> = cachedRemoteCities ?: loadRemoteOrFallback()

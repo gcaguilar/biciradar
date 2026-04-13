@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.ComposeUIViewController
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.platform.IOSPlatformBindings
+import com.gcaguilar.biciradar.core.platform.IOSRemoteConfigBridge
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,13 +25,20 @@ import platform.UIKit.UIViewController
 fun MainViewControllerWrapper(
   launchRequest: MobileLaunchRequest? = null,
   stationMapViewFactory: StationMapViewFactory? = null,
-): BiziMainViewControllerWrapper = BiziMainViewControllerWrapper(launchRequest, stationMapViewFactory)
+  remoteConfigBridge: IOSRemoteConfigBridge? = null,
+): BiziMainViewControllerWrapper =
+  BiziMainViewControllerWrapper(
+    initialLaunchRequest = launchRequest,
+    stationMapViewFactory = stationMapViewFactory,
+    remoteConfigBridge = remoteConfigBridge,
+  )
 
 fun RootViewController(): UIViewController = MainViewControllerWrapper().viewController
 
 class BiziMainViewControllerWrapper(
   initialLaunchRequest: MobileLaunchRequest?,
   stationMapViewFactory: StationMapViewFactory?,
+  remoteConfigBridge: IOSRemoteConfigBridge?,
 ) {
   private var currentLaunchRequest: MobileLaunchRequest? by mutableStateOf(
     value = initialLaunchRequest,
@@ -46,7 +54,7 @@ class BiziMainViewControllerWrapper(
     ) {
       CompositionLocalProvider(LocalStationMapViewFactory provides stationMapViewFactory) {
         BiziMobileApp(
-          platformBindings = IOSPlatformBindings(),
+          platformBindings = IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge),
           launchRequest = currentLaunchRequest,
           refreshKey = refreshNonce,
           onTripRepositoryReady = { repo ->
@@ -78,4 +86,10 @@ class BiziMainViewControllerWrapper(
 fun MainViewController(
   launchRequest: MobileLaunchRequest? = null,
   stationMapViewFactory: StationMapViewFactory? = null,
-): UIViewController = MainViewControllerWrapper(launchRequest, stationMapViewFactory).viewController
+  remoteConfigBridge: IOSRemoteConfigBridge? = null,
+): UIViewController =
+  MainViewControllerWrapper(
+    launchRequest = launchRequest,
+    stationMapViewFactory = stationMapViewFactory,
+    remoteConfigBridge = remoteConfigBridge,
+  ).viewController

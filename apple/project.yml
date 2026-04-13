@@ -54,6 +54,8 @@ targets:
         product: FirebaseCore
       - package: Firebase
         product: FirebaseCrashlytics
+      - package: Firebase
+        product: FirebaseRemoteConfig
       - package: GoogleMaps
         product: GoogleMaps
       - target: BiciRadarWidgets

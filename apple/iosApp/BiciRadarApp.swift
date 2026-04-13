@@ -16,7 +16,8 @@ struct BiciRadarApp: App {
             : nil
         return BiziMobileViewControllerKt.MainViewControllerWrapper(
             launchRequest: nil,
-            stationMapViewFactory: factory
+            stationMapViewFactory: factory,
+            remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge
         )
     }()
 

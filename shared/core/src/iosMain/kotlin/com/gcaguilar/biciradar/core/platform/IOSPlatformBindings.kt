@@ -24,6 +24,7 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
+import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
@@ -81,6 +82,7 @@ private const val IOS_APP_GROUP_IDENTIFIER = "group.com.gcaguilar.biciradar"
 
 class IOSPlatformBindings(
   override val appConfiguration: AppConfiguration = AppConfiguration(),
+  private val remoteConfigBridge: IOSRemoteConfigBridge? = null,
 ) : PlatformBindings {
   private val fileSystemInstance: FileSystem = FileSystem.SYSTEM
   private val storageDirectoryProviderInstance = IOSStorageDirectoryProvider()
@@ -109,6 +111,8 @@ class IOSPlatformBindings(
   override val externalLinks: ExternalLinks = IOSExternalLinksImpl(appConfiguration)
   override val reviewPrompter: ReviewPrompter = IOSReviewPrompterImpl(appConfiguration)
   override val logger: Logger = AppleLogger()
+  override val remoteConfigProvider: RemoteConfigProvider =
+    IOSRemoteConfigProvider(remoteConfigBridge, logger)
   override val appUpdatePrompter: AppUpdatePrompter =
     IOSAppUpdatePrompterImpl(
       appConfiguration = appConfiguration,
@@ -173,6 +177,32 @@ private class AppleLogger : Logger {
   ) {
     val suffix = throwable?.let { " | ${it::class.simpleName}: ${it.message}" }.orEmpty()
     platform.Foundation.NSLog("[$tag][${level.name}] $message$suffix")
+  }
+}
+
+interface IOSRemoteConfigBridge {
+  fun getString(
+    key: String,
+    completionHandler: (String?) -> Unit,
+  )
+}
+
+private class IOSRemoteConfigProvider(
+  private val remoteConfigBridge: IOSRemoteConfigBridge?,
+  private val logger: Logger,
+) : RemoteConfigProvider {
+  override suspend fun getString(key: String): String? {
+    val bridge = remoteConfigBridge ?: return null
+    return suspendCoroutine { continuation ->
+      runCatching {
+        bridge.getString(key) { value ->
+          continuation.resume(value)
+        }
+      }.onFailure { error ->
+        logger.warn("RemoteConfig", "Unable to fetch remote config key=$key", error)
+        continuation.resume(null)
+      }
+    }
   }
 }
 
