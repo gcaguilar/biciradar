@@ -39,4 +39,7 @@
     <!-- Notification Channel -->
     <string name="notification_channel_monitoring_title">Monitorización de estaciones</string>
     <string name="notification_channel_monitoring_description">Notificaciones persistentes durante la monitorización de huecos en estaciones</string>
+    <string name="notification_channel_widget_refresh_title">Actualización de widgets</string>
+    <string name="notification_channel_widget_refresh_description">Servicio en segundo plano que mantiene los widgets actualizados</string>
+    <string name="widget_refresh_service_notification">Actualizando widgets…</string>
 </resources>

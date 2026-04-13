@@ -9,6 +9,7 @@ class BiciRadarApplication : Application() {
     super.onCreate()
     BiziAppGraph.initialize(this)
     initializeWorkManagerSafely()
+    WidgetRefreshService.start(this)
   }
 
   private fun initializeWorkManagerSafely() {
