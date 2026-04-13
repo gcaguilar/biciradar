@@ -39,6 +39,9 @@
     <string name="nearbyStations">Estaciones cercanas</string>
     <string name="nearbyRadiusFallbackHint">Si no hay estaciones dentro del radio, te seguimos mostrando igualmente la más cercana.</string>
     <string name="nearbyCardActionsHint">Toca cualquier tarjeta para abrir el detalle, guardarla o lanzar la ruta.</string>
+    <string name="nearbyLocationPermissionTitle">Activa la ubicación</string>
+    <string name="nearbyLocationPermissionBody">Permite el acceso a tu posición para ordenar las estaciones por distancia y ver las más cercanas al instante.</string>
+    <string name="nearbyLocationPermissionAction">Permitir ubicación</string>
     <string name="refreshStations">Actualizar estaciones</string>
     <string name="favoritesSubtitle">Tus estaciones guardadas para consultar el estado o abrir una ruta con un toque.</string>
     <string name="myStations">Mis estaciones</string>

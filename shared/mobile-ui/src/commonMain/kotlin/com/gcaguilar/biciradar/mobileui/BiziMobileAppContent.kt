@@ -104,6 +104,7 @@ internal object BiziMobileAppContent {
     onRefresh: () -> Unit,
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
+    onRequestLocationPermission: () -> Unit,
     paddingValues: PaddingValues,
   ) = NearbyScreen(
     state = state,
@@ -113,6 +114,7 @@ internal object BiziMobileAppContent {
     onRefresh = onRefresh,
     onFavoriteToggle = onFavoriteToggle,
     onQuickRoute = onQuickRoute,
+    onRequestLocationPermission = onRequestLocationPermission,
     paddingValues = paddingValues,
   )
 
@@ -132,6 +134,7 @@ internal object BiziMobileAppContent {
       onRefresh = viewModel::onRefresh,
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
+      onRequestLocationPermission = viewModel::onRequestLocationPermission,
       paddingValues = paddingValues,
     )
   }

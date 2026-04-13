@@ -22,11 +22,12 @@ internal fun EmptyStatePlaceholder(
   description: String,
   primaryAction: String? = null,
   onPrimaryAction: (() -> Unit)? = null,
+  modifier: Modifier = Modifier,
 ) {
   val c = LocalBiziColors.current
   Card(
     modifier =
-      Modifier.animateContentSize(
+      modifier.animateContentSize(
         animationSpec =
           androidx.compose.animation.core
             .spring(dampingRatio = 0.9f, stiffness = 500f),

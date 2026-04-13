@@ -39,6 +39,9 @@
     <string name="nearbyStations">Nearby stations</string>
     <string name="nearbyRadiusFallbackHint">If there are no stations inside the radius, we'll still show you the nearest one.</string>
     <string name="nearbyCardActionsHint">Tap any card to open details, save it, or start the route.</string>
+    <string name="nearbyLocationPermissionTitle">Enable location</string>
+    <string name="nearbyLocationPermissionBody">Allow access to your position to sort stations by distance and see the nearest ones instantly.</string>
+    <string name="nearbyLocationPermissionAction">Allow location</string>
     <string name="refreshStations">Refresh stations</string>
     <string name="favoritesSubtitle">Your saved stations to check status or open a route with one tap.</string>
     <string name="myStations">My stations</string>

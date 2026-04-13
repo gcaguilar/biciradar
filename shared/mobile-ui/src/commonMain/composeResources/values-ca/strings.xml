@@ -39,6 +39,9 @@
     <string name="nearbyStations">Estacions properes</string>
     <string name="nearbyRadiusFallbackHint">Si no hi ha estacions dins del radi, igualment et mostrarem la més propera.</string>
     <string name="nearbyCardActionsHint">Toca qualsevol targeta per obrir el detall, desar-la o iniciar la ruta.</string>
+    <string name="nearbyLocationPermissionTitle">Activa la ubicació</string>
+    <string name="nearbyLocationPermissionBody">Permet l\'accés a la teva posició per ordenar les estacions per distància i veure les més properes a l\'instant.</string>
+    <string name="nearbyLocationPermissionAction">Permetre ubicació</string>
     <string name="refreshStations">Actualitza estacions</string>
     <string name="favoritesSubtitle">Les teves estacions desades per consultar l\'estat o obrir una ruta amb un toc.</string>
     <string name="myStations">Les meves estacions</string>

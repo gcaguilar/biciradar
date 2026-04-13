@@ -39,6 +39,9 @@
     <string name="nearbyStations">Gertuko geltokiak</string>
     <string name="nearbyRadiusFallbackHint">Erradioaren barruan geltokirik ez badago, hala ere hurbilena erakutsiko dizugu.</string>
     <string name="nearbyCardActionsHint">Ukitu edozein txartel xehetasunak irekitzeko, gordetzeko edo ibilbidea abiatzeko.</string>
+    <string name="nearbyLocationPermissionTitle">Gaitu kokapena</string>
+    <string name="nearbyLocationPermissionBody">Baimendu zure posiziora sarbidea geltokiak distantziaren arabera ordenatzeko eta hurbilenak berehala ikusteko.</string>
+    <string name="nearbyLocationPermissionAction">Baimendu kokapena</string>
     <string name="refreshStations">Eguneratu geltokiak</string>
     <string name="favoritesSubtitle">Gordetako geltokiak egoera ikusteko edo ibilbidea ukitu bakarrean irekitzeko.</string>
     <string name="myStations">Nire geltokiak</string>

@@ -41,6 +41,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapLocationFallback
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStationsOnScreen
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearby
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyCardActionsHint
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionBody
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyNearYou
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyNearestWithBikes
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyNearestWithSlots
@@ -73,6 +76,7 @@ internal fun NearbyScreen(
   onRefresh: () -> Unit,
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  onRequestLocationPermission: () -> Unit,
   paddingValues: PaddingValues,
 ) {
   Box(
@@ -180,6 +184,21 @@ internal fun NearbyScreen(
         onRefresh = onRefresh,
         modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 10.dp),
       )
+
+      AnimatedVisibility(
+        visible = !state.locationPermissionGranted,
+        enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+        label = "nearby-location-permission",
+      ) {
+        EmptyStatePlaceholder(
+          modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+          title = stringResource(Res.string.nearbyLocationPermissionTitle),
+          description = stringResource(Res.string.nearbyLocationPermissionBody),
+          primaryAction = stringResource(Res.string.nearbyLocationPermissionAction),
+          onPrimaryAction = onRequestLocationPermission,
+        )
+      }
 
       LazyColumn(
         modifier = Modifier.fillMaxSize(),

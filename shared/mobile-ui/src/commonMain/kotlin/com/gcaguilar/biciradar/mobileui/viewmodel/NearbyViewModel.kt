@@ -6,6 +6,7 @@ import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.NearbyStationSelection
+import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
@@ -54,6 +55,7 @@ data class NearbyUiState(
       fallbackStation = null,
       radiusMeters = DEFAULT_SEARCH_RADIUS_METERS,
     ),
+  val locationPermissionGranted: Boolean = true,
 )
 
 @Inject
@@ -64,8 +66,10 @@ class NearbyViewModel(
   private val favoritesRepository: FavoritesRepository,
   private val settingsRepository: SettingsRepository,
   private val routeLauncher: RouteLauncher,
+  private val permissionPrompter: PermissionPrompter,
 ) : ViewModel() {
   private val refreshCountdownSeconds = MutableStateFlow(0)
+  private val locationPermissionGranted = MutableStateFlow(true)
 
   val uiState: StateFlow<NearbyUiState> =
     combine(
@@ -73,7 +77,8 @@ class NearbyViewModel(
       favoritesRepository.favoriteIds,
       settingsRepository.searchRadiusMeters,
       refreshCountdownSeconds,
-    ) { stationsState, favoriteIds, radius, countdown ->
+      locationPermissionGranted,
+    ) { stationsState, favoriteIds, radius, countdown, locationGranted ->
       NearbyUiState(
         stations = stationsState.stations,
         favoriteIds = favoriteIds,
@@ -86,6 +91,7 @@ class NearbyViewModel(
         lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
         nearestWithBikesSelection = selectNearbyStationWithBikes(stationsState.stations, radius),
         nearestWithSlotsSelection = selectNearbyStationWithSlots(stationsState.stations, radius),
+        locationPermissionGranted = locationGranted,
       )
     }.stateIn(
       viewModelScope,
@@ -124,11 +130,19 @@ class NearbyViewModel(
     isActive.update { active }
     if (active) {
       viewModelScope.launch {
+        locationPermissionGranted.update { permissionPrompter.hasLocationPermission() }
         val snapshot = stationsRepository.state.value
         if (snapshot.stations.isEmpty() && !snapshot.isLoading && snapshot.errorMessage == null) {
           stationsRepository.loadIfNeeded()
         }
       }
+    }
+  }
+
+  fun onRequestLocationPermission() {
+    viewModelScope.launch {
+      permissionPrompter.requestLocationPermission()
+      locationPermissionGranted.update { permissionPrompter.hasLocationPermission() }
     }
   }
 

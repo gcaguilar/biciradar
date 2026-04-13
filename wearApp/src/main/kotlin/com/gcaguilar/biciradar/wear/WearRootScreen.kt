@@ -37,9 +37,8 @@ import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
-import androidx.wear.compose.material3.PositionIndicator
 import androidx.wear.compose.material3.ProgressIndicatorDefaults
-import androidx.wear.compose.material3.Scaffold
+import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -262,9 +261,7 @@ private fun WearDashboard(
       workStationId = workStationId,
     )
 
-  Scaffold(
-    positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
-  ) {
+  ScreenScaffold(scrollState = listState) {
     ScalingLazyColumn(
       modifier = Modifier.fillMaxSize(),
       state = listState,
@@ -719,9 +716,7 @@ private fun WearStationDetail(
       currentMonitoring?.isActive == true -> "Monitorizar aquí"
       else -> "Monitorizar huecos"
     }
-  Scaffold(
-    positionIndicator = { PositionIndicator(scalingLazyListState = listState) },
-  ) {
+  ScreenScaffold(scrollState = listState) {
     ScalingLazyColumn(
       modifier = Modifier.fillMaxSize(),
       state = listState,
