@@ -164,6 +164,8 @@
 		05F6FE2989AAE261F81A4893 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		10C312C0B096247B686E40CE /* WatchSurfaceFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSurfaceFormattingTests.swift; sourceTree = "<group>"; };
 		13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
+		25642F87B54F43C69EFBCEF8 /* BiziShortcutDialogHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcutDialogHelpers.swift; sourceTree = "<group>"; };
+		50FBDA03FBC443039D118E69 /* BiziSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSyncModels.swift; sourceTree = "<group>"; };
 		1598AA72441D647040F04BB8 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		18889D6CD1084B1BE55442F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		20A562478B548CD00B2A3A54 /* AppleDeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleDeepLinkParser.swift; sourceTree = "<group>"; };
@@ -394,7 +396,9 @@
 				13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */,
 				38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */,
 				57A65C7005EFB08EB86AF018 /* BiziSharedStorage.swift */,
+				25642F87B54F43C69EFBCEF8 /* BiziShortcutDialogHelpers.swift */,
 				9F2F914614DF298F08D32FB9 /* BiziStationShortcutEntity.swift */,
+				50FBDA03FBC443039D118E69 /* BiziSyncModels.swift */,
 				C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */,
 			);
 			path = sharedApple;
@@ -789,6 +793,8 @@
 				D39D1E161D597545C7B424A5 /* BiziMonitoringActivityAttributes.swift in Sources */,
 				54812821FB0752376F5A2AFB /* BiziNotificationService.swift in Sources */,
 				91A14CBB28205DABB4AEF6B5 /* BiziSharedStorage.swift in Sources */,
+				8180784317524951A70A05B7 /* BiziShortcutDialogHelpers.swift in Sources */,
+				779190DA6A9F40FCB458B0DA /* BiziSyncModels.swift in Sources */,
 				0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */,
 				C2B84011CB8B6AD17413F065 /* BiziStationShortcutEntity.swift in Sources */,
 				0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */,
@@ -809,6 +815,8 @@
 				36336293276C532E7E55729E /* BiciRadarWatchApp.swift in Sources */,
 				820C221928C2861F1170BF3E /* BiziWatchGraph.swift in Sources */,
 				78A02D7CA5A442669E153C73 /* BiziWatchShortcuts.swift in Sources */,
+				C98EB26EAF3549A1935DA8C9 /* BiziShortcutDialogHelpers.swift in Sources */,
+				81F210FE7C0540919F05AC11 /* BiziSyncModels.swift in Sources */,
 				3556ADEA6795351F69D284A4 /* WatchDashboardModel.swift in Sources */,
 				AD8848982173D2177464CDD0 /* WatchFavoritesSyncBridge.swift in Sources */,
 				7DD2FF6BCB0F319A85B5CF0A /* WatchShortcutRunner.swift in Sources */,
