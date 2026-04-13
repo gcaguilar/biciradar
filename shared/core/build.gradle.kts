@@ -62,6 +62,7 @@ kotlin {
     }
     androidMain.dependencies {
       implementation(libs.coroutines.play.services)
+      implementation(project.dependencies.platform(libs.firebase.bom))
       implementation(libs.firebase.config)
       implementation(libs.ktor.client.okhttp)
       implementation(libs.play.services.location)
