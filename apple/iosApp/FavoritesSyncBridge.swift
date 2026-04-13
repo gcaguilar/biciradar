@@ -91,7 +91,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         }
         if let snapshot = context[Self.snapshotV2ContextKey] as? String,
            let data = snapshot.data(using: .utf8),
-           let decoded = try? JSONDecoder().decode(FavoritesSyncSnapshotFile.self, from: data) {
+           let decoded = try? JSONDecoder().decode(BiziSyncSnapshotV2.self, from: data) {
             apply(snapshot: decoded)
             defaults.set(snapshot, forKey: Self.snapshotV2CacheKey)
         }
@@ -123,7 +123,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         ]
         context["home_station_id"] = currentHomeStationId() ?? ""
         context["work_station_id"] = currentWorkStationId() ?? ""
-        let snapshot = FavoritesSyncSnapshotFile(
+        let snapshot = BiziSyncSnapshotV2(
             categories: [],
             stationCategory: [:],
             favoriteIds: currentFavoriteIds(),
@@ -163,13 +163,13 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
         defaults.string(forKey: Self.workStationCacheKey) ?? workStationId
     }
 
-    private func loadFavoritesSnapshot(from url: URL?) -> FavoritesSyncSnapshotFile? {
+    private func loadFavoritesSnapshot(from url: URL?) -> BiziSyncSnapshotV2? {
         guard let url else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(FavoritesSyncSnapshotFile.self, from: data)
+        return try? JSONDecoder().decode(BiziSyncSnapshotV2.self, from: data)
     }
 
-    private func apply(snapshot: FavoritesSyncSnapshotFile) {
+    private func apply(snapshot: BiziSyncSnapshotV2) {
         applyFavoriteIds(snapshot.favoriteIds)
         applyHomeStationId(snapshot.homeStationId)
         applyWorkStationId(snapshot.workStationId)
@@ -212,48 +212,11 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     }
 }
 
-private struct FavoritesSyncSnapshotFile: Codable {
-    let categories: [FavoriteCategoryFile]?
-    let stationCategory: [String: String]?
-    let favoriteIds: Set<String>
-    let homeStationId: String?
-    let workStationId: String?
+// MARK: - iOS-side initialiser for WatchConnectivityMonitoringSession
+// AppleSurfaceMonitoringSession is an iOS-only type from BiziMobileUi,
+// so this mapping lives here rather than in the shared BiziSyncModels file.
 
-    init(
-        categories: [FavoriteCategoryFile]? = nil,
-        stationCategory: [String: String]? = nil,
-        favoriteIds: Set<String>,
-        homeStationId: String?,
-        workStationId: String?
-    ) {
-        self.categories = categories
-        self.stationCategory = stationCategory
-        self.favoriteIds = favoriteIds
-        self.homeStationId = homeStationId
-        self.workStationId = workStationId
-    }
-}
-
-private struct FavoriteCategoryFile: Codable {
-    let id: String
-    let label: String
-    let isSystem: Bool
-}
-
-private struct WatchConnectivityMonitoringSession: Codable {
-    let stationId: String
-    let stationName: String
-    let bikesAvailable: Int
-    let docksAvailable: Int
-    let statusText: String
-    let statusLevel: String
-    let expiresAtEpoch: Int64
-    let lastUpdatedEpoch: Int64
-    let isActive: Bool
-    let alternativeStationId: String?
-    let alternativeStationName: String?
-    let alternativeDistanceMeters: Int?
-
+extension WatchConnectivityMonitoringSession {
     init(session: AppleSurfaceMonitoringSession) {
         stationId = session.stationId
         stationName = session.stationName

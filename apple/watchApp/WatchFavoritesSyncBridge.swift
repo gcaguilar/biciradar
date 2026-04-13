@@ -42,7 +42,7 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         context["favorite_ids"] = Array(favoriteIds)
         context["home_station_id"] = homeStationId
         context["work_station_id"] = workStationId
-        let snapshot = WatchFavoritesSnapshotV2(
+        let snapshot = BiziSyncSnapshotV2(
             categories: [],
             stationCategory: [:],
             favoriteIds: favoriteIds,
@@ -95,7 +95,7 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         }
         if let snapshot = context[Self.snapshotV2ContextKey] as? String,
            let data = snapshot.data(using: .utf8),
-           let decoded = try? JSONDecoder().decode(WatchFavoritesSnapshotV2.self, from: data) {
+           let decoded = try? JSONDecoder().decode(BiziSyncSnapshotV2.self, from: data) {
             favoriteIds = decoded.favoriteIds
             homeStationId = decoded.homeStationId
             workStationId = decoded.workStationId
@@ -134,4 +134,3 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         }
     }
 }
-
