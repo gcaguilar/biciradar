@@ -77,6 +77,7 @@ interface SessionFeatureDeps {
 interface SurfaceFeatureDeps {
   val observeSurfaceSnapshot: ObserveSurfaceSnapshot
   val observeSurfaceMonitoring: ObserveSurfaceMonitoring
+  val refreshWidgetDataUseCase: RefreshWidgetDataUseCase
 }
 
 /**
