@@ -24,6 +24,7 @@ import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -65,6 +66,7 @@ data class TripUiState(
   val stationsLoading: Boolean = false,
 )
 
+@FlowPreview
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class)

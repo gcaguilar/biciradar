@@ -207,7 +207,7 @@ internal fun TripDestinationSearchScreen(
 
               state.suggestionsError != null -> {
                 Text(
-                  text = state.suggestionsError ?: "",
+                  text = state.suggestionsError,
                   style = MaterialTheme.typography.bodySmall,
                   color = colors.red,
                 )

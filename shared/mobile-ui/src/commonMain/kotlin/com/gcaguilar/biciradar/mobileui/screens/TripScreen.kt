@@ -189,7 +189,7 @@ internal fun TripScreen(
                 if (state.destination == null) {
                   stringResource(Res.string.tripSubtitle)
                 } else {
-                  state.destination?.name.orEmpty()
+                  state.destination.name
                 },
               style =
                 if (state.destination == null) {
@@ -315,7 +315,7 @@ internal fun TripScreen(
             border = BorderStroke(1.dp, colors.red.copy(alpha = 0.18f)),
           ) {
             Text(
-              text = state.searchError ?: stringResource(Res.string.tripNoStationWithFreeSlotsNearby),
+              text = state.searchError,
               modifier = Modifier.padding(14.dp),
               style = MaterialTheme.typography.bodyMedium,
               color = colors.red,
