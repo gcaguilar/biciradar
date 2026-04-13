@@ -6,15 +6,12 @@ import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.StationsState
-import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingLaunchSource
-import com.gcaguilar.biciradar.mobileui.usecases.OnboardingPresentationInput
-import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
@@ -97,8 +94,10 @@ private data class StartupSnapshot(
 internal class AppRootViewModel(
   private val startupUseCase: StartupUseCase,
   private val appLifecycleUseCase: AppLifecycleUseCase,
-  private val resolveOnboardingPresentationUseCase: ResolveOnboardingPresentationUseCase,
   private val appInitializer: AppInitializer,
+  private val onboardingCoordinator: OnboardingCoordinator,
+  private val engagementCoordinator: EngagementCoordinator,
+  private val refreshOrchestrator: RefreshOrchestrator,
   @AppVersion private val appVersion: String,
 ) : ViewModel() {
   private val clock: () -> Long = ::epochMillisForUi
@@ -158,37 +157,37 @@ internal class AppRootViewModel(
 
   fun onOnboardingFeatureHighlightsContinued() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { it.copy(featureHighlightsSeen = true) }
+      onboardingCoordinator.updateChecklist { it.copy(featureHighlightsSeen = true) }
     }
   }
 
   fun onOnboardingLocationDecisionMade() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { it.copy(locationDecisionMade = true) }
+      onboardingCoordinator.updateChecklist { it.copy(locationDecisionMade = true) }
     }
   }
 
   fun onOnboardingNotificationsDecisionMade() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { it.copy(notificationsDecisionMade = true) }
+      onboardingCoordinator.updateChecklist { it.copy(notificationsDecisionMade = true) }
     }
   }
 
   fun onOnboardingFirstFavoriteDismissed() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { it.copy(firstStationSaved = true) }
+      onboardingCoordinator.updateChecklist { it.copy(firstStationSaved = true) }
     }
   }
 
   fun onOnboardingSavedPlacesDismissed() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist { it.copy(savedPlacesConfigured = true) }
+      onboardingCoordinator.updateChecklist { it.copy(savedPlacesConfigured = true) }
     }
   }
 
   fun onOnboardingFavoritesDismissed() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist {
+      onboardingCoordinator.updateChecklist {
         it.copy(firstStationSaved = true, savedPlacesConfigured = true)
       }
     }
@@ -196,25 +195,13 @@ internal class AppRootViewModel(
 
   fun onSkipOnboarding() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist {
-        it
-          .copy(
-            featureHighlightsSeen = true,
-            locationDecisionMade = true,
-            notificationsDecisionMade = true,
-            firstStationSaved = true,
-            savedPlacesConfigured = true,
-            surfacesDiscovered = true,
-          ).markCompleted()
-      }
+      onboardingCoordinator.skipOnboarding()
     }
   }
 
   fun onOnboardingSurfacesCompleted() {
     viewModelScope.launch {
-      startupUseCase.updateOnboardingChecklist {
-        it.copy(surfacesDiscovered = true).markCompleted()
-      }
+      onboardingCoordinator.completeSurfaces()
     }
   }
 
@@ -328,8 +315,8 @@ internal class AppRootViewModel(
       }
       _uiState.update { it.copy(cityConfigured = snapshot.onboardingChecklist.cityConfirmed) }
       recomputeStartupLaunchReady()
-      maybeScheduleEmptyStateRetry(snapshot.stationsState)
-      maybeRefreshSurfaceSnapshot()
+      refreshOrchestrator.maybeScheduleEmptyStateRetry(viewModelScope, emptyStateRetryJob, snapshot.stationsState)
+      refreshOrchestrator.maybeRefreshSurfaceSnapshot(viewModelScope, _uiState.value)
       recomputeOnboardingPresentation(
         checklist = snapshot.onboardingChecklist,
         cityConfigured = snapshot.onboardingChecklist.cityConfirmed,
@@ -353,7 +340,7 @@ internal class AppRootViewModel(
       )
 
       recomputeStartupLaunchReady()
-      maybeRefreshSurfaceSnapshot()
+      refreshOrchestrator.maybeRefreshSurfaceSnapshot(viewModelScope, _uiState.value)
       maybeAutoCompleteOnboarding()
       if (runtimeState.value.pendingRefreshSignals == 0) {
         runtimeState.update { it.copy(pendingRefreshSignals = 1) }
@@ -397,71 +384,22 @@ internal class AppRootViewModel(
   }
 
   private fun maybeAutoCompleteOnboarding() {
-    if (!_uiState.value.settingsBootstrapped) return
-    val runtime = runtimeState.value
-    if (runtime.latestOnboardingChecklist.cityConfirmed &&
-      !runtime.latestOnboardingChecklist.firstStationSaved &&
-      runtime.latestFavoriteIds.isNotEmpty()
-    ) {
-      viewModelScope.launch {
-        startupUseCase.updateOnboardingChecklist { snapshot ->
-          if (snapshot.firstStationSaved) snapshot else snapshot.copy(firstStationSaved = true)
-        }
-      }
-    }
-    if (!runtime.latestOnboardingChecklist.savedPlacesConfigured &&
-      runtime.latestHomeStationId != null &&
-      runtime.latestWorkStationId != null
-    ) {
-      viewModelScope.launch {
-        startupUseCase.updateOnboardingChecklist { snapshot ->
-          if (snapshot.savedPlacesConfigured) snapshot else snapshot.copy(savedPlacesConfigured = true)
-        }
-      }
-    }
-  }
-
-  private fun maybeRefreshSurfaceSnapshot() {
-    val uiState = _uiState.value
-    if (!uiState.settingsBootstrapped || !uiState.favoritesBootstrapped) return
     viewModelScope.launch {
-      appInitializer.refreshSurfaceSnapshot()
+      onboardingCoordinator.maybeAutoComplete(_uiState.value.settingsBootstrapped, runtimeState.value)
     }
   }
 
   private fun maybeRefreshStations() {
-    val uiState = _uiState.value
-    val runtime = runtimeState.value
-    if (!uiState.settingsBootstrapped || !uiState.favoritesBootstrapped) return
-    if (runtime.pendingRefreshSignals == 0) return
-    if (refreshJob.value?.isActive == true) return
-    runtimeState.update { it.copy(pendingRefreshSignals = 0) }
-    refreshJob.update {
-      viewModelScope.launch {
-        appInitializer.refreshStations()
+    refreshOrchestrator.maybeRefreshStations(
+      scope = viewModelScope,
+      uiState = _uiState.value,
+      runtimeState = runtimeState,
+      refreshJob = refreshJob,
+      onInitialLoadFinished = {
         _uiState.update { state -> state.copy(initialLoadAttemptFinished = true) }
-        recomputeStartupLaunchReady()
-        if (runtimeState.value.pendingRefreshSignals > 0) {
-          maybeRefreshStations()
-        }
-      }
-    }
-  }
-
-  private fun maybeScheduleEmptyStateRetry(stationsState: StationsState) {
-    emptyStateRetryJob.value?.cancel()
-    if (stationsState.isLoading || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) {
-      return
-    }
-    emptyStateRetryJob.update {
-      viewModelScope.launch {
-        delay(5_000)
-        val latestState = startupUseCase.stationsState.value
-        if (!latestState.isLoading && latestState.stations.isEmpty() && latestState.errorMessage == null) {
-          appInitializer.loadStationsIfNeeded()
-        }
-      }
-    }
+      },
+      recomputeStartupLaunchReady = ::recomputeStartupLaunchReady,
+    )
   }
 
   private fun recomputeStartupLaunchReady() {
@@ -498,55 +436,21 @@ internal class AppRootViewModel(
   // ================== ENGAGEMENT LOGIC (antes en EngagementViewModel) ==================
 
   private fun maybeCheckForUpdates() {
-    if (runtimeState.value.updateCheckInFlight) return
-
-    runtimeState.update { it.copy(updateCheckInFlight = true) }
     viewModelScope.launch {
-      try {
-        appLifecycleUseCase.markUpdateChecked(clock())
-        when (val update = appLifecycleUseCase.checkForUpdate()) {
-          is UpdateAvailabilityState.Available -> {
-            _uiState.update {
-              it.copy(
-                topUpdateBanner =
-                  TopUpdateBanner.Available(
-                    version = update.versionName,
-                    flexible = update.isFlexibleAllowed,
-                    storeUrl = update.storeUrl,
-                  ),
-              )
-            }
-          }
-          is UpdateAvailabilityState.Downloaded -> {
-            _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(update.versionName)) }
-          }
-          else -> { /* No hay update */ }
-        }
-      } finally {
-        runtimeState.update { it.copy(updateCheckInFlight = false) }
-      }
+      engagementCoordinator.maybeCheckForUpdates(runtimeState, { banner ->
+        _uiState.update { it.copy(topUpdateBanner = banner) }
+      }, clock)
     }
   }
 
   private fun startUpdatePolling() {
-    runtimeState.value.updatePollJob?.cancel()
-    val job =
-      viewModelScope.launch {
-        while (true) {
-          delay(3_000)
-          val status = appLifecycleUseCase.checkForUpdate()
-          if (status is UpdateAvailabilityState.Downloaded) {
-            _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Downloaded(status.versionName)) }
-            break
-          }
-        }
-      }
-    runtimeState.update { it.copy(updatePollJob = job) }
+    engagementCoordinator.startUpdatePolling(viewModelScope, runtimeState) { banner ->
+      _uiState.update { it.copy(topUpdateBanner = banner) }
+    }
   }
 
   private fun maybeShowFeedbackNudge(isOnboardingCompleted: Boolean) {
-    if (!isOnboardingCompleted) return
-    val shouldShow = appLifecycleUseCase.shouldShowFeedbackNudge(appVersion, clock())
+    val shouldShow = engagementCoordinator.maybeShowFeedbackNudge(isOnboardingCompleted, appVersion, clock)
     if (shouldShow) {
       _uiState.update { it.copy(showFeedbackNudge = true) }
     }
@@ -556,19 +460,8 @@ internal class AppRootViewModel(
     isOnboardingCompleted: Boolean,
     dataFreshness: DataFreshness,
   ) {
-    if (!isOnboardingCompleted) return
     viewModelScope.launch {
-      val eligibility =
-        appLifecycleUseCase.checkReviewEligibility(
-          appVersion = appVersion,
-          onboardingCompleted = isOnboardingCompleted,
-          currentFreshness = dataFreshness,
-          nowEpoch = clock(),
-        )
-      if (eligibility.isEligible) {
-        appLifecycleUseCase.requestInAppReview()
-        appLifecycleUseCase.markReviewPrompted(appVersion, clock())
-      }
+      engagementCoordinator.maybeRequestInAppReview(isOnboardingCompleted, dataFreshness, appVersion, clock)
     }
   }
 
@@ -582,15 +475,7 @@ internal class AppRootViewModel(
     val currentCityConfigured = cityConfigured ?: currentChecklist.cityConfirmed
     val currentRuntime = runtimeState.value
 
-    val resolved =
-      resolveOnboardingPresentationUseCase.execute(
-        OnboardingPresentationInput(
-          checklist = currentChecklist,
-          cityConfigured = currentCityConfigured,
-          suppressGuidedOnboardingForNavigation = currentRuntime.suppressGuidedOnboardingForNavigation,
-          launchSource = currentRuntime.onboardingLaunchSource,
-        ),
-      )
+    val resolved = onboardingCoordinator.resolvePresentation(currentChecklist, currentCityConfigured, currentRuntime)
 
     _uiState.update {
       it.copy(
@@ -612,14 +497,7 @@ internal class AppRootViewModel(
             } else {
               currentRuntimeCopy.suppressGuidedOnboardingForNavigation
             },
-          onboardingLaunchSource =
-            if (currentRuntimeCopy.onboardingLaunchSource == OnboardingLaunchSource.Settings &&
-              !resolved.shouldShowGuidedOnboarding
-            ) {
-              OnboardingLaunchSource.Automatic
-            } else {
-              currentRuntimeCopy.onboardingLaunchSource
-            },
+          onboardingLaunchSource = resolved.launchSource,
         )
       }
     }

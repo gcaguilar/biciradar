@@ -66,6 +66,7 @@ kotlin {
     commonTest.dependencies {
       implementation(libs.coroutines.test)
       implementation(libs.kotlin.test)
+      implementation(project(":shared:test-utils"))
       implementation(libs.turbine)
     }
     androidMain.dependencies {

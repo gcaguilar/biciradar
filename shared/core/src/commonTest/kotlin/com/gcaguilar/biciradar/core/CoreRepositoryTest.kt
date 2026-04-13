@@ -2,10 +2,8 @@ package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.di.CoreGraph
+import com.gcaguilar.biciradar.testutils.testCoroutineScope
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -20,8 +18,6 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class CoreRepositoryTest {
-  private fun testCoroutineScope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-
   @Test
   fun `distanceBetween returns stable Zaragoza distance ordering`() {
     val origin = GeoPoint(41.6488, -0.8891)
@@ -662,8 +658,8 @@ class CoreRepositoryTest {
         },
       )
 
-    assertSame(graph.stationsRepository, graph.stationsRepository)
-    assertSame(graph.favoritesRepository, graph.favoritesRepository)
+    assertSame(graph.observeStationsState, graph.observeStationsState)
+    assertSame(graph.observeFavorites, graph.observeFavorites)
     assertSame(graph.settingsRepository, graph.settingsRepository)
   }
 

@@ -18,6 +18,7 @@ rootProject.name = "biciradar"
 
 include(":shared:core")
 include(":shared:mobile-ui")
+include(":shared:test-utils")
 include(":androidApp")
 include(":wearApp")
 include(":desktopApp")
