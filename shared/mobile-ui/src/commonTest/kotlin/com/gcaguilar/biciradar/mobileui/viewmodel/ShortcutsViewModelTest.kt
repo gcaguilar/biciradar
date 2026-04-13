@@ -185,8 +185,6 @@ private class FakeShortcutsFavoritesRepository(
 
   override suspend fun bootstrap() = Unit
 
-  override suspend fun syncFromPeer() = Unit
-
   override suspend fun toggle(stationId: String) = Unit
 
   override suspend fun setHomeStationId(stationId: String?) = Unit

@@ -179,6 +179,7 @@ class FavoritesViewModelTest {
           favoritesManagementUseCase =
             FavoritesManagementUseCase(
               favoritesRepository = favoritesRepository,
+              favoritesCategories = favoritesRepository,
               stationsRepository = FakeFavoriteStationsRepository(emptyList()),
               settingsRepository = FakeFavoriteSettingsRepository(),
             ),
@@ -235,6 +236,7 @@ class FavoritesViewModelTest {
           favoritesManagementUseCase =
             FavoritesManagementUseCase(
               favoritesRepository = favoritesRepository,
+              favoritesCategories = favoritesRepository,
               stationsRepository = FakeFavoriteStationsRepository(emptyList()),
               settingsRepository = FakeFavoriteSettingsRepository(),
             ),
@@ -276,6 +278,14 @@ private class FakeFavoritesRepo :
       ),
     )
   override val stationCategory = MutableStateFlow<Map<String, String>>(emptyMap())
+  override suspend fun upsertCategory(id: String, label: String, isSystem: Boolean) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun removeCategory(categoryId: String) {
+    TODO("Not yet implemented")
+  }
+
   val setHomeCalls = mutableListOf<String?>()
   val setWorkCalls = mutableListOf<String?>()
   val assignCalls = mutableListOf<Pair<String, String?>>()
