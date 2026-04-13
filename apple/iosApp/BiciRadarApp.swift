@@ -57,6 +57,7 @@ struct BiciRadarApp: App {
                         composeWrapper.requestRefresh()
                         WidgetTimelineReloadScheduler.shared.scheduleReloads()
                         SurfaceMonitoringActivityController.shared.syncNow()
+                        Task { try? await BiziAppleGraph.shared.refreshWidgetData() }
                     case .background:
                         BiziBackgroundTaskHandler.scheduleAppRefresh()
                         handleBackgroundTransitionForMonitoring()

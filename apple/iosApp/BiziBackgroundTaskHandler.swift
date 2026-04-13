@@ -35,8 +35,9 @@ enum BiziBackgroundTaskHandler {
     /// Schedules the next background app refresh. Safe to call multiple times.
     static func scheduleAppRefresh() {
         let request = BGAppRefreshTaskRequest(identifier: appRefreshTaskIdentifier)
-        // Earliest begin: 15 minutes from now. The system may delay further.
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
+        // Request 2-minute interval. The system enforces a minimum (~15 min on most devices)
+        // but we ask for the shortest interval supported for widget freshness.
+        request.earliestBeginDate = Date(timeIntervalSinceNow: 2 * 60)
         do {
             try BGTaskScheduler.shared.submit(request)
         } catch BGTaskScheduler.Error.notPermitted {
@@ -69,13 +70,14 @@ enum BiziBackgroundTaskHandler {
     @MainActor
     private static func performRefresh(task: BGAppRefreshTask) async {
         do {
-            // 1. Refresh station data via the shared graph.
+            // 1. Refresh widget data (snapshot + WidgetCenter reload).
+            try await BiziAppleGraph.shared.refreshWidgetData()
+
+            // 2. Refresh station data via the shared graph.
             try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
 
-            // 2. Evaluate saved-place alert rules (Casa/Trabajo/favoritas) with shared Kotlin evaluator.
+            // 3. Evaluate saved-place alert rules (Casa/Trabajo/favoritas) with shared Kotlin evaluator.
             try await BiziAppleGraph.shared.deliverSavedPlaceAlertNotificationsIfNeeded()
-
-            WidgetCenter.shared.reloadAllTimelines()
 
             task.setTaskCompleted(success: true)
         } catch {

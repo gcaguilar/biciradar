@@ -134,6 +134,14 @@ actor BiziAppleGraph {
         }
     }
 
+    func refreshWidgetData() async throws {
+        let success = try await graph.refreshWidgetDataUseCase.execute()
+        guard success else { return }
+        await MainActor.run {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+    }
+
     // MARK: - Private helpers
 
     private func ensureFacade() async throws -> BiziAppleFacade {
