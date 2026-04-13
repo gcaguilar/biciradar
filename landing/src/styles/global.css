@@ -1,6 +1,65 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@variant dark (&:is(.dark *));
+
+@theme {
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+
+  --color-secondary-container: var(--secondary-container);
+  --color-on-surface: var(--on-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-outline: var(--outline);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+  --color-error: var(--error);
+  --color-background: var(--background);
+  --color-tertiary: var(--tertiary);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-tertiary-dim: var(--tertiary-dim);
+  --color-surface-tint: var(--surface-tint);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-secondary: var(--secondary);
+  --color-error-dim: var(--error-dim);
+  --color-on-error-container: var(--on-error-container);
+  --color-primary-dim: var(--primary-dim);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-bright: var(--surface-bright);
+  --color-error-container: var(--error-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-on-primary: var(--on-primary);
+  --color-on-error: var(--on-error);
+  --color-primary-container: var(--primary-container);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+  --color-on-secondary: var(--on-secondary);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-on-background: var(--on-background);
+  --color-primary-fixed: var(--primary-fixed);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
+  --color-primary: var(--primary);
+  --color-surface: var(--surface);
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-secondary-dim: var(--secondary-dim);
+  --color-outline-variant: var(--outline-variant);
+  --color-surface-variant: var(--surface-variant);
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-inverse-primary: var(--inverse-primary);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-on-primary-container: var(--on-primary-container);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-container: var(--surface-container);
+  --color-accent: var(--accent);
+}
 
 :root {
   --marketing-bg: #f8fafc;
@@ -115,7 +174,7 @@ summary:focus-visible {
   }
 
   .marketing-hero-panel {
-    @apply rounded-[28px] border border-sky-200 bg-gradient-to-br from-white to-sky-50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-8;
+    @apply rounded-[28px] border border-sky-200 bg-linear-to-br from-white to-sky-50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-8;
   }
 
   .marketing-platform-card {
@@ -206,7 +265,7 @@ summary:focus-visible {
   }
 
   .marketing-form-card {
-    @apply rounded-[24px] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-lime-50 p-5 shadow-sm md:p-8;
+    @apply rounded-[24px] border border-emerald-200 bg-linear-to-br from-emerald-50 to-lime-50 p-5 shadow-sm md:p-8;
   }
 
   .marketing-field {
@@ -219,11 +278,11 @@ summary:focus-visible {
   }
 
   .marketing-thank-you-card {
-    @apply space-y-6 rounded-[24px] border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-6 shadow-sm md:p-10;
+    @apply space-y-6 rounded-[24px] border border-slate-200 bg-linear-to-br from-white to-slate-50 p-6 shadow-sm md:p-10;
   }
 
   .marketing-city-hero {
-    @apply grid gap-8 rounded-[28px] border border-sky-200 bg-gradient-to-br from-white to-sky-50 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:grid-cols-[1.2fr_0.8fr] lg:items-center;
+    @apply grid gap-8 rounded-[28px] border border-sky-200 bg-linear-to-br from-white to-sky-50 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:grid-cols-[1.2fr_0.8fr] lg:items-center;
   }
 
   .marketing-city-badge {
