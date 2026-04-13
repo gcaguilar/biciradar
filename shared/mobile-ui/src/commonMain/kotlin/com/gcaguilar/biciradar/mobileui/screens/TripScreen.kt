@@ -45,7 +45,6 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripBikeRouteAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlternative
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoStationWithFreeSlotsNearby
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationFull
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationNoLongerHasSlots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSubtitle

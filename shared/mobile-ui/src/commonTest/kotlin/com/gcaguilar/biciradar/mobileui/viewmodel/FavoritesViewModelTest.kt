@@ -278,7 +278,12 @@ private class FakeFavoritesRepo :
       ),
     )
   override val stationCategory = MutableStateFlow<Map<String, String>>(emptyMap())
-  override suspend fun upsertCategory(id: String, label: String, isSystem: Boolean) {
+
+  override suspend fun upsertCategory(
+    id: String,
+    label: String,
+    isSystem: Boolean,
+  ) {
     TODO("Not yet implemented")
   }
 
