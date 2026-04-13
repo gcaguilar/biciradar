@@ -11,7 +11,6 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsFeatureDeps
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
-import com.gcaguilar.biciradar.core.geo.currentTimeMs
 
 /**
  * Facade tipada que expone las operaciones del [SharedGraph] necesarias para
@@ -46,7 +45,6 @@ class BiziAppleFacade private constructor(
   private val session: SessionFeatureDeps,
   private val platform: PlatformFeatureDeps,
 ) {
-
   // ─────────────────────────── Sesión / arranque ───────────────────────────
 
   /** Inicializa todos los repositorios persistentes. Idempotente. */
@@ -84,13 +82,15 @@ class BiziAppleFacade private constructor(
   suspend fun favoriteStations(): List<Station> = favorites.getFavoriteStationList.execute()
 
   /** Lista sugerida de estaciones priorizando home, work y favoritos. */
-  suspend fun suggestedStations(limit: Int = 8): List<Station> =
-    stations.getSuggestedStations.execute(limit = limit)
+  suspend fun suggestedStations(limit: Int = 8): List<Station> = stations.getSuggestedStations.execute(limit = limit)
 
   /**
    * Sugerencias filtradas por [query]. Si no hay resultados, devuelve [suggestedStations].
    */
-  suspend fun stationSuggestions(query: String, limit: Int = 8): List<Station> {
+  suspend fun stationSuggestions(
+    query: String,
+    limit: Int = 8,
+  ): List<Station> {
     val filtered = stations.filterStationsByQuery.execute(query = query)
     if (filtered.isEmpty()) return suggestedStations(limit = limit)
     return filtered.take(limit)
@@ -100,8 +100,7 @@ class BiziAppleFacade private constructor(
    * Estación que mejor coincide con [query], o la más cercana si la query es nula/vacía.
    * Soporta alias "casa" / "trabajo" para home/work.
    */
-  suspend fun stationMatchingQuery(query: String?): Station? =
-    stations.findStationMatchingQuery.execute(query = query)
+  suspend fun stationMatchingQuery(query: String?): Station? = stations.findStationMatchingQuery.execute(query = query)
 
   /** Estación por ID exacto (sin I/O, solo lectura en memoria). */
   fun stationById(stationId: String): Station? = stations.findStationById.execute(stationId = stationId)
@@ -133,8 +132,8 @@ class BiziAppleFacade private constructor(
    * El shell iOS es responsable de entregar las notificaciones de plataforma
    * usando los [SavedPlaceAlertTrigger] devueltos.
    */
-  suspend fun evaluateSavedPlaceAlerts(nowEpoch: Long = currentTimeMs()): List<SavedPlaceAlertTrigger> =
-    favorites.evaluateSavedPlaceAlerts.execute(nowEpoch = nowEpoch)
+  suspend fun evaluateSavedPlaceAlerts(): List<SavedPlaceAlertTrigger> =
+    favorites.evaluateSavedPlaceAlerts.execute()
 
   // ─────────────────────────── Factory ─────────────────────────────────────
 
