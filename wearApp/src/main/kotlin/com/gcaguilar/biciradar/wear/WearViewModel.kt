@@ -188,6 +188,7 @@ internal class WearViewModel(
         }
       }
       FavoriteStationTileService.requestUpdate(appContext)
+      NearbyStationsTileService.requestUpdate(appContext)
     }
   }
 
@@ -203,6 +204,7 @@ internal class WearViewModel(
         )
       }
       FavoriteStationTileService.requestUpdate(appContext)
+      NearbyStationsTileService.requestUpdate(appContext)
     }
   }
 
@@ -211,6 +213,7 @@ internal class WearViewModel(
       stopStationMonitoring.execute(clear = true)
       ongoingActivity.stop()
       FavoriteStationTileService.requestUpdate(appContext)
+      NearbyStationsTileService.requestUpdate(appContext)
     }
   }
 
@@ -248,6 +251,7 @@ internal class WearViewModel(
       }
     }
     FavoriteStationTileService.requestUpdate(context)
+    NearbyStationsTileService.requestUpdate(context)
   }
 }
 
