@@ -51,6 +51,8 @@ internal data class WearFavoriteSurfaceState(
   val updatedText: String? = null,
   val bikesLabel: String? = null,
   val docksLabel: String? = null,
+  val bikesAvailable: Int = 0,
+  val docksAvailable: Int = 0,
 )
 
 internal data class WearFavoriteTileState(
@@ -98,6 +100,8 @@ internal fun wearFavoriteSurfaceState(
       updatedText = formatRelativeMinutes(favorite.lastUpdatedEpoch, nowEpoch),
       bikesLabel = "🚲 ${favorite.bikesAvailable}",
       docksLabel = "🅿 ${favorite.docksAvailable}",
+      bikesAvailable = favorite.bikesAvailable,
+      docksAvailable = favorite.docksAvailable,
     )
   }
   return when {
