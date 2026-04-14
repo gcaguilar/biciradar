@@ -19,13 +19,13 @@ class NearbyStationsTileService : Material3TileService() {
 
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
-    val snapshot = graph.refreshStationDataIfNeeded.execute(forceRefresh = true)
+    val snapshot = graph.getCachedStationSnapshot.execute()
     val nearbyStations = snapshot?.nearbyStations?.take(4) ?: emptyList()
 
     val content =
       buildString {
         if (nearbyStations.isEmpty()) {
-          append("Sin estaciones cercanas")
+          append("Sin datos. Abre la app")
         } else {
           append("Cercanas:\n")
           nearbyStations.forEach { station ->
