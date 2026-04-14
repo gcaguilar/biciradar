@@ -261,8 +261,13 @@ private class AndroidRouteLauncher(
       Intent(Intent.ACTION_VIEW, fallbackUri).apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       }
-    val launchIntent = if (intent.resolveActivity(context.packageManager) != null) intent else fallbackIntent
-    context.startActivity(launchIntent)
+    val hasGoogleMaps = intent.resolveActivity(context.packageManager) != null
+    val hasFallback = fallbackIntent.resolveActivity(context.packageManager) != null
+
+    when {
+      hasGoogleMaps -> context.startActivity(intent)
+      hasFallback -> context.startActivity(fallbackIntent)
+    }
   }
 }
 
