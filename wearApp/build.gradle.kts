@@ -101,6 +101,8 @@ android {
     implementation(libs.androidx.wear.compose.navigation)
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.ongoing)
+    implementation(libs.androidx.wear.watchface.complications.data.source)
+    implementation(libs.androidx.wear.watchface.complications.data.source.ktx)
     if (firebaseCrashlyticsEnabled) {
       implementation(platform(libs.firebase.bom))
       implementation(libs.firebase.crashlytics)
