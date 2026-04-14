@@ -28,7 +28,7 @@ class FavoriteStationTileService : Material3TileService() {
 
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
-    val snapshot = graph.refreshStationDataIfNeeded.execute()
+    val snapshot = graph.refreshStationDataIfNeeded.execute(forceRefresh = true)
     val tileState = wearFavoriteTileState(snapshot)
     val openAppClickable =
       protoLayoutScope.clickable(

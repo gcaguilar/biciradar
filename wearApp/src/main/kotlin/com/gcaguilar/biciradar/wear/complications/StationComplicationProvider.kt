@@ -21,7 +21,7 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
 
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
-    val snapshot = graph.refreshStationDataIfNeeded.execute()
+    val snapshot = graph.refreshStationDataIfNeeded.execute(forceRefresh = true)
 
     return when (request.complicationType) {
       ComplicationType.SHORT_TEXT -> createShortTextComplicationData(snapshot)
