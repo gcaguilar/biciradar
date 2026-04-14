@@ -48,6 +48,22 @@
         </service>
 
         <service
+            android:name=".NearbyStationsTileService"
+            android:description="@string/tile_nearby_description"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/tile_nearby_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_favorite_preview" />
+        </service>
+
+        <service
             android:name=".complications.StationComplicationProvider"
             android:description="@string/complication_station_description"
             android:exported="true"
