@@ -2,4 +2,10 @@
     <string name="app_name">Bici Radar Wear</string>
     <string name="tile_favorite_label">Favorita</string>
     <string name="tile_favorite_description">Resumen de la estación favorita</string>
+    <string name="shortcut_nearest_station">Más cercana</string>
+    <string name="shortcut_nearest_station_long">Estación más cercana</string>
+    <string name="shortcut_favorite">Favorita</string>
+    <string name="shortcut_favorite_long">Mi estación favorita</string>
+    <string name="complication_station_name">Estación</string>
+    <string name="complication_station_description">Muestra la estación más cercana</string>
 </resources>

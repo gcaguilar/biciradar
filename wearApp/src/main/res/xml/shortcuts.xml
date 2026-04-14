@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" tools:ignore="UnusedAttribute">
+  <shortcut
+    android:shortcutId="nearest_station"
+    android:icon="@mipmap/ic_launcher"
+    android:shortcutShortLabel="@string/shortcut_nearest_station"
+    android:shortcutLongLabel="@string/shortcut_nearest_station_long">
+    <intent
+      android:action="com.gcaguilar.biciradar.wear.action.NEAREST_STATION"
+      android:targetPackage="com.gcaguilar.biciradar"
+      android:targetClass="com.gcaguilar.biciradar.wear.WearActivity" />
+  </shortcut>
+  <shortcut
+    android:shortcutId="favorite_station"
+    android:icon="@mipmap/ic_launcher"
+    android:shortcutShortLabel="@string/shortcut_favorite"
+    android:shortcutLongLabel="@string/shortcut_favorite_long">
+    <intent
+      android:action="com.gcaguilar.biciradar.wear.action.FAVORITE_STATION"
+      android:targetPackage="com.gcaguilar.biciradar"
+      android:targetClass="com.gcaguilar.biciradar.wear.WearActivity" />
+  </shortcut>
+</shortcuts>
