@@ -28,7 +28,7 @@ class FavoriteStationTileService : Material3TileService() {
 
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
-    val snapshot = graph.refreshStationDataIfNeeded.execute(forceRefresh = true)
+    val snapshot = graph.getCachedStationSnapshot.execute()
     val tileState = wearFavoriteTileState(snapshot)
     val openAppClickable =
       protoLayoutScope.clickable(
@@ -78,16 +78,19 @@ class FavoriteStationTileService : Material3TileService() {
       ).build()
   }
 
+  private var pendingIntentCounter = 1000
+
   private fun openAppPendingIntent(stationId: String?): PendingIntent {
     val intent =
       Intent(this, WearActivity::class.java).apply {
-        action = WearActivity.ACTION_OPEN_STATION
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        action = Intent.ACTION_MAIN
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         stationId?.let { putExtra(WearActivity.EXTRA_OPEN_STATION_ID, it) }
       }
+    val requestCode = ++pendingIntentCounter
     return PendingIntent.getActivity(
       this,
-      stationId?.hashCode() ?: 0,
+      requestCode,
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
