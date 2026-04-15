@@ -46,3 +46,18 @@ landing/src/pages/*.backup
 **/node_modules/
 landing/dist/_astro/
 eminent-ellipse/.vscode/
+
+# Eclipse
+.project
+.settings/
+*/.classpath
+*/.project
+*/.settings/
+
+# Garmin Connect IQ
+garminApp/bin/
+garminApp/gen/
+
+# Build outputs
+bin/
+gen/
