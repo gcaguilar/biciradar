@@ -56,10 +56,6 @@
             android:foregroundServiceType="dataSync"
             android:exported="false" />
         <service
-            android:name="com.gcaguilar.biciradar.WidgetRefreshService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false" />
-        <service
             android:name="com.gcaguilar.biciradar.WearRouteMessageService"
             android:exported="true">
             <intent-filter>
