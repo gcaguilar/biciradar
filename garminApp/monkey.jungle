@@ -22,7 +22,7 @@ instinct2x.resourcePath = $(instinct2x.resourcePath);resources-62x62
 
 fr965.resourcePath = $(fr965.resourcePath);resources-65x65
 
-vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-70x70
+vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-56x56
 venu2.resourcePath = $(venu2.resourcePath);resources-70x70
 venu2plus.resourcePath = $(venu2plus.resourcePath);resources-70x70
 venu3.resourcePath = $(venu3.resourcePath);resources-70x70

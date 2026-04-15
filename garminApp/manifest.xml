@@ -4,7 +4,7 @@
         entry="BiciRadarApp" 
         id="9b02e1cf-d60a-42d8-ad70-8c8ef1c4bdfa"
         launcherIcon="@Drawables.LauncherIcon" 
-        minSdkVersion="4.0.0" 
+        minSdkVersion="3.1.0" 
         name="@Strings.AppName" 
         type="widget">
 
@@ -48,9 +48,6 @@
         <iq:languages>
             <iq:language>eng</iq:language>
             <iq:language>spa</iq:language>
-            <iq:language>cat</iq:language>
-            <iq:language>eus</iq:language>
-            <iq:language>glg</iq:language>
         </iq:languages>
     </iq:application>
 </iq:manifest>
