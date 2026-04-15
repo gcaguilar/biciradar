@@ -38,18 +38,27 @@ jobs:
         run: |
           echo "$KEY" | base64 -d > garminApp/developer_key
 
-      - name: Build Connect IQ app
+      - name: Set up Connect IQ SDK
         uses: blackshadev/garmin-connectiq-build-action@9.1.0
         with:
           projectJungle: ./garminApp/monkey.jungle
-          outputPath: ./garminApp/bin/BiciRadar.prg
+          outputPath: ./garminApp/bin/bootstrap.prg
           developerKey: ./garminApp/developer_key
           device: fr255
           typeCheck: '1'
+
+      - name: Export Connect IQ package
+        run: |
+          SDK_ROOT="$(dirname "$(dirname "$(which monkeyc)")")"
+          monkeyc -e \
+            -f ./garminApp/monkey.jungle \
+            -o ./garminApp/bin/BiciRadar.iq \
+            -y ./garminApp/developer_key \
+            -w
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: biciradar-garmin-widget
-          path: garminApp/bin/BiciRadar.prg
+          path: garminApp/bin/BiciRadar.iq
           retention-days: 30
