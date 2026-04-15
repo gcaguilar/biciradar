@@ -35,7 +35,52 @@ Garmin requiere iconos PNG en múltiples tamaños. Crea las siguientes imágenes
 5. Compilar: `Ctrl+Shift+P` → "Monkey C: Build"
 6. Probar en simulador o dispositivo real
 
-### 3. Subir a Connect IQ Store
+### 3. Compilar para la Store en local
+
+Requisitos:
+
+1. Tener instalado el Connect IQ SDK
+2. Tener `garminApp/developer_key`
+3. Tener Pillow instalado solo si necesitas regenerar iconos:
+
+```bash
+python3 -m pip install pillow
+```
+
+Comando:
+
+```bash
+./garminApp/build_store_iq.sh
+```
+
+Por defecto reutiliza los iconos ya generados.
+
+Si quieres regenerarlos desde el icono Android:
+
+```bash
+./garminApp/build_store_iq.sh --refresh-icons
+```
+
+Si tu SDK no está en la ruta por defecto, indica la ruta manualmente:
+
+```bash
+CONNECTIQ_SDK_ROOT="$HOME/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-mac-9.1.0-2026-03-09-6a872a80b" \
+./garminApp/build_store_iq.sh
+```
+
+Si tu `developer_key` está en otra ruta:
+
+```bash
+DEVELOPER_KEY_PATH="$HOME/path/to/developer_key" ./garminApp/build_store_iq.sh
+```
+
+Salida generada:
+
+```bash
+garminApp/bin/BiciRadar.iq
+```
+
+### 4. Subir a Connect IQ Store
 
 1. Compilar en modo release
 2. Subir el archivo `.iq` generado a [Garmin Developer Dashboard](https://developer.garmin.com/connect-iq/overview/)
