@@ -4,11 +4,13 @@ on:
   pull_request:
     paths-ignore:
       - 'landing/**'
+      - 'garminApp/**'
   push:
     branches:
       - main
     paths-ignore:
       - 'landing/**'
+      - 'garminApp/**'
   workflow_dispatch:
 
 permissions:
