@@ -54,7 +54,7 @@ class BikeStationModel {
 
 class StationsData {
     public var nearest = null;
-    public var backup = [];
+    public var backup = [] as Array<BikeStationModel>;
     public var timestamp = 0;
 
     public function initialize() {
