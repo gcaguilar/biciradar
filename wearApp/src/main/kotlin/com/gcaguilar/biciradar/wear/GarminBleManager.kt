@@ -199,6 +199,6 @@ class GarminBleManager(
     }
 
     companion object {
-        const val APP_UUID = "e7c8a1b2-3d4f-5e6a-7b8c-9d0e1f2a3b4c"
+        const val APP_UUID = "9b02e1cf-d60a-42d8-ad70-8c8ef1c4bdfa"
     }
 }
