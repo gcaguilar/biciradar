@@ -114,6 +114,7 @@ internal fun WearRoot(
             onToggleFavorite = { viewModel.onToggleFavorite(selectedStation.id) },
             onToggleMonitoring = { viewModel.onToggleMonitoring(selectedStation.id) },
             onRoute = { viewModel.onRoute(selectedStation.id) },
+            onRouteInPhone = { viewModel.onRouteInPhone(selectedStation.id) },
           )
 
         uiState.isLoading ->
@@ -164,6 +165,7 @@ private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
         onToggleFavorite = {},
         onToggleMonitoring = {},
         onRoute = {},
+        onRouteInPhone = {},
       )
 
     WearScreenshotSurface.Monitoring -> WearScreenshotMonitoring()
@@ -707,6 +709,7 @@ private fun WearStationDetail(
   onToggleFavorite: () -> Unit,
   onToggleMonitoring: () -> Unit,
   onRoute: () -> Unit,
+  onRouteInPhone: () -> Unit,
 ) {
   val listState = rememberScalingLazyListState()
   val isMonitoringThisStation = currentMonitoring?.stationId == station.id && currentMonitoring.isActive
@@ -789,6 +792,15 @@ private fun WearStationDetail(
           colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
         ) {
           Text("Abrir ruta", style = MaterialTheme.typography.labelSmall, color = Color.White)
+        }
+      }
+      item {
+        Button(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          onClick = onRouteInPhone,
+          colors = ButtonDefaults.buttonColors(containerColor = WearSecondary),
+        ) {
+          Text("Ruta en teléfono", style = MaterialTheme.typography.labelSmall, color = Color.White)
         }
       }
       item {

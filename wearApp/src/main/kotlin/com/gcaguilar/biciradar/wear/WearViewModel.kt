@@ -62,6 +62,7 @@ internal class WearViewModel(
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
 
   private val ongoingActivity = MonitoringOngoingActivity(appContext)
+  private val phoneRouteRequester = WearPhoneRouteRequester(appContext)
 
   private var latestStations: List<Station> = emptyList()
   private var latestIsLoading: Boolean = false
@@ -227,6 +228,16 @@ internal class WearViewModel(
 
   fun onRoute(stationId: String) {
     findStationById.execute(stationId)?.let(routeLauncher::launch)
+  }
+
+  fun onRouteInPhone(stationId: String) {
+    viewModelScope.launch {
+      val requested = phoneRouteRequester.requestRoute(stationId)
+      if (!requested) {
+        latestErrorMessage = "No se pudo abrir la ruta en el teléfono"
+        publishUiState()
+      }
+    }
   }
 
   private fun publishUiState() {
