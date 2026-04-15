@@ -1,3 +1,5 @@
+import Toybox.Lang;
+
 class BikeStationModel {
     public var id;
     public var name;
@@ -17,6 +19,8 @@ class BikeStationModel {
         if (data == null) {
             return null;
         }
+
+        data = data as Dictionary<String, Object>;
 
         var name = data["name"];
         var bikes = data["bikes"];
@@ -61,6 +65,8 @@ class StationsData {
             return null;
         }
 
+        data = data as Dictionary<String, Object>;
+
         var result = new StationsData();
 
         if (data["nearest"] != null) {
@@ -69,6 +75,7 @@ class StationsData {
 
         var backupData = data["backup"];
         if (backupData != null) {
+            backupData = backupData as Array<Object>;
             for (var i = 0; i < backupData.size(); i += 1) {
                 var station = BikeStationModel.fromDict(backupData[i]);
                 if (station != null) {
@@ -85,9 +92,10 @@ class StationsData {
     }
 
     public function toDict() {
-        var backupArray = [];
+        var backupArray = [] as Array<Dictionary<String, Object>>;
         for (var i = 0; i < backup.size(); i += 1) {
-            backupArray.add(backup[i].toDict());
+            var station = backup[i] as BikeStationModel;
+            backupArray.add(station.toDict());
         }
 
         return {

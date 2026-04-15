@@ -5,42 +5,51 @@ on:
     branches: [main]
     paths:
       - 'garminApp/**'
+      - '.github/workflows/garmin-build.yml'
   pull_request:
     branches: [main]
     paths:
       - 'garminApp/**'
+      - '.github/workflows/garmin-build.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Pillow
+        run: python -m pip install pillow
+
+      - name: Generate Garmin icons
+        run: python garminApp/generate_icons.py
+
       - name: Create developer key file
         env:
           KEY: ${{ secrets.GARMIN_DEVELOPER_KEY }}
         run: |
-          echo "$KEY" | base64 -d > ./developer_key
+          echo "$KEY" | base64 -d > garminApp/developer_key
 
       - name: Build Connect IQ app
         uses: blackshadev/garmin-connectiq-build-action@9.1.0
         with:
           projectJungle: ./garminApp/monkey.jungle
-          outputPath: ./bin/BiciRadar.prg
-          developerKey: ./developer_key
-          device: fr955
+          outputPath: ./garminApp/bin/BiciRadar.prg
+          developerKey: ./garminApp/developer_key
+          device: fr255
           typeCheck: '1'
-
-      - name: List build output
-        run: ls -la bin/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: biciradar-garmin-widget
-          path: bin/BiciRadar.prg
+          path: garminApp/bin/BiciRadar.prg
           retention-days: 30

@@ -1,5 +1,17 @@
 <resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
     <drawables>
         <bitmap id="LauncherIcon" filename="drawables/100x100/ic_launcher.png" />
+        <bitmap id="LauncherIcon30" filename="drawables/30x30/ic_launcher.png" />
+        <bitmap id="LauncherIcon40" filename="drawables/40x40/ic_launcher.png" />
+        <bitmap id="LauncherIcon50" filename="drawables/50x50/ic_launcher.png" />
+        <bitmap id="LauncherIcon60" filename="drawables/60x60/ic_launcher.png" />
+        <bitmap id="LauncherIcon70" filename="drawables/70x70/ic_launcher.png" />
+        <bitmap id="LauncherIcon90" filename="drawables/90x90/ic_launcher.png" />
+        <bitmap id="LauncherIcon110" filename="drawables/110x110/ic_launcher.png" />
+        <bitmap id="LauncherIcon140" filename="drawables/140x140/ic_launcher.png" />
+        <bitmap id="LauncherIcon150" filename="drawables/150x150/ic_launcher.png" />
+        <bitmap id="LauncherIcon180" filename="drawables/180x180/ic_launcher.png" />
+        <bitmap id="LauncherIcon210" filename="drawables/210x210/ic_launcher.png" />
+        <bitmap id="LauncherIcon220" filename="drawables/220x220/ic_launcher.png" />
     </drawables>
 </resources>
