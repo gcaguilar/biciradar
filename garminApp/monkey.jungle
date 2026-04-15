@@ -1,1 +1,29 @@
 project.manifest = manifest.xml
+
+base.resourcePath = resources
+
+fenix6pro.resourcePath = $(fenix6pro.resourcePath);resources-40x40
+fenix7.resourcePath = $(fenix7.resourcePath);resources-40x40
+fenix7pro.resourcePath = $(fenix7pro.resourcePath);resources-40x40
+fr255.resourcePath = $(fr255.resourcePath);resources-40x40
+fr255m.resourcePath = $(fr255m.resourcePath);resources-40x40
+fr945lte.resourcePath = $(fr945lte.resourcePath);resources-40x40
+fr955.resourcePath = $(fr955.resourcePath);resources-40x40
+
+instinct2s.resourcePath = $(instinct2s.resourcePath);resources-54x54
+
+fr265.resourcePath = $(fr265.resourcePath);resources-60x60
+marq2.resourcePath = $(marq2.resourcePath);resources-60x60
+
+venu2s.resourcePath = $(venu2s.resourcePath);resources-61x61
+
+instinct2.resourcePath = $(instinct2.resourcePath);resources-62x62
+instinct2x.resourcePath = $(instinct2x.resourcePath);resources-62x62
+
+fr965.resourcePath = $(fr965.resourcePath);resources-65x65
+
+vivoactive5.resourcePath = $(vivoactive5.resourcePath);resources-70x70
+venu2.resourcePath = $(venu2.resourcePath);resources-70x70
+venu2plus.resourcePath = $(venu2plus.resourcePath);resources-70x70
+venu3.resourcePath = $(venu3.resourcePath);resources-70x70
+venu3s.resourcePath = $(venu3s.resourcePath);resources-70x70
