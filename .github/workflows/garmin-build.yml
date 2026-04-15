@@ -1,0 +1,103 @@
+name: Build Garmin Connect IQ Widget
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'garminApp/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'garminApp/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install SDK Manager
+        run: |
+          curl -sL https://raw.githubusercontent.com/pcolby/connectiq-sdk-manager/main/install.sh | bash -r
+          echo "$HOME/.Garmin/ConnectIQ/Sdks/latest/bin" >> $GITHUB_PATH
+
+      - name: Build Monkey C project
+        working-directory: garminApp
+        run: |
+          sdk_version=$(ls $HOME/.Garmin/ConnectIQ/Sdks/ | tail -1)
+          echo "Using SDK: $sdk_version"
+          
+          monkeyc \
+            -o ../bin/BiciRadar.prg \
+            -y ../bin \
+            -z $HOME/.Garmin/ConnectIQ/Sdks/$sdk_version \
+            -m manifest.xml \
+            source/
+
+      - name: List build output
+        run: ls -la bin/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: biciradar-garmin-widget
+          path: bin/BiciRadar.prg
+          retention-days: 30
+
+  build-multiple-devices:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        device:
+          - fenix7
+          - fr955
+          - fr265
+          - venu3
+          - instinct2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install SDK Manager
+        run: |
+          curl -sL https://raw.githubusercontent.com/pcolby/connectiq-sdk-manager/main/install.sh | bash -r
+          echo "$HOME/.Garmin/ConnectIQ/Sdks/latest/bin" >> $GITHUB_PATH
+
+      - name: Build for ${{ matrix.device }}
+        working-directory: garminApp
+        run: |
+          sdk_version=$(ls $HOME/.Garmin/ConnectIQ/Sdks/ | tail -1)
+          
+          monkeyc \
+            -o ../bin/BiciRadar-${{ matrix.device }}.prg \
+            -y ../bin \
+            -z $HOME/.Garmin/ConnectIQ/Sdks/$sdk_version \
+            -d ${{ matrix.device }} \
+            -m manifest.xml \
+            source/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: biciradar-${{ matrix.device }}
+          path: bin/BiciRadar-${{ matrix.device }}.prg
+          retention-days: 30
