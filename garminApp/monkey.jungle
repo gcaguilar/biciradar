@@ -5,12 +5,15 @@ base.resourcePath = resources
 fenix6pro.resourcePath = $(fenix6pro.resourcePath);resources-40x40
 fenix7.resourcePath = $(fenix7.resourcePath);resources-40x40
 fenix7pro.resourcePath = $(fenix7pro.resourcePath);resources-40x40
+fr55.resourcePath = $(fr55.resourcePath);resources-35x35
 fr255.resourcePath = $(fr255.resourcePath);resources-40x40
 fr255m.resourcePath = $(fr255m.resourcePath);resources-40x40
 fr945lte.resourcePath = $(fr945lte.resourcePath);resources-40x40
 fr955.resourcePath = $(fr955.resourcePath);resources-40x40
 
 instinct2s.resourcePath = $(instinct2s.resourcePath);resources-54x54
+fr165.resourcePath = $(fr165.resourcePath);resources-54x54
+fr165m.resourcePath = $(fr165m.resourcePath);resources-54x54
 
 fr265.resourcePath = $(fr265.resourcePath);resources-60x60
 marq2.resourcePath = $(marq2.resourcePath);resources-60x60
