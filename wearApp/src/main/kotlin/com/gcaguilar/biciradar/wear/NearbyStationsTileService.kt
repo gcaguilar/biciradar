@@ -6,17 +6,20 @@ import android.content.Intent
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
-import androidx.wear.protolayout.ModifiersBuilders
 import androidx.wear.protolayout.TimelineBuilders
 import androidx.wear.protolayout.material3.MaterialScope
+import androidx.wear.protolayout.material3.appCard
 import androidx.wear.protolayout.material3.primaryLayout
 import androidx.wear.protolayout.material3.text
+import androidx.wear.protolayout.modifiers.LayoutModifier
 import androidx.wear.protolayout.modifiers.clickable
+import androidx.wear.protolayout.modifiers.contentDescription
 import androidx.wear.protolayout.types.layoutString
 import androidx.wear.tiles.Material3TileService
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
+import com.gcaguilar.biciradar.core.formatDistance
 
 class NearbyStationsTileService : Material3TileService() {
   private var pendingIntentCounter = 3000
@@ -29,37 +32,41 @@ class NearbyStationsTileService : Material3TileService() {
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
     val snapshot = graph.getCachedStationSnapshot.execute()
-    val nearbyStations = snapshot?.nearbyStations?.take(4) ?: emptyList()
+    val nearbyStation = graph.getNearestStations.execute(limit = 1).firstOrNull()
 
     val mainContent: LayoutElementBuilders.LayoutElement =
-      if (nearbyStations.isEmpty()) {
+      if (nearbyStation == null) {
         text("Sin datos cercanas.\nAbre la app".layoutString)
       } else {
-        val column =
-          LayoutElementBuilders.Column.Builder()
-            .setWidth(expand())
-            .setHeight(expand())
-        nearbyStations.forEach { station ->
-          val stationClickable =
+        appCard(
+          onClick =
             protoLayoutScope.clickable(
-              pendingIntent = openStationPendingIntent(station.id),
-              id = "nearby_${station.id}",
-              fallbackAction = openAppAction(station.id),
+              pendingIntent = openStationPendingIntent(nearbyStation.id),
+              id = "nearby_${nearbyStation.id}",
+              fallbackAction = openAppAction(nearbyStation.id),
+            ),
+          modifier = LayoutModifier.contentDescription(tileContentDescription(nearbyStation)),
+          height = expand(),
+          label = { text(nearbyStation.statusTextShort.layoutString) },
+          time = {
+            text(
+              nearbyStation.distanceMeters
+                ?.let(::formatDistance)
+                ?.layoutString ?: "".layoutString,
             )
-          val row =
-            LayoutElementBuilders.Box.Builder()
-              .setWidth(expand())
-              .setModifiers(
-                ModifiersBuilders.Modifiers
-                  .Builder()
-                  .setClickable(stationClickable)
-                  .build(),
-              ).addContent(
-                text("${station.nameShort}: \uD83D\uDEB2${station.bikesAvailable} \uD83C\uDD7F\uFE0F${station.docksAvailable}".layoutString),
-              ).build()
-          column.addContent(row)
-        }
-        column.build()
+          },
+          title = { text(nearbyStation.nameShort.layoutString) },
+          content = {
+            text(
+              buildString {
+                append("Bicis: ")
+                append(nearbyStation.bikesAvailable)
+                append(" · Huecos: ")
+                append(nearbyStation.docksAvailable)
+              }.layoutString,
+            )
+          },
+        )
       }
 
     val root = primaryLayout(mainSlot = { mainContent })
@@ -116,6 +123,19 @@ class NearbyStationsTileService : Material3TileService() {
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
   }
+
+  private fun tileContentDescription(station: com.gcaguilar.biciradar.core.SurfaceStationSnapshot): String =
+    buildString {
+      append(station.nameShort)
+      append(", ")
+      append("${station.bikesAvailable} bicis")
+      append(", ")
+      append("${station.docksAvailable} anclajes")
+      station.distanceMeters?.let {
+        append(", ")
+        append(formatDistance(it))
+      }
+    }
 
   companion object {
     fun requestUpdate(context: Context) {

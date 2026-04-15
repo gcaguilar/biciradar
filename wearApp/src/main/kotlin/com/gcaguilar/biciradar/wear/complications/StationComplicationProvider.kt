@@ -10,6 +10,7 @@ import androidx.wear.watchface.complications.data.ShortTextComplicationData
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.wear.WearActivity
 import com.gcaguilar.biciradar.wear.WearAppGraph
 
@@ -38,22 +39,47 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
     }
 
   private fun createShortTextComplicationData(snapshot: SurfaceSnapshotBundle?): ComplicationData {
-    val tapIntent = createTapIntent()
+    val tapIntent = createTapIntent(snapshot)
     val favorite = snapshot?.favoriteStation
-    val text = favorite?.let { "${it.bikesAvailable} bicis" } ?: "Bici"
+    val text = favorite?.let { "🚲 ${it.bikesAvailable}" } ?: "Bici"
+    val title =
+      favorite?.let { station ->
+        buildString {
+          station.distanceMeters?.let {
+            append(formatDistance(it))
+            append(" · ")
+          }
+          append(station.statusTextShort)
+        }
+      } ?: "Abre la app"
     return ShortTextComplicationData
       .Builder(
         text = PlainComplicationText.Builder(text).build(),
         contentDescription = PlainComplicationText.Builder("Estación de bici").build(),
-      ).setTapAction(tapIntent)
+      ).setTitle(PlainComplicationText.Builder(title).build())
+      .setTapAction(tapIntent)
       .build()
   }
 
   private fun createLongTextComplicationData(snapshot: SurfaceSnapshotBundle?): ComplicationData {
-    val tapIntent = createTapIntent()
+    val tapIntent = createTapIntent(snapshot)
     val favorite = snapshot?.favoriteStation
     val body =
-      favorite?.let { "${it.nameShort}\n${it.bikesAvailable} bicis · ${it.docksAvailable} anclajes" } ?: "Sin datos"
+      favorite?.let { station ->
+        buildString {
+          append(station.nameShort)
+          append("\n")
+          station.distanceMeters?.let {
+            append(formatDistance(it))
+            append(" · ")
+          }
+          append(station.statusTextShort)
+          append(" · 🚲 ")
+          append(station.bikesAvailable)
+          append(" · 🅿 ")
+          append(station.docksAvailable)
+        }
+      } ?: "Sin datos"
     return LongTextComplicationData
       .Builder(
         text = PlainComplicationText.Builder(body).build(),
@@ -62,15 +88,17 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
       .build()
   }
 
-  private fun createTapIntent(): PendingIntent {
+  private fun createTapIntent(snapshot: SurfaceSnapshotBundle?): PendingIntent {
+    val favoriteStationId = snapshot?.favoriteStation?.id
     val intent =
       Intent(this, WearActivity::class.java).apply {
-        action = WearActivity.ACTION_OPEN_STATION
+        action = if (favoriteStationId != null) WearActivity.ACTION_OPEN_STATION else Intent.ACTION_MAIN
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        favoriteStationId?.let { putExtra(WearActivity.EXTRA_OPEN_STATION_ID, it) }
       }
     return PendingIntent.getActivity(
       this,
-      0,
+      favoriteStationId?.hashCode() ?: 0,
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )

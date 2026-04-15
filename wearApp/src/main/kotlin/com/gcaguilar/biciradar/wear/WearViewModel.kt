@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.BootstrapSession
 import com.gcaguilar.biciradar.core.FindStationById
 import com.gcaguilar.biciradar.core.ObserveFavorites
+import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.ObserveStationsState
 import com.gcaguilar.biciradar.core.ObserveSurfaceSnapshot
 import com.gcaguilar.biciradar.core.RefreshStationAvailability
@@ -36,17 +37,16 @@ internal data class WearRootUiState(
   val homeStationId: String? = null,
   val workStationId: String? = null,
   val surfaceBundle: SurfaceSnapshotBundle? = null,
+  val activeMonitoring: SurfaceMonitoringSession? = null,
   val selectedStationId: String? = null,
   val currentTab: WearTab = WearTab.Cercanas,
-) {
-  val activeMonitoring: SurfaceMonitoringSession?
-    get() = surfaceBundle?.monitoringSession?.takeIf { it.isActive }
-}
+)
 
 internal class WearViewModel(
   private val appContext: Context,
   private val observeStationsState: ObserveStationsState,
   private val observeFavorites: ObserveFavorites,
+  private val observeSurfaceMonitoring: ObserveSurfaceMonitoring,
   private val observeSurfaceSnapshot: ObserveSurfaceSnapshot,
   private val bootstrapSession: BootstrapSession,
   private val syncFavoritesFromPeer: SyncFavoritesFromPeer,
@@ -70,6 +70,7 @@ internal class WearViewModel(
   private var latestHomeStationId: String? = null
   private var latestWorkStationId: String? = null
   private var latestSurfaceBundle: SurfaceSnapshotBundle? = null
+  private var latestActiveMonitoring: SurfaceMonitoringSession? = null
   private var selectedStationId: String? = null
   private var currentTab: WearTab = WearTab.Cercanas
 
@@ -100,6 +101,13 @@ internal class WearViewModel(
     viewModelScope.launch {
       observeFavorites.workStationId.collect { workStationId ->
         latestWorkStationId = workStationId
+        publishUiState()
+      }
+    }
+
+    viewModelScope.launch {
+      observeSurfaceMonitoring.state.collect { session ->
+        latestActiveMonitoring = session?.takeIf { it.isActive }
         publishUiState()
       }
     }
@@ -173,7 +181,7 @@ internal class WearViewModel(
 
   fun onToggleMonitoring(stationId: String) {
     viewModelScope.launch {
-      if (latestSurfaceBundle?.monitoringSession?.takeIf { it.isActive }?.stationId == stationId) {
+      if (latestActiveMonitoring?.stationId == stationId) {
         stopStationMonitoring.execute(clear = true)
         ongoingActivity.stop()
       } else {
@@ -231,6 +239,7 @@ internal class WearViewModel(
         homeStationId = latestHomeStationId,
         workStationId = latestWorkStationId,
         surfaceBundle = latestSurfaceBundle,
+        activeMonitoring = latestActiveMonitoring,
         selectedStationId = selectedStationId,
         currentTab = currentTab,
       )
@@ -264,6 +273,7 @@ internal class WearViewModelFactory(
       appContext = appContext.applicationContext,
       observeStationsState = graph.observeStationsState,
       observeFavorites = graph.observeFavorites,
+      observeSurfaceMonitoring = graph.observeSurfaceMonitoring,
       observeSurfaceSnapshot = graph.observeSurfaceSnapshot,
       bootstrapSession = graph.bootstrapSession,
       syncFavoritesFromPeer = graph.syncFavoritesFromPeer,
