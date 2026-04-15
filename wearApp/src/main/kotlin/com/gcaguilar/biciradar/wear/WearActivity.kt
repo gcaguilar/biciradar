@@ -86,11 +86,9 @@ class WearActivity : ComponentActivity() {
   private fun handleLaunchIntent(intent: Intent?) {
     screenshotSurface = WearScreenshotSurface.from(intent?.getStringExtra(EXTRA_SCREENSHOT_SURFACE))
     launchStationId =
-      if (intent?.action == ACTION_OPEN_STATION) {
-        intent.getStringExtra(EXTRA_OPEN_STATION_ID)
-      } else {
-        null
-      }
+      intent
+        ?.takeIf { it.action == ACTION_OPEN_STATION || it.hasExtra(EXTRA_OPEN_STATION_ID) }
+        ?.getStringExtra(EXTRA_OPEN_STATION_ID)
     launchStationNonce += 1
   }
 

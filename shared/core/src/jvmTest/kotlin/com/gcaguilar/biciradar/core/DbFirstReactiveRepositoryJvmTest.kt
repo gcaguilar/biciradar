@@ -6,6 +6,7 @@ import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.createJdbcDriver
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -13,6 +14,7 @@ import java.io.File
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -209,6 +211,147 @@ class DbFirstReactiveRepositoryJvmTest {
         assertEquals(1, availabilityRefreshed.stations.first().slotsFree)
         cancelAndIgnoreRemainingEvents()
       }
+    }
+
+  @Test
+  fun `surface snapshot DB writes update current bundle immediately`() =
+    runTest {
+      val database = createTestDatabase()
+      val repository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = Json,
+          localNotifier =
+            object : LocalNotifier {
+              override suspend fun hasPermission(): Boolean = true
+
+              override suspend fun requestPermission(): Boolean = true
+
+              override suspend fun notify(
+                title: String,
+                body: String,
+              ) = Unit
+            },
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()
+            },
+          settingsRepository =
+            object : SettingsRepository {
+              override val searchRadiusMeters = MutableStateFlow(DEFAULT_SEARCH_RADIUS_METERS)
+              override val preferredMapApp = MutableStateFlow(PreferredMapApp.AppleMaps)
+              override val lastSeenChangelogVersion = MutableStateFlow(0)
+              override val lastSeenChangelogAppVersion = MutableStateFlow<String?>(null)
+              override val themePreference = MutableStateFlow(ThemePreference.System)
+              override val selectedCity = MutableStateFlow(City.ZARAGOZA)
+              override val hasCompletedOnboarding = MutableStateFlow(true)
+              override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot(completedAtEpoch = 1L))
+              override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
+
+              override suspend fun bootstrap() = Unit
+
+              override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
+              override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
+              override fun currentSelectedCity(): City = selectedCity.value
+
+              override fun currentLastSeenChangelogAppVersion(): String? = null
+
+              override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
+              override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
+              override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
+              override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
+              override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
+              override suspend fun setSelectedCity(city: City) = Unit
+
+              override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+
+              override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
+
+              override suspend fun updateOnboardingChecklist(
+                transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
+              ) = Unit
+
+              override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+
+              override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
+            },
+          favoritesRepository =
+            object : FavoritesRepository {
+              override val favoriteIds = MutableStateFlow(setOf("station-db-1"))
+              override val homeStationId = MutableStateFlow<String?>(null)
+              override val workStationId = MutableStateFlow<String?>(null)
+
+              override suspend fun bootstrap() = Unit
+
+              override suspend fun toggle(stationId: String) = Unit
+
+              override suspend fun setHomeStationId(stationId: String?) = Unit
+
+              override suspend fun setWorkStationId(stationId: String?) = Unit
+
+              override suspend fun clearAll() = Unit
+
+              override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
+              override fun currentHomeStationId(): String? = homeStationId.value
+
+              override fun currentWorkStationId(): String? = workStationId.value
+            },
+          stationsRepository =
+            object : StationsRepository {
+              override val state =
+                MutableStateFlow(
+                  StationsState(
+                    stations =
+                      listOf(
+                        Station(
+                          id = "station-db-1",
+                          name = "Station DB 1",
+                          address = "Centro",
+                          location = GeoPoint(41.65, -0.88),
+                          bikesAvailable = 5,
+                          slotsFree = 6,
+                          distanceMeters = 100,
+                        ),
+                      ),
+                      userLocation = GeoPoint(41.65, -0.88),
+                      lastUpdatedEpoch = 10_000L,
+                    ),
+                )
+
+              override suspend fun loadIfNeeded() = Unit
+
+              override suspend fun forceRefresh() = Unit
+
+              override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
+              override fun stationById(stationId: String): Station? =
+                state.value.stations.firstOrNull { it.id == stationId }
+            },
+          scope = backgroundScope,
+          database = database,
+        )
+
+      repository.bootstrap()
+
+      val collectJob =
+        backgroundScope.launch {
+          repository.bundle.collect { }
+        }
+      repository.refreshSnapshot()
+
+      val bundle = repository.currentBundle()
+      assertNotNull(bundle)
+      assertEquals("station-db-1", bundle.favoriteStation?.id)
+
+      collectJob.cancel()
     }
 }
 

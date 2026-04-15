@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.wear
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.TimelineBuilders
@@ -21,7 +22,6 @@ import androidx.wear.tiles.TileService
 
 class FavoriteStationTileService : Material3TileService() {
   override suspend fun MaterialScope.tileResponse(requestParams: RequestBuilders.TileRequest): TileBuilders.Tile {
-    // Asegurar que el grafo está inicializado
     if (!WearAppGraph.isInitialized()) {
       WearAppGraph.initialize(applicationContext as android.app.Application)
     }
@@ -30,11 +30,7 @@ class FavoriteStationTileService : Material3TileService() {
     graph.syncFavoritesFromPeer.execute()
     val snapshot = graph.getCachedStationSnapshot.execute()
     val tileState = wearFavoriteTileState(snapshot)
-    val openAppClickable =
-      protoLayoutScope.clickable(
-        pendingIntent = openAppPendingIntent(tileState.stationId),
-        id = CLICKABLE_OPEN_FAVORITE,
-      )
+
     val labelSlot: (MaterialScope.() -> LayoutElementBuilders.LayoutElement)? =
       tileState.label?.takeIf { it.isNotBlank() }?.let { label ->
         { text(label.layoutString) }
@@ -47,7 +43,12 @@ class FavoriteStationTileService : Material3TileService() {
       primaryLayout(
         mainSlot = {
           appCard(
-            onClick = openAppClickable,
+            onClick =
+              protoLayoutScope.clickable(
+                pendingIntent = openStationPendingIntent(tileState.stationId),
+                id = CLICKABLE_OPEN_FAVORITE,
+                fallbackAction = openAppAction(tileState.stationId),
+              ),
             modifier = LayoutModifier.contentDescription(tileContentDescription(tileState)),
             height = expand(),
             title = { text(tileState.title.layoutString) },
@@ -78,19 +79,36 @@ class FavoriteStationTileService : Material3TileService() {
       ).build()
   }
 
-  private var pendingIntentCounter = 1000
+  private fun openAppAction(stationId: String?): ActionBuilders.Action {
+    val activityBuilder =
+      ActionBuilders.AndroidActivity
+        .Builder()
+        .setPackageName(packageName)
+        .setClassName(WearActivity::class.java.name)
 
-  private fun openAppPendingIntent(stationId: String?): PendingIntent {
+    stationId?.let {
+      activityBuilder.addKeyToExtraMapping(
+        WearActivity.EXTRA_OPEN_STATION_ID,
+        ActionBuilders.AndroidStringExtra.Builder().setValue(it).build(),
+      )
+    }
+
+    return ActionBuilders.LaunchAction
+      .Builder()
+      .setAndroidActivity(activityBuilder.build())
+      .build()
+  }
+
+  private fun openStationPendingIntent(stationId: String?): PendingIntent {
     val intent =
       Intent(this, WearActivity::class.java).apply {
-        action = Intent.ACTION_MAIN
+        action = WearActivity.ACTION_OPEN_STATION
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         stationId?.let { putExtra(WearActivity.EXTRA_OPEN_STATION_ID, it) }
       }
-    val requestCode = ++pendingIntentCounter
     return PendingIntent.getActivity(
       this,
-      requestCode,
+      PENDING_INTENT_REQUEST_CODE,
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
@@ -115,6 +133,7 @@ class FavoriteStationTileService : Material3TileService() {
 
   companion object {
     private const val CLICKABLE_OPEN_FAVORITE = "open_favorite"
+    private const val PENDING_INTENT_REQUEST_CODE = 2000
     private const val EMPTY_TILE_RESOURCES_VERSION = "empty"
     private const val TILE_FRESHNESS_INTERVAL_MILLIS = 60_000L
 

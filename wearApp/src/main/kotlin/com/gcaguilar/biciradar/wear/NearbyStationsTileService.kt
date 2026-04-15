@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.wear
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DimensionBuilders.expand
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ModifiersBuilders
@@ -43,6 +44,7 @@ class NearbyStationsTileService : Material3TileService() {
             protoLayoutScope.clickable(
               pendingIntent = openStationPendingIntent(station.id),
               id = "nearby_${station.id}",
+              fallbackAction = openAppAction(station.id),
             )
           val row =
             LayoutElementBuilders.Box.Builder()
@@ -80,6 +82,23 @@ class NearbyStationsTileService : Material3TileService() {
               ).build(),
           ).build(),
       ).build()
+  }
+
+  private fun openAppAction(stationId: String): ActionBuilders.Action {
+    val activityBuilder =
+      ActionBuilders.AndroidActivity
+        .Builder()
+        .setPackageName(packageName)
+        .setClassName(WearActivity::class.java.name)
+        .addKeyToExtraMapping(
+          WearActivity.EXTRA_OPEN_STATION_ID,
+          ActionBuilders.AndroidStringExtra.Builder().setValue(stationId).build(),
+        )
+
+    return ActionBuilders.LaunchAction
+      .Builder()
+      .setAndroidActivity(activityBuilder.build())
+      .build()
   }
 
   private fun openStationPendingIntent(stationId: String): PendingIntent {

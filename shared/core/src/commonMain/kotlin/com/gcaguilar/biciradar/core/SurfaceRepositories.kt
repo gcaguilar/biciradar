@@ -195,6 +195,7 @@ class SurfaceSnapshotRepositoryImpl(
       val persisted = persistToDatabase(snapshot)
       if (persisted) {
         deleteLegacyFile()
+        mutableBundle.value = snapshot
       } else {
         persistToFile(snapshot)
         mutableBundle.value = snapshot
