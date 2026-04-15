@@ -1,0 +1,20 @@
+project.manifest = manifest.xml
+
+# Source directories
+base.source.path = source
+
+# Resource directories
+base.resource.path = resources
+
+# Output settings
+bin.dir = bin
+gen.dir = gen
+
+# Compiler settings
+monoChromatic = false
+hideWarnings = false
+freeze = false
+optimize = false
+
+# SDK version
+sdkVersion = 9.1.0

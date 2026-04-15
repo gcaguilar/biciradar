@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string id="AppName">BiciRadar</string>
+    <string id="Bikes">bikes</string>
+    <string id="NoData">Open app to sync</string>
+    <string id="OpenApp">Open BiciRadar app</string>
+    <string id="JustNow">Just now</string>
+    <string id="MinuteAgo">min ago</string>
+    <string id="MinutesAgo">min ago</string>
+    <string id="Outdated">Outdated</string>
+</resources>

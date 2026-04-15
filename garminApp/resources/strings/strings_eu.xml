@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string id="AppName">BiciRadar</string>
+    <string id="Bikes">bizikletak</string>
+    <string id="NoData">App ireki sinkronizatzeko</string>
+    <string id="OpenApp">Ireki BiciRadar</string>
+    <string id="JustNow">Orain</string>
+    <string id="MinuteAgo">min</string>
+    <string id="MinutesAgo">min</string>
+    <string id="Outdated">Eguneratua</string>
+</resources>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drawable-list id="LauncherIcon">
+    <drawable id="drawable_30x30">res/drawables/ic_launcher_30.png</drawable>
+    <drawable id="drawable_40x40">res/drawables/ic_launcher_40.png</drawable>
+    <drawable id="drawable_50x50">res/drawables/ic_launcher_50.png</drawable>
+    <drawable id="drawable_60x60">res/drawables/ic_launcher_60.png</drawable>
+    <drawable id="drawable_70x70">res/drawables/ic_launcher_70.png</drawable>
+    <drawable id="drawable_90x90">res/drawables/ic_launcher_90.png</drawable>
+    <drawable id="drawable_100x100">res/drawables/ic_launcher_100.png</drawable>
+    <drawable id="drawable_110x110">res/drawables/ic_launcher_110.png</drawable>
+    <drawable id="drawable_140x140">res/drawables/ic_launcher_140.png</drawable>
+    <drawable id="drawable_150x150">res/drawables/ic_launcher_150.png</drawable>
+    <drawable id="drawable_180x180">res/drawables/ic_launcher_180.png</drawable>
+    <drawable id="drawable_210x210">res/drawables/ic_launcher_210.png</drawable>
+    <drawable id="drawable_220x220">res/drawables/ic_launcher_220.png</drawable>
+    <drawable id="drawable">res/drawables/ic_launcher_100.png</drawable>
+</drawable-list>
