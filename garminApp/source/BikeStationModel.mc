@@ -1,13 +1,11 @@
-using Toybox.Lang;
-
 class BikeStationModel {
-    public var id as String;
-    public var name as String;
-    public var bikes as Number;
-    public var distance as Number;
-    public var ebikes as Number;
+    public var id;
+    public var name;
+    public var bikes;
+    public var distance;
+    public var ebikes;
 
-    public function initialize(id as String, name as String, bikes as Number, distance as Number, ebikes as Number) {
+    public function initialize(id, name, bikes, distance, ebikes) {
         self.id = id;
         self.name = name;
         self.bikes = bikes;
@@ -15,31 +13,31 @@ class BikeStationModel {
         self.ebikes = ebikes;
     }
 
-    public static function fromDict(data as Dictionary?) as BikeStationModel or Null {
+    public static function fromDict(data) {
         if (data == null) {
             return null;
         }
 
-        var id = data.get("id") as String or Number;
-        var name = data.get("name") as String;
-        var bikes = data.get("bikes") as Number;
-        var distance = data.get("distance") as Number;
-        var ebikes = data.get("ebikes") as Number;
-
+        var name = data["name"];
+        var bikes = data["bikes"];
+        var distance = data["distance"];
         if (name == null || bikes == null || distance == null) {
             return null;
         }
 
-        return new BikeStationModel(
-            id != null ? id.toString() : "",
-            name,
-            bikes,
-            distance,
-            ebikes != null ? ebikes : 0
-        );
+        var id = data["id"];
+        var ebikes = data["ebikes"];
+        if (ebikes == null) {
+            ebikes = 0;
+        }
+        if (id == null) {
+            id = "";
+        }
+
+        return new BikeStationModel(id.toString(), name.toString(), bikes, distance, ebikes);
     }
 
-    public function toDict() as Dictionary {
+    public function toDict() {
         return {
             "id" => id,
             "name" => name,
@@ -51,47 +49,43 @@ class BikeStationModel {
 }
 
 class StationsData {
-    public var nearest as BikeStationModel or Null;
-    public var backup as Array<BikeStationModel>;
-    public var timestamp as Number;
+    public var nearest = null;
+    public var backup = [];
+    public var timestamp = 0;
 
     public function initialize() {
-        nearest = null;
-        backup = new Array<BikeStationModel>[0];
-        timestamp = 0;
     }
 
-    public static function fromDict(data as Dictionary?) as StationsData or Null {
+    public static function fromDict(data) {
         if (data == null) {
             return null;
         }
 
         var result = new StationsData();
 
-        var nearestData = data.get("nearest") as Dictionary?;
-        if (nearestData != null) {
-            result.nearest = BikeStationModel.fromDict(nearestData);
+        if (data["nearest"] != null) {
+            result.nearest = BikeStationModel.fromDict(data["nearest"]);
         }
 
-        var backupData = data.get("backup") as Array?;
+        var backupData = data["backup"];
         if (backupData != null) {
-            result.backup = new Array<BikeStationModel>[0];
             for (var i = 0; i < backupData.size(); i += 1) {
-                var station = BikeStationModel.fromDict(backupData[i] as Dictionary?);
+                var station = BikeStationModel.fromDict(backupData[i]);
                 if (station != null) {
                     result.backup.add(station);
                 }
             }
         }
 
-        var ts = data.get("timestamp") as Number;
-        result.timestamp = ts != null ? ts : 0;
+        if (data["timestamp"] != null) {
+            result.timestamp = data["timestamp"];
+        }
 
         return result;
     }
 
-    public function toDict() as Dictionary {
-        var backupArray = new Array<Dictionary>[0];
+    public function toDict() {
+        var backupArray = [];
         for (var i = 0; i < backup.size(); i += 1) {
             backupArray.add(backup[i].toDict());
         }

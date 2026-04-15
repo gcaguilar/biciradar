@@ -1,15 +1,1 @@
-project.manifest=manifest.xml
-
-base.source.path=source
-
-base.resource.path=resources
-
-bin.dir=bin
-gen.dir=gen
-
-monoChromatic=false
-hideWarnings=false
-freeze=false
-optimize=false
-
-sdkVersion=9.1.0
+project.manifest = manifest.xml

@@ -1,41 +1,32 @@
-using Toybox.Application;
-using Toybox.WatchUi;
-using Toybox.Communications;
-using Toybox.System;
-using Toybox.Lang;
+import Toybox.Application;
+import Toybox.WatchUi;
+import Toybox.Communications;
+import Toybox.System;
+import Toybox.Lang;
 
-class BiciRadarApp extends WatchUi.Application.AppBase {
+class BiciRadarApp extends Application.AppBase {
 
     private var _mainView as BiciRadarView?;
     private var _bleManager as BiciRadarBleManager?;
 
-    function initialize() {
+    public function initialize() {
         AppBase.initialize();
         _bleManager = new BiciRadarBleManager();
     }
 
-    function onStart(state as Dictionary?) as Void {
+    public function onStart(state as Dictionary?) as Void {
         StorageManager.loadCachedStations();
     }
 
-    function onStop() as Void {
+    public function onStop(state as Dictionary?) as Void {
     }
 
-    function getInitialView() as Array<Views or InputDelegates>? {
+    public function getInitialView() as [Views] or [Views, InputDelegates] {
         _mainView = new BiciRadarView();
-        return [ _mainView ] as Array<Views or InputDelegates>;
+        return [ _mainView ];
     }
 
-    function getWidget() as WatchUi.Widget {
-        return new BiciRadarWidget();
-    }
-
-    function getBleManager() as BiciRadarBleManager {
-        return _bleManager!;
-    }
-
-    (:background)
-    function getServiceDelegate() as Array<System.ServiceDelegate>? {
-        return [ new BiciRadarServiceDelegate() ] as Array<System.ServiceDelegate>;
+    public function getBleManager() as BiciRadarBleManager {
+        return _bleManager;
     }
 }

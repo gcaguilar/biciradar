@@ -10,14 +10,12 @@
 
         <iq:products>
             <iq:product id="fenix6pro"/>
-            <iq:product id="fenix6proplus"/>
             <iq:product id="fenix7"/>
             <iq:product id="fenix7pro"/>
             <iq:product id="fr245"/>
             <iq:product id="fr255"/>
             <iq:product id="fr255m"/>
             <iq:product id="fr265"/>
-            <iq:product id="fr265m"/>
             <iq:product id="fr645"/>
             <iq:product id="fr745"/>
             <iq:product id="fr935"/>
@@ -42,6 +40,7 @@
         </iq:products>
 
         <iq:permissions>
+            <iq:uses-permission id="Communications"/>
             <iq:uses-permission id="BluetoothLowEnergy"/>
             <iq:uses-permission id="Positioning"/>
         </iq:permissions>
