@@ -2,7 +2,7 @@
 <iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
     <iq:application 
         entry="BiciRadarApp" 
-        id="e7c8a1b2-3d4f-5e6a-7b8c-9d0e1f2a3b4c"
+        id="9b02e1cf-d60a-42d8-ad70-8c8ef1c4bdfa"
         launcherIcon="@Drawables.LauncherIcon" 
         minSdkVersion="4.0.0" 
         name="@Strings.AppName" 
