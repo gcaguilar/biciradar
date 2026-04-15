@@ -104,7 +104,6 @@ android {
     implementation(libs.androidx.wear.watchface.complications.data.source)
     implementation(libs.androidx.wear.watchface.complications.data.source.ktx)
     implementation(libs.play.services.wearable)
-    implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar")
     if (firebaseCrashlyticsEnabled) {
       implementation(platform(libs.firebase.bom))
       implementation(libs.firebase.crashlytics)

@@ -96,6 +96,7 @@ android {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.startup.runtime)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar")
     implementation(libs.google.material)
     implementation(libs.play.services.wearable)
     implementation(platform(libs.firebase.bom))

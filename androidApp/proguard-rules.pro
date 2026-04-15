@@ -108,6 +108,8 @@
 # ============================================================
 # App — keep Parcelable / Android entry points
 # ============================================================
+-keep class com.garmin.android.connectiq.** { *; }
+-dontwarn com.garmin.android.connectiq.**
 -keepclassmembers class * implements android.os.Parcelable {
     static ** CREATOR;
 }

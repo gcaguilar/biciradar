@@ -7,6 +7,7 @@ import Toybox.Lang;
 class BiciRadarApp extends Application.AppBase {
 
     private var _mainView as BiciRadarView?;
+    private var _glanceView as BiciRadarGlanceView?;
     private var _bleManager as BiciRadarBleManager?;
 
     public function initialize() {
@@ -24,6 +25,11 @@ class BiciRadarApp extends Application.AppBase {
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         _mainView = new BiciRadarView();
         return [ _mainView ];
+    }
+
+    public function getGlanceView() as [WatchUi.GlanceView] or [WatchUi.GlanceView, WatchUi.GlanceViewDelegate] or Null {
+        _glanceView = new BiciRadarGlanceView();
+        return [ _glanceView ];
     }
 
     public function getBleManager() as BiciRadarBleManager {

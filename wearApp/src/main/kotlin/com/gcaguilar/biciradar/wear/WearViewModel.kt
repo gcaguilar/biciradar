@@ -57,7 +57,6 @@ internal class WearViewModel(
   private val startStationMonitoring: StartStationMonitoring,
   private val stopStationMonitoring: StopStationMonitoring,
   private val routeLauncher: RouteLauncher,
-  private val garminBleManager: GarminBleManager,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
@@ -77,26 +76,12 @@ internal class WearViewModel(
   private var currentTab: WearTab = WearTab.Cercanas
 
   init {
-    garminBleManager.initialize()
-    garminBleManager.setListener(
-      object : GarminBleManager.Listener {
-        override fun onGarminDevicesFound(devices: List<Any>) {}
-
-        override fun onGarminMessageReceived(message: Any?) {}
-
-        override fun onGarminError(error: String) {}
-      },
-    )
-
     viewModelScope.launch {
       observeStationsState.state.collect { state ->
         latestStations = state.stations
         latestIsLoading = state.isLoading
         latestErrorMessage = state.errorMessage
         publishUiState()
-        if (state.stations.isNotEmpty()) {
-          syncToGarmin(state.stations)
-        }
       }
     }
 
@@ -271,11 +256,6 @@ internal class WearViewModel(
       )
   }
 
-  private fun syncToGarmin(stations: List<Station>) {
-    if (stations.isEmpty()) return
-    garminBleManager.sendStationsToGarmin(stations.take(5))
-  }
-
   private suspend fun refreshWearSurface(
     context: Context,
     forceRefresh: Boolean = false,
@@ -299,10 +279,6 @@ internal class WearViewModelFactory(
   private val appContext: Context,
   private val graph: SharedGraph,
 ) {
-  private val garminBleManager by lazy {
-    GarminBleManager(appContext.applicationContext)
-  }
-
   fun create(): WearViewModel =
     WearViewModel(
       appContext = appContext.applicationContext,
@@ -319,6 +295,5 @@ internal class WearViewModelFactory(
       startStationMonitoring = graph.startStationMonitoring,
       stopStationMonitoring = graph.stopStationMonitoring,
       routeLauncher = graph.routeLauncher,
-      garminBleManager = garminBleManager,
     )
 }
