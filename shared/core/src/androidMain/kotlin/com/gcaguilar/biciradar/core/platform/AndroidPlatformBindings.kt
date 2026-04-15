@@ -35,6 +35,7 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
+import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
@@ -45,6 +46,8 @@ import com.gcaguilar.biciradar.core.local.createAndroidDriver
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
@@ -58,6 +61,10 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -116,6 +123,7 @@ class AndroidPlatformBindings(
     }.getOrNull()
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
   private val androidLocalNotifier = AndroidLocalNotifier(context)
+  private val androidWatchSyncBridge = AndroidWatchSyncBridge(context)
   override val localNotifier: LocalNotifier = androidLocalNotifier
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
   override val mapSupport: MapSupport = AndroidMapSupport(context)
@@ -124,7 +132,7 @@ class AndroidPlatformBindings(
   override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
-  override val watchSyncBridge: WatchSyncBridge = AndroidWatchSyncBridge(context)
+  override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
   override val appVersion: String =
     runCatching {
       context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
@@ -143,6 +151,12 @@ class AndroidPlatformBindings(
 
   fun attachExperienceActivity(activity: Activity?) {
     experienceActivity = activity
+  }
+
+  override fun onGraphCreated(graph: SharedGraph) {
+    androidWatchSyncBridge.bindOnRemoteFavoritesChanged {
+      graph.syncFavoritesFromPeer.execute()
+    }
   }
 }
 
@@ -341,7 +355,28 @@ private class AndroidLocationProvider(
 private class AndroidWatchSyncBridge(
   context: Context,
 ) : WatchSyncBridge {
-  private val dataClient = runCatching { Wearable.getDataClient(context) }.getOrNull()
+  private val dataClient = runCatching { Wearable.getDataClient(context.applicationContext) }.getOrNull()
+  private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+  private var onRemoteFavoritesChanged: (suspend () -> Unit)? = null
+  private var listenerRegistered = false
+  private val dataChangedListener =
+    DataClient.OnDataChangedListener { dataEvents ->
+      val callback = onRemoteFavoritesChanged ?: return@OnDataChangedListener
+      val hasFavoritesUpdate =
+        dataEvents.any { event ->
+          event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == FAVORITES_PATH
+        }
+      if (hasFavoritesUpdate) {
+        scope.launch { callback() }
+      }
+    }
+
+  fun bindOnRemoteFavoritesChanged(listener: suspend () -> Unit) {
+    onRemoteFavoritesChanged = listener
+    if (listenerRegistered) return
+    dataClient?.addListener(dataChangedListener)
+    listenerRegistered = true
+  }
 
   override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
     val client = dataClient ?: return

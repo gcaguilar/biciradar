@@ -22,7 +22,9 @@ object WearAppGraph {
         appConfiguration = AppConfiguration(),
       )
     _platformBindings = bindings
-    _graph = CoreGraph.Companion.create(bindings)
+    val graph = CoreGraph.Companion.create(bindings)
+    _graph = graph
+    bindings.onGraphCreated(graph)
   }
 
   val graph: SharedGraph

@@ -70,6 +70,9 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
             if activationState == .activated {
                 syncWatchContextFromAppGroup()
             }
+            Task {
+                try? await BiziAppleGraph.shared.syncFavoritesFromPeer()
+            }
         }
     }
 
@@ -82,6 +85,9 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
         Task { @MainActor in
             apply(context: applicationContext)
+            Task {
+                try? await BiziAppleGraph.shared.syncFavoritesFromPeer()
+            }
         }
     }
 

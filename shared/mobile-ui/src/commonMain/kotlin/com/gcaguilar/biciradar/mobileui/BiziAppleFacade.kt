@@ -81,6 +81,11 @@ class BiziAppleFacade private constructor(
   /** Lista de estaciones marcadas como favoritas, ordenadas por distancia. */
   suspend fun favoriteStations(): List<Station> = favorites.getFavoriteStationList.execute()
 
+  /** Sincroniza favoritos desde el dispositivo emparejado hacia el grafo local. */
+  suspend fun syncFavoritesFromPeer() {
+    favorites.syncFavoritesFromPeer.execute()
+  }
+
   /** Lista sugerida de estaciones priorizando home, work y favoritos. */
   suspend fun suggestedStations(limit: Int = 8): List<Station> = stations.getSuggestedStations.execute(limit = limit)
 

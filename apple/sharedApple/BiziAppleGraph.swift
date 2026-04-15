@@ -83,6 +83,11 @@ actor BiziAppleGraph {
         return stations.map(snapshot(from:))
     }
 
+    func syncFavoritesFromPeer() async throws {
+        let facade = try await ensureFacade()
+        try await facade.syncFavoritesFromPeer()
+    }
+
     func suggestedStations(limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshIfNeeded()
         let stations = try await ensureFacade().suggestedStations(limit: Int32(limit))
