@@ -18,7 +18,7 @@ class WearRouteMessageService : WearableListenerService() {
         action = Intent.ACTION_VIEW
         data = Uri.parse("biciradar://station/$stationId?action=route_to_station&station_id=$stationId")
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    }
+      }
     startActivity(launchIntent)
   }
 

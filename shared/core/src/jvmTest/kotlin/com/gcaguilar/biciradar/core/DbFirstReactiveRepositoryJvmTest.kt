@@ -321,9 +321,9 @@ class DbFirstReactiveRepositoryJvmTest {
                           distanceMeters = 100,
                         ),
                       ),
-                      userLocation = GeoPoint(41.65, -0.88),
-                      lastUpdatedEpoch = 10_000L,
-                    ),
+                    userLocation = GeoPoint(41.65, -0.88),
+                    lastUpdatedEpoch = 10_000L,
+                  ),
                 )
 
               override suspend fun loadIfNeeded() = Unit

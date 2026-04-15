@@ -89,7 +89,10 @@ class FavoriteStationTileService : Material3TileService() {
     stationId?.let {
       activityBuilder.addKeyToExtraMapping(
         WearActivity.EXTRA_OPEN_STATION_ID,
-        ActionBuilders.AndroidStringExtra.Builder().setValue(it).build(),
+        ActionBuilders.AndroidStringExtra
+          .Builder()
+          .setValue(it)
+          .build(),
       )
     }
 

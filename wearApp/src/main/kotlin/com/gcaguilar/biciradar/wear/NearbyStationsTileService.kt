@@ -99,7 +99,10 @@ class NearbyStationsTileService : Material3TileService() {
         .setClassName(WearActivity::class.java.name)
         .addKeyToExtraMapping(
           WearActivity.EXTRA_OPEN_STATION_ID,
-          ActionBuilders.AndroidStringExtra.Builder().setValue(stationId).build(),
+          ActionBuilders.AndroidStringExtra
+            .Builder()
+            .setValue(stationId)
+            .build(),
         )
 
     return ActionBuilders.LaunchAction

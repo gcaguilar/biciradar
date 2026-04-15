@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.BootstrapSession
 import com.gcaguilar.biciradar.core.FindStationById
 import com.gcaguilar.biciradar.core.ObserveFavorites
-import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.ObserveStationsState
+import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.ObserveSurfaceSnapshot
 import com.gcaguilar.biciradar.core.RefreshStationAvailability
 import com.gcaguilar.biciradar.core.RefreshStationDataIfNeeded
@@ -76,13 +76,17 @@ internal class WearViewModel(
   private var selectedStationId: String? = null
   private var currentTab: WearTab = WearTab.Cercanas
 
-init {
+  init {
     garminBleManager.initialize()
-    garminBleManager.setListener(object : GarminBleManager.Listener {
-      override fun onGarminDevicesFound(devices: List<Any>) {}
-      override fun onGarminMessageReceived(message: Any?) {}
-      override fun onGarminError(error: String) {}
-    })
+    garminBleManager.setListener(
+      object : GarminBleManager.Listener {
+        override fun onGarminDevicesFound(devices: List<Any>) {}
+
+        override fun onGarminMessageReceived(message: Any?) {}
+
+        override fun onGarminError(error: String) {}
+      },
+    )
 
     viewModelScope.launch {
       observeStationsState.state.collect { state ->
