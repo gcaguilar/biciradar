@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-feature android:name="android.hardware.type.watch" android:required="false" />
 
     <application
         android:name=".BiciRadarApplication"
@@ -59,6 +60,17 @@
             android:name="com.gcaguilar.biciradar.WidgetRefreshService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
+        <service
+            android:name="com.gcaguilar.biciradar.WearRouteMessageService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/bici/route-to-station" />
+            </intent-filter>
+        </service>
         <receiver
             android:name="com.gcaguilar.biciradar.FavoriteStationWidgetProvider"
             android:exported="true">

@@ -97,6 +97,7 @@ android {
     implementation(libs.androidx.startup.runtime)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.google.material)
+    implementation(libs.play.services.wearable)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
     testImplementation(libs.junit)
