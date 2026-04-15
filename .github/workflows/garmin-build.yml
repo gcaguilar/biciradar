@@ -38,22 +38,33 @@ jobs:
         run: |
           echo "$KEY" | base64 -d > garminApp/developer_key
 
-      - name: Set up Connect IQ SDK
-        uses: blackshadev/garmin-connectiq-build-action@9.1.0
-        with:
-          projectJungle: ./garminApp/monkey.jungle
-          outputPath: ./garminApp/bin/bootstrap.prg
-          developerKey: ./garminApp/developer_key
-          device: fr255
-          typeCheck: '1'
+      - name: Install Connect IQ Monkey Motion
+        run: |
+          mkdir -p "$HOME/.Garmin/ConnectIQ/AppImages"
+          curl -L \
+            -o "$HOME/.Garmin/ConnectIQ/AppImages/Connect_IQ_Monkey_Motion-9.1.0.AppImage" \
+            "https://github.com/pcolby/connectiq-sdk-manager/releases/download/v0.6.9/Connect_IQ_Monkey_Motion-9.1.0%2B159-x86_64.AppImage"
+          chmod +x "$HOME/.Garmin/ConnectIQ/AppImages/Connect_IQ_Monkey_Motion-9.1.0.AppImage"
+
+      - name: Build bootstrap PRG
+        run: |
+          "$HOME/.Garmin/ConnectIQ/AppImages/Connect_IQ_Monkey_Motion-9.1.0.AppImage" \
+            --appimage-extract-and-run \
+            -f ./garminApp/monkey.jungle \
+            -o ./garminApp/bin/bootstrap.prg \
+            -y ./garminApp/developer_key \
+            -d fr255 \
+            -l 1 \
+            -w
 
       - name: Export Connect IQ package
         run: |
-          SDK_ROOT="$(dirname "$(dirname "$(which monkeyc)")")"
-          monkeyc -e \
+          "$HOME/.Garmin/ConnectIQ/AppImages/Connect_IQ_Monkey_Motion-9.1.0.AppImage" \
+            --appimage-extract-and-run \
             -f ./garminApp/monkey.jungle \
             -o ./garminApp/bin/BiciRadar.iq \
             -y ./garminApp/developer_key \
+            -e \
             -w
 
       - name: Upload artifact
