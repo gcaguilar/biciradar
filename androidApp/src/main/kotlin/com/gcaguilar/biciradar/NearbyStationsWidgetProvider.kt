@@ -15,7 +15,18 @@ class NearbyStationsWidgetProvider : AppWidgetProvider() {
     appWidgetManager: AppWidgetManager,
     appWidgetIds: IntArray,
   ) {
+    WidgetRefreshWorker.reconcile(context)
     updateWidgets(context, appWidgetManager, appWidgetIds)
+  }
+
+  override fun onEnabled(context: Context) {
+    super.onEnabled(context)
+    WidgetRefreshWorker.reconcile(context)
+  }
+
+  override fun onDisabled(context: Context) {
+    super.onDisabled(context)
+    WidgetRefreshWorker.reconcile(context)
   }
 
   companion object {
