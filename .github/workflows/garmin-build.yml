@@ -20,11 +20,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create developer key file
+        env:
+          KEY: ${{ secrets.GARMIN_DEVELOPER_KEY }}
+        run: |
+          echo "$KEY" | base64 -d > ./developer_key
+
       - name: Build Connect IQ app
         uses: blackshadev/garmin-connectiq-build-action@9.1.0
         with:
           projectJungle: ./garminApp/monkey.jungle
           outputPath: ./bin/BiciRadar.prg
+          developerKey: ./developer_key
           device: fr955
           typeCheck: '1'
 
