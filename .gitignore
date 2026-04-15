@@ -48,11 +48,9 @@ landing/dist/_astro/
 eminent-ellipse/.vscode/
 
 # Eclipse
-.project
-.settings/
-*/.classpath
-*/.project
-*/.settings/
+**/.project
+**/.settings/
+**/.classpath
 
 # Garmin Connect IQ
 garminApp/bin/
