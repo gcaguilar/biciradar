@@ -1,6 +1,8 @@
 package com.gcaguilar.biciradar
 
 import android.app.Application
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
@@ -122,6 +124,10 @@ private class GarminCompanionManager(
       ) {
         if (status != ConnectIQ.IQMessageStatus.SUCCESS) {
           Log.w(GARMIN_TAG, "Ignoring Garmin message with status=$status from ${device.friendlyName}")
+          return
+        }
+        if (handleRouteRequest(message)) {
+          Log.d(GARMIN_TAG, "Route requested from Garmin device ${device.friendlyName}")
           return
         }
         if (!isRefreshRequest(message)) return
@@ -283,6 +289,23 @@ private class GarminCompanionManager(
   private fun isRefreshRequest(message: List<Any>?): Boolean {
     val payload = message?.firstOrNull() as? Map<*, *> ?: return false
     return payload["type"] == "refresh_request"
+  }
+
+  private fun handleRouteRequest(message: List<Any>?): Boolean {
+    val payload = message?.firstOrNull() as? Map<*, *> ?: return false
+    if (payload["type"] != "open_route") return false
+
+    val stationId = payload["stationId"]?.toString()?.trim().orEmpty()
+    if (stationId.isEmpty()) return false
+
+    val launchIntent =
+      Intent(appContext, MainActivity::class.java).apply {
+        action = Intent.ACTION_VIEW
+        data = Uri.parse("biciradar://station/$stationId?action=route_to_station&station_id=$stationId")
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+      }
+    appContext.startActivity(launchIntent)
+    return true
   }
 }
 

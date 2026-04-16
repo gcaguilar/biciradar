@@ -94,6 +94,12 @@ actor BiziAppleGraph {
         return stations.map(snapshot(from:))
     }
 
+    func nearbyStations(limit: Int = 5) async throws -> [BiziStationSnapshot] {
+        try await refreshIfNeeded()
+        let stations = try await ensureFacade().nearbyStations(limit: Int32(limit))
+        return stations.map(snapshot(from:))
+    }
+
     func stationSuggestions(matching query: String, limit: Int = 8) async throws -> [BiziStationSnapshot] {
         try await refreshIfNeeded()
         let stations = try await ensureFacade().stationSuggestions(query: query, limit: Int32(limit))

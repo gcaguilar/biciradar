@@ -16,12 +16,14 @@
 		0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
 		0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */; };
 		0D1C8A45A6C4DE44D7C1ADDA /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = BAD464A56077DE976E524327 /* FirebaseRemoteConfig */; };
+		0F4E65856B6F4EF982C51450 /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 0F4E65846B6F4EF982C51450 /* ConnectIQ */; };
 		100225FBCE18B763B29D40A3 /* BiciRadarWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = A559795993E44ACD0F2709D9 /* BiciRadarWidgets.swift */; };
 		1143BD47EF1E8B5029316D44 /* BiziShortcutDialogHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */; };
 		14AB29D4AA54154DC9CB0606 /* WatchDashboardModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FA81CAFF45F72A3F9E798C6 /* WatchDashboardModelTests.swift */; };
 		16F03485048BED3E901365CF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05F6FE2989AAE261F81A4893 /* SwiftUI.framework */; };
 		18516FA58B292EFCDF07B7B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 637FA5361E656C90A9462F62 /* GoogleService-Info.plist */; };
 		197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */; };
+		1BE1D5331C9A40C28953C2E0 /* GarminConnectManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE1D5321C9A40C28953C2E0 /* GarminConnectManager.swift */; };
 		1B59A4F9B0439B18C0014937 /* FavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */; };
 		214E52E9BDF1007AADFCF394 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */; };
 		23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */; };
@@ -215,6 +217,7 @@
 		A559795993E44ACD0F2709D9 /* BiciRadarWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarWidgets.swift; sourceTree = "<group>"; };
 		A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchGraph.swift; sourceTree = "<group>"; };
 		A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcutDialogHelpers.swift; sourceTree = "<group>"; };
+		1BE1D5321C9A40C28953C2E0 /* GarminConnectManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminConnectManager.swift; sourceTree = "<group>"; };
 		AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
 		AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziBackgroundTaskHandler.swift; sourceTree = "<group>"; };
 		AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -291,6 +294,7 @@
 				5A0850BAC1A946CA0B672A68 /* UIKit.framework in Frameworks */,
 				516E2F3FB44D2924D7344C89 /* ActivityKit.framework in Frameworks */,
 				B94433123232D8D1DFE29FFF /* BackgroundTasks.framework in Frameworks */,
+				0F4E65856B6F4EF982C51450 /* ConnectIQ in Frameworks */,
 				DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */,
 				8BAFF5DCEE0BDA01CA19F0A3 /* FirebaseCrashlytics in Frameworks */,
 				0D1C8A45A6C4DE44D7C1ADDA /* FirebaseRemoteConfig in Frameworks */,
@@ -377,6 +381,7 @@
 				00C9F82510DD82F275630FE3 /* ComposeRootView.swift */,
 				DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */,
 				54183542F89617F29EE06161 /* FirebaseBootstrap.swift */,
+				1BE1D5321C9A40C28953C2E0 /* GarminConnectManager.swift */,
 				BF381A1EDBC82B7C77CFA601 /* GoogleMapsBootstrap.swift */,
 				FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */,
 				637FA5361E656C90A9462F62 /* GoogleService-Info.plist */,
@@ -512,6 +517,7 @@
 				FDBEC6252D80DCAD5A52992E /* FirebaseCore */,
 				2C2B77CE801F89004E157228 /* FirebaseCrashlytics */,
 				BAD464A56077DE976E524327 /* FirebaseRemoteConfig */,
+				0F4E65846B6F4EF982C51450 /* ConnectIQ */,
 				556AFE9CE6EDB4F10439CD71 /* GoogleMaps */,
 			);
 			productName = BiciRadar;
@@ -643,6 +649,7 @@
 			packageReferences = (
 				A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
+				0F4E65836B6F4EF982C51450 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40DAD1DD2D6A0C60FB1E66DB /* Products */;
@@ -807,6 +814,7 @@
 				2DD134646E2E5F04FAD12A72 /* ComposeRootView.swift in Sources */,
 				098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */,
 				000628DE335819350E92E9F4 /* FirebaseBootstrap.swift in Sources */,
+				1BE1D5331C9A40C28953C2E0 /* GarminConnectManager.swift in Sources */,
 				59C68CDEF53169D19614CEA3 /* GoogleMapsBootstrap.swift in Sources */,
 				BBA2BA3BF4EE51EBB0B3CC70 /* GoogleMapsStationMapFactory.swift in Sources */,
 				8709E27517E4746DB4B6F6E9 /* StationAvailabilityCache.swift in Sources */,
@@ -1009,6 +1017,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
@@ -1290,6 +1299,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
@@ -1318,6 +1328,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
@@ -1460,6 +1471,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchWidgetProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
 				TARGETED_DEVICE_FAMILY = 4;
 				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
@@ -1534,6 +1546,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		0F4E65836B6F4EF982C51450 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/garmin/connectiq-companion-app-sdk-ios";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk";
@@ -1557,6 +1577,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		0F4E65846B6F4EF982C51450 /* ConnectIQ */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0F4E65836B6F4EF982C51450 /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
+			productName = ConnectIQ;
 		};
 		556AFE9CE6EDB4F10439CD71 /* GoogleMaps */ = {
 			isa = XCSwiftPackageProductDependency;

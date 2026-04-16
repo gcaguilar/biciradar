@@ -13,10 +13,12 @@ final class AppleDeepLinkParserTests: XCTestCase {
 
     func testParsesStationAndMonitoringDeepLinks() {
         let stationRequest = AppleDeepLinkParser.parse(URL(string: "biciradar://station/station-42")!) as? MobileLaunchRequestShowStation
+        let routeRequest = AppleDeepLinkParser.parse(URL(string: "biciradar://station/station-42?action=route_to_station")!) as? MobileLaunchRequestRouteToStation
         let monitorRequest = AppleDeepLinkParser.parse(URL(string: "biciradar://monitor/station-42")!) as? MobileLaunchRequestMonitorStation
         let cityRequest = AppleDeepLinkParser.parse(URL(string: "biciradar://city/zaragoza")!) as? MobileLaunchRequestSelectCity
 
         XCTAssertEqual(stationRequest?.stationId, "station-42")
+        XCTAssertEqual(routeRequest?.stationId, "station-42")
         XCTAssertEqual(monitorRequest?.stationId, "station-42")
         XCTAssertEqual(cityRequest?.cityId, "zaragoza")
     }
