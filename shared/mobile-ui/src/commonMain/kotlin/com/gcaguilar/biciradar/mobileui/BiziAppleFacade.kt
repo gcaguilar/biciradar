@@ -89,6 +89,9 @@ class BiziAppleFacade private constructor(
   /** Lista sugerida de estaciones priorizando home, work y favoritos. */
   suspend fun suggestedStations(limit: Int = 8): List<Station> = stations.getSuggestedStations.execute(limit = limit)
 
+  /** Lista real de estaciones cercanas usando el estado y radio actuales. */
+  suspend fun nearbyStations(limit: Int = 5): List<Station> = session.getNearbyStationList.execute(limit = limit)
+
   /**
    * Sugerencias filtradas por [query]. Si no hay resultados, devuelve [suggestedStations].
    */

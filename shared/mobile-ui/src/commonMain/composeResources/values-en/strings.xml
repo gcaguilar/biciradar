@@ -99,6 +99,9 @@
     <string name="iPhoneRouteApp">iPhone routing app</string>
     <string name="iPhoneRouteAppDescription">Choose which app opens for quick routes, station details, and Siri shortcuts.</string>
     <string name="iPhoneRouteAppFallback">If Google Maps isn't installed, Bici Radar will fall back to Apple Maps.</string>
+    <string name="garminConnectTitle">Garmin</string>
+    <string name="garminConnectDescription">Pair Garmin Connect IQ so the watch widget can discover your authorized devices and sync nearby stations.</string>
+    <string name="garminConnectAction">Connect Garmin</string>
     <string name="feedbackAndSuggestions">Feedback and suggestions</string>
     <string name="feedbackDescription">If something isn't working well or you have an idea, use the form to send feedback.</string>
     <string name="openFeedbackForm">Open feedback form</string>

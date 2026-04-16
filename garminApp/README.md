@@ -46,7 +46,7 @@ Para probar la app en el simulador con datos fake, sin depender del companion mo
 Esto:
 
 1. activa temporalmente `ENABLE_DEMO_DATA`
-2. compila la app
+2. compila un `.prg` especifico para el simulador elegido
 3. restaura el codigo fuente original
 4. abre el simulador Garmin
 5. lanza la app con datos demo
@@ -54,7 +54,13 @@ Esto:
 Si solo quieres generar el paquete demo sin lanzarlo:
 
 ```bash
-./garminApp/build_demo.sh
+./garminApp/build_demo.sh venu3s
+```
+
+Salida generada:
+
+```bash
+garminApp/bin/demo-venu3s.prg
 ```
 
 La build normal sigue siendo:

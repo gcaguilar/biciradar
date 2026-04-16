@@ -100,6 +100,9 @@
     <string name="tripSuggestedAlternative">Alternativa suggerida: %1$s · %2$s — %3$s places.</string>
     <string name="tripNoNearbyAlternative">No s\'ha trobat cap alternativa propera amb places.</string>
     <string name="gotIt">Entesos</string>
+    <string name="garminConnectTitle">Garmin</string>
+    <string name="garminConnectDescription">Emparella Garmin Connect IQ perquè el widget del rellotge pugui descobrir els dispositius autoritzats i sincronitzar estacions properes.</string>
+    <string name="garminConnectAction">Connectar Garmin</string>
     <string name="whereAreYouGoing">On vas?</string>
     <string name="walkRouteTo">Ruta a peu cap a %1$s</string>
     <string name="tripBikeRouteAction">Anar-hi en bici</string>

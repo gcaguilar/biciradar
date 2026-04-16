@@ -30,6 +30,8 @@ internal class AndroidExternalLinks(
     openUri(appConfiguration.feedbackFormUrl)
   }
 
+  override fun openGarminDevicePairing() = Unit
+
   fun openPrivacyPolicy() {
     openUri(appConfiguration.privacyPolicyUrl)
   }

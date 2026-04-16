@@ -53,6 +53,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceGbfsDetai
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.feedbackAndSuggestions
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.feedbackDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteApp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteAppDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteAppFallback
@@ -100,6 +103,7 @@ internal fun ProfileScreen(
   onOpenOnboarding: () -> Unit,
   onOpenShortcuts: () -> Unit,
   onOpenFeedback: () -> Unit,
+  onOpenGarminPairing: () -> Unit,
   onRateApp: () -> Unit,
 ) {
   var showFeedbackDialog by remember { mutableStateOf(false) }
@@ -291,6 +295,26 @@ internal fun ProfileScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = LocalBiziColors.current.muted,
               )
+            }
+          }
+        }
+      }
+      if (state.showGarminSection && mobilePlatform == MobileUiPlatform.IOS) {
+        item {
+          Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          ) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+              Text(stringResource(Res.string.garminConnectTitle), fontWeight = FontWeight.SemiBold)
+              Text(
+                stringResource(Res.string.garminConnectDescription),
+                style = MaterialTheme.typography.bodySmall,
+                color = LocalBiziColors.current.muted,
+              )
+              TextButton(onClick = onOpenGarminPairing, contentPadding = PaddingValues(0.dp)) {
+                Text(stringResource(Res.string.garminConnectAction), style = MaterialTheme.typography.bodySmall)
+              }
             }
           }
         }

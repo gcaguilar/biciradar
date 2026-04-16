@@ -100,6 +100,9 @@
     <string name="tripSuggestedAlternative">Iradokitako alternatiba: %1$s · %2$s — %3$s leku.</string>
     <string name="tripNoNearbyAlternative">Ez da gertuko alternatibarik aurkitu lekuekin.</string>
     <string name="gotIt">Ulertuta</string>
+    <string name="garminConnectTitle">Garmin</string>
+    <string name="garminConnectDescription">Parekatu Garmin Connect IQ, erlojuaren widgetak baimendutako gailuak aurkitu eta gertuko geltokiak sinkronizatu ahal izan ditzan.</string>
+    <string name="garminConnectAction">Konektatu Garmin</string>
     <string name="whereAreYouGoing">Nora zoaz?</string>
     <string name="walkRouteTo">Oinezko ibilbidea %1$s-ra</string>
     <string name="tripBikeRouteAction">Joan bizikletaz</string>

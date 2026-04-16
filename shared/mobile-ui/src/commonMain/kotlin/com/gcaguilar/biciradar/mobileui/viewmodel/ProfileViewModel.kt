@@ -34,6 +34,7 @@ data class ProfileUiState(
   val canSelectGoogleMapsInIos: Boolean = true,
   val themePreference: ThemePreference = ThemePreference.System,
   val selectedCity: City = City.ZARAGOZA,
+  val showGarminSection: Boolean = false,
   val latestAnswer: String = "Ask about stations, favorites, or routes",
   val assistantSuggestions: List<AssistantAction> = emptyList(),
   val shortcutGuides: List<ShortcutGuide> = emptyList(),
@@ -82,6 +83,7 @@ internal class ProfileViewModel(
         canSelectGoogleMapsInIos = canSelectGoogleMapsInIos,
         themePreference = themePreference,
         selectedCity = selectedCity,
+        showGarminSection = true,
         showProfileSetupCard = settingsAggregationUseCase.shouldShowProfileSetupSection(checklist),
       )
     }

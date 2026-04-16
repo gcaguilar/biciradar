@@ -152,6 +152,8 @@ private class DesktopExternalLinks(
   override fun openFeedbackForm() {
     browse(appConfiguration.feedbackFormUrl)
   }
+
+  override fun openGarminDevicePairing() = Unit
 }
 
 private class DesktopReviewPrompter(

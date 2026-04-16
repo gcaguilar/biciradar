@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SDK_ROOT="${CONNECTIQ_SDK_ROOT:-}"
 DEVICE_ID="${1:-venu3s}"
+DEMO_PRG="$ROOT_DIR/bin/demo-${DEVICE_ID}.prg"
 
 find_sdk_root() {
   if [[ -n "$SDK_ROOT" ]]; then
@@ -27,8 +28,8 @@ if [[ -z "$SDK_ROOT" || ! -x "$SDK_ROOT/bin/monkeydo" ]]; then
   exit 1
 fi
 
-"$ROOT_DIR/build_demo.sh"
+"$ROOT_DIR/build_demo.sh" "$DEVICE_ID"
 
 "$SDK_ROOT/bin/connectiq" &
 sleep 5
-"$SDK_ROOT/bin/monkeydo" "$ROOT_DIR/bin/garminApp.prg" "$DEVICE_ID"
+"$SDK_ROOT/bin/monkeydo" "$DEMO_PRG" "$DEVICE_ID"
