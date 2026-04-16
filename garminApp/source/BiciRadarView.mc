@@ -6,6 +6,9 @@ import Toybox.Lang;
 import Toybox.Application;
 
 class BiciRadarView extends WatchUi.View {
+    private var _selectedStationIndex = 0;
+    private var _listStartIndex = 0;
+    private var _visibleRowCount = 0;
 
     public function initialize() {
         WatchUi.View.initialize();
@@ -19,6 +22,7 @@ class BiciRadarView extends WatchUi.View {
         if (app != null) {
             app.getBleManager().requestRefresh();
         }
+        clampSelection();
         WatchUi.requestUpdate();
     }
 
@@ -26,14 +30,15 @@ class BiciRadarView extends WatchUi.View {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
-        var station = StorageManager.getNearestStation();
+        var stations = StorageManager.getNearbyStations();
+        clampSelection();
 
-        if (station == null) {
+        if (stations.size() == 0) {
             drawNoData(dc);
             return;
         }
 
-        drawStation(dc, station);
+        drawStations(dc, stations);
     }
 
     private function drawNoData(dc as Dc) as Void {
@@ -105,21 +110,80 @@ class BiciRadarView extends WatchUi.View {
         );
     }
 
-    private function drawStation(dc as Dc, station as BikeStationModel) as Void {
+    private function drawStations(dc as Dc, stations as Array<BikeStationModel>) as Void {
         var screenWidth = dc.getWidth();
         var screenHeight = dc.getHeight();
+        var headerY = 16;
+        var listTop = 32;
+        var rowHeight = 24;
+        var footerY = screenHeight - 10;
+        var availableHeight = footerY - listTop - 4;
+        var visibleRows = availableHeight / rowHeight;
 
-        drawStationSummary(dc, station, false);
+        if (visibleRows < 1) {
+            visibleRows = 1;
+        }
 
-        var distanceStr = formatDistance(station.distance);
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        _visibleRowCount = visibleRows;
+        updateListWindow(stations, visibleRows);
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.drawText(
             screenWidth / 2,
-            screenHeight - 30,
+            headerY,
             Graphics.FONT_TINY,
-            distanceStr,
+            "Estaciones cercanas",
             Graphics.TEXT_JUSTIFY_CENTER
         );
+
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        dc.drawLine(12, 24, screenWidth - 12, 24);
+
+        for (var i = 0; i < visibleRows; i += 1) {
+            var stationIndex = _listStartIndex + i;
+            if (stationIndex >= stations.size()) {
+                break;
+            }
+
+            drawStationRow(dc, stations[stationIndex], stationIndex, listTop + (i * rowHeight), rowHeight);
+        }
+
+        drawFooter(dc);
+    }
+
+    private function drawStationRow(dc as Dc, station as BikeStationModel, stationIndex as Number, y as Number, rowHeight as Number) as Void {
+        var screenWidth = dc.getWidth();
+        var name = truncateStatic(station.name, 18);
+        var isSelected = stationIndex == _selectedStationIndex;
+        var indicatorColor = getBikeColorStatic(station.bikes);
+
+        if (isSelected) {
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
+            dc.fillRectangle(8, y - 1, screenWidth - 16, rowHeight - 4);
+            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_DK_GRAY);
+        } else {
+            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        }
+
+        dc.setColor(isSelected ? indicatorColor : indicatorColor, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
+        dc.fillRectangle(12, y + 4, 6, 6);
+
+        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
+        dc.drawText(24, y + 2, Graphics.FONT_XTINY, name, Graphics.TEXT_JUSTIFY_LEFT);
+
+        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_DK_GRAY, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
+        dc.drawText(screenWidth - 10, y + 2, Graphics.FONT_XTINY, formatDistance(station.distance), Graphics.TEXT_JUSTIFY_RIGHT);
+
+        dc.setColor(isSelected ? Graphics.COLOR_BLACK : getBikeColorStatic(station.bikes), isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
+        dc.drawText(24, y + 13, Graphics.FONT_XTINY, availabilityText(station), Graphics.TEXT_JUSTIFY_LEFT);
+
+        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
+        dc.drawText(screenWidth - 10, y + 13, Graphics.FONT_XTINY, station.bikes.format("%d") + " bicis", Graphics.TEXT_JUSTIFY_RIGHT);
+    }
+
+    private function drawFooter(dc as Dc) as Void {
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
 
         var lastUpdate = StorageManager.getLastUpdateTime();
         if (lastUpdate != null) {
@@ -137,12 +201,129 @@ class BiciRadarView extends WatchUi.View {
             dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
             dc.drawText(
                 screenWidth / 2,
-                screenHeight - 15,
-                Graphics.FONT_TINY,
+                screenHeight - 10,
+                Graphics.FONT_XTINY,
                 updateText,
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }
+    }
+
+    public function selectNextStation() as Void {
+        var stations = StorageManager.getNearbyStations();
+        if (stations.size() == 0) {
+            return;
+        }
+
+        _selectedStationIndex = (_selectedStationIndex + 1) % stations.size();
+        WatchUi.requestUpdate();
+    }
+
+    public function selectPreviousStation() as Void {
+        var stations = StorageManager.getNearbyStations();
+        if (stations.size() == 0) {
+            return;
+        }
+
+        _selectedStationIndex = (_selectedStationIndex + stations.size() - 1) % stations.size();
+        WatchUi.requestUpdate();
+    }
+
+    public function getSelectedStation() {
+        var stations = StorageManager.getNearbyStations() as Array<BikeStationModel>;
+        if (stations.size() == 0) {
+            return null;
+        }
+
+        clampSelection();
+        return stations[_selectedStationIndex];
+    }
+
+    public function handleTap(y as Number) as Boolean {
+        var stations = StorageManager.getNearbyStations();
+        if (stations.size() == 0) {
+            return false;
+        }
+
+        var rowIndex = getTappedRowIndex(y);
+        if (rowIndex == null) {
+            return false;
+        }
+
+        _selectedStationIndex = rowIndex;
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    private function clampSelection() as Void {
+        var stations = StorageManager.getNearbyStations();
+        if (stations.size() == 0) {
+            _selectedStationIndex = 0;
+            _listStartIndex = 0;
+            return;
+        }
+
+        if (_selectedStationIndex >= stations.size()) {
+            _selectedStationIndex = stations.size() - 1;
+        }
+
+        if (_selectedStationIndex < 0) {
+            _selectedStationIndex = 0;
+        }
+    }
+
+    private function updateListWindow(stations as Array<BikeStationModel>, visibleRows as Number) as Void {
+        if (visibleRows <= 0) {
+            _listStartIndex = 0;
+            return;
+        }
+
+        var maxStart = stations.size() - visibleRows;
+        if (maxStart < 0) {
+            maxStart = 0;
+        }
+
+        if (_listStartIndex < 0) {
+            _listStartIndex = 0;
+        }
+        if (_listStartIndex > maxStart) {
+            _listStartIndex = maxStart;
+        }
+
+        if (_selectedStationIndex < _listStartIndex) {
+            _listStartIndex = _selectedStationIndex;
+        }
+
+        var lastVisibleIndex = _listStartIndex + visibleRows - 1;
+        if (_selectedStationIndex > lastVisibleIndex) {
+            _listStartIndex = _selectedStationIndex - visibleRows + 1;
+        }
+    }
+
+    private function getTappedRowIndex(y as Number) {
+        if (_visibleRowCount <= 0) {
+            return null;
+        }
+
+        var listTop = 32;
+        var rowHeight = 24;
+        for (var i = 0; i < _visibleRowCount; i += 1) {
+            var rowTop = listTop + (i * rowHeight) - 2;
+            var rowBottom = rowTop + rowHeight - 4;
+            if (y >= rowTop && y <= rowBottom) {
+                return _listStartIndex + i;
+            }
+        }
+
+        return null;
+    }
+
+    private function availabilityText(station as BikeStationModel) as String {
+        if (station.ebikes > 0) {
+            return station.ebikes.format("%d") + " ebikes";
+        }
+
+        return "sin ebikes";
     }
 
     private function getBikeColor(bikes) {
@@ -178,8 +359,26 @@ class BiciRadarView extends WatchUi.View {
         }
         return str.substring(0, maxLen - 1) + "...";
     }
+
+    public static function bikeColorFor(bikes) {
+        return getBikeColorStatic(bikes);
+    }
+
+    public static function truncateStationName(str as String, maxLen) as String {
+        return truncateStatic(str, maxLen);
+    }
+
+    public static function formatStationDistance(meters) as String {
+        if (meters < 1000) {
+            return meters.format("%d") + "m";
+        }
+
+        var km = meters / 1000.0;
+        return km.format("%.1f") + "km";
+    }
 }
 
+(:glance)
 class BiciRadarGlanceView extends WatchUi.GlanceView {
     public function initialize() {
         GlanceView.initialize();
@@ -203,5 +402,160 @@ class BiciRadarGlanceView extends WatchUi.GlanceView {
         }
 
         BiciRadarView.drawStationSummary(dc, station, true);
+    }
+}
+
+class BiciRadarDetailView extends WatchUi.View {
+    private var _station;
+
+    public function initialize(station) {
+        WatchUi.View.initialize();
+        _station = station;
+    }
+
+    public function onUpdate(dc as Dc) as Void {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+
+        var screenWidth = dc.getWidth();
+        var screenHeight = dc.getHeight();
+
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(
+            screenWidth / 2,
+            14,
+            Graphics.FONT_XTINY,
+            "Detalle estacion",
+            Graphics.TEXT_JUSTIFY_CENTER
+        );
+        dc.drawText(
+            screenWidth / 2,
+            30,
+            Graphics.FONT_TINY,
+            BiciRadarView.truncateStationName(_station.name, 20),
+            Graphics.TEXT_JUSTIFY_CENTER
+        );
+
+        dc.setColor(BiciRadarView.bikeColorFor(_station.bikes), Graphics.COLOR_BLACK);
+        dc.drawText(
+            screenWidth / 2,
+            62,
+            Graphics.FONT_NUMBER_MEDIUM,
+            _station.bikes.format("%d"),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
+        );
+
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        dc.drawText(screenWidth / 2, 84, Graphics.FONT_TINY, "bicis disponibles", Graphics.TEXT_JUSTIFY_CENTER);
+
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        dc.drawLine(14, 98, screenWidth - 14, 98);
+
+        drawMetricRow(dc, 18, 114, "ebikes", _station.ebikes.format("%d"));
+        drawMetricRow(dc, 18, 134, "distancia", BiciRadarView.formatStationDistance(_station.distance));
+        drawMetricRow(dc, 18, 154, "estado", statusText());
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        dc.drawText(screenWidth / 2, screenHeight - 24, Graphics.FONT_XTINY, updatedText(), Graphics.TEXT_JUSTIFY_CENTER);
+        dc.drawText(screenWidth / 2, screenHeight - 10, Graphics.FONT_XTINY, "tap o atras para volver", Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    private function drawMetricRow(dc as Dc, x as Number, y as Number, label as String, value as String) as Void {
+        var screenWidth = dc.getWidth();
+        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+        dc.drawText(x, y, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_LEFT);
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
+        dc.drawText(screenWidth - 18, y, Graphics.FONT_XTINY, value, Graphics.TEXT_JUSTIFY_RIGHT);
+    }
+
+    private function statusText() as String {
+        if (_station.bikes >= 5) {
+            return "alta";
+        } else if (_station.bikes >= 2) {
+            return "media";
+        }
+
+        return "baja";
+    }
+
+    private function updatedText() as String {
+        var lastUpdate = StorageManager.getLastUpdateTime();
+        if (lastUpdate == null) {
+            return "sin actualizacion";
+        }
+
+        var ageMinutes = ((Time.now().value() - lastUpdate) / 60);
+        if (ageMinutes < 1) {
+            return "actualizado ahora";
+        } else if (ageMinutes == 1) {
+            return "actualizado hace 1 min";
+        } else if (ageMinutes < 60) {
+            return "actualizado hace " + ageMinutes.format("%d") + " min";
+        }
+
+        return "actualizacion antigua";
+    }
+}
+
+class BiciRadarViewDelegate extends WatchUi.BehaviorDelegate {
+    private var _view as BiciRadarView;
+
+    public function initialize(view as BiciRadarView) {
+        BehaviorDelegate.initialize();
+        _view = view;
+    }
+
+    public function onNextPage() as Boolean {
+        _view.selectNextStation();
+        return true;
+    }
+
+    public function onPreviousPage() as Boolean {
+        _view.selectPreviousStation();
+        return true;
+    }
+
+    public function onSelect() as Boolean {
+        var station = _view.getSelectedStation();
+        if (station == null) {
+            return true;
+        }
+
+        WatchUi.pushView(new BiciRadarDetailView(station), new BiciRadarDetailDelegate(), WatchUi.SLIDE_UP);
+        return true;
+    }
+
+    public function onTap(evt as ClickEvent) as Boolean {
+        if (WatchUi.CLICK_TYPE_TAP != evt.getType()) {
+            return false;
+        }
+
+        var stationBeforeTap = _view.getSelectedStation();
+        var coords = evt.getCoordinates();
+        if (!_view.handleTap(coords[1])) {
+            return false;
+        }
+
+        var stationAfterTap = _view.getSelectedStation();
+        if (stationBeforeTap != null && stationAfterTap != null && stationBeforeTap.id == stationAfterTap.id) {
+            WatchUi.pushView(new BiciRadarDetailView(stationAfterTap), new BiciRadarDetailDelegate(), WatchUi.SLIDE_UP);
+        }
+
+        return true;
+    }
+}
+
+class BiciRadarDetailDelegate extends WatchUi.BehaviorDelegate {
+    public function initialize() {
+        BehaviorDelegate.initialize();
+    }
+
+    public function onBack() as Boolean {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        return true;
+    }
+
+    public function onSelect() as Boolean {
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        return true;
     }
 }

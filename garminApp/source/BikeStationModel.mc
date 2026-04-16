@@ -54,7 +54,7 @@ class BikeStationModel {
 
 class StationsData {
     public var nearest = null;
-    public var backup = [] as Array<BikeStationModel>;
+    public var backup as Array<BikeStationModel> = [];
     public var timestamp = 0;
 
     public function initialize() {
@@ -94,7 +94,7 @@ class StationsData {
     public function toDict() {
         var backupArray = [] as Array<Dictionary<String, Object>>;
         for (var i = 0; i < backup.size(); i += 1) {
-            var station = backup[i] as BikeStationModel;
+            var station = backup[i];
             backupArray.add(station.toDict());
         }
 

@@ -24,7 +24,7 @@ class BiciRadarApp extends Application.AppBase {
 
     public function getInitialView() as [Views] or [Views, InputDelegates] {
         _mainView = new BiciRadarView();
-        return [ _mainView ];
+        return [ _mainView, new BiciRadarViewDelegate(_mainView) ];
     }
 
     public function getGlanceView() as [WatchUi.GlanceView] or [WatchUi.GlanceView, WatchUi.GlanceViewDelegate] or Null {

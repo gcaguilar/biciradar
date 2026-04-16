@@ -43,7 +43,7 @@ class BiciRadarBleManager {
         }
     }
 
-    public function onMessageError(error) as Void {
+    public function onMessageError(error as Communications.PhoneAppMessageError) as Void {
     }
 
     public function isConnected() {
@@ -56,11 +56,12 @@ class BiciRadarBleManager {
         }
 
         try {
+            var refreshRequest = {
+                "type" => "refresh_request",
+                "requestedAt" => System.getTimer()
+            };
             Communications.transmit(
-                {
-                    :type => "refresh_request",
-                    :requestedAt => System.getTimer()
-                },
+                refreshRequest,
                 null,
                 new BiciRadarTransmitListener()
             );

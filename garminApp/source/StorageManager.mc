@@ -7,11 +7,13 @@ module StorageManager {
     const KEY_SELECTED_CITY = "selectedCity";
 
     var _nearestStation = null;
+    var _backupStations = [];
     var _lastUpdateTime = null;
     var _selectedCity = "";
 
     public function loadCachedStations() as Void {
         _nearestStation = null;
+        _backupStations = [];
         _lastUpdateTime = null;
         _selectedCity = "";
 
@@ -20,6 +22,7 @@ module StorageManager {
             var stationsData = StationsData.fromDict(data);
             if (stationsData != null) {
                 _nearestStation = stationsData.nearest;
+                _backupStations = stationsData.backup;
                 _lastUpdateTime = stationsData.timestamp;
             }
         }
@@ -35,6 +38,7 @@ module StorageManager {
         var stationsData = StationsData.fromDict(data);
         if (stationsData != null) {
             _nearestStation = stationsData.nearest;
+            _backupStations = stationsData.backup;
             _lastUpdateTime = stationsData.timestamp;
         }
     }
@@ -45,6 +49,17 @@ module StorageManager {
 
     public function getLastUpdateTime() {
         return _lastUpdateTime;
+    }
+
+    public function getNearbyStations() {
+        var stations = [];
+        if (_nearestStation != null) {
+            stations.add(_nearestStation);
+        }
+
+        stations.addAll(_backupStations);
+
+        return stations;
     }
 
     public function getSelectedCity() {
@@ -59,6 +74,7 @@ module StorageManager {
     public function clearAllData() as Void {
         Storage.deleteValue(KEY_STATIONS_DATA);
         _nearestStation = null;
+        _backupStations = [];
         _lastUpdateTime = null;
     }
 
