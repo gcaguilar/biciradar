@@ -78,6 +78,58 @@ module StorageManager {
         _lastUpdateTime = null;
     }
 
+    public function loadDemoStations() as Void {
+        var demoData = {
+            "nearest" => {
+                "id" => "1",
+                "name" => "Plaza Espana",
+                "bikes" => 8,
+                "distance" => 120,
+                "ebikes" => 2
+            },
+            "backup" => [
+                {
+                    "id" => "2",
+                    "name" => "Paraninfo",
+                    "bikes" => 4,
+                    "distance" => 260,
+                    "ebikes" => 1
+                },
+                {
+                    "id" => "3",
+                    "name" => "Delicias",
+                    "bikes" => 1,
+                    "distance" => 480,
+                    "ebikes" => 0
+                },
+                {
+                    "id" => "4",
+                    "name" => "Puerta Carmen",
+                    "bikes" => 6,
+                    "distance" => 620,
+                    "ebikes" => 2
+                },
+                {
+                    "id" => "5",
+                    "name" => "Universidad",
+                    "bikes" => 3,
+                    "distance" => 910,
+                    "ebikes" => 1
+                },
+                {
+                    "id" => "6",
+                    "name" => "La Romareda",
+                    "bikes" => 0,
+                    "distance" => 1450,
+                    "ebikes" => 0
+                }
+            ],
+            "timestamp" => Time.now().value()
+        };
+
+        saveRawStationsData(demoData);
+    }
+
     public function isDataFresh() {
         if (_lastUpdateTime == null) {
             return false;

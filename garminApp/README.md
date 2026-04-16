@@ -35,6 +35,34 @@ Garmin requiere iconos PNG en múltiples tamaños. Crea las siguientes imágenes
 5. Compilar: `Ctrl+Shift+P` → "Monkey C: Build"
 6. Probar en simulador o dispositivo real
 
+### Demo local sin telefono
+
+Para probar la app en el simulador con datos fake, sin depender del companion movil:
+
+```bash
+./garminApp/run_demo.sh venu3s
+```
+
+Esto:
+
+1. activa temporalmente `ENABLE_DEMO_DATA`
+2. compila la app
+3. restaura el codigo fuente original
+4. abre el simulador Garmin
+5. lanza la app con datos demo
+
+Si solo quieres generar el paquete demo sin lanzarlo:
+
+```bash
+./garminApp/build_demo.sh
+```
+
+La build normal sigue siendo:
+
+```bash
+./garminApp/build_store_iq.sh
+```
+
 ### 3. Compilar para la Store en local
 
 Requisitos:

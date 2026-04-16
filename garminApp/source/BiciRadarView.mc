@@ -255,6 +255,12 @@ class BiciRadarView extends WatchUi.View {
         return true;
     }
 
+    public function reloadDemoStations() as Void {
+        StorageManager.loadDemoStations();
+        clampSelection();
+        WatchUi.requestUpdate();
+    }
+
     private function clampSelection() as Void {
         var stations = StorageManager.getNearbyStations();
         if (stations.size() == 0) {
@@ -540,6 +546,11 @@ class BiciRadarViewDelegate extends WatchUi.BehaviorDelegate {
             WatchUi.pushView(new BiciRadarDetailView(stationAfterTap), new BiciRadarDetailDelegate(), WatchUi.SLIDE_UP);
         }
 
+        return true;
+    }
+
+    public function onMenu() as Boolean {
+        _view.reloadDemoStations();
         return true;
     }
 }

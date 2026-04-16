@@ -4,6 +4,8 @@ import Toybox.Communications;
 import Toybox.System;
 import Toybox.Lang;
 
+const ENABLE_DEMO_DATA = false;
+
 class BiciRadarApp extends Application.AppBase {
 
     private var _mainView as BiciRadarView?;
@@ -17,6 +19,9 @@ class BiciRadarApp extends Application.AppBase {
 
     public function onStart(state as Dictionary?) as Void {
         StorageManager.loadCachedStations();
+        if (ENABLE_DEMO_DATA) {
+            StorageManager.loadDemoStations();
+        }
     }
 
     public function onStop(state as Dictionary?) as Void {
