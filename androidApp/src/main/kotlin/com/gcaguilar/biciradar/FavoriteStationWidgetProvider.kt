@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar
 
+import android.app.Application
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -9,8 +10,9 @@ import android.content.Intent
 import android.net.Uri
 import android.text.format.DateUtils
 import android.widget.RemoteViews
-import org.json.JSONObject
-import java.io.File
+import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
+import kotlinx.coroutines.runBlocking
 
 class FavoriteStationWidgetProvider : AppWidgetProvider() {
   override fun onUpdate(
@@ -18,13 +20,13 @@ class FavoriteStationWidgetProvider : AppWidgetProvider() {
     appWidgetManager: AppWidgetManager,
     appWidgetIds: IntArray,
   ) {
-    WidgetRefreshWorker.reconcile(context)
     updateWidgets(context, appWidgetManager, appWidgetIds)
   }
 
   override fun onEnabled(context: Context) {
     super.onEnabled(context)
     WidgetRefreshWorker.reconcile(context)
+    WidgetRefreshWorker.scheduleImmediate(context)
   }
 
   override fun onDisabled(context: Context) {
@@ -158,81 +160,59 @@ internal data class AndroidSurfaceSavedPlaceStation(
 )
 
 internal object AndroidSurfaceSnapshotReader {
-  private const val SNAPSHOT_PATH = "bizi/surface_snapshot.json"
-
   fun read(context: Context): AndroidSurfaceWidgetSnapshot {
-    val file = File(context.filesDir, SNAPSHOT_PATH)
-    if (!file.exists()) {
-      return AndroidSurfaceWidgetSnapshot(isDataFresh = false)
-    }
     return runCatching {
-      parse(JSONObject(file.readText()))
+      if (!BiziAppGraph.isInitialized()) {
+        BiziAppGraph.initialize(context.applicationContext as Application)
+      }
+      val bundle =
+        runBlocking {
+          BiziAppGraph.graph.getCachedStationSnapshot.execute()
+        }
+      bundle?.toAndroidSurfaceWidgetSnapshot() ?: AndroidSurfaceWidgetSnapshot(isDataFresh = false)
     }.getOrElse {
       AndroidSurfaceWidgetSnapshot()
     }
   }
-
-  private fun parse(root: JSONObject): AndroidSurfaceWidgetSnapshot {
-    val state = root.optJSONObject("state")
-    val favorite = root.optJSONObject("favoriteStation")
-    val home = root.optJSONObject("homeStation")
-    val work = root.optJSONObject("workStation")
-    val nearby = root.optJSONArray("nearbyStations")
-    val nearbyStations =
-      buildList {
-        for (index in 0 until (nearby?.length() ?: 0)) {
-          val station = nearby?.optJSONObject(index) ?: continue
-          add(
-            AndroidSurfaceNearbyStation(
-              id = station.optString("id"),
-              name = station.optString("nameShort", station.optString("nameFull")),
-              bikesAvailable = station.optInt("bikesAvailable"),
-              docksAvailable = station.optInt("docksAvailable"),
-              distanceMeters = station.optInt("distanceMeters").takeIf { it > 0 },
-              statusText = station.optString("statusTextShort"),
-            ),
-          )
-        }
-      }
-    if (favorite == null) {
-      return AndroidSurfaceWidgetSnapshot(
-        homeStation = parseSavedPlaceStation(home),
-        workStation = parseSavedPlaceStation(work),
-        nearbyStations = nearbyStations,
-        hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
-        isDataFresh = state?.optBoolean("isDataFresh"),
-        hasLocationPermission = state?.optBoolean("hasLocationPermission"),
-        hasNotificationPermission = state?.optBoolean("hasNotificationPermission"),
-      )
-    }
-    return AndroidSurfaceWidgetSnapshot(
-      favoriteStation =
-        AndroidSurfaceFavoriteStation(
-          id = favorite.optString("id"),
-          name = favorite.optString("nameShort", favorite.optString("nameFull")),
-          bikesAvailable = favorite.optInt("bikesAvailable"),
-          docksAvailable = favorite.optInt("docksAvailable"),
-          statusText = favorite.optString("statusTextShort"),
-          lastUpdatedEpoch = favorite.optLong("lastUpdatedEpoch").takeIf { it > 0L },
-        ),
-      homeStation = parseSavedPlaceStation(home),
-      workStation = parseSavedPlaceStation(work),
-      nearbyStations = nearbyStations,
-      hasFavoriteStation = state?.optBoolean("hasFavoriteStation"),
-      isDataFresh = state?.optBoolean("isDataFresh"),
-      hasLocationPermission = state?.optBoolean("hasLocationPermission"),
-      hasNotificationPermission = state?.optBoolean("hasNotificationPermission"),
-    )
-  }
-
-  private fun parseSavedPlaceStation(station: JSONObject?): AndroidSurfaceSavedPlaceStation? {
-    if (station == null) return null
-    return AndroidSurfaceSavedPlaceStation(
-      id = station.optString("id"),
-      name = station.optString("nameShort", station.optString("nameFull")),
-      bikesAvailable = station.optInt("bikesAvailable"),
-      docksAvailable = station.optInt("docksAvailable"),
-      statusText = station.optString("statusTextShort"),
-    )
-  }
 }
+
+internal fun SurfaceSnapshotBundle.toAndroidSurfaceWidgetSnapshot(): AndroidSurfaceWidgetSnapshot =
+  AndroidSurfaceWidgetSnapshot(
+    favoriteStation = favoriteStation?.toAndroidFavoriteStation(),
+    homeStation = homeStation?.toAndroidSavedPlaceStation(),
+    workStation = workStation?.toAndroidSavedPlaceStation(),
+    nearbyStations = nearbyStations.map(SurfaceStationSnapshot::toAndroidNearbyStation),
+    hasFavoriteStation = state.hasFavoriteStation,
+    isDataFresh = state.isDataFresh,
+    hasLocationPermission = state.hasLocationPermission,
+    hasNotificationPermission = state.hasNotificationPermission,
+  )
+
+private fun SurfaceStationSnapshot.toAndroidFavoriteStation(): AndroidSurfaceFavoriteStation =
+  AndroidSurfaceFavoriteStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    statusText = statusTextShort,
+    lastUpdatedEpoch = lastUpdatedEpoch.takeIf { it > 0L },
+  )
+
+private fun SurfaceStationSnapshot.toAndroidNearbyStation(): AndroidSurfaceNearbyStation =
+  AndroidSurfaceNearbyStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    distanceMeters = distanceMeters?.takeIf { it > 0 },
+    statusText = statusTextShort,
+  )
+
+private fun SurfaceStationSnapshot.toAndroidSavedPlaceStation(): AndroidSurfaceSavedPlaceStation =
+  AndroidSurfaceSavedPlaceStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    statusText = statusTextShort,
+  )

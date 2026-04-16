@@ -11,6 +11,7 @@ class BiciRadarApplication : Application() {
     GarminCompanionBridge.initialize(this, BiziAppGraph.graph)
     initializeWorkManagerSafely()
     WidgetRefreshWorker.reconcile(this)
+    WidgetRefreshWorker.scheduleImmediate(this)
   }
 
   private fun initializeWorkManagerSafely() {

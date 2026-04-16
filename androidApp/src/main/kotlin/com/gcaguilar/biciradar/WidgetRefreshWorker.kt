@@ -7,7 +7,9 @@ import android.content.Context
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -16,6 +18,11 @@ import java.util.concurrent.TimeUnit
 /**
  * Refresca los datos usados por los widgets y vuelve a pintar sus RemoteViews.
  * Solo se programa mientras exista al menos un widget activo.
+ *
+ * Importante: no llamar a reconcile() desde onUpdate() de los AppWidgetProvider.
+ * WorkManager habilita/deshabilita su RescheduleReceiver al encolar/cancelar trabajo,
+ * lo que dispara ACTION_PACKAGE_CHANGED → onUpdate() → loop infinito.
+ * reconcile() solo debe llamarse desde onEnabled()/onDisabled().
  */
 class WidgetRefreshWorker(
   context: Context,
@@ -45,7 +52,8 @@ class WidgetRefreshWorker(
 
   companion object {
     private const val UNIQUE_WORK_NAME = "widget-refresh-worker"
-    private const val REPEAT_INTERVAL_MINUTES = 30L
+    private const val IMMEDIATE_WORK_NAME = "widget-refresh-immediate"
+    private const val REPEAT_INTERVAL_MINUTES = 15L
 
     fun reconcile(context: Context) {
       if (hasAnyWidgets(context)) {
@@ -53,6 +61,22 @@ class WidgetRefreshWorker(
       } else {
         cancel(context)
       }
+    }
+
+    fun scheduleImmediate(context: Context) {
+      val request =
+        OneTimeWorkRequestBuilder<WidgetRefreshWorker>()
+          .setConstraints(
+            Constraints
+              .Builder()
+              .setRequiredNetworkType(NetworkType.CONNECTED)
+              .build(),
+          ).build()
+      WorkManager.getInstance(context).enqueueUniqueWork(
+        IMMEDIATE_WORK_NAME,
+        ExistingWorkPolicy.REPLACE,
+        request,
+      )
     }
 
     private fun schedule(context: Context) {
@@ -66,13 +90,14 @@ class WidgetRefreshWorker(
           ).build()
       WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         UNIQUE_WORK_NAME,
-        ExistingPeriodicWorkPolicy.UPDATE,
+        ExistingPeriodicWorkPolicy.KEEP,
         request,
       )
     }
 
     private fun cancel(context: Context) {
       WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+      WorkManager.getInstance(context).cancelUniqueWork(IMMEDIATE_WORK_NAME)
     }
 
     private fun hasAnyWidgets(context: Context): Boolean {
