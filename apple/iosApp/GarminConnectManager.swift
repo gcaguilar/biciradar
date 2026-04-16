@@ -1,4 +1,5 @@
-@preconcurrency import ConnectIQ
+import BiziMobileUi
+import ConnectIQ
 import Foundation
 import UIKit
 
