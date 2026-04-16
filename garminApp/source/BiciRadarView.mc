@@ -5,60 +5,110 @@ import Toybox.Time;
 import Toybox.Lang;
 import Toybox.Application;
 
-class BiciRadarView extends WatchUi.View {
-    private var _selectedStationIndex = 0;
-    private var _listStartIndex = 0;
-    private var _visibleRowCount = 0;
+class BiciRadarView extends WatchUi.Menu2 {
+    private var _focusedStationId = null;
 
     public function initialize() {
-        WatchUi.View.initialize();
-    }
-
-    public function onLayout(dc as Dc) as Void {
+        Menu2.initialize({ :title => WatchUi.loadResource($.Rez.Strings.NearbyStationsTitle) });
     }
 
     public function onShow() as Void {
+        StorageManager.loadCachedStations();
+        if (BiciRadarApp.isDemoMode() && StorageManager.getNearbyStations().size() == 0) {
+            StorageManager.loadDemoStations();
+        }
+
         var app = Application.getApp() as BiciRadarApp;
-        if (app != null) {
+        if (app != null && !BiciRadarApp.isDemoMode()) {
             app.getBleManager().requestRefresh();
         }
-        clampSelection();
+        refreshMenuItems();
         WatchUi.requestUpdate();
     }
 
     public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
+        refreshMenuItems();
+        Menu2.onUpdate(dc);
+    }
 
-        var stations = StorageManager.getNearbyStations();
-        clampSelection();
+    public function reloadStations() as Void {
+        refreshMenuItems();
+        WatchUi.requestUpdate();
+    }
+
+    public function getStationForMenuItem(item as WatchUi.MenuItem) {
+        var stationId = item.getId();
+        if (stationId == null) {
+            return null;
+        }
+
+        _focusedStationId = stationId.toString();
+
+        var stations = StorageManager.getNearbyStations() as Array<BikeStationModel>;
+        for (var i = 0; i < stations.size(); i += 1) {
+            if (stations[i].id == _focusedStationId) {
+                return stations[i];
+            }
+        }
+
+        return null;
+    }
+
+    private function refreshMenuItems() as Void {
+        clearMenuItems();
+
+        var stations = StorageManager.getNearbyStations() as Array<BikeStationModel>;
+        if (stations.size() == 0 && BiciRadarApp.isDemoMode()) {
+            StorageManager.loadDemoStations();
+            stations = StorageManager.getNearbyStations() as Array<BikeStationModel>;
+        }
 
         if (stations.size() == 0) {
-            drawNoData(dc);
+            setTitle(WatchUi.loadResource($.Rez.Strings.AppName));
+            addItem(new WatchUi.MenuItem(
+                WatchUi.loadResource($.Rez.Strings.NoData) as String,
+                WatchUi.loadResource($.Rez.Strings.OpenApp) as String,
+                "empty",
+                null
+            ));
             return;
         }
 
-        drawStations(dc, stations);
+        setTitle(WatchUi.loadResource($.Rez.Strings.NearbyStationsTitle));
+
+        var focusIndex = 0;
+        for (var i = 0; i < stations.size(); i += 1) {
+            var station = stations[i];
+            addItem(new WatchUi.MenuItem(
+                truncateStatic(station.name, 22),
+                buildStationSubLabel(station),
+                station.id,
+                null
+            ));
+
+            if (_focusedStationId != null && station.id == _focusedStationId) {
+                focusIndex = i;
+            }
+        }
+
+        if (stations.size() > 0) {
+            setFocus(focusIndex);
+        }
     }
 
-    private function drawNoData(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        var noData = WatchUi.loadResource($.Rez.Strings.NoData) as String;
-        var openApp = WatchUi.loadResource($.Rez.Strings.OpenApp) as String;
-        dc.drawText(
-            dc.getWidth() / 2,
-            dc.getHeight() / 2 - 20,
-            Graphics.FONT_TINY,
-            noData,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
-        );
-        dc.drawText(
-            dc.getWidth() / 2,
-            dc.getHeight() / 2 + 20,
-            Graphics.FONT_TINY,
-            openApp,
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
-        );
+    private function clearMenuItems() as Void {
+        while (getItem(0) != null) {
+            deleteItem(0);
+        }
+    }
+
+    private function buildStationSubLabel(station as BikeStationModel) as String {
+        var label = formatDistance(station.distance) + "  " + station.bikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyBikes) as String);
+        if (station.ebikes > 0) {
+            label += "  " + station.ebikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyEbikes) as String);
+        }
+
+        return label;
     }
 
     public static function drawStationSummary(dc as Dc, station as BikeStationModel, isGlance as Boolean) as Void {
@@ -72,7 +122,7 @@ class BiciRadarView extends WatchUi.View {
                 screenWidth / 2,
                 20,
                 Graphics.FONT_TINY,
-                "BiciRadar",
+                WatchUi.loadResource($.Rez.Strings.AppName),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }
@@ -110,226 +160,9 @@ class BiciRadarView extends WatchUi.View {
         );
     }
 
-    private function drawStations(dc as Dc, stations as Array<BikeStationModel>) as Void {
-        var screenWidth = dc.getWidth();
-        var screenHeight = dc.getHeight();
-        var headerY = 16;
-        var listTop = 32;
-        var rowHeight = 24;
-        var footerY = screenHeight - 10;
-        var availableHeight = footerY - listTop - 4;
-        var visibleRows = availableHeight / rowHeight;
-
-        if (visibleRows < 1) {
-            visibleRows = 1;
-        }
-
-        _visibleRowCount = visibleRows;
-        updateListWindow(stations, visibleRows);
-
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(
-            screenWidth / 2,
-            headerY,
-            Graphics.FONT_TINY,
-            "Estaciones cercanas",
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        dc.drawLine(12, 24, screenWidth - 12, 24);
-
-        for (var i = 0; i < visibleRows; i += 1) {
-            var stationIndex = _listStartIndex + i;
-            if (stationIndex >= stations.size()) {
-                break;
-            }
-
-            drawStationRow(dc, stations[stationIndex], stationIndex, listTop + (i * rowHeight), rowHeight);
-        }
-
-        drawFooter(dc);
-    }
-
-    private function drawStationRow(dc as Dc, station as BikeStationModel, stationIndex as Number, y as Number, rowHeight as Number) as Void {
-        var screenWidth = dc.getWidth();
-        var name = truncateStatic(station.name, 18);
-        var isSelected = stationIndex == _selectedStationIndex;
-        var indicatorColor = getBikeColorStatic(station.bikes);
-
-        if (isSelected) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_DK_GRAY);
-            dc.fillRectangle(8, y - 1, screenWidth - 16, rowHeight - 4);
-            dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_DK_GRAY);
-        } else {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        }
-
-        dc.setColor(isSelected ? indicatorColor : indicatorColor, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
-        dc.fillRectangle(12, y + 4, 6, 6);
-
-        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
-        dc.drawText(24, y + 2, Graphics.FONT_XTINY, name, Graphics.TEXT_JUSTIFY_LEFT);
-
-        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_DK_GRAY, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
-        dc.drawText(screenWidth - 10, y + 2, Graphics.FONT_XTINY, formatDistance(station.distance), Graphics.TEXT_JUSTIFY_RIGHT);
-
-        dc.setColor(isSelected ? Graphics.COLOR_BLACK : getBikeColorStatic(station.bikes), isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
-        dc.drawText(24, y + 13, Graphics.FONT_XTINY, availabilityText(station), Graphics.TEXT_JUSTIFY_LEFT);
-
-        dc.setColor(isSelected ? Graphics.COLOR_BLACK : Graphics.COLOR_WHITE, isSelected ? Graphics.COLOR_DK_GRAY : Graphics.COLOR_BLACK);
-        dc.drawText(screenWidth - 10, y + 13, Graphics.FONT_XTINY, station.bikes.format("%d") + " bicis", Graphics.TEXT_JUSTIFY_RIGHT);
-    }
-
-    private function drawFooter(dc as Dc) as Void {
-        var screenWidth = dc.getWidth();
-        var screenHeight = dc.getHeight();
-
-        var lastUpdate = StorageManager.getLastUpdateTime();
-        if (lastUpdate != null) {
-            var ageMinutes = ((Time.now().value() - lastUpdate) / 60);
-            var updateText;
-            if (ageMinutes < 1) {
-                updateText = WatchUi.loadResource($.Rez.Strings.JustNow) as String;
-            } else if (ageMinutes == 1) {
-                updateText = "1 " + (WatchUi.loadResource($.Rez.Strings.MinuteAgo) as String);
-            } else if (ageMinutes < 60) {
-                updateText = ageMinutes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.MinutesAgo) as String);
-            } else {
-                updateText = WatchUi.loadResource($.Rez.Strings.Outdated) as String;
-            }
-            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-            dc.drawText(
-                screenWidth / 2,
-                screenHeight - 10,
-                Graphics.FONT_XTINY,
-                updateText,
-                Graphics.TEXT_JUSTIFY_CENTER
-            );
-        }
-    }
-
-    public function selectNextStation() as Void {
-        var stations = StorageManager.getNearbyStations();
-        if (stations.size() == 0) {
-            return;
-        }
-
-        _selectedStationIndex = (_selectedStationIndex + 1) % stations.size();
-        WatchUi.requestUpdate();
-    }
-
-    public function selectPreviousStation() as Void {
-        var stations = StorageManager.getNearbyStations();
-        if (stations.size() == 0) {
-            return;
-        }
-
-        _selectedStationIndex = (_selectedStationIndex + stations.size() - 1) % stations.size();
-        WatchUi.requestUpdate();
-    }
-
-    public function getSelectedStation() {
-        var stations = StorageManager.getNearbyStations() as Array<BikeStationModel>;
-        if (stations.size() == 0) {
-            return null;
-        }
-
-        clampSelection();
-        return stations[_selectedStationIndex];
-    }
-
-    public function handleTap(y as Number) as Boolean {
-        var stations = StorageManager.getNearbyStations();
-        if (stations.size() == 0) {
-            return false;
-        }
-
-        var rowIndex = getTappedRowIndex(y);
-        if (rowIndex == null) {
-            return false;
-        }
-
-        _selectedStationIndex = rowIndex;
-        WatchUi.requestUpdate();
-        return true;
-    }
-
     public function reloadDemoStations() as Void {
         StorageManager.loadDemoStations();
-        clampSelection();
-        WatchUi.requestUpdate();
-    }
-
-    private function clampSelection() as Void {
-        var stations = StorageManager.getNearbyStations();
-        if (stations.size() == 0) {
-            _selectedStationIndex = 0;
-            _listStartIndex = 0;
-            return;
-        }
-
-        if (_selectedStationIndex >= stations.size()) {
-            _selectedStationIndex = stations.size() - 1;
-        }
-
-        if (_selectedStationIndex < 0) {
-            _selectedStationIndex = 0;
-        }
-    }
-
-    private function updateListWindow(stations as Array<BikeStationModel>, visibleRows as Number) as Void {
-        if (visibleRows <= 0) {
-            _listStartIndex = 0;
-            return;
-        }
-
-        var maxStart = stations.size() - visibleRows;
-        if (maxStart < 0) {
-            maxStart = 0;
-        }
-
-        if (_listStartIndex < 0) {
-            _listStartIndex = 0;
-        }
-        if (_listStartIndex > maxStart) {
-            _listStartIndex = maxStart;
-        }
-
-        if (_selectedStationIndex < _listStartIndex) {
-            _listStartIndex = _selectedStationIndex;
-        }
-
-        var lastVisibleIndex = _listStartIndex + visibleRows - 1;
-        if (_selectedStationIndex > lastVisibleIndex) {
-            _listStartIndex = _selectedStationIndex - visibleRows + 1;
-        }
-    }
-
-    private function getTappedRowIndex(y as Number) {
-        if (_visibleRowCount <= 0) {
-            return null;
-        }
-
-        var listTop = 32;
-        var rowHeight = 24;
-        for (var i = 0; i < _visibleRowCount; i += 1) {
-            var rowTop = listTop + (i * rowHeight) - 2;
-            var rowBottom = rowTop + rowHeight - 4;
-            if (y >= rowTop && y <= rowBottom) {
-                return _listStartIndex + i;
-            }
-        }
-
-        return null;
-    }
-
-    private function availabilityText(station as BikeStationModel) as String {
-        if (station.ebikes > 0) {
-            return station.ebikes.format("%d") + " ebikes";
-        }
-
-        return "sin ebikes";
+        reloadStations();
     }
 
     private function getBikeColor(bikes) {
@@ -342,10 +175,10 @@ class BiciRadarView extends WatchUi.View {
 
     private function formatDistance(meters) as String {
         if (meters < 1000) {
-            return meters.format("%d") + "m";
+            return meters.format("%d") + (WatchUi.loadResource($.Rez.Strings.MetersUnit) as String);
         } else {
             var km = meters / 1000.0;
-            return km.format("%.1f") + "km";
+            return km.format("%.1f") + (WatchUi.loadResource($.Rez.Strings.KilometersUnit) as String);
         }
     }
 
@@ -376,38 +209,11 @@ class BiciRadarView extends WatchUi.View {
 
     public static function formatStationDistance(meters) as String {
         if (meters < 1000) {
-            return meters.format("%d") + "m";
+            return meters.format("%d") + (WatchUi.loadResource($.Rez.Strings.MetersUnit) as String);
         }
 
         var km = meters / 1000.0;
-        return km.format("%.1f") + "km";
-    }
-}
-
-(:glance)
-class BiciRadarGlanceView extends WatchUi.GlanceView {
-    public function initialize() {
-        GlanceView.initialize();
-    }
-
-    public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
-        dc.clear();
-
-        var station = StorageManager.getNearestStation();
-        if (station == null) {
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-            dc.drawText(
-                dc.getWidth() / 2,
-                dc.getHeight() / 2,
-                Graphics.FONT_TINY,
-                WatchUi.loadResource($.Rez.Strings.NoData) as String,
-                Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
-            );
-            return;
-        }
-
-        BiciRadarView.drawStationSummary(dc, station, true);
+        return km.format("%.1f") + (WatchUi.loadResource($.Rez.Strings.KilometersUnit) as String);
     }
 }
 
@@ -419,133 +225,124 @@ class BiciRadarDetailView extends WatchUi.View {
         _station = station;
     }
 
+    public function onLayout(dc as Dc) as Void {
+        setLayout($.Rez.Layouts.DetailLayout(dc));
+    }
+
     public function onUpdate(dc as Dc) as Void {
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
 
-        var screenWidth = dc.getWidth();
-        var screenHeight = dc.getHeight();
+        setText("TitleLabel", BiciRadarView.truncateStationName(_station.name, 22));
+        setText("DetailText", buildBodyText());
 
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(
-            screenWidth / 2,
-            14,
-            Graphics.FONT_XTINY,
-            "Detalle estacion",
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-        dc.drawText(
-            screenWidth / 2,
-            30,
-            Graphics.FONT_TINY,
-            BiciRadarView.truncateStationName(_station.name, 20),
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-
-        dc.setColor(BiciRadarView.bikeColorFor(_station.bikes), Graphics.COLOR_BLACK);
-        dc.drawText(
-            screenWidth / 2,
-            62,
-            Graphics.FONT_NUMBER_MEDIUM,
-            _station.bikes.format("%d"),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
-        );
-
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        dc.drawText(screenWidth / 2, 84, Graphics.FONT_TINY, "bicis disponibles", Graphics.TEXT_JUSTIFY_CENTER);
-
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        dc.drawLine(14, 98, screenWidth - 14, 98);
-
-        drawMetricRow(dc, 18, 114, "ebikes", _station.ebikes.format("%d"));
-        drawMetricRow(dc, 18, 134, "distancia", BiciRadarView.formatStationDistance(_station.distance));
-        drawMetricRow(dc, 18, 154, "estado", statusText());
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        dc.drawText(screenWidth / 2, screenHeight - 24, Graphics.FONT_XTINY, updatedText(), Graphics.TEXT_JUSTIFY_CENTER);
-        dc.drawText(screenWidth / 2, screenHeight - 10, Graphics.FONT_XTINY, "tap o atras para volver", Graphics.TEXT_JUSTIFY_CENTER);
-    }
-
-    private function drawMetricRow(dc as Dc, x as Number, y as Number, label as String, value as String) as Void {
-        var screenWidth = dc.getWidth();
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        dc.drawText(x, y, Graphics.FONT_XTINY, label, Graphics.TEXT_JUSTIFY_LEFT);
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        dc.drawText(screenWidth - 18, y, Graphics.FONT_XTINY, value, Graphics.TEXT_JUSTIFY_RIGHT);
+        View.onUpdate(dc);
     }
 
     private function statusText() as String {
         if (_station.bikes >= 5) {
-            return "alta";
+            return WatchUi.loadResource($.Rez.Strings.AvailabilityHigh);
         } else if (_station.bikes >= 2) {
-            return "media";
+            return WatchUi.loadResource($.Rez.Strings.AvailabilityMedium);
         }
 
-        return "baja";
+        return WatchUi.loadResource($.Rez.Strings.AvailabilityLow);
+    }
+
+    private function availabilityText() as String {
+        if (_station.bikes == 1) {
+            return WatchUi.loadResource($.Rez.Strings.OneBike);
+        }
+
+        return _station.bikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyBikes) as String);
+    }
+
+    private function ebikeText() as String {
+        if (_station.ebikes == 1) {
+            return WatchUi.loadResource($.Rez.Strings.OneEbike);
+        }
+
+        return _station.ebikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyEbikes) as String);
+    }
+
+    private function setText(id as String, text as String) as Void {
+        var drawable = findDrawableById(id);
+        if (drawable != null) {
+            if (drawable instanceof WatchUi.TextArea) {
+                (drawable as WatchUi.TextArea).setText(text);
+                return;
+            }
+
+            if (drawable instanceof WatchUi.Text) {
+                (drawable as WatchUi.Text).setText(text);
+            }
+        }
+    }
+
+    private function buildBodyText() as String {
+        return (WatchUi.loadResource($.Rez.Strings.DetailBikes) as String) + ": " + availabilityText() + "\n"
+            + (WatchUi.loadResource($.Rez.Strings.DetailEbikes) as String) + ": " + ebikeText() + "\n"
+            + (WatchUi.loadResource($.Rez.Strings.DetailDistance) as String) + ": " + BiciRadarView.formatStationDistance(_station.distance) + "\n"
+            + (WatchUi.loadResource($.Rez.Strings.DetailStatus) as String) + ": " + statusText() + "\n\n"
+            + (WatchUi.loadResource($.Rez.Strings.DetailSelectRoute) as String) + "\n"
+            + updatedText();
+    }
+
+    public function getStationId() as String {
+        return _station.id;
     }
 
     private function updatedText() as String {
         var lastUpdate = StorageManager.getLastUpdateTime();
         if (lastUpdate == null) {
-            return "sin actualizacion";
+            return WatchUi.loadResource($.Rez.Strings.UpdatedNoData);
         }
 
         var ageMinutes = ((Time.now().value() - lastUpdate) / 60);
         if (ageMinutes < 1) {
-            return "actualizado ahora";
+            return WatchUi.loadResource($.Rez.Strings.UpdatedNow);
         } else if (ageMinutes == 1) {
-            return "actualizado hace 1 min";
+            return WatchUi.loadResource($.Rez.Strings.UpdatedOneMinute);
         } else if (ageMinutes < 60) {
-            return "actualizado hace " + ageMinutes.format("%d") + " min";
+            return (WatchUi.loadResource($.Rez.Strings.UpdatedManyMinutesPrefix) as String) + " " + ageMinutes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.UpdatedManyMinutesSuffix) as String);
         }
 
-        return "actualizacion antigua";
+        return WatchUi.loadResource($.Rez.Strings.UpdatedOld);
     }
 }
 
-class BiciRadarViewDelegate extends WatchUi.BehaviorDelegate {
+class BiciRadarViewDelegate extends WatchUi.Menu2InputDelegate {
     private var _view as BiciRadarView;
 
     public function initialize(view as BiciRadarView) {
-        BehaviorDelegate.initialize();
+        Menu2InputDelegate.initialize();
         _view = view;
     }
 
+    public function onSelect(item as WatchUi.MenuItem) as Void {
+        var station = _view.getStationForMenuItem(item);
+        if (station != null) {
+            var detailView = new BiciRadarDetailView(station);
+            WatchUi.pushView(detailView, new BiciRadarDetailDelegate(detailView), WatchUi.SLIDE_UP);
+        }
+    }
+
+    public function onBack() as Void {
+        _view.reloadStations();
+    }
+
     public function onNextPage() as Boolean {
-        _view.selectNextStation();
-        return true;
+        _view.reloadStations();
+        return false;
     }
 
     public function onPreviousPage() as Boolean {
-        _view.selectPreviousStation();
-        return true;
+        _view.reloadStations();
+        return false;
     }
 
-    public function onSelect() as Boolean {
-        var station = _view.getSelectedStation();
-        if (station == null) {
-            return true;
-        }
-
-        WatchUi.pushView(new BiciRadarDetailView(station), new BiciRadarDetailDelegate(), WatchUi.SLIDE_UP);
-        return true;
-    }
-
-    public function onTap(evt as ClickEvent) as Boolean {
-        if (WatchUi.CLICK_TYPE_TAP != evt.getType()) {
-            return false;
-        }
-
-        var stationBeforeTap = _view.getSelectedStation();
-        var coords = evt.getCoordinates();
-        if (!_view.handleTap(coords[1])) {
-            return false;
-        }
-
-        var stationAfterTap = _view.getSelectedStation();
-        if (stationBeforeTap != null && stationAfterTap != null && stationBeforeTap.id == stationAfterTap.id) {
-            WatchUi.pushView(new BiciRadarDetailView(stationAfterTap), new BiciRadarDetailDelegate(), WatchUi.SLIDE_UP);
-        }
-
+    public function onWrap(key as WatchUi.Key) as Boolean {
+        _view.reloadStations();
         return true;
     }
 
@@ -556,8 +353,11 @@ class BiciRadarViewDelegate extends WatchUi.BehaviorDelegate {
 }
 
 class BiciRadarDetailDelegate extends WatchUi.BehaviorDelegate {
-    public function initialize() {
+    private var _view as BiciRadarDetailView;
+
+    public function initialize(view as BiciRadarDetailView) {
         BehaviorDelegate.initialize();
+        _view = view;
     }
 
     public function onBack() as Boolean {
@@ -566,7 +366,18 @@ class BiciRadarDetailDelegate extends WatchUi.BehaviorDelegate {
     }
 
     public function onSelect() as Boolean {
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
+        if (BiciRadarApp.isDemoMode()) {
+            WatchUi.showToast(WatchUi.loadResource($.Rez.Strings.ToastDemoNoPhone), null);
+            return true;
+        }
+
+        var app = Application.getApp() as BiciRadarApp;
+        if (app.getBleManager().requestRouteToStation(_view.getStationId())) {
+            WatchUi.showToast(WatchUi.loadResource($.Rez.Strings.ToastRouteSent), null);
+            return true;
+        }
+
+        WatchUi.showToast(WatchUi.loadResource($.Rez.Strings.ToastNoPhoneConnection), null);
         return true;
     }
 }

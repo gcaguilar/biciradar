@@ -1,0 +1,7 @@
+<layout id="DetailLayout" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <label id="TitleLabel" x="center" y="18" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_CENTER" color="Graphics.COLOR_WHITE" />
+    <text-area id="DetailText" text="" personality="prompt_color_dark__body
+                                                      prompt_font__body_no_title
+                                                      prompt_loc__body_with_title
+                                                      prompt_size__body_with_title" />
+</layout>

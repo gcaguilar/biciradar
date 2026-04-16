@@ -20,6 +20,10 @@ class BikeStationModel {
             return null;
         }
 
+        if (!(data instanceof Dictionary)) {
+            return null;
+        }
+
         data = data as Dictionary<String, Object>;
 
         var name = data["name"];
@@ -65,6 +69,10 @@ class StationsData {
             return null;
         }
 
+        if (!(data instanceof Dictionary)) {
+            return null;
+        }
+
         data = data as Dictionary<String, Object>;
 
         var result = new StationsData();
@@ -74,7 +82,7 @@ class StationsData {
         }
 
         var backupData = data["backup"];
-        if (backupData != null) {
+        if (backupData != null && backupData instanceof Array) {
             backupData = backupData as Array<Object>;
             for (var i = 0; i < backupData.size(); i += 1) {
                 var station = BikeStationModel.fromDict(backupData[i]);

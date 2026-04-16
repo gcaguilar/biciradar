@@ -1,27 +1,24 @@
 import Toybox.Application;
-import Toybox.WatchUi;
-import Toybox.Communications;
-import Toybox.System;
 import Toybox.Lang;
+import Toybox.WatchUi;
 
-const ENABLE_DEMO_DATA = false;
+const ENABLE_DEMO_DATA = true;
 
 class BiciRadarApp extends Application.AppBase {
 
-    private var _mainView as BiciRadarView?;
-    private var _glanceView as BiciRadarGlanceView?;
-    private var _bleManager as BiciRadarBleManager?;
+    public static function isDemoMode() as Boolean {
+        return ENABLE_DEMO_DATA;
+    }
+
+    private var _mainView;
+    private var _glanceView;
+    private var _bleManager;
 
     public function initialize() {
         AppBase.initialize();
-        _bleManager = new BiciRadarBleManager();
     }
 
     public function onStart(state as Dictionary?) as Void {
-        StorageManager.loadCachedStations();
-        if (ENABLE_DEMO_DATA) {
-            StorageManager.loadDemoStations();
-        }
     }
 
     public function onStop(state as Dictionary?) as Void {
@@ -37,7 +34,11 @@ class BiciRadarApp extends Application.AppBase {
         return [ _glanceView ];
     }
 
-    public function getBleManager() as BiciRadarBleManager {
+    public function getBleManager() {
+        if (_bleManager == null) {
+            _bleManager = new BiciRadarBleManager();
+        }
+
         return _bleManager;
     }
 }

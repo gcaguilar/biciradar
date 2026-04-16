@@ -1,6 +1,7 @@
 using Toybox.Application;
 using Toybox.Application.Storage;
 using Toybox.Time;
+using Toybox.WatchUi;
 
 module StorageManager {
     const KEY_STATIONS_DATA = "biciStations";
@@ -17,19 +18,26 @@ module StorageManager {
         _lastUpdateTime = null;
         _selectedCity = "";
 
-        var data = Storage.getValue(KEY_STATIONS_DATA);
-        if (data != null) {
-            var stationsData = StationsData.fromDict(data);
-            if (stationsData != null) {
-                _nearestStation = stationsData.nearest;
-                _backupStations = stationsData.backup;
-                _lastUpdateTime = stationsData.timestamp;
+        try {
+            var data = Storage.getValue(KEY_STATIONS_DATA);
+            if (data != null) {
+                var stationsData = StationsData.fromDict(data);
+                if (stationsData != null) {
+                    _nearestStation = stationsData.nearest;
+                    _backupStations = stationsData.backup;
+                    _lastUpdateTime = stationsData.timestamp;
+                }
             }
+        } catch (ex) {
+            clearAllData();
         }
 
-        var city = Storage.getValue(KEY_SELECTED_CITY);
-        if (city != null) {
-            _selectedCity = city;
+        try {
+            var city = Storage.getValue(KEY_SELECTED_CITY);
+            if (city != null) {
+                _selectedCity = city;
+            }
+        } catch (ex) {
         }
     }
 
@@ -82,7 +90,7 @@ module StorageManager {
         var demoData = {
             "nearest" => {
                 "id" => "1",
-                "name" => "Plaza Espana",
+                "name" => WatchUi.loadResource($.Rez.Strings.DemoStationOne),
                 "bikes" => 8,
                 "distance" => 120,
                 "ebikes" => 2
@@ -90,35 +98,35 @@ module StorageManager {
             "backup" => [
                 {
                     "id" => "2",
-                    "name" => "Paraninfo",
+                    "name" => WatchUi.loadResource($.Rez.Strings.DemoStationTwo),
                     "bikes" => 4,
                     "distance" => 260,
                     "ebikes" => 1
                 },
                 {
                     "id" => "3",
-                    "name" => "Delicias",
+                    "name" => WatchUi.loadResource($.Rez.Strings.DemoStationThree),
                     "bikes" => 1,
                     "distance" => 480,
                     "ebikes" => 0
                 },
                 {
                     "id" => "4",
-                    "name" => "Puerta Carmen",
+                    "name" => WatchUi.loadResource($.Rez.Strings.DemoStationFour),
                     "bikes" => 6,
                     "distance" => 620,
                     "ebikes" => 2
                 },
                 {
                     "id" => "5",
-                    "name" => "Universidad",
+                    "name" => WatchUi.loadResource($.Rez.Strings.DemoStationFive),
                     "bikes" => 3,
                     "distance" => 910,
                     "ebikes" => 1
                 },
                 {
                     "id" => "6",
-                    "name" => "La Romareda",
+                    "name" => WatchUi.loadResource($.Rez.Strings.DemoStationSix),
                     "bikes" => 0,
                     "distance" => 1450,
                     "ebikes" => 0

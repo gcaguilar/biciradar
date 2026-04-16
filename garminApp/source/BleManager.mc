@@ -68,6 +68,28 @@ class BiciRadarBleManager {
         } catch (ex) {
         }
     }
+
+    public function requestRouteToStation(stationId) {
+        if (!(Communications has :transmit) || stationId.length() == 0) {
+            return false;
+        }
+
+        try {
+            var routeRequest = {
+                "type" => "open_route",
+                "stationId" => stationId,
+                "requestedAt" => System.getTimer()
+            };
+            Communications.transmit(
+                routeRequest,
+                null,
+                new BiciRadarTransmitListener()
+            );
+            return true;
+        } catch (ex) {
+            return false;
+        }
+    }
 }
 
 class BiciRadarTransmitListener extends Communications.ConnectionListener {
