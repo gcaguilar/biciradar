@@ -34,7 +34,7 @@ data class AccessToken(
   fun isExpiredOrExpiringSoon(nowMs: Long = currentTimeMs()): Boolean = nowMs >= expiresAtEpochMs - EXPIRY_MARGIN_MS
 
   companion object {
-    private const val EXPIRY_MARGIN_MS = 30_000L // refresh 30 s before hard expiry
+    private const val EXPIRY_MARGIN_MS = 30_000L
   }
 }
 
