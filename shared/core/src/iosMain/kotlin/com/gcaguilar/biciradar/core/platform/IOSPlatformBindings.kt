@@ -127,6 +127,7 @@ class IOSPlatformBindings(
   override val databaseFactory: DatabaseFactory =
     object : DatabaseFactory {
       private var database: BiciRadarDatabase? = null
+
       @Synchronized override fun create(json: Json): BiciRadarDatabase? {
         if (database == null) {
           val driver = createNativeDriver()
@@ -583,15 +584,23 @@ private object IOSFavoritesCache {
       homeStationId = NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.stringForKey(HOME_CACHE_KEY),
       workStationId = NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.stringForKey(WORK_CACHE_KEY),
     ).let { legacy ->
-      val encoded = NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.stringForKey(SNAPSHOT_CACHE_KEY) ?: return@let legacy
+      val encoded =
+        NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.stringForKey(SNAPSHOT_CACHE_KEY)
+          ?: return@let legacy
       runCatching { Json { ignoreUnknownKeys = true }.decodeFromString<FavoritesSyncSnapshot>(encoded) }
         .getOrNull() ?: legacy
     }
 
   fun persist(snapshot: FavoritesSyncSnapshot) {
-    NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.setObject(snapshot.favoriteIds.toList(), forKey = CACHE_KEY)
-    NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.setObject(snapshot.homeStationId, forKey = HOME_CACHE_KEY)
-    NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.setObject(snapshot.workStationId, forKey = WORK_CACHE_KEY)
+    NSUserDefaults(
+      suiteName = "group.com.gcaguilar.biciradar",
+    )!!.setObject(snapshot.favoriteIds.toList(), forKey = CACHE_KEY)
+    NSUserDefaults(
+      suiteName = "group.com.gcaguilar.biciradar",
+    )!!.setObject(snapshot.homeStationId, forKey = HOME_CACHE_KEY)
+    NSUserDefaults(
+      suiteName = "group.com.gcaguilar.biciradar",
+    )!!.setObject(snapshot.workStationId, forKey = WORK_CACHE_KEY)
     val encoded = runCatching { Json { ignoreUnknownKeys = true }.encodeToString(snapshot) }.getOrNull()
     NSUserDefaults(suiteName = "group.com.gcaguilar.biciradar")!!.setObject(encoded, forKey = SNAPSHOT_CACHE_KEY)
   }

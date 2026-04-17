@@ -53,20 +53,22 @@ class EnvironmentalRepositoryImpl(
   ): EnvironmentalReading? {
     val cacheKey = cacheKey(latitude, longitude)
     val now = currentTimeMs()
-    val deferred = cacheMutex.withLock {
-      val cached = readingCache[cacheKey]
-      if (cached != null && (now - cached.savedAtEpochMs) <= ENVIRONMENTAL_CACHE_TTL_MS) {
-        return cached.reading
+    val deferred =
+      cacheMutex.withLock {
+        val cached = readingCache[cacheKey]
+        if (cached != null && (now - cached.savedAtEpochMs) <= ENVIRONMENTAL_CACHE_TTL_MS) {
+          return cached.reading
+        }
+        val persisted = loadFromDatabase(cacheKey)
+        if (persisted != null && (now - persisted.savedAtEpochMs) <= ENVIRONMENTAL_CACHE_TTL_MS) {
+          readingCache[cacheKey] = persisted
+          return persisted.reading
+        }
+        inflightRequests[cacheKey] ?: appScope
+          .async {
+            fetchAndCache(cacheKey, latitude, longitude, now)
+          }.also { inflightRequests[cacheKey] = it }
       }
-      val persisted = loadFromDatabase(cacheKey)
-      if (persisted != null && (now - persisted.savedAtEpochMs) <= ENVIRONMENTAL_CACHE_TTL_MS) {
-        readingCache[cacheKey] = persisted
-        return persisted.reading
-      }
-      inflightRequests[cacheKey] ?: appScope.async {
-        fetchAndCache(cacheKey, latitude, longitude, now)
-      }.also { inflightRequests[cacheKey] = it }
-    }
     return deferred.await()
   }
 

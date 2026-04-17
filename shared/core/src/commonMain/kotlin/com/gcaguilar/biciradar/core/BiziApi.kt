@@ -372,7 +372,10 @@ private object GbfsDiscoveryDataSerializer : KSerializer<GbfsDiscoveryData> {
     return GbfsDiscoveryData(feeds)
   }
 
-  override fun serialize(encoder: Encoder, value: GbfsDiscoveryData) {
+  override fun serialize(
+    encoder: Encoder,
+    value: GbfsDiscoveryData,
+  ) {
     encoder.encodeSerializableValue(
       MapSerializer(serializer<String>(), GbfsDiscoveryLanguage.serializer()),
       mapOf("en" to GbfsDiscoveryLanguage(value.feeds)),
