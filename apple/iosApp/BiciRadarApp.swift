@@ -202,9 +202,8 @@ final class AppleSurfaceRefreshCoordinator {
         do {
             if forceDataRefresh {
                 try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
-            } else {
-                _ = try await BiziAppleGraph.shared.refreshWidgetData(reloadTimelines: false)
             }
+            _ = try await BiziAppleGraph.shared.refreshWidgetData(reloadTimelines: false)
 
             WidgetTimelineReloadScheduler.shared.scheduleReloads()
 
