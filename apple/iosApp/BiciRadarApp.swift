@@ -2,6 +2,7 @@ import AppIntents
 import BiziMobileUi
 import ConnectIQ
 import Foundation
+import OSLog
 import SwiftUI
 import UIKit
 import WidgetKit
@@ -43,7 +44,11 @@ struct BiciRadarApp: App {
                 .onAppear(perform: applyPendingLaunchRequest)
                 .onAppear {
                     SurfaceMonitoringActivityController.shared.startRefreshing()
-                    WidgetTimelineReloadScheduler.shared.scheduleReloads()
+                    FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
+                    AppleSurfaceRefreshCoordinator.shared.refreshNow(
+                        reason: "initial app appear",
+                        forceDataRefresh: false
+                    )
                 }
                 .onOpenURL { url in
                     if GarminConnectManager.shared.handleOpenURL(url) {
@@ -65,16 +70,22 @@ struct BiciRadarApp: App {
                         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
                         SurfaceMonitoringActivityController.shared.startRefreshing()
                         composeWrapper.requestRefresh()
-                        WidgetTimelineReloadScheduler.shared.scheduleReloads()
-                        SurfaceMonitoringActivityController.shared.syncNow()
-                        Task { try? await BiziAppleGraph.shared.refreshWidgetData() }
+                        AppleSurfaceRefreshCoordinator.shared.refreshNow(
+                            reason: "scene active",
+                            forceDataRefresh: true
+                        )
                     case .background:
                         BiziBackgroundTaskHandler.scheduleAppRefresh()
                         handleBackgroundTransitionForMonitoring()
                         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
                         FavoritesSyncBridge.shared.syncMonitoringFromSurfaceSnapshot()
                         SurfaceMonitoringActivityController.shared.stopRefreshing()
-                        WidgetTimelineReloadScheduler.shared.scheduleReloads()
+                        AppleSurfaceRefreshCoordinator.shared.scheduleRefresh(
+                            reason: "scene background",
+                            forceDataRefresh: false,
+                            syncMonitoring: true,
+                            delayNanoseconds: 250_000_000
+                        )
                     default:
                         SurfaceMonitoringActivityController.shared.stopRefreshing()
                         break
@@ -123,6 +134,86 @@ final class WidgetTimelineReloadScheduler {
                 guard !Task.isCancelled else { return }
                 WidgetCenter.shared.reloadAllTimelines()
             }
+        }
+    }
+}
+
+@MainActor
+final class AppleSurfaceRefreshCoordinator {
+    static let shared = AppleSurfaceRefreshCoordinator()
+
+    private let logger = Logger(subsystem: "com.gcaguilar.biciradar.ios", category: "AppleSurfaceRefresh")
+    private var scheduledTask: Task<Void, Never>?
+    private var pendingForceDataRefresh = false
+    private var pendingSyncMonitoring = false
+
+    func refreshNow(
+        reason: String,
+        forceDataRefresh: Bool = false,
+        syncMonitoring: Bool = true
+    ) {
+        enqueue(
+            reason: reason,
+            forceDataRefresh: forceDataRefresh,
+            syncMonitoring: syncMonitoring,
+            delayNanoseconds: 0
+        )
+    }
+
+    func scheduleRefresh(
+        reason: String,
+        forceDataRefresh: Bool = false,
+        syncMonitoring: Bool = true,
+        delayNanoseconds: UInt64 = 750_000_000
+    ) {
+        enqueue(
+            reason: reason,
+            forceDataRefresh: forceDataRefresh,
+            syncMonitoring: syncMonitoring,
+            delayNanoseconds: delayNanoseconds
+        )
+    }
+
+    private func enqueue(
+        reason: String,
+        forceDataRefresh: Bool,
+        syncMonitoring: Bool,
+        delayNanoseconds: UInt64
+    ) {
+        pendingForceDataRefresh = pendingForceDataRefresh || forceDataRefresh
+        pendingSyncMonitoring = pendingSyncMonitoring || syncMonitoring
+        scheduledTask?.cancel()
+        scheduledTask = Task { [weak self] in
+            if delayNanoseconds > 0 {
+                try? await Task.sleep(nanoseconds: delayNanoseconds)
+            }
+            guard !Task.isCancelled else { return }
+            await self?.performRefresh(reason: reason)
+        }
+    }
+
+    private func performRefresh(reason: String) async {
+        let forceDataRefresh = pendingForceDataRefresh
+        let syncMonitoring = pendingSyncMonitoring
+        pendingForceDataRefresh = false
+        pendingSyncMonitoring = false
+        scheduledTask = nil
+
+        do {
+            if forceDataRefresh {
+                try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
+            } else {
+                _ = try await BiziAppleGraph.shared.refreshWidgetData(reloadTimelines: false)
+            }
+
+            WidgetTimelineReloadScheduler.shared.scheduleReloads()
+
+            if syncMonitoring {
+                FavoritesSyncBridge.shared.syncMonitoringFromSurfaceSnapshot()
+                SurfaceMonitoringActivityController.shared.syncNow()
+            }
+        } catch {
+            logger.error("Surface refresh failed (\(reason, privacy: .public)): \(error.localizedDescription, privacy: .public)")
         }
     }
 }

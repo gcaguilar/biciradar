@@ -15,7 +15,11 @@ final class FavoritesSyncBridgeTests: XCTestCase {
         defaults = UserDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         routeStore = AppleLaunchRequestStore(defaults: defaults)
-        bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)
+        bridge = FavoritesSyncBridge(
+            defaults: defaults,
+            routeRequestStore: routeStore,
+            onSurfaceStateChanged: { _ in }
+        )
     }
 
     override func tearDown() {
@@ -92,7 +96,11 @@ final class FavoritesSyncBridgeTests: XCTestCase {
 
     func testApplyWithoutFavoriteIdsPreservesCachedFavorites() {
         defaults.set(["101", "202"], forKey: FavoritesSyncBridge.favoritesCacheKey)
-        bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)
+        bridge = FavoritesSyncBridge(
+            defaults: defaults,
+            routeRequestStore: routeStore,
+            onSurfaceStateChanged: { _ in }
+        )
 
         bridge.apply(context: [:])
 
@@ -132,7 +140,11 @@ final class FavoritesSyncBridgeTests: XCTestCase {
         defaults.set(["101", "202"], forKey: FavoritesSyncBridge.favoritesCacheKey)
         defaults.set("home-1", forKey: FavoritesSyncBridge.homeStationCacheKey)
         defaults.set("work-2", forKey: FavoritesSyncBridge.workStationCacheKey)
-        bridge = FavoritesSyncBridge(defaults: defaults, routeRequestStore: routeStore)
+        bridge = FavoritesSyncBridge(
+            defaults: defaults,
+            routeRequestStore: routeStore,
+            onSurfaceStateChanged: { _ in }
+        )
 
         bridge.apply(context: [
             "favorite_ids": ["101", "202"],

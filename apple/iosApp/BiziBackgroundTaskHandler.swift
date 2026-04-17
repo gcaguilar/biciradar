@@ -70,13 +70,17 @@ enum BiziBackgroundTaskHandler {
     @MainActor
     private static func performRefresh(task: BGAppRefreshTask) async {
         do {
-            // 1. Refresh widget data (snapshot + WidgetCenter reload).
-            try await BiziAppleGraph.shared.refreshWidgetData()
-
-            // 2. Refresh station data via the shared graph.
+            // 1. Refresh station data via the shared graph.
             try await BiziAppleGraph.shared.refreshData(forceRefresh: true)
 
-            // 3. Evaluate saved-place alert rules (Casa/Trabajo/favoritas) with shared Kotlin evaluator.
+            // 2. Rebuild the shared snapshot after persisting fresh station data.
+            _ = try await BiziAppleGraph.shared.refreshWidgetData(reloadTimelines: false)
+
+            // 3. Publish the refreshed snapshot to widgets and monitoring surfaces.
+            FavoritesSyncBridge.shared.syncMonitoringFromSurfaceSnapshot()
+            WidgetTimelineReloadScheduler.shared.scheduleReloads()
+
+            // 4. Evaluate saved-place alert rules (Casa/Trabajo/favoritas) with shared Kotlin evaluator.
             try await BiziAppleGraph.shared.deliverSavedPlaceAlertNotificationsIfNeeded()
 
             task.setTaskCompleted(success: true)

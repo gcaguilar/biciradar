@@ -18,14 +18,23 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     @Published private(set) var workStationId: String?
     private let defaults: UserDefaults
     private let routeRequestStore: AppleLaunchRequestStore
+    private let onSurfaceStateChanged: @MainActor (String) -> Void
     private let lastRouteRequestAtKey = "bizizaragoza.lastRouteRequestAt"
 
     init(
         defaults: UserDefaults = BiziSharedStorage.sharedDefaults,
-        routeRequestStore: AppleLaunchRequestStore? = nil
+        routeRequestStore: AppleLaunchRequestStore? = nil,
+        onSurfaceStateChanged: @escaping @MainActor (String) -> Void = { reason in
+            AppleSurfaceRefreshCoordinator.shared.scheduleRefresh(
+                reason: reason,
+                forceDataRefresh: false,
+                syncMonitoring: false
+            )
+        }
     ) {
         self.defaults = defaults
         self.routeRequestStore = routeRequestStore ?? .shared
+        self.onSurfaceStateChanged = onSurfaceStateChanged
         self.favoriteIds = Set(defaults.stringArray(forKey: Self.favoritesCacheKey) ?? [])
         self.homeStationId = defaults.string(forKey: Self.homeStationCacheKey)
         self.workStationId = defaults.string(forKey: Self.workStationCacheKey)
@@ -44,6 +53,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
     func pushFavorites(_ favoriteIds: Set<String>) {
         applyFavoriteIds(favoriteIds)
         pushCurrentContext()
+        onSurfaceStateChanged("favorites pushed")
     }
 
     func syncMonitoringFromSurfaceSnapshot() {
@@ -57,6 +67,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
             apply(snapshot: snapshot)
         }
         pushCurrentContext()
+        onSurfaceStateChanged("favorites synced from app group")
     }
 
     func session(
@@ -72,6 +83,9 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
             }
             Task {
                 try? await BiziAppleGraph.shared.syncFavoritesFromPeer()
+                await MainActor.run {
+                    self.onSurfaceStateChanged("favorites synced from peer activation")
+                }
             }
         }
     }
@@ -87,6 +101,9 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
             apply(context: applicationContext)
             Task {
                 try? await BiziAppleGraph.shared.syncFavoritesFromPeer()
+                await MainActor.run {
+                    self.onSurfaceStateChanged("favorites synced from peer context")
+                }
             }
         }
     }

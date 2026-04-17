@@ -147,12 +147,16 @@ actor BiziAppleGraph {
         }
     }
 
-    func refreshWidgetData() async throws {
+    @discardableResult
+    func refreshWidgetData(reloadTimelines: Bool = true) async throws -> Bool {
         let success = try await graph.refreshWidgetDataUseCase.execute()
-        guard success.boolValue else { return }
-        await MainActor.run {
-            WidgetCenter.shared.reloadAllTimelines()
+        guard success.boolValue else { return false }
+        if reloadTimelines {
+            await MainActor.run {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
         }
+        return true
     }
 
     // MARK: - Private helpers
