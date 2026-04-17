@@ -27,7 +27,7 @@ private struct SurfaceTimelineProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SurfaceEntry>) -> Void) {
-        let entry = SurfaceEntry(date: .now, bundle: BiziSurfaceStore.readSnapshotBundle())
+        let entry = SurfaceEntry(date: .now, bundle: BiziSurfaceStore.readSnapshotBundle() ?? sampleBundle)
         let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
         completion(Timeline(entries: [entry], policy: .after(refreshDate)))
     }
@@ -222,7 +222,7 @@ private struct ConfigurableStationTimelineProvider: AppIntentTimelineProvider {
     func timeline(for configuration: ConfigurableStationIntent, in context: Context) async -> Timeline<ConfigurableStationEntry> {
         let entry = ConfigurableStationEntry(
             date: .now,
-            bundle: BiziSurfaceStore.readSnapshotBundle(),
+            bundle: BiziSurfaceStore.readSnapshotBundle() ?? sampleBundle,
             slot: configuration.station?.slot ?? .favorite
         )
         let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
@@ -658,7 +658,7 @@ private func fallbackMessage(for entry: SurfaceEntry, kind: SurfaceFallbackKind)
     if kind == .favorite, !state.hasFavoriteStation {
         return "Configura una estación favorita"
     }
-    if !state.isDataFresh {
+    if BiziSurfaceStore.isStale(lastUpdatedEpoch: state.lastSyncEpoch) {
         return "Abre la app para actualizar"
     }
     return "Datos no disponibles"
@@ -666,7 +666,7 @@ private func fallbackMessage(for entry: SurfaceEntry, kind: SurfaceFallbackKind)
 
 private func commuteFallbackMessage(for entry: SurfaceEntry) -> String {
     guard let state = entry.state else { return "Abre la app para actualizar" }
-    if !state.isDataFresh {
+    if BiziSurfaceStore.isStale(lastUpdatedEpoch: state.lastSyncEpoch) {
         return "Abre la app para actualizar"
     }
     return "Elige tus estaciones de casa y trabajo"

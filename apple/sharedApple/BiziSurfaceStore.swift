@@ -59,7 +59,7 @@ enum AppleSurfaceSnapshotSlot: String, CaseIterable {
 
     func widgetFallbackMessage(state: AppleSurfaceState?) -> String {
         guard let state else { return "Abre la app para actualizar" }
-        if !state.isDataFresh {
+        if BiziSurfaceStore.isStale(lastUpdatedEpoch: state.lastSyncEpoch) {
             return "Abre la app para actualizar"
         }
         switch self {
