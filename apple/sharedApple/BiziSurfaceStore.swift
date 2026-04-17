@@ -1,6 +1,8 @@
 import Foundation
 
 enum BiziSurfaceStore {
+    static let staleThresholdSeconds: TimeInterval = 15 * 60
+
     static func readSnapshotBundle() -> AppleSurfaceSnapshotBundle? {
         guard let url = BiziSharedStorage.surfaceSnapshotURL() else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
@@ -22,6 +24,20 @@ enum BiziSurfaceStore {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .short
         return formatter.localizedString(for: lastUpdated, relativeTo: Date())
+    }
+
+    static func isStale(lastUpdatedEpoch: Int64?) -> Bool {
+        guard let lastUpdatedEpoch else { return true }
+        let lastUpdated = Date(timeIntervalSince1970: TimeInterval(lastUpdatedEpoch) / 1000)
+        return Date().timeIntervalSince(lastUpdated) >= staleThresholdSeconds
+    }
+
+    static func freshnessText(lastUpdatedEpoch: Int64?) -> String {
+        guard let lastUpdatedEpoch else { return "Datos no disponibles" }
+        if isStale(lastUpdatedEpoch: lastUpdatedEpoch) {
+            return "Datos desactualizados"
+        }
+        return relativeUpdateText(lastUpdatedEpoch: lastUpdatedEpoch)
     }
 }
 

@@ -54,4 +54,30 @@ final class SurfaceMonitoringActivityControllerTests: XCTestCase {
 
         XCTAssertEqual(monitoringSessionDisplayText(endedSession), "Finalizada")
     }
+
+    func testMonitoringContentStateMarksStaleUpdates() throws {
+        let nowEpoch = Int64(Date().timeIntervalSince1970 * 1000)
+        let session = AppleSurfaceMonitoringSession(
+            stationId: "station-1",
+            stationName: "Plaza España",
+            cityId: "zaragoza",
+            kind: .bikes,
+            status: .monitoring,
+            bikesAvailable: 1,
+            docksAvailable: 9,
+            statusLevel: .low,
+            startedAtEpoch: nowEpoch - 180_000,
+            expiresAtEpoch: nowEpoch + 300_000,
+            lastUpdatedEpoch: nowEpoch - 120_000,
+            isActive: true,
+            alternativeStationId: nil,
+            alternativeStationName: nil,
+            alternativeDistanceMeters: nil
+        )
+
+        let contentState = monitoringContentState(from: session)
+
+        XCTAssertEqual(contentState.lastUpdatedEpoch, session.lastUpdatedEpoch)
+        XCTAssertTrue(contentState.isStale)
+    }
 }

@@ -8,6 +8,7 @@ final class SurfaceMonitoringActivityController {
     static let shared = SurfaceMonitoringActivityController()
 
     private var refreshTask: Task<Void, Never>?
+    private var lastPublishedFingerprint: MonitoringSurfaceFingerprint?
 
     func startRefreshing() {
         guard #available(iOS 16.1, *) else { return }
@@ -37,11 +38,18 @@ final class SurfaceMonitoringActivityController {
     private func syncFromSurfaceSnapshot() async {
         let session = BiziSurfaceStore.activeMonitoringSession()
         let activities = Activity<BiziMonitoringActivityAttributes>.activities
+        let fingerprint = MonitoringSurfaceFingerprint(session: session)
         FavoritesSyncBridge.shared.syncMonitoringFromSurfaceSnapshot()
 
         guard let session else {
             for activity in activities {
                 await activity.end(using: activity.contentState, dismissalPolicy: .immediate)
+            }
+            if lastPublishedFingerprint != fingerprint {
+                lastPublishedFingerprint = fingerprint
+                await MainActor.run {
+                    WidgetTimelineReloadScheduler.shared.scheduleReloads()
+                }
             }
             return
         }
@@ -52,6 +60,12 @@ final class SurfaceMonitoringActivityController {
             await activity.update(using: contentState)
             for otherActivity in activities where otherActivity.id != activity.id {
                 await otherActivity.end(using: otherActivity.contentState, dismissalPolicy: .immediate)
+            }
+            if lastPublishedFingerprint != fingerprint {
+                lastPublishedFingerprint = fingerprint
+                await MainActor.run {
+                    WidgetTimelineReloadScheduler.shared.scheduleReloads()
+                }
             }
             return
         }
@@ -65,8 +79,34 @@ final class SurfaceMonitoringActivityController {
             contentState: contentState,
             pushType: nil
         )
+        if lastPublishedFingerprint != fingerprint {
+            lastPublishedFingerprint = fingerprint
+            await MainActor.run {
+                WidgetTimelineReloadScheduler.shared.scheduleReloads()
+            }
+        }
     }
 
+}
+
+private struct MonitoringSurfaceFingerprint: Equatable {
+    let stationId: String?
+    let status: AppleSurfaceMonitoringStatus?
+    let bikesAvailable: Int?
+    let docksAvailable: Int?
+    let lastUpdatedEpoch: Int64?
+    let isActive: Bool
+    let alternativeStationId: String?
+
+    init(session: AppleSurfaceMonitoringSession?) {
+        stationId = session?.stationId
+        status = session?.status
+        bikesAvailable = session?.bikesAvailable
+        docksAvailable = session?.docksAvailable
+        lastUpdatedEpoch = session?.lastUpdatedEpoch
+        isActive = session?.isActive ?? false
+        alternativeStationId = session?.alternativeStationId
+    }
 }
 
 @available(iOS 16.1, *)
@@ -77,6 +117,7 @@ internal func monitoringContentState(
         bikesAvailable: session.bikesAvailable,
         docksAvailable: session.docksAvailable,
         statusText: monitoringSessionDisplayText(session),
+        lastUpdatedEpoch: session.lastUpdatedEpoch,
         alternativeStationId: session.alternativeStationId,
         alternativeName: session.alternativeStationName,
         alternativeDistanceMeters: session.alternativeDistanceMeters,

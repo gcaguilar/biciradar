@@ -9,6 +9,7 @@ struct BiziMonitoringActivityAttributes: ActivityAttributes {
         var bikesAvailable: Int
         var docksAvailable: Int
         var statusText: String
+        var lastUpdatedEpoch: Int64
         var alternativeStationId: String?
         var alternativeName: String?
         var alternativeDistanceMeters: Int?
@@ -25,6 +26,11 @@ struct BiziMonitoringActivityAttributes: ActivityAttributes {
 
         var alternativeStationURL: URL? {
             alternativeStationId.flatMap { URL(string: "biciradar://station/\($0)") }
+        }
+
+        var isStale: Bool {
+            let nowEpoch = Int64(Date().timeIntervalSince1970 * 1000)
+            return nowEpoch - lastUpdatedEpoch >= 90_000
         }
     }
 

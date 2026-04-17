@@ -297,9 +297,9 @@ private struct NearbyStationsWidgetView: View {
                     }
                     Spacer(minLength: 0)
                     if family == .systemLarge {
-                        Text(BiziSurfaceStore.relativeUpdateText(lastUpdatedEpoch: entry.state?.lastSyncEpoch))
+                        Text(BiziSurfaceStore.freshnessText(lastUpdatedEpoch: entry.state?.lastSyncEpoch))
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(BiziSurfaceStore.isStale(lastUpdatedEpoch: entry.state?.lastSyncEpoch) ? .orange : .secondary)
                     }
                 }
                 .padding(16)
@@ -517,7 +517,12 @@ struct BiziMonitoringLiveActivityWidget: Widget {
                 }
                 Text(context.state.statusText)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(context.state.isStale ? .orange : .secondary)
+                if context.state.isStale {
+                    Text("Esperando actualización")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
                 if let alternativeSummary = context.state.alternativeSummaryText {
                     if let alternativeURL = context.state.alternativeStationURL {
                         Link(destination: alternativeURL) {
@@ -550,6 +555,12 @@ struct BiziMonitoringLiveActivityWidget: Widget {
                             .font(.headline)
                         Text(context.state.statusText)
                             .font(.caption)
+                            .foregroundStyle(context.state.isStale ? .orange : .secondary)
+                        if context.state.isStale {
+                            Text("Esperando actualización")
+                                .font(.caption2)
+                                .foregroundStyle(.orange)
+                        }
                         if let alternativeSummary = context.state.alternativeSummaryText {
                             if let alternativeURL = context.state.alternativeStationURL {
                                 Link(destination: alternativeURL) {
@@ -613,9 +624,9 @@ private struct StationSummaryWidgetCard: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(statusColor(station.statusLevel))
                         Spacer()
-                        Text(BiziSurfaceStore.relativeUpdateText(lastUpdatedEpoch: station.lastUpdatedEpoch))
+                        Text(BiziSurfaceStore.freshnessText(lastUpdatedEpoch: station.lastUpdatedEpoch))
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(BiziSurfaceStore.isStale(lastUpdatedEpoch: station.lastUpdatedEpoch) ? .orange : .secondary)
                     }
                 }
                 .padding(16)
