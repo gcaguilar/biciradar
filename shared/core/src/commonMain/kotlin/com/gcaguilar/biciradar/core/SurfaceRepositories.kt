@@ -194,7 +194,7 @@ class SurfaceSnapshotRepositoryImpl(
     if (database != null) {
       val persisted = persistToDatabase(snapshot)
       if (persisted) {
-        deleteLegacyFile()
+        persistToFile(snapshot)
         mutableBundle.value = snapshot
       } else {
         persistToFile(snapshot)
@@ -229,14 +229,17 @@ class SurfaceSnapshotRepositoryImpl(
     if (database == null) return readFromFile()
     val dbBundle = readFromDatabase()
     val legacyBundle = readFromFile()
-    if (legacyBundle == null) return dbBundle
+    if (legacyBundle == null) {
+      if (dbBundle != null) persistToFile(dbBundle)
+      return dbBundle
+    }
     if (dbBundle != null) {
-      deleteLegacyFile()
+      persistToFile(dbBundle)
       return dbBundle
     }
     val migrated = persistToDatabase(legacyBundle)
     if (migrated) {
-      deleteLegacyFile()
+      persistToFile(legacyBundle)
       return legacyBundle
     }
     return legacyBundle

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import okio.Path.Companion.toPath
 import java.io.File
 import kotlin.random.Random
 import kotlin.test.Test
@@ -217,6 +218,7 @@ class DbFirstReactiveRepositoryJvmTest {
   fun `surface snapshot DB writes update current bundle immediately`() =
     runTest {
       val database = createTestDatabase()
+      val surfaceRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/surface-db-${Random.nextInt()}"
       val repository =
         SurfaceSnapshotRepositoryImpl(
           fileSystem = FileSystem.SYSTEM,
@@ -234,7 +236,7 @@ class DbFirstReactiveRepositoryJvmTest {
             },
           storageDirectoryProvider =
             object : StorageDirectoryProvider {
-              override val rootPath: String = FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString()
+              override val rootPath: String = surfaceRoot
             },
           settingsRepository =
             object : SettingsRepository {
@@ -350,6 +352,11 @@ class DbFirstReactiveRepositoryJvmTest {
       val bundle = repository.currentBundle()
       assertNotNull(bundle)
       assertEquals("station-db-1", bundle.favoriteStation?.id)
+      val snapshotPath = "$surfaceRoot/surface_snapshot.json".toPath()
+      assertTrue(FileSystem.SYSTEM.exists(snapshotPath))
+      val persistedJson = FileSystem.SYSTEM.read(snapshotPath) { readUtf8() }
+      assertTrue(persistedJson.contains("station-db-1"))
+      assertNotNull(Json.decodeFromString<SurfaceSnapshotBundle>(persistedJson))
 
       collectJob.cancel()
     }
