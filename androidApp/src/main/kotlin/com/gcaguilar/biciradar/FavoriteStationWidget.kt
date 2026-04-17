@@ -1,6 +1,8 @@
 package com.gcaguilar.biciradar
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.text.format.DateUtils
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -25,11 +27,12 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import android.content.Intent
-import android.net.Uri
 
 class FavoriteStationWidget : GlanceAppWidget() {
-  override suspend fun provideGlance(context: Context, id: GlanceId) {
+  override suspend fun provideGlance(
+    context: Context,
+    id: GlanceId,
+  ) {
     val snapshot = AndroidSurfaceSnapshotReader.read(context)
     provideContent {
       GlanceTheme {
@@ -56,38 +59,41 @@ private fun FavoriteStationContent(
   val colors = GlanceTheme.colors
 
   Column(
-    modifier = GlanceModifier
-      .fillMaxSize()
-      .background(colors.surface)
-      .padding(14.dp)
-      .clickable(
-        actionStartActivity(
-          Intent(
-            Intent.ACTION_VIEW,
-            Uri.parse(favorite?.let { "biciradar://station/${it.id}" } ?: "biciradar://favorites")
-          ).setClassName(context, MainActivity::class.java.name)
-        )
-      ),
+    modifier =
+      GlanceModifier
+        .fillMaxSize()
+        .background(colors.surface)
+        .padding(14.dp)
+        .clickable(
+          actionStartActivity(
+            Intent(
+              Intent.ACTION_VIEW,
+              Uri.parse(favorite?.let { "biciradar://station/${it.id}" } ?: "biciradar://favorites"),
+            ).setClassName(context, MainActivity::class.java.name),
+          ),
+        ),
   ) {
     if (favorite == null) {
       Text(
         text = context.getString(R.string.widget_favorite_empty_title),
-        style = TextStyle(
-          color = colors.onSurface,
-          fontSize = 16.sp,
-          fontWeight = FontWeight.Bold,
-        ),
+        style =
+          TextStyle(
+            color = colors.onSurface,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+          ),
         maxLines = 2,
       )
       Spacer(modifier = GlanceModifier.height(4.dp))
       Text(
-        text = widgetEmptyMessage(
-          state = widgetEmptyState(snapshot),
-          configureFavorite = context.getString(R.string.widget_configure_favorite),
-          noLocationPermission = context.getString(R.string.widget_no_location_permission),
-          openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
-          dataUnavailable = context.getString(R.string.widget_data_unavailable),
-        ),
+        text =
+          widgetEmptyMessage(
+            state = widgetEmptyState(snapshot),
+            configureFavorite = context.getString(R.string.widget_configure_favorite),
+            noLocationPermission = context.getString(R.string.widget_no_location_permission),
+            openAppToRefresh = context.getString(R.string.widget_open_app_to_refresh),
+            dataUnavailable = context.getString(R.string.widget_data_unavailable),
+          ),
         style = TextStyle(color = colors.onSurfaceVariant, fontSize = 12.sp),
       )
       Spacer(modifier = GlanceModifier.height(12.dp))
@@ -121,11 +127,12 @@ private fun FavoriteStationContent(
     } else {
       Text(
         text = favorite.name,
-        style = TextStyle(
-          color = colors.onSurface,
-          fontSize = 16.sp,
-          fontWeight = FontWeight.Bold,
-        ),
+        style =
+          TextStyle(
+            color = colors.onSurface,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+          ),
         maxLines = 2,
       )
       Text(
@@ -157,14 +164,16 @@ private fun FavoriteStationContent(
       }
       Spacer(modifier = GlanceModifier.height(8.dp))
       Text(
-        text = favorite.lastUpdatedEpoch?.let {
-          DateUtils.getRelativeTimeSpanString(
-            it,
-            System.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE,
-          ).toString()
-        } ?: context.getString(R.string.widget_data_unavailable),
+        text =
+          favorite.lastUpdatedEpoch?.let {
+            DateUtils
+              .getRelativeTimeSpanString(
+                it,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.FORMAT_ABBREV_RELATIVE,
+              ).toString()
+          } ?: context.getString(R.string.widget_data_unavailable),
         style = TextStyle(color = colors.onSurfaceVariant, fontSize = 11.sp),
       )
     }

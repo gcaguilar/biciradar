@@ -1,6 +1,8 @@
 package com.gcaguilar.biciradar
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,11 +25,12 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import android.content.Intent
-import android.net.Uri
 
 class AllFavoritesWidget : GlanceAppWidget() {
-  override suspend fun provideGlance(context: Context, id: GlanceId) {
+  override suspend fun provideGlance(
+    context: Context,
+    id: GlanceId,
+  ) {
     val snapshot = AndroidAllFavoritesSnapshotReader.read(context)
     provideContent {
       GlanceTheme {
@@ -54,24 +57,26 @@ private fun AllFavoritesContent(
   val colors = GlanceTheme.colors
 
   Column(
-    modifier = GlanceModifier
-      .fillMaxSize()
-      .background(colors.surface)
-      .padding(14.dp)
-      .clickable(
-        actionStartActivity(
-          Intent(Intent.ACTION_VIEW, Uri.parse("biciradar://favorites"))
-            .setClassName(context, MainActivity::class.java.name)
-        )
-      ),
+    modifier =
+      GlanceModifier
+        .fillMaxSize()
+        .background(colors.surface)
+        .padding(14.dp)
+        .clickable(
+          actionStartActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse("biciradar://favorites"))
+              .setClassName(context, MainActivity::class.java.name),
+          ),
+        ),
   ) {
     Text(
       text = context.getString(R.string.widget_all_favorites_title),
-      style = TextStyle(
-        color = colors.onSurface,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Bold,
-      ),
+      style =
+        TextStyle(
+          color = colors.onSurface,
+          fontSize = 15.sp,
+          fontWeight = FontWeight.Bold,
+        ),
       modifier = GlanceModifier.fillMaxWidth(),
     )
 
@@ -106,22 +111,24 @@ private fun StationRow(
   stationId: String,
 ) {
   Column(
-    modifier = GlanceModifier
-      .fillMaxWidth()
-      .clickable(
-        actionStartActivity(
-          Intent(Intent.ACTION_VIEW, Uri.parse("biciradar://station/$stationId"))
-            .setClassName(context, MainActivity::class.java.name)
-        )
-      ),
+    modifier =
+      GlanceModifier
+        .fillMaxWidth()
+        .clickable(
+          actionStartActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse("biciradar://station/$stationId"))
+              .setClassName(context, MainActivity::class.java.name),
+          ),
+        ),
   ) {
     Text(
       text = name,
-      style = TextStyle(
-        color = colors.onSurface,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Bold,
-      ),
+      style =
+        TextStyle(
+          color = colors.onSurface,
+          fontSize = 13.sp,
+          fontWeight = FontWeight.Bold,
+        ),
       maxLines = 1,
     )
     Text(

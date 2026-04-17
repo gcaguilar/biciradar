@@ -13,8 +13,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.TimeUnit
 
 class WidgetRefreshWorker(
   context: Context,
