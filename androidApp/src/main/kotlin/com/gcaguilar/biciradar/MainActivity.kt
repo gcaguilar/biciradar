@@ -186,6 +186,7 @@ class MainActivity : ComponentActivity() {
           NearbyStationsWidget().updateAll(applicationContext)
           QuickActionsWidget().updateAll(applicationContext)
           CommuteWidget().updateAll(applicationContext)
+          AllFavoritesWidget().updateAll(applicationContext)
         }
         AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }.launchIn(scope)

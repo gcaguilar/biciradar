@@ -99,7 +99,7 @@ private fun ActionButton(
   val colors = GlanceTheme.colors
   Column(
     modifier = GlanceModifier
-      .fillMaxWidth()
+      .defaultWeight()
       .height(72.dp)
       .background(colors.surfaceVariant)
       .clickable(

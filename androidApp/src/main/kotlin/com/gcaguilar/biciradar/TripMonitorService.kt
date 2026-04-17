@@ -147,6 +147,7 @@ class TripMonitorService : Service() {
       NearbyStationsWidget().updateAll(applicationContext)
       QuickActionsWidget().updateAll(applicationContext)
       CommuteWidget().updateAll(applicationContext)
+      AllFavoritesWidget().updateAll(applicationContext)
     }
   }
 
