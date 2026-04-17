@@ -39,6 +39,7 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
+import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
@@ -97,7 +98,7 @@ class AndroidPlatformBindings(
     object : DatabaseFactory {
       private var database: BiciRadarDatabase? = null
 
-      override fun create(json: Json): BiciRadarDatabase? {
+      @Synchronized override fun create(json: Json): BiciRadarDatabase? {
         if (database == null) {
           val driver = createAndroidDriver(context)
           val db = BiciRadarDatabase(driver)
@@ -388,7 +389,7 @@ private class AndroidWatchSyncBridge(
             dataMap.putStringArrayList(FAVORITES_KEY, ArrayList(snapshot.favoriteIds))
             snapshot.homeStationId?.let { dataMap.putString(HOME_STATION_KEY, it) } ?: dataMap.remove(HOME_STATION_KEY)
             snapshot.workStationId?.let { dataMap.putString(WORK_STATION_KEY, it) } ?: dataMap.remove(WORK_STATION_KEY)
-            dataMap.putLong(UPDATED_AT_KEY, System.currentTimeMillis())
+            dataMap.putLong(UPDATED_AT_KEY, currentTimeMs())
           }.asPutDataRequest()
           .setUrgent()
       client.putDataItem(request).await()
