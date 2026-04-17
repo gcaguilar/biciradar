@@ -126,9 +126,9 @@ class IOSPlatformBindings(
   override val assistantIntentResolver = DefaultAssistantIntentResolver()
   override val databaseFactory: DatabaseFactory =
     object : DatabaseFactory {
-      private var database: BiciRadarDatabase? = null
+      @kotlin.concurrent.Volatile private var database: BiciRadarDatabase? = null
 
-      @Synchronized override fun create(json: Json): BiciRadarDatabase? {
+      override fun create(json: Json): BiciRadarDatabase? {
         if (database == null) {
           val driver = createNativeDriver()
           val db = BiciRadarDatabase(driver)

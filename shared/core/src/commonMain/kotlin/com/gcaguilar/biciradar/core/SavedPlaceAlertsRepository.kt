@@ -66,7 +66,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
-  @Volatile private var bootstrapped = false
+  @kotlin.concurrent.Volatile private var bootstrapped = false
 
   override val rules: StateFlow<List<SavedPlaceAlertRule>> = mutableRules.asStateFlow()
 
@@ -263,10 +263,10 @@ class SavedPlaceAlertsEvaluator {
         updatedRules += rule.copy(lastConditionMatched = false)
         return@forEach
       }
-      val station = stationsById[rule.target.stationId]
-      val matches = station?.let(rule::matches) == true
+      val station = stationsById[rule.target.stationId] ?: return@forEach
+      val matches = rule.matches(station)
       val cooldownSatisfied = rule.lastTriggeredEpoch?.let { nowEpoch - it >= ALERT_COOLDOWN_MILLIS } ?: true
-      val shouldTrigger = station != null && matches && !rule.lastConditionMatched && cooldownSatisfied
+      val shouldTrigger = matches && !rule.lastConditionMatched && cooldownSatisfied
 
       if (shouldTrigger) {
         triggers +=

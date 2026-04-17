@@ -56,7 +56,7 @@ class SurfaceSnapshotRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
-  @Volatile private var bootstrapped = false
+  @kotlin.concurrent.Volatile private var bootstrapped = false
   private val stationCacheStore = database?.let(::StationCacheStore)
 
   override val bundle: StateFlow<SurfaceSnapshotBundle?> = mutableBundle.asStateFlow()
