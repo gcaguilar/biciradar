@@ -3,6 +3,8 @@ package com.gcaguilar.biciradar.core
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.StationEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Intervalo de refresco del caché de estaciones (5 minutos).
@@ -61,24 +63,26 @@ class StationCacheStore(
       null
     }
 
-  fun updateAvailability(
+  suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,
   ) {
     if (availability.isEmpty()) return
-    try {
-      database.transaction {
-        availability.forEach { (stationId, counts) ->
-          database.biciradarQueries.updateStationBikeDockCounts(
-            bikesAvailable = counts.first.toLong(),
-            slotsFree = counts.second.toLong(),
-            updatedAt = refreshedAt,
-            id = stationId,
-          )
+    withContext(Dispatchers.Default) {
+      try {
+        database.transaction {
+          availability.forEach { (stationId, counts) ->
+            database.biciradarQueries.updateStationBikeDockCounts(
+              bikesAvailable = counts.first.toLong(),
+              slotsFree = counts.second.toLong(),
+              updatedAt = refreshedAt,
+              id = stationId,
+            )
+          }
         }
+      } catch (_: Exception) {
+        // Silently fail - cache is optional
       }
-    } catch (_: Exception) {
-      // Silently fail - cache is optional
     }
   }
 
@@ -87,6 +91,7 @@ class StationCacheStore(
     stations: List<Station>,
   ) {
     try {
+      val now = currentTimeMs()
       database.transaction {
         database.biciradarQueries.deleteAllStations()
         database.biciradarQueries.deleteAllCacheMetadata()
@@ -101,12 +106,12 @@ class StationCacheStore(
             slotsFree = station.slotsFree.toLong(),
             ebikesAvailable = station.ebikesAvailable.toLong(),
             regularBikesAvailable = station.regularBikesAvailable.toLong(),
-            updatedAt = currentTimeMs(),
+            updatedAt = now,
           )
         }
         database.biciradarQueries.upsertCacheMetadata(
           cityId = cityId,
-          lastUpdated = currentTimeMs(),
+          lastUpdated = now,
         )
       }
     } catch (_: Exception) {
