@@ -47,8 +47,8 @@ internal data class AndroidSurfaceSavedPlaceStation(
 )
 
 internal object AndroidSurfaceSnapshotReader {
-  fun read(context: Context): AndroidSurfaceWidgetSnapshot {
-    return runCatching {
+  fun read(context: Context): AndroidSurfaceWidgetSnapshot =
+    runCatching {
       if (!BiziAppGraph.isInitialized()) {
         BiziAppGraph.initialize(context.applicationContext as Application)
       }
@@ -60,7 +60,6 @@ internal object AndroidSurfaceSnapshotReader {
     }.getOrElse {
       AndroidSurfaceWidgetSnapshot()
     }
-  }
 }
 
 internal fun SurfaceSnapshotBundle.toAndroidSurfaceWidgetSnapshot(): AndroidSurfaceWidgetSnapshot =
@@ -111,8 +110,8 @@ internal data class AndroidAllFavoritesWidgetSnapshot(
 )
 
 internal object AndroidAllFavoritesSnapshotReader {
-  fun read(context: Context): AndroidAllFavoritesWidgetSnapshot {
-    return runCatching {
+  fun read(context: Context): AndroidAllFavoritesWidgetSnapshot =
+    runCatching {
       if (!BiziAppGraph.isInitialized()) {
         BiziAppGraph.initialize(context.applicationContext as Application)
       }
@@ -127,7 +126,6 @@ internal object AndroidAllFavoritesSnapshotReader {
     }.getOrElse {
       AndroidAllFavoritesWidgetSnapshot()
     }
-  }
 }
 
 internal enum class AndroidWidgetEmptyState {
@@ -152,7 +150,8 @@ internal data class AndroidCommutePlaceState(
 
 internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState =
   when {
-    snapshot.favoriteStation == null && snapshot.hasFavoriteStation == false -> AndroidWidgetEmptyState.ConfigureFavorite
+    snapshot.favoriteStation == null && snapshot.hasFavoriteStation == false ->
+      AndroidWidgetEmptyState.ConfigureFavorite
     snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
     else -> AndroidWidgetEmptyState.DataUnavailable
   }
