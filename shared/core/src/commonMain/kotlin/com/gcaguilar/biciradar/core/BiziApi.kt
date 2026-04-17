@@ -5,8 +5,14 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlin.math.PI
 import kotlin.math.asin
 import kotlin.math.cos
@@ -54,12 +60,12 @@ class GbfsBiziApi(
   override suspend fun fetchStations(origin: GeoPoint): List<Station> {
     val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
     val stationInfoUrl =
-      discovery.data.en.feeds
+      discovery.data.feeds
         .firstOrNull { it.name == "station_information" }
         ?.url
         ?: error("No station_information feed found")
     val stationStatusUrl =
-      discovery.data.en.feeds
+      discovery.data.feeds
         .firstOrNull { it.name == "station_status" }
         ?.url
         ?: error("No station_status feed found")
@@ -148,7 +154,7 @@ class GbfsBiziApi(
     val resolved =
       runCatching {
         val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-        discovery.data.en.feeds
+        discovery.data.feeds
           .firstOrNull { it.name == "station_status" }
           ?.url
       }.onFailure { error ->
@@ -163,8 +169,8 @@ class GbfsBiziApi(
     return resolved
   }
 
-  private fun invalidateStationStatusUrl(cacheKey: String) {
-    stationStatusUrlCache.remove(cacheKey)
+  private suspend fun invalidateStationStatusUrl(cacheKey: String) {
+    stationStatusUrlCacheLock.withLock { stationStatusUrlCache.remove(cacheKey) }
   }
 }
 
@@ -352,10 +358,27 @@ private data class GbfsDiscoveryEnvelope(
   val data: GbfsDiscoveryData,
 )
 
-@Serializable
+@Serializable(with = GbfsDiscoveryDataSerializer::class)
 private data class GbfsDiscoveryData(
-  val en: GbfsDiscoveryLanguage = GbfsDiscoveryLanguage(),
+  val feeds: List<GbfsFeed> = emptyList(),
 )
+
+private object GbfsDiscoveryDataSerializer : KSerializer<GbfsDiscoveryData> {
+  override val descriptor = buildClassSerialDescriptor("GbfsDiscoveryData")
+
+  override fun deserialize(decoder: Decoder): GbfsDiscoveryData {
+    val map = decoder.decodeSerializableValue(MapSerializer(serializer<String>(), GbfsDiscoveryLanguage.serializer()))
+    val feeds = (map["es"] ?: map["en"] ?: map.values.firstOrNull())?.feeds ?: emptyList()
+    return GbfsDiscoveryData(feeds)
+  }
+
+  override fun serialize(encoder: Encoder, value: GbfsDiscoveryData) {
+    encoder.encodeSerializableValue(
+      MapSerializer(serializer<String>(), GbfsDiscoveryLanguage.serializer()),
+      mapOf("en" to GbfsDiscoveryLanguage(value.feeds)),
+    )
+  }
+}
 
 @Serializable
 private data class GbfsDiscoveryLanguage(
