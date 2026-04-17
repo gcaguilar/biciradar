@@ -29,11 +29,11 @@ val googleMapsApiKey =
 
 android {
   namespace = "com.gcaguilar.biciradar"
-  compileSdk = 36
+  compileSdk = 37
 
   defaultConfig {
     applicationId = "com.gcaguilar.biciradar"
-    minSdk = 26
+    minSdk = 29
     targetSdk = 36
     versionCode = 29568113
     versionName = "0.22.5"
@@ -96,6 +96,8 @@ android {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.startup.runtime)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
     implementation("com.garmin.connectiq:ciq-companion-app-sdk:2.2.0@aar")
     implementation(libs.google.material)
     implementation(libs.play.services.wearable)
