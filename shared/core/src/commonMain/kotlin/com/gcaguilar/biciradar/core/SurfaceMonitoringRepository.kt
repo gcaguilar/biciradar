@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 private const val SURFACE_MONITORING_POLLING_INTERVAL_MILLIS = 30_000L
 
@@ -54,9 +56,10 @@ class SurfaceMonitoringRepositoryImpl(
   private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
 ) : SurfaceMonitoringRepository {
   private val mutableState = MutableStateFlow<SurfaceMonitoringSession?>(null)
-  private var bootstrapped = false
+  @Volatile private var bootstrapped = false
   private var countdownJob: Job? = null
   private var monitoringJob: Job? = null
+  private val finishMutex = Mutex()
 
   override val state: StateFlow<SurfaceMonitoringSession?> = mutableState.asStateFlow()
 
@@ -258,6 +261,9 @@ class SurfaceMonitoringRepositoryImpl(
     status: SurfaceMonitoringStatus,
     alternative: Station? = null,
   ) {
+    finishMutex.withLock {
+      if (mutableState.value?.isActive != true) return
+    }
     val current = mutableState.value ?: return
     stopInternal(updateState = false)
     val finished =

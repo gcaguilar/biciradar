@@ -113,7 +113,7 @@ class SettingsRepositoryImpl(
 ) : SettingsRepository {
   private val persistMutex = Mutex()
   private val readModel = MutableStateFlow(normalizeLegacyOnboardingForMigration(SettingsSnapshot()))
-  private var bootstrapped = false
+  @Volatile private var bootstrapped = false
   private val legacyMigrator =
     SettingsLegacyMigrator(
       fileSystem = fileSystem,

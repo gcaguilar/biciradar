@@ -133,7 +133,7 @@ class FavoritesRepositoryImpl(
   private val mutableWorkStationId = MutableStateFlow<String?>(null)
   private val mutableCategories = MutableStateFlow(systemCategories())
   private val mutableStationCategory = MutableStateFlow<Map<String, String>>(emptyMap())
-  private var bootstrapped = false
+  @Volatile private var bootstrapped = false
   private val legacyMigrator =
     FavoritesLegacyMigrator(
       fileSystem = fileSystem,

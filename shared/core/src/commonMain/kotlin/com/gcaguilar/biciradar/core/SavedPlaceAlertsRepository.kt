@@ -66,7 +66,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
-  private var bootstrapped = false
+  @Volatile private var bootstrapped = false
 
   override val rules: StateFlow<List<SavedPlaceAlertRule>> = mutableRules.asStateFlow()
 
@@ -285,6 +285,7 @@ class SavedPlaceAlertsEvaluator {
 
       updatedRules +=
         rule.copy(
+          lastObservedValue = rule.metricValue(station),
           lastTriggeredEpoch = if (shouldTrigger) nowEpoch else rule.lastTriggeredEpoch,
           lastConditionMatched = matches,
         )

@@ -56,7 +56,7 @@ class SurfaceSnapshotRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
-  private var bootstrapped = false
+  @Volatile private var bootstrapped = false
   private val stationCacheStore = database?.let(::StationCacheStore)
 
   override val bundle: StateFlow<SurfaceSnapshotBundle?> = mutableBundle.asStateFlow()
@@ -84,7 +84,12 @@ class SurfaceSnapshotRepositoryImpl(
           } else {
             surfaceBundleFromRows(header, rows, mon)
           }
-        }.collect { mutableBundle.value = it }
+        }.collect { dbBundle ->
+          // Don't overwrite a bootstrapped bundle with null when the DB is still empty
+          if (dbBundle != null || mutableBundle.value == null) {
+            mutableBundle.value = dbBundle
+          }
+        }
       }
     }
   }
@@ -197,17 +202,11 @@ class SurfaceSnapshotRepositoryImpl(
   }
 
   private fun persist(snapshot: SurfaceSnapshotBundle) {
+    persistToFile(snapshot)
     if (database != null) {
-      val persisted = persistToDatabase(snapshot)
-      if (persisted) {
-        persistToFile(snapshot)
-        mutableBundle.value = snapshot
-      } else {
-        persistToFile(snapshot)
-        mutableBundle.value = snapshot
-      }
+      persistToDatabase(snapshot)
+      // mutableBundle is updated reactively via the DB flow in init
     } else {
-      persistToFile(snapshot)
       mutableBundle.value = snapshot
     }
   }
@@ -245,8 +244,9 @@ class SurfaceSnapshotRepositoryImpl(
     }
     val migrated = persistToDatabase(legacyBundle)
     if (migrated) {
+      deleteLegacyFile()
+    } else {
       persistToFile(legacyBundle)
-      return legacyBundle
     }
     return legacyBundle
   }

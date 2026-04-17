@@ -65,8 +65,8 @@ class StationsRepositoryImpl(
 ) : StationsRepository {
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
   private val sessionState = MutableStateFlow(StationsSession())
-  private var loaded = false
-  private var lastLoadedCityId: String? = null
+  @Volatile private var loaded = false
+  @Volatile private var lastLoadedCityId: String? = null
   private val loadMutex = Mutex()
 
   private val useReactiveCache: Boolean = cacheManager.stationsFlow != null
@@ -113,6 +113,7 @@ class StationsRepositoryImpl(
 
     loadMutex.withLock {
       if (loaded) return
+
       val attemptAt = currentTimeMs()
       updateLoadingState(
         isLoading = true,
@@ -120,17 +121,17 @@ class StationsRepositoryImpl(
         lastRefreshAttemptEpoch = attemptAt,
         userLocation = currentLocation,
       )
-    }
 
-    // Limpiar caché si cambió la ciudad
-    if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
-      cacheManager.clear()
-    }
+      // Limpiar caché si cambió la ciudad
+      if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
+        cacheManager.clear()
+      }
 
-    // Intentar usar caché primero
-    if (cacheManager.isFresh(city.id)) {
-      handleCacheHit(currentLocation, city)
-      return
+      // Intentar usar caché primero
+      if (cacheManager.isFresh(city.id)) {
+        handleCacheHit(currentLocation, city)
+        return
+      }
     }
 
     refreshStations(origin = origin, currentLocation = currentLocation, city = city)
