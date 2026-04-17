@@ -67,45 +67,51 @@
             </intent-filter>
         </service>
         <receiver
-            android:name="com.gcaguilar.biciradar.FavoriteStationWidgetProvider"
+            android:name="com.gcaguilar.biciradar.AllFavoritesWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/all_favorites_widget_info" />
+        </receiver>
+        <receiver
+            android:name="com.gcaguilar.biciradar.FavoriteStationWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/favorite_station_widget_info" />
         </receiver>
         <receiver
-            android:name="com.gcaguilar.biciradar.NearbyStationsWidgetProvider"
+            android:name="com.gcaguilar.biciradar.NearbyStationsWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/nearby_stations_widget_info" />
         </receiver>
         <receiver
-            android:name="com.gcaguilar.biciradar.QuickActionsWidgetProvider"
+            android:name="com.gcaguilar.biciradar.QuickActionsWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/quick_actions_widget_info" />
         </receiver>
         <receiver
-            android:name="com.gcaguilar.biciradar.CommuteWidgetProvider"
+            android:name="com.gcaguilar.biciradar.CommuteWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/commute_widget_info" />
