@@ -75,7 +75,6 @@ internal data class GeoSearchRequest(
 internal data class ReverseGeocodeRequest(
   val lat: Double,
   val lon: Double,
-  val lng: Double = lon,
 )
 
 @Serializable

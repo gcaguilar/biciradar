@@ -68,13 +68,14 @@ fun pendingChangelogVersion(
   catalogVersions: Set<String>,
 ): String? {
   val normalizedCurrent = normalizeAppVersionForCatalog(currentAppVersion) ?: return null
-  val normalizedLastSeen = normalizeAppVersionForCatalog(lastSeenChangelogAppVersion) ?: return null
   val newestCompatibleCatalogVersion =
     catalogVersions
       .mapNotNull(::normalizeAppVersionForCatalog)
       .filter { compareAppVersionStrings(it, normalizedCurrent) <= 0 }
       .maxWithOrNull { a, b -> compareAppVersionStrings(a, b) }
       ?: return null
+  val normalizedLastSeen = normalizeAppVersionForCatalog(lastSeenChangelogAppVersion)
+    ?: return newestCompatibleCatalogVersion // first install: show the latest entry
   if (compareAppVersionStrings(newestCompatibleCatalogVersion, normalizedLastSeen) <= 0) return null
   return newestCompatibleCatalogVersion
 }

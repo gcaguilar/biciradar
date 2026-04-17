@@ -4,9 +4,6 @@ import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Age &lt; this since [StationsState.lastUpdatedEpoch] counts as [DataFreshness.Fresh] when data is trusted. */
-const val STATION_SNAPSHOT_FRESH_MS = 5 * 60 * 1000L
-
 /** Beyond this age, cached data is [DataFreshness.Expired]. */
 const val STATION_SNAPSHOT_STALE_MAX_MS = 60 * 60 * 1000L
 
@@ -64,7 +61,7 @@ fun computeStationsFreshness(
     return if (age <= STATION_SNAPSHOT_STALE_MAX_MS) DataFreshness.StaleUsable else DataFreshness.Expired
   }
   return when {
-    age < STATION_SNAPSHOT_FRESH_MS -> DataFreshness.Fresh
+    age < STATION_CACHE_REFRESH_INTERVAL_MS -> DataFreshness.Fresh
     age <= STATION_SNAPSHOT_STALE_MAX_MS -> DataFreshness.StaleUsable
     else -> DataFreshness.Expired
   }
