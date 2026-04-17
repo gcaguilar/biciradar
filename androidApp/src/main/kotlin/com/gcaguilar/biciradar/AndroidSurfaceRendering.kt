@@ -1,8 +1,134 @@
 package com.gcaguilar.biciradar
 
+import android.app.Application
+import android.content.Context
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
+import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.formatDistance
+import kotlinx.coroutines.runBlocking
+
+internal data class AndroidSurfaceWidgetSnapshot(
+  val favoriteStation: AndroidSurfaceFavoriteStation? = null,
+  val homeStation: AndroidSurfaceSavedPlaceStation? = null,
+  val workStation: AndroidSurfaceSavedPlaceStation? = null,
+  val nearbyStations: List<AndroidSurfaceNearbyStation> = emptyList(),
+  val hasFavoriteStation: Boolean? = null,
+  val isDataFresh: Boolean? = null,
+  val hasLocationPermission: Boolean? = null,
+  val hasNotificationPermission: Boolean? = null,
+)
+
+internal data class AndroidSurfaceFavoriteStation(
+  val id: String,
+  val name: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
+  val statusText: String,
+  val lastUpdatedEpoch: Long?,
+)
+
+internal data class AndroidSurfaceNearbyStation(
+  val id: String,
+  val name: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
+  val distanceMeters: Int?,
+  val statusText: String,
+)
+
+internal data class AndroidSurfaceSavedPlaceStation(
+  val id: String,
+  val name: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
+  val statusText: String,
+)
+
+internal object AndroidSurfaceSnapshotReader {
+  fun read(context: Context): AndroidSurfaceWidgetSnapshot {
+    return runCatching {
+      if (!BiziAppGraph.isInitialized()) {
+        BiziAppGraph.initialize(context.applicationContext as Application)
+      }
+      val bundle =
+        runBlocking {
+          BiziAppGraph.graph.getCachedStationSnapshot.execute()
+        }
+      bundle?.toAndroidSurfaceWidgetSnapshot() ?: AndroidSurfaceWidgetSnapshot(isDataFresh = false)
+    }.getOrElse {
+      AndroidSurfaceWidgetSnapshot()
+    }
+  }
+}
+
+internal fun SurfaceSnapshotBundle.toAndroidSurfaceWidgetSnapshot(): AndroidSurfaceWidgetSnapshot =
+  AndroidSurfaceWidgetSnapshot(
+    favoriteStation = favoriteStation?.toAndroidFavoriteStation(),
+    homeStation = homeStation?.toAndroidSavedPlaceStation(),
+    workStation = workStation?.toAndroidSavedPlaceStation(),
+    nearbyStations = nearbyStations.map(SurfaceStationSnapshot::toAndroidNearbyStation),
+    hasFavoriteStation = state.hasFavoriteStation,
+    isDataFresh = state.isDataFresh,
+    hasLocationPermission = state.hasLocationPermission,
+    hasNotificationPermission = state.hasNotificationPermission,
+  )
+
+private fun SurfaceStationSnapshot.toAndroidFavoriteStation(): AndroidSurfaceFavoriteStation =
+  AndroidSurfaceFavoriteStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    statusText = statusTextShort,
+    lastUpdatedEpoch = lastUpdatedEpoch.takeIf { it > 0L },
+  )
+
+private fun SurfaceStationSnapshot.toAndroidNearbyStation(): AndroidSurfaceNearbyStation =
+  AndroidSurfaceNearbyStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    distanceMeters = distanceMeters?.takeIf { it > 0 },
+    statusText = statusTextShort,
+  )
+
+private fun SurfaceStationSnapshot.toAndroidSavedPlaceStation(): AndroidSurfaceSavedPlaceStation =
+  AndroidSurfaceSavedPlaceStation(
+    id = id,
+    name = nameShort.ifBlank { nameFull },
+    bikesAvailable = bikesAvailable,
+    docksAvailable = docksAvailable,
+    statusText = statusTextShort,
+  )
+
+internal data class AndroidAllFavoritesWidgetSnapshot(
+  val stations: List<AndroidSurfaceNearbyStation> = emptyList(),
+  val hasLocationPermission: Boolean? = null,
+  val isDataFresh: Boolean? = null,
+)
+
+internal object AndroidAllFavoritesSnapshotReader {
+  fun read(context: Context): AndroidAllFavoritesWidgetSnapshot {
+    return runCatching {
+      if (!BiziAppGraph.isInitialized()) {
+        BiziAppGraph.initialize(context.applicationContext as Application)
+      }
+      val getFavoriteStations = BiziAppGraph.graph.getFavoriteStations
+      val bundle = runBlocking { BiziAppGraph.graph.getCachedStationSnapshot.execute() }
+      val favoriteStations = runBlocking { getFavoriteStations.execute() }
+      AndroidAllFavoritesWidgetSnapshot(
+        stations = favoriteStations.map { it.toAndroidNearbyStation() },
+        hasLocationPermission = bundle?.state?.hasLocationPermission,
+        isDataFresh = bundle?.state?.isDataFresh,
+      )
+    }.getOrElse {
+      AndroidAllFavoritesWidgetSnapshot()
+    }
+  }
+}
 
 internal enum class AndroidWidgetEmptyState {
   ConfigureFavorite,

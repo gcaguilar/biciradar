@@ -26,25 +26,15 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
-/**
- * Servicio de monitorización mejorado con:
- * - Cuenta regresiva actualizándose cada segundo
- * - Estilo Material You
- * - Acciones de compartir y favoritos
- * - Integración con App Functions
- * - DI robusto vía BiziAppGraph (sin holders temporales)
- *
- * Las dependencias se obtienen del singleton BiziAppGraph, eliminando
- * la fragilidad de los holders temporales y soportando recreación del Service.
- */
+
 class TripMonitorService : Service() {
   private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private val notificationManager by lazy {
     getSystemService(NotificationManager::class.java)
   }
 
-  // Dependencias obtenidas del singleton de aplicación
   private val observeSurfaceMonitoring: ObserveSurfaceMonitoring
     get() = BiziAppGraph.graph.observeSurfaceMonitoring
   private val observeFavorites: ObserveFavorites
@@ -152,10 +142,12 @@ class TripMonitorService : Service() {
   }
 
   private fun updateWidgets() {
-    FavoriteStationWidgetProvider.updateAll(applicationContext)
-    NearbyStationsWidgetProvider.updateAll(applicationContext)
-    QuickActionsWidgetProvider.updateAll(applicationContext)
-    CommuteWidgetProvider.updateAll(applicationContext)
+    runBlocking {
+      FavoriteStationWidget().updateAll(applicationContext)
+      NearbyStationsWidget().updateAll(applicationContext)
+      QuickActionsWidget().updateAll(applicationContext)
+      CommuteWidget().updateAll(applicationContext)
+    }
   }
 
   /**

@@ -24,6 +24,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -180,10 +181,12 @@ class MainActivity : ComponentActivity() {
       }
     graph.observeSurfaceSnapshot.bundle
       .onEach { snapshot ->
-        FavoriteStationWidgetProvider.updateAll(applicationContext)
-        NearbyStationsWidgetProvider.updateAll(applicationContext)
-        QuickActionsWidgetProvider.updateAll(applicationContext)
-        CommuteWidgetProvider.updateAll(applicationContext)
+        runBlocking {
+          FavoriteStationWidget().updateAll(applicationContext)
+          NearbyStationsWidget().updateAll(applicationContext)
+          QuickActionsWidget().updateAll(applicationContext)
+          CommuteWidget().updateAll(applicationContext)
+        }
         AndroidDynamicShortcuts.publish(applicationContext, snapshot)
       }.launchIn(scope)
   }

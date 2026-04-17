@@ -14,16 +14,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.runBlocking
 
-/**
- * Refresca los datos usados por los widgets y vuelve a pintar sus RemoteViews.
- * Solo se programa mientras exista al menos un widget activo.
- *
- * Importante: no llamar a reconcile() desde onUpdate() de los AppWidgetProvider.
- * WorkManager habilita/deshabilita su RescheduleReceiver al encolar/cancelar trabajo,
- * lo que dispara ACTION_PACKAGE_CHANGED → onUpdate() → loop infinito.
- * reconcile() solo debe llamarse desde onEnabled()/onDisabled().
- */
 class WidgetRefreshWorker(
   context: Context,
   params: WorkerParameters,
@@ -108,18 +100,22 @@ class WidgetRefreshWorker(
     }
 
     private fun updateAllWidgets(context: Context) {
-      FavoriteStationWidgetProvider.updateAll(context)
-      NearbyStationsWidgetProvider.updateAll(context)
-      QuickActionsWidgetProvider.updateAll(context)
-      CommuteWidgetProvider.updateAll(context)
+      runBlocking {
+        FavoriteStationWidget().updateAll(context)
+        NearbyStationsWidget().updateAll(context)
+        QuickActionsWidget().updateAll(context)
+        CommuteWidget().updateAll(context)
+        AllFavoritesWidget().updateAll(context)
+      }
     }
 
     private val providers =
       listOf(
-        FavoriteStationWidgetProvider::class.java,
-        NearbyStationsWidgetProvider::class.java,
-        QuickActionsWidgetProvider::class.java,
-        CommuteWidgetProvider::class.java,
+        FavoriteStationWidgetReceiver::class.java,
+        NearbyStationsWidgetReceiver::class.java,
+        QuickActionsWidgetReceiver::class.java,
+        CommuteWidgetReceiver::class.java,
+        AllFavoritesWidgetReceiver::class.java,
       )
   }
 }
