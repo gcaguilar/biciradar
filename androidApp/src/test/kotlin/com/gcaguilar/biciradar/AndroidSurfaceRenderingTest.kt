@@ -3,6 +3,9 @@ package com.gcaguilar.biciradar
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
+import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceState
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -145,6 +148,58 @@ class AndroidSurfaceRenderingTest {
   }
 
   @Test
+  fun `database surface bundle maps to widget snapshot`() {
+    val snapshot =
+      SurfaceSnapshotBundle(
+        generatedAtEpoch = 1_000L,
+        favoriteStation =
+          surfaceStationSnapshot(
+            id = "fav-1",
+            nameShort = "Favorita",
+            distanceMeters = 80,
+          ),
+        homeStation =
+          surfaceStationSnapshot(
+            id = "home-1",
+            nameShort = "Casa",
+          ),
+        workStation =
+          surfaceStationSnapshot(
+            id = "work-1",
+            nameShort = "Trabajo",
+          ),
+        nearbyStations =
+          listOf(
+            surfaceStationSnapshot(
+              id = "near-1",
+              nameShort = "Cerca",
+              distanceMeters = 60,
+            ),
+          ),
+        state =
+          SurfaceState(
+            hasLocationPermission = true,
+            hasNotificationPermission = false,
+            hasFavoriteStation = true,
+            isDataFresh = true,
+            lastSyncEpoch = 900L,
+            cityId = "zaragoza",
+            cityName = "Zaragoza",
+          ),
+      ).toAndroidSurfaceWidgetSnapshot()
+
+    assertEquals("fav-1", snapshot.favoriteStation?.id)
+    assertEquals("Casa", snapshot.homeStation?.name)
+    assertEquals("Trabajo", snapshot.workStation?.name)
+    assertEquals(listOf("near-1"), snapshot.nearbyStations.map { it.id })
+    assertEquals(60, snapshot.nearbyStations.first().distanceMeters)
+    assertTrue(snapshot.hasFavoriteStation == true)
+    assertTrue(snapshot.isDataFresh == true)
+    assertTrue(snapshot.hasLocationPermission == true)
+    assertFalse(snapshot.hasNotificationPermission == true)
+  }
+
+  @Test
   fun `monitoring notification title reflects monitoring state`() {
     assertEquals(
       "Plaza Espana",
@@ -220,5 +275,25 @@ class AndroidSurfaceRenderingTest {
     alternativeStationId = alternativeStationId,
     alternativeStationName = alternativeStationName,
     alternativeDistanceMeters = alternativeDistanceMeters,
+  )
+
+  private fun surfaceStationSnapshot(
+    id: String,
+    nameShort: String,
+    distanceMeters: Int? = null,
+  ) = SurfaceStationSnapshot(
+    id = id,
+    nameShort = nameShort,
+    nameFull = "$nameShort completa",
+    cityId = "zaragoza",
+    latitude = 41.65,
+    longitude = -0.88,
+    bikesAvailable = 3,
+    docksAvailable = 7,
+    statusTextShort = "Disponible",
+    statusLevel = SurfaceStatusLevel.Good,
+    lastUpdatedEpoch = 100L,
+    distanceMeters = distanceMeters,
+    isFavorite = id.startsWith("fav"),
   )
 }
