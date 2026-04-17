@@ -10,6 +10,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
@@ -38,9 +41,11 @@ interface EnvironmentalRepository {
 class EnvironmentalRepositoryImpl(
   private val httpClient: HttpClient,
   private val database: BiciRadarDatabase?,
+  private val appScope: CoroutineScope,
 ) : EnvironmentalRepository {
   private val cacheMutex = Mutex()
   private val readingCache = mutableMapOf<String, CachedEnvironmentalReading>()
+  private val inflightRequests = mutableMapOf<String, Deferred<EnvironmentalReading?>>()
 
   override suspend fun readingAt(
     latitude: Double,
@@ -48,7 +53,7 @@ class EnvironmentalRepositoryImpl(
   ): EnvironmentalReading? {
     val cacheKey = cacheKey(latitude, longitude)
     val now = currentTimeMs()
-    cacheMutex.withLock {
+    val deferred = cacheMutex.withLock {
       val cached = readingCache[cacheKey]
       if (cached != null && (now - cached.savedAtEpochMs) <= ENVIRONMENTAL_CACHE_TTL_MS) {
         return cached.reading
@@ -58,64 +63,80 @@ class EnvironmentalRepositoryImpl(
         readingCache[cacheKey] = persisted
         return persisted.reading
       }
+      inflightRequests[cacheKey] ?: appScope.async {
+        fetchAndCache(cacheKey, latitude, longitude, now)
+      }.also { inflightRequests[cacheKey] = it }
     }
-    val response =
-      runCatching {
-        httpClient
-          .get("https://air-quality-api.open-meteo.com/v1/air-quality") {
-            parameter("latitude", latitude)
-            parameter("longitude", longitude)
-            parameter(
-              "current",
-              "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
-            )
-            parameter(
-              "hourly",
-              "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
-            )
-          }.body<OpenMeteoAirQualityResponse>()
-      }.getOrNull() ?: return null
-    val current = response.current ?: return null
-    val currentPollenValues =
-      listOfNotNull(
-        current.alderPollen,
-        current.birchPollen,
-        current.grassPollen,
-        current.mugwortPollen,
-        current.olivePollen,
-        current.ragweedPollen,
-      )
-    val hourlyPollenMax = response.hourly?.maxPollen()
-    val pollenRaw =
-      listOfNotNull(
-        hourlyPollenMax,
-        currentPollenValues.maxOrNull(),
-      ).maxOrNull()
-    val pollenIndex = pollenRaw?.roundToInt()?.coerceIn(0, 100)
-    val hourlyAqi =
-      response.hourly
-        ?.usAqi
-        ?.firstOrNull { it != null }
-        ?.toInt()
-        ?: response.hourly
-          ?.europeanAqi
+    return deferred.await()
+  }
+
+  private suspend fun fetchAndCache(
+    cacheKey: String,
+    latitude: Double,
+    longitude: Double,
+    now: Long,
+  ): EnvironmentalReading? {
+    try {
+      val response =
+        runCatching {
+          httpClient
+            .get("https://air-quality-api.open-meteo.com/v1/air-quality") {
+              parameter("latitude", latitude)
+              parameter("longitude", longitude)
+              parameter(
+                "current",
+                "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
+              )
+              parameter(
+                "hourly",
+                "us_aqi,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
+              )
+            }.body<OpenMeteoAirQualityResponse>()
+        }.getOrNull() ?: return null
+      val current = response.current ?: return null
+      val currentPollenValues =
+        listOfNotNull(
+          current.alderPollen,
+          current.birchPollen,
+          current.grassPollen,
+          current.mugwortPollen,
+          current.olivePollen,
+          current.ragweedPollen,
+        )
+      val hourlyPollenMax = response.hourly?.maxPollen()
+      val pollenRaw =
+        listOfNotNull(
+          hourlyPollenMax,
+          currentPollenValues.maxOrNull(),
+        ).maxOrNull()
+      val pollenIndex = pollenRaw?.roundToInt()?.coerceIn(0, 100)
+      val hourlyAqi =
+        response.hourly
+          ?.usAqi
           ?.firstOrNull { it != null }
           ?.toInt()
-    val freshReading =
-      EnvironmentalReading(
-        airQualityIndex = (current.usAqi?.toInt() ?: current.europeanAqi?.toInt() ?: hourlyAqi)?.coerceIn(0, 500),
-        pollenIndex = pollenIndex,
-      )
-    cacheMutex.withLock {
-      readingCache[cacheKey] =
-        CachedEnvironmentalReading(
-          reading = freshReading,
-          savedAtEpochMs = now,
+          ?: response.hourly
+            ?.europeanAqi
+            ?.firstOrNull { it != null }
+            ?.toInt()
+      val freshReading =
+        EnvironmentalReading(
+          airQualityIndex = (current.usAqi?.toInt() ?: current.europeanAqi?.toInt() ?: hourlyAqi)?.coerceIn(0, 500),
+          pollenIndex = pollenIndex,
         )
+      cacheMutex.withLock {
+        readingCache[cacheKey] =
+          CachedEnvironmentalReading(
+            reading = freshReading,
+            savedAtEpochMs = now,
+          )
+      }
+      saveToDatabase(cacheKey, freshReading, now)
+      deleteExpiredFromDatabase(now)
+      return freshReading
+    } finally {
+      cacheMutex.withLock { inflightRequests.remove(cacheKey) }
     }
-    saveToDatabase(cacheKey, freshReading, now)
-    deleteExpiredFromDatabase(now)
-    return freshReading
   }
 
   private fun cacheKey(
