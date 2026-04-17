@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.local.toDomain
 import com.gcaguilar.biciradar.core.local.loadSurfaceBundleFromDb
 import com.gcaguilar.biciradar.core.local.persistSurfaceBundleRelational
 import com.gcaguilar.biciradar.core.local.surfaceBundleFromRows
@@ -56,6 +57,7 @@ class SurfaceSnapshotRepositoryImpl(
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
   private var bootstrapped = false
+  private val stationCacheStore = database?.let(::StationCacheStore)
 
   override val bundle: StateFlow<SurfaceSnapshotBundle?> = mutableBundle.asStateFlow()
 
@@ -97,8 +99,14 @@ class SurfaceSnapshotRepositoryImpl(
     if (!bootstrapped) bootstrap()
     val city = settingsRepository.currentSelectedCity()
     val stationsState = stationsRepository.state.value
-    val stations = stationsState.stations
-    val lastUpdatedEpoch = stationsState.lastUpdatedEpoch ?: currentTimeMs()
+    val hasLocationPermission = stationsState.userLocation != null
+    val origin = stationsState.userLocation ?: GeoPoint(city.defaultLatitude, city.defaultLongitude)
+    val stations =
+      stationCacheStore
+        ?.loadStations(city.id)
+        ?.map { it.toDomain(origin) }
+        ?.takeIf { it.isNotEmpty() } ?: stationsState.stations
+    val lastUpdatedEpoch = stationCacheStore?.lastUpdated(city.id) ?: stationsState.lastUpdatedEpoch ?: currentTimeMs()
     val favoriteStationId = favoriteStationId(stations)
     val homeStationId = favoritesRepository.currentHomeStationId()
     val workStationId = favoritesRepository.currentWorkStationId()
@@ -117,7 +125,6 @@ class SurfaceSnapshotRepositoryImpl(
       workStationId
         ?.takeIf { it != homeStationId }
         ?.let(::stationSnapshot)
-    val hasLocationPermission = stationsState.userLocation != null
     val nearbyStations =
       if (hasLocationPermission) {
         stations
@@ -153,9 +160,8 @@ class SurfaceSnapshotRepositoryImpl(
             hasLocationPermission = hasLocationPermission,
             hasNotificationPermission = hasNotificationPermission,
             hasFavoriteStation = mergedFavorite != null,
-            isDataFresh =
-              stationsState.lastUpdatedEpoch?.let { currentTimeMs() - it < STATION_CACHE_REFRESH_INTERVAL_MS } == true,
-            lastSyncEpoch = stationsState.lastUpdatedEpoch,
+            isDataFresh = currentTimeMs() - lastUpdatedEpoch < STATION_CACHE_REFRESH_INTERVAL_MS,
+            lastSyncEpoch = lastUpdatedEpoch,
             cityId = city.id,
             cityName = city.displayName,
             userLatitude = stationsState.userLocation?.latitude,
