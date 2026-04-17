@@ -158,10 +158,6 @@ actual class SecureKeyStore {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 @OptIn(ExperimentalForeignApi::class)
 private fun String.toNSData(): NSData = encodeToByteArray().toNSData()
 

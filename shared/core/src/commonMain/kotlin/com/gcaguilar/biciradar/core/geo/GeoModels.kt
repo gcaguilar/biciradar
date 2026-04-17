@@ -2,10 +2,6 @@ package com.gcaguilar.biciradar.core.geo
 
 import kotlinx.serialization.Serializable
 
-// ---------------------------------------------------------------------------
-// Installation identity
-// ---------------------------------------------------------------------------
-
 /**
  * Persisted after a successful `/install/register` call.
  * [publicKeyBase64] is the DER-encoded RSA public key, Base64-encoded.
@@ -16,10 +12,6 @@ data class InstallationIdentity(
   val publicKeyBase64: String,
   val refreshToken: String,
 )
-
-// ---------------------------------------------------------------------------
-// Access token
-// ---------------------------------------------------------------------------
 
 /**
  * Short-lived access token returned by `/token/refresh`.
@@ -38,13 +30,6 @@ data class AccessToken(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Geo results
-// ---------------------------------------------------------------------------
-
-/**
- * A single geographic result returned by `/geo/search` or `/geo/reverse`.
- */
 @Serializable
 data class GeoResult(
   val id: String,
@@ -53,10 +38,6 @@ data class GeoResult(
   val latitude: Double,
   val longitude: Double,
 )
-
-// ---------------------------------------------------------------------------
-// Request / response DTOs for the REST API
-// ---------------------------------------------------------------------------
 
 @Serializable
 internal data class RegisterRequest(
@@ -81,7 +62,7 @@ internal data class TokenRefreshRequest(
 internal data class TokenRefreshResponse(
   val accessToken: String,
   val refreshToken: String,
-  val expiresIn: Int, // seconds
+  val expiresIn: Int,
 )
 
 @Serializable
@@ -138,10 +119,6 @@ internal fun ReverseGeocodeResponse.toDomain() =
     longitude = lon,
   )
 
-// ---------------------------------------------------------------------------
-// Errors
-// ---------------------------------------------------------------------------
-
 sealed class GeoError : Exception() {
   data object NotRegistered : GeoError() {
     override val message: String get() = "Installation not registered"
@@ -172,9 +149,5 @@ sealed class GeoError : Exception() {
     override val message: String get() = rootCause.message ?: rootCause::class.simpleName ?: "Unknown error"
   }
 }
-
-// ---------------------------------------------------------------------------
-// Platform clock shim (expect/actual)
-// ---------------------------------------------------------------------------
 
 internal expect fun currentTimeMs(): Long
