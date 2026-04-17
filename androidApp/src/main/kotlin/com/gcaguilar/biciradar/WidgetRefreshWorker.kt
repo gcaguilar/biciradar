@@ -47,6 +47,13 @@ class WidgetRefreshWorker(
     private const val IMMEDIATE_WORK_NAME = "widget-refresh-immediate"
     private const val REPEAT_INTERVAL_MINUTES = 15L
 
+    /**
+     * Keep widget work scheduling out of widget update callbacks.
+     *
+     * WorkManager toggles its internal receivers when work is enqueued/cancelled, which can
+     * trigger package-changed broadcasts and cause AppWidget update callbacks to fire again.
+     * Scheduling from those callbacks previously created an infinite loop.
+     */
     fun reconcile(context: Context) {
       if (hasAnyWidgets(context)) {
         schedule(context)
@@ -56,6 +63,11 @@ class WidgetRefreshWorker(
     }
 
     fun scheduleImmediate(context: Context) {
+      if (!hasAnyWidgets(context)) {
+        cancel(context)
+        return
+      }
+
       val request =
         OneTimeWorkRequestBuilder<WidgetRefreshWorker>()
           .setConstraints(
@@ -66,7 +78,7 @@ class WidgetRefreshWorker(
           ).build()
       WorkManager.getInstance(context).enqueueUniqueWork(
         IMMEDIATE_WORK_NAME,
-        ExistingWorkPolicy.REPLACE,
+        ExistingWorkPolicy.KEEP,
         request,
       )
     }
