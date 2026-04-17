@@ -367,7 +367,7 @@ private object GbfsDiscoveryDataSerializer : KSerializer<GbfsDiscoveryData> {
   override val descriptor = buildClassSerialDescriptor("GbfsDiscoveryData")
 
   override fun deserialize(decoder: Decoder): GbfsDiscoveryData {
-    val map = decoder.decodeSerializableValue(MapSerializer(serializer<String>(), GbfsDiscoveryLanguage.serializer()))
+    val map = decoder.decodeSerializableValue(MapSerializer(String.serializer(), GbfsDiscoveryLanguage.serializer()))
     val feeds = (map["es"] ?: map["en"] ?: map.values.firstOrNull())?.feeds ?: emptyList()
     return GbfsDiscoveryData(feeds)
   }
@@ -377,7 +377,7 @@ private object GbfsDiscoveryDataSerializer : KSerializer<GbfsDiscoveryData> {
     value: GbfsDiscoveryData,
   ) {
     encoder.encodeSerializableValue(
-      MapSerializer(serializer<String>(), GbfsDiscoveryLanguage.serializer()),
+      MapSerializer(String.serializer(), GbfsDiscoveryLanguage.serializer()),
       mapOf("en" to GbfsDiscoveryLanguage(value.feeds)),
     )
   }

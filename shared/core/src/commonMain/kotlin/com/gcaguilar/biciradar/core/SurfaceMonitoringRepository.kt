@@ -57,7 +57,7 @@ class SurfaceMonitoringRepositoryImpl(
 ) : SurfaceMonitoringRepository {
   private val mutableState = MutableStateFlow<SurfaceMonitoringSession?>(null)
 
-  @Volatile private var bootstrapped = false
+  @kotlin.concurrent.Volatile private var bootstrapped = false
   private var countdownJob: Job? = null
   private var monitoringJob: Job? = null
   private val finishMutex = Mutex()
