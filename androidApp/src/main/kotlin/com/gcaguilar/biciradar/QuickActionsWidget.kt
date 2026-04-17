@@ -21,6 +21,7 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
@@ -104,7 +105,7 @@ private fun ActionButton(
   Column(
     modifier =
       GlanceModifier
-        .defaultWeight()
+        .fillMaxWidth()
         .height(72.dp)
         .background(colors.surfaceVariant)
         .clickable(
