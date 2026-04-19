@@ -1559,7 +1559,7 @@
 			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk";
 			requirement = {
 				kind = exactVersion;
-				version = 10.10.0;
+				version = 10.12.0;
 			};
 		};
 		A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
