@@ -5,10 +5,10 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
-import com.gcaguilar.biciradar.core.local.toDomain
 import com.gcaguilar.biciradar.core.local.loadSurfaceBundleFromDb
 import com.gcaguilar.biciradar.core.local.persistSurfaceBundleRelational
 import com.gcaguilar.biciradar.core.local.surfaceBundleFromRows
+import com.gcaguilar.biciradar.core.local.toDomain
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -56,6 +56,7 @@ class SurfaceSnapshotRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SurfaceSnapshotRepository {
   private val mutableBundle = MutableStateFlow<SurfaceSnapshotBundle?>(null)
+
   @kotlin.concurrent.Volatile private var bootstrapped = false
   private val stationCacheStore = database?.let(::StationCacheStore)
 

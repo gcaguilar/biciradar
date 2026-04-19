@@ -65,7 +65,9 @@ class StationsRepositoryImpl(
 ) : StationsRepository {
   private val mutableState = MutableStateFlow(StationsState(isLoading = false))
   private val sessionState = MutableStateFlow(StationsSession())
+
   @kotlin.concurrent.Volatile private var loaded = false
+
   @kotlin.concurrent.Volatile private var lastLoadedCityId: String? = null
   private val loadMutex = Mutex()
 

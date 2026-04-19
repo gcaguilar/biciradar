@@ -66,6 +66,7 @@ class SavedPlaceAlertsRepositoryImpl(
   private val database: BiciRadarDatabase? = null,
 ) : SavedPlaceAlertsRepository {
   private val mutableRules = MutableStateFlow<List<SavedPlaceAlertRule>>(emptyList())
+
   @kotlin.concurrent.Volatile private var bootstrapped = false
 
   override val rules: StateFlow<List<SavedPlaceAlertRule>> = mutableRules.asStateFlow()

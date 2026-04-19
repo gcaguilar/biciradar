@@ -412,22 +412,37 @@ class DbFirstReactiveRepositoryJvmTest {
               override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
 
               override suspend fun bootstrap() = Unit
+
               override fun currentSearchRadiusMeters(): Int = searchRadiusMeters.value
+
               override fun currentPreferredMapApp(): PreferredMapApp = preferredMapApp.value
+
               override fun currentSelectedCity(): City = selectedCity.value
+
               override fun currentLastSeenChangelogAppVersion(): String? = null
+
               override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) = Unit
+
               override suspend fun setPreferredMapApp(preferredMapApp: PreferredMapApp) = Unit
+
               override suspend fun setLastSeenChangelogVersion(version: Int) = Unit
+
               override suspend fun setLastSeenChangelogAppVersion(version: String?) = Unit
+
               override suspend fun setThemePreference(preference: ThemePreference) = Unit
+
               override suspend fun setSelectedCity(city: City) = Unit
+
               override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
+
               override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
+
               override suspend fun updateOnboardingChecklist(
                 transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot,
               ) = Unit
+
               override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) = Unit
+
               override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit
             },
           favoritesRepository =
@@ -437,12 +452,19 @@ class DbFirstReactiveRepositoryJvmTest {
               override val workStationId = MutableStateFlow<String?>(null)
 
               override suspend fun bootstrap() = Unit
+
               override suspend fun toggle(stationId: String) = Unit
+
               override suspend fun setHomeStationId(stationId: String?) = Unit
+
               override suspend fun setWorkStationId(stationId: String?) = Unit
+
               override suspend fun clearAll() = Unit
+
               override fun isFavorite(stationId: String): Boolean = stationId in favoriteIds.value
+
               override fun currentHomeStationId(): String? = homeStationId.value
+
               override fun currentWorkStationId(): String? = workStationId.value
             },
           stationsRepository =
@@ -457,8 +479,11 @@ class DbFirstReactiveRepositoryJvmTest {
                 )
 
               override suspend fun loadIfNeeded() = Unit
+
               override suspend fun forceRefresh() = Unit
+
               override suspend fun refreshAvailability(stationIds: List<String>) = Unit
+
               override fun stationById(stationId: String): Station? = null
             },
           scope = backgroundScope,
