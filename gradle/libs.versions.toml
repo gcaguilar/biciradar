@@ -39,7 +39,7 @@ material-components = "1.13.0"
 jetbrains-compose-material3 = "1.11.0-alpha06"
 jetbrains-compose-material3-adaptive = "1.3.0-alpha06"
 ktlint-gradle = "14.2.0"
-garmin-connectiq-sdk = "2.2.0"
+garmin-connectiq-sdk = "2.4.0"
 androidx-glance-appwidget = "1.1.1"
 androidx-glance-material3 = "1.1.1"
 
