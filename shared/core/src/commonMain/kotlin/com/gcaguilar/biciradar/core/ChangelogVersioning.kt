@@ -59,6 +59,9 @@ private fun compareVersionPart(
  * Changelog for [currentAppVersion] should show once if there is any catalog entry
  * at or below the current app version and newer than [lastSeenChangelogAppVersion].
  *
+ * A null [lastSeenChangelogAppVersion] means the string-based baseline has not been
+ * established yet, so nothing should be shown until the baseline is persisted.
+ *
  * This lets patch builds such as `0.19.1` reuse the `0.19.0` changelog until a
  * more specific entry is added to the catalog.
  */
@@ -76,7 +79,7 @@ fun pendingChangelogVersion(
       ?: return null
   val normalizedLastSeen =
     normalizeAppVersionForCatalog(lastSeenChangelogAppVersion)
-      ?: return newestCompatibleCatalogVersion // first install: show the latest entry
+      ?: return null
   if (compareAppVersionStrings(newestCompatibleCatalogVersion, normalizedLastSeen) <= 0) return null
   return newestCompatibleCatalogVersion
 }

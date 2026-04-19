@@ -206,7 +206,8 @@ class SurfaceSnapshotRepositoryImpl(
     persistToFile(snapshot)
     if (database != null) {
       persistToDatabase(snapshot)
-      // mutableBundle is updated reactively via the DB flow in init
+      // Keep currentBundle() aligned with the just-persisted snapshot instead of waiting on DB flow timing.
+      mutableBundle.value = snapshot
     } else {
       mutableBundle.value = snapshot
     }
