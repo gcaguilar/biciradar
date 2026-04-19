@@ -16,7 +16,8 @@
     <string id="DetailEbikes">Ebikes</string>
     <string id="DetailDistance">Distantzia</string>
     <string id="DetailStatus">Egoera</string>
-    <string id="DetailSelectRoute">Select: ireki ibilbidea</string>
+    <string id="DetailOpenRouteButton">Ireki ibilbidea</string>
+    <string id="DetailSelectRouteHint">Sakatu select</string>
     <string id="UpdatedNoData">Egun.: daturik ez</string>
     <string id="UpdatedNow">Egun.: orain</string>
     <string id="UpdatedOneMinute">Egun.: duela 1 min</string>

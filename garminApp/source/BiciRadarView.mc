@@ -1,15 +1,16 @@
 import Toybox.WatchUi;
 import Toybox.Graphics;
-import Toybox.System;
 import Toybox.Time;
 import Toybox.Lang;
 import Toybox.Application;
 
 class BiciRadarView extends WatchUi.Menu2 {
     private var _focusedStationId = null;
+    private var _layoutProfile as LayoutProfile;
 
     public function initialize() {
         Menu2.initialize({ :title => WatchUi.loadResource($.Rez.Strings.NearbyStationsTitle) });
+        _layoutProfile = LayoutProfile.current();
     }
 
     public function onShow() as Void {
@@ -27,6 +28,7 @@ class BiciRadarView extends WatchUi.Menu2 {
     }
 
     public function onUpdate(dc as Dc) as Void {
+        _layoutProfile = LayoutProfile.forDc(dc);
         refreshMenuItems();
         Menu2.onUpdate(dc);
     }
@@ -80,8 +82,8 @@ class BiciRadarView extends WatchUi.Menu2 {
         for (var i = 0; i < stations.size(); i += 1) {
             var station = stations[i];
             addItem(new WatchUi.MenuItem(
-                truncateStatic(station.name, 22),
-                buildStationSubLabel(station),
+                truncateStatic(station.name, _layoutProfile.titleMaxChars),
+                buildStationSubLabel(station, _layoutProfile),
                 station.id,
                 null
             ));
@@ -102,9 +104,9 @@ class BiciRadarView extends WatchUi.Menu2 {
         }
     }
 
-    private function buildStationSubLabel(station as BikeStationModel) as String {
+    private function buildStationSubLabel(station as BikeStationModel, profile as LayoutProfile) as String {
         var label = formatDistance(station.distance) + "  " + station.bikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyBikes) as String);
-        if (station.ebikes > 0) {
+        if (profile.showListEbikes && station.ebikes > 0) {
             label += "  " + station.ebikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyEbikes) as String);
         }
 
@@ -112,29 +114,29 @@ class BiciRadarView extends WatchUi.Menu2 {
     }
 
     public static function drawStationSummary(dc as Dc, station as BikeStationModel, isGlance as Boolean) as Void {
+        var profile = LayoutProfile.forDc(dc);
         var screenWidth = dc.getWidth();
-        var screenHeight = dc.getHeight();
 
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
 
-        if (!isGlance) {
+        if (!isGlance && profile.showSummaryTitle) {
             dc.drawText(
                 screenWidth / 2,
-                20,
-                Graphics.FONT_TINY,
+                profile.summaryTitleY,
+                profile.summaryLabelFont,
                 WatchUi.loadResource($.Rez.Strings.AppName),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }
 
-        var nameY = isGlance ? (screenHeight / 2 - 16) : (screenHeight / 2 - 40);
-        var valueY = isGlance ? (screenHeight / 2 + 4) : (screenHeight / 2 - 10);
-        var labelY = isGlance ? (screenHeight - 14) : (screenHeight / 2 + 30);
-        var shortName = truncateStatic(station.name, isGlance ? 14 : 18);
+        var nameY = isGlance ? profile.glanceTitleY : profile.summaryNameY;
+        var valueY = isGlance ? profile.glanceValueY : profile.summaryValueY;
+        var labelY = isGlance ? profile.glanceFooterY : profile.summaryFooterY;
+        var shortName = truncateStatic(station.name, isGlance ? profile.glanceNameMaxChars : profile.summaryNameMaxChars);
         dc.drawText(
             screenWidth / 2,
             nameY,
-            Graphics.FONT_TINY,
+            isGlance ? profile.glanceTitleFont : profile.summaryLabelFont,
             shortName,
             Graphics.TEXT_JUSTIFY_CENTER
         );
@@ -144,20 +146,22 @@ class BiciRadarView extends WatchUi.Menu2 {
         dc.drawText(
             screenWidth / 2,
             valueY,
-            isGlance ? Graphics.FONT_NUMBER_MEDIUM : Graphics.FONT_NUMBER_MEDIUM,
+            profile.summaryNumberFont,
             station.bikes.format("%d"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER
         );
 
-        dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
-        var bikesLabel = WatchUi.loadResource($.Rez.Strings.Bikes) as String;
-        dc.drawText(
-            screenWidth / 2,
-            labelY,
-            Graphics.FONT_TINY,
-            bikesLabel,
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
+        if (isGlance || profile.showSummaryFooter) {
+            dc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+            var bikesLabel = WatchUi.loadResource($.Rez.Strings.Bikes) as String;
+            dc.drawText(
+                screenWidth / 2,
+                labelY,
+                isGlance ? profile.glanceBodyFont : profile.summaryLabelFont,
+                bikesLabel,
+                Graphics.TEXT_JUSTIFY_CENTER
+            );
+        }
     }
 
     public function reloadDemoStations() as Void {
@@ -207,6 +211,10 @@ class BiciRadarView extends WatchUi.Menu2 {
         return truncateStatic(str, maxLen);
     }
 
+    public static function truncateText(str as String, maxLen) as String {
+        return truncateStatic(str, maxLen);
+    }
+
     public static function formatStationDistance(meters) as String {
         if (meters < 1000) {
             return meters.format("%d") + (WatchUi.loadResource($.Rez.Strings.MetersUnit) as String);
@@ -219,24 +227,104 @@ class BiciRadarView extends WatchUi.Menu2 {
 
 class BiciRadarDetailView extends WatchUi.View {
     private var _station;
+    private var _layoutProfile as LayoutProfile;
+    private var _buttonX = 0;
+    private var _buttonY = 0;
+    private var _buttonWidth = 0;
+    private var _buttonHeight = 0;
+    private var _detailScrollOffset = 0;
 
     public function initialize(station) {
         WatchUi.View.initialize();
         _station = station;
+        _layoutProfile = LayoutProfile.current();
     }
 
     public function onLayout(dc as Dc) as Void {
-        setLayout($.Rez.Layouts.DetailLayout(dc));
+        _layoutProfile = LayoutProfile.forDc(dc);
+        setLayout(buildLayout(dc, _layoutProfile));
+    }
+
+    public function onShow() as Void {
+    }
+
+    public function onHide() as Void {
     }
 
     public function onUpdate(dc as Dc) as Void {
-        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-
-        setText("TitleLabel", BiciRadarView.truncateStationName(_station.name, 22));
-        setText("DetailText", buildBodyText());
-
+        refreshLayoutContent();
         View.onUpdate(dc);
+    }
+
+    public function getStationId() as String {
+        return _station.id;
+    }
+
+    public function scrollDetails(step as Number) as Boolean {
+        var lines = buildDetailLines(_layoutProfile);
+        var maxOffset = lines.size() - visibleMetricLineCount(_layoutProfile);
+        if (maxOffset < 0) {
+            maxOffset = 0;
+        }
+
+        var newOffset = _detailScrollOffset + step;
+        if (newOffset < 0) {
+            newOffset = 0;
+        } else if (newOffset > maxOffset) {
+            newOffset = maxOffset;
+        }
+
+        if (newOffset == _detailScrollOffset) {
+            return false;
+        }
+
+        _detailScrollOffset = newOffset;
+        WatchUi.requestUpdate();
+        return true;
+    }
+
+    public function isTapInsideOpenRoute(clickEvent as WatchUi.ClickEvent) as Boolean {
+        var coordinates = clickEvent.getCoordinates();
+        if (coordinates == null || coordinates.size() < 2) {
+            return false;
+        }
+
+        var x = coordinates[0];
+        var y = coordinates[1];
+        return x >= _buttonX && x <= (_buttonX + _buttonWidth) && y >= _buttonY && y <= (_buttonY + _buttonHeight);
+    }
+
+    private function buildDetailLines(profile as LayoutProfile) as Array<String> {
+        var lines = [] as Array<String>;
+        lines.add(buildMetricLine(WatchUi.loadResource($.Rez.Strings.DetailStatus) as String, statusText()));
+
+        if (profile.showDetailEbikes) {
+            lines.add(buildMetricLine(WatchUi.loadResource($.Rez.Strings.DetailEbikes) as String, ebikeText()));
+        }
+
+        lines.add(buildMetricLine(WatchUi.loadResource($.Rez.Strings.DetailDistance) as String, BiciRadarView.formatStationDistance(_station.distance)));
+
+        if (profile.showUpdatedInDetail) {
+            lines.add(updatedText());
+        }
+
+        return lines;
+    }
+
+    private function buildMetricLine(label as String, value as String) as String {
+        return label + ": " + value;
+    }
+
+    private function visibleMetricLineCount(profile as LayoutProfile) as Number {
+        if (profile.family == "small_round") {
+            return 2;
+        } else if (profile.family == "mid_round") {
+            return 3;
+        }
+
+        return 4;
     }
 
     private function statusText() as String {
@@ -265,33 +353,6 @@ class BiciRadarDetailView extends WatchUi.View {
         return _station.ebikes.format("%d") + " " + (WatchUi.loadResource($.Rez.Strings.ManyEbikes) as String);
     }
 
-    private function setText(id as String, text as String) as Void {
-        var drawable = findDrawableById(id);
-        if (drawable != null) {
-            if (drawable instanceof WatchUi.TextArea) {
-                (drawable as WatchUi.TextArea).setText(text);
-                return;
-            }
-
-            if (drawable instanceof WatchUi.Text) {
-                (drawable as WatchUi.Text).setText(text);
-            }
-        }
-    }
-
-    private function buildBodyText() as String {
-        return (WatchUi.loadResource($.Rez.Strings.DetailBikes) as String) + ": " + availabilityText() + "\n"
-            + (WatchUi.loadResource($.Rez.Strings.DetailEbikes) as String) + ": " + ebikeText() + "\n"
-            + (WatchUi.loadResource($.Rez.Strings.DetailDistance) as String) + ": " + BiciRadarView.formatStationDistance(_station.distance) + "\n"
-            + (WatchUi.loadResource($.Rez.Strings.DetailStatus) as String) + ": " + statusText() + "\n\n"
-            + (WatchUi.loadResource($.Rez.Strings.DetailSelectRoute) as String) + "\n"
-            + updatedText();
-    }
-
-    public function getStationId() as String {
-        return _station.id;
-    }
-
     private function updatedText() as String {
         var lastUpdate = StorageManager.getLastUpdateTime();
         if (lastUpdate == null) {
@@ -308,6 +369,210 @@ class BiciRadarDetailView extends WatchUi.View {
         }
 
         return WatchUi.loadResource($.Rez.Strings.UpdatedOld);
+    }
+
+    private function buildLayout(dc as Dc, profile as LayoutProfile) as Array<WatchUi.Drawable> {
+        var buttonFont = profile.detailBodyFont;
+        var buttonLabel = BiciRadarView.truncateText(
+            WatchUi.loadResource($.Rez.Strings.DetailOpenRouteButton) as String,
+            profile.detailHintMaxChars
+        );
+        var buttonHeight = Graphics.getFontHeight(buttonFont) + 10;
+        if (profile.family == "small_round") {
+            buttonHeight = Graphics.getFontHeight(buttonFont) + 6;
+        }
+        var buttonWidth = dc.getTextWidthInPixels(buttonLabel, buttonFont) + 20;
+        var maxButtonWidth = dc.getWidth() - 24;
+        if (buttonWidth > maxButtonWidth) {
+            buttonWidth = maxButtonWidth;
+        }
+
+        var buttonX = (dc.getWidth() - buttonWidth) / 2;
+        var bottomPadding = dc.getHeight() / 8;
+        if (bottomPadding < 16) {
+            bottomPadding = 16;
+        }
+        var buttonY = dc.getHeight() - buttonHeight - bottomPadding;
+        var numberFont = profile.summaryNumberFont;
+        var numberHeight = Graphics.getFontHeight(numberFont);
+        var bodyFontHeight = Graphics.getFontHeight(profile.detailBodyFont);
+        var secondaryFont = Graphics.FONT_XTINY;
+        var secondaryFontHeight = Graphics.getFontHeight(secondaryFont);
+        var metricBaseY = profile.detailBodyStartY + numberHeight + secondaryFontHeight + 10;
+        var metricLineStep = bodyFontHeight + 3;
+        var visibleMetricCount = visibleMetricLineCount(profile);
+        var minimumButtonY = metricBaseY + (metricLineStep * visibleMetricCount) + 6;
+        if (buttonY < minimumButtonY) {
+            buttonY = minimumButtonY;
+        }
+
+        _buttonX = buttonX;
+        _buttonY = buttonY;
+        _buttonWidth = buttonWidth;
+        _buttonHeight = buttonHeight;
+
+        var bikesLabelFont = Graphics.FONT_XTINY;
+        var bikesValueY = profile.detailBodyStartY;
+        var bikesLabelY = profile.detailBodyStartY + numberHeight - 2;
+        var metricLine1Y = metricBaseY;
+        var metricLine2Y = metricBaseY + metricLineStep;
+        var metricLine3Y = metricBaseY + (metricLineStep * 2);
+        var metricLine4Y = metricBaseY + (metricLineStep * 3);
+
+        if (profile.family == "small_round") {
+            bikesLabelY = profile.detailBodyStartY + numberHeight - 4;
+            metricLine1Y = bikesLabelY + secondaryFontHeight + 2;
+            metricLine2Y = metricLine1Y + bodyFontHeight;
+            metricLine3Y = metricLine2Y + bodyFontHeight;
+            metricLine4Y = metricLine3Y + bodyFontHeight;
+        }
+
+        var titleText = new WatchUi.Text({
+            :identifier => "TitleLabel",
+            :text => "",
+            :color => Graphics.COLOR_WHITE,
+            :font => profile.detailTitleFont,
+            :locX => dc.getWidth() / 2,
+            :locY => profile.detailTitleY,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var bikesValue = new WatchUi.Text({
+            :identifier => "BikesValue",
+            :text => "",
+            :color => BiciRadarView.bikeColorFor(_station.bikes),
+            :font => numberFont,
+            :locX => dc.getWidth() / 2,
+            :locY => bikesValueY,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var bikesLabel = new WatchUi.Text({
+            :identifier => "BikesLabel",
+            :text => "",
+            :color => Graphics.COLOR_DK_GRAY,
+            :font => bikesLabelFont,
+            :locX => dc.getWidth() / 2,
+            :locY => bikesLabelY,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var metricLine1 = new WatchUi.Text({
+            :identifier => "MetricLine1",
+            :text => "",
+            :color => Graphics.COLOR_WHITE,
+            :font => profile.detailBodyFont,
+            :locX => dc.getWidth() / 2,
+            :locY => metricLine1Y,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var metricLine2 = new WatchUi.Text({
+            :identifier => "MetricLine2",
+            :text => "",
+            :color => Graphics.COLOR_WHITE,
+            :font => profile.detailBodyFont,
+            :locX => dc.getWidth() / 2,
+            :locY => metricLine2Y,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var metricLine3 = new WatchUi.Text({
+            :identifier => "MetricLine3",
+            :text => "",
+            :color => Graphics.COLOR_WHITE,
+            :font => profile.detailBodyFont,
+            :locX => dc.getWidth() / 2,
+            :locY => metricLine3Y,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var metricLine4 = new WatchUi.Text({
+            :identifier => "MetricLine4",
+            :text => "",
+            :color => Graphics.COLOR_WHITE,
+            :font => profile.detailBodyFont,
+            :locX => dc.getWidth() / 2,
+            :locY => metricLine4Y,
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        var button = new WatchUi.Button({
+            :identifier => "OpenRouteButton",
+            :behavior => :onOpenRoute,
+            :locX => buttonX,
+            :locY => buttonY,
+            :width => buttonWidth,
+            :height => buttonHeight,
+            :background => Graphics.COLOR_BLACK,
+            :stateDefault => Graphics.COLOR_WHITE,
+            :stateHighlighted => Graphics.COLOR_LT_GRAY,
+            :stateSelected => Graphics.COLOR_LT_GRAY,
+            :stateDisabled => Graphics.COLOR_DK_GRAY
+        });
+
+        var buttonText = new WatchUi.Text({
+            :identifier => "OpenRouteButtonLabel",
+            :text => "",
+            :color => Graphics.COLOR_BLACK,
+            :font => buttonFont,
+            :locX => dc.getWidth() / 2,
+            :locY => buttonY + ((buttonHeight - Graphics.getFontHeight(buttonFont)) / 2),
+            :justification => Graphics.TEXT_JUSTIFY_CENTER
+        });
+
+        return [titleText, bikesValue, bikesLabel, metricLine1, metricLine2, metricLine3, metricLine4, button, buttonText];
+    }
+
+    private function refreshLayoutContent() as Void {
+        setTextDrawable(
+            "TitleLabel",
+            BiciRadarView.truncateStationName(_station.name, _layoutProfile.detailNameMaxChars)
+        );
+        setTextDrawable("BikesValue", _station.bikes.format("%d"));
+        setTextDrawable("BikesLabel", availabilityText());
+        var detailLines = buildDetailLines(_layoutProfile);
+        var visibleCount = visibleMetricLineCount(_layoutProfile);
+        setTextDrawable("MetricLine1", detailLineAt(detailLines, 0, visibleCount));
+        setTextDrawable("MetricLine2", detailLineAt(detailLines, 1, visibleCount));
+        setTextDrawable("MetricLine3", detailLineAt(detailLines, 2, visibleCount));
+        setTextDrawable("MetricLine4", detailLineAt(detailLines, 3, visibleCount));
+        setTextDrawable(
+            "OpenRouteButtonLabel",
+            BiciRadarView.truncateText(
+                WatchUi.loadResource($.Rez.Strings.DetailOpenRouteButton) as String,
+                _layoutProfile.detailHintMaxChars
+            )
+        );
+    }
+
+    private function detailLineAt(lines as Array<String>, visibleIndex as Number, visibleCount as Number) as String {
+        if (visibleIndex >= visibleCount) {
+            return "";
+        }
+
+        var lineIndex = _detailScrollOffset + visibleIndex;
+        if (lineIndex < 0 || lineIndex >= lines.size()) {
+            return "";
+        }
+
+        return lines[lineIndex];
+    }
+
+    private function setTextDrawable(id as String, text as String) as Void {
+        var drawable = findDrawableById(id);
+        if (drawable == null) {
+            return;
+        }
+
+        if (drawable instanceof WatchUi.TextArea) {
+            (drawable as WatchUi.TextArea).setText(text);
+            return;
+        }
+
+        if (drawable instanceof WatchUi.Text) {
+            (drawable as WatchUi.Text).setText(text);
+        }
     }
 }
 
@@ -365,7 +630,53 @@ class BiciRadarDetailDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
+    public function onOpenRoute() as Boolean {
+        return triggerOpenRoute();
+    }
+
+    public function onTap(clickEvent as WatchUi.ClickEvent) as Boolean {
+        if (_view.isTapInsideOpenRoute(clickEvent)) {
+            return triggerOpenRoute();
+        }
+
+        return false;
+    }
+
+    public function onKey(keyEvent as WatchUi.KeyEvent) as Boolean {
+        var key = keyEvent.getKey();
+        if (key == WatchUi.KEY_DOWN) {
+            return _view.scrollDetails(1);
+        } else if (key == WatchUi.KEY_UP) {
+            return _view.scrollDetails(-1);
+        }
+
+        return false;
+    }
+
+    public function onSwipe(swipeEvent as WatchUi.SwipeEvent) as Boolean {
+        var direction = swipeEvent.getDirection();
+        if (direction == WatchUi.SWIPE_UP) {
+            return _view.scrollDetails(1);
+        } else if (direction == WatchUi.SWIPE_DOWN) {
+            return _view.scrollDetails(-1);
+        }
+
+        return false;
+    }
+
+    public function onNextPage() as Boolean {
+        return _view.scrollDetails(1);
+    }
+
+    public function onPreviousPage() as Boolean {
+        return _view.scrollDetails(-1);
+    }
+
     public function onSelect() as Boolean {
+        return triggerOpenRoute();
+    }
+
+    private function triggerOpenRoute() as Boolean {
         if (BiciRadarApp.isDemoMode()) {
             WatchUi.showToast(WatchUi.loadResource($.Rez.Strings.ToastDemoNoPhone), null);
             return true;

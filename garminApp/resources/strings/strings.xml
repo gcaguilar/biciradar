@@ -16,7 +16,8 @@
     <string id="DetailEbikes">Ebikes</string>
     <string id="DetailDistance">Distance</string>
     <string id="DetailStatus">Status</string>
-    <string id="DetailSelectRoute">Select: open route</string>
+    <string id="DetailOpenRouteButton">Open route</string>
+    <string id="DetailSelectRouteHint">Press select</string>
     <string id="UpdatedNoData">Upd.: no data</string>
     <string id="UpdatedNow">Upd.: now</string>
     <string id="UpdatedOneMinute">Upd.: 1 min ago</string>
@@ -38,4 +39,5 @@
     <string id="MinuteAgo">min ago</string>
     <string id="MinutesAgo">min ago</string>
     <string id="Outdated">Outdated</string>
+    <string id="LayoutFamily">mid_large_round</string>
 </resources>

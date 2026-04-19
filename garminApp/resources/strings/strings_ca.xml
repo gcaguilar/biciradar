@@ -16,7 +16,8 @@
     <string id="DetailEbikes">Ebikes</string>
     <string id="DetailDistance">Distància</string>
     <string id="DetailStatus">Estat</string>
-    <string id="DetailSelectRoute">Select: obre ruta</string>
+    <string id="DetailOpenRouteButton">Obre ruta</string>
+    <string id="DetailSelectRouteHint">Prem select</string>
     <string id="UpdatedNoData">Act.: sense dades</string>
     <string id="UpdatedNow">Act.: ara</string>
     <string id="UpdatedOneMinute">Act.: fa 1 min</string>

@@ -47,56 +47,55 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
 
-      - name: Run Kotlin style checks
-        run: ./gradlew ktlintCheckAll
+       - name: Run Kotlin style checks
+         run: ./gradlew ktlintCheckAll
+ 
+       - name: Write Android Firebase config files
+         env:
+           GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
+           GOOGLE_SERVICES_JSON_WEAR: ${{ secrets.GOOGLE_SERVICES_JSON_WEAR }}
+           BIZI_CI_KEYSTORE_BASE64: ${{ secrets.BIZI_CI_KEYSTORE_BASE64 }}
+         run: |
+           if [[ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]]; then
+             printf '%s' "$GOOGLE_SERVICES_JSON_ANDROID" > androidApp/google-services.json
+           fi
+           if [[ -n "$GOOGLE_SERVICES_JSON_WEAR" ]]; then
+             printf '%s' "$GOOGLE_SERVICES_JSON_WEAR" > wearApp/google-services.json
+           fi
+           if [[ -n "$BIZI_CI_KEYSTORE_BASE64" ]]; then
+             printf '%s' "$BIZI_CI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bizi-ci.keystore"
+           fi
+ 
+       - name: Run Android unit tests
+         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+         env:
+           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
+           BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
+           BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
+           BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
+           BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
+         run: |
+           if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
+             echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
+           else
+             echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
+           fi
+           ./gradlew :shared:core:jvmTest :androidApp:testFdroidUnitTest
 
-      - name: Write Android Firebase config files
-        env:
-          GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
-          GOOGLE_SERVICES_JSON_WEAR: ${{ secrets.GOOGLE_SERVICES_JSON_WEAR }}
-          BIZI_CI_KEYSTORE_BASE64: ${{ secrets.BIZI_CI_KEYSTORE_BASE64 }}
-        run: |
-          if [[ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]]; then
-            printf '%s' "$GOOGLE_SERVICES_JSON_ANDROID" > androidApp/google-services.json
-          fi
-          if [[ -n "$GOOGLE_SERVICES_JSON_WEAR" ]]; then
-            printf '%s' "$GOOGLE_SERVICES_JSON_WEAR" > wearApp/google-services.json
-          fi
-          if [[ -n "$BIZI_CI_KEYSTORE_BASE64" ]]; then
-            printf '%s' "$BIZI_CI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bizi-ci.keystore"
-
-          fi
-
-      - name: Run Android unit tests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
-          BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
-          BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
-          BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
-          BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
-        run: |
-          if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
-            echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
-          else
-            echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
-          fi
-          ./gradlew :shared:core:jvmTest :androidApp:testDebugUnitTest
-
-      - name: Build Android debug apps
-        env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
-          BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
-          BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
-          BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
-          BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
-        run: |
-          if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
-            echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
-          else
-            echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
-          fi
-          ./gradlew :androidApp:assembleDebug :wearApp:assembleDebug
+       - name: Build Android F-Droid apps
+         env:
+           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
+           BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
+           BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
+           BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
+           BIZI_CI_KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
+         run: |
+           if [[ -z "$GOOGLE_MAPS_API_KEY" ]]; then
+             echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
+           else
+             echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
+           fi
+           ./gradlew :androidApp:assembleFdroidRelease :wearApp:assembleFdroidRelease
 
       - name: Upload Android debug APKs
         uses: actions/upload-artifact@v7.0.1

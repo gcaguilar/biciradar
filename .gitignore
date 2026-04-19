@@ -67,3 +67,11 @@ apple/watchApp/plan.md
 # VS Code settings (per-project)
 .garmin.vscode/
 garminApp/.vscode/settings.json
+
+.pycache/
+codex-skills/
+store/
+tooling/
+*.pen
+github-secrets.md
+dev/icerock/
