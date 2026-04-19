@@ -1,5 +1,0 @@
-appId: com.gcaguilar.biciradar.ios
----
-- assertVisible: "Cerca"
-- assertVisible: "Estaciones cercanas"
-- takeScreenshot: 03-nearby
