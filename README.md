@@ -53,6 +53,24 @@ End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 ./gradlew build
 ```
 
+### Build for F-Droid
+
+The Android and Wear apps define a dedicated `fdroid` flavor. Use it when you want builds without Play Store services or Firebase integration.
+
+Common commands:
+
+```bash
+./gradlew :androidApp:testFdroidDebugUnitTest :wearApp:testFdroidDebugUnitTest
+./gradlew :androidApp:assembleFdroidDebug :wearApp:assembleFdroidDebug
+./gradlew :androidApp:assembleFdroidRelease :wearApp:assembleFdroidRelease
+```
+
+Notes:
+
+- F-Droid builds do not require `androidApp/google-services.json` or `wearApp/google-services.json`.
+- The `fdroid` flavor uses separate application IDs via the `.fdroid` suffix.
+- Play Store publishing commands remain separate and use the `playstore` flavor.
+
 ### Quick smoke tests
 
 Unified script:
