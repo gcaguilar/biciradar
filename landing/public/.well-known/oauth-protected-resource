@@ -1,0 +1,11 @@
+{
+  "resource": "https://api.biciradar.com",
+  "authorization_servers": [
+    "https://auth.biciradar.com"
+  ],
+  "scopes_supported": [
+    "read:stations",
+    "read:availability",
+    "write:user-data"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://biciradar.com/api/",
+      "rel": [
+        "service-doc",
+        "service-desc",
+        "status"
+      ],
+      "href": "/api/docs",
+      "type": "text/html"
+    },
+    {
+      "anchor": "https://biciradar.com/api/",
+      "rel": [
+        "service-desc"
+      ],
+      "href": "/api/openapi.json",
+      "type": "application/openapi+json"
+    },
+    {
+      "anchor": "https://biciradar.com/api/",
+      "rel": [
+        "status"
+      ],
+      "href": "/api/health",
+      "type": "application/json"
+    }
+  ]
+}

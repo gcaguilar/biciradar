@@ -1,0 +1,61 @@
+{
+  "$schema": "https://agent-skills.io/schema/v0.2.0/index.json",
+  "skills": [
+    {
+      "name": "link-headers",
+      "type": "agent-skill",
+      "description": "Include Link response headers for agent discovery (RFC 8288)",
+      "url": "/.well-known/agent-skills/link-headers/SKILL.md",
+      "sha256": "placeholder-sha256-for-link-headers"
+    },
+    {
+      "name": "markdown-negotiation",
+      "type": "agent-skill",
+      "description": "Return HTML responses as markdown when agents request it",
+      "url": "/.well-known/agent-skills/markdown-negotiation/SKILL.md",
+      "sha256": "placeholder-sha256-for-markdown-negotiation"
+    },
+    {
+      "name": "content-signals",
+      "type": "agent-skill",
+      "description": "Declare AI content usage preferences with Content Signals in robots.txt",
+      "url": "/.well-known/agent-skills/content-signals/SKILL.md",
+      "sha256": "placeholder-sha256-for-content-signals"
+    },
+    {
+      "name": "api-catalog",
+      "type": "agent-skill",
+      "description": "Publish an API catalog for automated API discovery (RFC 9727)",
+      "url": "/.well-known/agent-skills/api-catalog/SKILL.md",
+      "sha256": "placeholder-sha256-for-api-catalog"
+    },
+    {
+      "name": "oauth-discovery",
+      "type": "agent-skill",
+      "description": "Publish OAuth/OIDC discovery metadata so agents can authenticate with your APIs",
+      "url": "/.well-known/agent-skills/oauth-discovery/SKILL.md",
+      "sha256": "placeholder-sha256-for-oauth-discovery"
+    },
+    {
+      "name": "oauth-protected-resource",
+      "type": "agent-skill",
+      "description": "Publish OAuth Protected Resource Metadata so agents can discover how to authenticate",
+      "url": "/.well-known/agent-skills/oauth-protected-resource/SKILL.md",
+      "sha256": "placeholder-sha256-for-oauth-protected-resource"
+    },
+    {
+      "name": "mcp-server-card",
+      "type": "agent-skill",
+      "description": "Publish an MCP Server Card for agent discovery",
+      "url": "/.well-known/agent-skills/mcp-server-card/SKILL.md",
+      "sha256": "placeholder-sha256-for-mcp-server-card"
+    },
+    {
+      "name": "agent-skills",
+      "type": "agent-skill",
+      "description": "Publish an agent skills discovery index",
+      "url": "/.well-known/agent-skills/index.json",
+      "sha256": "placeholder-sha256-for-agent-skills-index"
+    }
+  ]
+}
