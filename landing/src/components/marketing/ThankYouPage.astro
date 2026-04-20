@@ -4,6 +4,7 @@ import PageHeader from './PageHeader.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
 import { appStoreUrlForLocale, playStoreUrlForLocale } from '../../lib/site-config';
+import { resolveSiteUrl } from '../../utils/site';
 import Icon from '../Icon.astro';
 
 interface LanguageLink {
@@ -29,12 +30,11 @@ interface Props {
 }
 
 const { content, languageLinks, homeHref, betaHref, cityLinks } = Astro.props;
-
 const thankYouCopy = content.thankYou;
 const appStoreHref = appStoreUrlForLocale(content.locale);
 const playStoreHref = playStoreUrlForLocale(content.locale);
----
 
+---
 <PageHeader
   siteName={content.metadata.siteName}
   homeHref={homeHref}
@@ -184,7 +184,8 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
     });
   })();
 </script>
-<script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback }}>
+
+<script is:inline define:vars={{ fallbackMessage: content.common.thankYouShareFallback, siteUrl: resolveSiteUrl(Astro.site) }}>
   (() => {
     const button = document.querySelector('[data-share-button]');
     if (!(button instanceof HTMLButtonElement)) return;
@@ -193,7 +194,7 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
       const shareData = {
         title: document.title,
         text: document.title,
-        url: window.location.origin,
+        url: siteUrl,
       };
 
       try {
@@ -202,13 +203,13 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
           return;
         }
 
-        await navigator.clipboard.writeText(window.location.origin);
+        await navigator.clipboard.writeText(siteUrl);
         alert(fallbackMessage);
       } catch (error) {
         console.error(error);
       }
     });
-  })();
+  });
 </script>
 
 <AnalyticsScripts locale={content.locale} pageKind="thank-you" />
