@@ -399,7 +399,7 @@ class BiciRadarDetailView extends WatchUi.View {
         var secondaryFont = Graphics.FONT_XTINY;
         var secondaryFontHeight = Graphics.getFontHeight(secondaryFont);
         var metricBaseY = profile.detailBodyStartY + numberHeight + secondaryFontHeight + 10;
-        var metricLineStep = bodyFontHeight + 3;
+        var metricLineStep = profile.detailLineSpacing;
         var visibleMetricCount = visibleMetricLineCount(profile);
         var minimumButtonY = metricBaseY + (metricLineStep * visibleMetricCount) + 6;
         if (buttonY < minimumButtonY) {
@@ -422,9 +422,9 @@ class BiciRadarDetailView extends WatchUi.View {
         if (profile.family == "small_round") {
             bikesLabelY = profile.detailBodyStartY + numberHeight - 4;
             metricLine1Y = bikesLabelY + secondaryFontHeight + 2;
-            metricLine2Y = metricLine1Y + bodyFontHeight;
-            metricLine3Y = metricLine2Y + bodyFontHeight;
-            metricLine4Y = metricLine3Y + bodyFontHeight;
+            metricLine2Y = metricLine1Y + profile.detailLineSpacing;
+            metricLine3Y = metricLine2Y + profile.detailLineSpacing;
+            metricLine4Y = metricLine3Y + profile.detailLineSpacing;
         }
 
         var titleText = new WatchUi.Text({
