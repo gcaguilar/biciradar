@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,7 +64,7 @@ private val WearNeutral = Color(0xFF64779D)
 private val WearError = Color(0xFFCF6679)
 private val WearSurface = Color(0xFF1A1A2E)
 private val WearOnSurface = Color(0xFFE8EDF4)
-private const val WearLargeFontScale = 1.2f
+private const val WEAR_LARGE_FONT_SCALE = 1.2f
 
 @Composable
 internal fun WearRoot(
@@ -250,7 +249,7 @@ private fun WearDashboard(
   onRouteToSavedPlace: (String) -> Unit,
   onStopMonitoring: () -> Unit,
 ) {
-  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
+  val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
   val nearbyStations = stations.take(8)
   val favoriteStations =
     sortWearFavoriteStations(
@@ -540,7 +539,7 @@ private fun WearFavoriteSurfaceCard(
   state: WearFavoriteSurfaceState,
   onClick: () -> Unit,
 ) {
-  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
+  val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
   Card(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
     onClick = onClick,
@@ -606,7 +605,7 @@ private fun WearMonitoringSurfaceCard(
   state: WearMonitoringSurfaceState,
   onClick: () -> Unit,
 ) {
-  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
+  val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
   Card(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
     onClick = onClick,
@@ -722,7 +721,7 @@ private fun WearStationDetail(
   onRoute: () -> Unit,
   onRouteInPhone: () -> Unit,
 ) {
-  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
+  val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
   val listState = rememberScalingLazyListState()
   val isMonitoringThisStation = currentMonitoring?.stationId == station.id && currentMonitoring.isActive
   val monitoringActionLabel =
