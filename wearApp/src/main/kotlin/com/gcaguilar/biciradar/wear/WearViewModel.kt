@@ -1,10 +1,13 @@
 package com.gcaguilar.biciradar.wear
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.BootstrapSession
 import com.gcaguilar.biciradar.core.FindStationById
+import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.ObserveFavorites
 import com.gcaguilar.biciradar.core.ObserveStationsState
 import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
@@ -33,6 +36,8 @@ internal data class WearRootUiState(
   val stations: List<Station> = emptyList(),
   val isLoading: Boolean = false,
   val errorMessage: String? = null,
+  val feedbackMessage: String? = null,
+  val feedbackNonce: Int = 0,
   val favoriteIds: Set<String> = emptySet(),
   val homeStationId: String? = null,
   val workStationId: String? = null,
@@ -40,6 +45,8 @@ internal data class WearRootUiState(
   val activeMonitoring: SurfaceMonitoringSession? = null,
   val selectedStationId: String? = null,
   val currentTab: WearTab = WearTab.Cercanas,
+  val canRouteOnWatch: Boolean = false,
+  val canRouteInPhone: Boolean = false,
 )
 
 internal class WearViewModel(
@@ -72,8 +79,12 @@ internal class WearViewModel(
   private var latestWorkStationId: String? = null
   private var latestSurfaceBundle: SurfaceSnapshotBundle? = null
   private var latestActiveMonitoring: SurfaceMonitoringSession? = null
+  private var latestFeedbackMessage: String? = null
+  private var latestFeedbackNonce: Int = 0
   private var selectedStationId: String? = null
   private var currentTab: WearTab = WearTab.Cercanas
+  private var canRouteOnWatch: Boolean = canLaunchWatchRoute()
+  private var canRouteInPhone: Boolean = phoneRouteRequester.isRouteAvailable()
 
   init {
     viewModelScope.launch {
@@ -227,17 +238,32 @@ internal class WearViewModel(
   }
 
   fun onRoute(stationId: String) {
-    findStationById.execute(stationId)?.let(routeLauncher::launch)
+    val station = findStationById.execute(stationId) ?: return
+    if (!canRouteOnWatch) {
+      emitFeedback("No hay una app de mapas disponible en este reloj")
+      return
+    }
+    routeLauncher.launch(station)
   }
 
   fun onRouteInPhone(stationId: String) {
     viewModelScope.launch {
+      if (!canRouteInPhone) {
+        emitFeedback("Abre BiciRadar en el móvil para activar esta ruta")
+        return@launch
+      }
       val requested = phoneRouteRequester.requestRoute(stationId)
       if (!requested) {
-        latestErrorMessage = "No se pudo abrir la ruta en el teléfono"
+        canRouteInPhone = phoneRouteRequester.isRouteAvailable()
+        emitFeedback("No se pudo abrir la ruta en el teléfono")
         publishUiState()
       }
     }
+  }
+
+  fun onFeedbackConsumed() {
+    latestFeedbackMessage = null
+    publishUiState()
   }
 
   private fun publishUiState() {
@@ -246,6 +272,8 @@ internal class WearViewModel(
         stations = latestStations,
         isLoading = latestIsLoading,
         errorMessage = latestErrorMessage,
+        feedbackMessage = latestFeedbackMessage,
+        feedbackNonce = latestFeedbackNonce,
         favoriteIds = latestFavoriteIds,
         homeStationId = latestHomeStationId,
         workStationId = latestWorkStationId,
@@ -253,6 +281,8 @@ internal class WearViewModel(
         activeMonitoring = latestActiveMonitoring,
         selectedStationId = selectedStationId,
         currentTab = currentTab,
+        canRouteOnWatch = canRouteOnWatch,
+        canRouteInPhone = canRouteInPhone,
       )
   }
 
@@ -261,6 +291,8 @@ internal class WearViewModel(
     forceRefresh: Boolean = false,
   ) {
     syncFavoritesFromPeer.execute()
+    canRouteOnWatch = canLaunchWatchRoute()
+    canRouteInPhone = phoneRouteRequester.isRouteAvailable()
     if (forceRefresh) {
       refreshStationDataIfNeeded.execute(forceRefresh = true)
     } else {
@@ -272,6 +304,43 @@ internal class WearViewModel(
     }
     FavoriteStationTileService.requestUpdate(context)
     NearbyStationsTileService.requestUpdate(context)
+    publishUiState()
+  }
+
+  private fun emitFeedback(message: String) {
+    latestFeedbackMessage = message
+    latestFeedbackNonce += 1
+    publishUiState()
+  }
+
+  private fun canLaunchWatchRoute(): Boolean =
+    hasActivityForNavigation(
+      googleNavigationUri(destination = FALLBACK_ROUTE_DESTINATION, mode = "w"),
+      packageName = GOOGLE_MAPS_PACKAGE,
+    ) || hasActivityForNavigation(geoFallbackUri(destination = FALLBACK_ROUTE_DESTINATION))
+
+  private fun hasActivityForNavigation(
+    uri: Uri,
+    packageName: String? = null,
+  ): Boolean {
+    val intent =
+      Intent(Intent.ACTION_VIEW, uri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        packageName?.let(::setPackage)
+      }
+    return intent.resolveActivity(appContext.packageManager) != null
+  }
+
+  private fun googleNavigationUri(
+    destination: GeoPoint,
+    mode: String,
+  ): Uri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode")
+
+  private fun geoFallbackUri(destination: GeoPoint): Uri = Uri.parse("geo:${destination.latitude},${destination.longitude}")
+
+  private companion object {
+    const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
+    val FALLBACK_ROUTE_DESTINATION = GeoPoint(latitude = 41.6488, longitude = -0.8891)
   }
 }
 

@@ -12,6 +12,12 @@ class WearPhoneRouteRequester(
       delegateClass.getConstructor(Context::class.java).newInstance(context.applicationContext)
     }.getOrNull()
 
+  fun isRouteAvailable(): Boolean =
+    runCatching {
+      val method = delegate?.javaClass?.getMethod("isRouteAvailable") ?: return false
+      method.invoke(delegate) as? Boolean ?: false
+    }.getOrDefault(false)
+
   suspend fun requestRoute(stationId: String): Boolean =
     runCatching {
       val method = delegate?.javaClass?.getMethod("requestRoute", String::class.java) ?: return false

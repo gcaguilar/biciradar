@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.widget.Toast
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -93,6 +94,12 @@ internal fun WearRoot(
     viewModel.onLaunchStationRequested(launchStationId)
   }
 
+  LaunchedEffect(uiState.feedbackNonce) {
+    val message = uiState.feedbackMessage ?: return@LaunchedEffect
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    viewModel.onFeedbackConsumed()
+  }
+
   MaterialTheme {
     Box(
       modifier = Modifier.fillMaxSize().background(Color.Black),
@@ -115,8 +122,8 @@ internal fun WearRoot(
             onBack = viewModel::onBackFromStationDetail,
             onToggleFavorite = { viewModel.onToggleFavorite(selectedStation.id) },
             onToggleMonitoring = { viewModel.onToggleMonitoring(selectedStation.id) },
-            onRoute = { viewModel.onRoute(selectedStation.id) },
-            onRouteInPhone = { viewModel.onRouteInPhone(selectedStation.id) },
+            onRoute = uiState.canRouteOnWatch.takeIf { it }?.let { { viewModel.onRoute(selectedStation.id) } },
+            onRouteInPhone = uiState.canRouteInPhone.takeIf { it }?.let { { viewModel.onRouteInPhone(selectedStation.id) } },
           )
 
         uiState.isLoading ->
@@ -718,8 +725,8 @@ private fun WearStationDetail(
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onToggleMonitoring: () -> Unit,
-  onRoute: () -> Unit,
-  onRouteInPhone: () -> Unit,
+  onRoute: (() -> Unit)?,
+  onRouteInPhone: (() -> Unit)?,
 ) {
   val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
   val listState = rememberScalingLazyListState()
@@ -801,22 +808,26 @@ private fun WearStationDetail(
           )
         }
       }
-      item {
-        Button(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-          onClick = onRoute,
-          colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
-        ) {
-          WearButtonLabel(text = "Abrir ruta", color = Color.White)
+      onRoute?.let { routeAction ->
+        item {
+          Button(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            onClick = routeAction,
+            colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
+          ) {
+            WearButtonLabel(text = "Abrir ruta", color = Color.White)
+          }
         }
       }
-      item {
-        Button(
-          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-          onClick = onRouteInPhone,
-          colors = ButtonDefaults.buttonColors(containerColor = WearSecondary),
-        ) {
-          WearButtonLabel(text = "Ruta en teléfono", color = Color.White)
+      onRouteInPhone?.let { routeInPhoneAction ->
+        item {
+          Button(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            onClick = routeInPhoneAction,
+            colors = ButtonDefaults.buttonColors(containerColor = WearSecondary),
+          ) {
+            WearButtonLabel(text = "Ruta en teléfono", color = Color.White)
+          }
         }
       }
       item {

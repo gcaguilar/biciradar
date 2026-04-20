@@ -86,7 +86,7 @@ class WearStationPresentationTest {
 
     assertEquals(WearFavoriteSurfaceKind.ConfigureFavorite, state.kind)
     assertEquals("Sin favorita", state.title)
-    assertEquals("Configúrala en la app", state.supportingText)
+    assertEquals("Marca una estación como favorita", state.supportingText)
   }
 
   @Test
@@ -139,7 +139,7 @@ class WearStationPresentationTest {
 
     assertEquals("Sin favorita", state.title)
     assertEquals("Zaragoza", state.label)
-    assertEquals("Configúrala en la app", state.body)
+    assertEquals("Marca una estación como favorita", state.body)
     assertNull(state.stationId)
   }
 

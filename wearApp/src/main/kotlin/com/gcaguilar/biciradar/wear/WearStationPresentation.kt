@@ -109,14 +109,14 @@ internal fun wearFavoriteSurfaceState(
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.ConfigureFavorite,
         title = "Sin favorita",
-        supportingText = "Configúrala en la app",
+        supportingText = "Marca una estación como favorita",
       )
 
     snapshot?.state?.isDataFresh == false ->
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.OpenAppToRefresh,
-        title = "Datos stale",
-        supportingText = "Abre la app para actualizar",
+        title = "Actualiza datos",
+        supportingText = "Pulsa actualizar en el reloj",
       )
 
     else ->
