@@ -1,34 +1,20 @@
 package com.gcaguilar.biciradar.wear
 
 import android.content.Context
-import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.Wearable
-import kotlinx.coroutines.tasks.await
 
 class WearPhoneRouteRequester(
   context: Context,
 ) {
-  private val appContext = context.applicationContext
-  private val capabilityClient by lazy(LazyThreadSafetyMode.NONE) { Wearable.getCapabilityClient(appContext) }
-  private val messageClient by lazy(LazyThreadSafetyMode.NONE) { Wearable.getMessageClient(appContext) }
+  private val delegate =
+    runCatching {
+      val delegateClass =
+        Class.forName("com.gcaguilar.biciradar.wear.PlaystoreWearPhoneRouteRequesterDelegate")
+      delegateClass.getConstructor(Context::class.java).newInstance(context.applicationContext)
+    }.getOrNull()
 
-  suspend fun requestRoute(stationId: String): Boolean {
-    val capabilityInfo =
-      runCatching {
-        capabilityClient
-          .getCapability(PHONE_ROUTE_CAPABILITY, CapabilityClient.FILTER_REACHABLE)
-          .await()
-      }.getOrNull() ?: return false
-
-    val nodeId = capabilityInfo.nodes.firstOrNull()?.id ?: return false
-    return runCatching {
-      messageClient.sendMessage(nodeId, ROUTE_TO_STATION_PATH, stationId.encodeToByteArray()).await()
-      true
+  suspend fun requestRoute(stationId: String): Boolean =
+    runCatching {
+      val method = delegate?.javaClass?.getMethod("requestRoute", String::class.java) ?: return false
+      method.invoke(delegate, stationId) as? Boolean ?: false
     }.getOrDefault(false)
-  }
-
-  companion object {
-    const val PHONE_ROUTE_CAPABILITY = "biciradar_phone_route"
-    const val ROUTE_TO_STATION_PATH = "/bici/route-to-station"
-  }
 }

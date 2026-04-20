@@ -55,17 +55,6 @@
             android:name="com.gcaguilar.biciradar.TripMonitorService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
-        <service
-            android:name="com.gcaguilar.biciradar.WearRouteMessageService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data
-                    android:scheme="wear"
-                    android:host="*"
-                    android:pathPrefix="/bici/route-to-station" />
-            </intent-filter>
-        </service>
         <receiver
             android:name="com.gcaguilar.biciradar.AllFavoritesWidgetReceiver"
             android:exported="true">

@@ -40,6 +40,8 @@ interface AssistantIntentResolver {
 }
 
 interface WatchSyncBridge {
+  fun bindOnRemoteFavoritesChanged(listener: suspend () -> Unit) = Unit
+
   suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot)
 
   suspend fun latestFavorites(): FavoritesSyncSnapshot?

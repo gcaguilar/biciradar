@@ -1,0 +1,16 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    
+    <application>
+        <!-- Remove the meta-data for Google Maps API key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            tools:node="remove" />
+        
+        <!-- Remove uses-library for Apache HTTP legacy (required by Maps SDK) -->
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false"
+            tools:node="remove" />
+    </application>
+</manifest>
