@@ -45,7 +45,9 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Make Gradle wrapper executable
-        run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
+        run: |
+          chmod +x gradlew
+          find tooling/generic-mobile-ci -maxdepth 1 -type f -name '*.sh' -exec chmod +x {} +
 
       - name: Run Kotlin style checks
         run: ./gradlew ktlintCheckAll
@@ -151,7 +153,9 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Make scripts executable
-        run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
+        run: |
+          chmod +x gradlew
+          find tooling/generic-mobile-ci -maxdepth 1 -type f -name '*.sh' -exec chmod +x {} +
 
       - name: Write iOS secrets
         env:
@@ -224,7 +228,9 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Make scripts executable
-        run: chmod +x gradlew tooling/generic-mobile-ci/*.sh
+        run: |
+          chmod +x gradlew
+          find tooling/generic-mobile-ci -maxdepth 1 -type f -name '*.sh' -exec chmod +x {} +
 
       - name: Resolve watchOS simulator destination
         run: |
