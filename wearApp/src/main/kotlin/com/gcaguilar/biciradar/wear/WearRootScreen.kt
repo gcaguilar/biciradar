@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -63,6 +65,7 @@ private val WearNeutral = Color(0xFF64779D)
 private val WearError = Color(0xFFCF6679)
 private val WearSurface = Color(0xFF1A1A2E)
 private val WearOnSurface = Color(0xFFE8EDF4)
+private const val WearLargeFontScale = 1.2f
 
 @Composable
 internal fun WearRoot(
@@ -194,6 +197,7 @@ private fun WearScreenshotDashboard() {
     )
     WearSavedPlaceSurfaceCard(
       state = sampleWearSavedPlaceSurface,
+      hasLargeFont = false,
       onClick = {},
     )
   }
@@ -224,7 +228,7 @@ private fun WearScreenshotMonitoring() {
       onClick = {},
       colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
     ) {
-      Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+      WearButtonLabel(text = "Abrir alternativa", color = WearNeutral)
     }
   }
 }
@@ -246,6 +250,7 @@ private fun WearDashboard(
   onRouteToSavedPlace: (String) -> Unit,
   onStopMonitoring: () -> Unit,
 ) {
+  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
   val nearbyStations = stations.take(8)
   val favoriteStations =
     sortWearFavoriteStations(
@@ -285,7 +290,7 @@ private fun WearDashboard(
                 onClick = { onOpenSurfaceStation(alternativeStationId) },
                 colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
               ) {
-                Text("Abrir alternativa", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+                WearButtonLabel(text = "Abrir alternativa", color = WearNeutral)
               }
             }
           }
@@ -296,7 +301,7 @@ private fun WearDashboard(
             onClick = onStopMonitoring,
             colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
           ) {
-            Text("Detener monitorización", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+            WearButtonLabel(text = "Detener monitorización", color = WearNeutral)
           }
         }
       }
@@ -318,7 +323,7 @@ private fun WearDashboard(
             onClick = { onStartMonitoringFavorite(favoriteSurface.stationId) },
             colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
           ) {
-            Text("Monitorizar favorita", style = MaterialTheme.typography.labelSmall, color = Color.White)
+            WearButtonLabel(text = "Monitorizar favorita", color = Color.White)
           }
         }
       }
@@ -336,29 +341,30 @@ private fun WearDashboard(
         items(savedPlaceSurfaces, key = { it.stationId }) { savedPlace ->
           WearSavedPlaceSurfaceCard(
             state = savedPlace,
+            hasLargeFont = hasLargeFont,
             onClick = { onRouteToSavedPlace(savedPlace.stationId) },
           )
         }
       }
 
       item {
-        Row(
+        FlowRow(
           modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
           horizontalArrangement = Arrangement.spacedBy(4.dp),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
           WearTab.entries.forEach { tab ->
             val isSelected = currentTab == tab
             Button(
-              modifier = Modifier.weight(1f),
+              modifier = if (hasLargeFont) Modifier.fillMaxWidth() else Modifier.weight(1f),
               onClick = { onTabSelected(tab) },
               colors =
                 ButtonDefaults.buttonColors(
                   containerColor = if (isSelected) WearPrimary else WearSurface,
                 ),
             ) {
-              Text(
+              WearButtonLabel(
                 text = tab.name,
-                style = MaterialTheme.typography.labelSmall,
                 color = WearOnSurface,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
               )
@@ -391,6 +397,7 @@ private fun WearDashboard(
         items(displayedStations, key = { it.id }) { station ->
           WearStationRow(
             station = station,
+            hasLargeFont = hasLargeFont,
             isFavorite = station.id in favoriteIds,
             savedPlaceLabel = wearSavedPlaceLabel(station.id, homeStationId, workStationId),
             onClick = { onStationSelected(station) },
@@ -404,7 +411,7 @@ private fun WearDashboard(
           onClick = onRefresh,
           colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
         ) {
-          Text("↻  Actualizar", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+          WearButtonLabel(text = "↻  Actualizar", color = WearNeutral)
         }
       }
     }
@@ -431,6 +438,7 @@ private fun WearAvailabilityDot(available: Int) {
 @Composable
 private fun WearStationRow(
   station: Station,
+  hasLargeFont: Boolean,
   isFavorite: Boolean,
   savedPlaceLabel: String?,
   onClick: () -> Unit,
@@ -444,14 +452,14 @@ private fun WearStationRow(
         text = if (isFavorite) "★ ${station.name}" else station.name,
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.SemiBold,
-        maxLines = 1,
+        maxLines = if (hasLargeFont) 3 else 2,
         overflow = TextOverflow.Ellipsis,
         color = WearOnSurface,
       )
       Spacer(Modifier.height(4.dp))
-      Row(
+      FlowRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         WearAvailabilityDot(available = station.bikesAvailable)
         Text(
@@ -465,9 +473,9 @@ private fun WearStationRow(
         }
       }
       Spacer(Modifier.height(4.dp))
-      Row(
+      FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         WearChip(label = formatDistance(station.distanceMeters), color = WearNeutral)
         WearChip(label = "🚲 ${station.bikesAvailable}", color = WearPrimary)
@@ -532,6 +540,7 @@ private fun WearFavoriteSurfaceCard(
   state: WearFavoriteSurfaceState,
   onClick: () -> Unit,
 ) {
+  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
   Card(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
     onClick = onClick,
@@ -548,7 +557,7 @@ private fun WearFavoriteSurfaceCard(
         text = state.title,
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.SemiBold,
-        maxLines = 2,
+        maxLines = if (hasLargeFont) 3 else 2,
         overflow = TextOverflow.Ellipsis,
         color = WearOnSurface,
       )
@@ -571,9 +580,9 @@ private fun WearFavoriteSurfaceCard(
             )
           }
           Spacer(Modifier.height(4.dp))
-          Row(
+          FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
           ) {
             state.bikesLabel?.let { WearChip(label = it, color = WearPrimary) }
             state.docksLabel?.let { WearChip(label = it, color = WearSecondary) }
@@ -597,6 +606,7 @@ private fun WearMonitoringSurfaceCard(
   state: WearMonitoringSurfaceState,
   onClick: () -> Unit,
 ) {
+  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
   Card(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
     onClick = onClick,
@@ -613,7 +623,7 @@ private fun WearMonitoringSurfaceCard(
         text = state.title,
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.SemiBold,
-        maxLines = 2,
+        maxLines = if (hasLargeFont) 3 else 2,
         overflow = TextOverflow.Ellipsis,
         color = WearOnSurface,
       )
@@ -630,9 +640,9 @@ private fun WearMonitoringSurfaceCard(
         color = WearNeutral,
       )
       Spacer(Modifier.height(4.dp))
-      Row(
+      FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         WearChip(label = state.bikesLabel, color = WearPrimary)
         WearChip(label = state.docksLabel, color = WearSecondary)
@@ -652,6 +662,7 @@ private fun WearMonitoringSurfaceCard(
 @Composable
 private fun WearSavedPlaceSurfaceCard(
   state: WearSavedPlaceSurfaceState,
+  hasLargeFont: Boolean,
   onClick: () -> Unit,
 ) {
   Card(
@@ -659,9 +670,9 @@ private fun WearSavedPlaceSurfaceCard(
     onClick = onClick,
   ) {
     Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-      Row(
+      FlowRow(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         WearChip(label = state.label, color = WearNeutral)
         Text(
@@ -676,7 +687,7 @@ private fun WearSavedPlaceSurfaceCard(
         text = state.title,
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.SemiBold,
-        maxLines = 2,
+        maxLines = if (hasLargeFont) 3 else 2,
         overflow = TextOverflow.Ellipsis,
         color = WearOnSurface,
       )
@@ -688,9 +699,9 @@ private fun WearSavedPlaceSurfaceCard(
         fontWeight = FontWeight.SemiBold,
       )
       Spacer(Modifier.height(4.dp))
-      Row(
+      FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         WearChip(label = state.bikesLabel, color = WearPrimary)
         WearChip(label = state.docksLabel, color = WearSecondary)
@@ -711,6 +722,7 @@ private fun WearStationDetail(
   onRoute: () -> Unit,
   onRouteInPhone: () -> Unit,
 ) {
+  val hasLargeFont = LocalDensity.current.fontScale >= WearLargeFontScale
   val listState = rememberScalingLazyListState()
   val isMonitoringThisStation = currentMonitoring?.stationId == station.id && currentMonitoring.isActive
   val monitoringActionLabel =
@@ -733,6 +745,8 @@ private fun WearStationDetail(
           fontWeight = FontWeight.Bold,
           textAlign = TextAlign.Center,
           color = WearOnSurface,
+          maxLines = if (hasLargeFont) 4 else 3,
+          overflow = TextOverflow.Ellipsis,
           modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         )
       }
@@ -742,6 +756,8 @@ private fun WearStationDetail(
           style = MaterialTheme.typography.bodySmall,
           color = WearNeutral,
           textAlign = TextAlign.Center,
+          maxLines = if (hasLargeFont) 4 else 3,
+          overflow = TextOverflow.Ellipsis,
           modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         )
       }
@@ -769,8 +785,9 @@ private fun WearStationDetail(
         )
       }
       item {
-        Row(
+        FlowRow(
           horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
           modifier = Modifier.padding(vertical = 4.dp),
         ) {
           WearStatBadge(
@@ -791,7 +808,7 @@ private fun WearStationDetail(
           onClick = onRoute,
           colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
         ) {
-          Text("Abrir ruta", style = MaterialTheme.typography.labelSmall, color = Color.White)
+          WearButtonLabel(text = "Abrir ruta", color = Color.White)
         }
       }
       item {
@@ -800,7 +817,7 @@ private fun WearStationDetail(
           onClick = onRouteInPhone,
           colors = ButtonDefaults.buttonColors(containerColor = WearSecondary),
         ) {
-          Text("Ruta en teléfono", style = MaterialTheme.typography.labelSmall, color = Color.White)
+          WearButtonLabel(text = "Ruta en teléfono", color = Color.White)
         }
       }
       item {
@@ -812,9 +829,8 @@ private fun WearStationDetail(
               containerColor = if (isMonitoringThisStation) WearSurface else WearPrimary,
             ),
         ) {
-          Text(
+          WearButtonLabel(
             text = monitoringActionLabel,
-            style = MaterialTheme.typography.labelSmall,
             color = if (isMonitoringThisStation) WearNeutral else Color.White,
           )
         }
@@ -828,9 +844,8 @@ private fun WearStationDetail(
               containerColor = if (isFavorite) WearSurface else WearSecondary.copy(alpha = 0.25f),
             ),
         ) {
-          Text(
+          WearButtonLabel(
             text = if (isFavorite) "★ Quitar favorita" else "☆ Añadir favorita",
-            style = MaterialTheme.typography.labelSmall,
             color = if (isFavorite) WearNeutral else WearSecondary,
           )
         }
@@ -841,11 +856,29 @@ private fun WearStationDetail(
           onClick = onBack,
           colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
         ) {
-          Text("← Volver", style = MaterialTheme.typography.labelSmall, color = WearNeutral)
+          WearButtonLabel(text = "← Volver", color = WearNeutral)
         }
       }
     }
   }
+}
+
+@Composable
+private fun WearButtonLabel(
+  text: String,
+  color: Color,
+  fontWeight: FontWeight = FontWeight.Medium,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.labelSmall,
+    color = color,
+    fontWeight = fontWeight,
+    textAlign = TextAlign.Center,
+    maxLines = 2,
+    overflow = TextOverflow.Ellipsis,
+    modifier = Modifier.fillMaxWidth(),
+  )
 }
 
 private fun wearStatusColor(level: SurfaceStatusLevel): Color =
@@ -879,7 +912,7 @@ private fun WearErrorScreen(
       onClick = onRetry,
       colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
     ) {
-      Text("Reintentar", color = Color.White)
+      WearButtonLabel(text = "Reintentar", color = Color.White)
     }
   }
 }

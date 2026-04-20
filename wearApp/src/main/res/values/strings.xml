@@ -9,5 +9,5 @@
     <string name="shortcut_favorite">Favorita</string>
     <string name="shortcut_favorite_long">Mi estación favorita</string>
     <string name="complication_station_name">Estación</string>
-    <string name="complication_station_description">Muestra la estación más cercana</string>
+    <string name="complication_station_description">Muestra el estado de tu estación favorita</string>
 </resources>
