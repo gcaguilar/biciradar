@@ -82,9 +82,9 @@ jobs:
           else
             echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
           fi
-          ./gradlew :shared:core:jvmTest :shared:mobile-ui:allTests :androidApp:testFdroidDebugUnitTest :wearApp:testFdroidDebugUnitTest
+          ./gradlew :shared:core:jvmTest :shared:mobile-ui:allTests :androidApp:testPlaystoreDebugUnitTest :wearApp:testPlaystoreDebugUnitTest
 
-      - name: Build Android F-Droid apps
+      - name: Build Android Play Store apps
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
           BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
@@ -97,16 +97,7 @@ jobs:
           else
             echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
           fi
-          ./gradlew :androidApp:assembleFdroidRelease :wearApp:assembleFdroidRelease
-
-      - name: Upload Android F-Droid release APKs
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: android-fdroid-release-apks
-          if-no-files-found: error
-          path: |
-            androidApp/build/outputs/apk/fdroid/release/*.apk
-            wearApp/build/outputs/apk/fdroid/release/*.apk
+          ./gradlew :androidApp:assemblePlaystoreRelease :wearApp:assemblePlaystoreRelease
 
       - name: Upload Android test reports on failure
         if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
