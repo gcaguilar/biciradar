@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Bici Radar Wear</string>
+    <string name="tile_favorite_label">Gogokoa</string>
+    <string name="tile_favorite_description">Gogoko geltokiaren laburpena</string>
+    <string name="tile_nearby_label">Gertukoak</string>
+    <string name="tile_nearby_description">Gertuen dauden geltokien zerrenda</string>
+    <string name="shortcut_nearest_station">Hurbilena</string>
+    <string name="shortcut_nearest_station_long">Gertuen dagoen geltokia</string>
+    <string name="shortcut_favorite">Gogokoa</string>
+    <string name="shortcut_favorite_long">Nire gogoko geltokia</string>
+    <string name="complication_station_name">Geltokia</string>
+    <string name="complication_station_description">Zure gogoko geltokiaren egoera erakusten du</string>
 </resources>

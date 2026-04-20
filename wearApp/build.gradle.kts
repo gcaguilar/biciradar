@@ -30,6 +30,24 @@ val firebaseCrashlyticsEnabled =
         requestedTasks.contains("playstore")
     )
 
+val wearCiKeystorePath =
+  project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+    ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+val wearCiKeystorePassword =
+  project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+    ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+val wearCiKeyAlias =
+  project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+    ?: System.getenv("BIZI_CI_KEY_ALIAS")
+val wearCiKeyPassword =
+  project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+    ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+val hasWearCiSigning =
+  wearCiKeystorePath != null &&
+    wearCiKeystorePassword != null &&
+    wearCiKeyAlias != null &&
+    wearCiKeyPassword != null
+
 if (firebaseCrashlyticsEnabled) {
   apply(plugin = "com.google.gms.google-services")
   apply(plugin = "com.google.firebase.crashlytics")
@@ -81,24 +99,11 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath =
-        project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
-          ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
-      val keystorePassword =
-        project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
-          ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-      val keyAliasEnv =
-        project.findProperty("BIZI_CI_KEY_ALIAS") as? String
-          ?: System.getenv("BIZI_CI_KEY_ALIAS")
-      val keyPassword =
-        project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
-          ?: System.getenv("BIZI_CI_KEY_PASSWORD")
-
-      if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
-        storeFile = file(keystorePath)
-        storePassword = keystorePassword
-        keyAlias = keyAliasEnv
-        this.keyPassword = keyPassword
+      if (hasWearCiSigning) {
+        storeFile = file(wearCiKeystorePath!!)
+        storePassword = wearCiKeystorePassword
+        keyAlias = wearCiKeyAlias
+        this.keyPassword = wearCiKeyPassword
       }
     }
   }
@@ -111,7 +116,9 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-      signingConfig = signingConfigs.getByName("release")
+      if (hasWearCiSigning) {
+        signingConfig = signingConfigs.getByName("release")
+      }
     }
   }
 
@@ -124,6 +131,7 @@ android {
 dependencies {
   implementation(project(":shared:core"))
   implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.fragment)
   implementation(libs.androidx.core.ktx)
   implementation(libs.metro.runtime)
   implementation(libs.androidx.wear.protolayout)
@@ -140,7 +148,12 @@ dependencies {
   // F-Droid flavor dependencies
   add("fdroidImplementation", "org.osmdroid:osmdroid-android:6.1.14")
   add("fdroidImplementation", "org.osmdroid:osmdroid-wms:6.1.14")
-  add("fdroidImplementation", "org.osmdroid:osmdroid-mapsforge:6.1.14")
+  add(
+    "fdroidImplementation",
+    "org.osmdroid:osmdroid-mapsforge:6.1.14",
+  ) {
+    exclude(group = "net.sf.kxml", module = "kxml2")
+  }
   add("fdroidImplementation", "org.osmdroid:osmdroid-geopackage:6.1.14")
 
   // Play Store flavor dependencies

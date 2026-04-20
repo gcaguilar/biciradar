@@ -51,6 +51,24 @@ val googleMapsApiKey =
     .environmentVariable("GOOGLE_MAPS_API_KEY")
     .orElse("")
 
+val androidCiKeystorePath =
+  project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
+    ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
+val androidCiKeystorePassword =
+  project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
+    ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
+val androidCiKeyAlias =
+  project.findProperty("BIZI_CI_KEY_ALIAS") as? String
+    ?: System.getenv("BIZI_CI_KEY_ALIAS")
+val androidCiKeyPassword =
+  project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
+    ?: System.getenv("BIZI_CI_KEY_PASSWORD")
+val hasAndroidCiSigning =
+  androidCiKeystorePath != null &&
+    androidCiKeystorePassword != null &&
+    androidCiKeyAlias != null &&
+    androidCiKeyPassword != null
+
 android {
   namespace = "com.gcaguilar.biciradar"
   compileSdk = 37
@@ -85,24 +103,11 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath =
-        project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
-          ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
-      val keystorePassword =
-        project.findProperty("BIZI_CI_KEYSTORE_PASSWORD") as? String
-          ?: System.getenv("BIZI_CI_KEYSTORE_PASSWORD")
-      val keyAliasEnv =
-        project.findProperty("BIZI_CI_KEY_ALIAS") as? String
-          ?: System.getenv("BIZI_CI_KEY_ALIAS")
-      val keyPassword =
-        project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
-          ?: System.getenv("BIZI_CI_KEY_PASSWORD")
-
-      if (keystorePath != null && keystorePassword != null && keyAliasEnv != null && keyPassword != null) {
-        storeFile = file(keystorePath)
-        storePassword = keystorePassword
-        keyAlias = keyAliasEnv
-        this.keyPassword = keyPassword
+      if (hasAndroidCiSigning) {
+        storeFile = file(androidCiKeystorePath!!)
+        storePassword = androidCiKeystorePassword
+        keyAlias = androidCiKeyAlias
+        this.keyPassword = androidCiKeyPassword
       }
     }
   }
@@ -115,7 +120,9 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-      signingConfig = signingConfigs.getByName("release")
+      if (hasAndroidCiSigning) {
+        signingConfig = signingConfigs.getByName("release")
+      }
     }
   }
 
@@ -143,7 +150,12 @@ dependencies {
   // F-Droid flavor dependencies
   add("fdroidImplementation", "org.osmdroid:osmdroid-android:6.1.14")
   add("fdroidImplementation", "org.osmdroid:osmdroid-wms:6.1.14")
-  add("fdroidImplementation", "org.osmdroid:osmdroid-mapsforge:6.1.14")
+  add(
+    "fdroidImplementation",
+    "org.osmdroid:osmdroid-mapsforge:6.1.14",
+  ) {
+    exclude(group = "net.sf.kxml", module = "kxml2")
+  }
   add("fdroidImplementation", "org.osmdroid:osmdroid-geopackage:6.1.14")
 
   // Play Store flavor dependencies
