@@ -8,7 +8,6 @@ import com.garmin.android.connectiq.ConnectIQ
 import com.garmin.android.connectiq.IQApp
 import com.garmin.android.connectiq.IQDevice
 import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
