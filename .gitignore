@@ -71,7 +71,6 @@ garminApp/.vscode/settings.json
 .pycache/
 codex-skills/
 store/
-tooling/
 *.pen
 github-secrets.md
 dev/icerock/
