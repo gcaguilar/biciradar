@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar.wear
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.widget.Toast
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
@@ -123,7 +123,14 @@ internal fun WearRoot(
             onToggleFavorite = { viewModel.onToggleFavorite(selectedStation.id) },
             onToggleMonitoring = { viewModel.onToggleMonitoring(selectedStation.id) },
             onRoute = uiState.canRouteOnWatch.takeIf { it }?.let { { viewModel.onRoute(selectedStation.id) } },
-            onRouteInPhone = uiState.canRouteInPhone.takeIf { it }?.let { { viewModel.onRouteInPhone(selectedStation.id) } },
+            onRouteInPhone =
+              uiState.canRouteInPhone.takeIf { it }?.let {
+                {
+                  viewModel.onRouteInPhone(
+                    selectedStation.id,
+                  )
+                }
+              },
           )
 
         uiState.isLoading ->

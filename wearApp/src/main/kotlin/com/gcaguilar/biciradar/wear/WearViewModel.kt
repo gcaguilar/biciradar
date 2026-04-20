@@ -317,7 +317,8 @@ internal class WearViewModel(
     hasActivityForNavigation(
       googleNavigationUri(destination = FALLBACK_ROUTE_DESTINATION, mode = "w"),
       packageName = GOOGLE_MAPS_PACKAGE,
-    ) || hasActivityForNavigation(geoFallbackUri(destination = FALLBACK_ROUTE_DESTINATION))
+    ) ||
+      hasActivityForNavigation(geoFallbackUri(destination = FALLBACK_ROUTE_DESTINATION))
 
   private fun hasActivityForNavigation(
     uri: Uri,
@@ -336,7 +337,8 @@ internal class WearViewModel(
     mode: String,
   ): Uri = Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode")
 
-  private fun geoFallbackUri(destination: GeoPoint): Uri = Uri.parse("geo:${destination.latitude},${destination.longitude}")
+  private fun geoFallbackUri(destination: GeoPoint): Uri =
+    Uri.parse("geo:${destination.latitude},${destination.longitude}")
 
   private companion object {
     const val GOOGLE_MAPS_PACKAGE = "com.google.android.apps.maps"
