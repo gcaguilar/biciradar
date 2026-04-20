@@ -10,7 +10,7 @@
 - Generate builds:
 
 ```bash
-./gradlew :androidApp:assembleRelease :wearApp:assembleRelease
+./gradlew :androidApp:assemblePlaystoreRelease :wearApp:assemblePlaystoreRelease
 ```
 
 ### Play Console Form Factor Configuration

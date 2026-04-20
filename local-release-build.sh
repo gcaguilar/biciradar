@@ -224,11 +224,11 @@ build_android_targets() {
   local gradle_tasks=()
 
   if [[ "$android_requested" == true ]]; then
-    gradle_tasks+=(":androidApp:assembleRelease" ":androidApp:bundleRelease")
+    gradle_tasks+=(":androidApp:assemblePlaystoreRelease" ":androidApp:bundlePlaystoreRelease")
   fi
 
   if [[ "$wear_requested" == true ]]; then
-    gradle_tasks+=(":wearApp:assembleRelease" ":wearApp:bundleRelease")
+    gradle_tasks+=(":wearApp:assemblePlaystoreRelease" ":wearApp:bundlePlaystoreRelease")
   fi
 
   log "Building Android release artifacts"
@@ -242,17 +242,17 @@ build_android_targets() {
 
   if [[ "$android_requested" == true ]]; then
     mkdir -p "$output_root/android"
-    cp "$repo_root"/androidApp/build/outputs/apk/release/*.apk "$output_root/android/" 2>/dev/null || true
-    cp "$repo_root"/androidApp/build/outputs/bundle/release/*.aab "$output_root/android/" 2>/dev/null || true
-    cp "$repo_root/androidApp/build/outputs/mapping/release/mapping.txt" "$output_root/android/androidApp-release-mapping.txt" 2>/dev/null || true
+    cp "$repo_root"/androidApp/build/outputs/apk/playstore/release/*.apk "$output_root/android/" 2>/dev/null || true
+    cp "$repo_root"/androidApp/build/outputs/bundle/playstoreRelease/*.aab "$output_root/android/" 2>/dev/null || true
+    cp "$repo_root/androidApp/build/outputs/mapping/playstoreRelease/mapping.txt" "$output_root/android/androidApp-release-mapping.txt" 2>/dev/null || true
     add_artifact "$output_root/android"
   fi
 
   if [[ "$wear_requested" == true ]]; then
     mkdir -p "$output_root/wearos"
-    cp "$repo_root"/wearApp/build/outputs/apk/release/*.apk "$output_root/wearos/" 2>/dev/null || true
-    cp "$repo_root"/wearApp/build/outputs/bundle/release/*.aab "$output_root/wearos/" 2>/dev/null || true
-    cp "$repo_root/wearApp/build/outputs/mapping/release/mapping.txt" "$output_root/wearos/wearApp-release-mapping.txt" 2>/dev/null || true
+    cp "$repo_root"/wearApp/build/outputs/apk/playstore/release/*.apk "$output_root/wearos/" 2>/dev/null || true
+    cp "$repo_root"/wearApp/build/outputs/bundle/playstoreRelease/*.aab "$output_root/wearos/" 2>/dev/null || true
+    cp "$repo_root/wearApp/build/outputs/mapping/playstoreRelease/mapping.txt" "$output_root/wearos/wearApp-release-mapping.txt" 2>/dev/null || true
     add_artifact "$output_root/wearos"
   fi
 }

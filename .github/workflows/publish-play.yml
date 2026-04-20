@@ -81,7 +81,7 @@ jobs:
         run: |
           echo "Keystore path: ${{ runner.temp }}/bizi-ci.keystore"
           echo "Keystore exists: $(test -f '${{ runner.temp }}/bizi-ci.keystore' && echo 'yes' || echo 'no')"
-          ./gradlew :androidApp:bundleRelease :androidApp:uploadCrashlyticsMappingFileRelease --no-build-cache \
+          ./gradlew :androidApp:bundlePlaystoreRelease --no-build-cache \
             -PBIZI_CI_KEYSTORE_PATH="${{ runner.temp }}/bizi-ci.keystore" \
             -PBIZI_CI_KEYSTORE_PASSWORD="${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}" \
             -PBIZI_CI_KEY_ALIAS="${{ secrets.BIZI_CI_KEY_ALIAS }}" \
@@ -93,16 +93,16 @@ jobs:
           name: android-release-bundle
           if-no-files-found: error
           path: |
-            androidApp/build/outputs/bundle/release/*.aab
-            androidApp/build/outputs/mapping/release/mapping.txt
+            androidApp/build/outputs/bundle/playstoreRelease/*.aab
+            androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
       - name: Publish to Play Console closed testing
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
-          releaseFiles: androidApp/build/outputs/bundle/release/*.aab
-          mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
+          releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
+          mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
           track: alpha
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
@@ -166,7 +166,7 @@ jobs:
 
       - name: Build Wear release bundle
         run: |
-          ./gradlew :wearApp:bundleRelease :wearApp:uploadCrashlyticsMappingFileRelease --no-build-cache \
+          ./gradlew :wearApp:bundlePlaystoreRelease --no-build-cache \
             -PBIZI_CI_KEYSTORE_PATH="${{ runner.temp }}/bizi-ci.keystore" \
             -PBIZI_CI_KEYSTORE_PASSWORD="${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}" \
             -PBIZI_CI_KEY_ALIAS="${{ secrets.BIZI_CI_KEY_ALIAS }}" \
@@ -178,16 +178,16 @@ jobs:
           name: wear-release-bundle
           if-no-files-found: error
           path: |
-            wearApp/build/outputs/bundle/release/*.aab
-            wearApp/build/outputs/mapping/release/mapping.txt
+            wearApp/build/outputs/bundle/playstoreRelease/*.aab
+            wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
       - name: Publish WearOS to Play Console closed testing
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
-          releaseFiles: wearApp/build/outputs/bundle/release/*.aab
-          mappingFile: wearApp/build/outputs/mapping/release/mapping.txt
+          releaseFiles: wearApp/build/outputs/bundle/playstoreRelease/*.aab
+          mappingFile: wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
           track: wear:alpha
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
