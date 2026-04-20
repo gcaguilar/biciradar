@@ -38,10 +38,10 @@ if (firebaseCrashlyticsEnabled) {
     val taskName = name.lowercase()
     if (
       taskName.contains("fdroid") &&
-        (
-          taskName.endsWith("googleservices") ||
-            taskName.contains("crashlytics")
-        )
+      (
+        taskName.endsWith("googleservices") ||
+          taskName.contains("crashlytics")
+      )
     ) {
       enabled = false
     }
