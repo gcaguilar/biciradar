@@ -5,57 +5,29 @@
       "name": "link-headers",
       "type": "agent-skill",
       "description": "Include Link response headers for agent discovery (RFC 8288)",
-      "url": "/.well-known/agent-skills/link-headers/SKILL.md",
-      "sha256": "placeholder-sha256-for-link-headers"
+      "url": "./link-headers/SKILL.md",
+      "sha256": "7b4148bc005e5ec92a927dd90f98967deae5e50a144556daa4eaf18f92f461ff"
     },
     {
       "name": "markdown-negotiation",
       "type": "agent-skill",
       "description": "Return HTML responses as markdown when agents request it",
-      "url": "/.well-known/agent-skills/markdown-negotiation/SKILL.md",
-      "sha256": "placeholder-sha256-for-markdown-negotiation"
-    },
-    {
-      "name": "content-signals",
-      "type": "agent-skill",
-      "description": "Declare AI content usage preferences with Content Signals in robots.txt",
-      "url": "/.well-known/agent-skills/content-signals/SKILL.md",
-      "sha256": "placeholder-sha256-for-content-signals"
-    },
-    {
-      "name": "api-catalog",
-      "type": "agent-skill",
-      "description": "Publish an API catalog for automated API discovery (RFC 9727)",
-      "url": "/.well-known/agent-skills/api-catalog/SKILL.md",
-      "sha256": "placeholder-sha256-for-api-catalog"
-    },
-    {
-      "name": "oauth-discovery",
-      "type": "agent-skill",
-      "description": "Publish OAuth/OIDC discovery metadata so agents can authenticate with your APIs",
-      "url": "/.well-known/agent-skills/oauth-discovery/SKILL.md",
-      "sha256": "placeholder-sha256-for-oauth-discovery"
+      "url": "./markdown-negotiation/SKILL.md",
+      "sha256": "858897e25ad35b8d4a2e02109bdb278023a0032e1794eaf3c1e0dcde904d7a17"
     },
     {
       "name": "oauth-protected-resource",
       "type": "agent-skill",
       "description": "Publish OAuth Protected Resource Metadata so agents can discover how to authenticate",
-      "url": "/.well-known/agent-skills/oauth-protected-resource/SKILL.md",
-      "sha256": "placeholder-sha256-for-oauth-protected-resource"
+      "url": "./oauth-protected-resource/SKILL.md",
+      "sha256": "bf693462c3c2e1d5d7a436a86418a0bb844b1dfc696aa02f77fbc2cee0039a3f"
     },
     {
-      "name": "mcp-server-card",
+      "name": "webmcp",
       "type": "agent-skill",
-      "description": "Publish an MCP Server Card for agent discovery",
-      "url": "/.well-known/agent-skills/mcp-server-card/SKILL.md",
-      "sha256": "placeholder-sha256-for-mcp-server-card"
-    },
-    {
-      "name": "agent-skills",
-      "type": "agent-skill",
-      "description": "Publish an agent skills discovery index",
-      "url": "/.well-known/agent-skills/index.json",
-      "sha256": "placeholder-sha256-for-agent-skills-index"
+      "description": "Support WebMCP so browser agents can discover and execute key site actions",
+      "url": "./webmcp/SKILL.md",
+      "sha256": "0e695941cd1624faa9925f765db8de90b5d4c2b706d1f455e8755445811f3a25"
     }
   ]
 }

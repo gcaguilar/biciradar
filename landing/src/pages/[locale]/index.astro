@@ -6,7 +6,7 @@ import { buildAlternateLinks } from '../../lib/seo';
 import { getLanguageSwitchLinks, getLocalizedCityLinks } from '../../lib/marketing-pages';
 import { defaultLocale } from '../../lib/i18n';
 import { getThankYouPath } from '../../lib/routes';
-import { resolveSiteUrl } from '../../utils/site';
+import { absolutePageUrl, resolveSiteUrl } from '../../utils/site';
 
 export function getStaticPaths() {
   return locales
@@ -30,7 +30,7 @@ const structuredData = [
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: content.metadata.siteName,
-    url: new URL(`/${locale}/`, site).toString(),
+    url: absolutePageUrl(`/${locale}/`, site, import.meta.env.BASE_URL),
     inLanguage: locale,
     description: content.home.seo.description,
   },

@@ -36,6 +36,17 @@ const sectionIds = content.home.header.sections.map((item) => item.id);
 const [problemId, solutionId, howId, citiesId, faqId] = sectionIds;
 const cityHrefByKey = new Map(cityLinks.map((item) => [item.key, item.href]));
 const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.hero.mockup.chips].filter(Boolean);
+const webMcpConfig = {
+  locale: content.locale,
+  homeHref,
+  betaFormSelector: '#beta-form',
+  appStoreHref,
+  playStoreHref,
+  cityLinks: cityLinks.map((city) => ({
+    key: city.key,
+    href: city.href,
+  })),
+};
 ---
 
 <PageHeader
@@ -282,3 +293,176 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
 </div>
 
 <AnalyticsScripts locale={content.locale} pageKind="home" />
+
+<script is:inline define:vars={{ webMcpConfig }}>
+  (() => {
+    const config = webMcpConfig;
+    const modelContext = typeof navigator !== 'undefined' ? navigator.modelContext : undefined;
+
+    if (!modelContext) {
+      return;
+    }
+
+    const cityHrefByKey = Object.fromEntries(
+      config.cityLinks.map((city) => [city.key, new URL(city.href, window.location.origin).toString()]),
+    );
+
+    const tools = [
+      {
+        name: 'biciradar.get_page_context',
+        description: 'Return the current BiciRadar landing-page context, including locale and store links.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {},
+        },
+        execute: async () => ({
+          locale: config.locale,
+          homeUrl: new URL(config.homeHref, window.location.origin).toString(),
+          storeLinks: {
+            ios: config.appStoreHref,
+            android: config.playStoreHref,
+          },
+        }),
+      },
+      {
+        name: 'biciradar.list_supported_cities',
+        description: 'List the city landing pages currently linked from the homepage.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {},
+        },
+        execute: async () => ({
+          cities: config.cityLinks.map((city) => ({
+            key: city.key,
+            url: cityHrefByKey[city.key],
+          })),
+        }),
+      },
+      {
+        name: 'biciradar.open_city_page',
+        description: 'Navigate to a BiciRadar city landing page.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['cityKey'],
+          properties: {
+            cityKey: {
+              type: 'string',
+              enum: config.cityLinks.map((city) => city.key),
+            },
+          },
+        },
+        execute: async ({ cityKey }) => {
+          const targetUrl = cityHrefByKey[cityKey];
+          if (!targetUrl) {
+            throw new Error(`Unsupported city key: ${cityKey}`);
+          }
+
+          window.location.assign(targetUrl);
+          return { ok: true, navigatedTo: targetUrl };
+        },
+      },
+      {
+        name: 'biciradar.focus_beta_signup',
+        description: 'Scroll to the beta signup form and optionally preselect the operating system.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            operatingSystem: {
+              type: 'string',
+              enum: ['ios', 'android', 'both'],
+            },
+          },
+        },
+        execute: async ({ operatingSystem } = {}) => {
+          const form = document.querySelector(config.betaFormSelector);
+          if (!(form instanceof HTMLElement)) {
+            throw new Error('Beta signup form not found.');
+          }
+
+          const operatingSystemField = form.querySelector('select[name="operatingSystem"]');
+          if (operatingSystem && operatingSystemField instanceof HTMLSelectElement) {
+            operatingSystemField.value = operatingSystem;
+            operatingSystemField.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const emailField = form.querySelector('input[name="email"]');
+          if (emailField instanceof HTMLInputElement) {
+            emailField.focus({ preventScroll: true });
+          }
+
+          return { ok: true, focused: true };
+        },
+      },
+      {
+        name: 'biciradar.open_store_listing',
+        description: 'Open the BiciRadar App Store or Google Play listing.',
+        inputSchema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['platform'],
+          properties: {
+            platform: {
+              type: 'string',
+              enum: ['ios', 'android'],
+            },
+          },
+        },
+        execute: async ({ platform }) => {
+          const targetUrl = platform === 'ios' ? config.appStoreHref : config.playStoreHref;
+          window.location.assign(targetUrl);
+          return { ok: true, navigatedTo: targetUrl };
+        },
+      },
+    ];
+
+    const registerTools = async () => {
+      try {
+        if (typeof modelContext.provideContext === 'function') {
+          try {
+            await modelContext.provideContext({ tools });
+            return;
+          } catch {
+            // Fall through to the per-tool compatibility path.
+          }
+        }
+
+        if (typeof modelContext.registerTool === 'function') {
+          for (const tool of tools) {
+            try {
+              await modelContext.registerTool(tool);
+            } catch {
+              await modelContext.registerTool(
+                tool.name,
+                {
+                  description: tool.description,
+                  inputSchema: tool.inputSchema,
+                },
+                tool.execute,
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error('WebMCP registration failed', error);
+      }
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+          void registerTools();
+        },
+        { once: true },
+      );
+      return;
+    }
+
+    void registerTools();
+  })();
+</script>

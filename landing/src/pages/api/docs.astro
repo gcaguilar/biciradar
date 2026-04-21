@@ -1,0 +1,50 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="BiciRadar Beta Signup API"
+  description="Integration notes for the public beta signup endpoint."
+  canonicalPath="/api/docs"
+  robots="noindex,follow"
+>
+  <main id="main-content" class="mx-auto flex min-h-screen max-w-4xl flex-col gap-10 px-4 py-16 md:px-6">
+    <section class="space-y-4">
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Service Doc</p>
+      <h1 class="text-4xl font-black tracking-tight text-slate-950">BiciRadar Beta Signup API</h1>
+      <p class="max-w-3xl text-base leading-7 text-slate-600">
+        `POST /api/beta-signup` accepts the public beta waitlist form used across the landing pages.
+        Requests can be sent as form submissions from browsers or as automation-friendly requests that
+        ask for JSON responses with `Accept: application/json`.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-950">Request</h2>
+      <p class="text-sm leading-6 text-slate-600">
+        Send `multipart/form-data` with `email`, `operatingSystem`, and `consent`.
+        Optional fields include `locale`, `pageKind`, `pagePath`, `cityPageKey`, UTM parameters,
+        `startedAt`, and `cf-turnstile-response` when Turnstile is enabled.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-950">Responses</h2>
+      <p class="text-sm leading-6 text-slate-600">
+        Successful JSON responses include <code>{'{ "ok": true, "redirectPath": "/gracias-beta/?os=ios" }'}</code>.
+        Browser form submissions receive a `303` redirect to the localized thank-you page. Validation
+        and consent failures return <code>{'{ "ok": false, "message": "..." }'}</code> for JSON clients.
+        Submissions that arrive too quickly can also receive a `429` with `Please try again.` and
+        browsers redirect back to the page that submitted the form.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-2xl font-bold tracking-tight text-slate-950">Machine-readable spec</h2>
+      <p class="text-sm leading-6 text-slate-600">
+        Use <a class="font-semibold text-emerald-700 hover:text-emerald-800" href="/api/openapi.json">/api/openapi.json</a>
+        for the OpenAPI description referenced from the API catalog.
+      </p>
+    </section>
+  </main>
+</Layout>

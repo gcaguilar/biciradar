@@ -1,11 +1,9 @@
 {
-  "resource": "https://api.biciradar.com",
-  "authorization_servers": [
-    "https://auth.biciradar.com"
-  ],
+  "resource": "https://biciradar.es/api/beta-signup",
   "scopes_supported": [
-    "read:stations",
-    "read:availability",
-    "write:user-data"
+    "beta:signup"
+  ],
+  "bearer_methods_supported": [
+    "header"
   ]
 }

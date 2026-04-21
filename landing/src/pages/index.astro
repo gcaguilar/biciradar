@@ -5,7 +5,7 @@ import { getLocaleContent } from '../content/marketing';
 import { buildAlternateLinks } from '../lib/seo';
 import { getLanguageSwitchLinks, getLocalizedCityLinks } from '../lib/marketing-pages';
 import { getThankYouPath } from '../lib/routes';
-import { resolveSiteUrl } from '../utils/site';
+import { absolutePageUrl, resolveSiteUrl } from '../utils/site';
 
 const locale = 'es';
 const content = getLocaleContent(locale);
@@ -15,19 +15,12 @@ const alternates = buildAlternateLinks(route, site, import.meta.env.BASE_URL);
 const cityLinks = getLocalizedCityLinks(locale);
 const thankYouPath = getThankYouPath(locale);
 
-// Set Link headers for agent discovery (RFC 8288)
-Astro.response.headers.append('Link', '</.well-known/api-catalog>; rel="api-catalog"');
-Astro.response.headers.append('Link', '</.well-known/oauth-protected-resource>; rel="oauth-protected-resource"');
-Astro.response.headers.append('Link', '</.well-known/oauth-authorization-server>; rel="oauth-authorization-server"');
-Astro.response.headers.append('Link', '</.well-known/mcp/server-card.json>; rel="mcp-server-card"');
-Astro.response.headers.append('Link', '</.well-known/agent-skills/index.json>; rel="agent-skills"');
-
 const structuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: content.metadata.siteName,
-    url: new URL('/', site).toString(),
+    url: absolutePageUrl('/', site, import.meta.env.BASE_URL),
     inLanguage: locale,
     description: content.home.seo.description,
   },
