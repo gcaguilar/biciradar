@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material3.AlertDialog
@@ -74,7 +73,7 @@ internal fun BoxScope.EngagementTopOverlays(
       is TopUpdateBanner.Available -> {
         Surface(
           color = colors.blue.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(12.dp),
+          shape = MaterialTheme.shapes.medium,
           modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
@@ -102,7 +101,7 @@ internal fun BoxScope.EngagementTopOverlays(
       is TopUpdateBanner.Downloaded -> {
         Surface(
           color = colors.green.copy(alpha = 0.12f),
-          shape = RoundedCornerShape(12.dp),
+          shape = MaterialTheme.shapes.medium,
           modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
@@ -130,7 +129,7 @@ internal fun BoxScope.EngagementTopOverlays(
     if (showFeedbackNudge) {
       Surface(
         color = colors.surface,
-        shape = RoundedCornerShape(12.dp),
+        shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, colors.panel),
         modifier = Modifier.fillMaxWidth(),
       ) {

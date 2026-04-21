@@ -159,8 +159,7 @@ private fun PatternHintPill(
   androidx.compose.material3.Surface(
     modifier = modifier,
     shape =
-      androidx.compose.foundation.shape
-        .RoundedCornerShape(12.dp),
+      MaterialTheme.shapes.medium,
     color = tint.copy(alpha = 0.12f),
   ) {
     Column(

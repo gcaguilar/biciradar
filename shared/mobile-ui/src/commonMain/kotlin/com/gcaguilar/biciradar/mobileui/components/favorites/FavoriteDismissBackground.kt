@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
@@ -22,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.deleteFavorite
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.stringResource
@@ -44,7 +44,7 @@ internal fun FavoriteDismissBackground(
     modifier =
       Modifier
         .fillMaxWidth()
-        .clip(RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp))
+        .clip(LocalBiziCardShape.current)
         .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
         .padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
@@ -37,6 +36,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapStationDistanceS
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
@@ -77,7 +77,7 @@ internal fun StationDetailBottomSheet(
 
   Card(
     modifier = modifier,
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 24.dp else 28.dp),
+    shape = LocalBiziCardShape.current,
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, c.red.copy(alpha = 0.12f)) else null,
     colors = CardDefaults.cardColors(containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.surface else c.red),
   ) {

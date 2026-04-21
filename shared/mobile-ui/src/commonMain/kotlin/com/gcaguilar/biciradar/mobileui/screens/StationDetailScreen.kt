@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
@@ -350,7 +349,7 @@ internal fun StationDetailScreen(
           }
           item {
             Card(
-              shape = RoundedCornerShape(24.dp),
+              shape = MaterialTheme.shapes.extraLarge,
               colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
             ) {
               PlatformStationMap(

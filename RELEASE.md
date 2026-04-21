@@ -3,8 +3,8 @@
 ## Android and Wear OS
 
 - Define `GOOGLE_MAPS_API_KEY` if you want real Android map tiles.
-- Add [androidApp/google-services.json](/Users/guillermo.castella/biciradar/androidApp/google-services.json) to enable Firebase Crashlytics on Android.
-- Add [wearApp/google-services.json](/Users/guillermo.castella/biciradar/wearApp/google-services.json) to enable Firebase Crashlytics on Wear OS.
+- Add [androidApp/google-services.json](androidApp/google-services.json) to enable Firebase Crashlytics on Android.
+- Add [wearApp/google-services.json](wearApp/google-services.json) to enable Firebase Crashlytics on Wear OS.
 - Configure release signing in `androidApp` and `wearApp`.
 - Both apps share the same `applicationId` (com.gcaguilar.biciradar) and are published to the same Play Store listing using different form factor tracks.
 - Generate builds:
@@ -31,10 +31,31 @@ The CI workflow publishes:
 
 Users will see one app listing, but Google Play serves the appropriate version based on their device.
 
+## F-Droid
+
+- F-Droid package IDs:
+  - Android: `com.gcaguilar.biciradar.fdroid`
+  - Wear OS: `com.gcaguilar.biciradar.wear.fdroid`
+- Generate the release APKs:
+
+```bash
+./gradlew :androidApp:assembleFdroidRelease
+./gradlew :wearApp:assembleFdroidRelease
+```
+
+- Each `assembleFdroidRelease` run also executes a dependency gate that fails when the runtime classpath includes Google Play Services, Firebase, Garmin Connect IQ, or Google Maps Compose artifacts.
+- Submission-ready metadata lives in:
+  - [docs/fdroid/README.md](docs/fdroid/README.md)
+  - [metadata/com.gcaguilar.biciradar.fdroid.yml](metadata/com.gcaguilar.biciradar.fdroid.yml)
+  - [metadata/com.gcaguilar.biciradar.wear.fdroid.yml](metadata/com.gcaguilar.biciradar.wear.fdroid.yml)
+  - `androidApp/src/fdroid/fastlane/metadata/android/en-US/`
+  - `wearApp/src/fdroid/fastlane/metadata/android/en-US/`
+- Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag.
+
 ## iOS and watchOS
 
-- Add [apple/iosApp/GoogleService-Info.plist](/Users/guillermo.castella/biciradar/apple/iosApp/GoogleService-Info.plist) to enable Firebase Crashlytics on iOS.
-- Open [apple/BiciRadar.xcodeproj](/Users/guillermo.castella/biciradar/apple/BiciRadar.xcodeproj).
+- Add [apple/iosApp/GoogleService-Info.plist](apple/iosApp/GoogleService-Info.plist) to enable Firebase Crashlytics on iOS.
+- Open [apple/BiciRadar.xcodeproj](apple/BiciRadar.xcodeproj).
 - Configure `Team`, signing, and provisioning for `BiciRadar`, `BiciRadarWatch`, and their tests.
 - For App Store publication from CI, configure the dedicated workflow in `.github/workflows/publish-ios-store.yml`.
 - Add App Store Connect secrets `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_ID`, and `APP_STORE_CONNECT_API_KEY_P8`.

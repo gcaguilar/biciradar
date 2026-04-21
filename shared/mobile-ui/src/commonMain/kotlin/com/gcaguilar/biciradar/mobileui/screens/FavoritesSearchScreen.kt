@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -60,6 +59,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapTryAnotherQuery
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.useSearchToAssignStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
@@ -239,7 +239,7 @@ private fun SearchResultCard(
       Modifier
         .fillMaxWidth()
         .clickable(onClick = onOpenStationDetails),
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    shape = LocalBiziCardShape.current,
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
     colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {

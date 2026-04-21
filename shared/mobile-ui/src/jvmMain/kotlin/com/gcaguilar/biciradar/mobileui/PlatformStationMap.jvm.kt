@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
@@ -148,7 +147,7 @@ internal actual fun PlatformStationMap(
                 Modifier
                   .fillMaxWidth()
                   .clickable { onStationSelected(station) },
-              shape = RoundedCornerShape(18.dp),
+              shape = MaterialTheme.shapes.large,
               color = if (highlighted) c.red.copy(alpha = 0.06f) else c.surface,
               border =
                 BorderStroke(

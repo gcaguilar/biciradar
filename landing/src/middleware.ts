@@ -18,10 +18,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   if (path.startsWith(wellKnownPrefix)) {
     if (path.endsWith('/api-catalog')) {
-      response.headers.set('Content-Type', 'application/linkset+json');
+      response.headers.set(
+        'Content-Type',
+        'application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"',
+      );
     } else if (
+      path.endsWith('/oauth-authorization-server') ||
+      path.endsWith('/openid-configuration') ||
       path.endsWith('/oauth-protected-resource') ||
-      path.endsWith('/agent-skills/index.json')
+      path.endsWith('/agent-skills/index.json') ||
+      path.endsWith('/mcp/server-card.json')
     ) {
       response.headers.set('Content-Type', 'application/json');
     }

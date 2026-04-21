@@ -1,3 +1,10 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
+import org.gradle.language.base.plugins.LifecycleBasePlugin
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.multiplatform)
@@ -86,7 +93,6 @@ android {
   productFlavors {
     create("fdroid") {
       dimension = "tier"
-      // F-Droid specific configuration
       applicationIdSuffix = ".fdroid"
       versionNameSuffix = "-fdroid"
     }
@@ -147,23 +153,63 @@ dependencies {
   implementation(libs.google.material)
   testImplementation(libs.junit)
 
-  // F-Droid flavor dependencies
-  add("fdroidImplementation", "org.osmdroid:osmdroid-android:6.1.14")
-  add("fdroidImplementation", "org.osmdroid:osmdroid-wms:6.1.14")
-  add(
-    "fdroidImplementation",
-    "org.osmdroid:osmdroid-mapsforge:6.1.14",
-  ) {
-    exclude(group = "net.sf.kxml", module = "kxml2")
-  }
-  add("fdroidImplementation", "org.osmdroid:osmdroid-geopackage:6.1.14")
-
   // Play Store flavor dependencies
   add("playstoreImplementation", "com.garmin.connectiq:ciq-companion-app-sdk:2.4.0@aar")
+  add("playstoreImplementation", libs.maps.compose)
   add("playstoreImplementation", libs.firebase.config)
+  add("playstoreImplementation", libs.play.services.maps)
   add("playstoreImplementation", libs.play.services.wearable)
   add("playstoreImplementation", libs.play.review.ktx)
   add("playstoreImplementation", libs.play.app.update.ktx)
   add("playstoreImplementation", platform(libs.firebase.bom))
   add("playstoreImplementation", libs.firebase.crashlytics)
+}
+
+abstract class VerifyDependencyPrefixesTask : DefaultTask() {
+  @get:Input abstract val configurationName: Property<String>
+
+  @get:Input abstract val forbiddenPrefixes: ListProperty<String>
+
+  @TaskAction
+  fun verify() {
+    val forbidden =
+      project.configurations
+        .getByName(configurationName.get())
+        .incoming
+        .resolutionResult
+        .allComponents
+        .mapNotNull { component ->
+          component.moduleVersion?.let { "${it.group}:${it.name}:${it.version}" }
+        }.filter { dependency ->
+          forbiddenPrefixes.get().any(dependency::startsWith)
+        }.sorted()
+
+    check(forbidden.isEmpty()) {
+      buildString {
+        appendLine("Forbidden dependencies found in androidApp fdroidReleaseRuntimeClasspath:")
+        forbidden.forEach { appendLine(" - $it") }
+      }
+    }
+  }
+}
+
+val verifyFdroidReleaseDependencies by
+  tasks.registering(VerifyDependencyPrefixesTask::class) {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Fails when the F-Droid runtime classpath contains forbidden proprietary SDKs."
+    notCompatibleWithConfigurationCache("Inspects resolved Gradle configurations during execution.")
+    configurationName.set("fdroidReleaseRuntimeClasspath")
+    forbiddenPrefixes.set(
+      listOf(
+        "com.google.android.gms:",
+        "com.google.android.play:",
+        "com.google.firebase:",
+        "com.garmin.connectiq:",
+        "com.google.maps.android:",
+      ),
+    )
+  }
+
+tasks.matching { it.name == "assembleFdroidRelease" || it.name == "check" }.configureEach {
+  dependsOn(verifyFdroidReleaseDependencies)
 }

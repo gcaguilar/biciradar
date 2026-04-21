@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Favorite
@@ -36,7 +35,7 @@ internal fun RoutePill(
   val c = LocalBiziColors.current
   val pillColor = if (onDarkBackground) c.onAccent else c.blue
   Surface(
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = if (onDarkBackground) c.onAccent.copy(alpha = 0.14f) else c.blue.copy(alpha = 0.08f),
     border =
       BorderStroke(
@@ -88,7 +87,7 @@ internal fun FavoritePill(
     label = "favorite-pill-scale",
   )
   Surface(
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = LocalBiziColors.current.red.copy(alpha = 0.10f * containerColor),
     border =
       BorderStroke(
@@ -129,7 +128,7 @@ internal fun OutlineActionPill(
   onClick: () -> Unit,
 ) {
   Surface(
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = Color.Transparent,
     border = BorderStroke(1.dp, borderTint),
     modifier = Modifier.clickable(onClick = onClick),

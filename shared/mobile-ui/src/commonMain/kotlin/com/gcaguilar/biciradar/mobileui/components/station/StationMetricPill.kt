@@ -4,7 +4,6 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,7 +23,7 @@ internal fun StationMetricPill(
 ) {
   Surface(
     modifier = modifier,
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = tint.copy(alpha = 0.09f),
   ) {
     Column(

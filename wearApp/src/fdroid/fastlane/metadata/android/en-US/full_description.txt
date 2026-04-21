@@ -1,0 +1,11 @@
+Bici Radar Wear brings public bike station availability to Wear OS.
+
+This F-Droid flavor is published as its own package and removes proprietary crash reporting and wearable sync SDKs.
+
+What you can do:
+- check your favorite station
+- browse nearby station availability
+- use Wear OS tiles
+- add complication data to your watch face
+
+The F-Droid flavor is designed to stay fully buildable without Google Play Services wearable runtime dependencies.

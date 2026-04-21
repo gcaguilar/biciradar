@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -96,7 +95,7 @@ private fun MapFilterChip(
     label = "map-filter-scale",
   )
   Surface(
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = backgroundColor,
     border = BorderStroke(1.dp, borderColor),
     modifier =

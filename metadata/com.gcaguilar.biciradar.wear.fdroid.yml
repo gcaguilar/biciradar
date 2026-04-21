@@ -1,0 +1,37 @@
+Categories:
+  - Navigation
+License: GPL-3.0-only
+SourceCode: https://github.com/gcaguilar/biciradar
+IssueTracker: https://github.com/gcaguilar/biciradar/issues
+Changelog: https://github.com/gcaguilar/biciradar/releases
+AutoName: Bici Radar Wear
+Summary: Wear OS companion for Spanish public bike availability
+Description: |
+  Bici Radar Wear provides glanceable public bike station information on Wear OS devices.
+
+  This F-Droid build is a standalone free-software package and avoids proprietary wearable sync
+  and crash reporting SDKs.
+
+  Main features:
+
+  - favorite station status
+  - nearby station tile
+  - complication provider
+  - direct on-watch browsing of station status
+
+RepoType: git
+Repo: https://github.com/gcaguilar/biciradar.git
+
+Builds:
+  - versionName: 0.22.8-fdroid
+    versionCode: 29568119
+    commit: 911aac9ba9ca545cf23cce6a3d7d1480c74b0eb5
+    subdir: .
+    gradle:
+      - yes
+    output: wearApp/build/outputs/apk/fdroid/release/wearApp-fdroid-release-unsigned.apk
+
+MaintainerNotes: |
+  Submit this file to the fdroiddata fork, then replace commit with the release tag once the
+  tagged F-Droid release exists. Screenshots and icon metadata are sourced from the app's
+  fastlane metadata under wearApp/src/fdroid/.

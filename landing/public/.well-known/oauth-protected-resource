@@ -1,9 +1,0 @@
-{
-  "resource": "https://biciradar.es/api/beta-signup",
-  "scopes_supported": [
-    "beta:signup"
-  ],
-  "bearer_methods_supported": [
-    "header"
-  ]
-}

@@ -6,10 +6,11 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
+import android.os.CancellationSignal
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -20,7 +21,6 @@ import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.DefaultAssistantIntentResolver
-import com.gcaguilar.biciradar.core.EmbeddedMapProvider
 import com.gcaguilar.biciradar.core.ExternalLinks
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.FdroidCrashlyticsReporter
@@ -31,13 +31,11 @@ import com.gcaguilar.biciradar.core.LocationProvider
 import com.gcaguilar.biciradar.core.LogLevel
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.MapSupport
-import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SharedGraph
-import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
@@ -52,13 +50,11 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import kotlin.coroutines.resume
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
@@ -180,65 +176,34 @@ class AndroidPlatformBindings(
     override val rootPath: String = "${context.filesDir.absolutePath}/bizi"
   }
 
-  private class AndroidRouteLauncher(
-    private val context: Context,
-  ) : RouteLauncher {
-    // This will be overridden by FdroidRouteLauncher in the actual implementation
-    override fun launch(station: Station) {
-      // Fallback to geo URI
-      val fallbackUri = Uri.parse("geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}")
-      val intent = Intent(Intent.ACTION_VIEW, fallbackUri).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      }
-      context.startActivity(intent)
-    }
-
-    override fun launchWalkToLocation(destination: GeoPoint) {
-      val fallbackUri = Uri.parse("geo:${destination.latitude},${destination.longitude}")
-      val intent = Intent(Intent.ACTION_VIEW, fallbackUri).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      }
-      context.startActivity(intent)
-    }
-
-    override fun launchBikeToLocation(destination: GeoPoint) {
-      val fallbackUri = Uri.parse("geo:${destination.latitude},${destination.longitude}")
-      val intent = Intent(Intent.ACTION_VIEW, fallbackUri).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      }
-      context.startActivity(intent)
-    }
-  }
-
-  private class AndroidMapSupport(
-    private val context: Context,
-  ) : MapSupport {
-    // This will be overridden by FdroidMapSupport in the actual implementation
-    override fun currentStatus(): MapSupportStatus {
-      return MapSupportStatus(
-        embeddedProvider = EmbeddedMapProvider.Osmdroid, // Using OSMdroid instead
-        googleMapsSdkLinked = false, // No Google Maps SDK
-        googleMapsApiKeyConfigured = false // No API key
-      )
-    }
-  }
-
   private class AndroidLocationProvider(
     private val context: Context,
   ) : LocationProvider {
-    private val fusedLocationClient by lazy(LazyThreadSafetyMode.NONE) {
-      // Since we're not using Play Services Location in F-Droid, we'll need an alternative
-      // For now, we'll return null to indicate location is not available
-      // A proper implementation would use android.location.LocationManager
-      return object : com.google.android.gms.location.FusedLocationProviderClient(context) {
-        // This is a placeholder - in a real implementation we'd use LocationManager
-      }
+    private val locationManager by lazy(LazyThreadSafetyMode.NONE) {
+      context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
     }
 
     @SuppressLint("MissingPermission")
     override suspend fun currentLocation(): GeoPoint? {
-      // Return null as we don't have location implementation for F-Droid yet
-      // A proper implementation would use android.location.LocationManager
+      if (!hasLocationPermission()) return null
+
+      val manager = locationManager ?: return null
+      val providers =
+        sequenceOf(
+          LocationManager.GPS_PROVIDER,
+          LocationManager.NETWORK_PROVIDER,
+          LocationManager.PASSIVE_PROVIDER,
+        ).filter(manager::isProviderEnabled).toList()
+      if (providers.isEmpty()) return null
+
+      freshestLastKnownLocation(manager, providers)?.let { return it.toGeoPoint() }
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        providers.forEach { provider ->
+          currentLocation(manager, provider)?.let { return it.toGeoPoint() }
+        }
+      }
+
       return null
     }
 
@@ -248,60 +213,58 @@ class AndroidPlatformBindings(
         android.Manifest.permission.ACCESS_FINE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED ||
         ContextCompat.checkSelfPermission(
-          context,
-          android.Manifest.permission.ACCESS_COARSE_LOCATION,
-        ) == PackageManager.PERMISSION_GRANTED
+        context,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+      ) == PackageManager.PERMISSION_GRANTED
+
+    private fun freshestLastKnownLocation(
+      manager: LocationManager,
+      providers: List<String>,
+    ): Location? =
+      providers
+        .mapNotNull { provider -> runCatching { manager.getLastKnownLocation(provider) }.getOrNull() }
+        .maxByOrNull(Location::getTime)
+
+    private suspend fun currentLocation(
+      manager: LocationManager,
+      provider: String,
+    ): Location? = withTimeoutOrNull(10_000L) {
+      suspendCancellableCoroutine { continuation ->
+        val cancellationSignal = CancellationSignal()
+        continuation.invokeOnCancellation { cancellationSignal.cancel() }
+
+        runCatching {
+          manager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
+            if (continuation.isActive) {
+              continuation.resume(location)
+            }
+          }
+        }.onFailure {
+          if (continuation.isActive) {
+            continuation.resume(null)
+          }
+        }
+      }
+    }
+
+    private fun Location.toGeoPoint(): GeoPoint = GeoPoint(latitude = latitude, longitude = longitude)
   }
 
   private class AndroidWatchSyncBridge(
     context: Context,
   ) : WatchSyncBridge {
-    // Since we're not using Play Services Wearable in F-Droid
-    private val dataClient = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var onRemoteFavoritesChanged: (suspend () -> Unit)? = null
     private var listenerRegistered = false
-    private val dataChangedListener =
-      DataClient.OnDataChangedListener { dataEvents ->
-        val callback = onRemoteFavoritesChanged ?: return@OnDataChangedListener
-        val hasFavoritesUpdate =
-          dataEvents.any { event ->
-            event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == FAVORITES_PATH
-          }
-        if (hasFavoritesUpdate) {
-          scope.launch { callback() }
-        }
-      }
 
     fun bindOnRemoteFavoritesChanged(listener: suspend () -> Unit) {
       onRemoteFavoritesChanged = listener
       if (listenerRegistered) return
-      // No-op since dataClient is null
       listenerRegistered = true
     }
 
-    override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) {
-      // No-op since we don't have wearable support
-    }
+    override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit
 
-    override suspend fun latestFavorites(): FavoritesSyncSnapshot? {
-      return null // No wearable support
-    }
-
-    private fun buildFavoritesUri(): Uri =
-      Uri
-        .Builder()
-        .scheme(PutDataRequest.WEAR_URI_SCHEME)
-        .path(FAVORITES_PATH)
-        .build()
-
-    private companion object {
-      const val FAVORITES_PATH = "/bizi/favorites"
-      const val FAVORITES_KEY = "favorite_ids"
-      const val HOME_STATION_KEY = "home_station_id"
-      const val WORK_STATION_KEY = "work_station_id"
-      const val UPDATED_AT_KEY = "updated_at"
-    }
+    override suspend fun latestFavorites(): FavoritesSyncSnapshot? = null
   }
 
   private class AndroidLocalNotifier(

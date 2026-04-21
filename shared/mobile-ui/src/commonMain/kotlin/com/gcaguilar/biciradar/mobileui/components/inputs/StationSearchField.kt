@@ -2,17 +2,16 @@ package com.gcaguilar.biciradar.mobileui.components.inputs
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clearSearch
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -35,7 +34,7 @@ internal fun StationSearchField(
     value = value,
     onValueChange = onValueChange,
     singleLine = true,
-    shape = RoundedCornerShape(20.dp),
+    shape = MaterialTheme.shapes.extraLarge,
     leadingIcon = {
       Icon(Icons.Filled.Search, contentDescription = null, tint = c.muted)
     },

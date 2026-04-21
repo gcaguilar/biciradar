@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
@@ -140,7 +139,7 @@ internal fun TripDestinationSearchScreen(
                 ) {
                   state.suggestions.take(8).forEach { prediction ->
                     Surface(
-                      shape = RoundedCornerShape(14.dp),
+                      shape = MaterialTheme.shapes.medium,
                       color = colors.background,
                       border = BorderStroke(1.dp, colors.panel),
                       modifier =

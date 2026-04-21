@@ -1,5 +1,6 @@
 import { defaultLocale, locales } from './i18n';
 import { normalizeBasePath, withBase } from '../utils/paths';
+import { hasMcpServerCardConfig, hasOAuthDiscoveryConfig } from './well-known';
 
 const localizedHomeLocales = locales.filter((locale) => locale !== defaultLocale);
 
@@ -25,13 +26,27 @@ export function isHomepagePath(pathname: string, basePath = '/') {
 export function getAgentDiscoveryLinkValues(basePath = '/') {
   const discoveryTargets = [
     ['api-catalog', '/.well-known/api-catalog', 'application/linkset+json'],
+    ['service-desc', '/api/openapi.json', 'application/openapi+json'],
     ['service-doc', '/api/docs', 'text/html'],
     ['describedby', '/llms.txt', 'text/plain'],
-    ['oauth-protected-resource', '/.well-known/oauth-protected-resource', 'application/json'],
-    ['agent-skills', '/.well-known/agent-skills/index.json', 'application/json'],
+    ['service-meta', '/.well-known/agent-skills/index.json', 'application/json'],
   ] as const;
 
-  return discoveryTargets.map(
+  const optionalTargets: Array<readonly [string, string, string]> = [];
+
+  if (hasOAuthDiscoveryConfig()) {
+    optionalTargets.push(
+      ['service-meta', '/.well-known/oauth-protected-resource', 'application/json'],
+      ['service-meta', '/.well-known/oauth-authorization-server', 'application/json'],
+      ['service-meta', '/.well-known/openid-configuration', 'application/json'],
+    );
+  }
+
+  if (hasMcpServerCardConfig()) {
+    optionalTargets.push(['service-meta', '/.well-known/mcp/server-card.json', 'application/json']);
+  }
+
+  return [...discoveryTargets, ...optionalTargets].map(
     ([rel, path, type]) => `<${withBase(path, basePath)}>; rel="${rel}"; type="${type}"`,
   );
 }

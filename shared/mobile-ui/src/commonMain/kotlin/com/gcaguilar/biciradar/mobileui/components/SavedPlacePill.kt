@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,7 +51,7 @@ internal fun SavedPlacePill(
     label = "saved-place-pill-scale",
   )
   Surface(
-    shape = RoundedCornerShape(16.dp),
+    shape = MaterialTheme.shapes.large,
     color = tint.copy(alpha = 0.10f * containerColor),
     border = BorderStroke(1.dp, if (active) tint.copy(alpha = 0.18f) else LocalBiziColors.current.panel),
     modifier =

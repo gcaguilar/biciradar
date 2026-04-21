@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +30,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.stringResource
@@ -57,7 +57,7 @@ internal fun StationRow(
             androidx.compose.animation.core
               .spring(dampingRatio = 0.9f, stiffness = 520f),
         ),
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    shape = LocalBiziCardShape.current,
     border =
       if (mobilePlatform ==
         MobileUiPlatform.IOS

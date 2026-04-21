@@ -1,0 +1,3 @@
+- First F-Droid-ready Wear OS package with its own application ID
+- Removed proprietary runtime dependencies from the wearable F-Droid build
+- Added metadata prepared for fdroiddata submission

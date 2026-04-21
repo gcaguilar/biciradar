@@ -1,0 +1,3 @@
+- First F-Droid-ready Android package split from the Play Store listing
+- Removed proprietary mobile SDKs from the F-Droid runtime
+- Added distinct packaging and submission metadata for F-Droid

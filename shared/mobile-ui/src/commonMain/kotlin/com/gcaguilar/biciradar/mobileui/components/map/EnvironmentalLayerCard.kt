@@ -33,6 +33,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapClearEnvironment
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapEnvironmentalLayerHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterAirQuality
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterPollen
+import com.gcaguilar.biciradar.mobileui.BiziDataColors
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalZoneSnapshot
@@ -133,10 +134,25 @@ private fun EnvironmentalLegendRow(layer: MapEnvironmentalLayer) {
     horizontalArrangement = Arrangement.spacedBy(10.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    listOf(c.green, c.orange, c.red).forEachIndexed { index, color ->
+    val legendColors =
+      when (layer) {
+        MapEnvironmentalLayer.AirQuality ->
+          listOf(
+            BiziDataColors.AqiGood,
+            BiziDataColors.AqiModerate,
+            BiziDataColors.AqiBad,
+          )
+        MapEnvironmentalLayer.Pollen ->
+          listOf(
+            BiziDataColors.PollenLow,
+            BiziDataColors.PollenMedium,
+            BiziDataColors.PollenHigh,
+          )
+      }
+    legendColors.zip(labels).forEach { (color, label) ->
       Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
         MapColorDot(color = color)
-        Text(labels[index], style = MaterialTheme.typography.labelSmall, color = c.muted)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = c.muted)
       }
     }
   }
@@ -163,10 +179,10 @@ private fun environmentalToneForLayer(
 ): Color =
   when {
     score == null -> muted
-    layer == MapEnvironmentalLayer.AirQuality && score <= 50 -> Color(0xFF26A69A)
-    layer == MapEnvironmentalLayer.AirQuality && score <= 100 -> Color(0xFFFFB300)
-    layer == MapEnvironmentalLayer.AirQuality -> Color(0xFFD84315)
-    layer == MapEnvironmentalLayer.Pollen && score <= 10 -> Color(0xFF8BC34A)
-    layer == MapEnvironmentalLayer.Pollen && score <= 30 -> Color(0xFFFF9800)
-    else -> Color(0xFFC2185B)
+    layer == MapEnvironmentalLayer.AirQuality && score <= 50 -> BiziDataColors.AqiGood
+    layer == MapEnvironmentalLayer.AirQuality && score <= 100 -> BiziDataColors.AqiModerate
+    layer == MapEnvironmentalLayer.AirQuality -> BiziDataColors.AqiBad
+    layer == MapEnvironmentalLayer.Pollen && score <= 10 -> BiziDataColors.PollenLow
+    layer == MapEnvironmentalLayer.Pollen && score <= 30 -> BiziDataColors.PollenMedium
+    else -> BiziDataColors.PollenHigh
   }

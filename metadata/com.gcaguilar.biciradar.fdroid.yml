@@ -1,0 +1,36 @@
+Categories:
+  - Navigation
+License: GPL-3.0-only
+SourceCode: https://github.com/gcaguilar/biciradar
+IssueTracker: https://github.com/gcaguilar/biciradar/issues
+Changelog: https://github.com/gcaguilar/biciradar/releases
+AutoName: Bici Radar
+Summary: Public bike availability across Spanish cities
+Description: |
+  Bici Radar shows live public bike station availability across supported Spanish cities.
+
+  This F-Droid build removes proprietary integrations and keeps the core experience focused on:
+
+  - city station availability
+  - favorites and commute shortcuts
+  - widgets and notifications
+  - free-software compatible external routing
+
+  The embedded Android map is intentionally degraded in this flavor to avoid Google Maps dependencies.
+
+RepoType: git
+Repo: https://github.com/gcaguilar/biciradar.git
+
+Builds:
+  - versionName: 0.22.8-fdroid
+    versionCode: 29568118
+    commit: 911aac9ba9ca545cf23cce6a3d7d1480c74b0eb5
+    subdir: .
+    gradle:
+      - yes
+    output: androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk
+
+MaintainerNotes: |
+  Submit this file to the fdroiddata fork, then replace commit with the release tag once the
+  tagged F-Droid release exists. Screenshots and icon metadata are sourced from the app's
+  fastlane metadata under androidApp/src/fdroid/.

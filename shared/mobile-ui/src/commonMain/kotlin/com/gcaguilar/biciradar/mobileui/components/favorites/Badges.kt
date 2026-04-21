@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,7 +55,7 @@ internal fun CountBadge(
   val colors = LocalBiziColors.current
   Surface(
     modifier = modifier,
-    shape = RoundedCornerShape(999.dp),
+    shape = MaterialTheme.shapes.extraLarge,
     color = colors.panel.copy(alpha = 0.7f),
   ) {
     Text(
@@ -84,7 +83,7 @@ internal fun SectionPill(
 ) {
   Surface(
     modifier = modifier,
-    shape = RoundedCornerShape(999.dp),
+    shape = MaterialTheme.shapes.extraLarge,
     color = tint.copy(alpha = 0.10f),
   ) {
     Text(
@@ -115,7 +114,7 @@ internal fun StatusPill(
   val colors = LocalBiziColors.current
   Surface(
     modifier = modifier.clickable(onClick = onClick),
-    shape = RoundedCornerShape(999.dp),
+    shape = MaterialTheme.shapes.extraLarge,
     color = if (active) colors.blue.copy(alpha = 0.10f) else colors.panel.copy(alpha = 0.7f),
   ) {
     Text(

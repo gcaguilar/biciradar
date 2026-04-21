@@ -1,0 +1,13 @@
+Bici Radar helps you check public bike availability across supported Spanish cities.
+
+This F-Droid flavor keeps the core bike-station experience while removing proprietary mobile SDKs.
+
+What you can do:
+- browse supported cities and stations
+- save favorite stations
+- use commute shortcuts and widgets
+- launch external routing with free-software-compatible geo intents
+- receive monitoring notifications
+
+This flavor intentionally avoids Firebase, Google Play Services, Garmin Connect IQ, and in-app review/update SDKs.
+The embedded Android map is degraded in this build to a station-focused list and location summary.

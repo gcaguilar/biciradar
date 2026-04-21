@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
@@ -109,6 +108,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceNotSet
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.useSearchToAssignStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
@@ -249,7 +249,7 @@ internal fun FavoritesScreen(
           }
           Spacer(Modifier.width(12.dp))
           Surface(
-            shape = RoundedCornerShape(18.dp),
+            shape = MaterialTheme.shapes.large,
             color = colors.surface,
             border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
             modifier = Modifier.clickable(onClick = onOpenSavedPlaceAlerts),
@@ -493,7 +493,7 @@ internal fun FavoritesScreen(
         item {
           Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+            shape = LocalBiziCardShape.current,
             border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
             colors = CardDefaults.cardColors(containerColor = colors.surface),
           ) {
@@ -708,7 +708,7 @@ internal fun SavedPlaceCard(
       Modifier
         .fillMaxWidth()
         .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 500f)),
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    shape = LocalBiziCardShape.current,
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
     colors = CardDefaults.cardColors(containerColor = colors.surface),
   ) {
@@ -848,7 +848,7 @@ private fun FavoritesOverviewCard(
   val colors = LocalBiziColors.current
   Card(
     modifier = Modifier.fillMaxWidth(),
-    shape = RoundedCornerShape(if (mobilePlatform == MobileUiPlatform.IOS) 22.dp else 24.dp),
+    shape = LocalBiziCardShape.current,
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
     colors = CardDefaults.cardColors(containerColor = colors.surface),
   ) {
@@ -917,7 +917,7 @@ private fun FavoritesSearchLauncher(
   OutlinedButton(
     modifier = Modifier.fillMaxWidth(),
     onClick = onClick,
-    shape = RoundedCornerShape(20.dp),
+    shape = MaterialTheme.shapes.extraLarge,
     border =
       BorderStroke(
         1.dp,

@@ -3,10 +3,12 @@ package com.gcaguilar.biciradar.mobileui
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -15,6 +17,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.gcaguilar.biciradar.core.ThemePreference
@@ -112,6 +115,18 @@ internal val DarkBiziColors =
 internal val LocalBiziColors = staticCompositionLocalOf { LightBiziColors }
 internal val LocalIsDarkTheme = staticCompositionLocalOf { false }
 
+// Shape token for cards / station rows (platform-aware: iOS uses slightly smaller radius)
+internal val LocalBiziCardShape = staticCompositionLocalOf<Shape> { RoundedCornerShape(24.dp) }
+
+internal val BiziShapes =
+  Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(28.dp),
+  )
+
 internal enum class BiziWindowLayout {
   Compact,
   Medium,
@@ -142,9 +157,12 @@ internal fun BiziTheme(
     } else {
       LightBiziColors
     }
+  val cardShape: Shape =
+    if (mobilePlatform == MobileUiPlatform.IOS) RoundedCornerShape(22.dp) else RoundedCornerShape(24.dp)
   CompositionLocalProvider(
     LocalBiziColors provides colors,
     LocalIsDarkTheme provides isDark,
+    LocalBiziCardShape provides cardShape,
   ) {
     MaterialTheme(
       colorScheme =
@@ -153,6 +171,7 @@ internal fun BiziTheme(
           colors = colors,
           mobilePlatform = mobilePlatform,
         ),
+      shapes = BiziShapes,
       motionScheme = MotionScheme.expressive(),
       content = content,
     )

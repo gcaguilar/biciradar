@@ -68,8 +68,11 @@ Common commands:
 Notes:
 
 - F-Droid builds do not require `androidApp/google-services.json` or `wearApp/google-services.json`.
-- The `fdroid` flavor uses separate application IDs via the `.fdroid` suffix.
+- Android F-Droid package ID: `com.gcaguilar.biciradar.fdroid`.
+- Wear OS F-Droid package ID: `com.gcaguilar.biciradar.wear.fdroid`.
 - Play Store publishing commands remain separate and use the `playstore` flavor.
+- The F-Droid runtime strips Firebase, Play Services wearable sync, Google Maps SDK usage, and Garmin Connect IQ integrations.
+- The embedded Android map is intentionally degraded in the F-Droid path to avoid proprietary map SDKs.
 
 ### Quick smoke tests
 
@@ -142,6 +145,7 @@ App Store publishing workflow: `.github/workflows/publish-ios-store.yml` (manual
 ## Release
 
 Build and release checklist: `RELEASE.md`.
+F-Droid submission notes: `docs/fdroid/README.md`.
 
 ## User wiki
 
