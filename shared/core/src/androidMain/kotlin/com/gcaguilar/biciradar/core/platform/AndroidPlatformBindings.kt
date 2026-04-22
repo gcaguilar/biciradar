@@ -79,6 +79,7 @@ class AndroidPlatformBindings(
 ) : PlatformBindings {
   /** Activity used for in-app review / flexible updates; set from [attachExperienceActivity]. */
   var experienceActivity: Activity? = null
+  private val isFdroidBuild = context.packageName.contains(".fdroid")
   private val optionalServices = loadOptionalServices(context)
 
   private val androidPermissionPrompter = AndroidPermissionPrompter(context)
@@ -117,27 +118,31 @@ class AndroidPlatformBindings(
     }
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val googleMapsApiKey: String? =
-    runCatching {
-      val packageManager = context.packageManager
-      val applicationInfo =
-        packageManager.getApplicationInfo(
-          context.packageName,
-          PackageManager.GET_META_DATA,
-        )
-      applicationInfo.metaData
-        ?.getString("com.google.android.geo.API_KEY")
-        ?.trim()
-        ?.takeIf { it.isNotBlank() }
-    }.getOrNull()
+    if (isFdroidBuild) {
+      null
+    } else {
+      runCatching {
+        val packageManager = context.packageManager
+        val applicationInfo =
+          packageManager.getApplicationInfo(
+            context.packageName,
+            PackageManager.GET_META_DATA,
+          )
+        applicationInfo.metaData
+          ?.getString("com.google.android.geo.API_KEY")
+          ?.trim()
+          ?.takeIf { it.isNotBlank() }
+      }.getOrNull()
+    }
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
   private val androidLocalNotifier = AndroidLocalNotifier(context)
   private val androidWatchSyncBridge = optionalServices?.createWatchSyncBridge() ?: AndroidWatchSyncBridge(context)
   override val localNotifier: LocalNotifier = androidLocalNotifier
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
-  override val mapSupport: MapSupport = AndroidMapSupport(context)
+  override val mapSupport: MapSupport = if (isFdroidBuild) FdroidMapSupport() else AndroidMapSupport(context)
   override val platform: String = "android"
   override val osVersion: String = "Android ${android.os.Build.VERSION.RELEASE}"
-  override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
+  override val routeLauncher: RouteLauncher = if (isFdroidBuild) FdroidRouteLauncher(context) else AndroidRouteLauncher(context)
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
@@ -308,6 +313,45 @@ private class AndroidMapSupport(
       googleMapsSdkLinked = true,
       googleMapsApiKeyConfigured = apiKey.isNotBlank(),
     )
+  }
+}
+
+private class FdroidMapSupport : MapSupport {
+  override fun currentStatus(): MapSupportStatus =
+    MapSupportStatus(
+      embeddedProvider = EmbeddedMapProvider.Osmdroid,
+      googleMapsSdkLinked = false,
+      googleMapsApiKeyConfigured = false,
+    )
+}
+
+private class FdroidRouteLauncher(
+  private val context: Context,
+) : RouteLauncher {
+  override fun launch(station: Station) {
+    val geoUri =
+      Uri.parse(
+        "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
+      )
+    launchGeoUri(geoUri)
+  }
+
+  override fun launchWalkToLocation(destination: GeoPoint) {
+    launchGeoUri(Uri.parse("geo:${destination.latitude},${destination.longitude}"))
+  }
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    launchGeoUri(Uri.parse("geo:${destination.latitude},${destination.longitude}?mode=b"))
+  }
+
+  private fun launchGeoUri(geoUri: Uri) {
+    val intent =
+      Intent(Intent.ACTION_VIEW, geoUri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
+    if (intent.resolveActivity(context.packageManager) != null) {
+      context.startActivity(intent)
+    }
   }
 }
 

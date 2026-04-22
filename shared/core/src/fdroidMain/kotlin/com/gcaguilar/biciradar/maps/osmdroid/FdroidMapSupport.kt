@@ -6,7 +6,7 @@ import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
 
 /**
- * F-Droid compliant MapSupport implementation with no embedded map provider.
+ * F-Droid compliant MapSupport implementation backed by osmdroid/OpenStreetMap.
  * External navigation is supported without linking Google Maps.
  */
 class FdroidMapSupport(
@@ -14,7 +14,7 @@ class FdroidMapSupport(
 ) : MapSupport {
     override fun currentStatus(): MapSupportStatus {
         return MapSupportStatus(
-            embeddedProvider = EmbeddedMapProvider.None,
+            embeddedProvider = EmbeddedMapProvider.Osmdroid,
             googleMapsSdkLinked = false,
             googleMapsApiKeyConfigured = false
         )

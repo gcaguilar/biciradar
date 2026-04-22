@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
 
     setContent {
-      val stationMapRenderer = remember { AndroidStationMapRendererBridge.load() }
+      val stationMapRenderer = remember { loadAndroidStationMapRenderer() }
       CompositionLocalProvider(
         LocalAndroidStationMapRenderer provides stationMapRenderer,
       ) {

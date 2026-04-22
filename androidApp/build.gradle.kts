@@ -152,6 +152,7 @@ dependencies {
   implementation(libs.androidx.glance.material3)
   implementation(libs.google.material)
   testImplementation(libs.junit)
+  add("fdroidImplementation", libs.osmdroid.android)
 
   // Play Store flavor dependencies
   add("playstoreImplementation", "com.garmin.connectiq:ciq-companion-app-sdk:2.4.0@aar")

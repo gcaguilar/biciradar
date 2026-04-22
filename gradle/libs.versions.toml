@@ -42,6 +42,7 @@ ktlint-gradle = "14.2.0"
 garmin-connectiq-sdk = "2.4.0"
 androidx-glance-appwidget = "1.1.1"
 androidx-glance-material3 = "1.1.1"
+osmdroid = "6.1.20"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -103,6 +104,7 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 garmin-connectiq-sdk = { module = "com.garmin.connectiq:ciq-companion-app-sdk", version.ref = "garmin-connectiq-sdk" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidx-glance-appwidget" }
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "androidx-glance-material3" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
