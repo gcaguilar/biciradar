@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:property-naming")
+
 package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.animation.core.Spring
