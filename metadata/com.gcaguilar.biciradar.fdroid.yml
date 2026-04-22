@@ -16,7 +16,7 @@ Description: |
   - widgets and notifications
   - free-software compatible external routing
 
-  The embedded Android map is intentionally degraded in this flavor to avoid Google Maps dependencies.
+  The embedded Android map in this flavor uses OpenStreetMap tiles via osmdroid instead of Google Maps.
 
 RepoType: git
 Repo: https://github.com/gcaguilar/biciradar.git

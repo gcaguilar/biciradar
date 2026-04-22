@@ -13,7 +13,7 @@ Both packages are meant to be submitted as separate entries in `fdroiddata`.
 
 - No Firebase, Crashlytics, Play Review, Play In-App Updates, Garmin Connect IQ, or Play Services wearable sync.
 - Location resolves through the Android framework `LocationManager`.
-- Embedded Android map content is degraded to a station list and location summary instead of Google Maps.
+- Embedded Android map content uses OpenStreetMap tiles via `osmdroid` instead of Google Maps.
 - External routing uses generic `geo:` intents so free navigation apps can handle them.
 
 ## Validation commands

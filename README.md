@@ -72,7 +72,7 @@ Notes:
 - Wear OS F-Droid package ID: `com.gcaguilar.biciradar.wear.fdroid`.
 - Play Store publishing commands remain separate and use the `playstore` flavor.
 - The F-Droid runtime strips Firebase, Play Services wearable sync, Google Maps SDK usage, and Garmin Connect IQ integrations.
-- The embedded Android map is intentionally degraded in the F-Droid path to avoid proprietary map SDKs.
+- The embedded Android map in F-Droid uses OpenStreetMap tiles via `osmdroid` instead of Google Maps.
 
 ### Quick smoke tests
 
