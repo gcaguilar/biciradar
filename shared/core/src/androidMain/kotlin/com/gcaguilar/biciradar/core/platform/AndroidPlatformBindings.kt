@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -329,30 +330,66 @@ private class FdroidRouteLauncher(
   private val context: Context,
 ) : RouteLauncher {
   override fun launch(station: Station) {
-    val geoUri =
+    launchFirstSupportedGeoUri(
       Uri.parse(
         "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
-      )
-    launchGeoUri(geoUri)
+      ),
+      Uri.parse(
+        "geo:0,0?q=${station.location.latitude},${station.location.longitude}(${Uri.encode(station.name)})",
+      ),
+    )
   }
 
   override fun launchWalkToLocation(destination: GeoPoint) {
-    launchGeoUri(Uri.parse("geo:${destination.latitude},${destination.longitude}"))
+    launchFirstSupportedIntent(
+      navigationIntent(destination, mode = "w"),
+      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}")),
+      geoIntent(Uri.parse("geo:0,0?q=${destination.latitude},${destination.longitude}")),
+    )
   }
 
   override fun launchBikeToLocation(destination: GeoPoint) {
-    launchGeoUri(Uri.parse("geo:${destination.latitude},${destination.longitude}?mode=b"))
+    launchFirstSupportedIntent(
+      navigationIntent(destination, mode = "b"),
+      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}?mode=b")),
+      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}")),
+      geoIntent(Uri.parse("geo:0,0?q=${destination.latitude},${destination.longitude}")),
+    )
   }
 
-  private fun launchGeoUri(geoUri: Uri) {
-    val intent =
-      Intent(Intent.ACTION_VIEW, geoUri).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+  private fun launchFirstSupportedGeoUri(vararg geoUris: Uri) {
+    launchFirstSupportedIntent(*geoUris.map(::geoIntent).toTypedArray())
+  }
+
+  private fun launchFirstSupportedIntent(vararg intents: Intent) {
+    intents.forEach { intent ->
+      try {
+        context.startActivity(intent)
+        return
+      } catch (_: ActivityNotFoundException) {
+        // Try the next URI variant.
+      } catch (_: SecurityException) {
+        // Try the next URI variant.
       }
-    if (intent.resolveActivity(context.packageManager) != null) {
-      context.startActivity(intent)
     }
   }
+
+  private fun navigationIntent(
+    destination: GeoPoint,
+    mode: String,
+  ): Intent =
+    Intent(
+      Intent.ACTION_VIEW,
+      Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode"),
+    ).apply {
+      setPackage("com.google.android.apps.maps")
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+  private fun geoIntent(geoUri: Uri): Intent =
+    Intent(Intent.ACTION_VIEW, geoUri).apply {
+      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
 }
 
 private class AndroidLocationProvider(
