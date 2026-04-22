@@ -30,11 +30,11 @@ import com.gcaguilar.biciradar.mobileui.EnvironmentalOverlayLayer
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint as OsmGeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
+import org.osmdroid.util.GeoPoint as OsmGeoPoint
 
 class FdroidAndroidStationMapRendererProvider : AndroidStationMapRenderer {
   @Composable
@@ -192,9 +192,7 @@ class FdroidAndroidStationMapRendererProvider : AndroidStationMapRenderer {
     )
   }
 
-  private fun stationMarkerColor(
-    station: Station,
-  ) =
+  private fun stationMarkerColor(station: Station) =
     when {
       station.ebikesAvailable > 0 && station.regularBikesAvailable == 0 -> BiziDataColors.PollenMedium
       station.regularBikesAvailable > 0 && station.ebikesAvailable == 0 -> BiziDataColors.PollenHigh
