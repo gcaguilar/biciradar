@@ -158,7 +158,6 @@ internal class AppRootViewModel(
     }
   }
 
-
   fun showChangelogHistory() {
     val presentation = appLifecycleUseCase.getChangelogHistory() ?: return
     _uiState.update { it.copy(changelogPresentation = presentation) }
@@ -172,7 +171,6 @@ internal class AppRootViewModel(
       appLifecycleUseCase.markChangelogSeen(persistSeenVersion)
     }
   }
-
 
   fun onFeedbackOpened() {
     _uiState.update { it.copy(showFeedbackNudge = false) }
