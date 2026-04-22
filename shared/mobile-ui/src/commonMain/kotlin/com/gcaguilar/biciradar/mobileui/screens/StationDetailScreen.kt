@@ -78,6 +78,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.stationMarkedHomeAn
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stationMarkedWork
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tapHomeOrWorkToAssign
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
+import com.gcaguilar.biciradar.mobileui.BiziAlpha
+import com.gcaguilar.biciradar.mobileui.BiziCard
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
@@ -88,6 +91,7 @@ import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
+import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
 import com.gcaguilar.biciradar.mobileui.components.station.StationDetailAlertBell
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
@@ -168,22 +172,18 @@ internal fun StationDetailScreen(
           modifier = Modifier.responsivePageWidth(),
           contentPadding =
             PaddingValues(
-              start = 16.dp,
-              end = 16.dp,
-              top = innerPadding.calculateTopPadding() + 16.dp,
-              bottom = 16.dp,
+              start = BiziSpacing.screenPadding,
+              end = BiziSpacing.screenPadding,
+              top = innerPadding.calculateTopPadding() + BiziSpacing.screenPadding,
+              bottom = BiziSpacing.screenPadding,
             ),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
+          verticalArrangement = Arrangement.spacedBy(BiziSpacing.screenPadding),
         ) {
           item {
-            Card(
-              colors = biziCardColors(),
-              border = biziCardBorder(),
-              elevation = biziCardElevation(),
-            ) {
+            BiziCard {
               Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(BiziSpacing.cardPadding),
+                verticalArrangement = Arrangement.spacedBy(BiziSpacing.large),
               ) {
                 Row(
                   modifier = Modifier.fillMaxWidth(),
@@ -212,9 +212,9 @@ internal fun StationDetailScreen(
                   lastUpdatedEpoch = lastUpdatedEpoch,
                   loading = stationsLoading,
                   onRefresh = onRefreshStations,
-                  modifier = Modifier.padding(top = 8.dp),
+                  modifier = Modifier.padding(top = BiziSpacing.medium),
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.large)) {
                   StationMetricPill(
                     modifier = Modifier.weight(1f),
                     label = stringResource(Res.string.distance),
@@ -233,22 +233,12 @@ internal fun StationDetailScreen(
           }
           if (!isFavorite) {
             item {
-              Card(
-                colors = biziCardColors(),
-                border = biziCardBorder(),
-                elevation = biziCardElevation(),
+              BiziSectionCard(
+                title = stringResource(Res.string.saveThisStation),
+                description = stringResource(Res.string.saveThisStationDescription),
+                contentSpacing = BiziSpacing.xLarge,
               ) {
-                Column(
-                  modifier = Modifier.padding(18.dp),
-                  verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                  Text(stringResource(Res.string.saveThisStation), fontWeight = FontWeight.SemiBold)
-                  Text(
-                    stringResource(Res.string.saveThisStationDescription),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalBiziColors.current.muted,
-                  )
-                  Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                  Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium)) {
                     FavoritePill(
                       active = isFavorite,
                       onClick = onToggleFavorite,
@@ -275,7 +265,6 @@ internal fun StationDetailScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = LocalBiziColors.current.muted,
                   )
-                }
               }
             }
           }
@@ -305,23 +294,13 @@ internal fun StationDetailScreen(
                   categoryId = FavoriteCategoryIds.FAVORITE,
                   categoryLabel = stringResource(Res.string.favorite),
                 )
-              Card(
-                colors = biziCardColors(),
-                border = biziCardBorder(),
-                elevation = biziCardElevation(),
+              BiziSectionCard(
+                title = stringResource(Res.string.savedPlaceAlertsTitle),
+                description = stringResource(Res.string.savedPlaceAlertsStationDetailHint),
+                contentSpacing = BiziSpacing.xLarge,
               ) {
-                Column(
-                  modifier = Modifier.padding(18.dp),
-                  verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                  Text(stringResource(Res.string.savedPlaceAlertsTitle), fontWeight = FontWeight.SemiBold)
-                  Text(
-                    stringResource(Res.string.savedPlaceAlertsStationDetailHint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalBiziColors.current.muted,
-                  )
                   Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
                     verticalAlignment = Alignment.Top,
                   ) {
                     if (isHomeStation) {
@@ -352,7 +331,6 @@ internal fun StationDetailScreen(
                       )
                     }
                   }
-                }
               }
             }
           }
@@ -374,7 +352,7 @@ internal fun StationDetailScreen(
             }
           }
           item {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
               AvailabilityCard(
                 modifier = Modifier.weight(1f),
                 label = stringResource(Res.string.bikes),
@@ -470,16 +448,16 @@ private fun AvailabilityCard(
           if (mobilePlatform == MobileUiPlatform.IOS) {
             LocalBiziColors.current.surface
           } else {
-            tint.copy(alpha = 0.08f)
+            tint.copy(alpha = BiziAlpha.subtleTint)
           },
       ),
   ) {
     Column(
       modifier =
         Modifier
-          .padding(16.dp)
+          .padding(BiziSpacing.screenPadding)
           .animateContentSize(animationSpec = spring(dampingRatio = 0.86f, stiffness = 500f)),
-      verticalArrangement = Arrangement.spacedBy(4.dp),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.xSmall),
     ) {
       Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
       Text(label, color = tint)

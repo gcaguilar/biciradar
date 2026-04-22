@@ -1,8 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,18 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -37,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
@@ -54,6 +48,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationT
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSelectedPoint
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
+import com.gcaguilar.biciradar.mobileui.BiziAlpha
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
@@ -61,6 +57,7 @@ import com.gcaguilar.biciradar.mobileui.PlatformStationMap
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
+import com.gcaguilar.biciradar.mobileui.components.inputs.SuggestionRow
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -207,8 +204,8 @@ internal fun TripMapPickerScreen(
             elevation = biziCardElevation(),
           ) {
             Column(
-              modifier = Modifier.padding(12.dp),
-              verticalArrangement = Arrangement.spacedBy(12.dp),
+              modifier = Modifier.padding(BiziSpacing.xLarge),
+              verticalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
             ) {
               StationSearchField(
                 mobilePlatform = mobilePlatform,
@@ -225,57 +222,14 @@ internal fun TripMapPickerScreen(
                   )
                   Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
                   ) {
                     state.suggestions.take(5).forEach { prediction ->
-                      Surface(
-                        shape = MaterialTheme.shapes.medium,
-                        color = c.background,
-                        border = BorderStroke(1.dp, c.panel),
-                        modifier =
-                          Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                              onSuggestionSelected(prediction)
-                            },
-                      ) {
-                        Row(
-                          modifier = Modifier.padding(12.dp),
-                          verticalAlignment = Alignment.CenterVertically,
-                          horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                          Icon(
-                            imageVector = Icons.Filled.LocationOn,
-                            contentDescription = null,
-                            tint = c.muted,
-                            modifier = Modifier.size(18.dp),
-                          )
-                          Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                          ) {
-                            Text(
-                              text = prediction.name,
-                              style = MaterialTheme.typography.bodyMedium,
-                              fontWeight = FontWeight.SemiBold,
-                              maxLines = 1,
-                              overflow = TextOverflow.Ellipsis,
-                            )
-                            tripGeoSuggestionSecondaryText(
-                              prediction.name,
-                              prediction.address,
-                            )?.let { secondaryText ->
-                              Text(
-                                text = secondaryText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = c.muted,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                              )
-                            }
-                          }
-                        }
-                      }
+                      SuggestionRow(
+                        title = prediction.name,
+                        secondaryText = tripGeoSuggestionSecondaryText(prediction.name, prediction.address),
+                        onClick = { onSuggestionSelected(prediction) },
+                      )
                     }
                   }
                 }
@@ -311,7 +265,7 @@ internal fun TripMapPickerScreen(
           modifier =
             Modifier
               .fillMaxSize()
-              .background(c.background.copy(alpha = 0.58f)),
+              .background(c.background.copy(alpha = BiziAlpha.overlay)),
           contentAlignment = Alignment.Center,
         ) {
           CircularProgressIndicator(color = c.red)

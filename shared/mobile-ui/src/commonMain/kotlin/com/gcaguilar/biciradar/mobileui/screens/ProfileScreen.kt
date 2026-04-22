@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -79,13 +76,12 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewComm
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
 import com.gcaguilar.biciradar.mobileui.FeedbackDialog
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.biziCardBorder
-import com.gcaguilar.biciradar.mobileui.biziCardColors
-import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
 import com.gcaguilar.biciradar.mobileui.components.buttons.RadiusSelectionButton
+import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState
@@ -121,8 +117,8 @@ internal fun ProfileScreen(
   ) {
     LazyColumn(
       modifier = Modifier.responsivePageWidth(),
-      contentPadding = PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
+      contentPadding = PaddingValues(BiziSpacing.screenPadding),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.screenPadding),
     ) {
       item {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -140,97 +136,48 @@ internal fun ProfileScreen(
       }
       if (state.showProfileSetupCard) {
         item {
-          Card(
-            colors = biziCardColors(),
-            border = biziCardBorder(),
-            elevation = biziCardElevation(),
-          ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(stringResource(Res.string.profileSetupCardTitle), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.profileSetupCardBody),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              TextButton(
-                onClick = onOpenOnboarding,
-                contentPadding = PaddingValues(0.dp),
-              ) {
-                Text(stringResource(Res.string.profileSetupCardAction), style = MaterialTheme.typography.bodySmall)
-              }
-            }
-          }
+          BiziSectionCard(
+            title = stringResource(Res.string.profileSetupCardTitle),
+            description = stringResource(Res.string.profileSetupCardBody),
+            actionLabel = stringResource(Res.string.profileSetupCardAction),
+            onAction = onOpenOnboarding,
+            contentSpacing = BiziSpacing.medium,
+          )
         }
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.shortcuts), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.profileAssistantName()),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(onClick = onOpenShortcuts, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.openShortcutsGuide), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
+        BiziSectionCard(
+          title = stringResource(Res.string.shortcuts),
+          description = stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.profileAssistantName()),
+          actionLabel = stringResource(Res.string.openShortcutsGuide),
+          onAction = onOpenShortcuts,
+        )
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.viewWhatsNew), fontWeight = FontWeight.SemiBold)
-            TextButton(onClick = onShowChangelog, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.viewWhatsNew), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
+        BiziSectionCard(
+          title = stringResource(Res.string.viewWhatsNew),
+          actionLabel = stringResource(Res.string.viewWhatsNew),
+          onAction = onShowChangelog,
+        )
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
+        BiziSectionCard(
+          title = stringResource(Res.string.nearbyStationRadius),
+          description = stringResource(Res.string.nearbyStationRadiusDescription),
+          contentSpacing = BiziSpacing.xxLarge,
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.nearbyStationRadiusDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
             SearchRadiusSelector(
               selectedRadiusMeters = state.searchRadiusMeters,
               onSearchRadiusSelected = onSearchRadiusSelected,
             )
-          }
         }
       }
       item {
-        Card(
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
+        BiziSectionCard(
+          title = stringResource(Res.string.selectedCity),
+          description = stringResource(Res.string.citySelectionSubtitle),
+          contentSpacing = BiziSpacing.xxLarge,
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.selectedCity), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.citySelectionSubtitle),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
             CitySelector(
               selectedCity = state.selectedCity,
               searchQuery = state.citySearchQuery,
@@ -239,24 +186,15 @@ internal fun ProfileScreen(
               onSearchQueryChange = onCitySearchQueryChange,
               onClearSearchQuery = onClearCitySearchQuery,
             )
-          }
         }
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
+        BiziSectionCard(
+          title = stringResource(Res.string.appearance),
+          description = stringResource(Res.string.appearanceDescription),
+          contentSpacing = BiziSpacing.xxLarge,
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(Res.string.appearance), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.appearanceDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
               RadiusSelectionButton(
                 modifier = Modifier.weight(1f),
                 selected = state.themePreference == ThemePreference.System,
@@ -276,24 +214,16 @@ internal fun ProfileScreen(
                 onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
               )
             }
-          }
         }
       }
       if (mobilePlatform == MobileUiPlatform.IOS && state.canSelectGoogleMapsInIos) {
         item {
-          Card(
-            colors = biziCardColors(),
-            border = biziCardBorder(),
-            elevation = biziCardElevation(),
+          BiziSectionCard(
+            title = stringResource(Res.string.iPhoneRouteApp),
+            description = stringResource(Res.string.iPhoneRouteAppDescription),
+            contentSpacing = BiziSpacing.xxLarge,
           ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-              Text(stringResource(Res.string.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.iPhoneRouteAppDescription),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+              Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
                 RadiusSelectionButton(
                   modifier = Modifier.weight(1f),
                   selected = state.preferredMapApp == PreferredMapApp.AppleMaps,
@@ -312,68 +242,33 @@ internal fun ProfileScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = LocalBiziColors.current.muted,
               )
-            }
           }
         }
       }
       if (state.showGarminSection && mobilePlatform == MobileUiPlatform.IOS) {
         item {
-          Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = biziCardColors(),
-            border = biziCardBorder(),
-            elevation = biziCardElevation(),
-          ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-              Text(stringResource(Res.string.garminConnectTitle), fontWeight = FontWeight.SemiBold)
-              Text(
-                stringResource(Res.string.garminConnectDescription),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
-              )
-              TextButton(onClick = onOpenGarminPairing, contentPadding = PaddingValues(0.dp)) {
-                Text(stringResource(Res.string.garminConnectAction), style = MaterialTheme.typography.bodySmall)
-              }
-            }
-          }
+          BiziSectionCard(
+            title = stringResource(Res.string.garminConnectTitle),
+            description = stringResource(Res.string.garminConnectDescription),
+            actionLabel = stringResource(Res.string.garminConnectAction),
+            onAction = onOpenGarminPairing,
+          )
         }
       }
       item {
-        Card(
-          modifier = Modifier.fillMaxWidth(),
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.rateApp), fontWeight = FontWeight.SemiBold)
-            TextButton(onClick = onRateApp, contentPadding = PaddingValues(0.dp)) {
-              Text(stringResource(Res.string.rateApp), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
+        BiziSectionCard(
+          title = stringResource(Res.string.rateApp),
+          actionLabel = stringResource(Res.string.rateApp),
+          onAction = onRateApp,
+        )
       }
       item {
-        Card(
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.feedbackDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(
-              onClick = { showFeedbackDialog = true },
-              contentPadding = PaddingValues(0.dp),
-            ) {
-              Text(stringResource(Res.string.openFeedbackForm), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
+        BiziSectionCard(
+          title = stringResource(Res.string.feedbackAndSuggestions),
+          description = stringResource(Res.string.feedbackDescription),
+          actionLabel = stringResource(Res.string.openFeedbackForm),
+          onAction = { showFeedbackDialog = true },
+        )
       }
       if (showFeedbackDialog) {
         item {
@@ -388,53 +283,24 @@ internal fun ProfileScreen(
       }
       item {
         val uriHandler = LocalUriHandler.current
-        Card(
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
+        BiziSectionCard(
+          title = stringResource(Res.string.privacyAndData),
+          description = stringResource(Res.string.privacyDescription),
+          actionLabel = stringResource(Res.string.openPrivacyPolicy),
+          onAction = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
+        )
+        Spacer(modifier = Modifier.height(BiziSpacing.xLarge))
+        BiziSectionCard(
+          title = stringResource(Res.string.dataSourceTitle),
+          description = stringResource(Res.string.dataSourceDescription),
+          onClick = { showDataSourcesDialog = true },
         ) {
-          Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(stringResource(Res.string.privacyAndData), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.privacyDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            TextButton(
-              onClick = { uriHandler.openUri("https://gcaguilar.github.io/biciradar-privacy-policy/") },
-              contentPadding = PaddingValues(0.dp),
-            ) {
-              Text(stringResource(Res.string.openPrivacyPolicy), style = MaterialTheme.typography.bodySmall)
-            }
-          }
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Card(
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(
-            modifier =
-              Modifier
-                .fillMaxWidth()
-                .clickable { showDataSourcesDialog = true }
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-          ) {
-            Text(stringResource(Res.string.dataSourceTitle), fontWeight = FontWeight.SemiBold)
-            Text(
-              stringResource(Res.string.dataSourceDescription),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            Text(
-              text = stringResource(Res.string.dataSourceDetailsAction),
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.blue,
-              fontWeight = FontWeight.SemiBold,
-            )
-          }
+          Text(
+            text = stringResource(Res.string.dataSourceDetailsAction),
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.blue,
+            fontWeight = FontWeight.SemiBold,
+          )
         }
       }
     }

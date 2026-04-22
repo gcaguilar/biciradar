@@ -107,6 +107,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsPro
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceNotSet
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.useSearchToAssignStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
+import com.gcaguilar.biciradar.mobileui.BiziCard
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -116,6 +118,7 @@ import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
+import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.components.favorites.CountBadge
 import com.gcaguilar.biciradar.mobileui.components.favorites.FavoriteDismissBackground
 import com.gcaguilar.biciradar.mobileui.components.favorites.SectionHeader
@@ -268,7 +271,6 @@ internal fun FavoritesScreen(
       }
       item {
         FavoritesOverviewCard(
-          mobilePlatform = mobilePlatform,
           activeAlertCount = activeAlertCount,
           onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
           onOpenSearch = onOpenSearch,
@@ -494,16 +496,10 @@ internal fun FavoritesScreen(
       }
       if (customCategories.isNotEmpty() || assignmentCandidate != null) {
         item {
-          Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = LocalBiziCardShape.current,
-            border = biziCardBorder(),
-            colors = biziCardColors(),
-            elevation = biziCardElevation(),
+          BiziSectionCard(
+            title = stringResource(Res.string.favoritesCustomCategoriesTitle),
           ) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-              Text(stringResource(Res.string.favoritesCustomCategoriesTitle), fontWeight = FontWeight.SemiBold)
-              Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+              Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium), verticalAlignment = Alignment.CenterVertically) {
                 androidx.compose.material3.OutlinedTextField(
                   value = newCategoryName,
                   onValueChange = { onNewCategoryNameChange(it) },
@@ -531,7 +527,7 @@ internal fun FavoritesScreen(
                     fontWeight = FontWeight.Medium,
                   )
                   Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(BiziSpacing.small),
                     verticalAlignment = Alignment.CenterVertically,
                   ) {
                     if (assignmentCandidate != null) {
@@ -545,7 +541,6 @@ internal fun FavoritesScreen(
                   }
                 }
               }
-            }
           }
         }
       }
@@ -845,22 +840,15 @@ internal fun SavedPlaceQuickAction(
 
 @Composable
 private fun FavoritesOverviewCard(
-  mobilePlatform: MobileUiPlatform,
   activeAlertCount: Int,
   onOpenSavedPlaceAlerts: () -> Unit,
   onOpenSearch: () -> Unit,
 ) {
   val colors = LocalBiziColors.current
-  Card(
-    modifier = Modifier.fillMaxWidth(),
-    shape = LocalBiziCardShape.current,
-    border = biziCardBorder(),
-    colors = biziCardColors(),
-    elevation = biziCardElevation(),
-  ) {
+  BiziCard(modifier = Modifier.fillMaxWidth()) {
     Column(
-      modifier = Modifier.padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = Modifier.padding(BiziSpacing.cardPadding),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
@@ -888,7 +876,7 @@ private fun FavoritesOverviewCard(
       )
       Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
       ) {
         Button(
           modifier = Modifier.weight(1f),

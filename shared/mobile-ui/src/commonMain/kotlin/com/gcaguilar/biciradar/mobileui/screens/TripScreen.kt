@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,8 +22,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -50,12 +47,17 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationNoLonger
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedAlternative
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.whereAreYouGoing
+import com.gcaguilar.biciradar.mobileui.BiziAlpha
+import com.gcaguilar.biciradar.mobileui.BiziCard
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
+import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
+import com.gcaguilar.biciradar.mobileui.components.cards.BiziStatusCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
@@ -91,11 +93,11 @@ internal fun TripScreen(
   ) {
     LazyColumn(
       modifier = Modifier.responsivePageWidth(),
-      contentPadding = PaddingValues(16.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
+      contentPadding = PaddingValues(BiziSpacing.screenPadding),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.screenPadding),
     ) {
       item("header") {
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(BiziSpacing.small)) {
           Text(
             text = stringResource(Res.string.trip),
             style = MaterialTheme.typography.headlineSmall,
@@ -120,17 +122,14 @@ internal fun TripScreen(
 
       state.alert?.let { alert ->
         item("alert") {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = colors.red.copy(alpha = 0.09f)),
-            border = BorderStroke(1.dp, colors.red.copy(alpha = 0.22f)),
+          BiziStatusCard(
+            tint = colors.red,
+            containerAlpha = 0.09f,
+            borderAlpha = 0.22f,
           ) {
-            Column(
-              modifier = Modifier.padding(16.dp),
-              verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
               Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
               ) {
                 Icon(Icons.Filled.Sync, contentDescription = null, tint = colors.red)
                 Text(
@@ -168,26 +167,14 @@ internal fun TripScreen(
               ) {
                 Text(stringResource(Res.string.gotIt))
               }
-            }
-          }
         }
       }
 
       item("hero") {
-        Card(
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
+        BiziSectionCard(
+          title = stringResource(Res.string.whereAreYouGoing),
+          contentSpacing = BiziSpacing.xxLarge,
         ) {
-          Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-          ) {
-            Text(
-              text = stringResource(Res.string.whereAreYouGoing),
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-            )
             Text(
               text =
                 if (state.destination == null) {
@@ -235,18 +222,14 @@ internal fun TripScreen(
 
       state.destination?.let { destination ->
         item("destination-summary") {
-          Card(
-            colors = biziCardColors(),
-            border = biziCardBorder(),
-            elevation = biziCardElevation(),
-          ) {
+          BiziCard {
             Row(
               modifier =
                 Modifier
                   .fillMaxWidth()
-                  .padding(16.dp),
+                  .padding(BiziSpacing.screenPadding),
               verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
+              horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
             ) {
               Icon(
                 imageVector = Icons.Filled.LocationOn,
@@ -256,7 +239,7 @@ internal fun TripScreen(
               )
               Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(BiziSpacing.xSmall),
               ) {
                 Text(
                   text = stringResource(Res.string.whereAreYouGoing),
@@ -289,18 +272,14 @@ internal fun TripScreen(
 
       if (state.destination != null && state.isSearchingStation) {
         item("searching") {
-          Card(
-            colors = biziCardColors(),
-            border = biziCardBorder(),
-            elevation = biziCardElevation(),
-          ) {
+          BiziCard {
             Row(
               modifier =
                 Modifier
                   .fillMaxWidth()
                   .padding(20.dp),
               verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+              horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge, Alignment.CenterHorizontally),
             ) {
               androidx.compose.material3.CircularProgressIndicator(
                 modifier = Modifier.size(22.dp),
@@ -319,13 +298,15 @@ internal fun TripScreen(
 
       if (state.destination != null && state.searchError != null) {
         item("search-error") {
-          Card(
-            colors = CardDefaults.cardColors(containerColor = colors.red.copy(alpha = 0.07f)),
-            border = BorderStroke(1.dp, colors.red.copy(alpha = 0.18f)),
+          BiziStatusCard(
+            tint = colors.red,
+            containerAlpha = 0.07f,
+            borderAlpha = BiziAlpha.selectedBorder,
+            contentPadding = BiziSpacing.xxLarge,
+            contentSpacing = 0.dp,
           ) {
             Text(
               text = state.searchError,
-              modifier = Modifier.padding(14.dp),
               style = MaterialTheme.typography.bodyMedium,
               color = colors.red,
             )
@@ -336,7 +317,7 @@ internal fun TripScreen(
       val suggestedStation = state.nearestStationWithSlots
       if (suggestedStation != null && !state.isSearchingStation) {
         item("station") {
-          Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          Column(verticalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
             TripStationCard(
               station = suggestedStation,
               distanceMeters = state.distanceToStation,
