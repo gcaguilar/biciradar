@@ -39,7 +39,11 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearch
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchPlaceholder
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionTitle
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.normalizedForSearch
 import org.jetbrains.compose.resources.stringResource
 
@@ -120,8 +124,10 @@ internal fun CitySelectionScreen(onCitySelected: (City) -> Unit) {
             Modifier
               .fillMaxWidth()
               .clickable { onCitySelected(city) },
-          colors = CardDefaults.cardColors(containerColor = colors.surface),
-          border = BorderStroke(1.dp, colors.panel),
+          shape = LocalBiziCardShape.current,
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Row(
             modifier =

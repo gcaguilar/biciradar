@@ -84,6 +84,9 @@ import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
 import com.gcaguilar.biciradar.mobileui.PlatformStationMap
 import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
 import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
 import com.gcaguilar.biciradar.mobileui.components.station.StationDetailAlertBell
@@ -174,7 +177,9 @@ internal fun StationDetailScreen(
         ) {
           item {
             Card(
-              colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+              colors = biziCardColors(),
+              border = biziCardBorder(),
+              elevation = biziCardElevation(),
             ) {
               Column(
                 modifier = Modifier.padding(18.dp),
@@ -229,7 +234,9 @@ internal fun StationDetailScreen(
           if (!isFavorite) {
             item {
               Card(
-                colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+                colors = biziCardColors(),
+                border = biziCardBorder(),
+                elevation = biziCardElevation(),
               ) {
                 Column(
                   modifier = Modifier.padding(18.dp),
@@ -299,7 +306,9 @@ internal fun StationDetailScreen(
                   categoryLabel = stringResource(Res.string.favorite),
                 )
               Card(
-                colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+                colors = biziCardColors(),
+                border = biziCardBorder(),
+                elevation = biziCardElevation(),
               ) {
                 Column(
                   modifier = Modifier.padding(18.dp),
@@ -350,7 +359,9 @@ internal fun StationDetailScreen(
           item {
             Card(
               shape = MaterialTheme.shapes.extraLarge,
-              colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+              colors = biziCardColors(),
+              border = biziCardBorder(),
+              elevation = biziCardElevation(),
             ) {
               PlatformStationMap(
                 modifier = Modifier.fillMaxWidth().height(200.dp),

@@ -81,6 +81,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
 import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
 import com.gcaguilar.biciradar.mobileui.components.buttons.RadiusSelectionButton
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -138,7 +141,9 @@ internal fun ProfileScreen(
       if (state.showProfileSetupCard) {
         item {
           Card(
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
           ) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
               Text(stringResource(Res.string.profileSetupCardTitle), fontWeight = FontWeight.SemiBold)
@@ -160,7 +165,9 @@ internal fun ProfileScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(Res.string.shortcuts), fontWeight = FontWeight.SemiBold)
@@ -178,7 +185,9 @@ internal fun ProfileScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(Res.string.viewWhatsNew), fontWeight = FontWeight.SemiBold)
@@ -191,7 +200,9 @@ internal fun ProfileScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(Res.string.nearbyStationRadius), fontWeight = FontWeight.SemiBold)
@@ -209,7 +220,9 @@ internal fun ProfileScreen(
       }
       item {
         Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(Res.string.selectedCity), fontWeight = FontWeight.SemiBold)
@@ -232,7 +245,9 @@ internal fun ProfileScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(stringResource(Res.string.appearance), fontWeight = FontWeight.SemiBold)
@@ -267,7 +282,9 @@ internal fun ProfileScreen(
       if (mobilePlatform == MobileUiPlatform.IOS && state.canSelectGoogleMapsInIos) {
         item {
           Card(
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
           ) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
               Text(stringResource(Res.string.iPhoneRouteApp), fontWeight = FontWeight.SemiBold)
@@ -303,7 +320,9 @@ internal fun ProfileScreen(
         item {
           Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
           ) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
               Text(stringResource(Res.string.garminConnectTitle), fontWeight = FontWeight.SemiBold)
@@ -322,7 +341,9 @@ internal fun ProfileScreen(
       item {
         Card(
           modifier = Modifier.fillMaxWidth(),
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(Res.string.rateApp), fontWeight = FontWeight.SemiBold)
@@ -334,7 +355,9 @@ internal fun ProfileScreen(
       }
       item {
         Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(Res.string.feedbackAndSuggestions), fontWeight = FontWeight.SemiBold)
@@ -366,7 +389,9 @@ internal fun ProfileScreen(
       item {
         val uriHandler = LocalUriHandler.current
         Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(Res.string.privacyAndData), fontWeight = FontWeight.SemiBold)
@@ -385,7 +410,9 @@ internal fun ProfileScreen(
         }
         Spacer(modifier = Modifier.height(12.dp))
         Card(
-          colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(
             modifier =

@@ -52,6 +52,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTar
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTargetHome
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTargetWork
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTitle
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -209,8 +212,10 @@ internal fun SavedPlaceAlertsListScreen(
         ) {
           items(rules, key = { it.id }) { rule ->
             Card(
-              colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
               modifier = Modifier.clickable { editor = rule.target to rule },
+              colors = biziCardColors(),
+              border = biziCardBorder(),
+              elevation = biziCardElevation(),
             ) {
               Row(
                 Modifier

@@ -112,6 +112,9 @@ import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.SavedPlaceAlertEditorSheet
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.favorites.CountBadge
 import com.gcaguilar.biciradar.mobileui.components.favorites.FavoriteDismissBackground
@@ -494,8 +497,9 @@ internal fun FavoritesScreen(
           Card(
             modifier = Modifier.fillMaxWidth(),
             shape = LocalBiziCardShape.current,
-            border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
-            colors = CardDefaults.cardColors(containerColor = colors.surface),
+            border = biziCardBorder(),
+            colors = biziCardColors(),
+            elevation = biziCardElevation(),
           ) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
               Text(stringResource(Res.string.favoritesCustomCategoriesTitle), fontWeight = FontWeight.SemiBold)
@@ -709,8 +713,9 @@ internal fun SavedPlaceCard(
         .fillMaxWidth()
         .animateContentSize(animationSpec = spring(dampingRatio = 0.88f, stiffness = 500f)),
     shape = LocalBiziCardShape.current,
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = colors.surface),
+    border = biziCardBorder(),
+    colors = biziCardColors(),
+    elevation = biziCardElevation(),
   ) {
     Column(
       modifier =
@@ -849,8 +854,9 @@ private fun FavoritesOverviewCard(
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = LocalBiziCardShape.current,
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = colors.surface),
+    border = biziCardBorder(),
+    colors = biziCardColors(),
+    elevation = biziCardElevation(),
   ) {
     Column(
       modifier = Modifier.padding(18.dp),

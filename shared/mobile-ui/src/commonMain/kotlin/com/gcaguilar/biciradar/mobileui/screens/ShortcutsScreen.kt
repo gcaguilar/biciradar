@@ -65,6 +65,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsIosSubtitl
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.ShortcutGuide
 import com.gcaguilar.biciradar.mobileui.components.ShortcutGuideCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -144,7 +147,11 @@ internal fun ShortcutsScreen(
           }
         }
         item {
-          Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+          Card(
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
+          ) {
             Column(
               modifier = Modifier.padding(18.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -178,7 +185,11 @@ internal fun ShortcutsScreen(
         }
         latestAnswer?.let { answer ->
           item {
-            Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+            Card(
+              colors = biziCardColors(),
+              border = biziCardBorder(),
+              elevation = biziCardElevation(),
+            ) {
               Column(
                 modifier = Modifier.padding(18.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),

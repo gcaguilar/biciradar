@@ -53,10 +53,14 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripConfirmStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSelectedPoint
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
 import com.gcaguilar.biciradar.mobileui.PlatformStationMap
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -197,8 +201,10 @@ internal fun TripMapPickerScreen(
 
         if (pickerMode == TripMapPickerMode.Destination) {
           Card(
-            colors = CardDefaults.cardColors(containerColor = c.surface),
-            border = BorderStroke(1.dp, c.panel),
+            shape = LocalBiziCardShape.current,
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
           ) {
             Column(
               modifier = Modifier.padding(12.dp),
@@ -319,8 +325,10 @@ internal fun TripMapPickerScreen(
               .align(Alignment.BottomCenter)
               .responsivePageWidth()
               .padding(16.dp),
-          colors = CardDefaults.cardColors(containerColor = c.surface),
-          border = BorderStroke(1.dp, c.panel),
+          shape = LocalBiziCardShape.current,
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(
             modifier = Modifier.padding(16.dp),

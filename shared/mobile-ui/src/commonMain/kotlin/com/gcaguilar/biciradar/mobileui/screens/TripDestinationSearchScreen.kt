@@ -37,9 +37,13 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.back
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.destinationPlaceholder
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.suggestions
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -111,10 +115,6 @@ internal fun TripDestinationSearchScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        Card(
-          colors = CardDefaults.cardColors(containerColor = colors.surface),
-          border = BorderStroke(1.dp, colors.panel),
-        ) {
           Column(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -213,7 +213,7 @@ internal fun TripDestinationSearchScreen(
               }
             }
           }
-        }
+        
       }
     }
   }

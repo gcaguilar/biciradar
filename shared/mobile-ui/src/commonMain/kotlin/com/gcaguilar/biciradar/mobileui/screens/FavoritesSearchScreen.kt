@@ -63,6 +63,9 @@ import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
@@ -240,8 +243,9 @@ private fun SearchResultCard(
         .fillMaxWidth()
         .clickable(onClick = onOpenStationDetails),
     shape = LocalBiziCardShape.current,
-    border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, LocalBiziColors.current.panel) else null,
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+    border = biziCardBorder(),
+    colors = biziCardColors(),
+    elevation = biziCardElevation(),
   ) {
     Column(
       modifier =

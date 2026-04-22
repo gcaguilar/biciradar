@@ -53,6 +53,9 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.whereAreYouGoing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
@@ -172,7 +175,9 @@ internal fun TripScreen(
 
       item("hero") {
         Card(
-          colors = CardDefaults.cardColors(containerColor = colors.surface),
+          colors = biziCardColors(),
+          border = biziCardBorder(),
+          elevation = biziCardElevation(),
         ) {
           Column(
             modifier = Modifier.padding(18.dp),
@@ -231,8 +236,9 @@ internal fun TripScreen(
       state.destination?.let { destination ->
         item("destination-summary") {
           Card(
-            colors = CardDefaults.cardColors(containerColor = colors.surface),
-            border = BorderStroke(1.dp, colors.panel),
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
           ) {
             Row(
               modifier =
@@ -283,7 +289,11 @@ internal fun TripScreen(
 
       if (state.destination != null && state.isSearchingStation) {
         item("searching") {
-          Card(colors = CardDefaults.cardColors(containerColor = colors.surface)) {
+          Card(
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
+          ) {
             Row(
               modifier =
                 Modifier
