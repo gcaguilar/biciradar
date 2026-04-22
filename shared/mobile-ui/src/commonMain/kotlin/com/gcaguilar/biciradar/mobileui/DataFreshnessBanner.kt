@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
@@ -94,7 +93,7 @@ fun DataFreshnessBanner(
       modifier =
         Modifier
           .fillMaxWidth()
-          .padding(horizontal = 12.dp, vertical = 8.dp),
+          .padding(horizontal = BiziSpacing.xLarge, vertical = BiziSpacing.medium),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.Center,
     ) {

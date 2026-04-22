@@ -29,6 +29,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActive
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitoringActiveDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.remainingTime
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stopMonitoring
+import com.gcaguilar.biciradar.mobileui.BiziAlpha
+import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 
@@ -46,22 +48,22 @@ internal fun TripMonitoringActiveCard(
 
   Card(
     colors = CardDefaults.cardColors(containerColor = c.blue.copy(alpha = 0.07f)),
-    border = BorderStroke(1.dp, c.blue.copy(alpha = 0.18f)),
+    border = BorderStroke(1.dp, c.blue.copy(alpha = BiziAlpha.selectedBorder)),
   ) {
     Column(
-      modifier = Modifier.padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(10.dp),
+      modifier = Modifier.padding(BiziSpacing.screenPadding),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.large),
     ) {
       Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
       ) {
         CircularProgressIndicator(
           progress = { progress },
           modifier = Modifier.size(22.dp),
           strokeWidth = 3.dp,
           color = c.blue,
-          trackColor = c.blue.copy(alpha = 0.15f),
+          trackColor = c.blue.copy(alpha = BiziAlpha.accentTrack),
         )
         Text(
           stringResource(Res.string.monitoringActive),
@@ -88,7 +90,7 @@ internal fun TripMonitoringActiveCard(
         modifier = Modifier.fillMaxWidth(),
       ) {
         Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(6.dp))
+        Spacer(Modifier.width(BiziSpacing.small))
         Text(stringResource(Res.string.stopMonitoring))
       }
     }
