@@ -290,8 +290,8 @@
     <string name="onboardingSavedPlacesBody">A Favorites pots marcar Casa o Feina per a dreceres i widgets.</string>
     <string name="onboardingFavoritesTitle">Favorites, Casa i Feina</string>
     <string name="onboardingFavoritesBody">Desa una estació o configura Casa i Feina des de Favorites per tenir dreceres, widgets i alertes més útils.</string>
-    <string name="onboardingSurfacesTitle">Widgets i monitorització</string>
-    <string name="onboardingSurfacesBody">Afegeix widgets i usa la monitorització curta des del detall d\'estació.</string>
+    <string name="onboardingSurfacesTitle">Widgets, Casa i Feina</string>
+    <string name="onboardingSurfacesBody">Pots personalitzar widgets i dreceres configurant Casa i Feina des de Favorites. També pots fer servir la monitorització curta des del detall d\'una estació.</string>
     <string name="onboardingFinish">Començar</string>
     <string name="onboardingSkip">Saltar</string>
     <string name="profileSetupCardTitle">Completa la configuració</string>

@@ -325,8 +325,8 @@
     <string name="onboardingSavedPlacesBody">In Favorites you can mark stations as Home or Work for shortcuts and widgets.</string>
     <string name="onboardingFavoritesTitle">Favorites, Home and Work</string>
     <string name="onboardingFavoritesBody">Save a station or configure Home and Work from Favorites to unlock quicker shortcuts, widgets and alerts.</string>
-    <string name="onboardingSurfacesTitle">Widgets and monitoring</string>
-    <string name="onboardingSurfacesBody">Add home screen widgets and use short monitoring from a station’s detail screen.</string>
+    <string name="onboardingSurfacesTitle">Widgets, Home and Work</string>
+    <string name="onboardingSurfacesBody">You can personalize widgets and shortcuts by configuring Home and Work from Favorites. You can also use short monitoring from a station detail screen.</string>
     <string name="onboardingFinish">Get started</string>
     <string name="onboardingSkip">Skip</string>
     <string name="profileSetupCardTitle">Finish setup</string>

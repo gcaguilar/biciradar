@@ -24,11 +24,3 @@ class AppState {
 
 @Composable
 fun rememberAppState(): AppState = remember { AppState() }
-
-/**
- * Determina si se debe navegar a favoritos después del onboarding.
- */
-fun shouldNavigateToFavoritesAfterOnboarding(
-  hasPendingFavoritesNavigation: Boolean,
-  shouldShowGuidedOnboarding: Boolean,
-): Boolean = hasPendingFavoritesNavigation && !shouldShowGuidedOnboarding

@@ -62,7 +62,6 @@ internal data class AppRootRuntimeState(
   val updateCheckInFlight: Boolean = false,
   // NOTA: updatePollJob se gestiona como campo privado en AppRootViewModel para
   // mantener AppRootRuntimeState como dato puro (Job tiene identidad mutable).
-  val suppressGuidedOnboardingForNavigation: Boolean = false,
   val onboardingLaunchSource: OnboardingLaunchSource = OnboardingLaunchSource.Automatic,
 )
 
@@ -149,11 +148,6 @@ internal class AppRootViewModel(
 
   // ================== ONBOARDING ==================
 
-  fun onOnboardingOpenFavoritesRequested() {
-    runtimeState.update { it.copy(suppressGuidedOnboardingForNavigation = true) }
-    recomputeOnboardingPresentation()
-  }
-
   fun onOnboardingOpenedFromSettings() {
     runtimeState.update { it.copy(onboardingLaunchSource = OnboardingLaunchSource.Settings) }
     recomputeOnboardingPresentation()
@@ -174,26 +168,6 @@ internal class AppRootViewModel(
   fun onOnboardingNotificationsDecisionMade() {
     viewModelScope.launch {
       onboardingCoordinator.updateChecklist { it.copy(notificationsDecisionMade = true) }
-    }
-  }
-
-  fun onOnboardingFirstFavoriteDismissed() {
-    viewModelScope.launch {
-      onboardingCoordinator.updateChecklist { it.copy(firstStationSaved = true) }
-    }
-  }
-
-  fun onOnboardingSavedPlacesDismissed() {
-    viewModelScope.launch {
-      onboardingCoordinator.updateChecklist { it.copy(savedPlacesConfigured = true) }
-    }
-  }
-
-  fun onOnboardingFavoritesDismissed() {
-    viewModelScope.launch {
-      onboardingCoordinator.updateChecklist {
-        it.copy(firstStationSaved = true, savedPlacesConfigured = true)
-      }
     }
   }
 
@@ -490,18 +464,9 @@ internal class AppRootViewModel(
       )
     }
 
-    // Resetear supresión de navegación si es necesario
-    if (resolved.shouldResetNavigationSuppression ||
-      (currentRuntime.onboardingLaunchSource == OnboardingLaunchSource.Settings && !resolved.shouldShowGuidedOnboarding)
-    ) {
+    if (currentRuntime.onboardingLaunchSource == OnboardingLaunchSource.Settings && !resolved.shouldShowGuidedOnboarding) {
       runtimeState.update { currentRuntimeCopy ->
         currentRuntimeCopy.copy(
-          suppressGuidedOnboardingForNavigation =
-            if (resolved.shouldResetNavigationSuppression) {
-              false
-            } else {
-              currentRuntimeCopy.suppressGuidedOnboardingForNavigation
-            },
           onboardingLaunchSource = resolved.launchSource,
         )
       }

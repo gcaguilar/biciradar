@@ -43,7 +43,6 @@ import com.gcaguilar.biciradar.mobileui.navigation.Screen
 import com.gcaguilar.biciradar.mobileui.screens.CitySelectionScreen
 import com.gcaguilar.biciradar.mobileui.state.AppState
 import com.gcaguilar.biciradar.mobileui.state.rememberAppState
-import com.gcaguilar.biciradar.mobileui.state.shouldNavigateToFavoritesAfterOnboarding
 import com.gcaguilar.biciradar.mobileui.theme.ThemeProvider
 import com.gcaguilar.biciradar.mobileui.theme.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.viewmodel.AppRootViewModel
@@ -155,7 +154,6 @@ fun BiziMobileApp(
     val appRootUiState by appRootViewModel.uiState.collectAsState()
     val onboardingChecklist = appRootUiState.onboardingChecklist
     var showFeedbackDialog by remember { mutableStateOf(false) }
-    var pendingOnboardingFavoritesNavigation by remember { mutableStateOf(false) }
     val isCityConfigured = !(appRootUiState.isCitySelectionRequired)
     val shouldShowGuidedOnboarding = appRootUiState.shouldShowGuidedOnboarding
 
@@ -171,17 +169,6 @@ fun BiziMobileApp(
 
     LaunchedEffect(refreshKey) {
       appRootViewModel.onRefreshSignal()
-    }
-
-    LaunchedEffect(shouldShowGuidedOnboarding, pendingOnboardingFavoritesNavigation, navController) {
-      if (shouldNavigateToFavoritesAfterOnboarding(
-          hasPendingFavoritesNavigation = pendingOnboardingFavoritesNavigation,
-          shouldShowGuidedOnboarding = shouldShowGuidedOnboarding,
-        )
-      ) {
-        navController.navigate(Screen.Favorites) { launchSingleTop = true }
-        pendingOnboardingFavoritesNavigation = false
-      }
     }
 
     BiziLaunchEffects(
@@ -258,13 +245,6 @@ fun BiziMobileApp(
                   },
                   onDismissNotificationsStep = {
                     appRootViewModel.onOnboardingNotificationsDecisionMade()
-                  },
-                  onOpenFavorites = {
-                    appRootViewModel.onOnboardingOpenFavoritesRequested()
-                    pendingOnboardingFavoritesNavigation = true
-                  },
-                  onDismissFavoritesStep = {
-                    appRootViewModel.onOnboardingFavoritesDismissed()
                   },
                   onCompleteSurfacesStep = {
                     appRootViewModel.onOnboardingSurfacesCompleted()

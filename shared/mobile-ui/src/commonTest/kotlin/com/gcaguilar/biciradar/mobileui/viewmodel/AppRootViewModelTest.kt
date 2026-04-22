@@ -494,7 +494,7 @@ class AppRootViewModelTest {
     }
 
   @Test
-  fun `manual onboarding from settings ignores temporary suppression`() =
+  fun `manual onboarding from settings stays visible`() =
     runTest(dispatcher) {
       val settingsRepository =
         FakeAppRootSettingsRepository(
@@ -558,10 +558,6 @@ class AppRootViewModelTest {
 
       advanceUntilIdle()
       assertEquals(true, viewModel.uiState.value.shouldShowGuidedOnboarding)
-
-      viewModel.onOnboardingOpenFavoritesRequested()
-      advanceUntilIdle()
-      assertEquals(false, viewModel.uiState.value.shouldShowGuidedOnboarding)
 
       viewModel.onOnboardingOpenedFromSettings()
       advanceUntilIdle()

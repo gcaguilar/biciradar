@@ -319,8 +319,8 @@
     <string name="onboardingSavedPlacesBody">En Favoritas puedes marcar estaciones como Casa o Trabajo para atajos y widgets.</string>
     <string name="onboardingFavoritesTitle">Favoritas, Casa y Trabajo</string>
     <string name="onboardingFavoritesBody">Guarda una estación o configura Casa y Trabajo desde Favoritas para tener atajos, widgets y alertas más útiles.</string>
-    <string name="onboardingSurfacesTitle">Widgets y monitorización</string>
-    <string name="onboardingSurfacesBody">Añade widgets en la pantalla de inicio y usa la monitorización corta desde el detalle de una estación.</string>
+    <string name="onboardingSurfacesTitle">Widgets, Casa y Trabajo</string>
+    <string name="onboardingSurfacesBody">Puedes personalizar widgets y atajos configurando Casa y Trabajo desde Favoritas. También puedes usar la monitorización corta desde el detalle de una estación.</string>
     <string name="onboardingFinish">Empezar</string>
     <string name="onboardingSkip">Saltar</string>
     <string name="profileSetupCardTitle">Completa tu configuración</string>

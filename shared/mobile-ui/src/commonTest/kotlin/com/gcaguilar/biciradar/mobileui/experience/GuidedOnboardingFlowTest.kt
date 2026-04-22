@@ -30,22 +30,12 @@ class GuidedOnboardingFlowTest {
       ).guidedOnboardingStep(),
     )
     assertEquals(
-      GuidedOnboardingStep.SavedPlaces,
+      GuidedOnboardingStep.Surfaces,
       OnboardingChecklistSnapshot(
         cityConfirmed = true,
         featureHighlightsSeen = true,
         locationDecisionMade = true,
         notificationsDecisionMade = true,
-      ).guidedOnboardingStep(),
-    )
-    assertEquals(
-      GuidedOnboardingStep.SavedPlaces,
-      OnboardingChecklistSnapshot(
-        cityConfirmed = true,
-        featureHighlightsSeen = true,
-        locationDecisionMade = true,
-        notificationsDecisionMade = true,
-        firstStationSaved = true,
       ).guidedOnboardingStep(),
     )
     assertEquals(
@@ -56,7 +46,6 @@ class GuidedOnboardingFlowTest {
         locationDecisionMade = true,
         notificationsDecisionMade = true,
         firstStationSaved = true,
-        savedPlacesConfigured = true,
       ).guidedOnboardingStep(),
     )
   }

@@ -23,7 +23,6 @@ internal data class OnboardingPresentationState(
   val onboardingChecklist: OnboardingChecklistSnapshot,
   val isCitySelectionRequired: Boolean,
   val shouldShowGuidedOnboarding: Boolean,
-  val shouldResetNavigationSuppression: Boolean,
   val launchSource: OnboardingLaunchSource,
 )
 
@@ -89,7 +88,6 @@ internal class OnboardingCoordinator(
         OnboardingPresentationInput(
           checklist = checklist,
           cityConfigured = cityConfigured,
-          suppressGuidedOnboardingForNavigation = runtime.suppressGuidedOnboardingForNavigation,
           launchSource = runtime.onboardingLaunchSource,
         ),
       )
@@ -98,7 +96,6 @@ internal class OnboardingCoordinator(
       onboardingChecklist = resolved.onboardingChecklist,
       isCitySelectionRequired = resolved.isCitySelectionRequired,
       shouldShowGuidedOnboarding = resolved.shouldShowGuidedOnboarding,
-      shouldResetNavigationSuppression = resolved.shouldResetNavigationSuppression,
       launchSource =
         if (runtime.onboardingLaunchSource == OnboardingLaunchSource.Settings && !resolved.shouldShowGuidedOnboarding) {
           OnboardingLaunchSource.Automatic

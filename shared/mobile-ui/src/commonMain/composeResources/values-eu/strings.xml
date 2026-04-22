@@ -290,8 +290,8 @@
     <string name="onboardingSavedPlacesBody">Gogokoetan Etxea edo Lana marka ditzakezu.</string>
     <string name="onboardingFavoritesTitle">Gogokoak, Etxea eta Lana</string>
     <string name="onboardingFavoritesBody">Gorde geltoki bat edo konfiguratu Etxea eta Lana Gogokoetatik lasterbide, widget eta alerta erabilgarriagoak izateko.</string>
-    <string name="onboardingSurfacesTitle">Widget-ak eta jarraipena</string>
-    <string name="onboardingSurfacesBody">Gehitu widget-ak eta erabili jarraipen laburra.</string>
+    <string name="onboardingSurfacesTitle">Widget-ak, Etxea eta Lana</string>
+    <string name="onboardingSurfacesBody">Widget-ak eta lasterbideak pertsonaliza ditzakezu Gogokoetatik Etxea eta Lana konfiguratuta. Geltoki baten xehetasunetatik jarraipen laburra ere erabil dezakezu.</string>
     <string name="onboardingFinish">Hasi</string>
     <string name="onboardingSkip">Saltatu</string>
     <string name="profileSetupCardTitle">Osatu konfigurazioa</string>

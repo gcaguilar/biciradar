@@ -14,7 +14,6 @@ class ResolveOnboardingPresentationUseCaseTest {
         OnboardingPresentationInput(
           checklist = OnboardingChecklistSnapshot(),
           cityConfigured = false,
-          suppressGuidedOnboardingForNavigation = false,
           launchSource = OnboardingLaunchSource.Automatic,
         ),
       )
@@ -24,7 +23,7 @@ class ResolveOnboardingPresentationUseCaseTest {
   }
 
   @Test
-  fun `suppresses guided onboarding for automatic flow in favorites steps`() {
+  fun `shows guided onboarding while city is configured and checklist is pending`() {
     val result =
       useCase.execute(
         OnboardingPresentationInput(
@@ -36,18 +35,16 @@ class ResolveOnboardingPresentationUseCaseTest {
               notificationsDecisionMade = true,
             ),
           cityConfigured = true,
-          suppressGuidedOnboardingForNavigation = true,
           launchSource = OnboardingLaunchSource.Automatic,
         ),
       )
 
     assertEquals(false, result.isCitySelectionRequired)
-    assertEquals(false, result.shouldShowGuidedOnboarding)
-    assertEquals(false, result.shouldResetNavigationSuppression)
+    assertEquals(true, result.shouldShowGuidedOnboarding)
   }
 
   @Test
-  fun `settings launch ignores temporary navigation suppression`() {
+  fun `settings launch keeps guided onboarding visible`() {
     val result =
       useCase.execute(
         OnboardingPresentationInput(
@@ -59,17 +56,15 @@ class ResolveOnboardingPresentationUseCaseTest {
               notificationsDecisionMade = true,
             ),
           cityConfigured = true,
-          suppressGuidedOnboardingForNavigation = true,
           launchSource = OnboardingLaunchSource.Settings,
         ),
       )
 
     assertEquals(true, result.shouldShowGuidedOnboarding)
-    assertEquals(false, result.shouldResetNavigationSuppression)
   }
 
   @Test
-  fun `requests suppression reset when flow moves out of favorites steps`() {
+  fun `hides guided onboarding when checklist is completed`() {
     val result =
       useCase.execute(
         OnboardingPresentationInput(
@@ -79,16 +74,14 @@ class ResolveOnboardingPresentationUseCaseTest {
               featureHighlightsSeen = true,
               locationDecisionMade = true,
               notificationsDecisionMade = true,
-              firstStationSaved = true,
-              savedPlacesConfigured = true,
+              surfacesDiscovered = true,
+              completedAtEpoch = 123L,
             ),
           cityConfigured = true,
-          suppressGuidedOnboardingForNavigation = true,
           launchSource = OnboardingLaunchSource.Automatic,
         ),
       )
 
-    assertEquals(true, result.shouldShowGuidedOnboarding)
-    assertEquals(true, result.shouldResetNavigationSuppression)
+    assertEquals(false, result.shouldShowGuidedOnboarding)
   }
 }
