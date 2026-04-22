@@ -91,185 +91,184 @@ internal fun NearbyScreen(
         .background(pageBackgroundColor(mobilePlatform)),
     contentAlignment = Alignment.TopCenter,
   ) {
-    Column(
+    LazyColumn(
       modifier = Modifier.responsivePageWidth(),
+      contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-      ) {
-        if (mobilePlatform == MobileUiPlatform.IOS) {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
-          ) {
-            Column(
-              modifier = Modifier.weight(1f),
-              verticalArrangement = Arrangement.spacedBy(6.dp),
+      item("header") {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+          if (mobilePlatform == MobileUiPlatform.IOS) {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.Top,
             ) {
-              Text(
-                text = stringResource(Res.string.nearby),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-              )
-              Text(
-                text = stringResource(Res.string.nearbyQuickActionsDescription),
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalBiziColors.current.muted,
+              Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+              ) {
+                Text(
+                  text = stringResource(Res.string.nearby),
+                  style = MaterialTheme.typography.headlineMedium,
+                  fontWeight = FontWeight.Bold,
+                )
+                Text(
+                  text = stringResource(Res.string.nearbyQuickActionsDescription),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = LocalBiziColors.current.muted,
+                )
+              }
+              RefreshButtonWithCountdown(
+                countdown = state.refreshCountdownSeconds,
+                loading = state.isLoading,
+                onRefresh = onRefresh,
               )
             }
-            RefreshButtonWithCountdown(
-              countdown = state.refreshCountdownSeconds,
-              loading = state.isLoading,
-              onRefresh = onRefresh,
-            )
-          }
-        } else {
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
-          ) {
-            Column(
-              modifier = Modifier.weight(1f),
-              verticalArrangement = Arrangement.spacedBy(8.dp),
+          } else {
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.Top,
             ) {
-              Text(
-                text = stringResource(Res.string.nearbyNearYou),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = LocalBiziColors.current.red,
-              )
-              Text(
-                text = stringResource(Res.string.nearbyStationsSortedDescription),
-                style = MaterialTheme.typography.bodyMedium,
-                color = LocalBiziColors.current.muted,
+              Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+              ) {
+                Text(
+                  text = stringResource(Res.string.nearbyNearYou),
+                  style = MaterialTheme.typography.headlineMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = LocalBiziColors.current.red,
+                )
+                Text(
+                  text = stringResource(Res.string.nearbyStationsSortedDescription),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = LocalBiziColors.current.muted,
+                )
+              }
+              RefreshButtonWithCountdown(
+                countdown = state.refreshCountdownSeconds,
+                loading = state.isLoading,
+                onRefresh = onRefresh,
               )
             }
-            RefreshButtonWithCountdown(
-              countdown = state.refreshCountdownSeconds,
-              loading = state.isLoading,
-              onRefresh = onRefresh,
+          }
+          Row(
+            modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            QuickRouteActionCard(
+              modifier = Modifier.weight(1f),
+              title = stringResource(Res.string.nearbyNearestWithBikes),
+              emptyTitle = stringResource(Res.string.nearbyNoBikesNearby),
+              selection = state.nearestWithBikesSelection,
+              icon = Icons.AutoMirrored.Filled.DirectionsBike,
+              tint = LocalBiziColors.current.red,
+              mobilePlatform = mobilePlatform,
+              onRoute = onQuickRoute,
+            )
+            QuickRouteActionCard(
+              modifier = Modifier.weight(1f),
+              title = stringResource(Res.string.nearbyNearestWithSlots),
+              emptyTitle = stringResource(Res.string.nearbyNoSlotsNearby),
+              selection = state.nearestWithSlotsSelection,
+              icon = Icons.Filled.LocalParking,
+              tint = LocalBiziColors.current.blue,
+              mobilePlatform = mobilePlatform,
+              onRoute = onQuickRoute,
             )
           }
-        }
-        Row(
-          modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-          QuickRouteActionCard(
-            modifier = Modifier.weight(1f),
-            title = stringResource(Res.string.nearbyNearestWithBikes),
-            emptyTitle = stringResource(Res.string.nearbyNoBikesNearby),
-            selection = state.nearestWithBikesSelection,
-            icon = Icons.AutoMirrored.Filled.DirectionsBike,
-            tint = LocalBiziColors.current.red,
-            mobilePlatform = mobilePlatform,
-            onRoute = onQuickRoute,
-          )
-          QuickRouteActionCard(
-            modifier = Modifier.weight(1f),
-            title = stringResource(Res.string.nearbyNearestWithSlots),
-            emptyTitle = stringResource(Res.string.nearbyNoSlotsNearby),
-            selection = state.nearestWithSlotsSelection,
-            icon = Icons.Filled.LocalParking,
-            tint = LocalBiziColors.current.blue,
-            mobilePlatform = mobilePlatform,
-            onRoute = onQuickRoute,
-          )
         }
       }
 
+      item("freshness") {
         DataFreshnessBanner(
-        freshness = state.dataFreshness,
-        lastUpdatedEpoch = state.lastUpdatedEpoch,
-        loading = state.isLoading,
-        onRefresh = onRefresh,
-        modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 10.dp),
-      )
-
-      if (!state.locationPermissionGranted) {
-        EmptyStatePlaceholder(
-          modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
-          title = stringResource(Res.string.nearbyLocationPermissionTitle),
-          description = stringResource(Res.string.nearbyLocationPermissionBody),
-          primaryAction = stringResource(Res.string.nearbyLocationPermissionAction),
-          onPrimaryAction = onRequestLocationPermission,
+          freshness = state.dataFreshness,
+          lastUpdatedEpoch = state.lastUpdatedEpoch,
+          loading = state.isLoading,
+          onRefresh = onRefresh,
         )
       }
 
-      LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-      ) {
-        item {
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-              text =
-                if (state.isLoading) {
-                  stringResource(
-                    Res.string.nearbyUpdatingStations,
-                  )
-                } else {
-                  stringResource(Res.string.nearbyStations)
-                },
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-              text =
-                if (state.nearestSelection.usesFallback) {
-                  stringResource(Res.string.nearbyRadiusFallbackHint)
-                } else {
-                  stringResource(Res.string.nearbyCardActionsHint)
-                },
-              style = MaterialTheme.typography.bodySmall,
-              color = LocalBiziColors.current.muted,
-            )
-            AnimatedVisibility(
-              visible = state.errorMessage != null,
-              enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
-              exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-              label = "nearby-error",
-            ) {
-              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(state.errorMessage.orEmpty(), color = LocalBiziColors.current.red)
-                OutlinedButton(onClick = onRetry) {
-                  Icon(Icons.Filled.Sync, contentDescription = null)
-                  Spacer(Modifier.width(8.dp))
-                  Text(stringResource(Res.string.retry))
-                }
+      if (!state.locationPermissionGranted) {
+        item("location-permission") {
+          EmptyStatePlaceholder(
+            title = stringResource(Res.string.nearbyLocationPermissionTitle),
+            description = stringResource(Res.string.nearbyLocationPermissionBody),
+            primaryAction = stringResource(Res.string.nearbyLocationPermissionAction),
+            onPrimaryAction = onRequestLocationPermission,
+          )
+        }
+      }
+
+      item("stations-header") {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text =
+              if (state.isLoading) {
+                stringResource(
+                  Res.string.nearbyUpdatingStations,
+                )
+              } else {
+                stringResource(Res.string.nearbyStations)
+              },
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+          )
+          Text(
+            text =
+              if (state.nearestSelection.usesFallback) {
+                stringResource(Res.string.nearbyRadiusFallbackHint)
+              } else {
+                stringResource(Res.string.nearbyCardActionsHint)
+              },
+            style = MaterialTheme.typography.bodySmall,
+            color = LocalBiziColors.current.muted,
+          )
+          AnimatedVisibility(
+            visible = state.errorMessage != null,
+            enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
+            exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+            label = "nearby-error",
+          ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(state.errorMessage.orEmpty(), color = LocalBiziColors.current.red)
+              OutlinedButton(onClick = onRetry) {
+                Icon(Icons.Filled.Sync, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(Res.string.retry))
               }
             }
           }
         }
-        item {
-          AnimatedVisibility(
-            visible = !state.isLoading && state.stations.isEmpty(),
-            enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-            label = "nearby-empty",
-          ) {
-            EmptyStatePlaceholder(
-              title = stringResource(Res.string.mapNoStationsOnScreen),
-              description = stringResource(Res.string.mapLocationFallbackDescription),
-              primaryAction = stringResource(Res.string.loadStations),
-              onPrimaryAction = onRetry,
-            )
-          }
-        }
-        items(state.stations.take(12), key = { it.id }) { station ->
-          StationRow(
-            mobilePlatform = mobilePlatform,
-            station = station,
-            isFavorite = station.id in state.favoriteIds,
-            onClick = { onStationSelected(station) },
-            onFavoriteToggle = { onFavoriteToggle(station) },
-            onQuickRoute = { onQuickRoute(station) },
+      }
+
+      item("stations-empty") {
+        AnimatedVisibility(
+          visible = !state.isLoading && state.stations.isEmpty(),
+          enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
+          exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
+          label = "nearby-empty",
+        ) {
+          EmptyStatePlaceholder(
+            title = stringResource(Res.string.mapNoStationsOnScreen),
+            description = stringResource(Res.string.mapLocationFallbackDescription),
+            primaryAction = stringResource(Res.string.loadStations),
+            onPrimaryAction = onRetry,
           )
         }
+      }
+
+      items(state.stations.take(12), key = { it.id }) { station ->
+        StationRow(
+          mobilePlatform = mobilePlatform,
+          station = station,
+          isFavorite = station.id in state.favoriteIds,
+          onClick = { onStationSelected(station) },
+          onFavoriteToggle = { onFavoriteToggle(station) },
+          onQuickRoute = { onQuickRoute(station) },
+        )
       }
     }
   }
