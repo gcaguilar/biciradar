@@ -22,8 +22,8 @@ RepoType: git
 Repo: https://github.com/gcaguilar/biciradar.git
 
 Builds:
-  - versionName: 0.22.8-fdroid
-    versionCode: 29568118
+  - versionName: 0.22.9-fdroid
+    versionCode: 29568120
     commit: 911aac9ba9ca545cf23cce6a3d7d1480c74b0eb5
     subdir: .
     gradle:
