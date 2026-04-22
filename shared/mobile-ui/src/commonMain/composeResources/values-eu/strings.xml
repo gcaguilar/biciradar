@@ -192,6 +192,10 @@
     <string name="changelogFavoritesRedesignDescription">Gogokoen pantaila berria geltokien bilaketarekin eta bilaketa-emaitzak gordetzean kategoriekin.</string>
     <string name="changelogStabilityFixesTitle">Egonkortasun-konponketak</string>
     <string name="changelogStabilityFixesDescription">Konponduta hondatutako gogokoak, datu-base migrazioak eta konpilazio-erroreak.</string>
+    <string name="changelogNearbyScrollTitle">Gertu pantaila arinagoa</string>
+    <string name="changelogNearbyScrollDescription">Gertu pantaila orain bloke bakar gisa mugitzen da, ekintza azkarrak, abisuak eta geltokiak scroll berean erakutsiz.</string>
+    <string name="changelogFeedbackFavoritesTitle">Feedbacka eta gogokoak argiago</string>
+    <string name="changelogFeedbackFavoritesDescription">Feedback formularioaren sarbidea eta bilaketatik geltokiak gordetzeko fluxua hobetu ditugu zuzenagoa izan dadin.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

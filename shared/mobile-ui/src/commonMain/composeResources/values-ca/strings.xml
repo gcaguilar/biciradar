@@ -192,6 +192,10 @@
     <string name="changelogFavoritesRedesignDescription">Nova pantalla de preferits amb cerca d\'estacions i categories en desar resultats de cerca.</string>
     <string name="changelogStabilityFixesTitle">Correccions d\'estabilitat</string>
     <string name="changelogStabilityFixesDescription">Corregits errors amb preferits corruptes, migracions de base de dades i problemes de compilació.</string>
+    <string name="changelogNearbyScrollTitle">Pantalla A prop més fluida</string>
+    <string name="changelogNearbyScrollDescription">La pantalla A prop ara es desplaça com un sol bloc, amb accions ràpides, avisos i estacions dins del mateix scroll.</string>
+    <string name="changelogFeedbackFavoritesTitle">Feedback i preferits més clars</string>
+    <string name="changelogFeedbackFavoritesDescription">Hem millorat l\'accés al formulari de feedback i el desat d\'estacions des de la cerca perquè sigui més directe.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

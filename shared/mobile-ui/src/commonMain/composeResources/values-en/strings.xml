@@ -225,6 +225,10 @@
     <string name="changelogFavoritesRedesignDescription">New favorites screen with station search and categories when saving search results.</string>
     <string name="changelogStabilityFixesTitle">Stability fixes</string>
     <string name="changelogStabilityFixesDescription">Fixed crashes with corrupt favorites, database migration errors, and compilation issues.</string>
+    <string name="changelogNearbyScrollTitle">Smoother Nearby screen</string>
+    <string name="changelogNearbyScrollDescription">The Nearby screen now scrolls as a single surface, so quick actions, notices, and stations move together.</string>
+    <string name="changelogFeedbackFavoritesTitle">Clearer feedback and favorites flow</string>
+    <string name="changelogFeedbackFavoritesDescription">Improved access to the feedback form and made saving stations from search more direct.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

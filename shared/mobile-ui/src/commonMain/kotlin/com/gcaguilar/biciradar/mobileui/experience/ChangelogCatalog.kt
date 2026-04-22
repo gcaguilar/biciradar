@@ -76,6 +76,17 @@ object ChangelogCatalog {
           ),
           ChangelogCatalogEntry(Res.string.changelogStabilityFixesTitle, Res.string.changelogStabilityFixesDescription),
         ),
+      "0.22.9" to
+        listOf(
+          ChangelogCatalogEntry(
+            Res.string.changelogNearbyScrollTitle,
+            Res.string.changelogNearbyScrollDescription,
+          ),
+          ChangelogCatalogEntry(
+            Res.string.changelogFeedbackFavoritesTitle,
+            Res.string.changelogFeedbackFavoritesDescription,
+          ),
+        ),
     )
 
   fun catalogVersionSet(): Set<String> = entriesByVersion.keys
