@@ -167,6 +167,7 @@ internal fun TripScreen(
               ) {
                 Text(stringResource(Res.string.gotIt))
               }
+          }
         }
       }
 
@@ -218,7 +219,6 @@ internal fun TripScreen(
             }
           }
         }
-      }
 
       state.destination?.let { destination ->
         item("destination-summary") {
