@@ -55,7 +55,9 @@ internal actual fun PlatformStationMap(
   val colors = LocalBiziColors.current
   val renderer = LocalAndroidStationMapRenderer.current
 
-  if (isMapReady && renderer != null) {
+  // On Android the flavor-specific renderer is the authoritative source of embedded map support.
+  // F-Droid provides an osmdroid renderer even though it does not expose Google Maps readiness.
+  if (renderer != null) {
     renderer.Render(
       modifier = modifier,
       stations = stations,

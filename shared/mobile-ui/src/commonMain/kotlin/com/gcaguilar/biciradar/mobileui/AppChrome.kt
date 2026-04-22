@@ -15,13 +15,15 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -127,34 +129,46 @@ internal fun BoxScope.EngagementTopOverlays(
     }
 
     if (showFeedbackNudge) {
-      Surface(
-        color = colors.surface,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, colors.panel),
-        modifier = Modifier.fillMaxWidth(),
-      ) {
-        Column(
-          modifier = Modifier.padding(12.dp),
-          verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-          Text(
-            text = stringResource(Res.string.feedbackNudgeTitle),
-            fontWeight = FontWeight.SemiBold,
-            color = colors.ink,
-          )
-          Text(
-            text = stringResource(Res.string.feedbackNudgeBody),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.muted,
-          )
-          Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            TextButton(onClick = onFeedbackSend) {
-              Text(stringResource(Res.string.feedbackNudgeAction))
-            }
-            TextButton(onClick = onFeedbackDismiss) {
-              Text(stringResource(Res.string.updateDismiss))
-            }
-          }
+      FeedbackNudgeCard(
+        onFeedbackSend = onFeedbackSend,
+        onFeedbackDismiss = onFeedbackDismiss,
+      )
+    }
+  }
+}
+
+@Composable
+internal fun FeedbackNudgeCard(
+  onFeedbackSend: () -> Unit,
+  onFeedbackDismiss: () -> Unit,
+) {
+  val colors = LocalBiziColors.current
+  Surface(
+    color = colors.surface,
+    shape = MaterialTheme.shapes.medium,
+    border = BorderStroke(1.dp, colors.panel),
+    modifier = Modifier.fillMaxWidth(),
+  ) {
+    Column(
+      modifier = Modifier.padding(12.dp),
+      verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+      Text(
+        text = stringResource(Res.string.feedbackNudgeTitle),
+        fontWeight = FontWeight.SemiBold,
+        color = colors.ink,
+      )
+      Text(
+        text = stringResource(Res.string.feedbackNudgeBody),
+        style = MaterialTheme.typography.bodySmall,
+        color = colors.muted,
+      )
+      Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        TextButton(onClick = onFeedbackSend) {
+          Text(stringResource(Res.string.feedbackNudgeAction))
+        }
+        TextButton(onClick = onFeedbackDismiss) {
+          Text(stringResource(Res.string.updateDismiss))
         }
       }
     }
@@ -162,39 +176,42 @@ internal fun BoxScope.EngagementTopOverlays(
 }
 
 @Composable
-internal fun FeedbackDialog(
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun FeedbackBottomSheet(
   onDismiss: () -> Unit,
   onOpenFeedbackForm: () -> Unit,
 ) {
   val colors = LocalBiziColors.current
-  AlertDialog(
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  ModalBottomSheet(
     onDismissRequest = onDismiss,
+    sheetState = sheetState,
     containerColor = colors.surface,
-    tonalElevation = 6.dp,
-    title = {
+  ) {
+    Column(
+      modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
       Text(
         text = stringResource(Res.string.feedbackAndSuggestions),
         color = colors.ink,
         fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.titleLarge,
       )
-    },
-    text = {
       Text(
         text = stringResource(Res.string.feedbackDescription),
         color = colors.muted,
       )
-    },
-    confirmButton = {
-      TextButton(onClick = onOpenFeedbackForm) {
-        Text(stringResource(Res.string.openFeedbackForm))
+      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextButton(onClick = onOpenFeedbackForm) {
+          Text(stringResource(Res.string.openFeedbackForm))
+        }
+        TextButton(onClick = onDismiss) {
+          Text(stringResource(Res.string.close))
+        }
       }
-    },
-    dismissButton = {
-      TextButton(onClick = onDismiss) {
-        Text(stringResource(Res.string.close))
-      }
-    },
-  )
+    }
+  }
 }
 
 @Composable

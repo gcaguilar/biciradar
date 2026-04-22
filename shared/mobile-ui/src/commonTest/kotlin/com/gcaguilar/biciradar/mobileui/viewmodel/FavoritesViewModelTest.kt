@@ -35,6 +35,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FavoritesViewModelTest {
@@ -97,6 +98,49 @@ class FavoritesViewModelTest {
         viewModel.uiState.value.assignmentCandidate
           ?.id,
       )
+    }
+
+  @Test
+  fun `assignment candidate stays empty when favorites search query is blank`() =
+    runTest(dispatcher) {
+      val stationsRepository =
+        FakeFavoriteStationsRepository(
+          listOf(
+            Station(
+              id = "station-1",
+              name = "Universidad",
+              address = "Plaza San Francisco",
+              location = GeoPoint(41.64, -0.89),
+              bikesAvailable = 4,
+              slotsFree = 8,
+              distanceMeters = 200,
+            ),
+          ),
+        )
+      val favoritesRepository = FakeFavoritesRepo()
+      val viewModel =
+        FavoritesViewModel(
+          favoritesManagementUseCase =
+            FavoritesManagementUseCase(
+              favoritesRepository = favoritesRepository,
+              favoritesCategories = favoritesRepository,
+              stationsRepository = stationsRepository,
+              settingsRepository = FakeFavoriteSettingsRepository(),
+            ),
+          savedPlaceAlertsUseCase =
+            SavedPlaceAlertsUseCase(
+              savedPlaceAlertsRepository = FakeFavoriteAlertsRepository(),
+            ),
+          routeLaunchUseCase =
+            RouteLaunchUseCase(
+              routeLauncher = NoOpFavoriteRouteLauncher,
+            ),
+        )
+
+      advanceUntilIdle()
+
+      assertEquals("", viewModel.uiState.value.searchQuery)
+      assertNull(viewModel.uiState.value.assignmentCandidate)
     }
 
   @Test

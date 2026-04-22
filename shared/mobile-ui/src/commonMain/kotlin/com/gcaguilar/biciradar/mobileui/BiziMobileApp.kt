@@ -15,10 +15,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -63,6 +61,10 @@ private fun rememberNavigationConfig(
   platformBindings: PlatformBindings,
   onOpenOnboarding: () -> Unit,
   onShowChangelogManual: () -> Unit,
+  showNearbyFeedbackNudge: Boolean,
+  onNearbyFeedbackOpened: () -> Unit,
+  onNearbyFeedbackDismiss: () -> Unit,
+  onOpenNearbyFeedbackForm: () -> Unit,
 ): NavigationHostConfig {
   val onOpenAssistant =
     remember(navController) {
@@ -84,6 +86,10 @@ private fun rememberNavigationConfig(
     onInitialMapSearchQueryConsumed = onInitialMapSearchQueryConsumed,
     onOpenOnboarding = onOpenOnboarding,
     onShowChangelogManual = onShowChangelogManual,
+    showNearbyFeedbackNudge = showNearbyFeedbackNudge,
+    onNearbyFeedbackOpened = onNearbyFeedbackOpened,
+    onNearbyFeedbackDismiss = onNearbyFeedbackDismiss,
+    onOpenNearbyFeedbackForm = onOpenNearbyFeedbackForm,
     paddingValues = PaddingValues(),
   )
 }
@@ -153,7 +159,6 @@ fun BiziMobileApp(
     val appRootViewModel = metroViewModel<AppRootViewModel>(key = "app-root")
     val appRootUiState by appRootViewModel.uiState.collectAsState()
     val onboardingChecklist = appRootUiState.onboardingChecklist
-    var showFeedbackDialog by remember { mutableStateOf(false) }
     val isCityConfigured = !(appRootUiState.isCitySelectionRequired)
     val shouldShowGuidedOnboarding = appRootUiState.shouldShowGuidedOnboarding
 
@@ -282,6 +287,10 @@ fun BiziMobileApp(
                       platformBindings = platformBindings,
                       onOpenOnboarding = appRootViewModel::onOnboardingOpenedFromSettings,
                       onShowChangelogManual = appRootViewModel::showChangelogHistory,
+                      showNearbyFeedbackNudge = appRootUiState.showFeedbackNudge,
+                      onNearbyFeedbackOpened = appRootViewModel::onFeedbackOpened,
+                      onNearbyFeedbackDismiss = appRootViewModel::onFeedbackDismissed,
+                      onOpenNearbyFeedbackForm = platformBindings.externalLinks::openFeedbackForm,
                     )
 
                   Box(modifier = Modifier.fillMaxSize()) {
@@ -297,8 +306,6 @@ fun BiziMobileApp(
                     OverlayManager(
                       mobilePlatform = mobilePlatform,
                       updateBanner = appRootUiState.topUpdateBanner,
-                      showFeedbackNudge = appRootUiState.showFeedbackNudge,
-                      showFeedbackDialog = showFeedbackDialog,
                       changelogSections = changelogPresentation?.sections ?: emptyList(),
                       highlightedVersion = changelogPresentation?.highlightedVersion,
                       showChangelog = !showStartupSplash && changelogPresentation != null,
@@ -306,16 +313,6 @@ fun BiziMobileApp(
                       onDismissDownloadedUpdate = appRootViewModel::dismissDownloadedUpdate,
                       onStartUpdate = appRootViewModel::onStartUpdateRequested,
                       onRestartToUpdate = appRootViewModel::onRestartToUpdateRequested,
-                      onFeedbackSend = {
-                        appRootViewModel.onFeedbackOpened()
-                        showFeedbackDialog = true
-                      },
-                      onFeedbackDismiss = appRootViewModel::onFeedbackDismissed,
-                      onFeedbackDialogDismiss = { showFeedbackDialog = false },
-                      onOpenFeedbackForm = {
-                        platformBindings.externalLinks.openFeedbackForm()
-                        showFeedbackDialog = false
-                      },
                       onChangelogDismiss = appRootViewModel::dismissChangelog,
                     )
                   }

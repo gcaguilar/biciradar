@@ -305,7 +305,10 @@ class FavoritesViewModel(
       homeStation = stations.find { it.id == homeStationId },
       workStation = stations.find { it.id == workStationId },
       searchQuery = query,
-      assignmentCandidate = findStationMatchingQuery(stations, query),
+      assignmentCandidate =
+        query
+          .takeIf { it.isNotBlank() }
+          ?.let { findStationMatchingQuery(stations, it) },
       savedPlaceAlertsCityId = selectedCity.id,
       savedPlaceAlertRules = savedPlaceAlertRules,
       categories = categories,

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import com.gcaguilar.biciradar.mobileui.ChangelogHistoryScreen
 import com.gcaguilar.biciradar.mobileui.EngagementTopOverlays
-import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
@@ -14,8 +13,6 @@ import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
  */
 internal data class OverlayState(
   val updateBanner: TopUpdateBanner = TopUpdateBanner.Hidden,
-  val showFeedbackNudge: Boolean = false,
-  val showFeedbackDialog: Boolean = false,
   val changelogSections: List<ChangelogVersionSection> = emptyList(),
   val highlightedVersion: String? = null,
   val showChangelog: Boolean = false,
@@ -29,18 +26,12 @@ internal data class OverlayCallbacks(
   val onDismissDownloadedUpdate: () -> Unit = {},
   val onStartUpdate: () -> Unit = {},
   val onRestartToUpdate: () -> Unit = {},
-  val onFeedbackSend: () -> Unit = {},
-  val onFeedbackDismiss: () -> Unit = {},
-  val onFeedbackDialogDismiss: () -> Unit = {},
-  val onOpenFeedbackForm: () -> Unit = {},
   val onChangelogDismiss: () -> Unit = {},
 )
 
 /**
  * Manages all overlay UI components:
  * - Update banners (available/downloaded)
- * - Feedback nudges
- * - Feedback dialog
  * - Changelog history screen
  *
  * This component centralizes overlay management to reduce complexity in the main app composable.
@@ -54,22 +45,14 @@ internal fun BoxScope.OverlayManager(
   // Top overlays: update banners and feedback nudge
   EngagementTopOverlays(
     updateBanner = state.updateBanner,
-    showFeedbackNudge = state.showFeedbackNudge,
+    showFeedbackNudge = false,
     onDismissAvailableUpdate = callbacks.onDismissAvailableUpdate,
     onDismissDownloadedUpdate = callbacks.onDismissDownloadedUpdate,
     onStartUpdate = callbacks.onStartUpdate,
     onRestartToUpdate = callbacks.onRestartToUpdate,
-    onFeedbackSend = callbacks.onFeedbackSend,
-    onFeedbackDismiss = callbacks.onFeedbackDismiss,
+    onFeedbackSend = {},
+    onFeedbackDismiss = {},
   )
-
-  // Feedback dialog
-  if (state.showFeedbackDialog) {
-    FeedbackDialog(
-      onDismiss = callbacks.onFeedbackDialogDismiss,
-      onOpenFeedbackForm = callbacks.onOpenFeedbackForm,
-    )
-  }
 
   // Changelog history screen
   if (state.showChangelog && state.changelogSections.isNotEmpty()) {
@@ -90,8 +73,6 @@ internal fun BoxScope.OverlayManager(
 internal fun BoxScope.OverlayManager(
   mobilePlatform: MobileUiPlatform,
   updateBanner: TopUpdateBanner,
-  showFeedbackNudge: Boolean,
-  showFeedbackDialog: Boolean,
   changelogSections: List<ChangelogVersionSection>,
   highlightedVersion: String?,
   showChangelog: Boolean,
@@ -99,10 +80,6 @@ internal fun BoxScope.OverlayManager(
   onDismissDownloadedUpdate: () -> Unit,
   onStartUpdate: () -> Unit,
   onRestartToUpdate: () -> Unit,
-  onFeedbackSend: () -> Unit,
-  onFeedbackDismiss: () -> Unit,
-  onFeedbackDialogDismiss: () -> Unit,
-  onOpenFeedbackForm: () -> Unit,
   onChangelogDismiss: () -> Unit,
 ) {
   OverlayManager(
@@ -110,8 +87,6 @@ internal fun BoxScope.OverlayManager(
     state =
       OverlayState(
         updateBanner = updateBanner,
-        showFeedbackNudge = showFeedbackNudge,
-        showFeedbackDialog = showFeedbackDialog,
         changelogSections = changelogSections,
         highlightedVersion = highlightedVersion,
         showChangelog = showChangelog,
@@ -122,10 +97,6 @@ internal fun BoxScope.OverlayManager(
         onDismissDownloadedUpdate = onDismissDownloadedUpdate,
         onStartUpdate = onStartUpdate,
         onRestartToUpdate = onRestartToUpdate,
-        onFeedbackSend = onFeedbackSend,
-        onFeedbackDismiss = onFeedbackDismiss,
-        onFeedbackDialogDismiss = onFeedbackDialogDismiss,
-        onOpenFeedbackForm = onOpenFeedbackForm,
         onChangelogDismiss = onChangelogDismiss,
       ),
   )

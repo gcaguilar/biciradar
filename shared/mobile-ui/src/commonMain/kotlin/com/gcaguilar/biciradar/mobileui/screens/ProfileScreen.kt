@@ -76,7 +76,6 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewComm
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
 import com.gcaguilar.biciradar.mobileui.BiziSpacing
-import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
@@ -105,7 +104,6 @@ internal fun ProfileScreen(
   onOpenGarminPairing: () -> Unit,
   onRateApp: () -> Unit,
 ) {
-  var showFeedbackDialog by remember { mutableStateOf(false) }
   var showDataSourcesDialog by remember { mutableStateOf(false) }
   Box(
     modifier =
@@ -267,19 +265,8 @@ internal fun ProfileScreen(
           title = stringResource(Res.string.feedbackAndSuggestions),
           description = stringResource(Res.string.feedbackDescription),
           actionLabel = stringResource(Res.string.openFeedbackForm),
-          onAction = { showFeedbackDialog = true },
+          onAction = onOpenFeedback,
         )
-      }
-      if (showFeedbackDialog) {
-        item {
-          FeedbackDialog(
-            onDismiss = { showFeedbackDialog = false },
-            onOpenFeedbackForm = {
-              onOpenFeedback()
-              showFeedbackDialog = false
-            },
-          )
-        }
       }
       item {
         val uriHandler = LocalUriHandler.current

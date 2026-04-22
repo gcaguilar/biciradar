@@ -9,7 +9,7 @@ data class AppConfiguration(
   val stationsFallbackApiUrl: String = "https://api.citybik.es/v2/networks/bizi-zaragoza",
   val defaultLatitude: Double = 41.6488,
   val defaultLongitude: Double = -0.8891,
-  val feedbackFormUrl: String = "https://forms.gle/j6hMxPQypzhqXp5v5",
+  val feedbackFormUrl: String = "https://tally.so/r/A7bYRk",
   val privacyPolicyUrl: String = "https://gcaguilar.github.io/biciradar-privacy-policy/",
   /** Numeric App Store id for lookup / write-review URLs; empty disables iOS update banner until configured. */
   val iosAppStoreId: String = "",

@@ -56,6 +56,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSorte
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyUpdatingStations
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.retry
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
+import com.gcaguilar.biciradar.mobileui.FeedbackBottomSheet
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
@@ -77,6 +78,9 @@ internal fun NearbyScreen(
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   onRequestLocationPermission: () -> Unit,
+  showFeedbackBottomSheet: Boolean,
+  onFeedbackDismiss: () -> Unit,
+  onOpenFeedbackForm: () -> Unit,
   paddingValues: PaddingValues,
 ) {
   Box(
@@ -177,7 +181,7 @@ internal fun NearbyScreen(
         }
       }
 
-      DataFreshnessBanner(
+        DataFreshnessBanner(
         freshness = state.dataFreshness,
         lastUpdatedEpoch = state.lastUpdatedEpoch,
         loading = state.isLoading,
@@ -185,12 +189,7 @@ internal fun NearbyScreen(
         modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 10.dp),
       )
 
-      AnimatedVisibility(
-        visible = !state.locationPermissionGranted,
-        enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),
-        exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
-        label = "nearby-location-permission",
-      ) {
+      if (!state.locationPermissionGranted) {
         EmptyStatePlaceholder(
           modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
           title = stringResource(Res.string.nearbyLocationPermissionTitle),
@@ -273,5 +272,12 @@ internal fun NearbyScreen(
         }
       }
     }
+  }
+
+  if (showFeedbackBottomSheet) {
+    FeedbackBottomSheet(
+      onDismiss = onFeedbackDismiss,
+      onOpenFeedbackForm = onOpenFeedbackForm,
+    )
   }
 }

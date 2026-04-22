@@ -5,7 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.PlatformBindings
@@ -107,28 +110,52 @@ internal object BiziMobileAppContent {
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
     onRequestLocationPermission: () -> Unit,
+    showFeedbackNudge: Boolean,
+    onFeedbackOpened: () -> Unit,
+    onFeedbackDismiss: () -> Unit,
+    onOpenFeedbackForm: () -> Unit,
     paddingValues: PaddingValues,
-  ) = NearbyScreen(
-    state = state,
-    mobilePlatform = mobilePlatform,
-    onStationSelected = onStationSelected,
-    onRetry = onRetry,
-    onRefresh = onRefresh,
-    onFavoriteToggle = onFavoriteToggle,
-    onQuickRoute = onQuickRoute,
-    onRequestLocationPermission = onRequestLocationPermission,
-    paddingValues = paddingValues,
-  )
+  ) {
+    var showFeedbackBottomSheet by remember { mutableStateOf(false) }
+    LaunchedEffect(showFeedbackNudge) {
+      showFeedbackBottomSheet = showFeedbackNudge
+    }
+    NearbyScreen(
+      state = state,
+      mobilePlatform = mobilePlatform,
+      onStationSelected = onStationSelected,
+      onRetry = onRetry,
+      onRefresh = onRefresh,
+      onFavoriteToggle = onFavoriteToggle,
+      onQuickRoute = onQuickRoute,
+      onRequestLocationPermission = onRequestLocationPermission,
+      showFeedbackBottomSheet = showFeedbackBottomSheet,
+      onFeedbackDismiss = {
+        onFeedbackDismiss()
+        showFeedbackBottomSheet = false
+      },
+      onOpenFeedbackForm = {
+        onFeedbackOpened()
+        onOpenFeedbackForm()
+        showFeedbackBottomSheet = false
+      },
+      paddingValues = paddingValues,
+    )
+  }
 
   @Composable
   fun NearbyScreenContent(
     viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModel,
     mobilePlatform: MobileUiPlatform,
     onStationSelected: (Station) -> Unit,
+    showFeedbackNudge: Boolean,
+    onFeedbackOpened: () -> Unit,
+    onFeedbackDismiss: () -> Unit,
+    onOpenFeedbackForm: () -> Unit,
     paddingValues: PaddingValues,
   ) {
     val uiState by viewModel.uiState.collectAsState()
-    NearbyScreen(
+    NearbyScreenContent(
       state = uiState,
       mobilePlatform = mobilePlatform,
       onStationSelected = onStationSelected,
@@ -137,6 +164,10 @@ internal object BiziMobileAppContent {
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
       onRequestLocationPermission = viewModel::onRequestLocationPermission,
+      showFeedbackNudge = showFeedbackNudge,
+      onFeedbackOpened = onFeedbackOpened,
+      onFeedbackDismiss = onFeedbackDismiss,
+      onOpenFeedbackForm = onOpenFeedbackForm,
       paddingValues = paddingValues,
     )
   }
@@ -208,6 +239,13 @@ internal object BiziMobileAppContent {
       onAssignWork = { station ->
         viewModel.onAssignWorkStation(station)
         onBack()
+      },
+      onClearAssignment = { station, categoryId ->
+        when (categoryId) {
+          com.gcaguilar.biciradar.core.FavoriteCategoryIds.HOME -> viewModel.onClearHomeStation()
+          com.gcaguilar.biciradar.core.FavoriteCategoryIds.WORK -> viewModel.onClearWorkStation()
+          else -> viewModel.onRemoveFavorite(station)
+        }
       },
       onAssignStationToCategory = { station, categoryId ->
         viewModel.onAssignStationToCategory(station, categoryId)

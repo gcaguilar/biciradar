@@ -50,6 +50,10 @@ internal fun BiziNavHost(
   onInitialMapSearchQueryConsumed: () -> Unit,
   onOpenOnboarding: () -> Unit,
   onShowChangelogManual: () -> Unit,
+  showNearbyFeedbackNudge: Boolean,
+  onNearbyFeedbackOpened: () -> Unit,
+  onNearbyFeedbackDismiss: () -> Unit,
+  onOpenNearbyFeedbackForm: () -> Unit,
   paddingValues: PaddingValues,
   modifier: Modifier = Modifier,
 ) {
@@ -79,6 +83,10 @@ internal fun BiziNavHost(
               navController.navigate(Screen.StationDetail(station.id))
             }
           },
+        showFeedbackNudge = showNearbyFeedbackNudge,
+        onFeedbackOpened = onNearbyFeedbackOpened,
+        onFeedbackDismiss = onNearbyFeedbackDismiss,
+        onOpenFeedbackForm = onOpenNearbyFeedbackForm,
         paddingValues = PaddingValues(),
       )
     }

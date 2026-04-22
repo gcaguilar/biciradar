@@ -54,6 +54,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchSubt
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.home
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapTryAnotherQuery
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.remove
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.useSearchToAssignStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
@@ -91,6 +92,7 @@ internal fun FavoritesSearchScreen(
   onToggleFavorite: (Station) -> Unit,
   onAssignHome: (Station) -> Unit,
   onAssignWork: (Station) -> Unit,
+  onClearAssignment: (Station, String) -> Unit,
   onAssignStationToCategory: (Station, String) -> Unit,
   onCreateCustomCategory: () -> Unit,
 ) {
@@ -203,6 +205,9 @@ internal fun FavoritesSearchScreen(
                 else -> onAssignStationToCategory(station, categoryId)
               }
             },
+            onClearAssignment = { categoryId ->
+              onClearAssignment(station, categoryId)
+            },
           )
         }
       }
@@ -218,6 +223,7 @@ private fun SearchResultCard(
   currentCategoryId: String?,
   onOpenStationDetails: () -> Unit,
   onAssignCategory: (String) -> Unit,
+  onClearAssignment: (String) -> Unit,
 ) {
   val colors = LocalBiziColors.current
   var categoryMenuExpanded by remember(station.id) { mutableStateOf(false) }
@@ -320,7 +326,11 @@ private fun SearchResultCard(
               },
               onClick = {
                 categoryMenuExpanded = false
-                onAssignCategory(category.id)
+                if (selected) {
+                  onClearAssignment(category.id)
+                } else {
+                  onAssignCategory(category.id)
+                }
               },
               leadingIcon = {
                 if (selected) {
@@ -330,6 +340,15 @@ private fun SearchResultCard(
                     tint = colors.blue,
                   )
                 }
+              },
+            )
+          }
+          if (currentCategoryId != null) {
+            DropdownMenuItem(
+              text = { Text(stringResource(Res.string.remove)) },
+              onClick = {
+                categoryMenuExpanded = false
+                onClearAssignment(currentCategoryId)
               },
             )
           }
