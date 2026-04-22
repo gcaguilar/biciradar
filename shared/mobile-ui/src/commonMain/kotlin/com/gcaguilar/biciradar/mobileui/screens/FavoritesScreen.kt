@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -499,48 +498,51 @@ internal fun FavoritesScreen(
           BiziSectionCard(
             title = stringResource(Res.string.favoritesCustomCategoriesTitle),
           ) {
-              Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium), verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.OutlinedTextField(
-                  value = newCategoryName,
-                  onValueChange = { onNewCategoryNameChange(it) },
-                  modifier = Modifier.weight(1f),
-                  singleLine = true,
-                  label = { Text(stringResource(Res.string.favoritesCustomCategoryPlaceholder)) },
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              androidx.compose.material3.OutlinedTextField(
+                value = newCategoryName,
+                onValueChange = { onNewCategoryNameChange(it) },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(stringResource(Res.string.favoritesCustomCategoryPlaceholder)) },
+              )
+              TextButton(onClick = {
+                val label = newCategoryName.trim()
+                if (label.isNotBlank()) {
+                  onCreateCustomCategory(label)
+                  onNewCategoryNameChange("")
+                }
+              }) { Text(stringResource(Res.string.create)) }
+            }
+            customCategories.forEach { category ->
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                  favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                  style = MaterialTheme.typography.bodyMedium,
+                  fontWeight = FontWeight.Medium,
                 )
-                TextButton(onClick = {
-                  val label = newCategoryName.trim()
-                  if (label.isNotBlank()) {
-                    onCreateCustomCategory(label)
-                    onNewCategoryNameChange("")
-                  }
-                }) { Text(stringResource(Res.string.create)) }
-              }
-              customCategories.forEach { category ->
                 Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
+                  horizontalArrangement = Arrangement.spacedBy(BiziSpacing.small),
                   verticalAlignment = Alignment.CenterVertically,
                 ) {
-                  Text(
-                    favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                  )
-                  Row(
-                    horizontalArrangement = Arrangement.spacedBy(BiziSpacing.small),
-                    verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                    if (assignmentCandidate != null) {
-                      TextButton(onClick = {
-                        onAssignCandidateToCategory(category.id)
-                      }) { Text(stringResource(Res.string.assignSearchResult)) }
-                    }
-                    TextButton(
-                      onClick = { onRemoveCustomCategory(category.id) },
-                    ) { Text(stringResource(Res.string.delete)) }
+                  if (assignmentCandidate != null) {
+                    TextButton(onClick = {
+                      onAssignCandidateToCategory(category.id)
+                    }) { Text(stringResource(Res.string.assignSearchResult)) }
                   }
+                  TextButton(
+                    onClick = { onRemoveCustomCategory(category.id) },
+                  ) { Text(stringResource(Res.string.delete)) }
                 }
               }
+            }
           }
         }
       }

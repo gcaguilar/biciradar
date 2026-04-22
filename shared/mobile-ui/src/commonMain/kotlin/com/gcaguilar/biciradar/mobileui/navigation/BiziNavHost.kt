@@ -33,7 +33,9 @@ import com.gcaguilar.biciradar.mobileui.viewmodel.TripViewModel
 import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import dev.zacsweers.metrox.viewmodel.metroViewModel
+import kotlinx.coroutines.FlowPreview
 
+@FlowPreview
 @Composable
 internal fun BiziNavHost(
   navController: NavHostController,

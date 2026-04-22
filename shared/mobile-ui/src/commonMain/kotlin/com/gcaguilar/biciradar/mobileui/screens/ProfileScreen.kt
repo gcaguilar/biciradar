@@ -75,8 +75,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcuts
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewCommands
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
-import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.BiziSpacing
+import com.gcaguilar.biciradar.mobileui.FeedbackDialog
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.SearchRadiusSelector
@@ -166,10 +166,10 @@ internal fun ProfileScreen(
           description = stringResource(Res.string.nearbyStationRadiusDescription),
           contentSpacing = BiziSpacing.xxLarge,
         ) {
-            SearchRadiusSelector(
-              selectedRadiusMeters = state.searchRadiusMeters,
-              onSearchRadiusSelected = onSearchRadiusSelected,
-            )
+          SearchRadiusSelector(
+            selectedRadiusMeters = state.searchRadiusMeters,
+            onSearchRadiusSelected = onSearchRadiusSelected,
+          )
         }
       }
       item {
@@ -178,14 +178,14 @@ internal fun ProfileScreen(
           description = stringResource(Res.string.citySelectionSubtitle),
           contentSpacing = BiziSpacing.xxLarge,
         ) {
-            CitySelector(
-              selectedCity = state.selectedCity,
-              searchQuery = state.citySearchQuery,
-              filteredCities = state.filteredCities,
-              onCitySelected = onCitySelected,
-              onSearchQueryChange = onCitySearchQueryChange,
-              onClearSearchQuery = onClearCitySearchQuery,
-            )
+          CitySelector(
+            selectedCity = state.selectedCity,
+            searchQuery = state.citySearchQuery,
+            filteredCities = state.filteredCities,
+            onCitySelected = onCitySelected,
+            onSearchQueryChange = onCitySearchQueryChange,
+            onClearSearchQuery = onClearCitySearchQuery,
+          )
         }
       }
       item {
@@ -194,26 +194,26 @@ internal fun ProfileScreen(
           description = stringResource(Res.string.appearanceDescription),
           contentSpacing = BiziSpacing.xxLarge,
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = state.themePreference == ThemePreference.System,
-                label = stringResource(Res.string.system),
-                onClick = { onThemePreferenceSelected(ThemePreference.System) },
-              )
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = state.themePreference == ThemePreference.Light,
-                label = stringResource(Res.string.light),
-                onClick = { onThemePreferenceSelected(ThemePreference.Light) },
-              )
-              RadiusSelectionButton(
-                modifier = Modifier.weight(1f),
-                selected = state.themePreference == ThemePreference.Dark,
-                label = stringResource(Res.string.dark),
-                onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
-              )
-            }
+          Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = state.themePreference == ThemePreference.System,
+              label = stringResource(Res.string.system),
+              onClick = { onThemePreferenceSelected(ThemePreference.System) },
+            )
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = state.themePreference == ThemePreference.Light,
+              label = stringResource(Res.string.light),
+              onClick = { onThemePreferenceSelected(ThemePreference.Light) },
+            )
+            RadiusSelectionButton(
+              modifier = Modifier.weight(1f),
+              selected = state.themePreference == ThemePreference.Dark,
+              label = stringResource(Res.string.dark),
+              onClick = { onThemePreferenceSelected(ThemePreference.Dark) },
+            )
+          }
         }
       }
       if (mobilePlatform == MobileUiPlatform.IOS && state.canSelectGoogleMapsInIos) {
@@ -223,25 +223,25 @@ internal fun ProfileScreen(
             description = stringResource(Res.string.iPhoneRouteAppDescription),
             contentSpacing = BiziSpacing.xxLarge,
           ) {
-              Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
-                RadiusSelectionButton(
-                  modifier = Modifier.weight(1f),
-                  selected = state.preferredMapApp == PreferredMapApp.AppleMaps,
-                  label = "Apple Maps",
-                  onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
-                )
-                RadiusSelectionButton(
-                  modifier = Modifier.weight(1f),
-                  selected = state.preferredMapApp == PreferredMapApp.GoogleMaps,
-                  label = "Google Maps",
-                  onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
-                )
-              }
-              Text(
-                stringResource(Res.string.iPhoneRouteAppFallback),
-                style = MaterialTheme.typography.bodySmall,
-                color = LocalBiziColors.current.muted,
+            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
+              RadiusSelectionButton(
+                modifier = Modifier.weight(1f),
+                selected = state.preferredMapApp == PreferredMapApp.AppleMaps,
+                label = "Apple Maps",
+                onClick = { onPreferredMapAppSelected(PreferredMapApp.AppleMaps) },
               )
+              RadiusSelectionButton(
+                modifier = Modifier.weight(1f),
+                selected = state.preferredMapApp == PreferredMapApp.GoogleMaps,
+                label = "Google Maps",
+                onClick = { onPreferredMapAppSelected(PreferredMapApp.GoogleMaps) },
+              )
+            }
+            Text(
+              stringResource(Res.string.iPhoneRouteAppFallback),
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+            )
           }
         }
       }

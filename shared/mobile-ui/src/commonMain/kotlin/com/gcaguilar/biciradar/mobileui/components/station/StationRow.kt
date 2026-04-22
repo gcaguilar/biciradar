@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
@@ -28,6 +27,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform

@@ -23,12 +23,11 @@ internal data class OnboardingPresentationResult(
 internal class ResolveOnboardingPresentationUseCase
   @Inject
   constructor() {
-    fun execute(input: OnboardingPresentationInput): OnboardingPresentationResult {
-      return OnboardingPresentationResult(
+    fun execute(input: OnboardingPresentationInput): OnboardingPresentationResult =
+      OnboardingPresentationResult(
         onboardingChecklist = input.checklist,
         isCitySelectionRequired = !input.cityConfigured,
         shouldShowGuidedOnboarding =
           input.cityConfigured && !input.checklist.isCompleted(),
       )
-    }
   }

@@ -27,11 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import org.jetbrains.compose.resources.stringResource
 
 enum class GuidedOnboardingStep {

@@ -53,9 +53,6 @@ import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
-import com.gcaguilar.biciradar.mobileui.biziCardBorder
-import com.gcaguilar.biciradar.mobileui.biziCardColors
-import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziStatusCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
@@ -127,46 +124,46 @@ internal fun TripScreen(
             containerAlpha = 0.09f,
             borderAlpha = 0.22f,
           ) {
-              Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
-              ) {
-                Icon(Icons.Filled.Sync, contentDescription = null, tint = colors.red)
-                Text(
-                  text = stringResource(Res.string.tripStationFull),
-                  style = MaterialTheme.typography.titleMedium,
-                  color = colors.red,
-                  fontWeight = FontWeight.Bold,
-                )
-              }
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
+            ) {
+              Icon(Icons.Filled.Sync, contentDescription = null, tint = colors.red)
               Text(
-                text = stringResource(Res.string.tripStationNoLongerHasSlots, alert.fullStation.name),
+                text = stringResource(Res.string.tripStationFull),
+                style = MaterialTheme.typography.titleMedium,
+                color = colors.red,
+                fontWeight = FontWeight.Bold,
+              )
+            }
+            Text(
+              text = stringResource(Res.string.tripStationNoLongerHasSlots, alert.fullStation.name),
+              style = MaterialTheme.typography.bodyMedium,
+            )
+            alert.alternativeStation?.let { alternativeStation ->
+              val alternativeDistance = alert.alternativeDistanceMeters?.toString().orEmpty()
+              Text(
+                text =
+                  stringResource(
+                    Res.string.tripSuggestedAlternative,
+                    alternativeStation.name,
+                    alternativeDistance,
+                    alternativeStation.slotsFree,
+                  ),
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
               )
-              alert.alternativeStation?.let { alternativeStation ->
-                val alternativeDistance = alert.alternativeDistanceMeters?.toString().orEmpty()
-                Text(
-                  text =
-                    stringResource(
-                      Res.string.tripSuggestedAlternative,
-                      alternativeStation.name,
-                      alternativeDistance,
-                      alternativeStation.slotsFree,
-                    ),
-                  style = MaterialTheme.typography.bodyMedium,
-                  fontWeight = FontWeight.SemiBold,
-                )
-              } ?: Text(
-                text = stringResource(Res.string.tripNoNearbyAlternative),
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.muted,
-              )
-              Button(
-                onClick = onDismissAlert,
-                modifier = Modifier.fillMaxWidth(),
-              ) {
-                Text(stringResource(Res.string.gotIt))
-              }
+            } ?: Text(
+              text = stringResource(Res.string.tripNoNearbyAlternative),
+              style = MaterialTheme.typography.bodySmall,
+              color = colors.muted,
+            )
+            Button(
+              onClick = onDismissAlert,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text(stringResource(Res.string.gotIt))
+            }
           }
         }
       }
@@ -176,49 +173,49 @@ internal fun TripScreen(
           title = stringResource(Res.string.whereAreYouGoing),
           contentSpacing = BiziSpacing.xxLarge,
         ) {
-            Text(
-              text =
-                if (state.destination == null) {
-                  stringResource(Res.string.tripSubtitle)
-                } else {
-                  state.destination.name
-                },
-              style =
-                if (state.destination == null) {
-                  MaterialTheme.typography.bodyMedium
-                } else {
-                  MaterialTheme.typography.titleMedium
-                },
-              color = if (state.destination == null) colors.muted else colors.ink,
-              maxLines = if (state.destination == null) 2 else 3,
-              overflow = TextOverflow.Ellipsis,
+          Text(
+            text =
+              if (state.destination == null) {
+                stringResource(Res.string.tripSubtitle)
+              } else {
+                state.destination.name
+              },
+            style =
+              if (state.destination == null) {
+                MaterialTheme.typography.bodyMedium
+              } else {
+                MaterialTheme.typography.titleMedium
+              },
+            color = if (state.destination == null) colors.muted else colors.ink,
+            maxLines = if (state.destination == null) 2 else 3,
+            overflow = TextOverflow.Ellipsis,
+          )
+          Button(
+            onClick = onOpenDestinationPicker,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Search,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
             )
-            Button(
-              onClick = onOpenDestinationPicker,
-              modifier = Modifier.fillMaxWidth(),
-            ) {
-              Icon(
-                imageVector = Icons.Filled.Search,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(Res.string.tripMapDestinationTitle))
-            }
-            OutlinedButton(
-              onClick = onOpenStationPicker,
-              modifier = Modifier.fillMaxWidth(),
-            ) {
-              Icon(
-                imageVector = Icons.Filled.Map,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(Res.string.tripMapStationAction))
-            }
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(Res.string.tripMapDestinationTitle))
+          }
+          OutlinedButton(
+            onClick = onOpenStationPicker,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Map,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(Res.string.tripMapStationAction))
           }
         }
+      }
 
       state.destination?.let { destination ->
         item("destination-summary") {

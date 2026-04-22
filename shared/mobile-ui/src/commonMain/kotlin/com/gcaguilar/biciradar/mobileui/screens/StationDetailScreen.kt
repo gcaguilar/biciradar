@@ -238,33 +238,33 @@ internal fun StationDetailScreen(
                 description = stringResource(Res.string.saveThisStationDescription),
                 contentSpacing = BiziSpacing.xLarge,
               ) {
-                  Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium)) {
-                    FavoritePill(
-                      active = isFavorite,
-                      onClick = onToggleFavorite,
-                      label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
-                    )
-                    SavedPlacePill(
-                      active = isHomeStation,
-                      label = stringResource(Res.string.home),
-                      onClick = onToggleHome,
-                    )
-                    SavedPlacePill(
-                      active = isWorkStation,
-                      label = stringResource(Res.string.work),
-                      onClick = onToggleWork,
-                    )
-                  }
-                  Text(
-                    when {
-                      isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
-                      isHomeStation -> stringResource(Res.string.stationMarkedHome)
-                      isWorkStation -> stringResource(Res.string.stationMarkedWork)
-                      else -> stringResource(Res.string.tapHomeOrWorkToAssign)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalBiziColors.current.muted,
+                Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium)) {
+                  FavoritePill(
+                    active = isFavorite,
+                    onClick = onToggleFavorite,
+                    label = if (isFavorite) stringResource(Res.string.favorite) else stringResource(Res.string.save),
                   )
+                  SavedPlacePill(
+                    active = isHomeStation,
+                    label = stringResource(Res.string.home),
+                    onClick = onToggleHome,
+                  )
+                  SavedPlacePill(
+                    active = isWorkStation,
+                    label = stringResource(Res.string.work),
+                    onClick = onToggleWork,
+                  )
+                }
+                Text(
+                  when {
+                    isHomeStation && isWorkStation -> stringResource(Res.string.stationMarkedHomeAndWork)
+                    isHomeStation -> stringResource(Res.string.stationMarkedHome)
+                    isWorkStation -> stringResource(Res.string.stationMarkedWork)
+                    else -> stringResource(Res.string.tapHomeOrWorkToAssign)
+                  },
+                  style = MaterialTheme.typography.bodySmall,
+                  color = LocalBiziColors.current.muted,
+                )
               }
             }
           }
@@ -299,38 +299,38 @@ internal fun StationDetailScreen(
                 description = stringResource(Res.string.savedPlaceAlertsStationDetailHint),
                 contentSpacing = BiziSpacing.xLarge,
               ) {
-                  Row(
-                    horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
-                    verticalAlignment = Alignment.Top,
-                  ) {
-                    if (isHomeStation) {
-                      StationDetailAlertBell(
-                        label = stringResource(Res.string.home),
-                        active = findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget) != null,
-                        onClick = {
-                          alertEditor = homeTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget)
-                        },
-                      )
-                    }
-                    if (isWorkStation) {
-                      StationDetailAlertBell(
-                        label = stringResource(Res.string.work),
-                        active = findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget) != null,
-                        onClick = {
-                          alertEditor = workTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget)
-                        },
-                      )
-                    }
-                    if (isFavorite) {
-                      StationDetailAlertBell(
-                        label = stringResource(Res.string.favorite),
-                        active = findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget) != null,
-                        onClick = {
-                          alertEditor = favoriteTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget)
-                        },
-                      )
-                    }
+                Row(
+                  horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
+                  verticalAlignment = Alignment.Top,
+                ) {
+                  if (isHomeStation) {
+                    StationDetailAlertBell(
+                      label = stringResource(Res.string.home),
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget) != null,
+                      onClick = {
+                        alertEditor = homeTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, homeTarget)
+                      },
+                    )
                   }
+                  if (isWorkStation) {
+                    StationDetailAlertBell(
+                      label = stringResource(Res.string.work),
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget) != null,
+                      onClick = {
+                        alertEditor = workTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, workTarget)
+                      },
+                    )
+                  }
+                  if (isFavorite) {
+                    StationDetailAlertBell(
+                      label = stringResource(Res.string.favorite),
+                      active = findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget) != null,
+                      onClick = {
+                        alertEditor = favoriteTarget to findSavedPlaceAlertRule(savedPlaceAlertRules, favoriteTarget)
+                      },
+                    )
+                  }
+                }
               }
             }
           }

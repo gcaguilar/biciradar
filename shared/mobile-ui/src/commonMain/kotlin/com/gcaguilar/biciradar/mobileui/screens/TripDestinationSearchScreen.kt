@@ -30,8 +30,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
-import com.gcaguilar.biciradar.mobileui.components.inputs.SuggestionRow
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
+import com.gcaguilar.biciradar.mobileui.components.inputs.SuggestionRow
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
@@ -118,7 +118,7 @@ internal fun TripDestinationSearchScreen(
               Text(
                 text = stringResource(Res.string.suggestions),
                 style = MaterialTheme.typography.labelMedium,
-                color = colors.muted
+                color = colors.muted,
               )
             }
 

@@ -58,10 +58,7 @@ internal data class AppRootRuntimeState(
   val latestOnboardingCompleted: Boolean,
   val latestOnboardingChecklist: OnboardingChecklistSnapshot,
   val pendingRefreshSignals: Int = 0,
-  // Estados runtime de sub-módulos (antes en ViewModels separados)
   val updateCheckInFlight: Boolean = false,
-  // NOTA: updatePollJob se gestiona como campo privado en AppRootViewModel para
-  // mantener AppRootRuntimeState como dato puro (Job tiene identidad mutable).
   val onboardingLaunchSource: OnboardingLaunchSource = OnboardingLaunchSource.Automatic,
 )
 
@@ -74,20 +71,6 @@ private data class StartupSnapshot(
   val hasCompletedOnboarding: Boolean,
 )
 
-/**
- * ViewModel principal de la aplicación - COORDINADOR.
- *
- * Este ViewModel integra la lógica de todos los sub-módulos:
- * - Engagement (updates, feedback, reviews)
- * - Onboarding (flujo guiado)
- * - Changelog (novedades de versión)
- *
- * Antes instanciaba child ViewModels directamente, lo que evitaba el lifecycle
- * correcto. Ahora integra su lógica directamente, garantizando que onCleared()
- * cancele todas las coroutines y jobs pendientes.
- *
- * SRP: Coordina la inicialización y gestiona el estado UI de toda la app.
- */
 @Inject
 @ViewModelKey
 @ContributesIntoMap(AppScope::class)
@@ -120,7 +103,6 @@ internal class AppRootViewModel(
   private val refreshJob = MutableStateFlow<Job?>(null)
   private val emptyStateRetryJob = MutableStateFlow<Job?>(null)
 
-  /** Job de polling de actualizaciones. Se gestiona aquí para no contaminar [AppRootRuntimeState]. */
   private var updatePollJob: Job? = null
 
   init {
@@ -129,11 +111,6 @@ internal class AppRootViewModel(
     startMinimumSplashTimer()
   }
 
-  /**
-   * Cancela todos los jobs pendientes cuando el ViewModel se destruye.
-   * Esto garantiza la limpieza adecuada que antes no estaba asegurada
-   * con child ViewModels instanciados manualmente.
-   */
   override fun onCleared() {
     updatePollJob?.cancel()
     refreshJob.value?.cancel()
@@ -145,8 +122,6 @@ internal class AppRootViewModel(
     runtimeState.update { it.copy(pendingRefreshSignals = it.pendingRefreshSignals + 1) }
     maybeRefreshStations()
   }
-
-  // ================== ONBOARDING ==================
 
   fun onOnboardingOpenedFromSettings() {
     runtimeState.update { it.copy(onboardingLaunchSource = OnboardingLaunchSource.Settings) }
@@ -183,7 +158,6 @@ internal class AppRootViewModel(
     }
   }
 
-  // ================== CHANGELOG ==================
 
   fun showChangelogHistory() {
     val presentation = appLifecycleUseCase.getChangelogHistory() ?: return
@@ -199,7 +173,6 @@ internal class AppRootViewModel(
     }
   }
 
-  // ================== ENGAGEMENT ==================
 
   fun onFeedbackOpened() {
     _uiState.update { it.copy(showFeedbackNudge = false) }
@@ -244,8 +217,6 @@ internal class AppRootViewModel(
       appLifecycleUseCase.completeFlexibleUpdateIfReady()
     }
   }
-
-  // ================== PRIVATE ==================
 
   private fun observeRepositories() {
     val stationsAndFavorites =
@@ -411,8 +382,6 @@ internal class AppRootViewModel(
     maybeRequestInAppReview(isOnboardingCompleted, dataFreshness)
   }
 
-  // ================== ENGAGEMENT LOGIC (antes en EngagementViewModel) ==================
-
   private fun maybeCheckForUpdates() {
     viewModelScope.launch {
       engagementCoordinator.maybeCheckForUpdates(runtimeState, { banner ->
@@ -444,8 +413,6 @@ internal class AppRootViewModel(
     }
   }
 
-  // ================== ONBOARDING LOGIC (antes en OnboardingViewModel) ==================
-
   private fun recomputeOnboardingPresentation(
     checklist: OnboardingChecklistSnapshot? = null,
     cityConfigured: Boolean? = null,
@@ -464,7 +431,9 @@ internal class AppRootViewModel(
       )
     }
 
-    if (currentRuntime.onboardingLaunchSource == OnboardingLaunchSource.Settings && !resolved.shouldShowGuidedOnboarding) {
+    if (currentRuntime.onboardingLaunchSource == OnboardingLaunchSource.Settings &&
+      !resolved.shouldShowGuidedOnboarding
+    ) {
       runtimeState.update { currentRuntimeCopy ->
         currentRuntimeCopy.copy(
           onboardingLaunchSource = resolved.launchSource,

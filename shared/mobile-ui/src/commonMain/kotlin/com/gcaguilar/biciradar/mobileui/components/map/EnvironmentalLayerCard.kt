@@ -20,7 +20,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendGood
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendHigh
@@ -32,6 +31,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapClearEnvironment
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapEnvironmentalLayerHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterAirQuality
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapFilterPollen
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.BiziDataColors
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer

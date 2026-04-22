@@ -22,8 +22,10 @@ import com.gcaguilar.biciradar.mobileui.screens.TripDestinationSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripMapPickerScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 
+@FlowPreview
 internal object BiziMobileAppContent {
   @Composable
   fun TripScreenContent(

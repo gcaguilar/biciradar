@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -73,13 +72,13 @@ private fun MapFilterChip(
     onClick = onClick,
     tint = accent,
   ) { contentColor ->
-      MapColorDot(color = accent)
-      Text(
-        text = label,
-        color = contentColor,
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
-      )
+    MapColorDot(color = accent)
+    Text(
+      text = label,
+      color = contentColor,
+      style = MaterialTheme.typography.bodySmall,
+      fontWeight = FontWeight.SemiBold,
+    )
   }
 }
 

@@ -1,8 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.components.station
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
@@ -17,8 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobileui.BiziAlpha
-import com.gcaguilar.biciradar.mobileui.BiziMotion
-import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.components.BiziSelectableChip
 
@@ -40,13 +35,13 @@ internal fun RoutePill(
     unselectedContainerColor = Color.Transparent,
     unselectedBorderColor = Color.Transparent,
   ) { contentColor ->
-      Icon(
-        imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
-        contentDescription = null,
-        tint = contentColor,
-        modifier = Modifier.size(16.dp),
-      )
-      Text(label, color = contentColor, style = MaterialTheme.typography.labelMedium)
+    Icon(
+      imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
+      contentDescription = null,
+      tint = contentColor,
+      modifier = Modifier.size(16.dp),
+    )
+    Text(label, color = contentColor, style = MaterialTheme.typography.labelMedium)
   }
 }
 
@@ -68,13 +63,13 @@ internal fun FavoritePill(
     selectedScale = 1f,
     unselectedScale = 0.97f,
   ) { contentColor ->
-      Icon(
-        imageVector = if (active) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-        contentDescription = null,
-        tint = contentColor,
-        modifier = Modifier.size(16.dp),
-      )
-      Text(label, color = contentColor, style = MaterialTheme.typography.labelMedium)
+    Icon(
+      imageVector = if (active) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+      contentDescription = null,
+      tint = contentColor,
+      modifier = Modifier.size(16.dp),
+    )
+    Text(label, color = contentColor, style = MaterialTheme.typography.labelMedium)
   }
 }
 
@@ -98,11 +93,11 @@ internal fun OutlineActionPill(
     selectedScale = 1f,
     unselectedScale = 1f,
   ) {
-      Text(
-        label,
-        color = tint,
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-      )
+    Text(
+      label,
+      color = tint,
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+    )
   }
 }

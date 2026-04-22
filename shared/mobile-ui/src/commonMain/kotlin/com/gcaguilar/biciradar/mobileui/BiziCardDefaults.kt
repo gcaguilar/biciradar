@@ -12,8 +12,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun biziCardColors(): CardColors =
-  CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)
+internal fun biziCardColors(): CardColors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)
 
 @Composable
 internal fun biziCardElevation(): CardElevation =

@@ -143,7 +143,14 @@ class AndroidPlatformBindings(
   override val mapSupport: MapSupport = if (isFdroidBuild) FdroidMapSupport() else AndroidMapSupport(context)
   override val platform: String = "android"
   override val osVersion: String = "Android ${android.os.Build.VERSION.RELEASE}"
-  override val routeLauncher: RouteLauncher = if (isFdroidBuild) FdroidRouteLauncher(context) else AndroidRouteLauncher(context)
+  override val routeLauncher: RouteLauncher =
+    if (isFdroidBuild) {
+      FdroidRouteLauncher(
+        context,
+      )
+    } else {
+      AndroidRouteLauncher(context)
+    }
   override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
