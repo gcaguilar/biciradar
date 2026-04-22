@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendGood
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.environmentalLegendHigh
@@ -54,9 +53,8 @@ internal fun EnvironmentalLayerCard(
   modifier: Modifier = Modifier,
 ) {
   val c = LocalBiziColors.current
-  Card(
+  BiziCard(
     modifier = modifier.fillMaxWidth(),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
   ) {
     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
       Text(

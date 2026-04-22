@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 
 @Composable
 internal fun EmptyStatePlaceholder(
@@ -32,7 +35,9 @@ internal fun EmptyStatePlaceholder(
           androidx.compose.animation.core
             .spring(dampingRatio = 0.9f, stiffness = 500f),
       ),
-    colors = CardDefaults.cardColors(containerColor = c.surface),
+    colors = biziCardColors(),
+    border = biziCardBorder(),
+    elevation = biziCardElevation(),
   ) {
     Column(
       modifier = Modifier.padding(18.dp),

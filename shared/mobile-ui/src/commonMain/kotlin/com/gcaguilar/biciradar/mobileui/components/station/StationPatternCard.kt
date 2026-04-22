@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -27,6 +25,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mostSlots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.noDataForDayType
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.noUsagePatternData
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.usagePattern
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -40,9 +39,7 @@ internal fun StationPatternCard(
   onToggleDayType: () -> Unit,
 ) {
   val colors = LocalBiziColors.current
-  Card(
-    colors = CardDefaults.cardColors(containerColor = colors.surface),
-  ) {
+  BiziCard {
     Column(
       modifier = Modifier.padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(12.dp),

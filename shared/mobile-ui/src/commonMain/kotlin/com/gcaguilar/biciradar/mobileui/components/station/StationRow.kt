@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.components.station
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,8 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
@@ -47,7 +45,7 @@ internal fun StationRow(
   extraActions: @Composable (() -> Unit)? = null,
   showFavoriteCta: Boolean = true,
 ) {
-  Card(
+  BiziCard(
     modifier =
       Modifier
         .fillMaxWidth()
@@ -58,15 +56,6 @@ internal fun StationRow(
               .spring(dampingRatio = 0.9f, stiffness = 520f),
         ),
     shape = LocalBiziCardShape.current,
-    border =
-      if (mobilePlatform ==
-        MobileUiPlatform.IOS
-      ) {
-        BorderStroke(1.dp, LocalBiziColors.current.panel)
-      } else {
-        null
-      },
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
   ) {
     Column(
       modifier =

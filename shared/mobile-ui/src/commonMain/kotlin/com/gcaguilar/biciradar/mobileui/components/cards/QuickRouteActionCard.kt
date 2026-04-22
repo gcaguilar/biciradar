@@ -2,14 +2,11 @@ package com.gcaguilar.biciradar.mobileui.components.cards
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,6 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.core.NearbyStationSelection
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
@@ -28,6 +26,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.openRoute
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.quickRouteDistanceSummary
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.quickRouteFallbackSummary
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.refreshStationsToOpenRoute
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.stringResource
@@ -48,21 +47,13 @@ internal fun QuickRouteActionCard(
   onRoute: (Station) -> Unit,
 ) {
   val station = selection.highlightedStation
-  Card(
+  BiziCard(
     modifier =
       modifier
         .clickable(enabled = station != null) {
           station?.let(onRoute)
         },
-    border =
-      if (mobilePlatform ==
-        MobileUiPlatform.IOS
-      ) {
-        BorderStroke(1.dp, LocalBiziColors.current.panel)
-      } else {
-        null
-      },
-    colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface),
+    shape = LocalBiziCardShape.current,
   ) {
     Column(
       modifier =

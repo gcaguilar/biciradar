@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 
 internal data class ShortcutGuide(
   val title: String,
@@ -25,7 +28,11 @@ internal data class ShortcutGuide(
 
 @Composable
 internal fun ShortcutGuideCard(guide: ShortcutGuide) {
-  Card(colors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)) {
+  Card(
+    colors = biziCardColors(),
+    border = biziCardBorder(),
+    elevation = biziCardElevation(),
+  ) {
     Column(
       modifier = Modifier.padding(18.dp),
       verticalArrangement = Arrangement.spacedBy(10.dp),
