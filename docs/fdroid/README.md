@@ -28,6 +28,13 @@ The `fdroid` flavors intentionally remove proprietary integrations:
 
 Both Android modules still run `verifyFdroidReleaseDependencies` during `assembleFdroidRelease`, but the submission flow documented here only covers the phone app.
 
+To keep the Android phone APK friendlier to reproducible builds, the `fdroidRelease` variant also disables:
+
+- code minification
+- resource shrinking
+- embedded VCS info
+- Android baseline profile / `.dm` sidecar generation
+
 ## Local validation
 
 Build the exact F-Droid release APKs:
@@ -43,6 +50,14 @@ bash tooling/project/check_fdroid_submission.sh
 ```
 
 This validation checks the package metadata, the expected APK outputs, the F-Droid flavor selection in the YAML, and whether real screenshots are present instead of placeholder directories.
+
+For the current `fdroidRelease` configuration, repeated clean local builds of the same commit produce the same APK SHA-256:
+
+```text
+248b405afd207cb38fe2a814a48cb077f6b28f1e5abc66c2e5e26dc09611e219
+```
+
+That does not replace F-Droid's official reproducibility verification, but it is a useful local sanity check before wiring upstream signing metadata.
 
 ## Submission checklist
 
