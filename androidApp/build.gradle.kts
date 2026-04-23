@@ -53,6 +53,14 @@ if (shouldApplyGoogleServices) {
   }
 }
 
+androidComponents {
+  beforeVariants(selector().withBuildType("release").withFlavor("tier" to "fdroid")) { variantBuilder ->
+    // Keep the Play Store release optimized while making the F-Droid APK easier to reproduce.
+    variantBuilder.isMinifyEnabled = false
+    variantBuilder.shrinkResources = false
+  }
+}
+
 val googleMapsApiKey =
   providers
     .environmentVariable("GOOGLE_MAPS_API_KEY")
@@ -213,4 +221,18 @@ val verifyFdroidReleaseDependencies by
 
 tasks.matching { it.name == "assembleFdroidRelease" || it.name == "check" }.configureEach {
   dependsOn(verifyFdroidReleaseDependencies)
+}
+
+tasks.configureEach {
+  val taskName = name.lowercase()
+  if (
+    taskName.contains("fdroidrelease") &&
+    (
+      taskName.contains("artprofile") ||
+        taskName.contains("baselineprofile") ||
+        taskName.contains("versioncontrolinfo")
+    )
+  ) {
+    enabled = false
+  }
 }
