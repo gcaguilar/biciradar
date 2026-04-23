@@ -44,13 +44,20 @@ Users will see one app listing, but Google Play serves the appropriate version b
 ```
 
 - Each `assembleFdroidRelease` run also executes a dependency gate that fails when the runtime classpath includes Google Play Services, Firebase, Garmin Connect IQ, or Google Maps Compose artifacts.
+- Run the repository-level submission check:
+
+```bash
+bash tooling/project/check_fdroid_submission.sh
+```
+
 - Submission-ready metadata lives in:
   - [docs/fdroid/README.md](docs/fdroid/README.md)
   - [metadata/com.gcaguilar.biciradar.fdroid.yml](metadata/com.gcaguilar.biciradar.fdroid.yml)
   - [metadata/com.gcaguilar.biciradar.wear.fdroid.yml](metadata/com.gcaguilar.biciradar.wear.fdroid.yml)
   - `androidApp/src/fdroid/fastlane/metadata/android/en-US/`
   - `wearApp/src/fdroid/fastlane/metadata/android/en-US/`
-- Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag.
+- The YAML files are the parts that go into `fdroiddata`; the fastlane text and screenshots stay in this repository.
+- Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag or exact release commit.
 
 ## iOS and watchOS
 

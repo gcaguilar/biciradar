@@ -63,6 +63,7 @@ Common commands:
 ./gradlew :androidApp:testFdroidDebugUnitTest :wearApp:testFdroidDebugUnitTest
 ./gradlew :androidApp:assembleFdroidDebug :wearApp:assembleFdroidDebug
 ./gradlew :androidApp:assembleFdroidRelease :wearApp:assembleFdroidRelease
+bash tooling/project/check_fdroid_submission.sh
 ```
 
 Notes:

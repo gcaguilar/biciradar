@@ -5,18 +5,6 @@ SourceCode: https://github.com/gcaguilar/biciradar
 IssueTracker: https://github.com/gcaguilar/biciradar/issues
 Changelog: https://github.com/gcaguilar/biciradar/releases
 AutoName: Bici Radar
-Summary: Public bike availability across Spanish cities
-Description: |
-  Bici Radar shows live public bike station availability across supported Spanish cities.
-
-  This F-Droid build removes proprietary integrations and keeps the core experience focused on:
-
-  - city station availability
-  - favorites and commute shortcuts
-  - widgets and notifications
-  - free-software compatible external routing
-
-  The embedded Android map in this flavor uses OpenStreetMap tiles via osmdroid instead of Google Maps.
 
 RepoType: git
 Repo: https://github.com/gcaguilar/biciradar.git
@@ -24,13 +12,14 @@ Repo: https://github.com/gcaguilar/biciradar.git
 Builds:
   - versionName: 0.22.9-fdroid
     versionCode: 29568120
-    commit: 911aac9ba9ca545cf23cce6a3d7d1480c74b0eb5
+    commit: a6b32ee95c656452ffc948379f0856a0f29bfd7d
     subdir: .
     gradle:
-      - yes
+      - fdroid
     output: androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk
 
 MaintainerNotes: |
-  Submit this file to the fdroiddata fork, then replace commit with the release tag once the
-  tagged F-Droid release exists. Screenshots and icon metadata are sourced from the app's
-  fastlane metadata under androidApp/src/fdroid/.
+  Listing text and screenshots are intentionally sourced from the app's fastlane metadata in
+  androidApp/src/fdroid/. Keep Summary/Description in the upstream repo instead of duplicating
+  them in fdroiddata, and update commit to the final release tag or exact release commit before
+  opening the merge request.
