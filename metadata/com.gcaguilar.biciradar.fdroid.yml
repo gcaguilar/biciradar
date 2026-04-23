@@ -20,6 +20,6 @@ Builds:
 
 MaintainerNotes: |
   Listing text and screenshots are intentionally sourced from the app's fastlane metadata in
-  androidApp/src/fdroid/. Keep Summary/Description in the upstream repo instead of duplicating
+  fastlane/metadata/android/en-US/. Keep Summary/Description in the upstream repo instead of duplicating
   them in fdroiddata, and update commit to the final release tag or exact release commit before
   opening the merge request.

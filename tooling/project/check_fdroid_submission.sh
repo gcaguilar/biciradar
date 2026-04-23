@@ -64,6 +64,6 @@ check_metadata_entry \
   "androidApp/build.gradle.kts" \
   "metadata/com.gcaguilar.biciradar.fdroid.yml" \
   "androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk" \
-  "androidApp/src/fdroid/fastlane/metadata/android/en-US/images/phoneScreenshots"
+  "fastlane/metadata/android/en-US/images/phoneScreenshots"
 
 echo "F-Droid submission files look consistent."

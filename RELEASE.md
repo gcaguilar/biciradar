@@ -51,7 +51,7 @@ bash tooling/project/check_fdroid_submission.sh
 - Submission-ready metadata lives in:
   - [docs/fdroid/README.md](docs/fdroid/README.md)
   - [metadata/com.gcaguilar.biciradar.fdroid.yml](metadata/com.gcaguilar.biciradar.fdroid.yml)
-  - `androidApp/src/fdroid/fastlane/metadata/android/en-US/`
+  - `fastlane/metadata/android/en-US/`
 - The YAML files are the parts that go into `fdroiddata`; the fastlane text and screenshots stay in this repository.
 - Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag or exact release commit.
 - The Wear OS `fdroid` flavor remains in the codebase for future work, but it is not part of the current submission checklist.

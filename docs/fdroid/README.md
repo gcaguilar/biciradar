@@ -10,10 +10,10 @@ The current F-Droid package metadata lives in [metadata/](/Users/guillermo.caste
 
 F-Droid's current `fdroiddata` contribution guide recommends keeping app text and screenshots in the upstream source repository whenever possible. In this project that content lives here:
 
-- Android phone listing text and screenshots: [androidApp/src/fdroid/fastlane/metadata/android/en-US/](/Users/guillermo.castella/biciradar/androidApp/src/fdroid/fastlane/metadata/android/en-US)
+- Android phone listing text and screenshots: [fastlane/metadata/android/en-US/](/Users/guillermo.castella/biciradar/fastlane/metadata/android/en-US)
 - F-Droid metadata YAML for the phone app: [metadata/com.gcaguilar.biciradar.fdroid.yml](/Users/guillermo.castella/biciradar/metadata/com.gcaguilar.biciradar.fdroid.yml)
 
-The YAML files are the pieces that get added to `fdroiddata`. The fastlane metadata stays in this repository and is fetched by F-Droid from the tagged source release.
+The YAML files are the pieces that get added to `fdroiddata`. The fastlane metadata stays in this repository at the repository-root `fastlane/metadata` path so F-Droid tooling can detect it directly from the tagged source release.
 
 ## F-Droid-specific behavior
 
@@ -63,7 +63,7 @@ That does not replace F-Droid's official reproducibility verification, but it is
 
 1. Build the F-Droid APKs locally.
 2. Add real screenshots under:
-   - `androidApp/src/fdroid/fastlane/metadata/android/en-US/images/phoneScreenshots/`
+   - `fastlane/metadata/android/en-US/images/phoneScreenshots/`
 3. Tag the exact release commit you want F-Droid to build, or at minimum confirm the commit hash in each YAML file.
 4. Update the `commit`, `versionName`, and `versionCode` fields in the corresponding YAML file when preparing a new release.
 5. Open a merge request to `fdroiddata` adding:
