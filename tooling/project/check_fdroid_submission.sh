@@ -66,11 +66,4 @@ check_metadata_entry \
   "androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk" \
   "androidApp/src/fdroid/fastlane/metadata/android/en-US/images/phoneScreenshots"
 
-check_metadata_entry \
-  "wearApp" \
-  "wearApp/build.gradle.kts" \
-  "metadata/com.gcaguilar.biciradar.wear.fdroid.yml" \
-  "wearApp/build/outputs/apk/fdroid/release/wearApp-fdroid-release-unsigned.apk" \
-  "wearApp/src/fdroid/fastlane/metadata/android/en-US/images/wearScreenshots"
-
 echo "F-Droid submission files look consistent."

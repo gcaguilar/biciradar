@@ -55,22 +55,21 @@ End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 
 ### Build for F-Droid
 
-The Android and Wear apps define a dedicated `fdroid` flavor. Use it when you want builds without Play Store services or Firebase integration.
+The Android app defines a dedicated `fdroid` flavor for the current submission flow. The Wear app still keeps a `fdroid` flavor in the codebase, but it is not currently part of the F-Droid release process.
 
 Common commands:
 
 ```bash
-./gradlew :androidApp:testFdroidDebugUnitTest :wearApp:testFdroidDebugUnitTest
-./gradlew :androidApp:assembleFdroidDebug :wearApp:assembleFdroidDebug
-./gradlew :androidApp:assembleFdroidRelease :wearApp:assembleFdroidRelease
+./gradlew :androidApp:testFdroidDebugUnitTest
+./gradlew :androidApp:assembleFdroidDebug
+./gradlew :androidApp:assembleFdroidRelease
 bash tooling/project/check_fdroid_submission.sh
 ```
 
 Notes:
 
-- F-Droid builds do not require `androidApp/google-services.json` or `wearApp/google-services.json`.
+- F-Droid builds do not require `androidApp/google-services.json`.
 - Android F-Droid package ID: `com.gcaguilar.biciradar.fdroid`.
-- Wear OS F-Droid package ID: `com.gcaguilar.biciradar.wear.fdroid`.
 - Play Store publishing commands remain separate and use the `playstore` flavor.
 - The F-Droid runtime strips Firebase, Play Services wearable sync, Google Maps SDK usage, and Garmin Connect IQ integrations.
 - The embedded Android map in F-Droid uses OpenStreetMap tiles via `osmdroid` instead of Google Maps.

@@ -35,12 +35,10 @@ Users will see one app listing, but Google Play serves the appropriate version b
 
 - F-Droid package IDs:
   - Android: `com.gcaguilar.biciradar.fdroid`
-  - Wear OS: `com.gcaguilar.biciradar.wear.fdroid`
 - Generate the release APKs:
 
 ```bash
 ./gradlew :androidApp:assembleFdroidRelease
-./gradlew :wearApp:assembleFdroidRelease
 ```
 
 - Each `assembleFdroidRelease` run also executes a dependency gate that fails when the runtime classpath includes Google Play Services, Firebase, Garmin Connect IQ, or Google Maps Compose artifacts.
@@ -53,11 +51,10 @@ bash tooling/project/check_fdroid_submission.sh
 - Submission-ready metadata lives in:
   - [docs/fdroid/README.md](docs/fdroid/README.md)
   - [metadata/com.gcaguilar.biciradar.fdroid.yml](metadata/com.gcaguilar.biciradar.fdroid.yml)
-  - [metadata/com.gcaguilar.biciradar.wear.fdroid.yml](metadata/com.gcaguilar.biciradar.wear.fdroid.yml)
   - `androidApp/src/fdroid/fastlane/metadata/android/en-US/`
-  - `wearApp/src/fdroid/fastlane/metadata/android/en-US/`
 - The YAML files are the parts that go into `fdroiddata`; the fastlane text and screenshots stay in this repository.
 - Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag or exact release commit.
+- The Wear OS `fdroid` flavor remains in the codebase for future work, but it is not part of the current submission checklist.
 
 ## iOS and watchOS
 
