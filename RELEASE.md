@@ -53,7 +53,7 @@ bash tooling/project/check_fdroid_submission.sh
   - [metadata/com.gcaguilar.biciradar.fdroid.yml](metadata/com.gcaguilar.biciradar.fdroid.yml)
   - `fastlane/metadata/android/en-US/`
 - The YAML files are the parts that go into `fdroiddata`; the fastlane text and screenshots stay in this repository.
-- Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures and update the metadata commit to the final release tag or exact release commit.
+- Before sending the MR to `fdroiddata`, replace the placeholder screenshot directories with real captures, update the metadata commit to the final release tag or exact release commit, run `.github/workflows/publish-fdroid.yml` for that tag so `Binaries` resolves to a real signed APK, and keep `AllowedAPKSigningKeys` aligned with `android-cert/bici-upload-v2.pem`.
 - The Wear OS `fdroid` flavor remains in the codebase for future work, but it is not part of the current submission checklist.
 
 ## iOS and watchOS

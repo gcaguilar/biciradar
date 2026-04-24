@@ -73,6 +73,7 @@ Notes:
 - Play Store publishing commands remain separate and use the `playstore` flavor.
 - The F-Droid runtime strips Firebase, Play Services wearable sync, Google Maps SDK usage, and Garmin Connect IQ integrations.
 - The embedded Android map in F-Droid uses OpenStreetMap tiles via `osmdroid` instead of Google Maps.
+- Signed upstream APKs for F-Droid verification are published to GitHub Releases via `.github/workflows/publish-fdroid.yml`.
 
 ### Quick smoke tests
 
