@@ -147,12 +147,11 @@ export const eu = {
     faq: {
       title: 'FAQ',
       items: [
-        { question: 'App ofiziala badut, zer ematen dit BiciRadar-ek?', answer: 'Abiadura: gertuko estazioa, bizikletak, ainguraleku libreak, gogokoak, egoera eta ibilbidea azkar ikusteko.' },
-        { question: 'Benetan denbora aurrezten du?', answer: 'Bai. Ahotsa eta lasterbideak ditu iPhone, Apple Watch eta Android-en, kontsultak urrats gutxiagotan egiteko.' },
-        { question: 'Mugikorrerako bakarrik da?', answer: 'Ez. Mugikor eta erlojurako dago: Android, iOS, Wear OS eta Apple Watch.' },
-        { question: 'Datuak fidagarriak dira?', answer: 'Hirietako open data iturri ofizialak erabiltzen ditu. Denbora errealeko sistemetan ohiko atzerapen txikiak egon daitezke.' },
-        { question: 'Zergatik erabili osagarri gisa?', answer: 'App ofiziala kanal instituzionala da; BiciRadar eguneroko kontsulta azkar eta erosoetarako optimizatuta dago.' },
-        { question: 'Zer egingo duzue formularioaren datuekin?', answer: 'Zure emaila App Store edo Google Play deskarga-estekak bidaltzeko erabiliko dugu eta, beharrezkoa bada, eskaera honi buruz idatziko dizugu. Ez dugu beste ezertarako erabiliko.' },
+        { question: 'App ofiziala badut, zergatik deskargatu BiciRadar?', answer: 'Eguneroko kontsulta azkarrerako eginda dagoelako: bizikletak eta ainguraleku libreak irten aurretik ikusten dituzu, gogokoak gordetzen dituzu, alertak jasotzen dituzu eta behar duzuna widget edo erlojutik irekitzen duzu urrats gutxiagotan.' },
+        { question: 'Benetan denbora aurrezten du egunerokoan?', answer: 'Bai. Presaka zoazenean marruskadura kentzen du: ohiko estazioak berehala ireki ditzakezu eta askotan erabilgarritasuna kontsulta dezakezu app ofizialaren fluxu osoa egin gabe.' },
+        { question: 'Konturik sortu behar dut deskargatzeko?', answer: 'Ez. App Store-ra edo Google Play-ra zuzenean joan zaitezke deskargatzeko. Geroago jarraitu nahi baduzu, zure emaila ere utz diezagukezu eta esteka bidaliko dizugu.' },
+        { question: 'Zein hiri kontsulta ditzaket oraintxe bertan?', answer: 'Oraintxe bertan Madril, Bartzelona, Sevilla, Valentzia eta Zaragoza nabarmentzen ditugu, eta landing-ak jada hiri bateragarri gehiago erakusten ditu zurea sartuta dagoen azkar egiaztatzeko.' },
+        { question: 'Datuak fidagarriak dira?', answer: 'Hiri bakoitzeko open data iturri ofizialak erabiltzen ditu. Denbora errealeko edozein sistematan bezala atzerapen txikiak egon daitezke, baina datuen erreferentzia ofiziala da.' },
       ],
     },
     footer: {

@@ -218,34 +218,29 @@ export const en = {
       title: 'FAQ',
       items: [
         {
-          question: 'If I already use the official app, what does BiciRadar add?',
+          question: 'If I already use the official app, why download BiciRadar?',
           answer:
-            'Speed for what matters most: nearest station, available bikes, free docks, favorites, station status, and route.',
+            'Because it is built for fast everyday checks: you see bikes and free docks before you leave, save favorites, get alerts, and open what you need from widgets or your watch in fewer steps.',
         },
         {
-          question: 'Does it really save time?',
+          question: 'Does it really save time day to day?',
           answer:
-            'Yes. It includes voice and shortcuts on iPhone, Apple Watch, and Android to solve queries in fewer steps, sometimes without opening the app.',
+            'Yes. It cuts friction when you are in a hurry: you can open your usual stations right away and often check availability without having to move through the full official app flow.',
         },
         {
-          question: 'Is it only for mobile?',
+          question: 'Do I need to create an account to download it?',
           answer:
-            'No. It is designed for phone and watch: Android, iOS, Wear OS, and Apple Watch.',
+            'No. You can go straight to the App Store or Google Play to download it. If you prefer to continue later, you can also leave your email and we will send you the link.',
+        },
+        {
+          question: 'Which cities can I check right now?',
+          answer:
+            'Right now we highlight Madrid, Barcelona, Seville, Valencia, and Zaragoza, and the landing already shows more supported cities so you can quickly check whether yours is included.',
         },
         {
           question: 'Is the data reliable?',
           answer:
-            'It uses official city open-data sources. Small delays can happen as in any real-time system.',
-        },
-        {
-          question: 'Why use BiciRadar as a complement?',
-          answer:
-            'The official app is the institutional channel; BiciRadar is optimized for faster, lower-friction daily checks.',
-        },
-        {
-          question: 'What will you do with the data from the form?',
-          answer:
-            'We will use your email to send App Store or Google Play download links and, if needed, contact you about this request. We will not use it for anything else.',
+            'It uses official city open-data sources. As with any real-time system, small delays can happen, but the data reference is the official one.',
         },
       ],
     },

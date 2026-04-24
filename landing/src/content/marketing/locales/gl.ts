@@ -147,12 +147,11 @@ export const gl = {
     faq: {
       title: 'FAQ',
       items: [
-        { question: 'Se xa teño a app oficial, que me aporta BiciRadar?', answer: 'Rapidez para o importante: estación máis próxima, bicis dispoñibles, ocos libres, favoritas, estado e ruta.' },
-        { question: 'Aforra tempo de verdade?', answer: 'Si. Inclúe voz e atallos en iPhone, Apple Watch e Android para resolver consultas con menos pasos.' },
-        { question: 'Só serve no móbil?', answer: 'Non. Está pensada para móbil e reloxo: Android, iOS, Wear OS e Apple Watch.' },
-        { question: 'Os datos son fiables?', answer: 'Usa fontes oficiais de open data das cidades. Pode haber pequenos desfases normais en sistemas en tempo real.' },
-        { question: 'Por que usar BiciRadar como complemento?', answer: 'A app oficial é a canle institucional; BiciRadar está optimizada para consultar máis rápido e con menos fricción.' },
-        { question: 'Que ides facer cos datos do formulario?', answer: 'Usaremos o teu email para enviarche as ligazóns de descarga da App Store ou de Google Play e, se fai falta, escribirche sobre esta solicitude. Non o usaremos para outros fins.' },
+        { question: 'Se xa teño a app oficial, por que descargar BiciRadar?', answer: 'Porque está pensada para a consulta rápida do día a día: ves bicis e ocos antes de saír, gardas favoritas, recibes alertas e abres o que necesitas desde widgets ou reloxo con menos pasos.' },
+        { question: 'Aforra tempo de verdade no día a día?', answer: 'Si. Reduce a fricción xusto cando vas con présa: abres as túas estacións habituais ao momento e moitas veces consultas dispoñibilidade sen ter que percorrer todo o fluxo da app oficial.' },
+        { question: 'Necesito crear unha conta para descargala?', answer: 'Non. Podes ir directamente á App Store ou a Google Play para descargala. Se prefires seguir máis tarde, tamén podes deixarnos o teu email e enviarémosche a ligazón.' },
+        { question: 'Que cidades podo consultar agora mesmo?', answer: 'Agora mesmo destacamos Madrid, Barcelona, Sevilla, Valencia e Zaragoza, e a landing xa mostra máis cidades compatibles para que poidas comprobar rápido se a túa está incluída.' },
+        { question: 'Os datos son fiables?', answer: 'Usa fontes oficiais de open data de cada cidade. Como en calquera sistema en tempo real pode haber pequenos desfases, pero a referencia dos datos é a oficial.' },
       ],
     },
     footer: {
