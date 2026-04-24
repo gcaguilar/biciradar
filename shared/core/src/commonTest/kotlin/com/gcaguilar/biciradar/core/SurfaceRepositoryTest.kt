@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
@@ -28,10 +29,10 @@ class SurfaceRepositoryTest {
           StationsState(
             stations =
               listOf(
-                station(id = "far", distanceMeters = 450, bikesAvailable = 9),
-                station(id = "home", distanceMeters = 120, bikesAvailable = 7),
-                station(id = "near", distanceMeters = 60, bikesAvailable = 2),
-                station(id = "mid", distanceMeters = 180, bikesAvailable = 4),
+                station(id = "far", latitude = 41.6600, longitude = -0.8800, bikesAvailable = 9),
+                station(id = "home", latitude = 41.6503, longitude = -0.8800, bikesAvailable = 7),
+                station(id = "near", latitude = 41.6501, longitude = -0.8800, bikesAvailable = 2),
+                station(id = "mid", latitude = 41.6510, longitude = -0.8800, bikesAvailable = 4),
               ),
             isLoading = false,
             userLocation = GeoPoint(41.65, -0.88),
@@ -44,6 +45,7 @@ class SurfaceRepositoryTest {
           fileSystem = FileSystem.SYSTEM,
           json = testJson(),
           localNotifier = FakeLocalNotifier(permissionGranted = true),
+          permissionPrompter = FakePermissionPrompter(permissionGranted = true),
           storageDirectoryProvider =
             object : StorageDirectoryProvider {
               override val rootPath: String = temporaryRoot
@@ -74,6 +76,7 @@ class SurfaceRepositoryTest {
           fileSystem = FileSystem.SYSTEM,
           json = testJson(),
           localNotifier = FakeLocalNotifier(permissionGranted = false),
+          permissionPrompter = FakePermissionPrompter(permissionGranted = false),
           storageDirectoryProvider =
             object : StorageDirectoryProvider {
               override val rootPath: String = temporaryRoot
@@ -106,7 +109,178 @@ class SurfaceRepositoryTest {
       val bundle = repository.currentBundle()!!
       assertEquals(emptyList<String>(), bundle.nearbyStations.map { it.id })
       assertFalse(bundle.state.hasLocationPermission)
+      assertFalse(bundle.state.hasUsableLocation)
       assertFalse(bundle.state.hasNotificationPermission)
+    }
+
+  @Test
+  fun `surface snapshot reuses persisted location when refresh has no new fix`() =
+    runTest {
+      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-cached-location-${Random.nextInt()}"
+      val repository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = testJson(),
+          localNotifier = FakeLocalNotifier(permissionGranted = true),
+          permissionPrompter = FakePermissionPrompter(permissionGranted = true),
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = temporaryRoot
+            },
+          settingsRepository = FakeSettingsRepository(),
+          favoritesRepository =
+            FakeFavoritesRepository(
+              favoriteIds = setOf("home"),
+              homeStationId = "home",
+            ),
+          stationsRepository =
+            FakeStationsRepository(
+              StationsState(
+                stations =
+                  listOf(
+                    station(id = "home", latitude = 41.6500, longitude = -0.8800),
+                    station(id = "near", latitude = 41.6502, longitude = -0.8800),
+                    station(id = "far", latitude = 41.6600, longitude = -0.8800),
+                  ),
+                isLoading = false,
+                userLocation = null,
+                lastUpdatedEpoch = 2_000L,
+              ),
+            ),
+          scope = this,
+        )
+
+      repository.bootstrap()
+      repository.saveMonitoringSession(null)
+      repository.refreshSnapshot()
+
+      val initialBundle = repository.currentBundle()!!
+      val persistedBundle =
+        initialBundle.copy(
+          nearbyStations =
+            listOf(
+              station(id = "near", distanceMeters = 10).toSurfaceSnapshot(
+                cityId = City.ZARAGOZA.id,
+                lastUpdatedEpoch = 2_000L,
+              ),
+            ),
+          state =
+            initialBundle.state.copy(
+              hasLocationPermission = true,
+              hasUsableLocation = true,
+              userLatitude = 41.6501,
+              userLongitude = -0.8800,
+            ),
+        )
+      FileSystem.SYSTEM.write("$temporaryRoot/surface_snapshot.json".toPath()) {
+        writeUtf8(testJson().encodeToString(persistedBundle))
+      }
+
+      val reloadedRepository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = testJson(),
+          localNotifier = FakeLocalNotifier(permissionGranted = true),
+          permissionPrompter = FakePermissionPrompter(permissionGranted = true),
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = temporaryRoot
+            },
+          settingsRepository = FakeSettingsRepository(),
+          favoritesRepository =
+            FakeFavoritesRepository(
+              favoriteIds = setOf("home"),
+              homeStationId = "home",
+            ),
+          stationsRepository =
+            FakeStationsRepository(
+              StationsState(
+                stations =
+                  listOf(
+                    station(id = "home", latitude = 41.6500, longitude = -0.8800),
+                    station(id = "near", latitude = 41.6502, longitude = -0.8800),
+                    station(id = "far", latitude = 41.6600, longitude = -0.8800),
+                  ),
+                isLoading = false,
+                userLocation = null,
+                lastUpdatedEpoch = 2_500L,
+              ),
+            ),
+          scope = this,
+        )
+
+      reloadedRepository.bootstrap()
+      reloadedRepository.refreshSnapshot()
+
+      val bundle = reloadedRepository.currentBundle()!!
+      assertTrue(bundle.state.hasLocationPermission)
+      assertTrue(bundle.state.hasUsableLocation)
+      assertTrue(bundle.state.isUsingCachedLocation)
+      assertEquals(listOf("home", "near", "far"), bundle.nearbyStations.map { it.id })
+    }
+
+  @Test
+  fun `surface snapshot preserves previous nearby list when permission remains but no location is available`() =
+    runTest {
+      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-preserve-nearby-${Random.nextInt()}"
+      val previousBundle =
+        SurfaceSnapshotBundle(
+          generatedAtEpoch = 1_000L,
+          nearbyStations =
+            listOf(
+              station(id = "cached-near", distanceMeters = 25).toSurfaceSnapshot(
+                cityId = City.ZARAGOZA.id,
+                lastUpdatedEpoch = 900L,
+              ),
+            ),
+          state =
+            SurfaceState(
+              hasLocationPermission = true,
+              hasUsableLocation = false,
+              hasNotificationPermission = true,
+              hasFavoriteStation = false,
+              isDataFresh = true,
+              lastSyncEpoch = 900L,
+              cityId = City.ZARAGOZA.id,
+              cityName = City.ZARAGOZA.displayName,
+            ),
+        )
+      FileSystem.SYSTEM.createDirectories(temporaryRoot.toPath())
+      FileSystem.SYSTEM.write("$temporaryRoot/surface_snapshot.json".toPath()) {
+        writeUtf8(testJson().encodeToString(previousBundle))
+      }
+
+      val repository =
+        SurfaceSnapshotRepositoryImpl(
+          fileSystem = FileSystem.SYSTEM,
+          json = testJson(),
+          localNotifier = FakeLocalNotifier(permissionGranted = true),
+          permissionPrompter = FakePermissionPrompter(permissionGranted = true),
+          storageDirectoryProvider =
+            object : StorageDirectoryProvider {
+              override val rootPath: String = temporaryRoot
+            },
+          settingsRepository = FakeSettingsRepository(),
+          favoritesRepository = FakeFavoritesRepository(),
+          stationsRepository =
+            FakeStationsRepository(
+              StationsState(
+                stations = listOf(station(id = "other", distanceMeters = 120)),
+                isLoading = false,
+                userLocation = null,
+                lastUpdatedEpoch = 2_000L,
+              ),
+            ),
+          scope = this,
+        )
+
+      repository.bootstrap()
+      repository.refreshSnapshot()
+
+      val bundle = repository.currentBundle()!!
+      assertTrue(bundle.state.hasLocationPermission)
+      assertFalse(bundle.state.hasUsableLocation)
+      assertEquals(listOf("cached-near"), bundle.nearbyStations.map { it.id })
     }
 
   @Test
@@ -155,6 +329,14 @@ private class FakeLocalNotifier(
     title: String,
     body: String,
   ) = Unit
+}
+
+private class FakePermissionPrompter(
+  private val permissionGranted: Boolean,
+) : PermissionPrompter {
+  override suspend fun hasLocationPermission(): Boolean = permissionGranted
+
+  override suspend fun requestLocationPermission(): Boolean = permissionGranted
 }
 
 private fun station(

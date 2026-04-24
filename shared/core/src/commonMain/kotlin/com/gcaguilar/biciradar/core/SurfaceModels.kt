@@ -73,6 +73,8 @@ data class SurfaceMonitoringSession(
 @Serializable
 data class SurfaceState(
   val hasLocationPermission: Boolean,
+  val hasUsableLocation: Boolean = false,
+  val isUsingCachedLocation: Boolean = false,
   val hasNotificationPermission: Boolean,
   val hasFavoriteStation: Boolean,
   val isDataFresh: Boolean,

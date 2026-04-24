@@ -234,6 +234,12 @@ class DbFirstReactiveRepositoryJvmTest {
                 body: String,
               ) = Unit
             },
+          permissionPrompter =
+            object : PermissionPrompter {
+              override suspend fun hasLocationPermission(): Boolean = true
+
+              override suspend fun requestLocationPermission(): Boolean = true
+            },
           storageDirectoryProvider =
             object : StorageDirectoryProvider {
               override val rootPath: String = surfaceRoot
@@ -394,6 +400,12 @@ class DbFirstReactiveRepositoryJvmTest {
                 title: String,
                 body: String,
               ) = Unit
+            },
+          permissionPrompter =
+            object : PermissionPrompter {
+              override suspend fun hasLocationPermission(): Boolean = true
+
+              override suspend fun requestLocationPermission(): Boolean = true
             },
           storageDirectoryProvider =
             object : StorageDirectoryProvider {

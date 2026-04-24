@@ -24,6 +24,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 interface SurfaceSnapshotRepository {
   val bundle: StateFlow<SurfaceSnapshotBundle?>
@@ -48,6 +53,7 @@ class SurfaceSnapshotRepositoryImpl(
   private val fileSystem: FileSystem,
   private val json: Json,
   private val localNotifier: LocalNotifier,
+  private val permissionPrompter: PermissionPrompter,
   private val storageDirectoryProvider: StorageDirectoryProvider,
   private val settingsRepository: SettingsRepository,
   private val favoritesRepository: FavoritesRepository,
@@ -105,13 +111,19 @@ class SurfaceSnapshotRepositoryImpl(
     if (!bootstrapped) bootstrap()
     val city = settingsRepository.currentSelectedCity()
     val stationsState = stationsRepository.state.value
-    val hasLocationPermission = stationsState.userLocation != null
-    val origin = stationsState.userLocation ?: GeoPoint(city.defaultLatitude, city.defaultLongitude)
+    val previousBundle = mutableBundle.value
+    val persistedLocation = previousBundle?.state?.cachedUserLocation()
+    val hasLocationPermission = permissionPrompter.hasLocationPermission()
+    val currentLocation = stationsState.userLocation
+    val usableLocation = if (hasLocationPermission) currentLocation ?: persistedLocation else null
+    val isUsingCachedLocation = hasLocationPermission && currentLocation == null && persistedLocation != null
+    val origin = usableLocation ?: GeoPoint(city.defaultLatitude, city.defaultLongitude)
     val stations =
       stationCacheStore
         ?.loadStations(city.id)
         ?.map { it.toDomain(origin) }
-        ?.takeIf { it.isNotEmpty() } ?: stationsState.stations
+        ?.takeIf { it.isNotEmpty() }
+        ?: stationsState.stations.rebasedForOrigin(origin)
     val lastUpdatedEpoch = stationCacheStore?.lastUpdated(city.id) ?: stationsState.lastUpdatedEpoch ?: currentTimeMs()
     val favoriteStationId = favoriteStationId(stations)
     val homeStationId = favoritesRepository.currentHomeStationId()
@@ -132,7 +144,7 @@ class SurfaceSnapshotRepositoryImpl(
         ?.takeIf { it != homeStationId }
         ?.let(::stationSnapshot)
     val nearbyStations =
-      if (hasLocationPermission) {
+      if (usableLocation != null) {
         stations
           .sortedBy { it.distanceMeters }
           .take(3)
@@ -144,7 +156,10 @@ class SurfaceSnapshotRepositoryImpl(
             )
           }
       } else {
-        emptyList()
+        previousBundle
+          ?.takeIf { hasLocationPermission && it.state.hasLocationPermission }
+          ?.nearbyStations
+          .orEmpty()
       }
     val hasNotificationPermission = localNotifier.hasPermission()
 
@@ -164,14 +179,16 @@ class SurfaceSnapshotRepositoryImpl(
         state =
           SurfaceState(
             hasLocationPermission = hasLocationPermission,
+            hasUsableLocation = usableLocation != null,
+            isUsingCachedLocation = isUsingCachedLocation,
             hasNotificationPermission = hasNotificationPermission,
             hasFavoriteStation = mergedFavorite != null,
             isDataFresh = currentTimeMs() - lastUpdatedEpoch < STATION_CACHE_REFRESH_INTERVAL_MS,
             lastSyncEpoch = lastUpdatedEpoch,
             cityId = city.id,
             cityName = city.displayName,
-            userLatitude = stationsState.userLocation?.latitude,
-            userLongitude = stationsState.userLocation?.longitude,
+            userLatitude = usableLocation?.latitude,
+            userLongitude = usableLocation?.longitude,
           ),
       )
     persist(snapshot)
@@ -220,6 +237,8 @@ class SurfaceSnapshotRepositoryImpl(
       state =
         SurfaceState(
           hasLocationPermission = false,
+          hasUsableLocation = false,
+          isUsingCachedLocation = false,
           hasNotificationPermission = false,
           hasFavoriteStation = false,
           isDataFresh = false,
@@ -288,6 +307,36 @@ class SurfaceSnapshotRepositoryImpl(
       runCatching { fileSystem.delete(path) }
     }
   }
+}
+
+private fun SurfaceState.cachedUserLocation(): GeoPoint? {
+  val latitude = userLatitude ?: return null
+  val longitude = userLongitude ?: return null
+  return GeoPoint(latitude, longitude)
+}
+
+private fun List<Station>.rebasedForOrigin(origin: GeoPoint): List<Station> =
+  map { station ->
+    station.copy(distanceMeters = surfaceDistanceBetween(origin, station.location))
+  }
+
+private fun surfaceDistanceBetween(
+  origin: GeoPoint,
+  destination: GeoPoint,
+): Int {
+  val earthRadius = 6371000.0
+  val lat1Rad = origin.latitude * PI / 180.0
+  val lat2Rad = destination.latitude * PI / 180.0
+  val deltaLat = (destination.latitude - origin.latitude) * PI / 180.0
+  val deltaLon = (destination.longitude - origin.longitude) * PI / 180.0
+
+  val a =
+    sin(deltaLat / 2) * sin(deltaLat / 2) +
+      cos(lat1Rad) * cos(lat2Rad) *
+      sin(deltaLon / 2) * sin(deltaLon / 2)
+  val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+  return (earthRadius * c).toInt()
 }
 
 private fun SurfaceStationSnapshot?.mergeMonitoring(session: SurfaceMonitoringSession?): SurfaceStationSnapshot? {
