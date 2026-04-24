@@ -16,7 +16,7 @@ AllowedAPKSigningKeys: b41670e44632eac4bcdf1630fa784b7f6d284246947b5ff7a3b46b9d9
 Builds:
   - versionName: 0.22.9-fdroid
     versionCode: 29568120
-    commit: 8977a2b2e51a5ae8780fe1f95fa941b5f84404af
+    commit: b397854660537425436a1d2ca8fc7a100edafdf6
     subdir: .
     gradle:
       - fdroid
