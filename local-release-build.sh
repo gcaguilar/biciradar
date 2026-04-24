@@ -22,11 +22,12 @@ mkdir -p "$output_root"
 
 usage() {
   cat <<'EOF'
-Usage: ./local-release-build.sh [all|android|wearos|ios|watchos|apple]
+Usage: ./local-release-build.sh [all|android|fdroid|wearos|ios|watchos|apple]
 
 Targets:
-  all      Build Android, Wear OS, iOS and Apple Watch release artifacts.
+  all      Build Android, F-Droid, Wear OS, iOS and Apple Watch release artifacts.
   android  Build the Android phone release APK/AAB.
+  fdroid   Build the signed Android F-Droid APK named like the GitHub release asset.
   wearos   Build the Wear OS release APK/AAB.
   ios      Build the signed iOS archive and IPA.
   watchos  Build the signed Apple Watch archive.
@@ -83,7 +84,41 @@ first_existing_path() {
   return 1
 }
 
+resolve_release_tag() {
+  if [[ -n "${LOCAL_FDROID_TAG:-}" ]]; then
+    printf '%s\n' "$LOCAL_FDROID_TAG"
+    return 0
+  fi
+
+  local exact_tag
+  exact_tag="$(git tag --points-at HEAD | head -n 1)"
+  if [[ -n "$exact_tag" ]]; then
+    printf '%s\n' "$exact_tag"
+    return 0
+  fi
+
+  git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD
+}
+
+write_sha256_file() {
+  local input_path="$1"
+  local output_path="$2"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$input_path" > "$output_path"
+    return 0
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$input_path" > "$output_path"
+    return 0
+  fi
+
+  fail "Missing SHA-256 tool: need sha256sum or shasum"
+}
+
 android_requested=false
+fdroid_requested=false
 wear_requested=false
 ios_requested=false
 watch_requested=false
@@ -96,12 +131,16 @@ for target in "$@"; do
   case "$target" in
     all)
       android_requested=true
+      fdroid_requested=true
       wear_requested=true
       ios_requested=true
       watch_requested=true
       ;;
     android)
       android_requested=true
+      ;;
+    fdroid)
+      fdroid_requested=true
       ;;
     wearos|wear)
       wear_requested=true
@@ -255,6 +294,33 @@ build_android_targets() {
     cp "$repo_root/wearApp/build/outputs/mapping/playstoreRelease/mapping.txt" "$output_root/wearos/wearApp-release-mapping.txt" 2>/dev/null || true
     add_artifact "$output_root/wearos"
   fi
+}
+
+build_fdroid_target() {
+  require_command ./gradlew
+  setup_android_inputs
+
+  local release_tag release_dir apk_path asset_name
+  release_tag="$(resolve_release_tag)"
+  release_dir="$output_root/fdroid"
+
+  log "Building signed F-Droid APK for $release_tag"
+  ./gradlew \
+    :androidApp:assembleFdroidRelease \
+    --no-build-cache \
+    -PBIZI_CI_KEYSTORE_PATH="$android_keystore_path" \
+    -PBIZI_CI_KEYSTORE_PASSWORD="$BIZI_CI_KEYSTORE_PASSWORD" \
+    -PBIZI_CI_KEY_ALIAS="$BIZI_CI_KEY_ALIAS" \
+    -PBIZI_CI_KEY_PASSWORD="$BIZI_CI_KEY_PASSWORD"
+
+  apk_path="$(find "$repo_root/androidApp/build/outputs/apk/fdroid/release" -maxdepth 1 -type f -name '*.apk' ! -name '*-unsigned.apk' | head -n 1)"
+  [[ -n "$apk_path" ]] || fail "No signed F-Droid APK found in androidApp/build/outputs/apk/fdroid/release"
+
+  mkdir -p "$release_dir"
+  asset_name="BiciRadar-${release_tag}.apk"
+  cp "$apk_path" "$release_dir/$asset_name"
+  write_sha256_file "$release_dir/$asset_name" "$release_dir/$asset_name.sha256"
+  add_artifact "$release_dir"
 }
 
 original_default_keychain=""
@@ -502,6 +568,10 @@ build_watch_release() {
 
 if [[ "$android_requested" == true || "$wear_requested" == true ]]; then
   build_android_targets
+fi
+
+if [[ "$fdroid_requested" == true ]]; then
+  build_fdroid_target
 fi
 
 if [[ "$ios_requested" == true ]]; then
