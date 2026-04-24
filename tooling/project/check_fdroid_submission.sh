@@ -6,6 +6,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 EXPECTED_BINARIES_URL="https://github.com/gcaguilar/biciradar/releases/download/%v/BiciRadar-%v.apk"
+EXPECTED_UPDATE_CHECK_MODE='Tags ^[0-9]+(\.[0-9]+)*-fdroid$'
+EXPECTED_UPDATE_CHECK_DATA='androidApp/build.gradle.kts|versionCode = ([0-9]+)||(.+)'
 
 fail() {
   echo "FAIL: $*" >&2
@@ -36,7 +38,7 @@ check_metadata_entry() {
   local screenshots_dir="$5"
   local signing_cert_file="$6"
 
-  local base_version version_code expected_version metadata_version metadata_code metadata_commit metadata_binaries_url metadata_signing_key expected_signing_key
+  local base_version version_code expected_version metadata_version metadata_code metadata_commit metadata_binaries_url metadata_update_check_mode metadata_update_check_data metadata_signing_key expected_signing_key
   base_version="$(read_gradle_value "$gradle_file" "versionName")"
   version_code="$(read_gradle_value "$gradle_file" "versionCode")"
   expected_version="${base_version}-fdroid"
@@ -53,6 +55,8 @@ check_metadata_entry() {
   metadata_code="$(sed -n 's/^[[:space:]-]*versionCode: //p' "$metadata_file" | head -n 1)"
   metadata_commit="$(sed -n 's/^[[:space:]-]*commit: //p' "$metadata_file" | head -n 1)"
   metadata_binaries_url="$(sed -n 's/^Binaries: //p' "$metadata_file" | head -n 1)"
+  metadata_update_check_mode="$(sed -n 's/^UpdateCheckMode: //p' "$metadata_file" | head -n 1)"
+  metadata_update_check_data="$(sed -n 's/^UpdateCheckData: //p' "$metadata_file" | head -n 1)"
   metadata_signing_key="$(sed -n 's/^AllowedAPKSigningKeys: //p' "$metadata_file" | head -n 1)"
   expected_signing_key="$(
     keytool -printcert -file "$signing_cert_file" \
@@ -63,8 +67,10 @@ check_metadata_entry() {
 
   [[ "$metadata_version" == "$expected_version" ]] || fail "$label metadata versionName is $metadata_version but expected $expected_version"
   [[ "$metadata_code" == "$version_code" ]] || fail "$label metadata versionCode is $metadata_code but expected $version_code"
-  [[ "$metadata_commit" =~ ^[0-9a-f]{7,40}$|^[0-9]+\.[0-9].* ]] || fail "$label metadata commit must be a git hash or release tag"
+  [[ "$metadata_commit" =~ ^[0-9a-f]{40}$ ]] || fail "$label metadata commit must be a full 40-character git commit hash"
   [[ "$metadata_binaries_url" == "$EXPECTED_BINARIES_URL" ]] || fail "$label Binaries is $metadata_binaries_url but expected $EXPECTED_BINARIES_URL"
+  [[ "$metadata_update_check_mode" == "$EXPECTED_UPDATE_CHECK_MODE" ]] || fail "$label UpdateCheckMode is $metadata_update_check_mode but expected $EXPECTED_UPDATE_CHECK_MODE"
+  [[ "$metadata_update_check_data" == "$EXPECTED_UPDATE_CHECK_DATA" ]] || fail "$label UpdateCheckData is $metadata_update_check_data but expected $EXPECTED_UPDATE_CHECK_DATA"
   [[ -n "$metadata_signing_key" ]] || fail "$label metadata is missing AllowedAPKSigningKeys"
   [[ "$metadata_signing_key" == "$expected_signing_key" ]] || fail "$label AllowedAPKSigningKeys is $metadata_signing_key but expected $expected_signing_key"
   grep -q '^      - fdroid$' "$metadata_file" || fail "$label metadata must build the fdroid Gradle flavor"

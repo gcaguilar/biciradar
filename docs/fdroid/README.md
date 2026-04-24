@@ -27,7 +27,23 @@ For the current tag, that resolves to:
 https://github.com/gcaguilar/biciradar/releases/download/0.22.9-fdroid/BiciRadar-0.22.9-fdroid.apk
 ```
 
-The repository includes a dedicated workflow at [.github/workflows/publish-fdroid.yml](/Users/guillermo.castella/biciradar/.github/workflows/publish-fdroid.yml) that builds the signed `fdroidRelease` APK and uploads that exact asset name to the matching GitHub Release tag.
+The repository includes a dedicated workflow at [.github/workflows/publish-fdroid.yml](/Users/guillermo.castella/biciradar/.github/workflows/publish-fdroid.yml) that builds the signed `fdroidRelease` APK and uploads that exact asset name to the matching GitHub Release tag. The human-readable GitHub Release title does not affect F-Droid verification; the tag in the download URL and the asset filename do.
+
+`UpdateCheckMode` is pinned explicitly as:
+
+```text
+Tags ^[0-9]+(\.[0-9]+)*-fdroid$
+```
+
+That tells F-Droid to look only at release tags that belong to the F-Droid channel. This matters in this repository because there are also generic app release tags without the `-fdroid` suffix.
+
+`UpdateCheckData` is also explicit:
+
+```text
+androidApp/build.gradle.kts|versionCode = ([0-9]+)||(.+)
+```
+
+With that configuration, F-Droid reads `versionCode` from [androidApp/build.gradle.kts](/Users/guillermo.castella/biciradar/androidApp/build.gradle.kts) and uses the matched tag itself as the candidate `versionName`. That keeps the discovered upstream version aligned with the published F-Droid tag format such as `0.22.9-fdroid`.
 
 The metadata also pins the expected upstream signing certificate via `AllowedAPKSigningKeys`. For this repository the value is derived from [android-cert/bici-upload-v2.pem](/Users/guillermo.castella/biciradar/android-cert/bici-upload-v2.pem), normalized to lowercase hex without separators:
 
@@ -93,8 +109,8 @@ That does not replace F-Droid's official reproducibility verification, but it is
 1. Build the F-Droid APKs locally.
 2. Add real screenshots under:
    - `fastlane/metadata/android/en-US/images/phoneScreenshots/`
-3. Tag the exact release commit you want F-Droid to build, or at minimum confirm the commit hash in each YAML file.
-4. Update the `commit`, `versionName`, and `versionCode` fields in the corresponding YAML file when preparing a new release.
+3. Tag the exact release commit you want to publish upstream.
+4. Update the `commit`, `versionName`, and `versionCode` fields in the corresponding YAML file when preparing a new release. Set `commit` to the full 40-character hash of that tagged release commit.
 5. Run the `Publish signed F-Droid APK` GitHub workflow for the matching tag so GitHub Releases contains `BiciRadar-%v.apk` at the `Binaries` URL.
 6. Keep `AllowedAPKSigningKeys` aligned with the signing certificate used for the upstream F-Droid APKs. If the signing key ever changes, export the new public certificate and update the fingerprint before opening the `fdroiddata` MR.
 7. Open a merge request to `fdroiddata` adding:
