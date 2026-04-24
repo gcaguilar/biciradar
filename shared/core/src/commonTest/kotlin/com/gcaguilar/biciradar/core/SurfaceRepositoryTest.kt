@@ -116,7 +116,8 @@ class SurfaceRepositoryTest {
   @Test
   fun `surface snapshot reuses persisted location when refresh has no new fix`() =
     runTest {
-      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-cached-location-${Random.nextInt()}"
+      val temporaryRoot =
+        "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-cached-location-${Random.nextInt()}"
       val repository =
         SurfaceSnapshotRepositoryImpl(
           fileSystem = FileSystem.SYSTEM,
@@ -222,7 +223,8 @@ class SurfaceRepositoryTest {
   @Test
   fun `surface snapshot preserves previous nearby list when permission remains but no location is available`() =
     runTest {
-      val temporaryRoot = "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-preserve-nearby-${Random.nextInt()}"
+      val temporaryRoot =
+        "${FileSystem.SYSTEM_TEMPORARY_DIRECTORY}/biciradar-surface-preserve-nearby-${Random.nextInt()}"
       val previousBundle =
         SurfaceSnapshotBundle(
           generatedAtEpoch = 1_000L,

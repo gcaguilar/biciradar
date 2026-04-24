@@ -157,8 +157,11 @@ class SurfaceSnapshotRepositoryImpl(
           }
       } else {
         previousBundle
-          ?.takeIf { hasLocationPermission && it.state.hasLocationPermission }
-          ?.nearbyStations
+          ?.takeIf {
+            hasLocationPermission &&
+              it.state.hasLocationPermission &&
+              it.state.cityId == city.id
+          }?.nearbyStations
           .orEmpty()
       }
     val hasNotificationPermission = localNotifier.hasPermission()
