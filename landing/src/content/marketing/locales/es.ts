@@ -218,34 +218,29 @@ export const es = {
       title: 'FAQ',
       items: [
         {
-          question: '¿Si ya tengo la app oficial, qué me aporta BiciRadar?',
+          question: '¿Si ya tengo la app oficial, por qué descargar BiciRadar?',
           answer:
-            'Rapidez para lo que más miras al salir: estación más cercana, bicis disponibles, huecos libres, favoritos, estado y ruta.',
+            'Porque está pensada para la consulta rápida del día a día: ves bicis y huecos antes de salir, guardas favoritas, recibes alertas y entras desde widgets o reloj en menos pasos.',
         },
         {
-          question: '¿Me ahorra tiempo de verdad?',
+          question: '¿De verdad me ahorra tiempo en el día a día?',
           answer:
-            'Sí. Incluye voz y atajos en iPhone, Apple Watch y Android para resolver consultas en menos pasos, a veces sin abrir la app.',
+            'Sí. Reduce la fricción justo cuando vas con prisa: abres tus estaciones habituales al momento y, en muchos casos, consultas disponibilidad sin tener que navegar por toda la app oficial.',
         },
         {
-          question: '¿Solo sirve en el móvil?',
+          question: '¿Necesito crear cuenta para descargarla?',
           answer:
-            'No. Está pensado para móvil y reloj: Android, iOS, Wear OS y Apple Watch.',
+            'No. Puedes ir directamente a App Store o Google Play para descargarla. Si prefieres seguir luego, también puedes dejarnos tu email y te enviamos el enlace.',
+        },
+        {
+          question: '¿Qué ciudades puedo consultar ahora mismo?',
+          answer:
+            'Ahora mismo destacamos Madrid, Barcelona, Sevilla, Valencia y Zaragoza, y la landing ya muestra más ciudades compatibles para que compruebes si la tuya está incluida.',
         },
         {
           question: '¿Los datos son fiables?',
           answer:
-            'Usa fuentes oficiales de open data de las ciudades. Puede haber pequeños desfases normales en sistemas en tiempo real.',
-        },
-        {
-          question: '¿Por qué usar BiciRadar como complemento?',
-          answer:
-            'La app oficial es el canal institucional; BiciRadar está optimizado para consultar más rápido y con menos fricción.',
-        },
-        {
-          question: '¿Qué vais a hacer con los datos del formulario?',
-          answer:
-            'Usaremos tu email para enviarte los enlaces de descarga de App Store o Google Play y, si hace falta, escribirte sobre esta solicitud. No lo usaremos para otros fines.',
+            'Usa fuentes oficiales de open data de cada ciudad. Como en cualquier sistema en tiempo real puede haber pequeños desfases, pero la referencia de datos es la oficial.',
         },
       ],
     },
@@ -308,12 +303,12 @@ export const es = {
       faqTitle: 'FAQ Madrid',
       faq: [
         {
-          question: '¿Funciona con BiciMAD?',
-          answer: 'Sí. La página está preparada para contenido específico de BiciMAD y su demanda local.',
+          question: '¿BiciRadar funciona con BiciMAD en Madrid?',
+          answer: 'Sí. Puedes consultar bicis y huecos de BiciMAD en tiempo real y guardar tus estaciones habituales para abrirlas más rápido.',
         },
         {
-          question: '¿También puedo usar BiciRadar en Android en Madrid?',
-          answer: 'Sí. Ya está disponible en Google Play y, si quieres, también te enviamos el enlace por email.',
+          question: '¿Merece la pena si ya uso la app oficial de BiciMAD?',
+          answer: 'Sí. BiciRadar te ayuda a resolver la consulta diaria con menos fricción: favoritas, alertas y acceso rápido antes de salir o al llegar a una estación.',
         },
       ],
       mockup: { stationLabel: 'Estación Sol', availability: '12 bicis · 5 huecos' },
@@ -337,12 +332,12 @@ export const es = {
       faqTitle: 'FAQ Barcelona',
       faq: [
         {
-          question: '¿Puedo usarlo con Bicing aunque ya tenga la app oficial?',
-          answer: 'Sí. BiciRadar complementa el uso diario con accesos y consultas más rápidos.',
+          question: '¿Funciona con Bicing en Barcelona?',
+          answer: 'Sí. Puedes ver bicis y anclajes libres de Bicing en tiempo real y dejar a mano las estaciones que más usas.',
         },
         {
-          question: '¿Barcelona también está disponible en la app?',
-          answer: 'Sí. Barcelona ya tiene contenido local y seguiremos priorizando mejoras según la demanda.',
+          question: '¿Qué me aporta si ya miro Bicing en la app oficial?',
+          answer: 'Menos pasos para la misma decisión importante: saber antes de llegar si te conviene ir a esa base, cambiar de estación o esperar.',
         },
       ],
       mockup: { stationLabel: 'Pg. de Gràcia', availability: '8 bicis · 4 huecos' },
@@ -366,12 +361,12 @@ export const es = {
       faqTitle: 'FAQ Sevilla',
       faq: [
         {
-          question: '¿Sevici ya está contemplado en BiciRadar?',
-          answer: 'Sí. Esta landing ya está preparada para captar interés de Sevilla con SEO propio.',
+          question: '¿Puedo consultar Sevici con BiciRadar en Sevilla?',
+          answer: 'Sí. BiciRadar te permite comprobar bicis y huecos de Sevici antes de moverte y guardar estaciones clave para tu rutina.',
         },
         {
-          question: '¿Puedo dejar mi correo para recibir el enlace?',
-          answer: 'Sí. Te enviaremos el enlace de descarga y, además, nos ayudará a saber desde qué ciudad nos visitas.',
+          question: '¿Y si prefiero recibir el enlace por correo en vez de descargar ahora?',
+          answer: 'También puedes. Dejas tu email, eliges plataforma y te enviamos el enlace de descarga para seguir más tarde sin perder la intención.',
         },
       ],
       mockup: { stationLabel: 'Puerta Jerez', availability: '6 bicis · 7 huecos' },
@@ -395,12 +390,12 @@ export const es = {
       faqTitle: 'FAQ Valencia',
       faq: [
         {
-          question: '¿BiciRadar sirve para Valenbisi?',
-          answer: 'Sí. Está preparada para páginas y campañas locales específicas de Valencia.',
+          question: '¿BiciRadar sirve para Valenbisi en Valencia?',
+          answer: 'Sí. Puedes revisar bicis y huecos de Valenbisi antes de acercarte a la estación y decidir mejor tu ruta.',
         },
         {
-          question: '¿También está disponible en Android?',
-          answer: 'Sí. Ya puedes descargarla desde Google Play o pedir que te enviemos el enlace por email.',
+          question: '¿También está disponible en Android e iPhone?',
+          answer: 'Sí. Puedes descargar BiciRadar desde App Store o Google Play, o pedir que te enviemos el enlace por correo.',
         },
       ],
       mockup: { stationLabel: 'Colón', availability: '10 bicis · 2 huecos' },
@@ -418,18 +413,18 @@ export const es = {
       benefitsTitle: 'Beneficios locales',
       benefits: [
         { title: 'Consulta rápida de Bizi', description: 'Abre el estado de estaciones frecuentes en segundos.' },
-        { title: 'Contenido local preparado para SEO', description: 'Cada ciudad tiene copy, FAQ y metadata propia.' },
-        { title: 'Escalable por ciudad', description: 'Recogemos demanda de Zaragoza sin duplicar la arquitectura.' },
+        { title: 'Favoritas para tu rutina', description: 'Guarda estaciones clave de casa, trabajo o estudio para consultarlas primero.' },
+        { title: 'Menos vueltas innecesarias', description: 'Decide antes de llegar si te conviene esa estación o prefieres otra cercana.' },
       ],
       faqTitle: 'FAQ Zaragoza',
       faq: [
         {
-          question: '¿Está Zaragoza ya incluida?',
-          answer: 'Sí. Ya es una de las páginas locales iniciales con acceso directo a la app.',
+          question: '¿Puedo consultar Bizi en Zaragoza con BiciRadar?',
+          answer: 'Sí. BiciRadar te ayuda a ver bicis y huecos de Bizi en tiempo real y a entrar más rápido a tus estaciones frecuentes.',
         },
         {
-          question: '¿Puedo compartir esta página con otras personas de Zaragoza?',
-          answer: 'Sí. Te animamos a compartirla para medir mejor la demanda local.',
+          question: '¿Se puede descargar ya o enviarme el enlace para después?',
+          answer: 'Ambas opciones. Puedes descargarla ahora o dejarnos tu email para recibir el enlace y retomarlo cuando te venga mejor.',
         },
       ],
       mockup: { stationLabel: 'Plaza España', availability: '7 bicis · 6 huecos' },
@@ -450,8 +445,14 @@ export const es = {
       ],
       faqTitle: 'FAQ Bilbao',
       faq: [
-        { question: '¿Funciona con Bilbao?', answer: 'Sí. Puedes consultar bicis y huecos de Bilbao.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Bilbao con BiciRadar?',
+          answer: 'Sí. Puedes ver disponibilidad en tiempo real y guardar tus estaciones habituales para resolver la consulta mucho más rápido.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está disponible en Google Play y App Store, y si quieres también te enviamos el enlace por correo.',
+        },
       ],
       mockup: { stationLabel: 'Bilbao', availability: '5 bicis · 3 huecos' },
     },
@@ -471,8 +472,14 @@ export const es = {
       ],
       faqTitle: 'FAQ Murcia',
       faq: [
-        { question: '¿Funciona con Murcia?', answer: 'Sí. Puedes consultar bicis y huecos de Murcia.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Murcia con BiciRadar?',
+          answer: 'Sí. BiciRadar te permite comprobar disponibilidad en tiempo real y entrar antes a las estaciones que más usas.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes descargarla en Google Play o App Store, o dejar tu email para recibir el enlace.',
+        },
       ],
       mockup: { stationLabel: 'Murcia', availability: '4 bicis · 2 huecos' },
     },
@@ -492,8 +499,14 @@ export const es = {
       ],
       faqTitle: 'FAQ León',
       faq: [
-        { question: '¿Funciona con León?', answer: 'Sí. Puedes consultar bicis y huecos de León.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de León con BiciRadar?',
+          answer: 'Sí. Puedes revisar disponibilidad en tiempo real y preparar favoritas para no perder tiempo al salir.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está en Google Play y App Store, y también puedes pedir que te enviemos el enlace por correo.',
+        },
       ],
       mockup: { stationLabel: 'León', availability: '3 bicis · 2 huecos' },
     },
@@ -503,18 +516,24 @@ export const es = {
         description: 'Consulta bicis y huecos de Valladolid antes de salir y descarga BiciRadar.',
       },
       badge: 'Valladolid · Valladolid',
-      title: 'Consulta Valladolid en tiempo real antes de sair',
+      title: 'Consulta Valladolid en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Valladolid antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Valladolid',
       faq: [
-        { question: '¿Funciona con Valladolid?', answer: 'Sí. Puedes consultar bicis y huecos de Valladolid.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Valladolid con BiciRadar?',
+          answer: 'Sí. Puedes revisar disponibilidad en tiempo real y dejar guardadas tus estaciones habituales para decidir más rápido.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está disponible en Google Play y App Store, y si lo prefieres te enviamos el enlace por correo.',
+        },
       ],
       mockup: { stationLabel: 'Valladolid', availability: '4 bicis · 3 huecos' },
     },
@@ -524,207 +543,267 @@ export const es = {
         description: 'Consulta bicis y huecos de Palma antes de salir y descarga BiciRadar.',
       },
       badge: 'Palma · Palma',
-      title: 'Consulta Palma en tiempo real antes de sair',
+      title: 'Consulta Palma en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Palma antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Palma',
       faq: [
-        { question: '¿Funciona con Palma?', answer: 'Sí. Puedes consultar bicis y huecos de Palma.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Palma con BiciRadar?',
+          answer: 'Sí. BiciRadar te muestra la disponibilidad en tiempo real para que no pierdas tiempo yendo a una estación sin opciones.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes descargar BiciRadar en Google Play y App Store o pedir el enlace por correo para instalarla más tarde.',
+        },
       ],
       mockup: { stationLabel: 'Palma', availability: '5 bicis · 4 huecos' },
     },
     las_palmas: {
       seo: {
         title: 'Las Palmas en tiempo real con BiciRadar | Las Palmas',
-        description: 'Consulta bicis y huecos de Las Palmas antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Las Palmas antes de salir y descarga BiciRadar.',
       },
       badge: 'Las Palmas · Las Palmas',
-      title: 'Consulta Las Palmas en tiempo real antes de sair',
+      title: 'Consulta Las Palmas en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Las Palmas antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Las Palmas',
       faq: [
-        { question: '¿Funciona con Las Palmas?', answer: 'Sí. Puedes consultar bicis y huecos de Las Palmas.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Las Palmas con BiciRadar?',
+          answer: 'Sí. Puedes ver disponibilidad en tiempo real y abrir tus estaciones frecuentes sin repetir la búsqueda cada vez.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está disponible en Google Play y App Store, y también puedes recibir el enlace por correo.',
+        },
       ],
       mockup: { stationLabel: 'Las Palmas', availability: '4 bicis · 3 huecos' },
     },
     a_coruna: {
       seo: {
         title: 'A Coruña en tiempo real con BiciRadar | A Coruña',
-        description: 'Consulta bicis y huecos de A Coruña antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de A Coruña antes de salir y descarga BiciRadar.',
       },
       badge: 'A Coruña · A Coruña',
-      title: 'Consulta A Coruña en tiempo real antes de sair',
+      title: 'Consulta A Coruña en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en A Coruña antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ A Coruña',
       faq: [
-        { question: '¿Funciona con A Coruña?', answer: 'Sí. Puedes consultar bicis y huecos de A Coruña.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de A Coruña con BiciRadar?',
+          answer: 'Sí. BiciRadar te da acceso rápido a la disponibilidad en tiempo real para que decidas mejor antes de moverte.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes instalarla desde Google Play o App Store, o dejar tu email para recibir el enlace.',
+        },
       ],
       mockup: { stationLabel: 'A Coruña', availability: '3 bicis · 2 huecos' },
     },
     gijon: {
       seo: {
         title: 'Gijón en tiempo real con BiciRadar | Gijón',
-        description: 'Consulta bicis y huecos de Gijón antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Gijón antes de salir y descarga BiciRadar.',
       },
       badge: 'Gijón · Gijón',
-      title: 'Consulta Gijón en tiempo real antes de sair',
+      title: 'Consulta Gijón en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Gijón antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Gijón',
       faq: [
-        { question: '¿Funciona con Gijón?', answer: 'Sí. Puedes consultar bicis y huecos de Gijón.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Gijón con BiciRadar?',
+          answer: 'Sí. Puedes comprobar disponibilidad en tiempo real y dejar favoritas preparadas para consultar en segundos.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar se puede descargar en Google Play y App Store, o puedes pedir el enlace por correo.',
+        },
       ],
       mockup: { stationLabel: 'Gijón', availability: '4 bicis · 3 huecos' },
     },
     vitoria_gasteiz: {
       seo: {
         title: 'Vitoria-Gasteiz en tiempo real con BiciRadar | Vitoria',
-        description: 'Consulta bicis y huecos de Vitoria antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Vitoria antes de salir y descarga BiciRadar.',
       },
       badge: 'Vitoria-Gasteiz · Vitoria',
-      title: 'Consulta Vitoria-Gasteiz en tiempo real antes de sair',
+      title: 'Consulta Vitoria-Gasteiz en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Vitoria antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Vitoria',
       faq: [
-        { question: '¿Funciona con Vitoria?', answer: 'Sí. Puedes consultar bicis y huecos de Vitoria.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Vitoria-Gasteiz con BiciRadar?',
+          answer: 'Sí. BiciRadar te permite ver disponibilidad en tiempo real y entrar rápido a tus estaciones más frecuentes.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes descargarla en Google Play o App Store, o recibir el enlace por correo para instalarla luego.',
+        },
       ],
       mockup: { stationLabel: 'Vitoria', availability: '3 bicis · 2 huecos' },
     },
     pamplona: {
       seo: {
         title: 'Pamplona en tiempo real con BiciRadar | Pamplona',
-        description: 'Consulta bicis y huecos de Pamplona antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Pamplona antes de salir y descarga BiciRadar.',
       },
       badge: 'Pamplona · Pamplona',
-      title: 'Consulta Pamplona en tiempo real antes de sair',
+      title: 'Consulta Pamplona en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Pamplona antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Pamplona',
       faq: [
-        { question: '¿Funciona con Pamplona?', answer: 'Sí. Puedes consultar bicis y huecos de Pamplona.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Pamplona con BiciRadar?',
+          answer: 'Sí. Puedes revisar disponibilidad en tiempo real y guardar las estaciones que más usas para resolver la consulta más rápido.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está en Google Play y App Store, y si te conviene más también te enviamos el enlace por email.',
+        },
       ],
       mockup: { stationLabel: 'Pamplona', availability: '5 bicis · 4 huecos' },
     },
     castellon: {
       seo: {
         title: 'Castellón en tiempo real con BiciRadar | Castellón',
-        description: 'Consulta bicis y huecos de Castellón antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Castellón antes de salir y descarga BiciRadar.',
       },
       badge: 'Castellón · Castellón',
-      title: 'Consulta Castellón en tiempo real antes de sair',
+      title: 'Consulta Castellón en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Castellón antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Castellón',
       faq: [
-        { question: '¿Funciona con Castellón?', answer: 'Sí. Puedes consultar bicis y huecos de Castellón.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Castellón con BiciRadar?',
+          answer: 'Sí. BiciRadar te ayuda a ver disponibilidad en tiempo real y a reducir vueltas innecesarias al buscar estación.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes instalarla desde Google Play o App Store, o recibir el enlace por correo para hacerlo después.',
+        },
       ],
       mockup: { stationLabel: 'Castellón', availability: '3 bicis · 2 huecos' },
     },
     santander: {
       seo: {
         title: 'Santander en tiempo real con BiciRadar | Santander',
-        description: 'Consulta bicis y huecos de Santander antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Santander antes de salir y descarga BiciRadar.',
       },
       badge: 'Santander · Santander',
-      title: 'Consulta Santander en tiempo real antes de sair',
+      title: 'Consulta Santander en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Santander antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Santander',
       faq: [
-        { question: '¿Funciona con Santander?', answer: 'Sí. Puedes consultar bicis y huecos de Santander.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Santander con BiciRadar?',
+          answer: 'Sí. Puedes comprobar disponibilidad en tiempo real y dejar a mano tus estaciones más habituales para decidir antes de llegar.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar está disponible en Google Play y App Store, y también puedes pedir el enlace por email.',
+        },
       ],
       mockup: { stationLabel: 'Santander', availability: '4 bicis · 3 huecos' },
     },
     girona: {
       seo: {
         title: 'Girona en tiempo real con BiciRadar | Girona',
-        description: 'Consulta bicis y huecos de Girona antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Girona antes de salir y descarga BiciRadar.',
       },
       badge: 'Girona · Girona',
-      title: 'Consulta Girona en tiempo real antes de sair',
+      title: 'Consulta Girona en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Girona antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Girona',
       faq: [
-        { question: '¿Funciona con Girona?', answer: 'Sí. Puedes consultar bicis y huecos de Girona.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Girona con BiciRadar?',
+          answer: 'Sí. BiciRadar te da visibilidad en tiempo real para que elijas mejor estación antes de moverte.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. Puedes descargarla desde Google Play o App Store, o pedir el enlace por correo y retomarlo más tarde.',
+        },
       ],
       mockup: { stationLabel: 'Girona', availability: '3 bicis · 2 huecos' },
     },
     gran_canaria: {
       seo: {
         title: 'Gran Canaria en tiempo real con BiciRadar | Gran Canaria',
-        description: 'Consulta bicis y huecos de Gran Canaria antes de sair y descarga BiciRadar.',
+        description: 'Consulta bicis y huecos de Gran Canaria antes de salir y descarga BiciRadar.',
       },
       badge: 'Gran Canaria · Gran Canaria',
-      title: 'Consulta Gran Canaria en tiempo real antes de sair',
+      title: 'Consulta Gran Canaria en tiempo real antes de salir',
       description: 'Mira la disponibilidad de bicis y huecos en Gran Canaria antes de moverte.',
       benefitsTitle: 'Beneficios locales',
       benefits: [
-        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de sair.' },
+        { title: 'Consulta en tiempo real', description: 'Verifica bicis y huecos antes de salir.' },
         { title: 'Favoritas', description: 'Guarda tus estaciones clave para consultarlas rápido.' },
         { title: 'Alertas', description: 'Recibe avisos cuando haya bicis o huecos disponibles.' },
       ],
       faqTitle: 'FAQ Gran Canaria',
       faq: [
-        { question: '¿Funciona con Gran Canaria?', answer: 'Sí. Puedes consultar bicis y huecos de Gran Canaria.' },
-        { question: '¿Hay app para Android?', answer: 'Sí. Disponible en Google Play.' },
+        {
+          question: '¿Puedo consultar bicis y huecos de Gran Canaria con BiciRadar?',
+          answer: 'Sí. Puedes ver disponibilidad en tiempo real y preparar favoritas para resolver la consulta diaria mucho más rápido.',
+        },
+        {
+          question: '¿También está disponible en Android y iPhone?',
+          answer: 'Sí. BiciRadar se puede descargar en Google Play y App Store, o puedes recibir el enlace por email.',
+        },
       ],
       mockup: { stationLabel: 'Gran Canaria', availability: '4 bicis · 3 huecos' },
     },
