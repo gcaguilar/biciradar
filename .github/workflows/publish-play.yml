@@ -116,7 +116,7 @@ jobs:
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          track: alpha
+          tracks: alpha, production
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
           inAppUpdatePriority: ${{ github.event.inputs.in_app_update_priority }}
