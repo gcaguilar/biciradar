@@ -61,6 +61,8 @@ androidComponents {
     // Keep the Play Store release optimized while making the F-Droid APK easier to reproduce.
     variantBuilder.isMinifyEnabled = false
     variantBuilder.shrinkResources = false
+    variantBuilder.dependenciesInfo.includeInApk = false
+    variantBuilder.dependenciesInfo.includeInBundle = false
   }
 }
 
@@ -116,13 +118,6 @@ android {
   buildFeatures {
     buildConfig = true
     compose = true
-  }
-
-  if (requestedTasks.contains("fdroid")) {
-    dependenciesInfo {
-      includeInApk = false
-      includeInBundle = false
-    }
   }
 
   signingConfigs {
