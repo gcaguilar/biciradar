@@ -118,6 +118,13 @@ android {
     compose = true
   }
 
+  if (requestedTasks.contains("fdroid")) {
+    dependenciesInfo {
+      includeInApk = false
+      includeInBundle = false
+    }
+  }
+
   signingConfigs {
     create("release") {
       if (hasAndroidCiSigning) {
