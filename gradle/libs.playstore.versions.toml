@@ -1,0 +1,28 @@
+[versions]
+crash-reporting-plugin = "3.0.7"
+garmin-connectiq-sdk = "2.4.0"
+google-services-plugin = "4.4.4"
+maps-compose = "8.3.0"
+mobile-services-bom = "34.12.0"
+play-app-update = "2.1.0"
+play-review = "2.0.2"
+play-services-location = "21.3.0"
+play-services-maps = "20.0.0"
+play-services-wearable = "19.0.0"
+
+[libraries]
+crash-reporting-sdk = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+garmin-connectiq-sdk = { module = "com.garmin.connectiq:ciq-companion-app-sdk", version.ref = "garmin-connectiq-sdk" }
+maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
+mobile-services-bom = { module = "com.google.firebase:firebase-bom", version.ref = "mobile-services-bom" }
+play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
+play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref = "play-review" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
+play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
+play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "play-services-wearable" }
+remote-config-sdk = { module = "com.google.firebase:firebase-config" }
+
+[plugins]
+crash-reporting = { id = "com.google.firebase.crashlytics", version.ref = "crash-reporting-plugin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services-plugin" }

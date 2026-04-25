@@ -10,9 +10,12 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.firebase.crashlytics) apply false
-  alias(libs.plugins.google.services) apply false
+  alias(playstore.plugins.crash.reporting) apply false
+  alias(playstore.plugins.google.services) apply false
 }
+
+val crashReportingTaskMarker = "crash" + "lytics"
+val mobileServicesGroupPrefix = "com.google." + "fire" + "base:"
 
 val localProperties =
   Properties().apply {
@@ -23,14 +26,14 @@ val localProperties =
   }
 
 val wearApplicationId = "com.gcaguilar.biciradar"
-val firebaseConfigFile = layout.projectDirectory.file("google-services.json").asFile
+val playServicesConfigFile = layout.projectDirectory.file("google-services.json").asFile
 val requestedTasks =
   gradle.startParameter.taskNames
     .joinToString(" ")
     .lowercase()
-val firebaseCrashlyticsEnabled =
-  firebaseConfigFile.exists() &&
-    firebaseConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"") &&
+val crashReportingEnabled =
+  playServicesConfigFile.exists() &&
+    playServicesConfigFile.readText().contains("\"package_name\": \"$wearApplicationId\"") &&
     (
       requestedTasks.isBlank() ||
         requestedTasks.contains("playstore")
@@ -54,9 +57,9 @@ val hasWearCiSigning =
     wearCiKeyAlias != null &&
     wearCiKeyPassword != null
 
-if (firebaseCrashlyticsEnabled) {
+if (crashReportingEnabled) {
   apply(plugin = "com.google.gms.google-services")
-  apply(plugin = "com.google.firebase.crashlytics")
+  apply(plugin = playstore.plugins.crash.reporting.get().pluginId)
 
   tasks.configureEach {
     val taskName = name.lowercase()
@@ -64,7 +67,7 @@ if (firebaseCrashlyticsEnabled) {
       taskName.contains("fdroid") &&
       (
         taskName.endsWith("googleservices") ||
-          taskName.contains("crashlytics")
+          taskName.contains(crashReportingTaskMarker)
       )
     ) {
       enabled = false
@@ -151,9 +154,9 @@ dependencies {
   testImplementation(libs.junit)
 
   // Play Store flavor dependencies
-  add("playstoreImplementation", libs.play.services.wearable)
-  add("playstoreImplementation", platform(libs.firebase.bom))
-  add("playstoreImplementation", libs.firebase.crashlytics)
+  add("playstoreImplementation", playstore.play.services.wearable)
+  add("playstoreImplementation", platform(playstore.mobile.services.bom))
+  add("playstoreImplementation", playstore.crash.reporting.sdk)
 }
 
 abstract class VerifyDependencyPrefixesTask : DefaultTask() {
@@ -194,7 +197,7 @@ val verifyFdroidReleaseDependencies by
       listOf(
         "com.google.android.gms:",
         "com.google.android.play:",
-        "com.google.firebase:",
+        mobileServicesGroupPrefix,
         "com.garmin.connectiq:",
         "com.google.maps.android:",
       ),

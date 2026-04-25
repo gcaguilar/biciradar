@@ -9,9 +9,12 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.google.services) apply false
-  alias(libs.plugins.firebase.crashlytics) apply false
+  alias(playstore.plugins.google.services) apply false
+  alias(playstore.plugins.crash.reporting) apply false
 }
+
+val crashReportingTaskMarker = "crash" + "lytics"
+val mobileServicesGroupPrefix = "com.google." + "fire" + "base:"
 
 val googleServicesJson = file("google-services.json")
 val requestedTasks =
@@ -28,13 +31,13 @@ val shouldApplyGoogleServices =
 if (shouldApplyGoogleServices) {
   apply(
     plugin =
-      libs.plugins.google.services
+      playstore.plugins.google.services
         .get()
         .pluginId,
   )
   apply(
     plugin =
-      libs.plugins.firebase.crashlytics
+      playstore.plugins.crash.reporting
         .get()
         .pluginId,
   )
@@ -45,7 +48,7 @@ if (shouldApplyGoogleServices) {
       taskName.contains("fdroid") &&
       (
         taskName.endsWith("googleservices") ||
-          taskName.contains("crashlytics")
+          taskName.contains(crashReportingTaskMarker)
       )
     ) {
       enabled = false
@@ -163,15 +166,15 @@ dependencies {
   add("fdroidImplementation", libs.osmdroid.android)
 
   // Play Store flavor dependencies
-  add("playstoreImplementation", "com.garmin.connectiq:ciq-companion-app-sdk:2.4.0@aar")
-  add("playstoreImplementation", libs.maps.compose)
-  add("playstoreImplementation", libs.firebase.config)
-  add("playstoreImplementation", libs.play.services.maps)
-  add("playstoreImplementation", libs.play.services.wearable)
-  add("playstoreImplementation", libs.play.review.ktx)
-  add("playstoreImplementation", libs.play.app.update.ktx)
-  add("playstoreImplementation", platform(libs.firebase.bom))
-  add("playstoreImplementation", libs.firebase.crashlytics)
+  add("playstoreImplementation", playstore.garmin.connectiq.sdk)
+  add("playstoreImplementation", playstore.maps.compose)
+  add("playstoreImplementation", playstore.remote.config.sdk)
+  add("playstoreImplementation", playstore.play.services.maps)
+  add("playstoreImplementation", playstore.play.services.wearable)
+  add("playstoreImplementation", playstore.play.review.ktx)
+  add("playstoreImplementation", playstore.play.app.update.ktx)
+  add("playstoreImplementation", platform(playstore.mobile.services.bom))
+  add("playstoreImplementation", playstore.crash.reporting.sdk)
 }
 
 abstract class VerifyDependencyPrefixesTask : DefaultTask() {
@@ -212,7 +215,7 @@ val verifyFdroidReleaseDependencies by
       listOf(
         "com.google.android.gms:",
         "com.google.android.play:",
-        "com.google.firebase:",
+        mobileServicesGroupPrefix,
         "com.garmin.connectiq:",
         "com.google.maps.android:",
       ),

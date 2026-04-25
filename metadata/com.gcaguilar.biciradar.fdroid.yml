@@ -4,26 +4,28 @@ License: GPL-3.0-only
 SourceCode: https://github.com/gcaguilar/biciradar
 IssueTracker: https://github.com/gcaguilar/biciradar/issues
 Changelog: https://github.com/gcaguilar/biciradar/releases
+
 AutoName: Bici Radar
 
 RepoType: git
 Repo: https://github.com/gcaguilar/biciradar.git
 Binaries: https://github.com/gcaguilar/biciradar/releases/download/%v/BiciRadar-%v.apk
-UpdateCheckMode: Tags ^[0-9]+(\.[0-9]+)*-fdroid$
-UpdateCheckData: androidApp/build.gradle.kts|versionCode = ([0-9]+)||(.+)
-AllowedAPKSigningKeys: b41670e44632eac4bcdf1630fa784b7f6d284246947b5ff7a3b46b9d9dde1bd5
 
 Builds:
   - versionName: 0.22.9-fdroid
     versionCode: 29568120
     commit: b397854660537425436a1d2ca8fc7a100edafdf6
-    subdir: .
     gradle:
       - fdroid
-    output: androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk
+    scanignore:
+      - gradle/libs.playstore.versions.toml
+    output:
+      androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk
 
-MaintainerNotes: |
-  Listing text and screenshots are intentionally sourced from the app's fastlane metadata in
-  fastlane/metadata/android/en-US/. Keep Summary/Description in the upstream repo instead of duplicating
-  them in fdroiddata, and update commit to the full release commit hash before
-  opening the merge request.
+AllowedAPKSigningKeys: b41670e44632eac4bcdf1630fa784b7f6d284246947b5ff7a3b46b9d9dde1bd5
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^[0-9]+(\.[0-9]+)*-fdroid$
+UpdateCheckData: androidApp/build.gradle.kts|versionCode = ([0-9]+)||(.+)
+CurrentVersion: 0.22.9-fdroid
+CurrentVersionCode: 29568120

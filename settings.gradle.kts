@@ -12,6 +12,11 @@ dependencyResolutionManagement {
     google()
     mavenCentral()
   }
+  versionCatalogs {
+    create("playstore") {
+      from(files("gradle/libs.playstore.versions.toml"))
+    }
+  }
 }
 
 rootProject.name = "biciradar"
