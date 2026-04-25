@@ -1,9 +1,3 @@
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.util.Properties
 
 plugins {
@@ -59,7 +53,12 @@ val hasWearCiSigning =
 
 if (crashReportingEnabled) {
   apply(plugin = "com.google.gms.google-services")
-  apply(plugin = playstore.plugins.crash.reporting.get().pluginId)
+  apply(
+    plugin =
+      playstore.plugins.crash.reporting
+        .get()
+        .pluginId,
+  )
 
   tasks.configureEach {
     val taskName = name.lowercase()
