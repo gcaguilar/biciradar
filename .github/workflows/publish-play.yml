@@ -110,7 +110,7 @@ jobs:
           fi
 
       - name: Publish to Play Console closed testing
-        uses: r0adkll/upload-google-play@v1.1.3
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
@@ -196,7 +196,7 @@ jobs:
             wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
       - name: Publish WearOS to Play Console closed testing
-        uses: r0adkll/upload-google-play@v1.1.3
+        uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
