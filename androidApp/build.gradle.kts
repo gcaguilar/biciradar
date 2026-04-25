@@ -1,10 +1,3 @@
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-import org.gradle.language.base.plugins.LifecycleBasePlugin
-
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.multiplatform)
@@ -97,8 +90,8 @@ android {
     applicationId = "com.gcaguilar.biciradar"
     minSdk = 29
     targetSdk = 36
-    versionCode = 29568121
-    versionName = "0.22.10"
+    versionCode = 29568122
+    versionName = "0.22.11"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
   }
 

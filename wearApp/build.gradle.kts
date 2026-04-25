@@ -76,7 +76,7 @@ if (crashReportingEnabled) {
 
 android {
   namespace = "com.gcaguilar.biciradar.wear"
-  compileSdk = 36
+  compileSdk = 37
 
   defaultConfig {
     applicationId = wearApplicationId

@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
   android {
-    compileSdk = 36
+    compileSdk = 37
     minSdk = 26
     namespace = "com.gcaguilar.biciradar.shared.core"
     compilerOptions {
