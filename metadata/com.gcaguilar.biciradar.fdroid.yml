@@ -12,22 +12,27 @@ Repo: https://github.com/gcaguilar/biciradar.git
 Binaries: https://github.com/gcaguilar/biciradar/releases/download/%v/BiciRadar-%v.apk
 
 Builds:
-  - versionName: 0.22.10-fdroid
-    versionCode: 29568121
-    commit: 58d1ddbf17c09a983856db4705ca8253aa88f27d
+  - versionName: 0.22.11-fdroid
+    versionCode: 29568122
+    commit: b58561f2ada7c6aa23a0cdcd0ece3861211af5e6
     gradle:
       - fdroid
-    scanignore:
-      - androidApp/build.gradle.kts
-      - wearApp/build.gradle.kts
-      - gradle/libs.playstore.versions.toml
     output: 
       androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk
+    prebuild:
+      - sed -i -e '/^  versionCatalogs {$/,/^  }$/d' settings.gradle.kts
+      - sed -i -e '/playstore\.plugins\.google\.services/d' -e '/playstore\.plugins\.crash\.reporting/d'
+        -e '/^if (shouldApplyGoogleServices) {$/,/^}$/d' -e '/add("playstoreImplementation"/d'
+        androidApp/build.gradle.kts
+      - sed -i -e '/playstore\.plugins\.google\.services/d' -e '/playstore\.plugins\.crash\.reporting/d'
+        -e '/^if (crashReportingEnabled) {$/,/^}$/d' -e '/add("playstoreImplementation"/d'
+        wearApp/build.gradle.kts
+      - rm -f gradle/libs.playstore.versions.toml
 
 AllowedAPKSigningKeys: b41670e44632eac4bcdf1630fa784b7f6d284246947b5ff7a3b46b9d9dde1bd5
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^[0-9]+(\.[0-9]+)*-fdroid$
 UpdateCheckData: androidApp/build.gradle.kts|versionCode = ([0-9]+)||(.+)
-CurrentVersion: 0.22.10-fdroid
-CurrentVersionCode: 29568121
+CurrentVersion: 0.22.11-fdroid
+CurrentVersionCode: 29568122
