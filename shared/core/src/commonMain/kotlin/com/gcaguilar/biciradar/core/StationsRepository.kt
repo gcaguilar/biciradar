@@ -101,12 +101,14 @@ class StationsRepositoryImpl(
     val city = settingsRepository.currentSelectedCity()
     val attemptAt = currentTimeMs()
 
-    updateLoadingState(
-      isLoading = true,
-      errorMessage = null,
-      lastRefreshAttemptEpoch = attemptAt,
-      userLocation = currentLocation,
-    )
+    loadMutex.withLock {
+      updateLoadingState(
+        isLoading = true,
+        errorMessage = null,
+        lastRefreshAttemptEpoch = attemptAt,
+        userLocation = currentLocation,
+      )
+    }
 
     refreshStations(origin = origin, currentLocation = currentLocation, city = city)
   }
@@ -132,6 +134,7 @@ class StationsRepositoryImpl(
       // Limpiar caché si cambió la ciudad
       if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
         cacheManager.clear()
+        lastGoodLocation = null
       }
 
       // Intentar usar caché primero
