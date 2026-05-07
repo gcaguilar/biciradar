@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Intervalo de refresco del caché de estaciones (5 minutos).
+ * Intervalo de refresco del caché de estaciones (1 minuto).
  */
 const val STATION_CACHE_REFRESH_INTERVAL_MS = 60 * 1000L // 1 minute
 
@@ -93,47 +93,51 @@ class StationCacheStore(
     }
   }
 
-  fun save(
+  suspend fun save(
     cityId: String,
     stations: List<Station>,
   ) {
-    try {
-      val now = currentTimeMs()
-      database.transaction {
-        database.biciradarQueries.deleteAllStations()
-        database.biciradarQueries.deleteAllCacheMetadata()
-        stations.forEach { station ->
-          database.biciradarQueries.insertStation(
-            id = station.id,
-            name = station.name,
-            address = station.address,
-            latitude = station.location.latitude,
-            longitude = station.location.longitude,
-            bikesAvailable = station.bikesAvailable.toLong(),
-            slotsFree = station.slotsFree.toLong(),
-            ebikesAvailable = station.ebikesAvailable.toLong(),
-            regularBikesAvailable = station.regularBikesAvailable.toLong(),
-            updatedAt = now,
+    withContext(Dispatchers.Default) {
+      try {
+        val now = currentTimeMs()
+        database.transaction {
+          database.biciradarQueries.deleteAllStations()
+          database.biciradarQueries.deleteAllCacheMetadata()
+          stations.forEach { station ->
+            database.biciradarQueries.insertStation(
+              id = station.id,
+              name = station.name,
+              address = station.address,
+              latitude = station.location.latitude,
+              longitude = station.location.longitude,
+              bikesAvailable = station.bikesAvailable.toLong(),
+              slotsFree = station.slotsFree.toLong(),
+              ebikesAvailable = station.ebikesAvailable.toLong(),
+              regularBikesAvailable = station.regularBikesAvailable.toLong(),
+              updatedAt = now,
+            )
+          }
+          database.biciradarQueries.upsertCacheMetadata(
+            cityId = cityId,
+            lastUpdated = now,
           )
         }
-        database.biciradarQueries.upsertCacheMetadata(
-          cityId = cityId,
-          lastUpdated = now,
-        )
+      } catch (_: Exception) {
+        // Silently fail - cache is optional
       }
-    } catch (_: Exception) {
-      // Silently fail - cache is optional
     }
   }
 
-  fun clear() {
-    try {
-      database.transaction {
-        database.biciradarQueries.deleteAllStations()
-        database.biciradarQueries.deleteAllCacheMetadata()
+  suspend fun clear() {
+    withContext(Dispatchers.Default) {
+      try {
+        database.transaction {
+          database.biciradarQueries.deleteAllStations()
+          database.biciradarQueries.deleteAllCacheMetadata()
+        }
+      } catch (_: Exception) {
+        // Silently fail
       }
-    } catch (_: Exception) {
-      // Silently fail
     }
   }
 
