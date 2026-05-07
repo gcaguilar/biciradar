@@ -166,6 +166,9 @@ CREATE TABLE surface_monitoring (
 getAllStations:
 SELECT * FROM stations;
 
+countStations:
+SELECT COUNT(*) FROM stations;
+
 getCacheMetadata:
 SELECT * FROM cache_metadata LIMIT 1;
 

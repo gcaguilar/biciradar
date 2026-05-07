@@ -44,10 +44,17 @@ class StationCacheStore(
       val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
         val elapsed = currentTimeMs() - metadata.last_updated
-        elapsed < STATION_CACHE_REFRESH_INTERVAL_MS
+        elapsed < STATION_CACHE_REFRESH_INTERVAL_MS && hasStations()
       } else {
         false
       }
+    } catch (_: Exception) {
+      false
+    }
+
+  private fun hasStations(): Boolean =
+    try {
+      database.biciradarQueries.countStations().executeAsOne() > 0
     } catch (_: Exception) {
       false
     }
