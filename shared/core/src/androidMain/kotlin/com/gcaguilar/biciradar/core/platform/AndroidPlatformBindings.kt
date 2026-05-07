@@ -454,7 +454,12 @@ private class AndroidLocationProvider(
         val cancellationSignal = CancellationSignal()
         continuation.invokeOnCancellation { cancellationSignal.cancel() }
         runCatching {
-          locationManager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
+          locationManager.getCurrentLocation(
+            provider,
+            cancellationSignal,
+            context.mainExecutor,
+            onCancellation = null,
+          ) { location ->
             if (continuation.isActive) {
               continuation.resume(location)
             }
