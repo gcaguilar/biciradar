@@ -6,6 +6,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import platform.CoreLocation.CLLocation
 import platform.CoreLocation.CLLocationCoordinate2DMake
 import platform.CoreLocation.CLLocationManager
@@ -24,6 +26,7 @@ import kotlin.coroutines.resume
 internal class AppleLocationProvider : LocationProvider {
   private val locationManager = CLLocationManager()
   private var pendingContinuation: CancellableContinuation<GeoPoint?>? = null
+  private val continuationMutex = Mutex()
   private val delegate = Delegate(this)
 
   init {
@@ -33,23 +36,35 @@ internal class AppleLocationProvider : LocationProvider {
 
   override suspend fun currentLocation(): GeoPoint? =
     suspendCancellableCoroutine { continuation ->
-      pendingContinuation?.resume(null)
-      pendingContinuation = continuation
-      continuation.invokeOnCancellation {
-        if (pendingContinuation === continuation) {
-          pendingContinuation = null
+      runCatching {
+        continuationMutex.withLock {
+          pendingContinuation?.let { if (it.isActive) it.resume(null) }
+          pendingContinuation = continuation
         }
-      }
+        continuation.invokeOnCancellation {
+          runCatching {
+            continuationMutex.withLock {
+              if (pendingContinuation === continuation) {
+                pendingContinuation = null
+              }
+            }
+          }
+        }
 
-      when (locationManager.authorizationStatus) {
-        kCLAuthorizationStatusAuthorizedAlways,
-        kCLAuthorizationStatusAuthorizedWhenInUse,
-        -> requestOrReturnCachedLocation()
-        kCLAuthorizationStatusNotDetermined -> locationManager.requestWhenInUseAuthorization()
-        kCLAuthorizationStatusDenied,
-        kCLAuthorizationStatusRestricted,
-        -> finish(null)
-        else -> locationManager.requestWhenInUseAuthorization()
+        when (locationManager.authorizationStatus) {
+          kCLAuthorizationStatusAuthorizedAlways,
+          kCLAuthorizationStatusAuthorizedWhenInUse,
+          -> requestOrReturnCachedLocation()
+          kCLAuthorizationStatusNotDetermined -> locationManager.requestWhenInUseAuthorization()
+          kCLAuthorizationStatusDenied,
+          kCLAuthorizationStatusRestricted,
+          -> finish(null)
+          else -> locationManager.requestWhenInUseAuthorization()
+        }
+      }.onFailure {
+        if (continuation.isActive) {
+          continuation.resume(null)
+        }
       }
     }
 
@@ -90,9 +105,17 @@ internal class AppleLocationProvider : LocationProvider {
   }
 
   private fun finish(location: GeoPoint?) {
-    val continuation = pendingContinuation ?: return
-    pendingContinuation = null
-    continuation.resume(location)
+    val continuation =
+      runCatching {
+        continuationMutex.withLock {
+          val cont = pendingContinuation
+          pendingContinuation = null
+          cont
+        }
+      }.getOrNull() ?: return
+    if (continuation.isActive) {
+      continuation.resume(location)
+    }
   }
 
   private class Delegate(
