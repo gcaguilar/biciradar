@@ -296,11 +296,13 @@ class SurfaceSnapshotRepositoryImpl(
   }
 
   private fun persistToFile(snapshot: SurfaceSnapshotBundle) {
-    val path = snapshotPath()
-    val parent = path.parent ?: return
-    fileSystem.createDirectories(parent)
-    fileSystem.write(path) {
-      writeUtf8(json.encodeToString(snapshot))
+    runCatching {
+      val path = snapshotPath()
+      val parent = path.parent ?: return
+      fileSystem.createDirectories(parent)
+      fileSystem.write(path) {
+        writeUtf8(json.encodeToString(snapshot))
+      }
     }
   }
 
