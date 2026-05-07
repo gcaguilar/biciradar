@@ -18,7 +18,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
-private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 3_000L
+private const val LOCATION_LOOKUP_TIMEOUT_MILLIS = 5_000L
 
 interface StationsRepository {
   val state: StateFlow<StationsState>
@@ -71,6 +71,8 @@ class StationsRepositoryImpl(
   @kotlin.concurrent.Volatile private var lastLoadedCityId: String? = null
   private val loadMutex = Mutex()
 
+  private var lastGoodLocation: GeoPoint? = null
+
   private val useReactiveCache: Boolean = cacheManager.stationsFlow != null
 
   override val state: StateFlow<StationsState> =
@@ -87,14 +89,15 @@ class StationsRepositoryImpl(
       mutableState.asStateFlow()
     }
 
-  private fun defaultLocation(): GeoPoint {
+  private fun fallbackLocation(): GeoPoint {
+    lastGoodLocation?.let { return it }
     val city = settingsRepository.currentSelectedCity()
     return GeoPoint(city.defaultLatitude, city.defaultLongitude)
   }
 
   override suspend fun forceRefresh() {
     val currentLocation = fetchCurrentLocation()
-    val origin = currentLocation ?: defaultLocation()
+    val origin = currentLocation ?: fallbackLocation()
     val city = settingsRepository.currentSelectedCity()
     val attemptAt = currentTimeMs()
 
@@ -109,8 +112,10 @@ class StationsRepositoryImpl(
   }
 
   override suspend fun loadIfNeeded() {
+    if (loaded) return
+
     val currentLocation = fetchCurrentLocation()
-    val origin = currentLocation ?: defaultLocation()
+    val origin = currentLocation ?: fallbackLocation()
     val city = settingsRepository.currentSelectedCity()
 
     loadMutex.withLock {
@@ -165,7 +170,7 @@ class StationsRepositoryImpl(
   private suspend fun fetchCurrentLocation(): GeoPoint? =
     withTimeoutOrNull(LOCATION_LOOKUP_TIMEOUT_MILLIS) {
       runCatching { locationProvider.currentLocation() }.getOrNull()
-    }
+    }?.also { lastGoodLocation = it }
 
   private fun updateLoadingState(
     isLoading: Boolean,

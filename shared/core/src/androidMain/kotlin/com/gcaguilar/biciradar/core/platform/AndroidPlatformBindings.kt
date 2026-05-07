@@ -449,7 +449,7 @@ private class AndroidLocationProvider(
       .maxByOrNull(Location::getTime)
 
   private suspend fun requestCurrentLocation(provider: String): Location? =
-    withTimeoutOrNull(2_500L) {
+    withTimeoutOrNull(4_000L) {
       suspendCancellableCoroutine { continuation ->
         val cancellationSignal = CancellationSignal()
         continuation.invokeOnCancellation { cancellationSignal.cancel() }

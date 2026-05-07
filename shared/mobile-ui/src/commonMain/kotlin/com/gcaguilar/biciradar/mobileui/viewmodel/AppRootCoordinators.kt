@@ -193,6 +193,8 @@ internal class RefreshOrchestrator(
   private val startupUseCase: StartupUseCase,
   private val appInitializer: AppInitializer,
 ) {
+  private var emptyStateRetryCount = 0
+
   fun maybeRefreshSurfaceSnapshot(
     scope: CoroutineScope,
     uiState: AppRootUiState,
@@ -256,17 +258,28 @@ internal class RefreshOrchestrator(
     emptyStateRetryJob: MutableStateFlow<Job?>,
     stationsState: StationsState,
   ) {
-    emptyStateRetryJob.value?.cancel()
     if (stationsState.isLoading || stationsState.stations.isNotEmpty() || stationsState.errorMessage != null) {
+      emptyStateRetryJob.value?.cancel()
+      emptyStateRetryCount = 0
       return
     }
+    if (emptyStateRetryCount >= MAX_EMPTY_STATE_RETRIES) return
+    if (emptyStateRetryJob.value?.isActive == true) return
+
     emptyStateRetryJob.value =
       scope.launch {
-        delay(5_000)
+        val delayMs = emptyStateRetryDelays[emptyStateRetryCount]
+        delay(delayMs)
+        emptyStateRetryCount++
         val latestState = startupUseCase.stationsState.value
         if (!latestState.isLoading && latestState.stations.isEmpty() && latestState.errorMessage == null) {
           appInitializer.loadStationsIfNeeded()
         }
       }
+  }
+
+  companion object {
+    private const val MAX_EMPTY_STATE_RETRIES = 3
+    private val emptyStateRetryDelays = longArrayOf(5_000L, 10_000L, 20_000L)
   }
 }
