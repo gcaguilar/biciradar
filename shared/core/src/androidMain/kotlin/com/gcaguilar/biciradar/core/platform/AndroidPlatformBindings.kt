@@ -9,9 +9,11 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
+import android.os.CancellationSignal
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -52,6 +54,8 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 
@@ -409,16 +413,24 @@ private class AndroidLocationProvider(
   @SuppressLint("MissingPermission")
   override suspend fun currentLocation(): GeoPoint? {
     if (!hasLocationPermission()) return null
-    val bestLocation =
-      locationManager
-        .getProviders(true)
-        .asSequence()
-        .mapNotNull { provider -> runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull() }
-        .maxByOrNull { location -> location.time }
 
-    return bestLocation?.let { location ->
-      GeoPoint(latitude = location.latitude, longitude = location.longitude)
+    val providers =
+      sequenceOf(
+        LocationManager.GPS_PROVIDER,
+        LocationManager.NETWORK_PROVIDER,
+        LocationManager.PASSIVE_PROVIDER,
+      ).filter(locationManager::isProviderEnabled).toList()
+    if (providers.isEmpty()) return null
+
+    val cached = freshestLastKnownLocation(providers)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      providers.forEach { provider ->
+        requestCurrentLocation(provider)?.let { return it.toGeoPoint() }
+      }
     }
+
+    return cached?.toGeoPoint()
   }
 
   private fun hasLocationPermission(): Boolean =
@@ -430,6 +442,32 @@ private class AndroidLocationProvider(
         context,
         android.Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
+
+  private fun freshestLastKnownLocation(providers: List<String>): Location? =
+    providers
+      .mapNotNull { provider -> runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull() }
+      .maxByOrNull(Location::getTime)
+
+  private suspend fun requestCurrentLocation(provider: String): Location? =
+    withTimeoutOrNull(2_500L) {
+      suspendCancellableCoroutine { continuation ->
+        val cancellationSignal = CancellationSignal()
+        continuation.invokeOnCancellation { cancellationSignal.cancel() }
+        runCatching {
+          locationManager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
+            if (continuation.isActive) {
+              continuation.resume(location)
+            }
+          }
+        }.onFailure {
+          if (continuation.isActive) {
+            continuation.resume(null)
+          }
+        }
+      }
+    }
+
+  private fun Location.toGeoPoint(): GeoPoint = GeoPoint(latitude = latitude, longitude = longitude)
 }
 
 private class AndroidWatchSyncBridge(
