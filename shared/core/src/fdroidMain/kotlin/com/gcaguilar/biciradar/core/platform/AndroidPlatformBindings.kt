@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.os.Build
 import android.os.CancellationSignal
 import androidx.core.app.NotificationCompat
@@ -233,10 +232,10 @@ class AndroidPlatformBindings(
       suspendCancellableCoroutine { continuation ->
         val cancellationSignal = CancellationSignal()
         continuation.invokeOnCancellation { cancellationSignal.cancel() }
-        val locationRequest = LocationRequest.Builder(10_000L).build()
 
         runCatching {
-          manager.getCurrentLocation(provider, locationRequest, cancellationSignal, context.mainExecutor) { location ->
+          @Suppress("DEPRECATION")
+          manager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
             if (continuation.isActive) {
               continuation.resume(location)
             }

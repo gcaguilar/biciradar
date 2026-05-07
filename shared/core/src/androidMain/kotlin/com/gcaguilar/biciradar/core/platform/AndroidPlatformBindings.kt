@@ -11,7 +11,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.net.Uri
 import android.os.Build
 import android.os.CancellationSignal
@@ -454,9 +453,9 @@ private class AndroidLocationProvider(
       suspendCancellableCoroutine { continuation ->
         val cancellationSignal = CancellationSignal()
         continuation.invokeOnCancellation { cancellationSignal.cancel() }
-        val locationRequest = LocationRequest.Builder(4_000L).build()
         runCatching {
-          locationManager.getCurrentLocation(provider, locationRequest, cancellationSignal, context.mainExecutor) { location ->
+          @Suppress("DEPRECATION")
+          locationManager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
             if (continuation.isActive) {
               continuation.resume(location)
             }
