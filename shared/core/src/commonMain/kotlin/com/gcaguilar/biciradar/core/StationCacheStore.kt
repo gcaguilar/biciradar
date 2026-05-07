@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 /**
  * Intervalo de refresco del caché de estaciones (5 minutos).
  */
-const val STATION_CACHE_REFRESH_INTERVAL_MS = 5 * 60 * 1000L // 5 minutes
+const val STATION_CACHE_REFRESH_INTERVAL_MS = 60 * 1000L // 1 minute
 
 class StationCacheStore(
   private val database: BiciRadarDatabase,
