@@ -139,7 +139,7 @@ internal class WearViewModel(
 
     viewModelScope.launch {
       while (true) {
-        delay(30_000)
+        delay(60_000)
         refreshWearSurface(appContext)
       }
     }
