@@ -73,6 +73,8 @@ class StationsRepositoryImpl(
 
   private var lastGoodLocation: GeoPoint? = null
 
+  private var fetchGeneration = 0
+
   private val useReactiveCache: Boolean = cacheManager.stationsFlow != null
 
   override val state: StateFlow<StationsState> =
@@ -101,16 +103,18 @@ class StationsRepositoryImpl(
     val city = settingsRepository.currentSelectedCity()
     val attemptAt = currentTimeMs()
 
-    loadMutex.withLock {
+    val generation = loadMutex.withLock {
+      fetchGeneration++
       updateLoadingState(
         isLoading = true,
         errorMessage = null,
         lastRefreshAttemptEpoch = attemptAt,
         userLocation = currentLocation,
       )
+      fetchGeneration
     }
 
-    refreshStations(origin = origin, currentLocation = currentLocation, city = city)
+    refreshStations(origin = origin, currentLocation = currentLocation, city = city, generation = generation)
   }
 
   override suspend fun loadIfNeeded() {
@@ -120,8 +124,8 @@ class StationsRepositoryImpl(
     val origin = currentLocation ?: fallbackLocation()
     val city = settingsRepository.currentSelectedCity()
 
-    loadMutex.withLock {
-      if (loaded) return
+    val generation = loadMutex.withLock {
+      if (loaded) return@withLock 0
 
       val attemptAt = currentTimeMs()
       updateLoadingState(
@@ -131,20 +135,26 @@ class StationsRepositoryImpl(
         userLocation = currentLocation,
       )
 
-      // Limpiar caché si cambió la ciudad
       if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
         cacheManager.clear()
         lastGoodLocation = null
+        loaded = false
+        lastLoadedCityId = null
       }
 
-      // Intentar usar caché primero
+      fetchGeneration++
+      val gen = fetchGeneration
+
       if (cacheManager.isFresh(city.id)) {
-        handleCacheHit(currentLocation, city)
-        return
+        handleCacheHit(currentLocation, city, gen)
+        return@withLock 0
       }
+
+      gen
     }
 
-    refreshStations(origin = origin, currentLocation = currentLocation, city = city)
+    if (generation == 0) return
+    refreshStations(origin = origin, currentLocation = currentLocation, city = city, generation = generation)
   }
 
   override suspend fun refreshAvailability(stationIds: List<String>) {
@@ -205,18 +215,20 @@ class StationsRepositoryImpl(
     origin: GeoPoint,
     currentLocation: GeoPoint?,
     city: City,
+    generation: Int,
   ) {
     runCatching { remoteDataSource.fetchStations(origin) }
       .onSuccess { stations ->
-        handleFetchSuccess(stations, currentLocation, city)
+        handleFetchSuccess(stations, currentLocation, city, generation)
       }.onFailure { error ->
-        handleFetchFailure(error, currentLocation, city, origin)
+        handleFetchFailure(error, currentLocation, city, origin, generation)
       }
   }
 
   private suspend fun handleCacheHit(
     currentLocation: GeoPoint?,
     city: City,
+    generation: Int,
   ) {
     val lastUpdatedEpoch = cacheManager.lastUpdated(city.id)
     val now = currentTimeMs()
@@ -234,11 +246,9 @@ class StationsRepositoryImpl(
           hardFailure = false,
         )
     } else {
-      // En modo no-reactivo, necesitamos obtener las estaciones del caché
-      // Esto es un caso edge, normalmente useReactiveCache = true cuando hay base de datos
       mutableState.value =
         StationsState(
-          stations = emptyList(), // Se poblará desde el flow reactivo
+          stations = emptyList(),
           isLoading = false,
           userLocation = currentLocation,
           lastUpdatedEpoch = lastUpdatedEpoch,
@@ -254,20 +264,18 @@ class StationsRepositoryImpl(
         )
     }
 
-    loadMutex.withLock {
-      loaded = true
-      lastLoadedCityId = city.id
-    }
+    loaded = true
+    lastLoadedCityId = city.id
   }
 
   private suspend fun handleFetchSuccess(
     stations: List<Station>,
     currentLocation: GeoPoint?,
     city: City,
+    generation: Int,
   ) {
+    if (isStaleGeneration(generation)) return
     val cityId = city.id
-    cacheManager.save(cityId, stations)
-    val lastUpdatedEpoch = currentTimeMs()
 
     if (useReactiveCache) {
       sessionState.value =
@@ -275,7 +283,7 @@ class StationsRepositoryImpl(
           isLoading = false,
           errorMessage = null,
           userLocation = currentLocation,
-          lastRefreshAttemptEpoch = lastUpdatedEpoch,
+          lastRefreshAttemptEpoch = currentTimeMs(),
           lastRefreshFailureEpoch = null,
           dataSource = StationDataSource.Network,
           servingCacheAfterFailure = false,
@@ -287,15 +295,18 @@ class StationsRepositoryImpl(
           stations = stations,
           isLoading = false,
           userLocation = currentLocation,
-          lastUpdatedEpoch = lastUpdatedEpoch,
+          lastUpdatedEpoch = currentTimeMs(),
           dataSource = StationDataSource.Network,
           freshness = DataFreshness.Fresh,
-          lastRefreshAttemptEpoch = lastUpdatedEpoch,
+          lastRefreshAttemptEpoch = currentTimeMs(),
           lastRefreshFailureEpoch = null,
         )
     }
 
+    cacheManager.save(cityId, stations)
+
     loadMutex.withLock {
+      if (generation != fetchGeneration) return
       loaded = true
       lastLoadedCityId = cityId
     }
@@ -306,13 +317,14 @@ class StationsRepositoryImpl(
     currentLocation: GeoPoint?,
     city: City,
     origin: GeoPoint,
+    generation: Int,
   ) {
-    // Intentar usar caché stale como fallback
+    if (isStaleGeneration(generation)) return
+
     val lastUpdatedEpoch = cacheManager.lastUpdated(city.id)
     val now = currentTimeMs()
 
     if (lastUpdatedEpoch != null) {
-      // Hay caché disponible (aunque sea stale)
       if (useReactiveCache) {
         sessionState.value =
           StationsSession(
@@ -328,7 +340,7 @@ class StationsRepositoryImpl(
       } else {
         mutableState.value =
           StationsState(
-            stations = emptyList(), // Se poblará desde el flow
+            stations = emptyList(),
             isLoading = false,
             errorMessage = null,
             userLocation = currentLocation,
@@ -348,13 +360,13 @@ class StationsRepositoryImpl(
       }
 
       loadMutex.withLock {
+        if (generation != fetchGeneration) return
         loaded = true
         lastLoadedCityId = city.id
       }
       return
     }
 
-    // No hay caché disponible, reportar error
     if (useReactiveCache) {
       sessionState.value =
         StationsSession(
@@ -393,6 +405,7 @@ class StationsRepositoryImpl(
           dataSource = StationDataSource.Network,
           servingCacheAfterFailure = false,
           hardFailure = false,
+          errorMessage = null,
         )
       }
     } else {
@@ -403,10 +416,13 @@ class StationsRepositoryImpl(
           freshness = DataFreshness.Fresh,
           lastRefreshAttemptEpoch = refreshedAt,
           lastRefreshFailureEpoch = null,
+          errorMessage = null,
         )
       }
     }
   }
+
+  private fun isStaleGeneration(generation: Int): Boolean = generation != fetchGeneration
 }
 
 private fun mergeDbStationsState(
