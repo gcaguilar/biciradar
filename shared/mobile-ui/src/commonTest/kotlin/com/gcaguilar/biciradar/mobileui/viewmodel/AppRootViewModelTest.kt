@@ -479,16 +479,16 @@ class AppRootViewModelTest {
         )
 
       advanceUntilIdle()
-      // Bootstrap ends with maybeRefreshStations(), and refreshStations() syncs favorites then force-refreshes.
-      assertEquals(2, favoritesRepository.syncCount)
-      assertEquals(1, stationsRepository.forceRefreshCount)
+      assertEquals(1, favoritesRepository.syncCount)
+      assertEquals(1, stationsRepository.loadIfNeededCount)
+      assertEquals(0, stationsRepository.forceRefreshCount)
       assertEquals(true, viewModel.uiState.value.initialLoadAttemptFinished)
 
       viewModel.onRefreshSignal()
       advanceUntilIdle()
 
-      assertEquals(3, favoritesRepository.syncCount)
-      assertEquals(2, stationsRepository.forceRefreshCount)
+      assertEquals(2, favoritesRepository.syncCount)
+      assertEquals(1, stationsRepository.forceRefreshCount)
       assertEquals(true, viewModel.uiState.value.initialLoadAttemptFinished)
       assertEquals(true, viewModel.uiState.value.startupLaunchReady)
     }
