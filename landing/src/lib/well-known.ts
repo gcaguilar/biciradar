@@ -142,7 +142,6 @@ export function getOAuthDiscoveryMetadata(site?: URL | string, basePath = '/') {
 export function getApiCatalog(site?: URL | string, basePath = '/') {
   const siteUrl = resolveSiteUrl(site);
   const homeUrl = absolutePageUrl('/', siteUrl, basePath);
-  const betaSignupUrl = absoluteUrl('/api/beta-signup', siteUrl, basePath);
   const serviceMeta = [
     {
       href: absoluteUrl('/.well-known/agent-skills/index.json', siteUrl, basePath),
@@ -178,25 +177,6 @@ export function getApiCatalog(site?: URL | string, basePath = '/') {
     linkset: [
       {
         anchor: homeUrl,
-        item: [
-          {
-            href: betaSignupUrl,
-            type: 'multipart/form-data',
-            title: 'BiciRadar beta signup API',
-          },
-        ],
-        'service-desc': [
-          {
-            href: absoluteUrl('/api/openapi.json', siteUrl, basePath),
-            type: 'application/openapi+json',
-          },
-        ],
-        'service-doc': [
-          {
-            href: absolutePageUrl('/api/docs', siteUrl, basePath),
-            type: 'text/html',
-          },
-        ],
         describedby: [
           {
             href: absoluteUrl('/llms.txt', siteUrl, basePath),
@@ -225,25 +205,7 @@ type AgentSkill = {
 
 export function getAgentSkillsIndex(site?: URL | string, basePath = '/') {
   const siteUrl = resolveSiteUrl(site);
-  const rootUrl = absolutePageUrl('/', siteUrl, basePath);
-  const skills: AgentSkill[] = [
-    {
-      id: 'link-headers',
-      title: 'Homepage Link headers for agent discovery',
-      href: rootUrl,
-      output: {
-        header: 'Link',
-        relations: ['api-catalog', 'service-desc', 'service-doc', 'describedby', 'service-meta'],
-      },
-    },
-    {
-      id: 'markdown-negotiation',
-      title: 'Markdown representation for HTML pages',
-      href: rootUrl,
-      accepts: ['text/markdown'],
-      contentType: 'text/markdown; charset=utf-8',
-    },
-  ];
+  const skills: AgentSkill[] = [];
 
   if (hasOAuthDiscoveryConfig()) {
     skills.push({

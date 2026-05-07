@@ -118,8 +118,5 @@ const { locale, pageKind, cityPageKey = '' } = Astro.props;
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    if (pageKind === 'thank-you') {
-      track('thank_you_page_view');
-    }
   })();
 </script>

@@ -13,14 +13,11 @@ afterEach(() => {
 });
 
 describe('getApiCatalog', () => {
-  it('publishes the public API, docs, and always-available agent metadata resources', () => {
+  it('publishes the always-available landing metadata resources', () => {
     const body = getApiCatalog('https://biciradar.es', '/');
     const entry = body.linkset[0];
 
     expect(entry.anchor).toBe('https://biciradar.es/');
-    expect(entry.item[0]?.href).toBe('https://biciradar.es/api/beta-signup');
-    expect(entry['service-desc'][0]?.href).toBe('https://biciradar.es/api/openapi.json');
-    expect(entry['service-doc'][0]?.href).toBe('https://biciradar.es/api/docs/');
     expect(entry.describedby[0]?.href).toBe('https://biciradar.es/llms.txt');
     expect(entry['service-meta'].map((item) => item.href)).toEqual([
       'https://biciradar.es/.well-known/agent-skills/index.json',
@@ -75,13 +72,10 @@ describe('getOAuthDiscoveryMetadata', () => {
 });
 
 describe('getAgentSkillsIndex', () => {
-  it('includes only the always-available skills by default', () => {
+  it('includes no built-in skills by default', () => {
     const body = getAgentSkillsIndex('https://biciradar.es', '/');
 
-    expect(body.skills.map((skill) => skill.id)).toEqual([
-      'link-headers',
-      'markdown-negotiation',
-    ]);
+    expect(body.skills.map((skill) => skill.id)).toEqual([]);
   });
 
   it('adds optional skills only when the related capabilities are configured', () => {
@@ -94,8 +88,6 @@ describe('getAgentSkillsIndex', () => {
     const body = getAgentSkillsIndex('https://biciradar.es', '/');
 
     expect(body.skills.map((skill) => skill.id)).toEqual([
-      'link-headers',
-      'markdown-negotiation',
       'oauth-discovery',
       'mcp-server-card',
     ]);
