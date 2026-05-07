@@ -26,8 +26,10 @@ subprojects {
     outputToConsole.set(true)
     ignoreFailures.set(false)
     filter {
-      exclude("**/build/**")
-      exclude("**/generated/**")
+      exclude { element ->
+        val path = element.file.path
+        path.contains("/build/generated/")
+      }
     }
   }
 }

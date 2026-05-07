@@ -103,16 +103,17 @@ class StationsRepositoryImpl(
     val city = settingsRepository.currentSelectedCity()
     val attemptAt = currentTimeMs()
 
-    val generation = loadMutex.withLock {
-      fetchGeneration++
-      updateLoadingState(
-        isLoading = true,
-        errorMessage = null,
-        lastRefreshAttemptEpoch = attemptAt,
-        userLocation = currentLocation,
-      )
-      fetchGeneration
-    }
+    val generation =
+      loadMutex.withLock {
+        fetchGeneration++
+        updateLoadingState(
+          isLoading = true,
+          errorMessage = null,
+          lastRefreshAttemptEpoch = attemptAt,
+          userLocation = currentLocation,
+        )
+        fetchGeneration
+      }
 
     refreshStations(origin = origin, currentLocation = currentLocation, city = city, generation = generation)
   }
@@ -124,34 +125,35 @@ class StationsRepositoryImpl(
     val origin = currentLocation ?: fallbackLocation()
     val city = settingsRepository.currentSelectedCity()
 
-    val generation = loadMutex.withLock {
-      if (loaded) return@withLock 0
+    val generation =
+      loadMutex.withLock {
+        if (loaded) return@withLock 0
 
-      val attemptAt = currentTimeMs()
-      updateLoadingState(
-        isLoading = true,
-        errorMessage = null,
-        lastRefreshAttemptEpoch = attemptAt,
-        userLocation = currentLocation,
-      )
+        val attemptAt = currentTimeMs()
+        updateLoadingState(
+          isLoading = true,
+          errorMessage = null,
+          lastRefreshAttemptEpoch = attemptAt,
+          userLocation = currentLocation,
+        )
 
-      if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
-        cacheManager.clear()
-        lastGoodLocation = null
-        loaded = false
-        lastLoadedCityId = null
+        if (lastLoadedCityId != null && lastLoadedCityId != city.id) {
+          cacheManager.clear()
+          lastGoodLocation = null
+          loaded = false
+          lastLoadedCityId = null
+        }
+
+        fetchGeneration++
+        val gen = fetchGeneration
+
+        if (cacheManager.isFresh(city.id)) {
+          handleCacheHit(currentLocation, city, gen)
+          return@withLock 0
+        }
+
+        gen
       }
-
-      fetchGeneration++
-      val gen = fetchGeneration
-
-      if (cacheManager.isFresh(city.id)) {
-        handleCacheHit(currentLocation, city, gen)
-        return@withLock 0
-      }
-
-      gen
-    }
 
     if (generation == 0) return
     refreshStations(origin = origin, currentLocation = currentLocation, city = city, generation = generation)
