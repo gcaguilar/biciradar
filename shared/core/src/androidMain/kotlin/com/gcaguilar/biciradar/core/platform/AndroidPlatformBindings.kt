@@ -13,7 +13,6 @@ import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
-import android.os.CancellationSignal
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
