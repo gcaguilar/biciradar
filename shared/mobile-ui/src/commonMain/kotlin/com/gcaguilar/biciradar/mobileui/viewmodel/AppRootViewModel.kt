@@ -289,10 +289,15 @@ internal class AppRootViewModel(
       recomputeStartupLaunchReady()
       refreshOrchestrator.maybeRefreshSurfaceSnapshot(viewModelScope, _uiState.value)
       maybeAutoCompleteOnboarding()
-      if (runtimeState.value.pendingRefreshSignals == 0) {
-        runtimeState.update { it.copy(pendingRefreshSignals = 1) }
-      }
-      maybeRefreshStations()
+      refreshOrchestrator.maybeLoadStationsOnStartup(
+        scope = viewModelScope,
+        uiState = _uiState.value,
+        refreshJob = refreshJob,
+        onInitialLoadFinished = {
+          _uiState.update { state -> state.copy(initialLoadAttemptFinished = true) }
+        },
+        recomputeStartupLaunchReady = ::recomputeStartupLaunchReady,
+      )
       maybeRefreshExperiencePrompts()
     }
   }

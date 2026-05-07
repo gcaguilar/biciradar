@@ -233,6 +233,24 @@ internal class RefreshOrchestrator(
       }
   }
 
+  fun maybeLoadStationsOnStartup(
+    scope: CoroutineScope,
+    uiState: AppRootUiState,
+    refreshJob: MutableStateFlow<Job?>,
+    onInitialLoadFinished: () -> Unit,
+    recomputeStartupLaunchReady: () -> Unit,
+  ) {
+    if (!uiState.settingsBootstrapped || !uiState.favoritesBootstrapped) return
+    if (refreshJob.value?.isActive == true) return
+
+    refreshJob.value =
+      scope.launch {
+        appInitializer.loadStationsIfNeeded()
+        onInitialLoadFinished()
+        recomputeStartupLaunchReady()
+      }
+  }
+
   fun maybeScheduleEmptyStateRetry(
     scope: CoroutineScope,
     emptyStateRetryJob: MutableStateFlow<Job?>,
