@@ -194,13 +194,15 @@ internal class RefreshOrchestrator(
   private val appInitializer: AppInitializer,
 ) {
   private var emptyStateRetryCount = 0
+  private var surfaceSnapshotJob: Job? = null
 
   fun maybeRefreshSurfaceSnapshot(
     scope: CoroutineScope,
     uiState: AppRootUiState,
   ) {
     if (!uiState.settingsBootstrapped || !uiState.favoritesBootstrapped) return
-    scope.launch { appInitializer.refreshSurfaceSnapshot() }
+    if (surfaceSnapshotJob?.isActive == true) return
+    surfaceSnapshotJob = scope.launch { appInitializer.refreshSurfaceSnapshot() }
   }
 
   fun maybeRefreshStations(
@@ -238,6 +240,7 @@ internal class RefreshOrchestrator(
   fun maybeLoadStationsOnStartup(
     scope: CoroutineScope,
     uiState: AppRootUiState,
+    runtimeState: MutableStateFlow<AppRootRuntimeState>,
     refreshJob: MutableStateFlow<Job?>,
     onInitialLoadFinished: () -> Unit,
     recomputeStartupLaunchReady: () -> Unit,
@@ -250,6 +253,16 @@ internal class RefreshOrchestrator(
         appInitializer.loadStationsIfNeeded()
         onInitialLoadFinished()
         recomputeStartupLaunchReady()
+        if (runtimeState.value.pendingRefreshSignals > 0) {
+          maybeRefreshStations(
+            scope = scope,
+            uiState = uiState,
+            runtimeState = runtimeState,
+            refreshJob = refreshJob,
+            onInitialLoadFinished = onInitialLoadFinished,
+            recomputeStartupLaunchReady = recomputeStartupLaunchReady,
+          )
+        }
       }
   }
 

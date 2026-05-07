@@ -292,6 +292,7 @@ internal class AppRootViewModel(
       refreshOrchestrator.maybeLoadStationsOnStartup(
         scope = viewModelScope,
         uiState = _uiState.value,
+        runtimeState = runtimeState,
         refreshJob = refreshJob,
         onInitialLoadFinished = {
           _uiState.update { state -> state.copy(initialLoadAttemptFinished = true) }
