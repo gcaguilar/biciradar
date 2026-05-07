@@ -24,7 +24,6 @@ import kotlin.coroutines.resume
 internal class AppleLocationProvider : LocationProvider {
   private val locationManager = CLLocationManager()
   private var pendingContinuation: CancellableContinuation<GeoPoint?>? = null
-  private val lock = Any()
   private val delegate = Delegate(this)
 
   init {
@@ -34,15 +33,11 @@ internal class AppleLocationProvider : LocationProvider {
 
   override suspend fun currentLocation(): GeoPoint? =
     suspendCancellableCoroutine { continuation ->
-      synchronized(lock) {
-        pendingContinuation?.let { if (it.isActive) it.resume(null) }
-        pendingContinuation = continuation
-      }
+      pendingContinuation?.let { if (it.isActive) it.resume(null) }
+      pendingContinuation = continuation
       continuation.invokeOnCancellation {
-        synchronized(lock) {
-          if (pendingContinuation === continuation) {
-            pendingContinuation = null
-          }
+        if (pendingContinuation === continuation) {
+          pendingContinuation = null
         }
       }
 
@@ -95,16 +90,10 @@ internal class AppleLocationProvider : LocationProvider {
   }
 
   private fun finish(location: GeoPoint?) {
-    val continuation =
-      synchronized(lock) {
-        val cont = pendingContinuation
-        pendingContinuation = null
-        cont
-      } ?: return
-    runCatching {
-      if (continuation.isActive) {
-        continuation.resume(location)
-      }
+    val continuation = pendingContinuation ?: return
+    pendingContinuation = null
+    if (continuation.isActive) {
+      continuation.resume(location)
     }
   }
 
