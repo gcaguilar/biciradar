@@ -7,6 +7,7 @@ import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
 import BetaForm from './BetaForm.astro';
 import { appStoreUrlForLocale, playStoreUrlForLocale, cityToDeepLink } from '../../lib/site-config';
+import { getCityPageMessaging } from '../../lib/city-page-messaging';
 
 interface LanguageLink {
   href: string;
@@ -21,12 +22,11 @@ interface Props {
   languageLinks: LanguageLink[];
   homeHref: string;
   betaHref: string;
-  thankYouPath: string;
-  formPagePath: string;
 }
 
-const { content, cityKey, languageLinks, homeHref, betaHref, thankYouPath, formPagePath } = Astro.props;
+const { content, cityKey, languageLinks, homeHref, betaHref } = Astro.props;
 const city = content.cityPages[cityKey];
+const cityMessaging = getCityPageMessaging(content.locale, cityKey, city);
 const appStoreHref = appStoreUrlForLocale(content.locale);
 const playStoreHref = playStoreUrlForLocale(content.locale);
 const cityDeepLink = cityToDeepLink(cityKey, content.locale);
@@ -46,14 +46,13 @@ const cityDeepLink = cityToDeepLink(cityKey, content.locale);
 <main id="main-content">
   <section class="marketing-shell">
     <div class="marketing-city-hero">
-      <div class="space-y-5">
+      <div class="marketing-city-hero__body">
         <p class="marketing-city-badge">{city.badge}</p>
-        <h1 class="max-w-3xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
-          {city.title}
-        </h1>
-        <p class="max-w-2xl text-lg leading-8 text-slate-600">{city.description}</p>
+        <h1 class="marketing-city-title">{cityMessaging.title}</h1>
+        <p class="marketing-city-description">{cityMessaging.description}</p>
+        <p class="marketing-city-context">{content.common.cityHeroMessage}</p>
 
-        <div class="flex flex-col gap-3 sm:flex-row">
+        <div class="marketing-city-actions">
           <a
             class="marketing-primary-button"
             href={cityDeepLink}
@@ -79,14 +78,16 @@ const cityDeepLink = cityToDeepLink(cityKey, content.locale);
         </div>
       </div>
 
-      <HeroMockup
-        stationLabel={city.mockup.stationLabel}
-        availability={city.mockup.availability}
-        bikesLabel={content.home.hero.mockup.bikesLabel}
-        docksLabel={content.home.hero.mockup.docksLabel}
-        chips={content.home.hero.mockup.chips}
-        compact
-      />
+      <div class="marketing-city-hero__mockup">
+        <HeroMockup
+          stationLabel={city.mockup.stationLabel}
+          availability={city.mockup.availability}
+          bikesLabel={content.home.hero.mockup.bikesLabel}
+          docksLabel={content.home.hero.mockup.docksLabel}
+          chips={content.home.hero.mockup.chips}
+          compact
+        />
+      </div>
     </div>
   </section>
 
@@ -134,14 +135,7 @@ const cityDeepLink = cityToDeepLink(cityKey, content.locale);
   </section>
 
   <section class="marketing-shell">
-    <BetaForm
-      locale={content.locale}
-      content={content.home.betaForm}
-      pageKind="city"
-      pagePath={formPagePath}
-      thankYouPath={thankYouPath}
-      cityPageKey={cityKey}
-    />
+    <BetaForm locale={content.locale} content={content.home.betaForm} />
   </section>
 
   <section class="marketing-shell">

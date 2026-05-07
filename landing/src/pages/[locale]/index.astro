@@ -5,7 +5,6 @@ import { getLocaleContent, locales, type Locale } from '../../content/marketing'
 import { buildAlternateLinks } from '../../lib/seo';
 import { getLanguageSwitchLinks, getLocalizedCityLinks } from '../../lib/marketing-pages';
 import { defaultLocale } from '../../lib/i18n';
-import { getThankYouPath } from '../../lib/routes';
 import { absolutePageUrl, resolveSiteUrl } from '../../utils/site';
 
 export function getStaticPaths() {
@@ -23,7 +22,6 @@ const route = { kind: 'home', locale } as const;
 const site = resolveSiteUrl(Astro.site);
 const alternates = buildAlternateLinks(route, site, import.meta.env.BASE_URL);
 const cityLinks = getLocalizedCityLinks(locale);
-const thankYouPath = getThankYouPath(locale);
 
 const structuredData = [
   {
@@ -62,7 +60,6 @@ const structuredData = [
     content={content}
     languageLinks={getLanguageSwitchLinks(route)}
     homeHref={`/${locale}/`}
-    thankYouPath={thankYouPath}
     cityLinks={cityLinks}
   />
 </Layout>

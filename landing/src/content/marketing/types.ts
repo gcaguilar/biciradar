@@ -218,6 +218,9 @@ export interface LocaleContent {
     cityPageCta: string;
     heroCta: string;
     heroSecondaryCta: string;
+    cityHeroMessage: string;
+    citySeoTitleSuffix: string;
+    citySeoDescriptionSuffix: string;
     finalCtaTitle: string;
     finalCtaDescription: string;
     cityRevisitLabel: string;

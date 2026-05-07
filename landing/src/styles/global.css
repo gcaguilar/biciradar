@@ -282,11 +282,37 @@ summary:focus-visible {
   }
 
   .marketing-city-hero {
-    @apply grid gap-8 rounded-[28px] border border-sky-200 bg-linear-to-br from-white to-sky-50 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] lg:grid-cols-[1.2fr_0.8fr] lg:items-center;
+    @apply grid gap-6 rounded-[28px] border border-sky-200 bg-linear-to-br from-white to-sky-50 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] md:p-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] lg:items-center xl:gap-8;
   }
 
   .marketing-city-badge {
     @apply inline-flex w-fit rounded-full bg-sky-100 px-3 py-1.5 text-sm font-semibold text-sky-700;
+  }
+
+  .marketing-city-hero__body {
+    @apply space-y-4 sm:space-y-5;
+  }
+
+  .marketing-city-title {
+    @apply max-w-3xl text-4xl font-black tracking-tight text-slate-950 sm:text-5xl;
+    line-height: 0.94;
+    text-wrap: balance;
+  }
+
+  .marketing-city-description {
+    @apply max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8;
+  }
+
+  .marketing-city-context {
+    @apply max-w-2xl rounded-2xl border border-sky-100/80 bg-white/70 px-4 py-3 text-sm leading-6 text-slate-500 shadow-sm backdrop-blur-sm;
+  }
+
+  .marketing-city-actions {
+    @apply flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap;
+  }
+
+  .marketing-city-hero__mockup {
+    @apply flex justify-center pt-1 lg:justify-end lg:pt-0;
   }
 
   .marketing-sticky-bar {

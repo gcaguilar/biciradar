@@ -25,11 +25,10 @@ interface Props {
   content: LocaleContent;
   languageLinks: LanguageLink[];
   homeHref: string;
-  thankYouPath: string;
   cityLinks: CityLink[];
 }
 
-const { content, languageLinks, homeHref, thankYouPath, cityLinks } = Astro.props;
+const { content, languageLinks, homeHref, cityLinks } = Astro.props;
 const appStoreHref = appStoreUrlForLocale(content.locale);
 const playStoreHref = playStoreUrlForLocale(content.locale);
 const sectionIds = content.home.header.sections.map((item) => item.id);
@@ -39,7 +38,7 @@ const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.h
 const webMcpConfig = {
   locale: content.locale,
   homeHref,
-  betaFormSelector: '#beta-form',
+  downloadSectionSelector: '#beta-form',
   appStoreHref,
   playStoreHref,
   cityLinks: cityLinks.map((city) => ({
@@ -235,13 +234,7 @@ const webMcpConfig = {
   </section>
 
   <section class="marketing-shell">
-    <BetaForm
-      locale={content.locale}
-      content={content.home.betaForm}
-      pageKind="home"
-      pagePath={homeHref}
-      thankYouPath={thankYouPath}
-    />
+    <BetaForm locale={content.locale} content={content.home.betaForm} />
   </section>
 
   <section class="marketing-shell" id={faqId}>
@@ -366,7 +359,7 @@ const webMcpConfig = {
       },
       {
         name: 'biciradar.focus_beta_signup',
-        description: 'Scroll to the beta signup form and optionally preselect the operating system.',
+        description: 'Scroll to the download section and optionally focus a platform link.',
         inputSchema: {
           type: 'object',
           additionalProperties: false,
@@ -378,21 +371,20 @@ const webMcpConfig = {
           },
         },
         execute: async ({ operatingSystem } = {}) => {
-          const form = document.querySelector(config.betaFormSelector);
-          if (!(form instanceof HTMLElement)) {
-            throw new Error('Beta signup form not found.');
+          const section = document.querySelector(config.downloadSectionSelector);
+          if (!(section instanceof HTMLElement)) {
+            throw new Error('Download section not found.');
           }
 
-          const operatingSystemField = form.querySelector('select[name="operatingSystem"]');
-          if (operatingSystem && operatingSystemField instanceof HTMLSelectElement) {
-            operatingSystemField.value = operatingSystem;
-            operatingSystemField.dispatchEvent(new Event('change', { bubbles: true }));
-          }
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          const emailField = form.querySelector('input[name="email"]');
-          if (emailField instanceof HTMLInputElement) {
-            emailField.focus({ preventScroll: true });
+          const targetLink =
+            operatingSystem === 'android'
+              ? section.querySelector('[data-track-store="play_store"]')
+              : section.querySelector('[data-track-store="app_store"]');
+
+          if (targetLink instanceof HTMLAnchorElement) {
+            targetLink.focus({ preventScroll: true });
           }
 
           return { ok: true, focused: true };

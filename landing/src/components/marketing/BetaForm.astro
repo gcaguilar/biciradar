@@ -1,29 +1,45 @@
 ---
-import type { CityKey, HomeContent, Locale } from '../../content/marketing/types';
+import type { HomeContent, Locale } from '../../content/marketing/types';
+import { appStoreUrlForLocale, playStoreUrlForLocale } from '../../lib/site-config';
 
 interface Props {
   locale: Locale;
   content: HomeContent['betaForm'];
-  pageKind: 'home' | 'city';
-  pagePath: string;
-  thankYouPath: string;
-  cityPageKey?: CityKey;
 }
 
-const { locale, content, pageKind, pagePath, thankYouPath, cityPageKey = '' } = Astro.props;
+const { locale, content } = Astro.props;
+const appStoreHref = appStoreUrlForLocale(locale);
+const playStoreHref = playStoreUrlForLocale(locale);
 
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? '';
-
-const betaFormMessages = {
-  required: content.validation.required,
-  email: content.validation.email,
-  consent: content.validation.consent,
-  turnstile: content.validation.turnstile,
-  server: content.validation.server,
-  loading: content.loadingLabel,
-  success: content.successMessage,
-  submit: content.submitLabel,
+const storeLabels: Record<Locale, { ios: string; android: string; note: string }> = {
+  es: {
+    ios: 'Descargar en App Store',
+    android: 'Descargar en Google Play',
+    note: 'Instala BiciRadar directamente desde tu tienda.',
+  },
+  en: {
+    ios: 'Download on the App Store',
+    android: 'Get it on Google Play',
+    note: 'Install BiciRadar directly from your store.',
+  },
+  ca: {
+    ios: 'Descarrega a l’App Store',
+    android: 'Descarrega a Google Play',
+    note: 'Instal·la BiciRadar directament des de la teva botiga.',
+  },
+  gl: {
+    ios: 'Descargar na App Store',
+    android: 'Descargar en Google Play',
+    note: 'Instala BiciRadar directamente desde a túa tenda.',
+  },
+  eu: {
+    ios: 'Deskargatu App Storen',
+    android: 'Deskargatu Google Play-n',
+    note: 'Instalatu BiciRadar zuzenean zure dendatik.',
+  },
 };
+
+const labels = storeLabels[locale];
 ---
 
 <section class="marketing-form-card" id="beta-form" aria-labelledby="beta-form-title">
@@ -36,106 +52,37 @@ const betaFormMessages = {
     </p>
   </div>
 
-  <form
-    action="/api/beta-signup"
-    class="mt-8 space-y-5"
-    data-beta-form
-    data-error-message={content.errorMessage}
-    data-page-kind={pageKind}
-    data-city-page-key={cityPageKey}
-    data-page-path={pagePath}
-    data-redirect-path={thankYouPath}
-    data-turnstile-active={turnstileSiteKey ? 'true' : 'false'}
-  >
-    <div class="grid gap-4 md:grid-cols-2">
-      <label class="marketing-field md:col-span-2">
-        <span>{content.fields.email.label}</span>
-        <input
-          name="email"
-          type="email"
-          placeholder={content.fields.email.placeholder}
-          required
-          autocomplete="email"
-          inputmode="email"
-          maxlength="254"
-        />
-      </label>
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    <a
+      class="marketing-platform-card marketing-platform-card-ios"
+      href={appStoreHref}
+      target="_blank"
+      rel="noreferrer"
+      data-track-event="store_download_click"
+      data-track-store="app_store"
+      data-track-placement="download_section"
+    >
+      <span class="marketing-chip marketing-chip-primary">iPhone</span>
+      <span class="marketing-platform-card__button marketing-platform-card__button-ios">
+        {labels.ios}
+      </span>
+    </a>
 
-      <label class="marketing-field md:col-span-2">
-        <span>{content.fields.operatingSystem.label}</span>
-        <select name="operatingSystem" required>
-          <option value="">{content.fields.operatingSystem.placeholder}</option>
-          {content.options.operatingSystems.map((option) => (
-            <option value={option.value}>{option.label}</option>
-          ))}
-        </select>
-      </label>
-    </div>
+    <a
+      class="marketing-platform-card marketing-platform-card-android"
+      href={playStoreHref}
+      target="_blank"
+      rel="noreferrer"
+      data-track-event="store_download_click"
+      data-track-store="play_store"
+      data-track-placement="download_section"
+    >
+      <span class="marketing-chip marketing-chip-secondary">Android</span>
+      <span class="marketing-platform-card__button marketing-platform-card__button-android">
+        {labels.android}
+      </span>
+    </a>
+  </div>
 
-    <div id="beta-form-consent" class="space-y-3 rounded-2xl border border-emerald-200 bg-white/70 p-4">
-      <label class="flex items-start gap-3 text-sm leading-6 text-slate-700">
-        <input
-          class="mt-1 size-4 rounded border-slate-300"
-          name="consent"
-          type="checkbox"
-          value="true"
-          required
-          data-beta-consent
-        />
-        <span>{content.consentLabel}</span>
-      </label>
-      <p class="text-xs text-slate-600">{content.consentHint}</p>
-    </div>
-
-    {
-      turnstileSiteKey ? (
-        <div class="rounded-2xl border border-slate-200 bg-white/80 p-4">
-          <input type="hidden" name="cf-turnstile-response" value="" data-turnstile-response />
-          <div class="min-h-[65px]" data-turnstile-container />
-        </div>
-      ) : null
-    }
-
-    <div class="sr-only">
-      <label>
-        {content.honeypotLabel}
-        <input name="company" type="text" tabindex="-1" autocomplete="off" />
-      </label>
-    </div>
-
-    <input name="locale" type="hidden" value={locale} />
-    <input name="pageKind" type="hidden" value={pageKind} />
-    <input name="cityPageKey" type="hidden" value={cityPageKey} />
-    <input name="pagePath" type="hidden" value={pagePath} />
-    <input name="startedAt" type="hidden" value="" data-started-at />
-    <input name="utm_source" type="hidden" value="" data-utm-field="utm_source" />
-    <input name="utm_medium" type="hidden" value="" data-utm-field="utm_medium" />
-    <input name="utm_campaign" type="hidden" value="" data-utm-field="utm_campaign" />
-    <input name="utm_content" type="hidden" value="" data-utm-field="utm_content" />
-    <input name="utm_term" type="hidden" value="" data-utm-field="utm_term" />
-
-    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <button
-        class="marketing-primary-button disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45"
-        type="submit"
-        disabled
-        data-beta-submit
-        aria-describedby="beta-form-consent"
-      >
-        <span data-submit-label>{content.submitLabel}</span>
-      </button>
-      <p aria-live="polite" class="text-sm font-medium text-emerald-950" data-form-status></p>
-    </div>
-  </form>
+  <p class="mt-4 text-sm leading-6 text-slate-600">{labels.note}</p>
 </section>
-
-<script
-  is:inline
-  type="application/json"
-  data-beta-form-config
-  set:html={JSON.stringify({ messages: betaFormMessages, turnstileSiteKey })}
-/>
-<script>
-  import { mountBetaForm } from '../../lib/beta-form-client';
-  mountBetaForm();
-</script>
