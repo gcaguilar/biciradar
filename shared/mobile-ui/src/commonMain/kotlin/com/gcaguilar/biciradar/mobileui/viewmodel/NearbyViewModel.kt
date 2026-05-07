@@ -141,14 +141,19 @@ class NearbyViewModel(
 
   fun onRequestLocationPermission() {
     viewModelScope.launch {
+      val wasGranted = locationPermissionGranted.value
       permissionPrompter.requestLocationPermission()
-      locationPermissionGranted.update { permissionPrompter.hasLocationPermission() }
+      val isGranted = permissionPrompter.hasLocationPermission()
+      locationPermissionGranted.update { isGranted }
+      if (!wasGranted && isGranted) {
+        stationsRepository.forceRefresh()
+      }
     }
   }
 
   fun onRetry() {
     viewModelScope.launch {
-      stationsRepository.loadIfNeeded()
+      stationsRepository.forceRefresh()
     }
   }
 

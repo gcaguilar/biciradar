@@ -107,8 +107,8 @@ class NearbyViewModelTest {
       viewModel.onQuickRoute(station)
       runCurrent()
 
-      assertEquals(1, stationsRepository.loadIfNeededCalls)
-      assertEquals(1, stationsRepository.forceRefreshCalls)
+      assertEquals(0, stationsRepository.loadIfNeededCalls)
+      assertEquals(2, stationsRepository.forceRefreshCalls)
       assertEquals(listOf("station-route"), favoritesRepository.toggledIds)
       assertEquals("station-route", routeLauncher.lastStationId)
     }
