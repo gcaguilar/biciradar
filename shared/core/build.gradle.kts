@@ -62,6 +62,7 @@ kotlin {
     }
     // Android main - we'll handle Firebase conditionally via flavors in the app module
     androidMain.dependencies {
+      compileOnly("com.google.android.gms:play-services-location:21.3.0")
       implementation(libs.androidx.core.ktx)
       implementation(libs.ktor.client.okhttp)
       implementation(libs.sqldelight.runtime)

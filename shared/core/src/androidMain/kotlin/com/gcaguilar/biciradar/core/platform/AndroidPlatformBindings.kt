@@ -45,15 +45,11 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
-import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
-import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
-import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
-import com.gcaguilar.biciradar.core.local.createAndroidDriver
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import com.gcaguilar.biciradar.core.model.GeoPoint
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
@@ -406,7 +402,11 @@ private class FdroidRouteLauncher(
 private class AndroidLocationProvider(
   private val context: Context,
 ) : LocationProvider {
-  private val locationManager by lazy(LazyThreadSafetyMode.NONE) {
+  private val fusedLocationClient by lazy(LazyThreadSafetyMode.NONE) {
+    LocationServices.getFusedLocationProviderClient(context)
+  }
+
+  private val locationManagerForCache by lazy(LazyThreadSafetyMode.NONE) {
     context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
   }
 
@@ -414,24 +414,46 @@ private class AndroidLocationProvider(
   override suspend fun currentLocation(): GeoPoint? {
     if (!hasLocationPermission()) return null
 
-    val providers =
+    val cached = getBestLastKnownLocation()
+    val fresh = requestFreshLocation()?.toGeoPoint() ?: cached?.toGeoPoint()
+    return fresh
+  }
+
+  private fun getBestLastKnownLocation(): Location? =
+    runCatching {
       sequenceOf(
         LocationManager.GPS_PROVIDER,
         LocationManager.NETWORK_PROVIDER,
         LocationManager.PASSIVE_PROVIDER,
-      ).filter(locationManager::isProviderEnabled).toList()
-    if (providers.isEmpty()) return null
+      )
+        .filter(locationManagerForCache::isProviderEnabled)
+        .mapNotNull { provider ->
+          runCatching { locationManagerForCache.getLastKnownLocation(provider) }.getOrNull()
+        }
+        .maxByOrNull(Location::getTime)
+    }.getOrNull()
 
-    val cached = freshestLastKnownLocation(providers)
+  private suspend fun requestFreshLocation(): Location? =
+    withTimeoutOrNull(4_000L) {
+      suspendCancellableCoroutine { continuation ->
+        val cancellationSource = CancellationTokenSource()
+        continuation.invokeOnCancellation { cancellationSource.cancel() }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      providers.forEach { provider ->
-        requestCurrentLocation(provider)?.let { return it.toGeoPoint() }
+        fusedLocationClient
+          .getCurrentLocation(
+            LocationRequest.Builder(4_000L).build(),
+            cancellationSource.token,
+          ).addOnSuccessListener { location ->
+            if (continuation.isActive) {
+              continuation.resume(location)
+            }
+          }.addOnFailureListener {
+            if (continuation.isActive) {
+              continuation.resume(null)
+            }
+          }
       }
     }
-
-    return cached?.toGeoPoint()
-  }
 
   private fun hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(
@@ -442,31 +464,6 @@ private class AndroidLocationProvider(
         context,
         android.Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
-
-  private fun freshestLastKnownLocation(providers: List<String>): Location? =
-    providers
-      .mapNotNull { provider -> runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull() }
-      .maxByOrNull(Location::getTime)
-
-  private suspend fun requestCurrentLocation(provider: String): Location? =
-    withTimeoutOrNull(4_000L) {
-      suspendCancellableCoroutine { continuation ->
-        val cancellationSignal = CancellationSignal()
-        continuation.invokeOnCancellation { cancellationSignal.cancel() }
-        runCatching {
-          @Suppress("DEPRECATION")
-          locationManager.getCurrentLocation(provider, cancellationSignal, context.mainExecutor) { location ->
-            if (continuation.isActive) {
-              continuation.resume(location)
-            }
-          }
-        }.onFailure {
-          if (continuation.isActive) {
-            continuation.resume(null)
-          }
-        }
-      }
-    }
 
   private fun Location.toGeoPoint(): GeoPoint = GeoPoint(latitude = latitude, longitude = longitude)
 }
