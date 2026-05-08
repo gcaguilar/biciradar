@@ -26,8 +26,10 @@ To publish both mobile and WearOS versions under the same app listing:
 7. Opt-in to distribution and review the terms of service
 
 The CI workflow publishes:
-- Mobile app to the `alpha` track
+- Mobile app to the `alpha` and `production` tracks
 - WearOS app to the `wear:alpha` dedicated form factor track
+
+For Android mobile, the workflow publishes both tracks with `status: completed` and a configurable `update_criticality` value mapped to Play's `inAppUpdatePriority`.
 
 Users will see one app listing, but Google Play serves the appropriate version based on their device.
 

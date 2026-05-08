@@ -1,4 +1,4 @@
-name: Publish Android to Play Closed Testing
+name: Publish Android to Play
 
 on:
   workflow_dispatch:
@@ -12,8 +12,8 @@ on:
           - all
           - android
           - wear
-      in_app_update_priority:
-        description: 'Android in-app update priority (0-5)'
+      update_criticality:
+        description: 'Android update criticality (0-5)'
         required: true
         default: '3'
         type: string
@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   publish-android:
-    name: Publish Android AAB to Play Closed Testing
+    name: Publish Android AAB to Play
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'android'
@@ -101,28 +101,40 @@ jobs:
             androidApp/build/outputs/bundle/playstoreRelease/*.aab
             androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
-      - name: Validate Android in-app update priority
+      - name: Validate Android update criticality
         run: |
-          priority="${{ github.event.inputs.in_app_update_priority }}"
+          priority="${{ github.event.inputs.update_criticality }}"
           if ! [[ "$priority" =~ ^[0-5]$ ]]; then
-            echo "::error::in_app_update_priority must be a single digit between 0 and 5"
+            echo "::error::update_criticality must be a single digit between 0 and 5"
             exit 1
           fi
 
-      - name: Publish to Play Console closed testing
+      - name: Publish to Play Console alpha track
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: alpha, production
+          tracks: alpha
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
-          inAppUpdatePriority: ${{ github.event.inputs.in_app_update_priority }}
+          inAppUpdatePriority: ${{ github.event.inputs.update_criticality }}
+
+      - name: Publish to Play Console production track
+        uses: r0adkll/upload-google-play@v1.1.5
+        with:
+          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
+          packageName: com.gcaguilar.biciradar
+          releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
+          mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
+          tracks: production
+          status: completed
+          releaseName: ${{ env.RELEASE_TAG }}
+          inAppUpdatePriority: ${{ github.event.inputs.update_criticality }}
 
   publish-wear:
-    name: Publish WearOS AAB to Play Closed Testing
+    name: Publish WearOS AAB to Play
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'wear'
@@ -195,13 +207,13 @@ jobs:
             wearApp/build/outputs/bundle/playstoreRelease/*.aab
             wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
-      - name: Publish WearOS to Play Console closed testing
+      - name: Publish WearOS to Play Console alpha track
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
           releaseFiles: wearApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          track: wear:alpha
+          tracks: wear:alpha
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
