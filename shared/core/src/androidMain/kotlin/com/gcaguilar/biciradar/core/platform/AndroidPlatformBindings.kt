@@ -15,6 +15,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import com.gcaguilar.biciradar.core.AppConfiguration
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.AssistantIntentResolver
@@ -69,7 +71,10 @@ interface AndroidOptionalServices {
 
   fun createReviewPrompter(activityProvider: () -> Activity?): ReviewPrompter?
 
-  fun createAppUpdatePrompter(activityProvider: () -> Activity?): AppUpdatePrompter?
+  fun createAppUpdatePrompter(
+    activityProvider: () -> Activity?,
+    launcher: ActivityResultLauncher<IntentSenderRequest>?,
+  ): AppUpdatePrompter?
 
   fun createWatchSyncBridge(): WatchSyncBridge?
 }
@@ -80,6 +85,10 @@ class AndroidPlatformBindings(
 ) : PlatformBindings {
   /** Activity used for in-app review / flexible updates; set from [attachExperienceActivity]. */
   var experienceActivity: Activity? = null
+
+  /** Injected by [MainActivity] after registering its [ActivityResultLauncher]. */
+  var appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
+
   private val isFdroidBuild = context.packageName.contains(".fdroid")
   private val optionalServices = loadOptionalServices(context)
 
@@ -89,7 +98,10 @@ class AndroidPlatformBindings(
     optionalServices?.createReviewPrompter { experienceActivity }
       ?: AndroidReviewPrompter(context) { experienceActivity }
   private val androidAppUpdatePrompter =
-    optionalServices?.createAppUpdatePrompter { experienceActivity }
+    optionalServices?.createAppUpdatePrompter(
+      { experienceActivity },
+      appUpdateLauncher,
+    )
       ?: AndroidAppUpdatePrompter(context) { experienceActivity }
 
   override val permissionPrompter: PermissionPrompter get() = androidPermissionPrompter

@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -66,6 +67,14 @@ class MainActivity : ComponentActivity() {
     ) { granted ->
       notificationPermissionContinuation?.resume(granted)
       notificationPermissionContinuation = null
+    }
+
+  private val appUpdateLauncher =
+    registerForActivityResult(
+      ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+      // Play Core Library manages the result internally for FLEXIBLE updates.
+      // The system downloads in background automatically.
     }
 
   private var launchRequest by mutableStateOf<MobileLaunchRequest?>(null)
@@ -132,6 +141,8 @@ class MainActivity : ComponentActivity() {
         )
       }
     }
+
+    platformBindings.appUpdateLauncher = appUpdateLauncher
 
     SavedPlaceAlertsWorker.schedule(applicationContext)
   }

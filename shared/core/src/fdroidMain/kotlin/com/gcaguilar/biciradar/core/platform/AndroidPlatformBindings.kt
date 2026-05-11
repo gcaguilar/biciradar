@@ -11,6 +11,8 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.CancellationSignal
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -65,6 +67,9 @@ class AndroidPlatformBindings(
 ) : PlatformBindings {
   /** Activity used for in-app review / flexible updates; set from [attachExperienceActivity]. */
   var experienceActivity: Activity? = null
+
+  /** Injected by MainActivity after registering its ActivityResultLauncher. Not used in F-Droid. */
+  var appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
 
   private val androidPermissionPrompter = AndroidPermissionPrompter(context)
   private val androidExternalLinks = AndroidExternalLinks(context, appConfiguration)

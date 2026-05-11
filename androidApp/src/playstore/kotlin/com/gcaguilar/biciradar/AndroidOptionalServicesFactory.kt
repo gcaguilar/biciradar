@@ -33,6 +33,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 
 object AndroidOptionalServicesFactory {
   @JvmStatic
@@ -68,8 +70,11 @@ private class PhoneAndroidOptionalServices(
   override fun createReviewPrompter(activityProvider: () -> Activity?): ReviewPrompter =
     PlaystoreReviewPrompter(context, activityProvider)
 
-  override fun createAppUpdatePrompter(activityProvider: () -> Activity?): AppUpdatePrompter =
-    PlaystoreAppUpdatePrompter(context, activityProvider)
+  override fun createAppUpdatePrompter(
+    activityProvider: () -> Activity?,
+    launcher: ActivityResultLauncher<IntentSenderRequest>?,
+  ): AppUpdatePrompter =
+    PlaystoreAppUpdatePrompter(context, activityProvider, launcher)
 
   override fun createWatchSyncBridge(): WatchSyncBridge = PlaystoreWatchSyncBridge(context)
 }
@@ -130,6 +135,7 @@ private class PlaystoreReviewPrompter(
 private class PlaystoreAppUpdatePrompter(
   private val context: Context,
   private val activityProvider: () -> Activity?,
+  private val launcher: ActivityResultLauncher<IntentSenderRequest>?,
 ) : AppUpdatePrompter {
   private val appUpdateManager: AppUpdateManager by lazy(LazyThreadSafetyMode.NONE) {
     AppUpdateManagerFactory.create(context)
@@ -157,15 +163,28 @@ private class PlaystoreAppUpdatePrompter(
     val activity = activityProvider() ?: return false
     val info = runCatching { Tasks.await(appUpdateManager.appUpdateInfo) }.getOrNull() ?: return false
     if (!info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) return false
-    return runCatching {
-      appUpdateManager.startUpdateFlowForResult(
-        info,
-        activity,
-        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
-        ANDROID_FLEXIBLE_UPDATE_REQUEST_CODE,
-      )
-      true
-    }.getOrDefault(false)
+    return if (launcher != null) {
+      runCatching {
+        appUpdateManager.startUpdateFlow(
+          info,
+          AppUpdateType.FLEXIBLE,
+          activity,
+          AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+          launcher,
+        )
+        true
+      }.getOrDefault(false)
+    } else {
+      runCatching {
+        appUpdateManager.startUpdateFlowForResult(
+          info,
+          activity,
+          AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+          ANDROID_FLEXIBLE_UPDATE_REQUEST_CODE,
+        )
+        true
+      }.getOrDefault(false)
+    }
   }
 
   override suspend fun completeFlexibleUpdateIfReady(): Boolean {

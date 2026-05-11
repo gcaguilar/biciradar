@@ -2,6 +2,8 @@ package com.gcaguilar.biciradar.wear
 
 import android.content.Context
 import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
@@ -41,7 +43,10 @@ private class WearAndroidOptionalServices(
 
   override fun createReviewPrompter(activityProvider: () -> android.app.Activity?): ReviewPrompter? = null
 
-  override fun createAppUpdatePrompter(activityProvider: () -> android.app.Activity?): AppUpdatePrompter? = null
+  override fun createAppUpdatePrompter(
+    activityProvider: () -> android.app.Activity?,
+    launcher: ActivityResultLauncher<IntentSenderRequest>?,
+  ): AppUpdatePrompter? = null
 
   override fun createWatchSyncBridge(): WatchSyncBridge = WearPlaystoreWatchSyncBridge(context)
 }
