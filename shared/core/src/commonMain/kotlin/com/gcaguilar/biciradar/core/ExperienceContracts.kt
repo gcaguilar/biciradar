@@ -3,8 +3,6 @@ package com.gcaguilar.biciradar.core
 /** Opens external URLs (feedback form, store listings, etc.). */
 interface ExternalLinks {
   fun openFeedbackForm()
-
-  fun openGarminDevicePairing() = Unit
 }
 
 /** Location permission prompts for guided onboarding (Android uses Activity-backed requester). */

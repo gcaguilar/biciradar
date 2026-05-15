@@ -41,15 +41,6 @@ internal class IOSExternalLinksImpl(
     )
   }
 
-  override fun openGarminDevicePairing() {
-    NSURL.URLWithString("biciradar://garmin/pair")?.let { url ->
-      UIApplication.sharedApplication.openURL(
-        url = url,
-        options = emptyMap<Any?, Any>(),
-        completionHandler = null,
-      )
-    }
-  }
 }
 
 internal class IOSPermissionPrompterImpl : PermissionPrompter {
