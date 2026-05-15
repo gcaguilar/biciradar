@@ -50,9 +50,6 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceGbfsDetai
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.dataSourceTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.feedbackAndSuggestions
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.feedbackDescription
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectAction
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectDescription
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.garminConnectTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteApp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteAppDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.iPhoneRouteAppFallback
@@ -101,7 +98,6 @@ internal fun ProfileScreen(
   onOpenOnboarding: () -> Unit,
   onOpenShortcuts: () -> Unit,
   onOpenFeedback: () -> Unit,
-  onOpenGarminPairing: () -> Unit,
   onRateApp: () -> Unit,
 ) {
   var showDataSourcesDialog by remember { mutableStateOf(false) }
@@ -241,16 +237,6 @@ internal fun ProfileScreen(
               color = LocalBiziColors.current.muted,
             )
           }
-        }
-      }
-      if (state.showGarminSection && mobilePlatform == MobileUiPlatform.IOS) {
-        item {
-          BiziSectionCard(
-            title = stringResource(Res.string.garminConnectTitle),
-            description = stringResource(Res.string.garminConnectDescription),
-            actionLabel = stringResource(Res.string.garminConnectAction),
-            onAction = onOpenGarminPairing,
-          )
         }
       }
       item {

@@ -279,7 +279,6 @@ internal object BiziMobileAppContent {
     onOpenFeedback: () -> Unit = {},
     onOpenOnboarding: () -> Unit = {},
     onOpenShortcuts: () -> Unit = {},
-    onOpenGarminPairing: () -> Unit = {},
     onRateApp: () -> Unit = {},
   ) = ProfileScreen(
     state =
@@ -304,7 +303,6 @@ internal object BiziMobileAppContent {
     onOpenOnboarding = onOpenOnboarding,
     onOpenShortcuts = onOpenShortcuts,
     onOpenFeedback = onOpenFeedback,
-    onOpenGarminPairing = onOpenGarminPairing,
     onRateApp = onRateApp,
   )
 
@@ -334,7 +332,6 @@ internal object BiziMobileAppContent {
       onOpenOnboarding = onOpenOnboarding,
       onOpenShortcuts = onOpenShortcuts,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
-      onOpenGarminPairing = { platformBindings.externalLinks.openGarminDevicePairing() },
       onRateApp = {
         if (mobilePlatform == MobileUiPlatform.Android) {
           scope.launch {
