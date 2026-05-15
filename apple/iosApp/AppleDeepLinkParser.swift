@@ -2,11 +2,6 @@ import BiziMobileUi
 import Foundation
 
 enum AppleDeepLinkParser {
-    static func isGarminPairingRequest(_ url: URL) -> Bool {
-        guard url.scheme?.lowercased() == "biciradar" else { return false }
-        return url.host?.lowercased() == "garmin" && url.path.lowercased() == "/pair"
-    }
-
     static func parse(_ url: URL) -> (any MobileLaunchRequest)? {
         guard url.scheme?.lowercased() == "biciradar" else { return nil }
         let host = url.host?.lowercased()

@@ -1,6 +1,5 @@
 import AppIntents
 import BiziMobileUi
-import ConnectIQ
 import Foundation
 import OSLog
 import SwiftUI
@@ -28,7 +27,6 @@ struct BiciRadarApp: App {
         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
         FirebaseBootstrap.configureIfAvailable()
         GoogleMapsBootstrap.configureIfAvailable()
-        GarminConnectManager.shared.start()
         BiziBackgroundTaskHandler.registerTasks()
         Task {
             BiziAppShortcuts.updateAppShortcutParameters()
@@ -51,13 +49,6 @@ struct BiciRadarApp: App {
                     )
                 }
                 .onOpenURL { url in
-                    if GarminConnectManager.shared.handleOpenURL(url) {
-                        return
-                    }
-                    if AppleDeepLinkParser.isGarminPairingRequest(url) {
-                        GarminConnectManager.shared.beginPairing()
-                        return
-                    }
                     guard let request = AppleDeepLinkParser.parse(url) else { return }
                     AppleLaunchRequestStore.shared.save(request)
                     applyPendingLaunchRequest()
@@ -66,7 +57,6 @@ struct BiciRadarApp: App {
                     switch newPhase {
                     case .active:
                         applyPendingLaunchRequest()
-                        GarminConnectManager.shared.sceneDidBecomeActive()
                         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
                         SurfaceMonitoringActivityController.shared.startRefreshing()
                         composeWrapper.requestRefresh()

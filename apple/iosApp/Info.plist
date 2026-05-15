@@ -71,7 +71,6 @@
  	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
-		<string>gcm-ciq</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -79,8 +78,6 @@
 	<string>16.0</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your precise location to show nearby bike sharing stations on the map and help you find available bikes and free docks near you. Your location is only used on the device and is not stored or shared.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Bici Radar uses Bluetooth to communicate with your Garmin Connect IQ device and keep the watch widget updated with nearby bike station data.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSUserNotificationUsageDescription</key>
@@ -88,7 +85,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>bluetooth-central</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
