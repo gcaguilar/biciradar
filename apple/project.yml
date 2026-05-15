@@ -22,20 +22,17 @@ options:
 
 settings:
   base:
-    CURRENT_PROJECT_VERSION: 29568089
-    MARKETING_VERSION: 0.22.5
+    CURRENT_PROJECT_VERSION: 29568090
+    MARKETING_VERSION: 0.22.13
     SWIFT_VERSION: "5.10"
 
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
-    exactVersion: 12.11.0
+    exactVersion: 12.12.1
   GoogleMaps:
     url: https://github.com/googlemaps/ios-maps-sdk
-    exactVersion: 10.10.0
-  ConnectIQ:
-    url: https://github.com/garmin/connectiq-companion-app-sdk-ios
-    branch: main
+    exactVersion: 10.12.0
 
 targets:
   BiciRadar:
