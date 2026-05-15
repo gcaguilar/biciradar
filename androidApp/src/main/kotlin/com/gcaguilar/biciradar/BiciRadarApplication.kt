@@ -8,7 +8,6 @@ class BiciRadarApplication : Application() {
   override fun onCreate() {
     super.onCreate()
     BiziAppGraph.initialize(this)
-    GarminCompanionBridge.initialize(this, BiziAppGraph.graph)
     initializeWorkManagerSafely()
     WidgetRefreshWorker.reconcile(this)
     WidgetRefreshWorker.scheduleImmediate(this)

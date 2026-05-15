@@ -161,7 +161,6 @@ dependencies {
   add("fdroidImplementation", libs.osmdroid.android)
 
   // Play Store flavor dependencies
-  add("playstoreImplementation", playstore.garmin.connectiq.sdk)
   add("playstoreImplementation", playstore.maps.compose)
   add("playstoreImplementation", playstore.remote.config.sdk)
   add("playstoreImplementation", playstore.play.services.maps)
@@ -211,7 +210,6 @@ val verifyFdroidReleaseDependencies by
         "com.google.android.gms:",
         "com.google.android.play:",
         mobileServicesGroupPrefix,
-        "com.garmin.connectiq:",
         "com.google.maps.android:",
       ),
     )

@@ -197,7 +197,6 @@ val verifyFdroidReleaseDependencies by
         "com.google.android.gms:",
         "com.google.android.play:",
         mobileServicesGroupPrefix,
-        "com.garmin.connectiq:",
         "com.google.maps.android:",
       ),
     )
