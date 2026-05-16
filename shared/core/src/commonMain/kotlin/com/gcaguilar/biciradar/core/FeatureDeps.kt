@@ -7,32 +7,74 @@ import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
 import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
 
 /**
- * Dependencias del feature de estaciones.
+ * Bundled use cases for querying stations.
  *
- * Cubre consulta, refresco, monitorización y observación de estaciones.
- * Consumidores: shells de iOS, watchOS, Android y sus extensiones (widgets, Siri).
+ * Deep interface: 6 methods behind a focused seam. Callers get all station lookup
+ * operations without depending on the full [StationsFeatureDeps] surface.
  */
-interface StationsFeatureDeps {
-  val changeCityUseCase: ChangeCityUseCase
-  val isCityConfiguredUseCase: IsCityConfiguredUseCase
+interface StationsQueryUseCases {
   val getCachedStationSnapshot: GetCachedStationSnapshot
   val getFavoriteStations: GetFavoriteStations
   val getNearestStations: GetNearestStations
   val getStationStatus: GetStationStatus
   val getSuggestedAlternativeStation: GetSuggestedAlternativeStation
-  val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
-  val startStationMonitoring: StartStationMonitoring
-  val stopStationMonitoring: StopStationMonitoring
   val getSuggestedStations: GetSuggestedStations
   val filterStationsByQuery: FilterStationsByQuery
   val findStationMatchingQuery: FindStationMatchingQuery
   val findNearestStation: FindNearestStation
   val findNearestStationWithBikes: FindNearestStationWithBikes
   val findNearestStationWithSlots: FindNearestStationWithSlots
-  val cityRegistry: CityRegistry
-  val refreshStationAvailability: RefreshStationAvailability
-  val observeStationsState: ObserveStationsState
   val findStationById: FindStationById
+  val getNearbyStationList: GetNearbyStationList
+}
+
+/**
+ * Bundled use cases for refreshing station data.
+ *
+ * Deep interface: 2 methods. All refresh logic concentrated in one seam.
+ */
+interface StationsRefreshUseCases {
+  val refreshStationDataIfNeeded: RefreshStationDataIfNeeded
+  val refreshStationAvailability: RefreshStationAvailability
+}
+
+/**
+ * Bundled use cases for station monitoring.
+ *
+ * Deep interface: 2 methods. Start and stop monitoring behind a small seam.
+ */
+interface StationsMonitoringUseCases {
+  val startStationMonitoring: StartStationMonitoring
+  val stopStationMonitoring: StopStationMonitoring
+}
+
+/**
+ * Bundled use cases for city configuration.
+ *
+ * Deep interface: 2 methods. City selection and configuration in one seam.
+ */
+interface CityConfigurationUseCases {
+  val changeCityUseCase: ChangeCityUseCase
+  val isCityConfiguredUseCase: IsCityConfiguredUseCase
+}
+
+/**
+ * Dependencias del feature de estaciones.
+ *
+ * Cubre consulta, refresco, monitorización y observación de estaciones.
+ * Consumidores: shells de iOS, watchOS, Android y sus extensiones (widgets, Siri).
+ *
+ * Station operations are split into focused sub-interfaces for depth:
+ * callers that only need queries depend on [StationsQueryUseCases],
+ * not the full [StationsFeatureDeps].
+ */
+interface StationsFeatureDeps :
+  StationsQueryUseCases,
+  StationsRefreshUseCases,
+  StationsMonitoringUseCases,
+  CityConfigurationUseCases {
+  val cityRegistry: CityRegistry
+  val observeStationsState: ObserveStationsState
   val datosBiziApi: DatosBiziApi
 }
 
