@@ -70,12 +70,12 @@ interface EngagementRepository {
 @ContributesBinding(AppScope::class)
 @Inject
 class EngagementRepositoryImpl(
-  private val settingsRepository: SettingsRepository,
+  private val engagementStorage: EngagementStorage,
 ) : EngagementRepository {
-  override val engagementSnapshot: StateFlow<EngagementSnapshot> = settingsRepository.engagementSnapshot
+  override val engagementSnapshot: StateFlow<EngagementSnapshot> = engagementStorage.engagementSnapshot
 
   override suspend fun bootstrap() {
-    settingsRepository.bootstrap()
+    engagementStorage.setEngagementSnapshot(engagementSnapshot.value)
   }
 
   override suspend fun markSessionStarted(nowEpoch: Long) {
@@ -170,6 +170,6 @@ class EngagementRepositoryImpl(
     )
 
   private suspend fun update(transform: (EngagementSnapshot) -> EngagementSnapshot) {
-    settingsRepository.setEngagementSnapshot(transform(engagementSnapshot.value))
+    engagementStorage.setEngagementSnapshot(transform(engagementSnapshot.value))
   }
 }

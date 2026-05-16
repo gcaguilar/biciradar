@@ -107,20 +107,9 @@ interface OnboardingRepository {
  */
 interface SettingsRepository :
   PreferencesRepository,
-  OnboardingRepository {
-  val engagementSnapshot: StateFlow<EngagementSnapshot>
-
+  OnboardingRepository,
+  EngagementStorage {
   suspend fun bootstrap()
-
-  /**
-   * Updates the engagement snapshot stored in settings.
-   *
-   * This is intentionally a method on [SettingsRepository] because
-   * [EngagementRepositoryImpl] needs to persist its data through this seam.
-   * The [EngagementRepository] interface owns the business logic; persistence
-   * flows through this channel.
-   */
-  suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot)
 
   /**
    * First launch with string-based changelog: set [lastSeenChangelogAppVersion] to [appVersion] if still null
@@ -232,7 +221,7 @@ class SettingsRepositoryImpl(
       .map { it.onboardingChecklist }
       .stateIn(scope, SharingStarted.Eagerly, OnboardingChecklistSnapshot())
 
-  // --- SettingsRepository coordinator methods ---
+  // --- EngagementStorage delegate properties ---
 
   override val engagementSnapshot: StateFlow<EngagementSnapshot> =
     readModel
