@@ -6,6 +6,10 @@ import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 
+// ============================================================================
+// EXISTING PLATFORM-LEVEL INTERFACES (kept for backward compatibility)
+// ============================================================================
+
 interface BiziHttpClientFactory {
   fun create(json: Json): HttpClient
 }
@@ -66,37 +70,112 @@ interface DatabaseFactory {
   fun create(json: Json = Json { ignoreUnknownKeys = true }): BiciRadarDatabase?
 }
 
-interface PlatformBindings {
+// ============================================================================
+// DEEP PLATFORM INTERFACES (granular composition)
+// ============================================================================
+
+/**
+ * Deep interface for network platform services.
+ */
+interface NetworkPlatform {
+  val httpClientFactory: BiziHttpClientFactory
+  val remoteConfigProvider: RemoteConfigProvider get() = NoOpRemoteConfigProvider
+}
+
+/**
+ * Deep interface for location platform services.
+ */
+interface LocationPlatform {
+  val locationProvider: LocationProvider
+  val mapSupport: MapSupport
+}
+
+/**
+ * Deep interface for navigation platform services.
+ */
+interface NavigationPlatform {
+  val routeLauncher: RouteLauncher
+}
+
+/**
+ * Deep interface for crypto platform services.
+ */
+interface CryptoPlatform {
+  val secureKeyStore: SecureKeyStore
+}
+
+/**
+ * Deep interface for notification platform services.
+ */
+interface NotificationPlatform {
+  val localNotifier: LocalNotifier
+}
+
+/**
+ * Deep interface for experience platform services.
+ */
+interface ExperiencePlatform {
+  val permissionPrompter: PermissionPrompter get() = NoOpPermissionPrompter
+  val externalLinks: ExternalLinks get() = NoOpExternalLinks
+  val reviewPrompter: ReviewPrompter get() = NoOpReviewPrompter
+  val appUpdatePrompter: AppUpdatePrompter get() = NoOpAppUpdatePrompter
+}
+
+/**
+ * Deep interface for sync platform services.
+ */
+interface SyncPlatform {
+  val watchSyncBridge: WatchSyncBridge
+}
+
+/**
+ * Deep interface for database platform services.
+ */
+interface DatabasePlatform {
+  val databaseFactory: DatabaseFactory?
+}
+
+/**
+ * Deep interface for storage platform services.
+ */
+interface StoragePlatform {
+  val fileSystem: FileSystem
+  val storageDirectoryProvider: StorageDirectoryProvider
+}
+
+// ============================================================================
+// COMPOSITION ROOT
+// ============================================================================
+
+/**
+ * Composition root for all platform services.
+ *
+ * PlatformBindings extends all focused platform interfaces to provide
+ * a single access point.
+ */
+interface PlatformBindings :
+  NetworkPlatform,
+  LocationPlatform,
+  NavigationPlatform,
+  CryptoPlatform,
+  NotificationPlatform,
+  ExperiencePlatform,
+  SyncPlatform,
+  DatabasePlatform,
+  StoragePlatform {
   val appConfiguration: AppConfiguration
 
   @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver
   val crashlyticsReporter: CrashlyticsReporter get() = NoOpCrashlyticsReporter
-  val databaseFactory: DatabaseFactory?
-  val fileSystem: FileSystem
   val logger: Logger get() = NoOpLogger
 
   @GoogleMapsApiKey val googleMapsApiKey: String?
-  val httpClientFactory: BiziHttpClientFactory
-  val localNotifier: LocalNotifier
-  val locationProvider: LocationProvider
-  val mapSupport: MapSupport
 
   @OsVersion val osVersion: String
 
   @Platform val platform: String
-  val routeLauncher: RouteLauncher
-  val remoteConfigProvider: RemoteConfigProvider get() = NoOpRemoteConfigProvider
-  val secureKeyStore: SecureKeyStore
-  val storageDirectoryProvider: StorageDirectoryProvider
-  val watchSyncBridge: WatchSyncBridge
-  val permissionPrompter: PermissionPrompter get() = NoOpPermissionPrompter
-  val externalLinks: ExternalLinks get() = NoOpExternalLinks
-  val reviewPrompter: ReviewPrompter get() = NoOpReviewPrompter
-  val appUpdatePrompter: AppUpdatePrompter get() = NoOpAppUpdatePrompter
 
-  /** Called once after the [SharedGraph] has been created. Implementations may use this to wire
-   *  graph-provided dependencies (e.g. [SettingsRepository]) into platform-specific objects that
-   *  were constructed before the graph existed. */
+  /** Called once after the [SharedGraph] has been created. */
   fun onGraphCreated(graph: SharedGraph) {}
 }

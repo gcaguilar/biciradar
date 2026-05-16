@@ -20,6 +20,38 @@ data class EnvironmentalOverlayData(
   val zones: List<EnvironmentalOverlayZone>,
 )
 
+/**
+ * Color decision for station markers on the map.
+ *
+ * Pure logic extracted from platform Adapters so it can be tested independently
+ * of native map plumbing. Platform Adapters call this to get the right color.
+ */
+enum class StationMarkerColor {
+  Green,
+  Orange,
+  Red,
+  DarkGreen,
+  DarkOrange,
+  DarkRed,
+  Blue,
+}
+
+/**
+ * Determines the marker color for a station based on availability and selection state.
+ */
+fun determineStationMarkerColor(
+  station: Station,
+  highlighted: Boolean,
+): StationMarkerColor =
+  when {
+    station.bikesAvailable > 0 && station.slotsFree > 0 ->
+      if (highlighted) StationMarkerColor.DarkGreen else StationMarkerColor.Green
+    station.bikesAvailable == 0 && station.slotsFree == 0 ->
+      if (highlighted) StationMarkerColor.DarkRed else StationMarkerColor.Red
+    else ->
+      if (highlighted) StationMarkerColor.DarkOrange else StationMarkerColor.Orange
+  }
+
 @Composable
 internal expect fun PlatformStationMap(
   modifier: Modifier = Modifier,

@@ -40,7 +40,6 @@ internal class IOSExternalLinksImpl(
       completionHandler = null,
     )
   }
-
 }
 
 internal class IOSPermissionPrompterImpl : PermissionPrompter {

@@ -152,7 +152,6 @@ private class DesktopExternalLinks(
   override fun openFeedbackForm() {
     browse(appConfiguration.feedbackFormUrl)
   }
-
 }
 
 private class DesktopReviewPrompter(
