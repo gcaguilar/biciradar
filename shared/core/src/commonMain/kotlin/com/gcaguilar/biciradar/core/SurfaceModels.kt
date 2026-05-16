@@ -167,3 +167,119 @@ fun formatRelativeMinutes(
 
 fun SurfaceMonitoringSession.remainingSeconds(nowEpoch: Long = currentTimeMs()): Int =
   ((expiresAtEpoch - nowEpoch) / 1000L).toInt().coerceAtLeast(0)
+
+/**
+ * Módulo profundo de presentación de superficie.
+ *
+ * Unifica la lógica de presentación que antes estaba duplicada en:
+ * - AndroidSurfaceRendering.kt (widgets Android)
+ * - WearStationPresentation.kt (tiles Wear OS)
+ * - WatchSurfaceSnapshot.swift / WatchWidgets.swift (watchOS)
+ *
+ * Las funciones aquí son puras y operan sobre los modelos de dominio.
+ * Los platform Adapters solo reciben los valores ya formateados y los mapean a UI nativa.
+ */
+fun formatMonitoringCountdown(remainingSeconds: Int): String {
+  val minutes = remainingSeconds / 60
+  val seconds = remainingSeconds % 60
+  return if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
+}
+
+/**
+ * Texto de estado para monitorización.
+ */
+fun formatMonitoringStatusText(
+  status: SurfaceMonitoringStatus,
+  kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Bikes,
+): String =
+  when (status) {
+    SurfaceMonitoringStatus.Monitoring ->
+      if (kind == SurfaceMonitoringKind.Docks) "Monitorizando huecos" else "Monitorizando bicis"
+    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
+    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
+    SurfaceMonitoringStatus.Ended -> "Finalizada"
+    SurfaceMonitoringStatus.Expired -> "Expirada"
+  }
+
+/**
+ * Texto alternativo para estación alternativa sugerida.
+ */
+fun formatMonitoringAlternativeText(
+  session: SurfaceMonitoringSession,
+  distanceFormatter: (Int) -> String = ::formatDistance,
+): String? {
+  val alternativeName = session.alternativeStationName ?: return null
+  val distance = session.alternativeDistanceMeters?.let { " (${distanceFormatter(it)})" }.orEmpty()
+  return "Alt: $alternativeName$distance"
+}
+
+/**
+ * Título de notificación para monitorización.
+ */
+fun formatMonitoringNotificationTitle(session: SurfaceMonitoringSession): String =
+  when (session.status) {
+    SurfaceMonitoringStatus.Monitoring -> session.stationName
+    SurfaceMonitoringStatus.ChangedToEmpty -> "${session.stationName} sin bicis"
+    SurfaceMonitoringStatus.ChangedToFull -> "${session.stationName} sin huecos"
+    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa para ${session.stationName}"
+    SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
+    SurfaceMonitoringStatus.Expired -> "Monitorizacion finalizada"
+  }
+
+/**
+ * Cuerpo de notificación para monitorización.
+ */
+fun formatMonitoringNotificationBody(
+  session: SurfaceMonitoringSession,
+  remainingSeconds: Int,
+  distanceFormatter: (Int) -> String = ::formatDistance,
+): String =
+  when (session.status) {
+    SurfaceMonitoringStatus.Ended -> "${session.stationName} · Finalizada por el usuario"
+    SurfaceMonitoringStatus.Expired -> "${session.stationName} · Tiempo agotado"
+    else ->
+      listOfNotNull(
+        formatMonitoringStatusText(session.status, session.kind),
+        "${session.bikesAvailable} bicis",
+        "${session.docksAvailable} huecos",
+        formatMonitoringCountdown(remainingSeconds),
+        formatMonitoringAlternativeText(session, distanceFormatter),
+      ).joinToString(" · ")
+  }
+
+/**
+ * Estado vacío para widget de estación favorita.
+ */
+enum class WidgetEmptyState {
+  ConfigureFavorite,
+  NoLocationPermission,
+  OpenAppToRefresh,
+  DataUnavailable,
+}
+
+/**
+ * Determina el estado vacío para un widget de estación favorita.
+ */
+fun determineFavoriteWidgetEmptyState(
+  hasFavoriteStation: Boolean?,
+  isDataFresh: Boolean?,
+): WidgetEmptyState =
+  when {
+    hasFavoriteStation == false -> WidgetEmptyState.ConfigureFavorite
+    isDataFresh == false -> WidgetEmptyState.OpenAppToRefresh
+    else -> WidgetEmptyState.DataUnavailable
+  }
+
+/**
+ * Determina el estado vacío para un widget de estaciones cercanas.
+ */
+fun determineNearbyWidgetEmptyState(
+  hasLocationPermission: Boolean?,
+  isDataFresh: Boolean?,
+): WidgetEmptyState =
+  when {
+    hasLocationPermission == false -> WidgetEmptyState.NoLocationPermission
+    isDataFresh == false -> WidgetEmptyState.OpenAppToRefresh
+    else -> WidgetEmptyState.DataUnavailable
+  }

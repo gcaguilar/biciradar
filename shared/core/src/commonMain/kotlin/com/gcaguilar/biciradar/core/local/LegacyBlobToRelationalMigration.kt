@@ -4,9 +4,6 @@ import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import com.gcaguilar.biciradar.core.App_settings
-import com.gcaguilar.biciradar.core.EngagementSnapshot
-import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
-import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
@@ -22,8 +19,6 @@ import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.Surface_header
 import com.gcaguilar.biciradar.core.Surface_monitoring
 import com.gcaguilar.biciradar.core.Surface_station_row
-import com.gcaguilar.biciradar.core.ThemePreference
-import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import kotlinx.serialization.json.Json
 
 /**
@@ -206,122 +201,59 @@ private fun <T> QueryResult<T>.expectValue(): T =
       error("Legacy migration requires a synchronous SQLite driver (got async query result)")
   }
 
-internal fun normalizeLegacyOnboardingForMigration(snapshot: SettingsSnapshot): SettingsSnapshot {
-  var checklist = snapshot.onboardingChecklist
-  if (snapshot.hasCompletedOnboarding && !checklist.isCompleted()) {
-    checklist =
-      OnboardingChecklistSnapshot(
-        cityConfirmed = true,
-        featureHighlightsSeen = true,
-        locationDecisionMade = true,
-        notificationsDecisionMade = true,
-        firstStationSaved = true,
-        savedPlacesConfigured = true,
-        surfacesDiscovered = true,
-        completedAtEpoch = checklist.completedAtEpoch ?: currentTimeMs(),
-      )
-  }
-  return snapshot.copy(
-    onboardingChecklist = checklist,
-    hasCompletedOnboarding = checklist.isCompleted(),
-  )
-}
+internal fun normalizeLegacyOnboardingForMigration(snapshot: SettingsSnapshot): SettingsSnapshot =
+  DefaultSettingsAdapter().normalizeLegacyOnboarding(snapshot)
 
 internal fun settingsSnapshotFromDbRow(
   row: App_settings,
   mapFilterNames: Set<String>,
-): SettingsSnapshot =
-  SettingsSnapshot(
-    searchRadiusMeters = row.search_radius_meters.toInt(),
-    preferredMapApp = PreferredMapApp.valueOf(row.preferred_map_app),
-    lastSeenChangelogVersion = row.last_seen_changelog_version.toInt(),
-    lastSeenChangelogAppVersion = row.last_seen_changelog_app_version,
-    themePreference = ThemePreference.valueOf(row.theme_preference),
-    selectedCityId = row.selected_city_id,
-    hasCompletedOnboarding = row.has_completed_onboarding != 0L,
-    onboardingChecklist =
-      OnboardingChecklistSnapshot(
-        cityConfirmed = row.onboarding_city_confirmed != 0L,
-        featureHighlightsSeen = row.onboarding_feature_highlights_seen != 0L,
-        locationDecisionMade = row.onboarding_location_decision_made != 0L,
-        notificationsDecisionMade = row.onboarding_notifications_decision_made != 0L,
-        firstStationSaved = row.onboarding_first_station_saved != 0L,
-        savedPlacesConfigured = row.onboarding_saved_places_configured != 0L,
-        surfacesDiscovered = row.onboarding_surfaces_discovered != 0L,
-        completedAtEpoch = row.onboarding_completed_at_epoch,
-      ),
-    engagementSnapshot =
-      EngagementSnapshot(
-        installedAtEpoch = row.engagement_installed_at_epoch,
-        lastSessionEpoch = row.engagement_last_session_epoch,
-        usefulSessionsCount = row.engagement_useful_sessions_count.toInt(),
-        favoritesSavedCount = row.engagement_favorites_saved_count.toInt(),
-        routesOpenedCount = row.engagement_routes_opened_count.toInt(),
-        monitoringsCompletedCount = row.engagement_monitorings_completed_count.toInt(),
-        repeatedErrorCount = row.engagement_repeated_error_count.toInt(),
-        expiredDataEventsCount = row.engagement_expired_data_events_count.toInt(),
-        unavailableDataEventsCount = row.engagement_unavailable_data_events_count.toInt(),
-        lastFeedbackNudgeAtEpoch = row.engagement_last_feedback_nudge_at_epoch,
-        lastFeedbackDismissedAtEpoch = row.engagement_last_feedback_dismissed_at_epoch,
-        lastFeedbackOpenedAtEpoch = row.engagement_last_feedback_opened_at_epoch,
-        lastFeedbackNudgedVersion = row.engagement_last_feedback_nudged_version,
-        lastReviewRequestedAtEpoch = row.engagement_last_review_requested_at_epoch,
-        lastReviewRequestedVersion = row.engagement_last_review_requested_version,
-        dismissedUpdateVersion = row.engagement_dismissed_update_version,
-        lastUpdateCheckAtEpoch = row.engagement_last_update_check_at_epoch,
-        lastUpdateBannerDismissedAtEpoch = row.engagement_last_update_banner_dismissed_at_epoch,
-      ),
-    mapFilterNames = mapFilterNames,
-    preferredMonitoringDurationSeconds = row.preferred_monitoring_duration_seconds?.toInt(),
-  )
+): SettingsSnapshot = DefaultSettingsAdapter().toSnapshot(row, mapFilterNames)
 
 @Suppress("LongMethod")
 internal fun upsertSettingsFromSnapshot(
   db: BiciRadarDatabase,
   snapshot: SettingsSnapshot,
 ) {
-  val s = normalizeLegacyOnboardingForMigration(snapshot)
-  val e = s.engagementSnapshot
-  val o = s.onboardingChecklist
+  val args = DefaultSettingsAdapter().toUpsertArgs(snapshot)
   db.biciradarQueries.upsertAppSettings(
-    id = 1L,
-    searchRadiusMeters = s.searchRadiusMeters.toLong(),
-    preferredMapApp = s.preferredMapApp.name,
-    lastSeenChangelogVersion = s.lastSeenChangelogVersion.toLong(),
-    lastSeenChangelogAppVersion = s.lastSeenChangelogAppVersion,
-    themePreference = s.themePreference.name,
-    selectedCityId = s.selectedCityId,
-    hasCompletedOnboarding = if (s.hasCompletedOnboarding) 1L else 0L,
-    onboardingCityConfirmed = if (o.cityConfirmed) 1L else 0L,
-    onboardingFeatureHighlightsSeen = if (o.featureHighlightsSeen) 1L else 0L,
-    onboardingLocationDecisionMade = if (o.locationDecisionMade) 1L else 0L,
-    onboardingNotificationsDecisionMade = if (o.notificationsDecisionMade) 1L else 0L,
-    onboardingFirstStationSaved = if (o.firstStationSaved) 1L else 0L,
-    onboardingSavedPlacesConfigured = if (o.savedPlacesConfigured) 1L else 0L,
-    onboardingSurfacesDiscovered = if (o.surfacesDiscovered) 1L else 0L,
-    onboardingCompletedAtEpoch = o.completedAtEpoch,
-    engagementInstalledAtEpoch = e.installedAtEpoch,
-    engagementLastSessionEpoch = e.lastSessionEpoch,
-    engagementUsefulSessionsCount = e.usefulSessionsCount.toLong(),
-    engagementFavoritesSavedCount = e.favoritesSavedCount.toLong(),
-    engagementRoutesOpenedCount = e.routesOpenedCount.toLong(),
-    engagementMonitoringsCompletedCount = e.monitoringsCompletedCount.toLong(),
-    engagementRepeatedErrorCount = e.repeatedErrorCount.toLong(),
-    engagementExpiredDataEventsCount = e.expiredDataEventsCount.toLong(),
-    engagementUnavailableDataEventsCount = e.unavailableDataEventsCount.toLong(),
-    engagementLastFeedbackNudgeAtEpoch = e.lastFeedbackNudgeAtEpoch,
-    engagementLastFeedbackDismissedAtEpoch = e.lastFeedbackDismissedAtEpoch,
-    engagementLastFeedbackOpenedAtEpoch = e.lastFeedbackOpenedAtEpoch,
-    engagementLastFeedbackNudgedVersion = e.lastFeedbackNudgedVersion,
-    engagementLastReviewRequestedAtEpoch = e.lastReviewRequestedAtEpoch,
-    engagementLastReviewRequestedVersion = e.lastReviewRequestedVersion,
-    engagementDismissedUpdateVersion = e.dismissedUpdateVersion,
-    engagementLastUpdateCheckAtEpoch = e.lastUpdateCheckAtEpoch,
-    engagementLastUpdateBannerDismissedAtEpoch = e.lastUpdateBannerDismissedAtEpoch,
-    preferredMonitoringDurationSeconds = s.preferredMonitoringDurationSeconds?.toLong(),
+    id = args.id,
+    searchRadiusMeters = args.searchRadiusMeters,
+    preferredMapApp = args.preferredMapApp,
+    lastSeenChangelogVersion = args.lastSeenChangelogVersion,
+    lastSeenChangelogAppVersion = args.lastSeenChangelogAppVersion,
+    themePreference = args.themePreference,
+    selectedCityId = args.selectedCityId,
+    hasCompletedOnboarding = args.hasCompletedOnboarding,
+    onboardingCityConfirmed = args.onboardingCityConfirmed,
+    onboardingFeatureHighlightsSeen = args.onboardingFeatureHighlightsSeen,
+    onboardingLocationDecisionMade = args.onboardingLocationDecisionMade,
+    onboardingNotificationsDecisionMade = args.onboardingNotificationsDecisionMade,
+    onboardingFirstStationSaved = args.onboardingFirstStationSaved,
+    onboardingSavedPlacesConfigured = args.onboardingSavedPlacesConfigured,
+    onboardingSurfacesDiscovered = args.onboardingSurfacesDiscovered,
+    onboardingCompletedAtEpoch = args.onboardingCompletedAtEpoch,
+    engagementInstalledAtEpoch = args.engagementInstalledAtEpoch,
+    engagementLastSessionEpoch = args.engagementLastSessionEpoch,
+    engagementUsefulSessionsCount = args.engagementUsefulSessionsCount,
+    engagementFavoritesSavedCount = args.engagementFavoritesSavedCount,
+    engagementRoutesOpenedCount = args.engagementRoutesOpenedCount,
+    engagementMonitoringsCompletedCount = args.engagementMonitoringsCompletedCount,
+    engagementRepeatedErrorCount = args.engagementRepeatedErrorCount,
+    engagementExpiredDataEventsCount = args.engagementExpiredDataEventsCount,
+    engagementUnavailableDataEventsCount = args.engagementUnavailableDataEventsCount,
+    engagementLastFeedbackNudgeAtEpoch = args.engagementLastFeedbackNudgeAtEpoch,
+    engagementLastFeedbackDismissedAtEpoch = args.engagementLastFeedbackDismissedAtEpoch,
+    engagementLastFeedbackOpenedAtEpoch = args.engagementLastFeedbackOpenedAtEpoch,
+    engagementLastFeedbackNudgedVersion = args.engagementLastFeedbackNudgedVersion,
+    engagementLastReviewRequestedAtEpoch = args.engagementLastReviewRequestedAtEpoch,
+    engagementLastReviewRequestedVersion = args.engagementLastReviewRequestedVersion,
+    engagementDismissedUpdateVersion = args.engagementDismissedUpdateVersion,
+    engagementLastUpdateCheckAtEpoch = args.engagementLastUpdateCheckAtEpoch,
+    engagementLastUpdateBannerDismissedAtEpoch = args.engagementLastUpdateBannerDismissedAtEpoch,
+    preferredMonitoringDurationSeconds = args.preferredMonitoringDurationSeconds,
   )
   db.biciradarQueries.deleteAllSettingsMapFilterNames()
-  s.mapFilterNames.forEach { name ->
+  snapshot.mapFilterNames.forEach { name: String ->
     db.biciradarQueries.insertSettingsMapFilterName(name)
   }
 }
