@@ -13,8 +13,8 @@ const val STATION_CACHE_REFRESH_INTERVAL_MS = 60 * 1000L // 1 minute
 
 class StationCacheStore(
   private val database: BiciRadarDatabase,
-) {
-  fun loadStations(cityId: String): List<StationEntity>? =
+) : StationCacheStorage {
+  override fun loadStations(cityId: String): List<StationEntity>? =
     try {
       val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
@@ -39,7 +39,7 @@ class StationCacheStore(
       null
     }
 
-  fun isFresh(cityId: String): Boolean =
+  override fun isFresh(cityId: String): Boolean =
     try {
       val metadata = database.biciradarQueries.getCacheMetadata().executeAsOneOrNull()
       if (metadata?.city_id == cityId) {
@@ -59,7 +59,7 @@ class StationCacheStore(
       false
     }
 
-  fun lastUpdated(cityId: String): Long? =
+  override fun lastUpdated(cityId: String): Long? =
     try {
       database.biciradarQueries
         .getCacheMetadata()
@@ -70,7 +70,7 @@ class StationCacheStore(
       null
     }
 
-  suspend fun updateAvailability(
+  override suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,
   ) {
@@ -93,7 +93,7 @@ class StationCacheStore(
     }
   }
 
-  suspend fun save(
+  override suspend fun save(
     cityId: String,
     stations: List<Station>,
   ) {
@@ -128,7 +128,7 @@ class StationCacheStore(
     }
   }
 
-  suspend fun clear() {
+  override suspend fun clear() {
     withContext(Dispatchers.Default) {
       try {
         database.transaction {
