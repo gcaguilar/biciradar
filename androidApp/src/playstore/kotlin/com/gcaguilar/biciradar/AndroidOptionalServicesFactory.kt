@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.CrashlyticsReporter
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
@@ -33,8 +35,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
 
 object AndroidOptionalServicesFactory {
   @JvmStatic
@@ -73,8 +73,7 @@ private class PhoneAndroidOptionalServices(
   override fun createAppUpdatePrompter(
     activityProvider: () -> Activity?,
     launcher: ActivityResultLauncher<IntentSenderRequest>?,
-  ): AppUpdatePrompter =
-    PlaystoreAppUpdatePrompter(context, activityProvider, launcher)
+  ): AppUpdatePrompter = PlaystoreAppUpdatePrompter(context, activityProvider, launcher)
 
   override fun createWatchSyncBridge(): WatchSyncBridge = PlaystoreWatchSyncBridge(context)
 }

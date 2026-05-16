@@ -1,12 +1,13 @@
 package com.gcaguilar.biciradar.wear
 
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
+import com.gcaguilar.biciradar.core.formatMonitoringCountdown
+import com.gcaguilar.biciradar.core.formatMonitoringStatusText
 import com.gcaguilar.biciradar.core.formatRelativeMinutes
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
 import com.gcaguilar.biciradar.core.surfaceStatusTextShort
@@ -202,31 +203,12 @@ internal fun wearSavedPlaceSurfaceStates(
       }
   }
 
-private fun wearMonitoringStatusText(
+internal fun wearMonitoringStatusText(
   status: SurfaceMonitoringStatus,
-  kind: SurfaceMonitoringKind,
-): String =
-  when (status) {
-    SurfaceMonitoringStatus.Monitoring ->
-      if (kind ==
-        SurfaceMonitoringKind.Docks
-      ) {
-        "Monitorizando huecos"
-      } else {
-        "Monitorizando bicis"
-      }
-    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
-    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
-    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
-    SurfaceMonitoringStatus.Ended -> "Finalizada"
-    SurfaceMonitoringStatus.Expired -> "Expirada"
-  }
+  kind: com.gcaguilar.biciradar.core.SurfaceMonitoringKind,
+): String = formatMonitoringStatusText(status, kind)
 
-private fun wearMonitoringCountdownText(remainingSeconds: Int): String {
-  val minutes = remainingSeconds / 60
-  val seconds = remainingSeconds % 60
-  return if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-}
+private fun wearMonitoringCountdownText(remainingSeconds: Int): String = formatMonitoringCountdown(remainingSeconds)
 
 private fun Station.toWearSavedPlaceSurfaceState(label: String): WearSavedPlaceSurfaceState =
   WearSavedPlaceSurfaceState(

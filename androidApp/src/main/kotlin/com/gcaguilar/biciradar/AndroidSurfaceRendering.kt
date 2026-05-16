@@ -3,10 +3,16 @@ package com.gcaguilar.biciradar
 import android.app.Application
 import android.content.Context
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
-import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
+import com.gcaguilar.biciradar.core.determineFavoriteWidgetEmptyState
+import com.gcaguilar.biciradar.core.determineNearbyWidgetEmptyState
 import com.gcaguilar.biciradar.core.formatDistance
+import com.gcaguilar.biciradar.core.formatMonitoringAlternativeText
+import com.gcaguilar.biciradar.core.formatMonitoringCountdown
+import com.gcaguilar.biciradar.core.formatMonitoringNotificationBody
+import com.gcaguilar.biciradar.core.formatMonitoringNotificationTitle
+import com.gcaguilar.biciradar.core.formatMonitoringStatusText
 import kotlinx.coroutines.runBlocking
 
 internal data class AndroidSurfaceWidgetSnapshot(
@@ -149,18 +155,19 @@ internal data class AndroidCommutePlaceState(
 )
 
 internal fun widgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState =
-  when {
-    snapshot.favoriteStation == null && snapshot.hasFavoriteStation == false ->
-      AndroidWidgetEmptyState.ConfigureFavorite
-    snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
-    else -> AndroidWidgetEmptyState.DataUnavailable
+  when (determineFavoriteWidgetEmptyState(snapshot.hasFavoriteStation, snapshot.isDataFresh)) {
+    com.gcaguilar.biciradar.core.WidgetEmptyState.ConfigureFavorite -> AndroidWidgetEmptyState.ConfigureFavorite
+    com.gcaguilar.biciradar.core.WidgetEmptyState.NoLocationPermission -> AndroidWidgetEmptyState.NoLocationPermission
+    com.gcaguilar.biciradar.core.WidgetEmptyState.OpenAppToRefresh -> AndroidWidgetEmptyState.OpenAppToRefresh
+    com.gcaguilar.biciradar.core.WidgetEmptyState.DataUnavailable -> AndroidWidgetEmptyState.DataUnavailable
   }
 
 internal fun nearbyWidgetEmptyState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidWidgetEmptyState =
-  when {
-    snapshot.hasLocationPermission == false -> AndroidWidgetEmptyState.NoLocationPermission
-    snapshot.isDataFresh == false -> AndroidWidgetEmptyState.OpenAppToRefresh
-    else -> AndroidWidgetEmptyState.DataUnavailable
+  when (determineNearbyWidgetEmptyState(snapshot.hasLocationPermission, snapshot.isDataFresh)) {
+    com.gcaguilar.biciradar.core.WidgetEmptyState.ConfigureFavorite -> AndroidWidgetEmptyState.ConfigureFavorite
+    com.gcaguilar.biciradar.core.WidgetEmptyState.NoLocationPermission -> AndroidWidgetEmptyState.NoLocationPermission
+    com.gcaguilar.biciradar.core.WidgetEmptyState.OpenAppToRefresh -> AndroidWidgetEmptyState.OpenAppToRefresh
+    com.gcaguilar.biciradar.core.WidgetEmptyState.DataUnavailable -> AndroidWidgetEmptyState.DataUnavailable
   }
 
 internal fun widgetEmptyMessage(
@@ -232,50 +239,17 @@ internal fun quickActionsState(snapshot: AndroidSurfaceWidgetSnapshot): AndroidQ
 }
 
 internal fun monitoringNotificationTitle(session: SurfaceMonitoringSession): String =
-  when (session.status) {
-    SurfaceMonitoringStatus.Monitoring -> session.stationName
-    SurfaceMonitoringStatus.ChangedToEmpty -> "${session.stationName} sin bicis"
-    SurfaceMonitoringStatus.ChangedToFull -> "${session.stationName} sin huecos"
-    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa para ${session.stationName}"
-    SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
-    SurfaceMonitoringStatus.Expired -> "Monitorizacion finalizada"
-  }
+  formatMonitoringNotificationTitle(session)
 
 internal fun monitoringNotificationBody(
   session: SurfaceMonitoringSession,
   remainingSeconds: Int,
-): String =
-  when (session.status) {
-    SurfaceMonitoringStatus.Ended -> "${session.stationName} · Finalizada por el usuario"
-    SurfaceMonitoringStatus.Expired -> "${session.stationName} · Tiempo agotado"
-    else ->
-      listOfNotNull(
-        monitoringNotificationStatusText(session),
-        "${session.bikesAvailable} bicis",
-        "${session.docksAvailable} huecos",
-        monitoringNotificationTimeText(remainingSeconds),
-        monitoringNotificationAlternativeText(session),
-      ).joinToString(" · ")
-  }
+): String = formatMonitoringNotificationBody(session, remainingSeconds)
 
-private fun monitoringNotificationStatusText(session: SurfaceMonitoringSession): String =
-  when (session.status) {
-    SurfaceMonitoringStatus.Monitoring -> "Monitorizando"
-    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
-    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
-    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
-    SurfaceMonitoringStatus.Ended -> "Finalizada"
-    SurfaceMonitoringStatus.Expired -> "Finalizada"
-  }
+internal fun monitoringNotificationStatusText(session: SurfaceMonitoringSession): String =
+  formatMonitoringStatusText(session.status, session.kind)
 
-private fun monitoringNotificationTimeText(remainingSeconds: Int): String {
-  val minutes = remainingSeconds / 60
-  val seconds = remainingSeconds % 60
-  return if (minutes > 0) "${minutes}m ${seconds}s" else "${seconds}s"
-}
+internal fun monitoringNotificationTimeText(remainingSeconds: Int): String = formatMonitoringCountdown(remainingSeconds)
 
-private fun monitoringNotificationAlternativeText(session: SurfaceMonitoringSession): String? {
-  val alternativeName = session.alternativeStationName ?: return null
-  val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
-  return "Alt: $alternativeName$distance"
-}
+internal fun monitoringNotificationAlternativeText(session: SurfaceMonitoringSession): String? =
+  formatMonitoringAlternativeText(session)
