@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.di
 
+import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.di.CoreBindings
@@ -9,6 +10,7 @@ import com.gcaguilar.biciradar.core.di.NetworkBindings
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Includes
+import dev.zacsweers.metro.Provides
 import dev.zacsweers.metrox.viewmodel.ViewModelGraph
 
 /**
@@ -37,6 +39,11 @@ internal interface MobileGraph :
       @Includes platformBindings: PlatformBindings,
     ): MobileGraph
   }
+
+  @Provides
+  fun provideAppVersion(
+    @AppVersion platformBindings: PlatformBindings,
+  ): String = platformBindings.appVersion
 }
 
 /**

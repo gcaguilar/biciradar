@@ -10,9 +10,9 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
-import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import com.gcaguilar.biciradar.testutils.FakeEngagementRepository
@@ -69,17 +69,16 @@ class AppRootViewModelTest {
           stationsRepository = stationsRepository,
         )
 
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
 
@@ -93,21 +92,22 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )
@@ -150,17 +150,16 @@ class AppRootViewModelTest {
           stationsRepository = stationsRepository,
         )
 
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
 
@@ -174,21 +173,22 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )
@@ -224,17 +224,16 @@ class AppRootViewModelTest {
           stationsRepository = stationsRepository,
         )
 
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.19.1",
         )
 
@@ -248,21 +247,22 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.19.1",
         )
@@ -295,17 +295,16 @@ class AppRootViewModelTest {
           stationsRepository = stationsRepository,
         )
 
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.19.1",
         )
 
@@ -319,21 +318,22 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
 
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.19.1",
         )
@@ -369,16 +369,15 @@ class AppRootViewModelTest {
           favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
       val surfaceManagementUseCase =
@@ -390,20 +389,21 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )
@@ -439,16 +439,15 @@ class AppRootViewModelTest {
           favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
       val surfaceManagementUseCase =
@@ -460,20 +459,21 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )
@@ -517,16 +517,15 @@ class AppRootViewModelTest {
           favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
       val surfaceManagementUseCase =
@@ -538,20 +537,21 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )
@@ -582,16 +582,15 @@ class AppRootViewModelTest {
           favoritesPeerSync = favoritesRepository,
           stationsRepository = stationsRepository,
         )
-      val settingsAggregationUseCase =
-        SettingsAggregationUseCase(
-          settingsRepository = settingsRepository,
-        )
-      val appLifecycleUseCase =
-        AppLifecycleUseCase(
-          engagementRepository = engagementRepository,
+      val feedbackUseCase =
+        FeedbackUseCase(
           appUpdatePrompter = AppRootFakeAppUpdatePrompter(),
           reviewPrompter = AppRootFakeReviewPrompter(),
-          settingsAggregationUseCase = settingsAggregationUseCase,
+          engagementRepository = engagementRepository,
+        )
+      val changelogUseCase =
+        ChangelogUseCase(
+          settingsRepository = settingsRepository,
           appVersion = "0.21.0",
         )
       val surfaceManagementUseCase =
@@ -603,20 +602,21 @@ class AppRootViewModelTest {
       val appInitializer =
         AppInitializer(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
         )
       val viewModel =
         AppRootViewModel(
           startupUseCase = startupUseCase,
-          appLifecycleUseCase = appLifecycleUseCase,
+          feedbackUseCase = feedbackUseCase,
+          changelogUseCase = changelogUseCase,
           appInitializer = appInitializer,
           onboardingCoordinator =
             OnboardingCoordinator(
               startupUseCase = startupUseCase,
               resolveOnboardingPresentationUseCase = ResolveOnboardingPresentationUseCase(),
             ),
-          engagementCoordinator = EngagementCoordinator(appLifecycleUseCase),
+          engagementCoordinator = EngagementCoordinator(feedbackUseCase),
           refreshOrchestrator = RefreshOrchestrator(startupUseCase, appInitializer),
           appVersion = "0.21.0",
         )

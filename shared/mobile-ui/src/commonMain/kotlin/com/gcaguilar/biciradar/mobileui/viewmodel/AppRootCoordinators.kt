@@ -6,7 +6,7 @@ import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingLaunchSource
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingPresentationInput
 import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
@@ -108,7 +108,7 @@ internal class OnboardingCoordinator(
 
 @Inject
 internal class EngagementCoordinator(
-  private val appLifecycleUseCase: AppLifecycleUseCase,
+  private val feedbackUseCase: FeedbackUseCase,
 ) {
   suspend fun maybeCheckForUpdates(
     runtimeState: MutableStateFlow<AppRootRuntimeState>,
@@ -118,8 +118,8 @@ internal class EngagementCoordinator(
     if (runtimeState.value.updateCheckInFlight) return
     runtimeState.update { it.copy(updateCheckInFlight = true) }
     try {
-      appLifecycleUseCase.markUpdateChecked(clock())
-      when (val update = appLifecycleUseCase.checkForUpdate()) {
+      feedbackUseCase.markUpdateChecked(clock())
+      when (val update = feedbackUseCase.checkForUpdate()) {
         is UpdateAvailabilityState.Available ->
           updateUiState(
             TopUpdateBanner.Available(
@@ -143,7 +143,7 @@ internal class EngagementCoordinator(
     clock: () -> Long,
   ): Boolean {
     if (!isOnboardingCompleted) return false
-    return appLifecycleUseCase.shouldShowFeedbackNudge(appVersion, clock())
+    return feedbackUseCase.shouldShowFeedbackNudge(appVersion, clock())
   }
 
   suspend fun maybeRequestInAppReview(
@@ -154,15 +154,15 @@ internal class EngagementCoordinator(
   ) {
     if (!isOnboardingCompleted) return
     val eligibility =
-      appLifecycleUseCase.checkReviewEligibility(
+      feedbackUseCase.checkReviewEligibility(
         appVersion = appVersion,
         onboardingCompleted = isOnboardingCompleted,
         currentFreshness = dataFreshness,
         nowEpoch = clock(),
       )
     if (eligibility.isEligible) {
-      appLifecycleUseCase.requestInAppReview()
-      appLifecycleUseCase.markReviewPrompted(appVersion, clock())
+      feedbackUseCase.requestInAppReview()
+      feedbackUseCase.markReviewPrompted(appVersion, clock())
     }
   }
 
@@ -179,7 +179,7 @@ internal class EngagementCoordinator(
     scope.launch {
       while (true) {
         delay(3_000)
-        val status = appLifecycleUseCase.checkForUpdate()
+        val status = feedbackUseCase.checkForUpdate()
         if (status is UpdateAvailabilityState.Downloaded) {
           updateUiState(TopUpdateBanner.Downloaded(status.versionName))
           break

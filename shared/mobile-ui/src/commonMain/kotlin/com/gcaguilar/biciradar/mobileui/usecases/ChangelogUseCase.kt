@@ -1,10 +1,13 @@
 package com.gcaguilar.biciradar.mobileui.usecases
 
+import com.gcaguilar.biciradar.core.AppVersion
+import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.compareAppVersionStrings
 import com.gcaguilar.biciradar.core.normalizeAppVersionForCatalog
 import com.gcaguilar.biciradar.core.pendingChangelogVersion
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalog
 import com.gcaguilar.biciradar.mobileui.viewmodel.ChangelogPresentation
+import dev.zacsweers.metro.Inject
 
 /**
  * Result of checking if changelog should be suppressed.
@@ -18,9 +21,10 @@ internal data class ChangelogSuppressionResult(
 /**
  * Use case that handles changelog management and display logic.
  */
+@Inject
 internal class ChangelogUseCase(
-  private val settingsRepository: com.gcaguilar.biciradar.core.SettingsRepository,
-  private val appVersion: String,
+  private val settingsRepository: SettingsRepository,
+  @AppVersion private val appVersion: String,
 ) {
   /**
    * Gets the pending changelog if one should be shown to the user.

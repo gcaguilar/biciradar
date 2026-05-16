@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core
 
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.di.CoreGraph
+import com.gcaguilar.biciradar.core.geo.distanceBetween
 import com.gcaguilar.biciradar.testutils.testCoroutineScope
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay

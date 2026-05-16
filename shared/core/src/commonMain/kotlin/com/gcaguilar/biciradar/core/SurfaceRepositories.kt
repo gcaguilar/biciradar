@@ -4,6 +4,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
+import com.gcaguilar.biciradar.core.geo.distanceBetween
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.loadSurfaceBundleFromDb
 import com.gcaguilar.biciradar.core.local.persistSurfaceBundleRelational
@@ -24,11 +25,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import kotlin.math.PI
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 interface SurfaceSnapshotRepository {
   val bundle: StateFlow<SurfaceSnapshotBundle?>
@@ -322,27 +318,8 @@ private fun SurfaceState.cachedUserLocation(): GeoPoint? {
 
 private fun List<Station>.rebasedForOrigin(origin: GeoPoint): List<Station> =
   map { station ->
-    station.copy(distanceMeters = surfaceDistanceBetween(origin, station.location))
+    station.copy(distanceMeters = distanceBetween(origin, station.location))
   }
-
-private fun surfaceDistanceBetween(
-  origin: GeoPoint,
-  destination: GeoPoint,
-): Int {
-  val earthRadius = 6371000.0
-  val lat1Rad = origin.latitude * PI / 180.0
-  val lat2Rad = destination.latitude * PI / 180.0
-  val deltaLat = (destination.latitude - origin.latitude) * PI / 180.0
-  val deltaLon = (destination.longitude - origin.longitude) * PI / 180.0
-
-  val a =
-    sin(deltaLat / 2) * sin(deltaLat / 2) +
-      cos(lat1Rad) * cos(lat2Rad) *
-      sin(deltaLon / 2) * sin(deltaLon / 2)
-  val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-  return (earthRadius * c).toInt()
-}
 
 private fun SurfaceStationSnapshot?.mergeMonitoring(session: SurfaceMonitoringSession?): SurfaceStationSnapshot? {
   val station = this ?: return null

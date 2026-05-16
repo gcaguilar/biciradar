@@ -6,11 +6,13 @@ import com.gcaguilar.biciradar.core.EngagementRepository
 import com.gcaguilar.biciradar.core.ReviewEligibility
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import dev.zacsweers.metro.Inject
 
 /**
  * Use case that handles user feedback prompts including app updates and reviews.
  * Groups AppUpdatePrompter and ReviewPrompter operations.
  */
+@Inject
 internal class FeedbackUseCase(
   private val appUpdatePrompter: AppUpdatePrompter,
   private val reviewPrompter: ReviewPrompter,

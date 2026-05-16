@@ -10,7 +10,8 @@ import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.TopUpdateBanner
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
-import com.gcaguilar.biciradar.mobileui.usecases.AppLifecycleUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.OnboardingLaunchSource
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import dev.zacsweers.metro.AppScope
@@ -76,7 +77,8 @@ private data class StartupSnapshot(
 @ContributesIntoMap(AppScope::class)
 internal class AppRootViewModel(
   private val startupUseCase: StartupUseCase,
-  private val appLifecycleUseCase: AppLifecycleUseCase,
+  private val feedbackUseCase: FeedbackUseCase,
+  private val changelogUseCase: ChangelogUseCase,
   private val appInitializer: AppInitializer,
   private val onboardingCoordinator: OnboardingCoordinator,
   private val engagementCoordinator: EngagementCoordinator,
@@ -159,7 +161,7 @@ internal class AppRootViewModel(
   }
 
   fun showChangelogHistory() {
-    val presentation = appLifecycleUseCase.getChangelogHistory() ?: return
+    val presentation = changelogUseCase.getChangelogHistory() ?: return
     _uiState.update { it.copy(changelogPresentation = presentation) }
   }
 
@@ -168,28 +170,28 @@ internal class AppRootViewModel(
     _uiState.update { it.copy(changelogPresentation = null) }
     val persistSeenVersion = presentation?.persistSeenVersion ?: return
     viewModelScope.launch {
-      appLifecycleUseCase.markChangelogSeen(persistSeenVersion)
+      changelogUseCase.markChangelogSeen(persistSeenVersion)
     }
   }
 
   fun onFeedbackOpened() {
     _uiState.update { it.copy(showFeedbackNudge = false) }
     viewModelScope.launch {
-      appLifecycleUseCase.markFeedbackOpened(clock())
+      feedbackUseCase.markFeedbackOpened(clock())
     }
   }
 
   fun onFeedbackDismissed() {
     _uiState.update { it.copy(showFeedbackNudge = false) }
     viewModelScope.launch {
-      appLifecycleUseCase.markFeedbackDismissed(clock())
+      feedbackUseCase.markFeedbackDismissed(clock())
     }
   }
 
   fun dismissAvailableUpdate(version: String) {
     _uiState.update { it.copy(topUpdateBanner = TopUpdateBanner.Hidden) }
     viewModelScope.launch {
-      appLifecycleUseCase.markUpdateBannerDismissed(version, clock())
+      feedbackUseCase.markUpdateBannerDismissed(version, clock())
     }
   }
 
@@ -201,18 +203,18 @@ internal class AppRootViewModel(
     val banner = _uiState.value.topUpdateBanner as? TopUpdateBanner.Available ?: return
     viewModelScope.launch {
       if (banner.flexible) {
-        if (appLifecycleUseCase.startFlexibleUpdate()) {
+        if (feedbackUseCase.startFlexibleUpdate()) {
           startUpdatePolling()
         }
       } else {
-        appLifecycleUseCase.openStoreListing()
+        feedbackUseCase.openStoreListing()
       }
     }
   }
 
   fun onRestartToUpdateRequested() {
     viewModelScope.launch {
-      appLifecycleUseCase.completeFlexibleUpdateIfReady()
+      feedbackUseCase.completeFlexibleUpdateIfReady()
     }
   }
 
@@ -247,7 +249,7 @@ internal class AppRootViewModel(
     }.onEach { snapshot ->
       val runtime = runtimeState.value
       if (snapshot.favoriteIds.size > runtime.latestFavoriteCount) {
-        appLifecycleUseCase.markFavoriteCreated(clock())
+        feedbackUseCase.markFavoriteCreated(clock())
       }
       runtimeState.update {
         it.copy(
@@ -269,7 +271,7 @@ internal class AppRootViewModel(
         cityConfigured = snapshot.onboardingChecklist.cityConfirmed,
       )
       maybeAutoCompleteOnboarding()
-      appLifecycleUseCase.markDataFreshnessObserved(snapshot.stationsState.freshness)
+      feedbackUseCase.markDataFreshnessObserved(snapshot.stationsState.freshness)
       maybeRefreshExperiencePrompts()
     }.launchIn(viewModelScope)
   }
@@ -319,18 +321,18 @@ internal class AppRootViewModel(
 
     if (!settingsBootstrapped) return
 
-    val suppression = appLifecycleUseCase.checkChangelogSuppression()
+    val suppression = changelogUseCase.checkSuppression()
     if (suppression.suppressed &&
       suppression.shouldMarkCurrentVersionSeen &&
       suppression.currentVersionToMark != null
     ) {
       viewModelScope.launch {
-        appLifecycleUseCase.markChangelogSeen(suppression.currentVersionToMark)
+        changelogUseCase.markChangelogSeen(suppression.currentVersionToMark)
       }
       return
     }
 
-    val presentation = appLifecycleUseCase.getPendingChangelog()
+    val presentation = changelogUseCase.getPendingChangelog()
     if (presentation != null) {
       _uiState.update { it.copy(changelogPresentation = presentation) }
     }
