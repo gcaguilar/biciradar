@@ -38,38 +38,8 @@ fun filterStationsByQuery(
   return rankStationsForQuery(stations, normalizedQuery, numericQuery)
 }
 
-internal fun normalizeStationSearchQuery(value: String?): String =
-  value
-    .orEmpty()
-    .trim()
-    .lowercase()
-    .replace("á", "a")
-    .replace("à", "a")
-    .replace("ä", "a")
-    .replace("é", "e")
-    .replace("è", "e")
-    .replace("ë", "e")
-    .replace("í", "i")
-    .replace("ì", "i")
-    .replace("ï", "i")
-    .replace("ó", "o")
-    .replace("ò", "o")
-    .replace("ö", "o")
-    .replace("ú", "u")
-    .replace("ù", "u")
-    .replace("ü", "u")
-    .replace("ñ", "n")
-    .replace("\\bc/\\s*".toRegex(), " calle ")
-    .replace("\\bpza\\.?\\b".toRegex(), " plaza ")
-    .replace("\\bavda\\.?\\b".toRegex(), " avenida ")
-    .replace("\\bav\\.?\\b".toRegex(), " avenida ")
-    .replace("[^a-z0-9 ]".toRegex(), " ")
-    .replace(
-      "\\s+".toRegex(),
-      " ",
-    ).split(' ')
-    .filter { token -> token.isNotBlank() && token !in STATION_STOPWORDS }
-    .joinToString(" ")
+private fun normalizeStationSearchQuery(value: String?): String =
+  SearchTextNormalizer.normalizeStationSearchQuery(value)
 
 private fun pinnedAliasStationId(
   query: String?,
@@ -81,16 +51,6 @@ private fun pinnedAliasStationId(
     "trabajo", "mi trabajo", "work", "oficina", "mi oficina" -> workStationId
     else -> null
   }
-
-private val STATION_STOPWORDS =
-  setOf(
-    "de",
-    "del",
-    "la",
-    "las",
-    "el",
-    "los",
-  )
 
 private data class RankedStation(
   val station: Station,
