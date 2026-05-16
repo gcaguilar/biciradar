@@ -28,20 +28,19 @@ import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
-interface SettingsRepository {
+/**
+ * Narrow interface for user preferences.
+ *
+ * Consumers that only read/write preferences (search radius, map app, city, theme)
+ * should depend on this interface instead of [SettingsRepository].
+ */
+interface PreferencesRepository {
   val searchRadiusMeters: StateFlow<Int>
   val preferredMapApp: StateFlow<PreferredMapApp>
-
-  /** Legacy integer changelog marker; kept for migration only. */
   val lastSeenChangelogVersion: StateFlow<Int>
   val lastSeenChangelogAppVersion: StateFlow<String?>
   val themePreference: StateFlow<ThemePreference>
   val selectedCity: StateFlow<City>
-  val hasCompletedOnboarding: StateFlow<Boolean>
-  val onboardingChecklist: StateFlow<OnboardingChecklistSnapshot>
-  val engagementSnapshot: StateFlow<EngagementSnapshot>
-
-  suspend fun bootstrap()
 
   fun currentSearchRadiusMeters(): Int
 
@@ -63,14 +62,6 @@ interface SettingsRepository {
 
   suspend fun setSelectedCity(city: City)
 
-  suspend fun setHasCompletedOnboarding(completed: Boolean)
-
-  suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot)
-
-  suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot)
-
-  suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot)
-
   suspend fun persistedMapFilterNames(): Set<String> = emptySet()
 
   suspend fun setPersistedMapFilterNames(names: Set<String>) {}
@@ -78,6 +69,22 @@ interface SettingsRepository {
   suspend fun preferredMonitoringDurationSeconds(): Int? = null
 
   suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int?) {}
+}
+
+/**
+ * Narrow interface for onboarding state.
+ *
+ * Consumers that only need onboarding checklist data should depend on this interface.
+ */
+interface OnboardingRepository {
+  val hasCompletedOnboarding: StateFlow<Boolean>
+  val onboardingChecklist: StateFlow<OnboardingChecklistSnapshot>
+
+  suspend fun setHasCompletedOnboarding(completed: Boolean)
+
+  suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot)
+
+  suspend fun updateOnboardingChecklist(transform: (OnboardingChecklistSnapshot) -> OnboardingChecklistSnapshot)
 
   /**
    * Returns whether city selection is already confirmed.
@@ -86,6 +93,34 @@ interface SettingsRepository {
    * implementations. Persistent implementations should override and read from storage.
    */
   suspend fun isCityConfirmedPersisted(): Boolean = onboardingChecklist.value.cityConfirmed
+}
+
+/**
+ * Deep coordinator interface for settings and onboarding concerns.
+ *
+ * Extends the two narrow interfaces so callers that depend on [SettingsRepository]
+ * continue to work without changes. New code should prefer the narrow interfaces.
+ *
+ * Engagement tracking is a separate seam ([EngagementRepository]) because the business
+ * logic behind shouldShowFeedbackNudge / reviewEligibility is independent of settings.
+ * The [engagementSnapshot] property is exposed for [EngagementRepositoryImpl] to read.
+ */
+interface SettingsRepository :
+  PreferencesRepository,
+  OnboardingRepository {
+  val engagementSnapshot: StateFlow<EngagementSnapshot>
+
+  suspend fun bootstrap()
+
+  /**
+   * Updates the engagement snapshot stored in settings.
+   *
+   * This is intentionally a method on [SettingsRepository] because
+   * [EngagementRepositoryImpl] needs to persist its data through this seam.
+   * The [EngagementRepository] interface owns the business logic; persistence
+   * flows through this channel.
+   */
+  suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot)
 
   /**
    * First launch with string-based changelog: set [lastSeenChangelogAppVersion] to [appVersion] if still null
@@ -95,8 +130,11 @@ interface SettingsRepository {
 }
 
 /**
- * Settings are read from storage (database or file) on every mutation and after external DB changes via
- * [BiciRadarDatabase] queries. In-memory state mirrors the latest decoded snapshot only.
+ * Deep coordinator implementation for all settings concerns.
+ *
+ * Settings are read from storage (database or file) on every mutation and after
+ * external DB changes via [BiciRadarDatabase] queries. In-memory state mirrors the
+ * latest decoded snapshot only.
  *
  * Registrado automáticamente en el grafo vía @ContributesBinding.
  * El parámetro [database] es nullable - Metro inyecta null si no hay binding disponible.
@@ -146,6 +184,8 @@ class SettingsRepositoryImpl(
     }
   }
 
+  // --- PreferencesRepository delegate properties ---
+
   override val searchRadiusMeters: StateFlow<Int> =
     readModel
       .map { normalizeSearchRadiusMeters(it.searchRadiusMeters) }
@@ -180,6 +220,8 @@ class SettingsRepositoryImpl(
       .map { snapshot -> snapshot.selectedCityId.let { City.fromId(it) } ?: City.defaultCity() }
       .stateIn(scope, SharingStarted.Eagerly, City.defaultCity())
 
+  // --- OnboardingRepository delegate properties ---
+
   override val hasCompletedOnboarding: StateFlow<Boolean> =
     readModel
       .map { it.hasCompletedOnboarding }
@@ -189,6 +231,8 @@ class SettingsRepositoryImpl(
     readModel
       .map { it.onboardingChecklist }
       .stateIn(scope, SharingStarted.Eagerly, OnboardingChecklistSnapshot())
+
+  // --- SettingsRepository coordinator methods ---
 
   override val engagementSnapshot: StateFlow<EngagementSnapshot> =
     readModel
@@ -225,6 +269,8 @@ class SettingsRepositoryImpl(
     }
   }
 
+  // --- PreferencesRepository mutation methods ---
+
   override suspend fun setSearchRadiusMeters(searchRadiusMeters: Int) {
     mutatePersist { snap ->
       snap.copy(searchRadiusMeters = normalizeSearchRadiusMeters(searchRadiusMeters))
@@ -250,6 +296,26 @@ class SettingsRepositoryImpl(
   override suspend fun setSelectedCity(city: City) {
     mutatePersist { it.copy(selectedCityId = city.id) }
   }
+
+  override suspend fun persistedMapFilterNames(): Set<String> {
+    if (!bootstrapped) bootstrap()
+    return readModel.value.mapFilterNames
+  }
+
+  override suspend fun setPersistedMapFilterNames(names: Set<String>) {
+    mutatePersist { it.copy(mapFilterNames = names) }
+  }
+
+  override suspend fun preferredMonitoringDurationSeconds(): Int? {
+    if (!bootstrapped) bootstrap()
+    return readModel.value.preferredMonitoringDurationSeconds
+  }
+
+  override suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int?) {
+    mutatePersist { it.copy(preferredMonitoringDurationSeconds = durationSeconds) }
+  }
+
+  // --- OnboardingRepository mutation methods ---
 
   override suspend fun setHasCompletedOnboarding(completed: Boolean) {
     mutatePersist { snap ->
@@ -282,30 +348,16 @@ class SettingsRepositoryImpl(
     }
   }
 
+  // --- Internal helper to update engagement (called by EngagementRepositoryImpl) ---
+
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) {
     mutatePersist { it.copy(engagementSnapshot = snapshot) }
   }
 
-  override suspend fun persistedMapFilterNames(): Set<String> {
-    if (!bootstrapped) bootstrap()
-    return readModel.value.mapFilterNames
-  }
-
-  override suspend fun setPersistedMapFilterNames(names: Set<String>) {
-    mutatePersist { it.copy(mapFilterNames = names) }
-  }
-
-  override suspend fun preferredMonitoringDurationSeconds(): Int? {
-    if (!bootstrapped) bootstrap()
-    return readModel.value.preferredMonitoringDurationSeconds
-  }
-
-  override suspend fun setPreferredMonitoringDurationSeconds(durationSeconds: Int?) {
-    mutatePersist { it.copy(preferredMonitoringDurationSeconds = durationSeconds) }
-  }
-
   override suspend fun isCityConfirmedPersisted(): Boolean =
     readPersistedSnapshot()?.onboardingChecklist?.cityConfirmed ?: false
+
+  // --- Internal persistence logic ---
 
   private suspend fun mutatePersist(transform: (SettingsSnapshot) -> SettingsSnapshot) {
     if (!bootstrapped) bootstrap()

@@ -32,7 +32,7 @@ interface StationsRepository {
   fun stationById(stationId: String): Station?
 }
 
-private data class StationsSession(
+internal data class StationsSession(
   val isLoading: Boolean = false,
   val errorMessage: String? = null,
   val userLocation: GeoPoint? = null,
@@ -427,7 +427,7 @@ class StationsRepositoryImpl(
   private fun isStaleGeneration(generation: Int): Boolean = generation != fetchGeneration
 }
 
-private fun mergeDbStationsState(
+internal fun mergeDbStationsState(
   stations: List<com.gcaguilar.biciradar.core.local.StationEntity>,
   metadata: CacheMetadata?,
   city: City,

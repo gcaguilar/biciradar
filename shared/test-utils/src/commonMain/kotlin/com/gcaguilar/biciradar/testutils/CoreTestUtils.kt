@@ -207,21 +207,21 @@ open class FakeSavedPlaceAlertsRepository : SavedPlaceAlertsRepository {
 }
 
 open class FakeEngagementRepository : EngagementRepository {
-  override val snapshot: MutableStateFlow<EngagementSnapshot> =
+  override val engagementSnapshot: MutableStateFlow<EngagementSnapshot> =
     MutableStateFlow(EngagementSnapshot(installedAtEpoch = 1L))
 
   override suspend fun bootstrap() = Unit
 
   override suspend fun markSessionStarted(nowEpoch: Long) {
-    snapshot.value = snapshot.value.markSessionStarted(nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markSessionStarted(nowEpoch)
   }
 
   override suspend fun markUsefulSession(nowEpoch: Long) {
-    snapshot.value = snapshot.value.markUsefulSession(nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markUsefulSession(nowEpoch)
   }
 
   override suspend fun markFavoriteCreated(nowEpoch: Long) {
-    snapshot.value = snapshot.value.markFavoriteSaved(nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markFavoriteSaved(nowEpoch)
   }
 
   override suspend fun markRouteOpened(nowEpoch: Long) = Unit
@@ -234,7 +234,7 @@ open class FakeEngagementRepository : EngagementRepository {
     appVersion: String,
     nowEpoch: Long,
   ) {
-    snapshot.value = snapshot.value.markFeedbackNudged(appVersion, nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markFeedbackNudged(appVersion, nowEpoch)
   }
 
   override suspend fun markFeedbackOpened(nowEpoch: Long) = Unit
@@ -247,14 +247,14 @@ open class FakeEngagementRepository : EngagementRepository {
   ) = Unit
 
   override suspend fun markUpdateChecked(nowEpoch: Long) {
-    snapshot.value = snapshot.value.markUpdateChecked(nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markUpdateChecked(nowEpoch)
   }
 
   override suspend fun markUpdateBannerDismissed(
     version: String,
     nowEpoch: Long,
   ) {
-    snapshot.value = snapshot.value.markUpdateBannerDismissed(version, nowEpoch)
+    engagementSnapshot.value = engagementSnapshot.value.markUpdateBannerDismissed(version, nowEpoch)
   }
 
   override fun shouldShowFeedbackNudge(

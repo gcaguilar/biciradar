@@ -12,7 +12,7 @@ private const val REVIEW_COOLDOWN_MILLIS = 120L * DAY_MILLIS
 private const val FEEDBACK_NUDGE_COOLDOWN_MILLIS = 30L * DAY_MILLIS
 
 interface EngagementRepository {
-  val snapshot: StateFlow<EngagementSnapshot>
+  val engagementSnapshot: StateFlow<EngagementSnapshot>
 
   suspend fun bootstrap()
 
@@ -72,7 +72,7 @@ interface EngagementRepository {
 class EngagementRepositoryImpl(
   private val settingsRepository: SettingsRepository,
 ) : EngagementRepository {
-  override val snapshot: StateFlow<EngagementSnapshot> = settingsRepository.engagementSnapshot
+  override val engagementSnapshot: StateFlow<EngagementSnapshot> = settingsRepository.engagementSnapshot
 
   override suspend fun bootstrap() {
     settingsRepository.bootstrap()
@@ -146,7 +146,7 @@ class EngagementRepositoryImpl(
     appVersion: String,
     nowEpoch: Long,
   ): Boolean {
-    val current = snapshot.value
+    val current = engagementSnapshot.value
     val cooldownSatisfied =
       current.lastFeedbackDismissedAtEpoch
         ?.let { nowEpoch - it >= FEEDBACK_NUDGE_COOLDOWN_MILLIS } ?: true
@@ -162,7 +162,7 @@ class EngagementRepositoryImpl(
     nowEpoch: Long,
   ): ReviewEligibility =
     reviewEligibility(
-      engagement = snapshot.value,
+      engagement = engagementSnapshot.value,
       appVersion = appVersion,
       onboardingCompleted = onboardingCompleted,
       currentFreshness = currentFreshness,
@@ -170,6 +170,6 @@ class EngagementRepositoryImpl(
     )
 
   private suspend fun update(transform: (EngagementSnapshot) -> EngagementSnapshot) {
-    settingsRepository.setEngagementSnapshot(transform(snapshot.value))
+    settingsRepository.setEngagementSnapshot(transform(engagementSnapshot.value))
   }
 }
