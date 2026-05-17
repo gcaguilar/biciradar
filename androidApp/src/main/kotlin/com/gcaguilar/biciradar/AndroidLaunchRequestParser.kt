@@ -20,6 +20,7 @@ import com.gcaguilar.biciradar.core.ActionIds.STATION_SLOT_COUNT_ACTION
 import com.gcaguilar.biciradar.core.ActionIds.STATION_STATUS_ACTION
 import com.gcaguilar.biciradar.core.DefaultAssistantPhraseResolver
 import com.gcaguilar.biciradar.core.PhraseResolution
+import com.gcaguilar.biciradar.core.SearchTextNormalizer
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 
@@ -106,15 +107,11 @@ internal fun parseLaunchPayload(
 
   if (action == null) {
     val fallbackQuery =
-      normalizedStationQuery ?: sequenceOf(assistantAction, feature)
-        .mapNotNull { it?.trim()?.takeIf { s -> s.isNotEmpty() } }
-        .mapNotNull { rawValue ->
-          sharedPhraseResolver.resolvePhrase(rawValue)?.stationQuery
-            ?: sharedPhraseResolver.canonicalAction(rawValue)?.let { rawValue }
-        }.mapNotNull { it.let(::cleanStationQuery) }
-        .takeUnless(::isGenericStationPlaceholder)
-        .takeIf { it.isNotEmpty() }
-        ?.firstOrNull()
+      normalizedStationQuery
+        ?: sequenceOf(assistantAction, feature)
+          .mapNotNull { it?.trim()?.takeIf { s -> s.isNotEmpty() } }
+          .mapNotNull { sharedPhraseResolver.resolvePhrase(it)?.stationQuery }
+          .firstOrNull()
 
     return fallbackQuery?.let { query ->
       AndroidLaunchPayload(assistantLaunchRequest = AssistantLaunchRequest.SearchStation(query))
@@ -212,7 +209,7 @@ internal fun parseLaunchPayload(source: AndroidLaunchSource): AndroidLaunchPaylo
   )
 
 private fun canonicalDeepLinkAction(host: String?): String? =
-  when (host?.trim()?.lowercase(Locale.ROOT)) {
+  when (host?.trim()?.lowercase()) {
     "home", "nearby" -> ActionIds.HOME_ACTION
     "map" -> ActionIds.MAP_ACTION
     "favorites" -> ActionIds.FAVORITE_STATIONS_ACTION
@@ -241,21 +238,11 @@ private fun extractParameterizedAction(
           .removePrefix(prefix)
           .takeIf { normalized.startsWith(prefix) }
           ?.trim()
-      }?.let(::cleanStationQuery)
-      ?.takeUnless(::isGenericStationPlaceholder)
+      }?.let { SearchTextNormalizer.normalizeStationSearchQuery(it) }
+      ?.takeIf { it.isNotEmpty() }
 
   return stationQuery?.let { PhraseResolution(action = action, stationQuery = it) }
 }
-
-// Delegated to shared — kept for backward compatibility with existing callers
-private fun isGenericStationPlaceholder(value: String): Boolean =
-  value in
-    setOf(
-      "estacion",
-      "la estacion",
-      "una estacion",
-      "mi estacion",
-    )
 
 private fun <T> buildAssistantLaunchRequest(
   stationId: String?,

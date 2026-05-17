@@ -1,12 +1,47 @@
 <resources>
     <string name="app_name">Bici Radar</string>
-    <string name="shortcut_nearest_station">Estacion proxima</string>
-    <string name="shortcut_nearest_station_with_bikes">Proxima con bicis</string>
-    <string name="shortcut_nearest_station_with_slots">Proxima con ocos</string>
+    <string name="shortcut_nearest_station">Estación próxima</string>
+    <string name="shortcut_nearest_station_with_bikes">Próxima con bicis</string>
+    <string name="shortcut_nearest_station_with_slots">Próxima con ocos</string>
     <string name="shortcut_favorites">As miñas favoritas</string>
-    <string name="shortcut_route">Ruta a estacion</string>
-    <string name="shortcut_station_status">Estado da estacion</string>
-    <string name="shortcut_station_bikes">Bicis na estacion</string>
-    <string name="shortcut_station_slots">Ocos na estacion</string>
-    <string name="shortcut_show_station">Buscar estacion</string>
+    <string name="shortcut_route">Ruta a estación</string>
+    <string name="shortcut_station_status">Estado da estación</string>
+    <string name="shortcut_station_bikes">Bicis na estación</string>
+    <string name="shortcut_station_slots">Ocos na estación</string>
+    <string name="shortcut_show_station">Buscar estación</string>
+    <string name="widget_favorite_description">Estado rápido da túa estación favorita</string>
+    <string name="widget_favorite_empty_title">Bici Radar</string>
+    <string name="widget_open_app_to_refresh">Abre a app para actualizar</string>
+    <string name="widget_configure_favorite">Configura unha estación favorita</string>
+    <string name="widget_no_location_permission">Sen permiso de localización</string>
+    <string name="widget_data_unavailable">Datos non dispoñibles</string>
+    <string name="widget_nearby_title">Perto de ti</string>
+    <string name="widget_nearby_description">Estado rápido das estacións próximas</string>
+    <string name="widget_all_favorites_title">As miñas favoritas</string>
+    <string name="widget_all_favorites_description">Estado de todas as túas estacións favoritas</string>
+    <string name="widget_quick_actions_description">Acceso rápido ao mapa, favoritas e monitorización</string>
+    <string name="widget_commute_title">Casa e traballo</string>
+    <string name="widget_commute_description">Acceso rápido ás túas estacións de casa e traballo</string>
+    <string name="widget_saved_place_home">Casa</string>
+    <string name="widget_saved_place_work">Traballo</string>
+    <string name="widget_saved_place_missing_title">Sen configurar</string>
+    <string name="widget_configure_saved_places">Escolle as túas estacións</string>
+    <string name="widget_action_monitor">Monitorizar</string>
+    <string name="widget_action_configure">Configurar</string>
+    <string name="widget_action_notifications">Permiso</string>
+    
+    <!-- Notification Actions -->
+    <string name="notification_action_stop">Deter</string>
+    <string name="notification_action_add_favorite">Favorito</string>
+    <string name="notification_action_remove_favorite">Quitar</string>
+    <string name="notification_action_share">Compartir</string>
+    <string name="notification_action_map">Mapa</string>
+    <string name="notification_action_alternative">Alternativa</string>
+    
+    <!-- Notification Channel -->
+    <string name="notification_channel_monitoring_title">Monitorización de estacións</string>
+    <string name="notification_channel_monitoring_description">Notificacións persistentes durante a monitorización de ocos nas estacións</string>
+    <string name="notification_channel_widget_refresh_title">Actualización de widgets</string>
+    <string name="notification_channel_widget_refresh_description">Servizo en segundo plano que mantén os widgets actualizados</string>
+    <string name="widget_refresh_service_notification">Actualizando widgets…</string>
 </resources>

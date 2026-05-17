@@ -9,4 +9,39 @@
     <string name="shortcut_station_bikes">Bicis a la estacio</string>
     <string name="shortcut_station_slots">Ancoratges a la estacio</string>
     <string name="shortcut_show_station">Buscar estacio</string>
+    <string name="widget_favorite_description">Estat ràpid de la teva estació favorita</string>
+    <string name="widget_favorite_empty_title">Bici Radar</string>
+    <string name="widget_open_app_to_refresh">Obre l\'app per actualitzar</string>
+    <string name="widget_configure_favorite">Configura una estació favorita</string>
+    <string name="widget_no_location_permission">Sense permís d\'ubicació</string>
+    <string name="widget_data_unavailable">Dades no disponibles</string>
+    <string name="widget_nearby_title">Prop de tu</string>
+    <string name="widget_nearby_description">Estat ràpid de les estacions properes</string>
+    <string name="widget_all_favorites_title">Les meves preferides</string>
+    <string name="widget_all_favorites_description">Estat de totes les teves estacions preferides</string>
+    <string name="widget_quick_actions_description">Accés ràpid al mapa, preferides i monitorització</string>
+    <string name="widget_commute_title">Casa i feina</string>
+    <string name="widget_commute_description">Accés ràpid a les teves estacions de casa i feina</string>
+    <string name="widget_saved_place_home">Casa</string>
+    <string name="widget_saved_place_work">Feina</string>
+    <string name="widget_saved_place_missing_title">Sense configurar</string>
+    <string name="widget_configure_saved_places">Trieu les vostres estacions</string>
+    <string name="widget_action_monitor">Monitoritzar</string>
+    <string name="widget_action_configure">Configurar</string>
+    <string name="widget_action_notifications">Permís</string>
+    
+    <!-- Notification Actions -->
+    <string name="notification_action_stop">Aturar</string>
+    <string name="notification_action_add_favorite">Preferit</string>
+    <string name="notification_action_remove_favorite">Treure</string>
+    <string name="notification_action_share">Compartir</string>
+    <string name="notification_action_map">Mapa</string>
+    <string name="notification_action_alternative">Alternativa</string>
+    
+    <!-- Notification Channel -->
+    <string name="notification_channel_monitoring_title">Monitorització d\'estacions</string>
+    <string name="notification_channel_monitoring_description">Notificacions persistents durant la monitorització de buits a estacions</string>
+    <string name="notification_channel_widget_refresh_title">Actualització de widgets</string>
+    <string name="notification_channel_widget_refresh_description">Servei en segon pla que manté els widgets actualitzats</string>
+    <string name="widget_refresh_service_notification">Actualitzant widgets…</string>
 </resources>

@@ -23,7 +23,6 @@ import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
-import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
@@ -162,28 +161,15 @@ private class PlaystoreAppUpdatePrompter(
     val activity = activityProvider() ?: return false
     val info = runCatching { Tasks.await(appUpdateManager.appUpdateInfo) }.getOrNull() ?: return false
     if (!info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) return false
-    return if (launcher != null) {
-      runCatching {
-        appUpdateManager.startUpdateFlow(
-          info,
-          AppUpdateType.FLEXIBLE,
-          activity,
-          AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
-          launcher,
-        )
-        true
-      }.getOrDefault(false)
-    } else {
-      runCatching {
-        appUpdateManager.startUpdateFlowForResult(
-          info,
-          activity,
-          AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
-          ANDROID_FLEXIBLE_UPDATE_REQUEST_CODE,
-        )
-        true
-      }.getOrDefault(false)
-    }
+    return runCatching {
+      appUpdateManager.startUpdateFlowForResult(
+        info,
+        AppUpdateType.FLEXIBLE,
+        activity,
+        ANDROID_FLEXIBLE_UPDATE_REQUEST_CODE,
+      )
+      true
+    }.getOrDefault(false)
   }
 
   override suspend fun completeFlexibleUpdateIfReady(): Boolean {

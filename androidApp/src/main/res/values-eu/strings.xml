@@ -1,12 +1,47 @@
 <resources>
     <string name="app_name">Bici Radar</string>
-    <string name="shortcut_nearest_station">Geltoki hurbilena</string>
-    <string name="shortcut_nearest_station_with_bikes">Gertuko bizikletekin</string>
-    <string name="shortcut_nearest_station_with_slots">Gertuko lekuekin</string>
-    <string name="shortcut_favorites">Nire gogokoak</string>
-    <string name="shortcut_route">Geltokirako ibilbidea</string>
+    <string name="shortcut_nearest_station">Geltoki gertukoa</string>
+    <string name="shortcut_nearest_station_with_bikes">Bizikletak gertuan</string>
+    <string name="shortcut_nearest_station_with_slots">Leku gertuan</string>
+    <string name="shortcut_favorites">Niregogokoak</string>
+    <string name="shortcut_route">Bidea geldotokira</string>
     <string name="shortcut_station_status">Geltokiaren egoera</string>
     <string name="shortcut_station_bikes">Bizikletak geltokian</string>
     <string name="shortcut_station_slots">Lekuak geltokian</string>
     <string name="shortcut_show_station">Bilatu geltokia</string>
+    <string name="widget_favorite_description">Zure geltoki gogokoaren egoera azkarra</string>
+    <string name="widget_favorite_empty_title">Bici Radar</string>
+    <string name="widget_open_app_to_refresh">Ireki aplikazioa eguneratzeko</string>
+    <string name="widget_configure_favorite">Konfiguratu geltoki gogoko bat</string>
+    <string name="widget_no_location_permission">Kokaleku baimenik gabe</string>
+    <string name="widget_data_unavailable">Ezin dira eskuratu datuak</string>
+    <string name="widget_nearby_title">Zure ondoan</string>
+    <string name="widget_nearby_description">Geltoki gertukoien egoera azkarra</string>
+    <string name="widget_all_favorites_title">Nire gogokoak</string>
+    <string name="widget_all_favorites_description">Zure geltoki gogoko guztien egoera</string>
+    <string name="widget_quick_actions_description">Artatze azkarra maparako, gogokoetarako eta monitorizaziorako</string>
+    <string name="widget_commute_title">Etxea eta lan</string>
+    <string name="widget_commute_description">Artatze azkarra zure etxeko eta laneko geltokietarako</string>
+    <string name="widget_saved_place_home">Etxea</string>
+    <string name="widget_saved_place_work">Lana</string>
+    <string name="widget_saved_place_missing_title">Konfiguratu gabe</string>
+    <string name="widget_configure_saved_places">Aukeratu zure geltokiak</string>
+    <string name="widget_action_monitor">Monitorizatu</string>
+    <string name="widget_action_configure">Konfiguratu</string>
+    <string name="widget_action_notifications">Baimena</string>
+    
+    <!-- Notification Actions -->
+    <string name="notification_action_stop">Gelditu</string>
+    <string name="notification_action_add_favorite">Gogoko</string>
+    <string name="notification_action_remove_favorite">Kendu</string>
+    <string name="notification_action_share">Partekatu</string>
+    <string name="notification_action_map">Mapa</string>
+    <string name="notification_action_alternative">Alternatiba</string>
+    
+    <!-- Notification Channel -->
+    <string name="notification_channel_monitoring_title">Geltokien monitorizazioa</string>
+    <string name="notification_channel_monitoring_description">Jakinarazpen etengabekoak geltokietako hutsak monitorizatzean</string>
+    <string name="notification_channel_widget_refresh_title">Widgeten eguneraketa</string>
+    <string name="notification_channel_widget_refresh_description">Atzeko planoan dagoen zerbitzua widgetak eguneratuta mantentzen ditu</string>
+    <string name="widget_refresh_service_notification">Widgetak eguneratzen…</string>
 </resources>

@@ -1,5 +1,16 @@
 package com.gcaguilar.biciradar
 
+import com.gcaguilar.biciradar.core.ActionIds.FAVORITE_STATIONS_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.NEAREST_STATION_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.NEAREST_STATION_WITH_BIKES_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.NEAREST_STATION_WITH_SLOTS_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.OPEN_ASSISTANT_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.ROUTE_TO_STATION_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.SAVED_PLACE_ALERTS_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.SHOW_STATION_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.STATION_BIKE_COUNT_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.STATION_SLOT_COUNT_ACTION
+import com.gcaguilar.biciradar.core.ActionIds.STATION_STATUS_ACTION
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import org.junit.Assert.assertEquals

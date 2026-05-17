@@ -1,8 +1,5 @@
 package com.gcaguilar.biciradar.core
 
-import java.text.Normalizer
-import java.util.Locale
-
 /**
  * Canonical action identifiers understood by BiciRadar.
  *
@@ -212,15 +209,31 @@ class DefaultAssistantPhraseResolver : AssistantPhraseResolver {
   }
 
   private fun normalize(value: String?): String? {
-    val withoutDiacritics =
-      value
-        ?.let { Normalizer.normalize(it, Normalizer.Form.NFD) }
-        ?.replace(DIACRITICS_REGEX, "")
+    val withoutDiacritics = value?.let(::stripDiacritics)
     return withoutDiacritics
-      ?.lowercase(Locale.ROOT)
+      ?.lowercase()
       ?.replace(WHITESPACE_REGEX, " ")
       ?.trim()
       ?.takeIf { it.isNotEmpty() }
+  }
+
+  private fun stripDiacritics(input: String): String {
+    val result = StringBuilder(input.length)
+    for (char in input) {
+      result.append(
+        when (char) {
+          'á', 'à', 'ä', 'â', 'ã', 'å' -> 'a'
+          'é', 'è', 'ë', 'ê' -> 'e'
+          'í', 'ì', 'ï', 'î' -> 'i'
+          'ó', 'ò', 'ö', 'ô', 'õ' -> 'o'
+          'ú', 'ù', 'ü', 'û' -> 'u'
+          'ñ' -> 'n'
+          'ý', 'ÿ' -> 'y'
+          else -> char
+        },
+      )
+    }
+    return result.toString()
   }
 
   fun canonicalAction(rawValue: String?): String? {
@@ -269,6 +282,9 @@ class DefaultAssistantPhraseResolver : AssistantPhraseResolver {
       .replace("\\bpor favor\\b".toRegex(), "")
       .replace("\\bahora mismo\\b".toRegex(), "")
       .replace("\\bporfa\\b".toRegex(), "")
+      .replace("\\b(con|en|de) (bici radar|biciradar)\\b".toRegex(), "")
+      .replace("\\bbici radar\\b".toRegex(), "")
+      .replace("\\bbiciradar\\b".toRegex(), "")
       .replace(WHITESPACE_REGEX, " ")
       .trim()
 

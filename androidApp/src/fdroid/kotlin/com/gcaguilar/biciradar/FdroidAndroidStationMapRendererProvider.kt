@@ -53,7 +53,7 @@ class FdroidAndroidStationMapRendererProvider : AndroidStationMapRenderer {
   ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    remember(context) { configureOsmdroid(context.applicationContext) }
+    LaunchedEffect(Unit) { configureOsmdroid(context.applicationContext) }
     var hasZoomed by remember { mutableStateOf(false) }
     var lastHandledRecenterToken by remember { mutableIntStateOf(0) }
     val mapView =

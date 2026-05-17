@@ -62,6 +62,7 @@ kotlin {
     }
     // Android main - we'll handle Firebase conditionally via flavors in the app module
     androidMain.dependencies {
+      implementation(libs.androidx.activity)
       implementation(libs.androidx.core.ktx)
       implementation(libs.ktor.client.okhttp)
       implementation(libs.sqldelight.runtime)
