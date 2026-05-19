@@ -97,12 +97,13 @@ class AndroidPlatformBindings(
   private val androidReviewPrompter =
     optionalServices?.createReviewPrompter { experienceActivity }
       ?: AndroidReviewPrompter(context) { experienceActivity }
-  private val androidAppUpdatePrompter =
+  private val androidAppUpdatePrompter by lazy {
     optionalServices?.createAppUpdatePrompter(
       { experienceActivity },
       appUpdateLauncher,
     )
       ?: AndroidAppUpdatePrompter(context) { experienceActivity }
+  }
 
   override val permissionPrompter: PermissionPrompter get() = androidPermissionPrompter
   override val externalLinks: ExternalLinks get() = androidExternalLinks
