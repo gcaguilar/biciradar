@@ -30,7 +30,7 @@ jobs:
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'android'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           fetch-tags: true
 
@@ -128,7 +128,7 @@ jobs:
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'wear'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with:
           fetch-tags: true
 
