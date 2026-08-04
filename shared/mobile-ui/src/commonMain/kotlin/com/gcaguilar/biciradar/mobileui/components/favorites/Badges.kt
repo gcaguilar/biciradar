@@ -1,10 +1,16 @@
 package com.gcaguilar.biciradar.mobileui.components.favorites
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -124,5 +130,74 @@ internal fun StatusPill(
       fontWeight = FontWeight.SemiBold,
       modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
     )
+  }
+}
+
+/**
+ * Punto de estado en vivo: relleno (verde) cuando hay disponibilidad, contorneado (gris) si no.
+ *
+ * @param isLive Si la estación tiene disponibilidad ahora mismo (ej. bicis libres).
+ */
+@Composable
+internal fun LiveStatusDot(
+  isLive: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  val colors = LocalBiziColors.current
+  Box(
+    modifier =
+      modifier
+        .size(9.dp)
+        .let {
+          if (isLive) {
+            it.background(colors.green, CircleShape)
+          } else {
+            it.border(1.5.dp, colors.muted.copy(alpha = 0.5f), CircleShape)
+          }
+        },
+  )
+}
+
+/**
+ * Celda de estadística grande usada en las tarjetas de estaciones fijadas: número
+ * grande + caption pequeño, sobre fondo tintado.
+ *
+ * @param value Número grande a destacar (ej. bicis disponibles)
+ * @param caption Etiqueta pequeña bajo el número (ej. "bicis")
+ * @param tint Color de acento para el número y el fondo tintado
+ */
+@Composable
+internal fun AvailabilityStatCell(
+  value: String,
+  caption: String,
+  tint: Color,
+  modifier: Modifier = Modifier,
+) {
+  val colors = LocalBiziColors.current
+  Surface(
+    modifier = modifier,
+    shape = MaterialTheme.shapes.large,
+    color = tint.copy(alpha = 0.10f),
+  ) {
+    Column(
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .padding(vertical = 10.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+      Text(
+        text = value,
+        style = MaterialTheme.typography.headlineSmall,
+        fontWeight = FontWeight.Bold,
+        color = tint,
+      )
+      Text(
+        text = caption,
+        style = MaterialTheme.typography.labelSmall,
+        color = colors.muted,
+      )
+    }
   }
 }
