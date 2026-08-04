@@ -25,9 +25,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.FavoriteCategoryIds
 import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
@@ -61,12 +65,12 @@ import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.assignSearchResult
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.create
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.currentSearchAssignmentHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.delete
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorites
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAddStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertActive
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionBikesPlural
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionBikesSingular
@@ -75,24 +79,18 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertCondi
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionSlotsPlural
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertConditionSlotsSingular
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAlertInactive
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAvailabilitySummary
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesCustomCategoriesTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesCustomCategoryPlaceholder
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesDistanceFromYou
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesEmptyTitle
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyAlerts
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyFavoritesCount
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesManyStationsCount
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoAlerts
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoFavoritesCount
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesNoStationsCount
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneAlert
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneFavoriteCount
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOneStationCount
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOtherSection
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOverviewDescription
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesOverviewTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesPinnedSection
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesQuickAccessTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesSearchStation
@@ -102,11 +100,10 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.myStations
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.remove
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.route
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsBell
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsProfileAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceNotSet
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.useSearchToAssignStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
-import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
@@ -118,13 +115,13 @@ import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
-import com.gcaguilar.biciradar.mobileui.components.favorites.CountBadge
+import com.gcaguilar.biciradar.mobileui.components.favorites.AvailabilityStatCell
 import com.gcaguilar.biciradar.mobileui.components.favorites.FavoriteDismissBackground
+import com.gcaguilar.biciradar.mobileui.components.favorites.LiveStatusDot
 import com.gcaguilar.biciradar.mobileui.components.favorites.SectionHeader
 import com.gcaguilar.biciradar.mobileui.components.favorites.SectionPill
 import com.gcaguilar.biciradar.mobileui.components.favorites.StatusPill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
-import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -180,7 +177,14 @@ internal fun FavoritesScreen(
           setOf(FavoriteCategoryIds.FAVORITE, FavoriteCategoryIds.HOME, FavoriteCategoryIds.WORK)
       }
     }
-  val pinnedCount = listOfNotNull(homeStation, workStation).size
+  val assignedCustomStations =
+    remember(customCategories, stationCategory, allStations) {
+      customCategories.mapNotNull { category ->
+        val assignedStationId = stationCategory.entries.firstOrNull { it.value == category.id }?.key
+        allStations.find { it.id == assignedStationId }
+      }
+    }
+  val pinnedCount = listOfNotNull(homeStation, workStation).size + assignedCustomStations.size
   val activeAlertCount = savedPlaceAlertRules.count { it.isEnabled }
   val homeLabel = stringResource(Res.string.home)
   val workLabel = stringResource(Res.string.work)
@@ -253,27 +257,30 @@ internal fun FavoritesScreen(
             )
           }
           Spacer(Modifier.width(12.dp))
-          Surface(
-            shape = MaterialTheme.shapes.large,
-            color = colors.surface,
-            border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
-            modifier = Modifier.clickable(onClick = onOpenSavedPlaceAlerts),
+          BadgedBox(
+            badge = {
+              if (activeAlertCount > 0) {
+                Badge(containerColor = colors.red, contentColor = colors.onAccent) {
+                  Text(activeAlertCount.toString())
+                }
+              }
+            },
           ) {
-            Icon(
-              imageVector = Icons.Filled.Notifications,
-              contentDescription = null,
-              tint = colors.blue,
-              modifier = Modifier.padding(12.dp),
-            )
+            Surface(
+              shape = MaterialTheme.shapes.large,
+              color = colors.surface,
+              border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
+              modifier = Modifier.clickable(onClick = onOpenSavedPlaceAlerts),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Notifications,
+                contentDescription = null,
+                tint = colors.red,
+                modifier = Modifier.padding(12.dp),
+              )
+            }
           }
         }
-      }
-      item {
-        FavoritesOverviewCard(
-          activeAlertCount = activeAlertCount,
-          onOpenSavedPlaceAlerts = onOpenSavedPlaceAlerts,
-          onOpenSearch = onOpenSearch,
-        )
       }
       item {
         FavoritesSearchLauncher(
@@ -311,58 +318,8 @@ internal fun FavoritesScreen(
               ),
             )
           }
-        val savedPlaceAlertLabel =
-          if (rule != null) {
-            savedPlaceAlertConditionSummary(rule.condition)
-          } else {
-            null
-          }
-        SavedPlaceCard(
-          mobilePlatform = mobilePlatform,
-          title = stringResource(Res.string.home),
-          station = homeStation,
-          assignmentCandidate = assignmentCandidate,
-          onAssignCandidate = onAssignHomeStation,
-          onClear = onClearHomeStation,
-          onOpenStationDetails = onStationSelected,
-          onQuickRoute = onQuickRoute,
-          onSavedPlaceAlertClick =
-            run {
-              val s = homeStation
-              if (s != null && onUpsertSavedPlaceAlert != null) {
-                {
-                  val t =
-                    SavedPlaceAlertTarget.CategoryStation(
-                      stationId = s.id,
-                      cityId = savedPlaceAlertsCityId,
-                      stationName = s.name,
-                      categoryId = FavoriteCategoryIds.HOME,
-                      categoryLabel = homeLabel,
-                    )
-                  alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
-                }
-              } else {
-                null
-              }
-            },
-          savedPlaceAlertLabel = savedPlaceAlertLabel,
-          savedPlaceAlertActive =
-            homeStation?.let { s ->
-              findSavedPlaceAlertRule(
-                savedPlaceAlertRules,
-                SavedPlaceAlertTarget.CategoryStation(
-                  stationId = s.id,
-                  cityId = savedPlaceAlertsCityId,
-                  stationName = s.name,
-                  categoryId = FavoriteCategoryIds.HOME,
-                  categoryLabel = homeLabel,
-                ),
-              ) != null
-            } == true,
-        )
-      }
-      item {
-        val rule =
+        val homeSavedPlaceAlertLabel = rule?.let { savedPlaceAlertConditionSummary(it.condition) }
+        val workRule =
           workStation?.let { station ->
             findSavedPlaceAlertRule(
               savedPlaceAlertRules,
@@ -375,122 +332,180 @@ internal fun FavoritesScreen(
               ),
             )
           }
-        val savedPlaceAlertLabel =
-          if (rule != null) {
-            savedPlaceAlertConditionSummary(rule.condition)
-          } else {
-            null
-          }
-        SavedPlaceCard(
-          mobilePlatform = mobilePlatform,
-          title = stringResource(Res.string.work),
-          station = workStation,
-          assignmentCandidate = assignmentCandidate,
-          onAssignCandidate = onAssignWorkStation,
-          onClear = onClearWorkStation,
-          onOpenStationDetails = onStationSelected,
-          onQuickRoute = onQuickRoute,
-          onSavedPlaceAlertClick =
-            run {
-              val s = workStation
-              if (s != null && onUpsertSavedPlaceAlert != null) {
-                {
-                  val t =
-                    SavedPlaceAlertTarget.CategoryStation(
-                      stationId = s.id,
-                      cityId = savedPlaceAlertsCityId,
-                      stationName = s.name,
-                      categoryId = FavoriteCategoryIds.WORK,
-                      categoryLabel = workLabel,
-                    )
-                  alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
-                }
-              } else {
-                null
-              }
-            },
-          savedPlaceAlertLabel = savedPlaceAlertLabel,
-          savedPlaceAlertActive =
-            workStation?.let { s ->
-              findSavedPlaceAlertRule(
-                savedPlaceAlertRules,
-                SavedPlaceAlertTarget.CategoryStation(
-                  stationId = s.id,
-                  cityId = savedPlaceAlertsCityId,
-                  stationName = s.name,
-                  categoryId = FavoriteCategoryIds.WORK,
-                  categoryLabel = workLabel,
-                ),
-              ) != null
-            } == true,
-        )
-      }
-      customCategories.forEach { category ->
-        item(key = "custom-category-${category.id}") {
-          val assignedStationId = stationCategory.entries.firstOrNull { it.value == category.id }?.key
-          val assignedStation = allStations.find { it.id == assignedStationId }
-          val rule =
-            assignedStation?.let { station ->
-              findSavedPlaceAlertRule(
-                savedPlaceAlertRules,
-                SavedPlaceAlertTarget.CategoryStation(
-                  stationId = station.id,
-                  cityId = savedPlaceAlertsCityId,
-                  stationName = station.name,
-                  categoryId = category.id,
-                  categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
-                ),
-              )
-            }
-          val savedPlaceAlertLabel =
-            if (rule != null) {
-              savedPlaceAlertConditionSummary(rule.condition)
-            } else {
-              null
-            }
-          SavedPlaceCard(
-            mobilePlatform = mobilePlatform,
-            title = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
-            station = assignedStation,
-            assignmentCandidate = assignmentCandidate,
-            onAssignCandidate = { onAssignCandidateToCategory(category.id) },
-            onClear = { onClearCategoryAssignment(category.id) },
-            onOpenStationDetails = onStationSelected,
-            onQuickRoute = onQuickRoute,
-            onSavedPlaceAlertClick =
-              run {
-                val s = assignedStation
-                if (s != null && onUpsertSavedPlaceAlert != null) {
-                  {
-                    val t =
+        val workSavedPlaceAlertLabel = workRule?.let { savedPlaceAlertConditionSummary(it.condition) }
+
+        // Tarjetas fijadas (Casa, Trabajo y categorías custom) en una grilla de dos columnas.
+        val pinnedCards: List<@Composable () -> Unit> =
+          buildList {
+            add {
+              SavedPlaceCard(
+                mobilePlatform = mobilePlatform,
+                title = stringResource(Res.string.home),
+                station = homeStation,
+                assignmentCandidate = assignmentCandidate,
+                onAssignCandidate = onAssignHomeStation,
+                onClear = onClearHomeStation,
+                onOpenStationDetails = onStationSelected,
+                onQuickRoute = onQuickRoute,
+                onSavedPlaceAlertClick =
+                  run {
+                    val s = homeStation
+                    if (s != null && onUpsertSavedPlaceAlert != null) {
+                      {
+                        val t =
+                          SavedPlaceAlertTarget.CategoryStation(
+                            stationId = s.id,
+                            cityId = savedPlaceAlertsCityId,
+                            stationName = s.name,
+                            categoryId = FavoriteCategoryIds.HOME,
+                            categoryLabel = homeLabel,
+                          )
+                        alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
+                      }
+                    } else {
+                      null
+                    }
+                  },
+                savedPlaceAlertLabel = homeSavedPlaceAlertLabel,
+                savedPlaceAlertActive =
+                  homeStation?.let { s ->
+                    findSavedPlaceAlertRule(
+                      savedPlaceAlertRules,
                       SavedPlaceAlertTarget.CategoryStation(
                         stationId = s.id,
                         cityId = savedPlaceAlertsCityId,
                         stationName = s.name,
-                        categoryId = category.id,
-                        categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
-                      )
-                    alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
-                  }
-                } else {
-                  null
+                        categoryId = FavoriteCategoryIds.HOME,
+                        categoryLabel = homeLabel,
+                      ),
+                    ) != null
+                  } == true,
+              )
+            }
+            add {
+              SavedPlaceCard(
+                mobilePlatform = mobilePlatform,
+                title = stringResource(Res.string.work),
+                station = workStation,
+                assignmentCandidate = assignmentCandidate,
+                onAssignCandidate = onAssignWorkStation,
+                onClear = onClearWorkStation,
+                onOpenStationDetails = onStationSelected,
+                onQuickRoute = onQuickRoute,
+                onSavedPlaceAlertClick =
+                  run {
+                    val s = workStation
+                    if (s != null && onUpsertSavedPlaceAlert != null) {
+                      {
+                        val t =
+                          SavedPlaceAlertTarget.CategoryStation(
+                            stationId = s.id,
+                            cityId = savedPlaceAlertsCityId,
+                            stationName = s.name,
+                            categoryId = FavoriteCategoryIds.WORK,
+                            categoryLabel = workLabel,
+                          )
+                        alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
+                      }
+                    } else {
+                      null
+                    }
+                  },
+                savedPlaceAlertLabel = workSavedPlaceAlertLabel,
+                savedPlaceAlertActive =
+                  workStation?.let { s ->
+                    findSavedPlaceAlertRule(
+                      savedPlaceAlertRules,
+                      SavedPlaceAlertTarget.CategoryStation(
+                        stationId = s.id,
+                        cityId = savedPlaceAlertsCityId,
+                        stationName = s.name,
+                        categoryId = FavoriteCategoryIds.WORK,
+                        categoryLabel = workLabel,
+                      ),
+                    ) != null
+                  } == true,
+              )
+            }
+            customCategories.forEach { category ->
+              val assignedStationId = stationCategory.entries.firstOrNull { it.value == category.id }?.key
+              val assignedStation = allStations.find { it.id == assignedStationId }
+              val categoryRule =
+                assignedStation?.let { station ->
+                  findSavedPlaceAlertRule(
+                    savedPlaceAlertRules,
+                    SavedPlaceAlertTarget.CategoryStation(
+                      stationId = station.id,
+                      cityId = savedPlaceAlertsCityId,
+                      stationName = station.name,
+                      categoryId = category.id,
+                      categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                    ),
+                  )
                 }
-              },
-            savedPlaceAlertLabel = savedPlaceAlertLabel,
-            savedPlaceAlertActive =
-              assignedStation?.let { s ->
-                findSavedPlaceAlertRule(
-                  savedPlaceAlertRules,
-                  SavedPlaceAlertTarget.CategoryStation(
-                    stationId = s.id,
-                    cityId = savedPlaceAlertsCityId,
-                    stationName = s.name,
-                    categoryId = category.id,
-                    categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
-                  ),
-                ) != null
-              } == true,
-          )
+              val categorySavedPlaceAlertLabel = categoryRule?.let { savedPlaceAlertConditionSummary(it.condition) }
+              add {
+                SavedPlaceCard(
+                  mobilePlatform = mobilePlatform,
+                  title = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                  station = assignedStation,
+                  assignmentCandidate = assignmentCandidate,
+                  onAssignCandidate = { onAssignCandidateToCategory(category.id) },
+                  onClear = { onClearCategoryAssignment(category.id) },
+                  onOpenStationDetails = onStationSelected,
+                  onQuickRoute = onQuickRoute,
+                  onSavedPlaceAlertClick =
+                    run {
+                      val s = assignedStation
+                      if (s != null && onUpsertSavedPlaceAlert != null) {
+                        {
+                          val t =
+                            SavedPlaceAlertTarget.CategoryStation(
+                              stationId = s.id,
+                              cityId = savedPlaceAlertsCityId,
+                              stationName = s.name,
+                              categoryId = category.id,
+                              categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                            )
+                          alertEditor = t to findSavedPlaceAlertRule(savedPlaceAlertRules, t)
+                        }
+                      } else {
+                        null
+                      }
+                    },
+                  savedPlaceAlertLabel = categorySavedPlaceAlertLabel,
+                  savedPlaceAlertActive =
+                    assignedStation?.let { s ->
+                      findSavedPlaceAlertRule(
+                        savedPlaceAlertRules,
+                        SavedPlaceAlertTarget.CategoryStation(
+                          stationId = s.id,
+                          cityId = savedPlaceAlertsCityId,
+                          stationName = s.name,
+                          categoryId = category.id,
+                          categoryLabel = favoriteCategoryLabel(category, homeLabel, workLabel, favoriteLabel),
+                        ),
+                      ) != null
+                    } == true,
+                )
+              }
+            }
+          }
+
+        Column(verticalArrangement = Arrangement.spacedBy(BiziSpacing.medium)) {
+          pinnedCards.chunked(2).forEach { rowCards ->
+            Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
+            ) {
+              rowCards.forEach { card ->
+                Box(modifier = Modifier.weight(1f)) { card() }
+              }
+              if (rowCards.size == 1) {
+                Spacer(modifier = Modifier.weight(1f))
+              }
+            }
+          }
         }
       }
       if (customCategories.isNotEmpty() || assignmentCandidate != null) {
@@ -704,6 +719,18 @@ internal fun SavedPlaceCard(
 ) {
   val colors = LocalBiziColors.current
   val assignableCandidate = assignmentCandidate?.takeIf { it.id != station?.id }
+  val homeLabel = stringResource(Res.string.home)
+  val workLabel = stringResource(Res.string.work)
+  // Nota: en este design system `colors.red` es el azul primario de marca (#1D74BD) y
+  // `colors.blue` es el tono neutro/tinta oscura — mismos roles que usan StationRow/TripStationCard
+  // para las píldoras de "bicis" (colors.red) y "huecos" (colors.blue).
+  val categoryTint =
+    when (title) {
+      homeLabel -> colors.red
+      workLabel -> colors.orange
+      else -> colors.muted
+    }
+  val hasGoodAvailability = station != null && station.bikesAvailable > 0
   Card(
     modifier =
       Modifier
@@ -718,24 +745,68 @@ internal fun SavedPlaceCard(
       modifier =
         Modifier
           .fillMaxWidth()
-          .padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
+          .padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
       Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        SectionPill(
-          label = title.uppercase(),
-          tint =
-            when (title.lowercase()) {
-              stringResource(Res.string.home).lowercase() -> colors.blue
-              stringResource(Res.string.work).lowercase() -> colors.orange
-              else -> colors.muted
-            },
-        )
-        if (station != null && onSavedPlaceAlertClick != null) {
+        SectionPill(label = title.uppercase(), tint = categoryTint)
+        Row(
+          horizontalArrangement = Arrangement.spacedBy(6.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          LiveStatusDot(isLive = hasGoodAvailability)
+          if (station != null) {
+            IconButton(onClick = onClear, modifier = Modifier.size(28.dp)) {
+              Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = stringResource(Res.string.remove),
+                tint = colors.muted,
+                modifier = Modifier.size(14.dp),
+              )
+            }
+          }
+        }
+      }
+      if (station != null) {
+        Column(
+          modifier = Modifier.clickable { onOpenStationDetails(station) },
+          verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+          Text(
+            text = station.name,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+          Text(
+            text = stringResource(Res.string.favoritesDistanceFromYou, formatDistance(station.distanceMeters)),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.muted,
+          )
+        }
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          AvailabilityStatCell(
+            modifier = Modifier.weight(1f),
+            value = station.bikesAvailable.toString(),
+            caption = stringResource(Res.string.bikes).lowercase(),
+            tint = colors.red,
+          )
+          AvailabilityStatCell(
+            modifier = Modifier.weight(1f),
+            value = station.slotsFree.toString(),
+            caption = stringResource(Res.string.slots).lowercase(),
+            tint = colors.blue,
+          )
+        }
+        if (onSavedPlaceAlertClick != null) {
           StatusPill(
             label =
               savedPlaceAlertLabel ?: if (savedPlaceAlertActive) {
@@ -747,50 +818,21 @@ internal fun SavedPlaceCard(
             onClick = onSavedPlaceAlertClick,
           )
         }
-      }
-      if (station != null) {
-        Column(
-          modifier = Modifier.clickable { onOpenStationDetails(station) },
-          verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Text(
-            text = station.name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-          )
-          Text(
-            text = stringResource(Res.string.favoritesDistanceFromYou, formatDistance(station.distanceMeters)),
-            style = MaterialTheme.typography.bodySmall,
-            color = colors.muted,
-          )
-        }
-        Text(
-          text =
-            stringResource(
-              Res.string.favoritesAvailabilitySummary,
-              station.bikesAvailable,
-              station.slotsFree,
-            ),
-          style = MaterialTheme.typography.bodySmall,
-          color = colors.ink,
-        )
-      } else {
-        Text(
-          text = stringResource(Res.string.savedPlaceNotSet, title),
-          style = MaterialTheme.typography.bodySmall,
-          color = colors.muted,
-        )
-      }
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        if (station != null) {
-          RoutePill(
-            label = stringResource(Res.string.route),
+        if (hasGoodAvailability) {
+          Button(
             onClick = { onQuickRoute(station) },
-          )
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = colors.red, contentColor = colors.onAccent),
+          ) {
+            Text(stringResource(Res.string.route))
+          }
+        } else {
+          OutlinedButton(
+            onClick = { onQuickRoute(station) },
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Text(stringResource(Res.string.route))
+          }
         }
         if (assignableCandidate != null) {
           OutlineActionPill(
@@ -799,28 +841,37 @@ internal fun SavedPlaceCard(
             borderTint = colors.blue.copy(alpha = 0.16f),
             onClick = { onAssignCandidate(assignableCandidate) },
           )
-        }
-        if (station != null) {
-          OutlineActionPill(
-            label = stringResource(Res.string.remove),
-            tint = colors.muted,
-            borderTint = colors.panel,
-            onClick = onClear,
+          Text(
+            text = stringResource(Res.string.currentSearchAssignmentHint, assignableCandidate.name, title),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.muted,
           )
         }
-      }
-      if (assignableCandidate != null) {
+      } else {
         Text(
-          text = stringResource(Res.string.currentSearchAssignmentHint, assignableCandidate.name, title),
+          text = stringResource(Res.string.savedPlaceNotSet, title),
           style = MaterialTheme.typography.bodySmall,
           color = colors.muted,
         )
-      } else if (station == null) {
-        Text(
-          text = stringResource(Res.string.useSearchToAssignStation),
-          style = MaterialTheme.typography.bodySmall,
-          color = colors.muted,
-        )
+        if (assignableCandidate != null) {
+          OutlineActionPill(
+            label = stringResource(Res.string.assignSearchResult),
+            tint = colors.blue,
+            borderTint = colors.blue.copy(alpha = 0.16f),
+            onClick = { onAssignCandidate(assignableCandidate) },
+          )
+          Text(
+            text = stringResource(Res.string.currentSearchAssignmentHint, assignableCandidate.name, title),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.muted,
+          )
+        } else {
+          Text(
+            text = stringResource(Res.string.useSearchToAssignStation),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.muted,
+          )
+        }
       }
     }
   }
@@ -838,68 +889,6 @@ internal fun SavedPlaceQuickAction(
     borderTint = tint.copy(alpha = 0.16f),
     onClick = onClick,
   )
-}
-
-@Composable
-private fun FavoritesOverviewCard(
-  activeAlertCount: Int,
-  onOpenSavedPlaceAlerts: () -> Unit,
-  onOpenSearch: () -> Unit,
-) {
-  val colors = LocalBiziColors.current
-  BiziCard(modifier = Modifier.fillMaxWidth()) {
-    Column(
-      modifier = Modifier.padding(BiziSpacing.cardPadding),
-      verticalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = stringResource(Res.string.favoritesOverviewTitle),
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.SemiBold,
-        )
-        CountBadge(
-          label =
-            when (activeAlertCount) {
-              0 -> stringResource(Res.string.favoritesNoAlerts)
-              1 -> stringResource(Res.string.favoritesOneAlert)
-              else -> stringResource(Res.string.favoritesManyAlerts, activeAlertCount)
-            },
-        )
-      }
-      Text(
-        text = stringResource(Res.string.favoritesOverviewDescription),
-        style = MaterialTheme.typography.bodySmall,
-        color = colors.muted,
-      )
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
-      ) {
-        Button(
-          modifier = Modifier.weight(1f),
-          onClick = onOpenSavedPlaceAlerts,
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = colors.blue,
-              contentColor = colors.onAccent,
-            ),
-        ) {
-          Text(stringResource(Res.string.savedPlaceAlertsProfileAction))
-        }
-        OutlinedButton(
-          modifier = Modifier.weight(1f),
-          onClick = onOpenSearch,
-        ) {
-          Text(stringResource(Res.string.favoritesAddStation))
-        }
-      }
-    }
-  }
 }
 
 @Composable
