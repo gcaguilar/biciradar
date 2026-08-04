@@ -45,7 +45,7 @@
     <string name="refreshStations">Actualizar estaciones</string>
     <string name="favoritesSubtitle">Tus estaciones guardadas para consultar el estado o abrir una ruta con un toque.</string>
     <string name="myStations">Mis estaciones</string>
-    <string name="favoritesSearchStation">Buscar estación para fijarla o filtrar favoritas</string>
+    <string name="favoritesSearchStation">Buscar estación para fijarla o filtrar</string>
     <string name="favoritesQuickAccessTitle">Tus accesos rápidos</string>
     <string name="favoritesOverviewTitle">Listas para salir</string>
     <string name="favoritesOverviewDescription">Casa y Trabajo con acceso inmediato a ruta, estado y avisos.</string>
@@ -235,11 +235,13 @@
     <string name="suggestions">Sugerencias</string>
     <string name="searchingNearbyStation">Buscando estación cercana...</string>
     <string name="monitorThisStation">Vigilar esta estación</string>
-    <string name="monitorThisStationDescription">Recibirás una notificación si se llena antes de que llegues.</string>
+    <string name="monitorThisStationDescription">Notificación si se llena antes de que llegues.</string>
     <string name="startMonitoring">Iniciar vigilancia</string>
     <string name="monitoringActive">Vigilancia activa</string>
+    <string name="monitoringChecksEvery30s">Se comprueba cada 30 s</string>
+    <string name="remainingTimeLabel">Tiempo restante</string>
     <string name="remainingTime">Tiempo restante: %1$s</string>
-    <string name="monitoringActiveDescription">Se comprueba cada 30 s. Notificación si la estación se llena.</string>
+    <string name="monitoringActiveDescription">Notificación si la estación se llena antes de que llegues.</string>
     <string name="savedPlaceNotSet">Todavía no has fijado una estación para %1$s.</string>
     <string name="assignSearchResult">Asignar búsqueda</string>
     <string name="remove">Quitar</string>
@@ -369,4 +371,12 @@
     <string name="tripMapStationTitle">Elegir estación</string>
     <string name="tripMapStationAction">Elegir estación en el mapa</string>
     <string name="tripSelectedPoint">Punto seleccionado</string>
+
+    <!-- Trip route flow card -->
+    <string name="tripRouteFlowTitle">Ruta sugerida</string>
+    <string name="tripCurrentLocationLabel">Mi ubicación actual</string>
+    <string name="tripStationDistanceInBike">%1$s en bici</string>
+    <string name="tripWalkingTimeToDestination">~%1$d min a pie</string>
+    <string name="tripDestinationCityFallback">Destino</string>
+    <string name="tripStationMetersLabel">Metros</string>
 </resources>
