@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Close
@@ -23,16 +24,19 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.geo.distanceBetween
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
@@ -57,6 +61,7 @@ import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziStatusCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringActiveCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripMonitoringSetupCard
+import com.gcaguilar.biciradar.mobileui.components.trip.TripRouteFlowCard
 import com.gcaguilar.biciradar.mobileui.components.trip.TripStationCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -251,19 +256,40 @@ internal fun TripScreen(
                   overflow = TextOverflow.Ellipsis,
                 )
               }
-              OutlinedButton(
+              IconButton(
                 onClick = onClearTrip,
+                modifier =
+                  Modifier
+                    .size(32.dp)
+                    .background(colors.panel.copy(alpha = 0.7f), CircleShape),
               ) {
                 Icon(
                   imageVector = Icons.Filled.Close,
-                  contentDescription = null,
+                  contentDescription = stringResource(Res.string.clear),
+                  tint = colors.muted,
                   modifier = Modifier.size(16.dp),
                 )
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(Res.string.clear))
               }
             }
           }
+        }
+      }
+
+      val destinationForRoute = state.destination
+      val suggestedStation = state.nearestStationWithSlots
+      if (destinationForRoute != null && suggestedStation != null && !state.isSearchingStation) {
+        item("route-flow") {
+          val walkingMinutes =
+            remember(suggestedStation.id, destinationForRoute.name) {
+              val meters = distanceBetween(suggestedStation.location, destinationForRoute.location)
+              (meters / 80).coerceAtLeast(1)
+            }
+          TripRouteFlowCard(
+            station = suggestedStation,
+            distanceToStationMeters = state.distanceToStation,
+            destinationName = destinationForRoute.name,
+            walkingMinutesToDestination = walkingMinutes,
+          )
         }
       }
 
@@ -311,7 +337,6 @@ internal fun TripScreen(
         }
       }
 
-      val suggestedStation = state.nearestStationWithSlots
       if (suggestedStation != null && !state.isSearchingStation) {
         item("station") {
           Column(verticalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
@@ -322,7 +347,7 @@ internal fun TripScreen(
             Button(
               onClick = { onLaunchBikeRoute(suggestedStation) },
               modifier = Modifier.fillMaxWidth(),
-              colors = ButtonDefaults.buttonColors(containerColor = colors.blue),
+              colors = ButtonDefaults.buttonColors(containerColor = colors.red, contentColor = colors.onAccent),
             ) {
               Icon(
                 imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
