@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.components.trip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
@@ -18,12 +19,12 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.freeSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationMetersLabel
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedStation
 import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
+import com.gcaguilar.biciradar.mobileui.components.favorites.AvailabilityStatCell
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -31,6 +32,8 @@ internal fun TripStationCard(
   station: Station,
   distanceMeters: Int?,
 ) {
+  // Nota: en este design system `colors.red` es el azul primario de marca (#1D74BD) y
+  // `colors.blue` es un tono neutro/tinta oscura — mismos roles que usa StationRow.
   val c = LocalBiziColors.current
   BiziCard {
     Column(
@@ -59,22 +62,26 @@ internal fun TripStationCard(
         fontWeight = FontWeight.Bold,
       )
       Row(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-        StationMetricPill(
-          label = stringResource(Res.string.freeSlots),
+        AvailabilityStatCell(
+          modifier = Modifier.weight(1f),
           value = station.slotsFree.toString(),
+          caption = stringResource(Res.string.freeSlots),
           tint = c.blue,
         )
-        StationMetricPill(
-          label = stringResource(Res.string.bikes),
+        AvailabilityStatCell(
+          modifier = Modifier.weight(1f),
           value = station.bikesAvailable.toString(),
+          caption = stringResource(Res.string.bikes),
           tint = c.red,
         )
         if (distanceMeters != null) {
-          StationMetricPill(
-            label = stringResource(Res.string.distance),
+          AvailabilityStatCell(
+            modifier = Modifier.weight(1f),
             value = formatDistance(distanceMeters),
+            caption = stringResource(Res.string.tripStationMetersLabel),
             tint = c.green,
           )
         }
