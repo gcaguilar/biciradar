@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -68,6 +69,7 @@ internal fun TripMonitoringSetupCard(
       Button(
         onClick = onStartMonitoring,
         modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(containerColor = c.ink, contentColor = c.onAccent),
       ) {
         Text(stringResource(Res.string.startMonitoring))
       }
