@@ -141,6 +141,11 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
 
     private func pushCurrentContext() {
         guard WCSession.isSupported(), WCSession.default.activationState == .activated else { return }
+        // Sin Apple Watch enlazado, `updateApplicationContext` falla con
+        // `WCErrorCodeDeviceNotPaired` en cada push. Salir aquí evita el spam en logs
+        // sin cambiar el comportamiento cuando sí hay reloj: la próxima sincronización
+        // pushea de nuevo el contexto completo.
+        guard WCSession.default.isPaired else { return }
         var context: [String: Any] = [
             "favorite_ids": Array(currentFavoriteIds())
         ]
