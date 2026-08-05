@@ -16,7 +16,6 @@
     "preview:gh": "npm run build && npx serve dist"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.10",
     "astro": "^6.4.8",
     "typescript": "7.0.2"
   },
