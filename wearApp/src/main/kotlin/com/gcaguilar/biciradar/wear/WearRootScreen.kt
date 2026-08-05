@@ -79,7 +79,17 @@ internal fun WearRoot(
   val context = LocalContext.current.applicationContext
   val resolvedGraph =
     remember(platformBindings, graph) {
-      graph ?: CoreGraph.Companion.create(platformBindings)
+      // Ver comentario homólogo en BiziMobileApp: `graph = null` construye un grafo nuevo
+      // y duplica los @SingleIn. En producción SIEMPRE debe llegar `WearAppGraph.graph`
+      // desde `WearActivity`; sólo previews aisladas deberían caer aquí.
+      graph ?: run {
+        platformBindings.logger.warn(
+          "WearRoot",
+          "WearRoot invocado con graph=null. Se está creando un nuevo CoreGraph — duplica " +
+            "los @SingleIn(AppScope::class). Debe llegar WearAppGraph.graph desde WearActivity.",
+        )
+        CoreGraph.Companion.create(platformBindings)
+      }
     }
   val factory = remember(resolvedGraph, context) { WearViewModelFactory(appContext = context, graph = resolvedGraph) }
   val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }

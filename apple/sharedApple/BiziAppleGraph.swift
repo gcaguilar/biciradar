@@ -11,34 +11,56 @@ struct BiziStationSnapshot: Identifiable, Hashable {
     let distanceMeters: Int
 }
 
+// MARK: - BiziSharedGraph
+
+/// Grafo de dependencias KMP **único** para toda la app iOS: lo usan tanto la UI de
+/// Compose (`NativeShellModel` → `MainViewControllerWrapper`) como `BiziAppleGraph`
+/// (widgets, atajos, sincronización con el reloj y refresco en segundo plano).
+///
+/// Antes, `BiziAppleGraph` creaba su propio grafo vía `MobileGraphFactory.shared.create(...)`
+/// mientras que la UI de Compose creaba OTRO (al pasar `graph: nil` a `MainViewControllerWrapper`,
+/// que internamente hace `MobileGraph.Companion.create(...)`). Eso daba lugar a DOS instancias
+/// independientes de `FavoritesRepository`/`StationsRepository` (cada una con su propio estado
+/// en memoria y su propio listener reactivo sobre la base de datos): marcar un favorito desde la
+/// pestaña Cerca (grafo de Compose) no se reflejaba en la pestaña Favoritos si por lo que fuera
+/// acababa leyendo del otro grafo, y sobre todo cualquier sincronización disparada por
+/// `BiziAppleGraph` (watch connectivity, refresco de widgets en `scenePhase == .active`) operaba
+/// sobre una copia en memoria obsoleta, pudiendo persistir snapshots desactualizados. Al reiniciar
+/// la app ambos grafos se recreaban leyendo el mismo fichero/BD desde cero, por lo que el dato
+/// "se corregía solo" — el síntoma exacto que dio pie a esta unificación.
+///
+/// Ahora sólo existe UNA instancia de `IOSPlatformBindings` y UNA de `SharedGraph` en todo el
+/// proceso, creadas de forma perezosa (lazy `static let`, con las garantías de inicialización
+/// única y segura de Swift) la primera vez que cualquiera de los dos consumidores las toca.
+enum BiziSharedGraph {
+    static let platformBindings = IOSPlatformBindings(
+        appConfiguration: AppConfiguration.companion.createDefault(),
+        remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge,
+        crashlyticsBridge: FirebaseBootstrap.crashlyticsBridge
+    )
+
+    static let graph: any SharedGraph = {
+        let graph = MobileGraphFactory.shared.create(platformBindings: platformBindings)
+        platformBindings.onGraphCreated(graph: graph)
+        return graph
+    }()
+}
+
 // MARK: - BiziAppleGraph
 
-/// Actor que gestiona el grafo de dependencias KMP para iOS.
+/// Actor que expone el grafo de dependencias KMP compartido ([BiziSharedGraph]) a través
+/// de una API async/await cómoda para SwiftUI, widgets, atajos y watch connectivity.
 ///
 /// **Antes** este actor accedía al grafo KMP mediante reflexión dinámica
 /// (`NSClassFromString`, `NSSelectorFromString`, `unsafeBitCast`), lo que
 /// convertía cambios de API en fallos en runtime y dejaba la integración sin
 /// contrato compilable.
 ///
-/// **Ahora** el grafo se crea una sola vez a través de `MobileGraphFactory` y
-/// todas las operaciones se delegan a `BiziAppleFacade` — una facade KMP con
-/// tipos estáticos. Cualquier cambio de API rompe la compilación de Xcode,
-/// no el runtime.
+/// **Ahora** todas las operaciones se delegan a `BiziAppleFacade` — una facade KMP con
+/// tipos estáticos — sobre el grafo único de [BiziSharedGraph]. Cualquier cambio de API
+/// rompe la compilación de Xcode, no el runtime.
 actor BiziAppleGraph {
     static let shared = BiziAppleGraph()
-
-    private let bindings = IOSPlatformBindings(
-        appConfiguration: AppConfiguration.companion.createDefault(),
-        remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge,
-        crashlyticsBridge: FirebaseBootstrap.crashlyticsBridge
-    )
-
-    /// Grafo KMP creado una sola vez. Se inicializa de forma lazy al primer acceso.
-    private lazy var graph: any SharedGraph = {
-        let graph = MobileGraphFactory.shared.create(platformBindings: bindings)
-        bindings.onGraphCreated(graph: graph)
-        return graph
-    }()
 
     /// Facade tipada. Se construye la primera vez que se llama a `ensureFacade()`.
     private var _facade: BiziAppleFacade?
@@ -134,7 +156,7 @@ actor BiziAppleGraph {
         let facade = try await ensureFacade()
         let triggers = try await facade.evaluateSavedPlaceAlerts()
         guard !triggers.isEmpty else { return }
-        let hasPermission = try await bindings.localNotifier.hasPermission().boolValue
+        let hasPermission = try await BiziSharedGraph.platformBindings.localNotifier.hasPermission().boolValue
         guard hasPermission else { return }
         for trigger in triggers {
             await MainActor.run {
@@ -149,7 +171,7 @@ actor BiziAppleGraph {
 
     @discardableResult
     func refreshWidgetData(reloadTimelines: Bool = true) async throws -> Bool {
-        let success = try await graph.refreshWidgetDataUseCase.execute()
+        let success = try await BiziSharedGraph.graph.refreshWidgetDataUseCase.execute()
         guard success.boolValue else { return false }
         if reloadTimelines {
             await MainActor.run {
@@ -163,7 +185,7 @@ actor BiziAppleGraph {
 
     private func ensureFacade() async throws -> BiziAppleFacade {
         if let existing = _facade { return existing }
-        let newFacade = BiziAppleFacade.companion.create(graph: graph)
+        let newFacade = BiziAppleFacade.companion.create(graph: BiziSharedGraph.graph)
         try await newFacade.bootstrap()
         _facade = newFacade
         return newFacade
