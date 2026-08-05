@@ -3,6 +3,16 @@ package com.gcaguilar.biciradar.mobileui.navigation
 import kotlinx.serialization.Serializable
 
 sealed class Screen {
+  /**
+   * Human-readable title for this route. Used by native iOS navigation (SwiftUI
+   * NavigationStack/TabView) to render nav bar titles and tab labels without calling
+   * back into Kotlin. Purely additive: unused on Android and on the current
+   * fully-Compose-driven iOS navigation shell.
+   */
+  open val title: String? get() = null
+
+  open val subtitle: String? get() = null
+
   @Serializable
   data object Nearby : Screen()
 

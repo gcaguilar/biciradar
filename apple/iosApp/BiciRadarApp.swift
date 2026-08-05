@@ -10,17 +10,11 @@ import WidgetKit
 struct BiciRadarApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Single long-lived wrapper — the Compose tree is never torn down on navigation.
-    private let composeWrapper: BiziMainViewControllerWrapper = {
-        let factory: (any StationMapViewFactory)? = GoogleMapsBootstrap.isSdkLinked()
-            ? GoogleMapsStationMapFactory()
-            : nil
-        return BiziMobileViewControllerKt.MainViewControllerWrapper(
-            launchRequest: nil,
-            stationMapViewFactory: factory,
-            remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge
-        )
-    }()
+    /// The one live Compose instance, owned by `BiziComposeShell` and mounted by
+    /// `NativeNavContentView`. Deep links, foreground refresh and the final background
+    /// check all go through this same wrapper — there is no second, unmounted copy.
+    @MainActor
+    private var composeWrapper: BiziMainViewControllerWrapper { BiziComposeShell.model.wrapper }
 
     init() {
         FavoritesSyncBridge.shared.activate()
@@ -35,10 +29,13 @@ struct BiciRadarApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ComposeRootView(wrapper: composeWrapper)
+            NativeNavContentView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(uiColor: .systemBackground))
-                .ignoresSafeArea()
+                // Deliberately NOT ignoring the safe area here: the native tab bar inside
+                // NativeNavContentView needs it to sit in the right place. The Compose
+                // layer ignores it on its own (see ComposeShellView) so BiziMobileApp keeps
+                // applying its own window insets, exactly as it did before the shell.
                 .onAppear(perform: applyPendingLaunchRequest)
                 .onAppear {
                     SurfaceMonitoringActivityController.shared.startRefreshing()
@@ -84,6 +81,7 @@ struct BiciRadarApp: App {
         }
     }
 
+    @MainActor
     private func applyPendingLaunchRequest() {
         guard let request = AppleLaunchRequestStore.shared.takePendingRequest() else { return }
         composeWrapper.updateLaunchRequest(request: request)
@@ -95,6 +93,7 @@ struct BiciRadarApp: App {
         }
     }
 
+    @MainActor
     private func handleBackgroundTransitionForMonitoring() {
         let bgTask = UIApplication.shared.beginBackgroundTask(withName: "BiziTripMonitor") {
             // Expiry handler — time ran out, do nothing further

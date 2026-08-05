@@ -30,6 +30,8 @@ internal data class NavigationHostConfig(
   val onNearbyFeedbackDismiss: () -> Unit,
   val onOpenNearbyFeedbackForm: () -> Unit,
   val paddingValues: PaddingValues,
+  val onNavigateNative: ((Screen) -> Unit)? = null,
+  val onActivateNative: ((Screen) -> Unit)? = null,
 )
 
 /**
@@ -57,5 +59,7 @@ internal fun NavigationHost(config: NavigationHostConfig) {
     onNearbyFeedbackDismiss = config.onNearbyFeedbackDismiss,
     onOpenNearbyFeedbackForm = config.onOpenNearbyFeedbackForm,
     paddingValues = config.paddingValues,
+    onNavigateNative = config.onNavigateNative,
+    onActivateNative = config.onActivateNative,
   )
 }
