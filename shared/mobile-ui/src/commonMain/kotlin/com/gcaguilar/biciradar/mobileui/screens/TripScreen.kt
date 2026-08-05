@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
-import com.gcaguilar.biciradar.core.distanceBetween
+import com.gcaguilar.biciradar.core.geo.distanceBetween
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
