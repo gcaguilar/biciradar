@@ -12,7 +12,7 @@ export const es = {
   localeLabel: 'ES',
   metadata: {
     siteName: 'BiciRadar',
-    siteTagline: 'Consulta bicis y huecos antes de llegar',
+    siteTagline: 'Tu estación de bici, en un vistazo',
     defaultOgTitle: 'BiciRadar | Consulta bicis y huecos en tiempo real',
     defaultOgDescription:
       'Comprueba disponibilidad en sistemas de bici compartida, guarda favoritas y descarga BiciRadar.',
@@ -33,9 +33,9 @@ export const es = {
     citySeoTitleSuffix: 'BiciRadar',
     citySeoDescriptionSuffix:
       'Consulta tu estación antes de salir desde el móvil o el reloj.',
-    finalCtaTitle: 'Descárgala y pruébala',
+    finalCtaTitle: 'Descárgala gratis y pruébala',
     finalCtaDescription:
-      'Si usas bici pública a menudo, en cuanto guardes tus estaciones de siempre le vas a sacar partido.',
+      'Guarda tus estaciones de siempre y desde el primer día decides antes de salir. Sin registro y con datos oficiales.',
     cityRevisitLabel: 'Volver a ver ciudades',
     shareDescription: 'Comparte BiciRadar con otra persona de tu ciudad.',
     betaInviteLabel: 'Descarga directa',
@@ -61,14 +61,14 @@ export const es = {
       languageLabel: 'Idioma',
     },
     hero: {
-      title: 'Mira si hay bicis antes de salir',
+      title: 'Tu estación de bici, en un vistazo',
       description:
-        'Abres tu estación de siempre y ves enseguida si merece la pena bajar, esperar un poco o ir a otra. Así te ahorras vueltas justo cuando vas con prisa.',
+        'Bicis y huecos en tiempo real desde la app, el widget o el reloj. Guardas tus estaciones de siempre y decides antes de salir si te compensa bajar, esperar o ir a otra.',
       primaryCta: 'Descargar en App Store',
       secondaryCta: 'Descargar en Google Play',
-      microcopy: '',
-      primaryBadge: 'iPhone · Disponible ahora',
-      secondaryBadge: 'Android · Disponible ahora',
+      microcopy: 'Gratis · Sin registro · Datos oficiales',
+      primaryBadge: 'iPhone · Gratis',
+      secondaryBadge: 'Android · Gratis',
       mockup: {
         stationLabel: 'Estación Sol',
         availability: '12 bicis · 5 huecos',
@@ -81,7 +81,7 @@ export const es = {
     problem: {
       title: 'Lo malo no es coger la bici. Es enterarte tarde.',
       intro:
-        'Sales con el tiempo justo, llegas a la estación y justo ahí descubres que no hay bicis o no hay hueco. Ese rato perdido es lo que BiciRadar intenta ahorrarte.',
+        'Sales con el tiempo justo, llegas a la estación y justo ahí descubres que no hay bicis o no hay hueco. Ese rato perdido es exactamente lo que BiciRadar te ahorra.',
       cards: [
         {
           title: 'Llegas y no hay bici',
@@ -109,8 +109,8 @@ export const es = {
           description: 'Guardas las estaciones que más usas y no tienes que buscarlas cada vez.',
         },
         {
-          title: 'Te avisa cuando merece la pena mirar',
-          description: 'Las alertas ayudan a no estar refrescando todo el rato para ver si algo ha cambiado.',
+          title: 'Te avisa cuando vuelve a haber bicis',
+          description: 'Activas una alerta y dejas de refrescar: recibes un aviso cuando tu estación vuelve a tener bicis o huecos.',
         },
         {
           title: 'También lo llevas en el reloj',
@@ -177,16 +177,16 @@ export const es = {
       moreLabel: 'Más ciudades compatibles próximamente',
     },
     midCta: {
-      title: 'Si te cuadra, la tienes aquí',
+      title: 'Pruébala hoy. Gratis y sin registro.',
       description:
-        'Está en iPhone y Android. Elige tu tienda y pruébala cuando quieras.',
+        'Disponible en iPhone y Android. La descargas, eliges tu ciudad y en un minuto tienes tus estaciones a mano.',
       primaryCta: {
         label: 'Descargar en App Store',
-        note: 'Disponible ahora en iPhone',
+        note: 'Gratis en iPhone',
       },
       secondaryCta: {
         label: 'Descargar en Google Play',
-        note: 'Disponible ahora en Android',
+        note: 'Gratis en Android',
       },
     },
     betaForm: {
