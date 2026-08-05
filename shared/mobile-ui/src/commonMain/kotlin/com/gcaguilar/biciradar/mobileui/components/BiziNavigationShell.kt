@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -44,16 +46,29 @@ internal fun BiziNavigationShell(
   content: @Composable (PaddingValues) -> Unit,
 ) {
   if (useNativeChrome) {
-    // The native tab bar floats *over* this Compose content (the Compose view ignores
-    // safe areas so it can draw its own status-bar insets, same as before the native
-    // shell). Without reserving room for it, anything anchored to the bottom — sheets,
-    // snackbars, dismiss buttons — ends up physically under the glass bar and never
-    // receives touches.
-    content(
-      PaddingValues(
-        bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + NativeTabBarHeight,
-      ),
-    )
+    // The native tab bar floats *over* this Compose content and the SwiftUI host uses
+    // `.ignoresSafeArea()`, so Compose owns both insets:
+    //   • Top status bar: applied AND consumed via `windowInsetsPadding` here, so screens
+    //     with their own `Scaffold`/`TopAppBar` (which by default query
+    //     `WindowInsets.statusBars`) don't add the inset a second time — that was the
+    //     "huge gap over 'Elegir destino'" bug. Screens without a top bar (Cerca) just
+    //     start below the notch, which is what we want.
+    //   • Bottom: navigation bar + the room reserved for the native tab bar, passed as
+    //     `PaddingValues` so bottom-anchored UI (sheets, snackbars, dismiss buttons)
+    //     doesn't end up physically under the glass bar and lose touches.
+    val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    Box(
+      modifier =
+        Modifier
+          .fillMaxSize()
+          .windowInsetsPadding(WindowInsets.statusBars),
+    ) {
+      content(
+        PaddingValues(
+          bottom = navBarBottom + NativeTabBarHeight,
+        ),
+      )
+    }
     return
   }
 
