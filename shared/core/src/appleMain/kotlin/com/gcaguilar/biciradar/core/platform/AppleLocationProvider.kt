@@ -16,9 +16,14 @@ import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
 import platform.CoreLocation.kCLLocationAccuracyHundredMeters
+import platform.Foundation.NSDate
 import platform.Foundation.NSError
+import platform.Foundation.timeIntervalSinceNow
 import platform.darwin.NSObject
 import kotlin.coroutines.resume
+
+/** Max age (seconds) of a cached CLLocation before we request a fresh fix. */
+private const val MAX_CACHED_LOCATION_AGE_SECONDS = 60.0
 
 @OptIn(ExperimentalForeignApi::class)
 internal class AppleLocationProvider : LocationProvider {
@@ -81,13 +86,16 @@ internal class AppleLocationProvider : LocationProvider {
   }
 
   private fun requestOrReturnCachedLocation() {
-    val cachedLocation = locationManager.location?.toGeoPoint()
-    if (cachedLocation != null) {
-      finish(cachedLocation)
+    val cached = locationManager.location
+    if (cached != null && cached.isRecent()) {
+      finish(cached.toGeoPoint())
     } else {
       locationManager.requestLocation()
     }
   }
+
+  private fun CLLocation.isRecent(): Boolean =
+    -timestamp.timeIntervalSinceNow < MAX_CACHED_LOCATION_AGE_SECONDS
 
   private fun finish(location: GeoPoint?) {
     val continuation = pendingContinuation ?: return
