@@ -12,7 +12,7 @@ export const eu = {
   localeLabel: 'EU',
   metadata: {
     siteName: 'BiciRadar',
-    siteTagline: 'Kontsultatu bizikletak eta lekuak iritsi aurretik',
+    siteTagline: 'Zure bizikleta-geltokia, begiratu batean',
     defaultOgTitle: 'BiciRadar | Kontsultatu bizikletak eta leku libreak denbora errealean',
     defaultOgDescription:
       'Ikusi bizikleta partekatuaren sistemetako erabilgarritasuna, gorde gustukoak eta deskargatu BiciRadar.',
@@ -33,9 +33,9 @@ export const eu = {
     citySeoTitleSuffix: 'BiciRadar',
     citySeoDescriptionSuffix:
       'Begiratu zure geltokia irten aurretik mugikorretik edo erlojutik.',
-    finalCtaTitle: 'Deskargatu eta probatu',
+    finalCtaTitle: 'Deskargatu doan eta probatu',
     finalCtaDescription:
-      'Bizikleta publikoa maiz erabiltzen baduzu, ohiko geltokiak gordetzen dituzunean berehala ikusiko diozu zentzua.',
+      'Gorde zure ohiko geltokiak eta lehen egunetik irten aurretik erabakiko duzu. Erregistrorik gabe eta datu ofizialekin.',
     cityRevisitLabel: 'Berriz ikusi hiriak',
     shareDescription: 'Partekatu BiciRadar zure hiriko beste norbaitekin.',
     betaInviteLabel: 'Deskarga zuzena',
@@ -61,14 +61,14 @@ export const eu = {
       languageLabel: 'Hizkuntza',
     },
     hero: {
-      title: 'Begiratu ea bizikletarik badagoen irten aurretik',
+      title: 'Zure bizikleta-geltokia, begiratu batean',
       description:
-        'Zure ohiko geltokia ireki eta berehala ikusiko duzu jaistea, pixka bat itxarotea edo beste batera joatea komeni zaizun.',
+        'Bizikletak eta leku libreak denbora errealean, app-etik, widgetetik edo erlojutik. Gorde zure ohiko geltokiak eta irten aurretik erabaki jaistea, itxarotea edo beste batera joatea komeni zaizun.',
       primaryCta: 'Deskargatu App Store-n',
       secondaryCta: 'Deskargatu Google Play-n',
-      microcopy: '',
-      primaryBadge: 'iPhone · Eskuragarri orain',
-      secondaryBadge: 'Android · Eskuragarri orain',
+      microcopy: 'Doan · Erregistrorik gabe · Datu ofizialak',
+      primaryBadge: 'iPhone · Doan',
+      secondaryBadge: 'Android · Doan',
       mockup: {
         stationLabel: 'Sol geltokia',
         availability: '12 bizikleta · 5 leku',
@@ -81,7 +81,7 @@ export const eu = {
     problem: {
       title: 'Txarrena beranduegi ohartzea da',
       intro:
-        'Denboraz justu zoaz, geltokira iristen zara eta orduan konturatzen zara ez dagoela bizikletarik edo ez dagoela non utzi. BiciRadarrek galera hori aurrezten saiatzen da.',
+        'Denboraz justu zoaz, geltokira iristen zara eta orduan konturatzen zara ez dagoela bizikletarik edo ez dagoela non utzi. Galtzen duzun denbora hori da, hain zuzen, BiciRadarrek aurrezten dizuna.',
       cards: [
         { title: 'Iristen zara eta ez dago bizikletarik', description: 'Geltokira iritsi eta inprobisatu egin behar duzu, ordurako presaka zabiltzala.' },
         { title: 'Edo ez dago non utzi', description: 'Itzulera ere zailtzen da beranduegi konturatzen bazara ez dagoela leku librerik.' },
@@ -93,7 +93,7 @@ export const eu = {
       cards: [
         { title: 'Zure geltokia segundo gutxitan begiratzen duzu', description: 'App-a ireki eta berehala ikusten duzu hara joatea komeni zaizun ala ez.' },
         { title: 'Gustukoak eskura geratzen dira', description: 'Gehien erabiltzen dituzun geltokiak gordetzen dituzu eta ez dituzu beti berriz bilatu behar.' },
-        { title: 'Abisuek etengabe begiratzetik libratzen zaituzte', description: 'Etengabe freskatu beharrean, benetan merezi duenean begira dezakezu.' },
+        { title: 'Abisatzen dizu bizikletak itzultzen direnean', description: 'Abisu bat aktibatu eta utzi freskatzeari: jakinarazpena jasoko duzu zure geltokiak berriro bizikletak edo leku libreak dituenean.' },
         { title: 'Erlojuan ere begira dezakezu', description: 'Errazago bazaizu, widgetarekin edo erlojuarekin ere egin dezakezu kontsulta.' },
       ],
     },
@@ -118,10 +118,10 @@ export const eu = {
       moreLabel: 'Hiri bateragarri gehiago laster',
     },
     midCta: {
-      title: 'Ondo badatorkizu, hemen daukazu',
-      description: 'iPhone eta Android-en dago. Aukeratu zure denda eta probatu nahi duzunean.',
-      primaryCta: { label: 'Deskargatu App Storen', note: 'Eskuragarri orain iPhonen' },
-      secondaryCta: { label: 'Deskargatu Google Play-n', note: 'Eskuragarri orain Android-en' },
+      title: 'Probatu gaur. Doan eta erregistrorik gabe.',
+      description: 'iPhone eta Android-en dago. Deskargatu, aukeratu zure hiria eta minutu batean zure geltokiak eskura izango dituzu.',
+      primaryCta: { label: 'Deskargatu App Storen', note: 'Doan iPhonen' },
+      secondaryCta: { label: 'Deskargatu Google Play-n', note: 'Doan Android-en' },
     },
     betaForm: {
       title: 'Aukeratu zure plataforma eta deskargatu',

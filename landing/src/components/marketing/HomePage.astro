@@ -102,11 +102,12 @@ const webMcpConfig = {
             <span class="marketing-platform-card__button marketing-platform-card__button-android">
               {content.home.hero.secondaryCta}
             </span>
-            {content.home.hero.microcopy.trim() ? (
-              <span class="marketing-platform-card__note">{content.home.hero.microcopy}</span>
-            ) : null}
           </a>
         </div>
+
+        {content.home.hero.microcopy.trim() ? (
+          <p class="text-sm font-medium text-slate-500">{content.home.hero.microcopy}</p>
+        ) : null}
 
         <div class="flex flex-wrap gap-2">
           {heroValueProps.map((value) => (

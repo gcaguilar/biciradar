@@ -12,7 +12,7 @@ export const ca = {
   localeLabel: 'CA',
   metadata: {
     siteName: 'BiciRadar',
-    siteTagline: 'Consulta bicis i ancoratges abans d’arribar',
+    siteTagline: 'La teva estació de bici, en un cop d’ull',
     defaultOgTitle: 'BiciRadar | Consulta bicis i ancoratges en temps real',
     defaultOgDescription:
       'Mira disponibilitat en sistemes de bici compartida, desa preferides i descarrega BiciRadar.',
@@ -33,9 +33,9 @@ export const ca = {
     citySeoTitleSuffix: 'BiciRadar',
     citySeoDescriptionSuffix:
       'Consulta la teva estació abans de sortir des del mòbil o el rellotge.',
-    finalCtaTitle: 'Descarrega-la i prova-la',
+    finalCtaTitle: 'Descarrega-la gratis i prova-la',
     finalCtaDescription:
-      'Si fas servir la bici pública sovint, tan bon punt guardis les teves estacions de sempre ja li veuràs la gràcia.',
+      'Guarda les teves estacions de sempre i des del primer dia decideixes abans de sortir. Sense registre i amb dades oficials.',
     cityRevisitLabel: 'Tornar a veure ciutats',
     shareDescription: 'Comparteix BiciRadar amb una altra persona de la teva ciutat.',
     betaInviteLabel: 'Descàrrega directa',
@@ -61,14 +61,14 @@ export const ca = {
       languageLabel: 'Idioma',
     },
     hero: {
-      title: 'Mira si hi ha bicis abans de sortir',
+      title: 'La teva estació de bici, en un cop d’ull',
       description:
-        'Obres l’estació que fas servir sempre i de seguida veus si val la pena baixar, esperar una mica o anar a una altra.',
+        'Bicis i ancoratges en temps real des de l’app, el widget o el rellotge. Guardes les teves estacions de sempre i decideixes abans de sortir si et convé baixar, esperar o anar a una altra.',
       primaryCta: 'Descarrega a l’App Store',
       secondaryCta: 'Descarrega a Google Play',
-      microcopy: '',
-      primaryBadge: 'iPhone · Disponible ara',
-      secondaryBadge: 'Android · Disponible ara',
+      microcopy: 'Gratis · Sense registre · Dades oficials',
+      primaryBadge: 'iPhone · Gratis',
+      secondaryBadge: 'Android · Gratis',
       mockup: {
         stationLabel: 'Estació Sol',
         availability: '12 bicis · 5 ancoratges',
@@ -81,7 +81,7 @@ export const ca = {
     problem: {
       title: 'El pitjor és assabentar-te’n massa tard',
       intro:
-        'Vas just de temps, arribes a l’estació i just llavors descobreixes que no hi ha bicis o no hi ha on deixar-la. Aquest temps perdut és el que BiciRadar intenta estalviar-te.',
+        'Vas just de temps, arribes a l’estació i just llavors descobreixes que no hi ha bicis o no hi ha on deixar-la. Aquest temps perdut és exactament el que BiciRadar t’estalvia.',
       cards: [
         {
           title: 'Hi arribes i no hi ha bici',
@@ -102,7 +102,7 @@ export const ca = {
       cards: [
         { title: 'Mires la teva estació en segons', description: 'Obres l’app i de seguida veus si et convé anar-hi o si és millor fer una altra cosa.' },
         { title: 'Les preferides queden a mà', description: 'Guardes les estacions que més fas servir i no les has de buscar cada vegada.' },
-        { title: 'Els avisos t’estalvien anar refrescant', description: 'En lloc d’estar pendent tota l’estona, pots esperar fins que realment valgui la pena mirar-ho.' },
+        { title: 'T’avisa quan tornen a haver-hi bicis', description: 'Actives un avís i deixes d’anar refrescant: reps una notificació quan la teva estació torna a tenir bicis o ancoratges.' },
         { title: 'També ho pots mirar al rellotge', description: 'Si et va millor, amb el widget o el rellotge ja en tens prou.' },
       ],
     },
@@ -140,11 +140,11 @@ export const ca = {
       moreLabel: 'Més ciutats compatibles properament',
     },
     midCta: {
-      title: 'Si et fa servei, aquí la tens',
+      title: 'Prova-la avui. Gratis i sense registre.',
       description:
-        'La tens a iPhone i Android. Tria la teva botiga i prova-la quan vulguis.',
-      primaryCta: { label: 'Descarrega a l’App Store', note: 'Disponible ara a iPhone' },
-      secondaryCta: { label: 'Descarrega a Google Play', note: 'Disponible ara a Android' },
+        'Disponible a iPhone i Android. La descarregues, tries la teva ciutat i en un minut tens les teves estacions a mà.',
+      primaryCta: { label: 'Descarrega a l’App Store', note: 'Gratis a iPhone' },
+      secondaryCta: { label: 'Descarrega a Google Play', note: 'Gratis a Android' },
     },
     betaForm: {
       title: 'Tria la teva plataforma i descarrega',

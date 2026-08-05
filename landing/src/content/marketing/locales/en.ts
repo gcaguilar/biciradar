@@ -12,7 +12,7 @@ export const en = {
   localeLabel: 'EN',
   metadata: {
     siteName: 'BiciRadar',
-    siteTagline: 'Check bikes and docks before you arrive',
+    siteTagline: 'Your bike station, at a glance',
     defaultOgTitle: 'BiciRadar | Check bike and dock availability in real time',
     defaultOgDescription:
       'See live availability across shared-bike systems, save favorites, and download BiciRadar.',
@@ -33,9 +33,9 @@ export const en = {
     citySeoTitleSuffix: 'BiciRadar',
     citySeoDescriptionSuffix:
       'Check your station before you leave from your phone or your watch.',
-    finalCtaTitle: 'Download it and try it',
+    finalCtaTitle: 'Download it free and try it',
     finalCtaDescription:
-      'If you use public bikes often, it becomes useful as soon as you save the stations you check all the time.',
+      'Save your usual stations and from day one you decide before you leave. No sign-up, and official data.',
     cityRevisitLabel: 'Browse city pages again',
     shareDescription: 'Share BiciRadar with someone else in your city.',
     betaInviteLabel: 'Direct download',
@@ -61,14 +61,14 @@ export const en = {
       languageLabel: 'Language',
     },
     hero: {
-      title: 'Check whether there are bikes before you leave',
+      title: 'Your bike station, at a glance',
       description:
-        'Open the station you usually use and you will quickly see whether it is worth heading out, waiting a bit, or going somewhere else.',
+        'Real-time bikes and docks from the app, a widget, or your watch. Save your usual stations and know before you leave whether to head out, wait, or pick another one.',
       primaryCta: 'Download on the App Store',
       secondaryCta: 'Get it on Google Play',
-      microcopy: '',
-      primaryBadge: 'iPhone · Available now',
-      secondaryBadge: 'Android · Available now',
+      microcopy: 'Free · No sign-up · Official data',
+      primaryBadge: 'iPhone · Free',
+      secondaryBadge: 'Android · Free',
       mockup: {
         stationLabel: 'Sol Station',
         availability: '12 bikes · 5 docks',
@@ -81,7 +81,7 @@ export const en = {
     problem: {
       title: 'The annoying part is finding out too late',
       intro:
-        'You are already in a hurry, you get to the station, and that is when you find out there are no bikes or no docks. That wasted time is what BiciRadar tries to save.',
+        'You are already in a hurry, you get to the station, and that is when you find out there are no bikes or no docks. That wasted time is exactly what BiciRadar saves you.',
       cards: [
         {
           title: 'You get there and there is no bike',
@@ -109,8 +109,8 @@ export const en = {
           description: 'Save the stations you use most so you do not have to search for them every time.',
         },
         {
-          title: 'Alerts save you from refreshing all the time',
-          description: 'Instead of checking over and over, you can wait until it is actually worth looking again.',
+          title: 'It tells you when bikes are back',
+          description: 'Set an alert and stop refreshing: you get a heads-up when your station has bikes or docks again.',
         },
         {
           title: 'You can also check from your watch',
@@ -177,16 +177,16 @@ export const en = {
       moreLabel: 'More compatible cities coming soon',
     },
     midCta: {
-      title: 'If it sounds useful, here it is',
+      title: 'Try it today. Free, no sign-up.',
       description:
-        'It is available on iPhone and Android. Pick your store and try it whenever you want.',
+        'Available on iPhone and Android. Download it, pick your city, and your stations are one tap away in a minute.',
       primaryCta: {
         label: 'Download on the App Store',
-        note: 'Available now on iPhone',
+        note: 'Free on iPhone',
       },
       secondaryCta: {
         label: 'Get it on Google Play',
-        note: 'Available now on Android',
+        note: 'Free on Android',
       },
     },
     betaForm: {
