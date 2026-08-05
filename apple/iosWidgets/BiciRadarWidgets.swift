@@ -1,4 +1,5 @@
 import AppIntents
+import CoreLocation
 import SwiftUI
 import WidgetKit
 
@@ -27,9 +28,27 @@ private struct SurfaceTimelineProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SurfaceEntry>) -> Void) {
-        let entry = SurfaceEntry(date: .now, bundle: BiziSurfaceStore.readSnapshotBundle() ?? sampleBundle)
         let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
-        completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+
+        if #available(iOSApplicationExtension 17.0, *) {
+            Task {
+                let rawBundle = BiziSurfaceStore.readSnapshotBundle()
+                let bundle: AppleSurfaceSnapshotBundle?
+                if let rawBundle, let location = await WidgetLocationProvider.fetchLocation() {
+                    bundle = rawBundle.rebasedToLocation(
+                        latitude: location.coordinate.latitude,
+                        longitude: location.coordinate.longitude
+                    )
+                } else {
+                    bundle = rawBundle
+                }
+                let entry = SurfaceEntry(date: .now, bundle: bundle ?? sampleBundle)
+                completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+            }
+        } else {
+            let entry = SurfaceEntry(date: .now, bundle: BiziSurfaceStore.readSnapshotBundle() ?? sampleBundle)
+            completion(Timeline(entries: [entry], policy: .after(refreshDate)))
+        }
     }
 }
 
@@ -220,12 +239,22 @@ private struct ConfigurableStationTimelineProvider: AppIntentTimelineProvider {
     }
 
     func timeline(for configuration: ConfigurableStationIntent, in context: Context) async -> Timeline<ConfigurableStationEntry> {
+        let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
+        let rawBundle = BiziSurfaceStore.readSnapshotBundle()
+        let bundle: AppleSurfaceSnapshotBundle?
+        if let rawBundle, let location = await WidgetLocationProvider.fetchLocation() {
+            bundle = rawBundle.rebasedToLocation(
+                latitude: location.coordinate.latitude,
+                longitude: location.coordinate.longitude
+            )
+        } else {
+            bundle = rawBundle
+        }
         let entry = ConfigurableStationEntry(
             date: .now,
-            bundle: BiziSurfaceStore.readSnapshotBundle() ?? sampleBundle,
+            bundle: bundle ?? sampleBundle,
             slot: configuration.station?.slot ?? .favorite
         )
-        let refreshDate = Calendar.current.date(byAdding: .minute, value: 15, to: .now) ?? .now.addingTimeInterval(900)
         return Timeline(entries: [entry], policy: .after(refreshDate))
     }
 }
@@ -697,6 +726,96 @@ private func statusColor(_ level: AppleSurfaceStatusLevel) -> Color {
         return Color.red
     case .unavailable:
         return Color.secondary
+    }
+}
+
+// MARK: - Widget Location Support
+
+@available(iOSApplicationExtension 17.0, *)
+private enum WidgetLocationProvider {
+    /// Attempts to get a fresh location with a 3-second timeout.
+    /// Returns nil if location is unavailable or times out.
+    static func fetchLocation() async -> CLLocation? {
+        await withTaskGroup(of: CLLocation?.self) { group in
+            group.addTask {
+                do {
+                    for try await update in CLLocationUpdate.liveUpdates(.default) {
+                        if let location = update.location {
+                            return location
+                        }
+                    }
+                } catch {}
+                return nil
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                return nil
+            }
+            let result = await group.next() ?? nil
+            group.cancelAll()
+            return result
+        }
+    }
+}
+
+private func haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double) -> Int {
+    let R = 6_371_000.0
+    let dLat = (lat2 - lat1) * .pi / 180
+    let dLon = (lon2 - lon1) * .pi / 180
+    let a = sin(dLat / 2) * sin(dLat / 2) +
+            cos(lat1 * .pi / 180) * cos(lat2 * .pi / 180) *
+            sin(dLon / 2) * sin(dLon / 2)
+    let c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return Int(R * c)
+}
+
+private extension AppleSurfaceStationSnapshot {
+    func withDistance(fromLatitude lat: Double, longitude lon: Double) -> AppleSurfaceStationSnapshot {
+        AppleSurfaceStationSnapshot(
+            id: id,
+            nameShort: nameShort,
+            nameFull: nameFull,
+            cityId: cityId,
+            latitude: latitude,
+            longitude: longitude,
+            bikesAvailable: bikesAvailable,
+            docksAvailable: docksAvailable,
+            statusTextShort: statusTextShort,
+            statusLevel: statusLevel,
+            lastUpdatedEpoch: lastUpdatedEpoch,
+            distanceMeters: haversineDistance(lat1: lat, lon1: lon, lat2: latitude, lon2: longitude),
+            isFavorite: isFavorite,
+            alternativeStationId: alternativeStationId,
+            alternativeStationName: alternativeStationName,
+            alternativeDistanceMeters: alternativeDistanceMeters
+        )
+    }
+}
+
+private extension AppleSurfaceSnapshotBundle {
+    func rebasedToLocation(latitude: Double, longitude: Double) -> AppleSurfaceSnapshotBundle {
+        let rebasedNearby = nearbyStations
+            .map { $0.withDistance(fromLatitude: latitude, longitude: longitude) }
+            .sorted { ($0.distanceMeters ?? .max) < ($1.distanceMeters ?? .max) }
+        return AppleSurfaceSnapshotBundle(
+            generatedAtEpoch: generatedAtEpoch,
+            favoriteStation: favoriteStation?.withDistance(fromLatitude: latitude, longitude: longitude),
+            homeStation: homeStation?.withDistance(fromLatitude: latitude, longitude: longitude),
+            workStation: workStation?.withDistance(fromLatitude: latitude, longitude: longitude),
+            nearbyStations: rebasedNearby,
+            monitoringSession: monitoringSession,
+            state: AppleSurfaceState(
+                hasLocationPermission: state.hasLocationPermission,
+                hasNotificationPermission: state.hasNotificationPermission,
+                hasFavoriteStation: state.hasFavoriteStation,
+                isDataFresh: state.isDataFresh,
+                lastSyncEpoch: state.lastSyncEpoch,
+                cityId: state.cityId,
+                cityName: state.cityName,
+                userLatitude: latitude,
+                userLongitude: longitude
+            )
+        )
     }
 }
 
