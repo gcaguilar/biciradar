@@ -143,7 +143,7 @@ class SurfaceSnapshotRepositoryImpl(
       if (usableLocation != null) {
         stations
           .sortedBy { it.distanceMeters }
-          .take(3)
+          .take(10)
           .map { station ->
             station.toSurfaceSnapshot(
               cityId = city.id,
