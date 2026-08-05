@@ -214,7 +214,7 @@ class FavoritesRepositoryImpl(
     } else {
       updatedAssignments[stationId] = FavoriteCategoryIds.FAVORITE
     }
-    val updatedSnapshot = currentSnapshot().copy(stationCategory = updatedAssignments).normalized()
+    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
     persist(updatedSnapshot)
     withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
       watchSyncBridge.pushFavorites(updatedSnapshot)
@@ -226,7 +226,7 @@ class FavoritesRepositoryImpl(
     val updatedAssignments = mutableStationCategory.value.toMutableMap()
     updatedAssignments.entries.removeAll { it.value == FavoriteCategoryIds.HOME }
     stationId?.takeIf(String::isNotBlank)?.let { updatedAssignments[it] = FavoriteCategoryIds.HOME }
-    val updatedSnapshot = currentSnapshot().copy(stationCategory = updatedAssignments).normalized()
+    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
     persist(updatedSnapshot)
     withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
       watchSyncBridge.pushFavorites(updatedSnapshot)
@@ -243,7 +243,7 @@ class FavoritesRepositoryImpl(
         updatedAssignments[candidateWorkId] = FavoriteCategoryIds.WORK
       }
     }
-    val updatedSnapshot = currentSnapshot().copy(stationCategory = updatedAssignments).normalized()
+    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
     persist(updatedSnapshot)
     withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
       watchSyncBridge.pushFavorites(updatedSnapshot)
@@ -290,11 +290,9 @@ class FavoritesRepositoryImpl(
     val updatedCategories = mutableCategories.value.filterNot { it.id == categoryId }
     val updatedAssignments = mutableStationCategory.value.filterValues { it != categoryId }
     val updatedSnapshot =
-      currentSnapshot()
-        .copy(
-          categories = updatedCategories,
-          stationCategory = updatedAssignments,
-        ).normalized()
+      snapshotFromStationCategory(updatedAssignments)
+        .copy(categories = updatedCategories)
+        .normalized()
     persist(updatedSnapshot)
   }
 
@@ -316,7 +314,7 @@ class FavoritesRepositoryImpl(
       }
       updatedAssignments[normalizedStationId] = categoryId
     }
-    val updatedSnapshot = currentSnapshot().copy(stationCategory = updatedAssignments).normalized()
+    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
     persist(updatedSnapshot)
   }
 
@@ -338,6 +336,24 @@ class FavoritesRepositoryImpl(
       favoriteIds = mutableFavoriteIds.value,
       homeStationId = mutableHomeStationId.value,
       workStationId = mutableWorkStationId.value,
+    )
+
+  /**
+   * Construye un snapshot cuyos campos legacy (favoriteIds/home/work) se derivan
+   * SIEMPRE del propio [stationCategory] recién calculado, nunca del estado en
+   * memoria previo. Esto evita que `normalized()` "resucite" una asignación que
+   * acabamos de borrar: si se usara `currentSnapshot().copy(stationCategory = ...)`,
+   * los campos legacy quedarían con los valores ANTIGUOS y, en el caso en que el
+   * mapa resultante quede vacío, la rama de migración de `normalized()` los
+   * reinsertaría como si fueran datos legacy sin migrar.
+   */
+  private fun snapshotFromStationCategory(stationCategory: Map<String, String>): FavoritesSyncSnapshot =
+    FavoritesSyncSnapshot(
+      categories = mutableCategories.value,
+      stationCategory = stationCategory,
+      favoriteIds = stationCategory.filterValues { it == FavoriteCategoryIds.FAVORITE }.keys,
+      homeStationId = stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.HOME }?.key,
+      workStationId = stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.WORK }?.key,
     )
 
   private suspend fun syncMergedSnapshot(
@@ -376,7 +392,14 @@ class FavoritesRepositoryImpl(
     val normalized = snapshot.normalized()
     mutableCategories.value = normalized.categories
     mutableStationCategory.value = normalized.stationCategory
-    mutableFavoriteIds.value = normalized.stationCategory.filterValues { it == FavoriteCategoryIds.FAVORITE }.keys
+    // Una estación marcada como Casa o Trabajo también debe verse como favorita
+    // (corazón relleno) en Cerca/Detalle: para el usuario es una estación guardada,
+    // no solo una "favorita" en sentido estricto de la categoría FAVORITE.
+    mutableFavoriteIds.value =
+      normalized.stationCategory
+        .filterValues {
+          it == FavoriteCategoryIds.FAVORITE || it == FavoriteCategoryIds.HOME || it == FavoriteCategoryIds.WORK
+        }.keys
     mutableHomeStationId.value =
       normalized.stationCategory.entries
         .firstOrNull { it.value == FavoriteCategoryIds.HOME }
