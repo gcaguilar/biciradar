@@ -21,12 +21,14 @@ import com.gcaguilar.biciradar.mobileui.BiziMobileApp
 import com.gcaguilar.biciradar.mobileui.LocalAndroidStationMapRenderer
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -75,6 +77,11 @@ class MainActivity : ComponentActivity() {
       // Play Core Library manages the result internally for FLEXIBLE updates.
       // The system downloads in background automatically.
     }
+
+  /** Tracks whether the Activity has been stopped at least once, so we only
+   *  force-refresh station data (including location) when returning from background,
+   *  not on the initial launch where BiziMobileApp already bootstraps everything. */
+  private var hasBeenStopped = false
 
   private var launchRequest by mutableStateOf<MobileLaunchRequest?>(null)
   private var assistantLaunchRequest by mutableStateOf<AssistantLaunchRequest?>(null)
@@ -149,9 +156,15 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     platformBindings.attachExperienceActivity(this)
+    if (hasBeenStopped) {
+      lifecycleScope.launch {
+        runCatching { graph.refreshStationDataIfNeeded.execute(forceRefresh = true) }
+      }
+    }
   }
 
   override fun onStop() {
+    hasBeenStopped = true
     platformBindings.attachExperienceActivity(null)
     super.onStop()
   }
