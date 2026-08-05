@@ -9,9 +9,13 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
+import android.os.CancellationSignal
+import android.os.Looper
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.core.app.NotificationCompat
@@ -54,6 +58,8 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 
@@ -422,27 +428,98 @@ private class AndroidLocationProvider(
   @SuppressLint("MissingPermission")
   override suspend fun currentLocation(): GeoPoint? {
     if (!hasLocationPermission()) return null
-    val bestLocation =
-      locationManager
-        .getProviders(true)
-        .asSequence()
-        .mapNotNull { provider -> runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull() }
-        .maxByOrNull { location -> location.time }
 
-    return bestLocation?.let { location ->
-      GeoPoint(latitude = location.latitude, longitude = location.longitude)
+    // 1. Try an active one-shot location request for a fresh fix.
+    val fresh = requestFreshLocation()
+    if (fresh != null) return fresh.toGeoPoint()
+
+    // 2. Fall back to best cached location from any provider.
+    return bestCachedLocation()?.toGeoPoint()
+  }
+
+  @SuppressLint("MissingPermission")
+  private suspend fun requestFreshLocation(): Location? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      getCurrentLocationApi30()
+    } else {
+      requestSingleUpdate()
+    }
+
+  /** API 30+: uses [LocationManager.getCurrentLocation] — a true one-shot request. */
+  @SuppressLint("MissingPermission")
+  private suspend fun getCurrentLocationApi30(): Location? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+    val provider = bestAvailableProvider() ?: return null
+    return suspendCancellableCoroutine { continuation ->
+      val signal = CancellationSignal()
+      continuation.invokeOnCancellation { signal.cancel() }
+      locationManager.getCurrentLocation(
+        provider,
+        signal,
+        context.mainExecutor,
+      ) { location: Location? ->
+        if (continuation.isActive) continuation.resume(location)
+      }
     }
   }
+
+  /** Pre-API 30: uses the deprecated but still functional [LocationManager.requestSingleUpdate]. */
+  @Suppress("DEPRECATION")
+  @SuppressLint("MissingPermission")
+  private suspend fun requestSingleUpdate(): Location? {
+    val provider = bestAvailableProvider() ?: return null
+    return suspendCancellableCoroutine { continuation ->
+      val listener =
+        object : LocationListener {
+          override fun onLocationChanged(location: Location) {
+            if (continuation.isActive) continuation.resume(location)
+          }
+
+          override fun onProviderDisabled(provider: String) {
+            if (continuation.isActive) continuation.resume(null)
+          }
+
+          override fun onProviderEnabled(provider: String) = Unit
+
+          @Deprecated("Deprecated")
+          override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) = Unit
+        }
+      continuation.invokeOnCancellation { locationManager.removeUpdates(listener) }
+      locationManager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
+    }
+  }
+
+  private fun bestAvailableProvider(): String? {
+    val providers = locationManager.getProviders(true)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+      providers.contains(LocationManager.FUSED_PROVIDER)
+    ) {
+      return LocationManager.FUSED_PROVIDER
+    }
+    if (providers.contains(LocationManager.GPS_PROVIDER)) return LocationManager.GPS_PROVIDER
+    if (providers.contains(LocationManager.NETWORK_PROVIDER)) return LocationManager.NETWORK_PROVIDER
+    return providers.firstOrNull()
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun bestCachedLocation(): Location? =
+    locationManager
+      .getProviders(true)
+      .asSequence()
+      .mapNotNull { provider -> runCatching { locationManager.getLastKnownLocation(provider) }.getOrNull() }
+      .maxByOrNull { it.time }
 
   private fun hasLocationPermission(): Boolean =
     ContextCompat.checkSelfPermission(
       context,
-      android.Manifest.permission.ACCESS_FINE_LOCATION,
+      Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED ||
       ContextCompat.checkSelfPermission(
         context,
-        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
       ) == PackageManager.PERMISSION_GRANTED
+
+  private fun Location.toGeoPoint(): GeoPoint = GeoPoint(latitude = latitude, longitude = longitude)
 }
 
 private class AndroidWatchSyncBridge(
