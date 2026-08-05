@@ -182,6 +182,7 @@ targets:
       - sdk: SwiftUI.framework
       - sdk: WidgetKit.framework
       - sdk: ActivityKit.framework
+      - sdk: CoreLocation.framework
     settings:
       base:
         CODE_SIGN_ENTITLEMENTS: iosWidgets/BiciRadarWidgets.entitlements
