@@ -1,0 +1,5 @@
+- Fixed the iOS Google Maps API key being silently overridden during builds, which caused a blank map and long freezes on launch
+- Unified the shared KMP dependency graph across the UI, widgets and watch sync so favourites stay in sync everywhere
+- Home and Work stations now show as saved favourites throughout the app
+- Fixed a bug where removing the last favourite could reappear on the next sync
+- Reduced log noise on iOS when no Apple Watch is paired
