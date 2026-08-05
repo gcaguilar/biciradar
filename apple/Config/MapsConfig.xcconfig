@@ -1,3 +1,8 @@
-#include? "LocalSecrets.xcconfig"
-
+// Fallback vacío: se define ANTES del include para que LocalSecrets.xcconfig
+// (con la clave real) tenga la última palabra. Antes estaba después del include
+// y borraba la clave: el simulador se quedaba con GOOGLE_MAPS_IOS_API_KEY vacío,
+// GoogleMapsBootstrap.provideAPIKey no se llamaba, y el GMSMapView arrancaba sin
+// tiles → mapa en blanco / render loop atascado en el arranque.
 GOOGLE_MAPS_IOS_API_KEY =
+
+#include? "LocalSecrets.xcconfig"
