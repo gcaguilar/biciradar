@@ -16,17 +16,17 @@
     "preview:gh": "npm run build && npx serve dist"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.9",
-    "astro": "^6.2.1",
+    "@astrojs/check": "^0.9.10",
+    "astro": "^6.4.8",
     "typescript": "6.0.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
-    "@types/node": "^25.6.0",
-    "autoprefixer": "^10.5.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^25.9.5",
+    "autoprefixer": "^10.5.4",
     "gh-pages": "^6.3.0",
-    "postcss": "^8.5.13",
-    "tailwindcss": "^4.2.2",
-    "vitest": "^4.1.4"
+    "postcss": "^8.5.25",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^4.1.10"
   }
 }
