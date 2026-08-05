@@ -59,6 +59,16 @@ fun MainViewControllerWrapper(
    * own database/network/background-scheduler stack.
    */
   graph: SharedGraph? = null,
+  /**
+   * `IOSPlatformBindings` compartidas con el resto del proceso (widgets, atajos,
+   * watch sync, `BiziAppleGraph`). Cuando pasas [graph] también DEBES pasar las
+   * mismas bindings usadas para construirlo (ver `BiziSharedGraph.platformBindings`
+   * en Swift). Si dejas esto en `null`, Compose construye sus PROPIAS bindings —
+   * los repos siguen unificados porque vienen del [graph] compartido, pero cualquier
+   * estado propio de `IOSPlatformBindings` (por ejemplo el `IOSRouteLauncher` con
+   * late-wiring de `SettingsRepository`) queda duplicado y desincronizado.
+   */
+  platformBindings: IOSPlatformBindings? = null,
 ): BiziMainViewControllerWrapper =
   BiziMainViewControllerWrapper(
     initialLaunchRequest = launchRequest,
@@ -67,6 +77,7 @@ fun MainViewControllerWrapper(
     onNavigate = onNavigate,
     onActivate = onActivate,
     graph = graph,
+    platformBindings = platformBindings,
   )
 
 @Suppress("ktlint:standard:function-naming")
@@ -79,7 +90,11 @@ class BiziMainViewControllerWrapper(
   onNavigate: ((Screen) -> Unit)? = null,
   onActivate: ((Screen) -> Unit)? = null,
   graph: SharedGraph? = null,
+  platformBindings: IOSPlatformBindings? = null,
 ) {
+  private val resolvedPlatformBindings: IOSPlatformBindings =
+    platformBindings ?: IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge)
+
   private var currentLaunchRequest: MobileLaunchRequest? by mutableStateOf(
     value = initialLaunchRequest,
     policy = neverEqualPolicy(),
@@ -95,7 +110,7 @@ class BiziMainViewControllerWrapper(
     ) {
       CompositionLocalProvider(LocalStationMapViewFactory provides stationMapViewFactory) {
         BiziMobileApp(
-          platformBindings = IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge),
+          platformBindings = resolvedPlatformBindings,
           graph = graph,
           launchRequest = currentLaunchRequest,
           refreshKey = refreshNonce,
@@ -169,16 +184,37 @@ fun ScreenViewController(
   route: Screen,
   remoteConfigBridge: IOSRemoteConfigBridge? = null,
   graph: SharedGraph? = null,
+  /**
+   * `IOSPlatformBindings` compartidas con el resto del proceso. Pásalas cuando embebas este
+   * view controller dentro del shell nativo iOS para reutilizar las MISMAS bindings que
+   * usaron para construir [graph] (ver `BiziSharedGraph.platformBindings` en Swift). Dejar
+   * en `null` sólo tiene sentido para previews/harnesses aislados.
+   */
+  platformBindings: IOSPlatformBindings? = null,
   onNavigate: ((Screen) -> Unit)? = null,
   onBack: (() -> Unit)? = null,
 ): UIViewController =
   ComposeUIViewController(
     configure = { enforceStrictPlistSanityCheck = false },
   ) {
-    val platformBindings = remember(remoteConfigBridge) { IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge) }
+    val resolvedPlatformBindings =
+      remember(platformBindings, remoteConfigBridge) {
+        platformBindings ?: IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge)
+      }
     val resolvedGraph =
-      remember(graph, platformBindings) {
-        (graph as? MobileGraph) ?: MobileGraph.Companion.create(platformBindings)
+      remember(graph, resolvedPlatformBindings) {
+        // Mismo aviso que en BiziMobileApp: pasar `graph = null` construye un grafo nuevo
+        // que duplica cada @SingleIn. Cualquier push desde el shell nativo iOS DEBE
+        // propagar `BiziSharedGraph.graph`.
+        (graph as? MobileGraph) ?: run {
+          resolvedPlatformBindings.logger.warn(
+            "ScreenViewController",
+            "ScreenViewController invocado con graph=null. Se está creando un nuevo " +
+              "MobileGraph — esto duplica los @SingleIn del grafo. En el shell nativo iOS " +
+              "propaga siempre BiziSharedGraph.graph.",
+          )
+          MobileGraph.Companion.create(resolvedPlatformBindings)
+        }
       }
     CompositionLocalProvider(LocalMetroViewModelFactory provides resolvedGraph.metroViewModelFactory) {
       val mobilePlatform = remember { currentMobileUiPlatform() }
@@ -191,7 +227,7 @@ fun ScreenViewController(
           ScreenContent(
             route = route,
             mobilePlatform = mobilePlatform,
-            platformBindings = platformBindings,
+            platformBindings = resolvedPlatformBindings,
             // TODO: thread real map readiness through once station-detail/map-picker
             // previews need to render an embedded map from this standalone screen host.
             isMapReady = false,

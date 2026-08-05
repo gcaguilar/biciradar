@@ -100,7 +100,13 @@ final class NativeShellModel {
                 guard let tab = BiziTab.from(screen: screen) else { return }
                 DispatchQueue.main.async { self?.selectedTab = tab }
             },
-            graph: nil
+            // Mismo grafo y MISMAS `IOSPlatformBindings` que usan los widgets/atajos/watch
+            // sync (`BiziAppleGraph`) — ver `BiziSharedGraph` en BiziAppleGraph.swift. Antes
+            // se dejaban ambos en `nil`, lo que hacía que Compose creara SU PROPIA copia de
+            // FavoritesRepository/StationsRepository y SU PROPIO `IOSPlatformBindings`
+            // (con su propio `IOSRouteLauncher` late-wired), desincronizando la app.
+            graph: BiziSharedGraph.graph,
+            platformBindings: BiziSharedGraph.platformBindings
         )
     }
 

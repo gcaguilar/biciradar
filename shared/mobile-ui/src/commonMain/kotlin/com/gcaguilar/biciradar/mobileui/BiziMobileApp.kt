@@ -137,7 +137,22 @@ fun BiziMobileApp(
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val resolvedGraph: MobileGraph =
     remember(platformBindings, graph) {
-      (graph as? MobileGraph) ?: MobileGraph.Companion.create(platformBindings)
+      // ATENCIÓN: si `graph` no es una `MobileGraph` (típicamente porque el caller pasó
+      // `null`), se crea un grafo NUEVO. Eso duplica todos los `@SingleIn(AppScope::class)`
+      // — dos FavoritesRepository, dos StationsRepository, dos listeners reactivos sobre la
+      // BD — y reintroduce el bug de iOS documentado en `BiziSharedGraph` (Swift). En
+      // producción SIEMPRE debemos pasar un `graph` explícito propagado desde el singleton
+      // de la app (Android: `BiziAppGraph.graph`; iOS: `BiziSharedGraph.graph`). Sólo el
+      // entry point de Desktop y algunos tests entran aquí de forma legítima.
+      (graph as? MobileGraph) ?: run {
+        platformBindings.logger.warn(
+          "BiziMobileApp",
+          "BiziMobileApp invocado con graph=null. Se está creando un nuevo MobileGraph, " +
+            "lo que duplica cada @SingleIn(AppScope::class). Si esto ocurre fuera de " +
+            "Desktop/tests, es un bug de DI (ver historial del multi-graph en iOS).",
+        )
+        MobileGraph.Companion.create(platformBindings)
+      }
     }
   val mapSupportStatus = remember(platformBindings) { platformBindings.mapSupport.currentStatus() }
   val launchCoordinator =
