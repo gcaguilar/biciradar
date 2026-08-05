@@ -662,7 +662,7 @@ internal fun DismissibleFavoriteStationRow(
         station = station,
         isFavorite = true,
         onClick = onClick,
-        onFavoriteToggle = {},
+        onFavoriteToggle = onRemoveFavorite,
         onQuickRoute = onQuickRoute,
         savedPlaceAlertSlot =
           if (onSavedPlaceAlertClick != null) {

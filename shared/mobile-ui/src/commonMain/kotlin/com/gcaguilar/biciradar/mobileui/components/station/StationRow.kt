@@ -116,7 +116,7 @@ internal fun StationRow(
           } else {
             FavoritePill(
               active = true,
-              onClick = {},
+              onClick = onFavoriteToggle,
               label = stringResource(Res.string.favorite),
             )
           }
