@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import tailwindcss from '@tailwindcss/vite';
 
 function normalizeBasePath(basePath = '/') {
   const trimmed = basePath.trim();
@@ -18,4 +19,7 @@ export default defineConfig({
   output: 'static',
   site,
   base,
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
