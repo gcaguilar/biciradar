@@ -16,12 +16,12 @@
     "preview:gh": "npm run build && npx serve dist"
   },
   "dependencies": {
-    "astro": "^6.4.8",
+    "astro": "^7.1.6",
     "typescript": "7.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^25.9.5",
+    "@types/node": "^26.1.2",
     "autoprefixer": "^10.5.4",
     "gh-pages": "^6.3.0",
     "postcss": "^8.5.25",
