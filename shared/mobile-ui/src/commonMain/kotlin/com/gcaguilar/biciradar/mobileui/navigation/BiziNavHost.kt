@@ -56,10 +56,47 @@ internal fun BiziNavHost(
   onOpenNearbyFeedbackForm: () -> Unit,
   paddingValues: PaddingValues,
   modifier: Modifier = Modifier,
+  /**
+   * When non-null, native chrome (SwiftUI TabView/NavigationStack on iOS 26+ with
+   * Liquid Glass) owns the tab bar and back stack. Every push away from the current
+   * top-level tab is forwarded here and immediately popped from this NavHost's own
+   * back stack, so Compose never renders a duplicate title bar or back button.
+   * Defaults to null, which preserves today's fully Compose-driven behavior on
+   * Android and on iOS builds that haven't adopted the native shell yet.
+   */
+  onNavigateNative: ((Screen) -> Unit)? = null,
+  /** Notifies the native shell when a top-level tab changes from inside Compose. */
+  onActivateNative: ((Screen) -> Unit)? = null,
+  /**
+   * Root destination for this NavHost. Defaults to [Screen.Nearby] (today's single
+   * shared NavHost). A native-shell setup that gives each tab its own NavHost/VC
+   * instance passes the tab's own top-level [Screen] here instead.
+   */
+  startDestination: Screen = Screen.Nearby,
 ) {
+  // NOTE: pushes are intentionally NOT forwarded/popped to a native SwiftUI
+  // NavigationStack here anymore. That "SwiftUI owns the back stack" design (from the
+  // Kotlin Multiplatform Liquid Glass tutorial) raced Compose's own pop against
+  // Swift's push across the Kotlin/Swift interop boundary, and lost often enough that
+  // navigation inside a tab silently stopped working. Compose keeps owning push
+  // navigation within a tab, exactly as before; only the tab bar chrome is native
+  // (see NativeNavContentView.swift). [onActivateNative] still fires so the native
+  // TabView's selection stays in sync when a deep link switches tabs from inside
+  // Compose.
+  if (onActivateNative != null) {
+    LaunchedEffect(navController) {
+      navController.currentBackStackEntryFlow.collect { entry ->
+        val route = entry.destination.route.orEmpty()
+        val isTopLevel = MobileTopLevelRouteIds.any { id -> route.startsWith(id) }
+        if (isTopLevel) {
+          onActivateNative.invoke(entry.toScreenOrNull() ?: return@collect)
+        }
+      }
+    }
+  }
   NavHost(
     navController = navController,
-    startDestination = Screen.Nearby,
+    startDestination = startDestination,
     modifier = modifier.padding(paddingValues),
   ) {
     composable<Screen.Nearby>(
@@ -337,3 +374,38 @@ private fun NavBackStackEntry.decodeTripMapPickerMode(logger: com.gcaguilar.bici
       )
       TripMapPickerMode.Station
     }
+
+/** Route ids of the five bottom-bar tabs, used to tell tab roots apart from pushed detail screens. */
+private val MobileTopLevelRouteIds: List<String> =
+  listOfNotNull(
+    Screen.Nearby::class.qualifiedName,
+    Screen.Map::class.qualifiedName,
+    Screen.Favorites::class.qualifiedName,
+    Screen.Trip::class.qualifiedName,
+    Screen.Profile::class.qualifiedName,
+  )
+
+/**
+ * Best-effort decode of a [NavBackStackEntry] into the [Screen] it represents. Covers every
+ * destination declared in this NavHost. Returns null for a route this function doesn't know
+ * about yet, so callers should fail soft (skip forwarding) rather than crash.
+ */
+private fun NavBackStackEntry.toScreenOrNull(): Screen? {
+  val routeId = destination.route.orEmpty()
+  return when {
+    routeId.startsWith(checkNotNull(Screen.Nearby::class.qualifiedName)) -> Screen.Nearby
+    routeId.startsWith(checkNotNull(Screen.Map::class.qualifiedName)) -> Screen.Map
+    routeId.startsWith(checkNotNull(Screen.Favorites::class.qualifiedName)) -> Screen.Favorites
+    routeId.startsWith(checkNotNull(Screen.FavoritesSearch::class.qualifiedName)) -> Screen.FavoritesSearch
+    routeId.startsWith(checkNotNull(Screen.Trip::class.qualifiedName)) -> runCatching { toRoute<Screen.Trip>() }.getOrNull()
+    routeId.startsWith(checkNotNull(Screen.TripDestinationSearch::class.qualifiedName)) -> Screen.TripDestinationSearch
+    routeId.startsWith(checkNotNull(Screen.TripMapPicker::class.qualifiedName)) ->
+      runCatching { toRoute<Screen.TripMapPicker>() }.getOrNull()
+    routeId.startsWith(checkNotNull(Screen.Profile::class.qualifiedName)) -> Screen.Profile
+    routeId.startsWith(checkNotNull(Screen.Shortcuts::class.qualifiedName)) -> Screen.Shortcuts
+    routeId.startsWith(checkNotNull(Screen.SavedPlaceAlerts::class.qualifiedName)) -> Screen.SavedPlaceAlerts
+    routeId.startsWith(checkNotNull(Screen.StationDetail::class.qualifiedName)) ->
+      runCatching { toRoute<Screen.StationDetail>() }.getOrNull()
+    else -> null
+  }
+}

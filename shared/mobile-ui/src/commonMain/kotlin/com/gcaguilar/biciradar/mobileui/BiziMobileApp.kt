@@ -35,9 +35,11 @@ import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingCallbacks
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
+import com.gcaguilar.biciradar.mobileui.navigation.MobileTabNavigator
 import com.gcaguilar.biciradar.mobileui.navigation.NavigationHost
 import com.gcaguilar.biciradar.mobileui.navigation.NavigationHostConfig
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
+import com.gcaguilar.biciradar.mobileui.navigation.navigateToPrimaryDestination
 import com.gcaguilar.biciradar.mobileui.screens.CitySelectionScreen
 import com.gcaguilar.biciradar.mobileui.state.AppState
 import com.gcaguilar.biciradar.mobileui.state.rememberAppState
@@ -65,6 +67,8 @@ private fun rememberNavigationConfig(
   onNearbyFeedbackOpened: () -> Unit,
   onNearbyFeedbackDismiss: () -> Unit,
   onOpenNearbyFeedbackForm: () -> Unit,
+  onNavigateNative: ((Screen) -> Unit)?,
+  onActivateNative: ((Screen) -> Unit)?,
 ): NavigationHostConfig {
   val onOpenAssistant =
     remember(navController) {
@@ -91,6 +95,8 @@ private fun rememberNavigationConfig(
     onNearbyFeedbackDismiss = onNearbyFeedbackDismiss,
     onOpenNearbyFeedbackForm = onOpenNearbyFeedbackForm,
     paddingValues = PaddingValues(),
+    onNavigateNative = onNavigateNative,
+    onActivateNative = onActivateNative,
   )
 }
 
@@ -113,6 +119,20 @@ fun BiziMobileApp(
   onSurfaceSnapshotRepositoryReady: (() -> Unit)? = null,
   onStartupReadyChanged: (Boolean) -> Unit = {},
   useInAppStartupSplash: Boolean = true,
+  /**
+   * When set, a native host (SwiftUI TabView/NavigationStack on iOS 26+, rendering
+   * Liquid Glass automatically) owns the tab bar and back stack. Compose forwards every
+   * push/tab-switch here instead of drawing its own chrome. Defaults to null so Android
+   * and any iOS build without the native shell behave exactly as they do today.
+   */
+  onNavigateNative: ((Screen) -> Unit)? = null,
+  onActivateNative: ((Screen) -> Unit)? = null,
+  /**
+   * Called once with the handle a native host uses to switch top-level tabs on this
+   * app's single NavController (see [MobileTabNavigator]). Only the iOS Liquid Glass
+   * shell passes this; Android leaves it null and keeps using [BiziBottomBar].
+   */
+  onTabNavigatorReady: ((MobileTabNavigator) -> Unit)? = null,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val resolvedGraph: MobileGraph =
@@ -135,6 +155,17 @@ fun BiziMobileApp(
   val scope = rememberCoroutineScope()
   val appState = rememberAppState()
   val navController = rememberNavController()
+  // Hand the native shell (iOS Liquid Glass TabView) a way to switch tabs on THIS
+  // NavController. There is exactly one BiziMobileApp / one NavController for the whole
+  // app, so the native tab bar drives the same navigation Compose already owns instead
+  // of each tab mounting its own copy of the app.
+  if (onTabNavigatorReady != null) {
+    val tabNavigator =
+      remember(navController) {
+        MobileTabNavigator { screen -> navController.navigateToPrimaryDestination(screen) }
+      }
+    LaunchedEffect(tabNavigator) { onTabNavigatorReady.invoke(tabNavigator) }
+  }
   val stationsState by resolvedGraph.observeStationsState.state.collectAsState()
   val searchRadiusMeters by resolvedGraph.observeSettings.searchRadiusMeters.collectAsState()
   val preferredMapApp by resolvedGraph.observeSettings.preferredMapApp.collectAsState()
@@ -291,6 +322,8 @@ fun BiziMobileApp(
                       onNearbyFeedbackOpened = appRootViewModel::onFeedbackOpened,
                       onNearbyFeedbackDismiss = appRootViewModel::onFeedbackDismissed,
                       onOpenNearbyFeedbackForm = platformBindings.externalLinks::openFeedbackForm,
+                      onNavigateNative = onNavigateNative,
+                      onActivateNative = onActivateNative,
                     )
 
                   Box(modifier = Modifier.fillMaxSize()) {
@@ -298,6 +331,11 @@ fun BiziMobileApp(
                       mobilePlatform = mobilePlatform,
                       navController = navController,
                       windowLayout = windowLayout,
+                      // A native SwiftUI TabView is present whenever onActivateNative is
+                      // wired up (see NativeNavContentView.swift) — that's the signal to
+                      // hide Compose's own bottom bar/rail, independent of whether pushes
+                      // are also forwarded natively (they currently aren't; see BiziNavHost.kt).
+                      useNativeChrome = onActivateNative != null,
                     ) { innerPadding ->
                       NavigationHost(
                         config = navConfig.copy(paddingValues = innerPadding),
