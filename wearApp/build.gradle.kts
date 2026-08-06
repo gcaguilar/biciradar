@@ -202,6 +202,8 @@ val verifyFdroidReleaseDependencies by
     )
   }
 
-tasks.matching { it.name == "assembleFdroidRelease" || it.name == "check" }.configureEach {
+// Ligado sólo al assemble de F-Droid para no invalidar el configuration cache
+// del resto de tareas (la verificación no es compatible con config cache).
+tasks.matching { it.name == "assembleFdroidRelease" }.configureEach {
   dependsOn(verifyFdroidReleaseDependencies)
 }
