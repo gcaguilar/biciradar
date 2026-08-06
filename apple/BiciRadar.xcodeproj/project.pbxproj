@@ -11,7 +11,6 @@
 		02B036610C3FFBF56B5E9661 /* BiciRadarWatchWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8CA65F3C3A1404B9783F42 /* BiciRadarWatchWidgets.swift */; };
 		076783DCA69B74B1CB23A910 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */; };
 		07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */; };
-		0905890ABDF75F3B654E1BC5 /* plan.md in Resources */ = {isa = PBXBuildFile; fileRef = DE167C78D7AEA1F27966C582 /* plan.md */; };
 		094F33A9590778EE38A1991B /* BiziSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ED889F69B12E0E79E964DC /* BiziSyncModels.swift */; };
 		098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */; };
 		0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
@@ -236,7 +235,6 @@
 		D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = BiciRadarWatchWidgets.appex; path = "BiciRadar Watch Widgets.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarApp.swift; sourceTree = "<group>"; };
-		DE167C78D7AEA1F27966C582 /* plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = plan.md; sourceTree = "<group>"; };
 		E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
 		EB59C343B1277217A7131D94 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ECC2BF1510F9A4C87BC91E34 /* BiciRadarWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadarWatchWidgets.entitlements; sourceTree = "<group>"; };
@@ -423,7 +421,6 @@
 				BA5F0343500174E24CBA4EC9 /* BiciRadarWatchApp.swift */,
 				A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */,
 				2B50DEAA2C967B20FE470914 /* BiziWatchShortcuts.swift */,
-				DE167C78D7AEA1F27966C582 /* plan.md */,
 				7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */,
 				5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */,
 				D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */,
@@ -672,7 +669,6 @@
 			files = (
 				3B0132525479D6341D19760E /* Assets.xcassets in Resources */,
 				E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */,
-				0905890ABDF75F3B654E1BC5 /* plan.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
