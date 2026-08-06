@@ -58,10 +58,10 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import kotlin.coroutines.resume
 
 private const val REQUEST_TIMEOUT_MILLIS = 15_000L
 private const val CONNECT_TIMEOUT_MILLIS = 10_000L
@@ -482,7 +482,11 @@ private class AndroidLocationProvider(
           override fun onProviderEnabled(provider: String) = Unit
 
           @Deprecated("Deprecated")
-          override fun onStatusChanged(provider: String?, status: Int, extras: android.os.Bundle?) = Unit
+          override fun onStatusChanged(
+            provider: String?,
+            status: Int,
+            extras: android.os.Bundle?,
+          ) = Unit
         }
       continuation.invokeOnCancellation { locationManager.removeUpdates(listener) }
       locationManager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
