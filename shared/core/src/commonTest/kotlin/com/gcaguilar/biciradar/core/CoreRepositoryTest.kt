@@ -246,7 +246,9 @@ class CoreRepositoryTest {
 
       repository.syncFromPeer()
 
-      assertEquals(setOf("station-watch", "station-remote"), repository.favoriteIds.value)
+      // station-home also appears in favoriteIds because pinned Home/Work stations
+      // are treated as favorites in Nearby/Detail (heart-filled). See commit 0b8f8426.
+      assertEquals(setOf("station-watch", "station-remote", "station-home"), repository.favoriteIds.value)
       assertEquals("station-home", repository.currentHomeStationId())
       assertEquals(2, watchBridge.pushedSnapshots.size)
       assertEquals(setOf("station-watch"), watchBridge.pushedSnapshots[0].favoriteIds)
@@ -411,7 +413,9 @@ class CoreRepositoryTest {
 
       repository.bootstrap()
 
-      assertEquals(setOf("station-watch"), repository.favoriteIds.value)
+      // Home and work stations are also exposed via favoriteIds so they render as
+      // saved stations in Nearby/Detail. See commit 0b8f8426.
+      assertEquals(setOf("station-watch", "station-home", "station-work"), repository.favoriteIds.value)
       assertEquals("station-home", repository.currentHomeStationId())
       assertEquals("station-work", repository.currentWorkStationId())
     }

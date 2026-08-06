@@ -63,7 +63,9 @@ class SurfaceRepositoryTest {
       assertEquals("home", bundle.favoriteStation?.id)
       assertEquals("home", bundle.homeStation?.id)
       assertEquals("mid", bundle.workStation?.id)
-      assertEquals(listOf("near", "home", "mid"), bundle.nearbyStations.map { it.id })
+      // Nearby now returns up to 10 stations sorted by distance (see commit a8031b5d);
+      // consumer views still trim with prefix(3)/prefix(5).
+      assertEquals(listOf("near", "home", "mid", "far"), bundle.nearbyStations.map { it.id })
       assertTrue(FileSystem.SYSTEM.exists("$temporaryRoot/surface_snapshot.json".toPath()))
     }
 
