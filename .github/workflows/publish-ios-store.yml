@@ -43,7 +43,7 @@ jobs:
           echo "Building iOS release: ${release_tag:-$(git rev-parse --short HEAD)}"
 
       - name: Set up Java 21
-        uses: actions/setup-java@v5.2.0
+        uses: actions/setup-java@v5.7.0
         with:
           distribution: temurin
           java-version: "21"
