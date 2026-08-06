@@ -16,7 +16,6 @@ import platform.CoreLocation.kCLAuthorizationStatusDenied
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.CoreLocation.kCLAuthorizationStatusRestricted
 import platform.CoreLocation.kCLLocationAccuracyHundredMeters
-import platform.Foundation.NSDate
 import platform.Foundation.NSError
 import platform.Foundation.timeIntervalSinceNow
 import platform.darwin.NSObject
@@ -94,8 +93,7 @@ internal class AppleLocationProvider : LocationProvider {
     }
   }
 
-  private fun CLLocation.isRecent(): Boolean =
-    -timestamp.timeIntervalSinceNow < MAX_CACHED_LOCATION_AGE_SECONDS
+  private fun CLLocation.isRecent(): Boolean = -timestamp.timeIntervalSinceNow < MAX_CACHED_LOCATION_AGE_SECONDS
 
   private fun finish(location: GeoPoint?) {
     val continuation = pendingContinuation ?: return

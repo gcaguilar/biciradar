@@ -397,7 +397,9 @@ private fun NavBackStackEntry.toScreenOrNull(): Screen? {
     routeId.startsWith(checkNotNull(Screen.Map::class.qualifiedName)) -> Screen.Map
     routeId.startsWith(checkNotNull(Screen.Favorites::class.qualifiedName)) -> Screen.Favorites
     routeId.startsWith(checkNotNull(Screen.FavoritesSearch::class.qualifiedName)) -> Screen.FavoritesSearch
-    routeId.startsWith(checkNotNull(Screen.Trip::class.qualifiedName)) -> runCatching { toRoute<Screen.Trip>() }.getOrNull()
+    routeId.startsWith(
+      checkNotNull(Screen.Trip::class.qualifiedName),
+    ) -> runCatching { toRoute<Screen.Trip>() }.getOrNull()
     routeId.startsWith(checkNotNull(Screen.TripDestinationSearch::class.qualifiedName)) -> Screen.TripDestinationSearch
     routeId.startsWith(checkNotNull(Screen.TripMapPicker::class.qualifiedName)) ->
       runCatching { toRoute<Screen.TripMapPicker>() }.getOrNull()
