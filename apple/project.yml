@@ -17,7 +17,7 @@ options:
     - eu
     - gl
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "18.6"
     watchOS: "9.0"
 
 settings:
@@ -38,7 +38,7 @@ targets:
   BiciRadar:
     type: application
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "18.6"
     configFiles:
       Debug: Config/MapsConfig.xcconfig
       Release: Config/MapsConfig.xcconfig
@@ -172,7 +172,7 @@ targets:
   BiciRadarWidgets:
     type: app-extension
     platform: iOS
-    deploymentTarget: "16.1"
+    deploymentTarget: "18.6"
     sources:
       - path: iosWidgets
       - path: sharedApple/BiziMonitoringActivityAttributes.swift
@@ -199,7 +199,7 @@ targets:
   BiciRadarTests:
     type: bundle.unit-test
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "18.6"
     sources:
       - path: iosAppTests
     dependencies:
