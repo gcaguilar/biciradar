@@ -26,6 +26,7 @@ kotlin {
     androidResources {
       enable = true
     }
+    withHostTest {}
   }
   jvm {
     compilerOptions {
