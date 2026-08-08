@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^25.9.5",
+    "@types/node": "^26.1.2",
     "gh-pages": "^6.3.0",
     "tailwindcss": "^4.3.3",
     "vitest": "^4.1.10"
