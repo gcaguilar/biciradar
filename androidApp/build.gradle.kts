@@ -101,6 +101,7 @@ android {
       dimension = "tier"
       applicationIdSuffix = ".fdroid"
       versionNameSuffix = "-fdroid"
+      proguardFiles("fdroid-proguard-rules.pro")
     }
     create("playstore") {
       dimension = "tier"
@@ -234,3 +235,59 @@ tasks.configureEach {
     enabled = false
   }
 }
+
+abstract class VerifyR8MappingTask : DefaultTask() {
+  @get:InputFile abstract val mappingFile: RegularFileProperty
+
+  @get:Input abstract val unchangedClasses: ListProperty<String>
+
+  @get:Input abstract val unchangedMembers: MapProperty<String, String>
+
+  @TaskAction
+  fun verify() {
+    val mapping = mappingFile.get().asFile.readLines()
+
+    unchangedClasses.get().forEach { className ->
+      check(mapping.any { it == "$className -> $className:" }) {
+        "R8 removed or renamed reflective class $className"
+      }
+    }
+
+    unchangedMembers.get().forEach { (signature, expectedName) ->
+      check(
+        mapping.any { line ->
+          line.startsWith("    ") &&
+            line.contains(signature) &&
+            line.substringAfterLast(" -> ") == expectedName
+        },
+      ) {
+        "R8 removed or renamed reflective member $signature"
+      }
+    }
+  }
+}
+
+val verifyPlaystoreReleaseR8Mapping =
+  tasks.register<VerifyR8MappingTask>("verifyPlaystoreReleaseR8Mapping") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Verifies that R8 preserves Android Play Store reflection contracts."
+    dependsOn("mergePlaystoreReleaseComposeMapping")
+    mappingFile.set(layout.buildDirectory.file("outputs/mapping/playstoreRelease/mapping.txt"))
+    unchangedClasses.set(
+      listOf(
+        "com.gcaguilar.biciradar.AndroidOptionalServicesFactory",
+      ),
+    )
+    unchangedMembers.set(
+      mapOf(
+        "AndroidOptionalServices create(android.content.Context)" to "create",
+      ),
+    )
+  }
+
+tasks
+  .matching {
+    it.name == "assemblePlaystoreRelease" || it.name == "bundlePlaystoreRelease"
+  }.configureEach {
+    dependsOn(verifyPlaystoreReleaseR8Mapping)
+  }
