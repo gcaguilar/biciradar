@@ -47,10 +47,10 @@ jobs:
         uses: android-actions/setup-android@v4.0.1
 
       - name: Install pinned Android build-tools
-        run: sdkmanager "build-tools;34.0.0"
+        run: sdkmanager "build-tools;36.0.0"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6.1.0
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
           build-scan-terms-of-use-agree: "yes"
@@ -78,7 +78,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.BIZI_CI_KEY_PASSWORD }}
         run: |
-          build_tools_dir="${ANDROID_SDK_ROOT}/build-tools/34.0.0"
+          build_tools_dir="${ANDROID_SDK_ROOT}/build-tools/36.0.0"
           apksigner_path="${build_tools_dir}/apksigner"
           unsigned_apk="androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release-unsigned.apk"
           signed_apk="androidApp/build/outputs/apk/fdroid/release/androidApp-fdroid-release.apk"
