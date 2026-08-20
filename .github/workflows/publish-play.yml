@@ -195,13 +195,13 @@ jobs:
             wearApp/build/outputs/bundle/playstoreRelease/*.aab
             wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
-      - name: Publish WearOS to Play Console alpha track
+      - name: Publish WearOS to Play Console production track
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
           releaseFiles: wearApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: wear:alpha
+          tracks: wear:production
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
