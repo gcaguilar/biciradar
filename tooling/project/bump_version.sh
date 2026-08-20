@@ -11,6 +11,7 @@
 # Version code: BASE_VERSION_CODE + build_number
 #               Base: 29568074 (last published on Google Play)
 #               Build number stored in BUILD_NUMBER file
+#               Advances by 2 so Android never reuses the previous Wear code.
 #               e.g. build 1 → 29568075, build 10 → 29568084
 
 set -euo pipefail
@@ -64,12 +65,12 @@ if [[ $# -gt 0 ]]; then
         current_version="0.1.0"
       fi
       version_name=$(bump_version "$current_version" "$1")
-      build_number=$((build_number + 1))
+      build_number=$((build_number + 2))
       ;;
     *)
       # Use provided version
       version_name="$1"
-      build_number=$((build_number + 1))
+      build_number=$((build_number + 2))
       ;;
   esac
 else
@@ -79,7 +80,7 @@ else
   else
     version_name="0.1.0"
   fi
-  build_number=$((build_number + 1))
+  build_number=$((build_number + 2))
 fi
 
 # Validate version format
