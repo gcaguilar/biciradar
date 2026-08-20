@@ -13,7 +13,7 @@ plugins {
   alias(libs.plugins.kotlin.serialization) apply false
   alias(libs.plugins.ktlint) apply false
   alias(libs.plugins.metro) apply false
-  id("com.github.ben-manes.versions") version "0.54.0"
+  id("com.github.ben-manes.versions") version "0.61.0"
 }
 
 allprojects {
@@ -25,6 +25,7 @@ subprojects {
   apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
   extensions.configure<KtlintExtension> {
+    version.set("1.8.0")
     outputToConsole.set(true)
     ignoreFailures.set(false)
     filter {

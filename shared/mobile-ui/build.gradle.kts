@@ -61,7 +61,7 @@ kotlin {
       implementation(libs.metrox.viewmodel)
       implementation(libs.metrox.viewmodel.compose)
       implementation(libs.androidx.lifecycle.runtime.compose)
-      implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+      implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
       implementation(libs.navigation.compose)
     }
     commonTest.dependencies {
