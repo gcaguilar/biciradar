@@ -243,9 +243,18 @@ sealed interface SavedPlaceAlertTarget {
 
   fun identityKey(): String =
     when (kind) {
-      SavedPlaceKind.Favorite -> "favorite:$stationId:$cityId"
-      SavedPlaceKind.Home -> "home:$stationId:$cityId"
-      SavedPlaceKind.Work -> "work:$stationId:$cityId"
+      SavedPlaceKind.Favorite -> {
+        "favorite:$stationId:$cityId"
+      }
+
+      SavedPlaceKind.Home -> {
+        "home:$stationId:$cityId"
+      }
+
+      SavedPlaceKind.Work -> {
+        "work:$stationId:$cityId"
+      }
+
       SavedPlaceKind.Category -> {
         val categoryId = (this as? CategoryStation)?.categoryId ?: "unknown"
         "category:$categoryId:$stationId:$cityId"

@@ -150,11 +150,21 @@ private class PlaystoreAppUpdatePrompter(
         info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
     val versionName = info.availableVersionCode().toString()
     return when {
-      isDownloaded -> UpdateAvailabilityState.Downloaded(versionName)
-      isAvailable -> UpdateAvailabilityState.Available(versionName, "market://details?id=${context.packageName}", true)
-      info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE ->
+      isDownloaded -> {
+        UpdateAvailabilityState.Downloaded(versionName)
+      }
+
+      isAvailable -> {
+        UpdateAvailabilityState.Available(versionName, "market://details?id=${context.packageName}", true)
+      }
+
+      info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE -> {
         UpdateAvailabilityState.Available(versionName, "market://details?id=${context.packageName}", false)
-      else -> UpdateAvailabilityState.Unavailable
+      }
+
+      else -> {
+        UpdateAvailabilityState.Unavailable
+      }
     }
   }
 

@@ -393,21 +393,54 @@ private val MobileTopLevelRouteIds: List<String> =
 private fun NavBackStackEntry.toScreenOrNull(): Screen? {
   val routeId = destination.route.orEmpty()
   return when {
-    routeId.startsWith(checkNotNull(Screen.Nearby::class.qualifiedName)) -> Screen.Nearby
-    routeId.startsWith(checkNotNull(Screen.Map::class.qualifiedName)) -> Screen.Map
-    routeId.startsWith(checkNotNull(Screen.Favorites::class.qualifiedName)) -> Screen.Favorites
-    routeId.startsWith(checkNotNull(Screen.FavoritesSearch::class.qualifiedName)) -> Screen.FavoritesSearch
+    routeId.startsWith(checkNotNull(Screen.Nearby::class.qualifiedName)) -> {
+      Screen.Nearby
+    }
+
+    routeId.startsWith(checkNotNull(Screen.Map::class.qualifiedName)) -> {
+      Screen.Map
+    }
+
+    routeId.startsWith(checkNotNull(Screen.Favorites::class.qualifiedName)) -> {
+      Screen.Favorites
+    }
+
+    routeId.startsWith(checkNotNull(Screen.FavoritesSearch::class.qualifiedName)) -> {
+      Screen.FavoritesSearch
+    }
+
     routeId.startsWith(
       checkNotNull(Screen.Trip::class.qualifiedName),
-    ) -> runCatching { toRoute<Screen.Trip>() }.getOrNull()
-    routeId.startsWith(checkNotNull(Screen.TripDestinationSearch::class.qualifiedName)) -> Screen.TripDestinationSearch
-    routeId.startsWith(checkNotNull(Screen.TripMapPicker::class.qualifiedName)) ->
+    ) -> {
+      runCatching { toRoute<Screen.Trip>() }.getOrNull()
+    }
+
+    routeId.startsWith(checkNotNull(Screen.TripDestinationSearch::class.qualifiedName)) -> {
+      Screen.TripDestinationSearch
+    }
+
+    routeId.startsWith(checkNotNull(Screen.TripMapPicker::class.qualifiedName)) -> {
       runCatching { toRoute<Screen.TripMapPicker>() }.getOrNull()
-    routeId.startsWith(checkNotNull(Screen.Profile::class.qualifiedName)) -> Screen.Profile
-    routeId.startsWith(checkNotNull(Screen.Shortcuts::class.qualifiedName)) -> Screen.Shortcuts
-    routeId.startsWith(checkNotNull(Screen.SavedPlaceAlerts::class.qualifiedName)) -> Screen.SavedPlaceAlerts
-    routeId.startsWith(checkNotNull(Screen.StationDetail::class.qualifiedName)) ->
+    }
+
+    routeId.startsWith(checkNotNull(Screen.Profile::class.qualifiedName)) -> {
+      Screen.Profile
+    }
+
+    routeId.startsWith(checkNotNull(Screen.Shortcuts::class.qualifiedName)) -> {
+      Screen.Shortcuts
+    }
+
+    routeId.startsWith(checkNotNull(Screen.SavedPlaceAlerts::class.qualifiedName)) -> {
+      Screen.SavedPlaceAlerts
+    }
+
+    routeId.startsWith(checkNotNull(Screen.StationDetail::class.qualifiedName)) -> {
       runCatching { toRoute<Screen.StationDetail>() }.getOrNull()
-    else -> null
+    }
+
+    else -> {
+      null
+    }
   }
 }

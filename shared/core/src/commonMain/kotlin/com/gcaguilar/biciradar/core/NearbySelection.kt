@@ -11,7 +11,10 @@ fun formatDistance(meters: Int): String =
       val rounded = (km * 10).toInt() / 10.0
       "$rounded km"
     }
-    else -> "$meters m"
+
+    else -> {
+      "$meters m"
+    }
   }
 
 data class NearbyStationSelection(

@@ -186,8 +186,10 @@ internal fun rememberBiziWindowLayout(): BiziWindowLayout {
       windowSizeClass.isHeightAtLeastBreakpoint(
         WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND,
       ) -> BiziWindowLayout.Expanded
+
     windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
       windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Medium
+
     else -> BiziWindowLayout.Compact
   }
 }

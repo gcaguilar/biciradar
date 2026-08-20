@@ -71,6 +71,7 @@ class TripMonitorService : Service() {
         stopSelf()
         return START_NOT_STICKY
       }
+
       ACTION_TOGGLE_FAVORITE -> {
         val stationId = intent.getStringExtra(EXTRA_STATION_ID)
         if (stationId != null) {
@@ -81,6 +82,7 @@ class TripMonitorService : Service() {
         }
         return START_STICKY
       }
+
       ACTION_SHARE -> {
         val stationId = intent.getStringExtra(EXTRA_STATION_ID)
         val stationName = intent.getStringExtra(EXTRA_STATION_NAME)

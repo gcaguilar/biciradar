@@ -227,9 +227,18 @@ private class AndroidLogger(
     throwable: Throwable?,
   ) {
     when (level) {
-      LogLevel.Debug -> android.util.Log.d(tag, message, throwable)
-      LogLevel.Info -> android.util.Log.i(tag, message, throwable)
-      LogLevel.Warning -> android.util.Log.w(tag, message, throwable)
+      LogLevel.Debug -> {
+        android.util.Log.d(tag, message, throwable)
+      }
+
+      LogLevel.Info -> {
+        android.util.Log.i(tag, message, throwable)
+      }
+
+      LogLevel.Warning -> {
+        android.util.Log.w(tag, message, throwable)
+      }
+
       LogLevel.Error -> {
         android.util.Log.e(tag, message, throwable)
         throwable?.let { crashlyticsReporter.reportNonFatal(it) }

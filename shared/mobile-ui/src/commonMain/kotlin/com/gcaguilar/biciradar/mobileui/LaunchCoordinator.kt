@@ -41,23 +41,41 @@ internal class LaunchCoordinator(
     searchRadiusMeters: Int,
   ): LaunchResolution? =
     when (request) {
-      MobileLaunchRequest.Home -> LaunchResolution(screen = Screen.Nearby)
-      MobileLaunchRequest.Map -> LaunchResolution(screen = Screen.Map)
-      MobileLaunchRequest.Favorites -> LaunchResolution(screen = Screen.Favorites)
-      MobileLaunchRequest.SavedPlaceAlerts -> LaunchResolution(screen = Screen.SavedPlaceAlerts)
+      MobileLaunchRequest.Home -> {
+        LaunchResolution(screen = Screen.Nearby)
+      }
+
+      MobileLaunchRequest.Map -> {
+        LaunchResolution(screen = Screen.Map)
+      }
+
+      MobileLaunchRequest.Favorites -> {
+        LaunchResolution(screen = Screen.Favorites)
+      }
+
+      MobileLaunchRequest.SavedPlaceAlerts -> {
+        LaunchResolution(screen = Screen.SavedPlaceAlerts)
+      }
+
       MobileLaunchRequest.NearestStation -> {
         val station = selectNearbyStation(stations, searchRadiusMeters).highlightedStation ?: return null
         LaunchResolution(screen = Screen.StationDetail(station.id))
       }
+
       MobileLaunchRequest.NearestStationWithBikes -> {
         val station = selectNearbyStationWithBikes(stations, searchRadiusMeters).highlightedStation ?: return null
         LaunchResolution(screen = Screen.StationDetail(station.id))
       }
+
       MobileLaunchRequest.NearestStationWithSlots -> {
         val station = selectNearbyStationWithSlots(stations, searchRadiusMeters).highlightedStation ?: return null
         LaunchResolution(screen = Screen.StationDetail(station.id))
       }
-      MobileLaunchRequest.OpenAssistant -> LaunchResolution(screen = Screen.Shortcuts)
+
+      MobileLaunchRequest.OpenAssistant -> {
+        LaunchResolution(screen = Screen.Shortcuts)
+      }
+
       MobileLaunchRequest.StationStatus -> {
         val station = stations.firstOrNull() ?: return null
         LaunchResolution(
@@ -65,6 +83,7 @@ internal class LaunchCoordinator(
           assistantAction = AssistantAction.StationStatus(station.id),
         )
       }
+
       is MobileLaunchRequest.MonitorStation -> {
         val station =
           findStationById.execute(request.stationId)
@@ -81,11 +100,13 @@ internal class LaunchCoordinator(
         }
         LaunchResolution(screen = Screen.StationDetail(station.id))
       }
+
       is MobileLaunchRequest.SelectCity -> {
         val city = City.fromId(request.cityId) ?: return null
         changeCityUseCase.execute(city = city)
         LaunchResolution(screen = Screen.Nearby)
       }
+
       is MobileLaunchRequest.RouteToStation -> {
         val station =
           request.stationId?.let(findStationById::execute)
@@ -94,6 +115,7 @@ internal class LaunchCoordinator(
         routeLauncher.launch(station)
         LaunchResolution()
       }
+
       is MobileLaunchRequest.ShowStation -> {
         if (findStationById.execute(request.stationId) == null) return null
         LaunchResolution(screen = Screen.StationDetail(request.stationId))
@@ -133,24 +155,31 @@ internal class LaunchCoordinator(
           searchQuery = request.stationQuery,
         )
       }
-      is AssistantLaunchRequest.StationStatus ->
+
+      is AssistantLaunchRequest.StationStatus -> {
         assistantLaunchResolution(
           station = station,
           stationQuery = request.stationQuery,
           assistantAction = { AssistantAction.StationStatus(it) },
         )
-      is AssistantLaunchRequest.StationBikeCount ->
+      }
+
+      is AssistantLaunchRequest.StationBikeCount -> {
         assistantLaunchResolution(
           station = station,
           stationQuery = request.stationQuery,
           assistantAction = { AssistantAction.StationBikeCount(it) },
         )
-      is AssistantLaunchRequest.StationSlotCount ->
+      }
+
+      is AssistantLaunchRequest.StationSlotCount -> {
         assistantLaunchResolution(
           station = station,
           stationQuery = request.stationQuery,
           assistantAction = { AssistantAction.StationSlotCount(it) },
         )
+      }
+
       is AssistantLaunchRequest.RouteToStation -> {
         if (station != null) {
           routeLauncher.launch(station)

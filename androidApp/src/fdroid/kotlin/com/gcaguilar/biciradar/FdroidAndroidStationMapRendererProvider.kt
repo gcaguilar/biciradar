@@ -126,16 +126,32 @@ class FdroidAndroidStationMapRendererProvider : AndroidStationMapRenderer {
           val tone =
             when {
               environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality &&
-                zone.value <= 50 -> BiziDataColors.AqiGood
+                zone.value <= 50 -> {
+                BiziDataColors.AqiGood
+              }
+
               environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality &&
-                zone.value <= 100 -> BiziDataColors.AqiModerate
-              environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality ->
+                zone.value <= 100 -> {
+                BiziDataColors.AqiModerate
+              }
+
+              environmentalOverlay.layer == EnvironmentalOverlayLayer.AirQuality -> {
                 BiziDataColors.AqiBad
+              }
+
               environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen &&
-                zone.value <= 10 -> BiziDataColors.PollenLow
+                zone.value <= 10 -> {
+                BiziDataColors.PollenLow
+              }
+
               environmentalOverlay.layer == EnvironmentalOverlayLayer.Pollen &&
-                zone.value <= 30 -> BiziDataColors.PollenMedium
-              else -> BiziDataColors.PollenHigh
+                zone.value <= 30 -> {
+                BiziDataColors.PollenMedium
+              }
+
+              else -> {
+                BiziDataColors.PollenHigh
+              }
             }
           view.overlays +=
             Polygon().apply {

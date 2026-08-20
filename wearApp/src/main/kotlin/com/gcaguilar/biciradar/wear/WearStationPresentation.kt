@@ -106,26 +106,29 @@ internal fun wearFavoriteSurfaceState(
     )
   }
   return when {
-    snapshot?.state?.hasFavoriteStation == false ->
+    snapshot?.state?.hasFavoriteStation == false -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.ConfigureFavorite,
         title = "Sin favorita",
         supportingText = "Marca una estación como favorita",
       )
+    }
 
-    snapshot?.state?.isDataFresh == false ->
+    snapshot?.state?.isDataFresh == false -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.OpenAppToRefresh,
         title = "Actualiza datos",
         supportingText = "Pulsa actualizar en el reloj",
       )
+    }
 
-    else ->
+    else -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.DataUnavailable,
         title = "Datos no disponibles",
         supportingText = snapshot?.state?.cityName ?: "BiciRadar",
       )
+    }
   }
 }
 
@@ -155,13 +158,14 @@ internal fun wearFavoriteTileState(
     WearFavoriteSurfaceKind.ConfigureFavorite,
     WearFavoriteSurfaceKind.OpenAppToRefresh,
     WearFavoriteSurfaceKind.DataUnavailable,
-    ->
+    -> {
       WearFavoriteTileState(
         title = surface.title,
         body = surface.supportingText,
         label = snapshot?.state?.cityName,
         stationId = surface.stationId,
       )
+    }
   }
 }
 

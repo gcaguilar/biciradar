@@ -102,7 +102,10 @@ fun GuidedOnboardingFlow(
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       when (step) {
-        GuidedOnboardingStep.FeatureHighlights -> Unit
+        GuidedOnboardingStep.FeatureHighlights -> {
+          Unit
+        }
+
         GuidedOnboardingStep.LocationPermission -> {
           Text(
             stringResource(Res.string.onboardingLocationTitle),
@@ -170,7 +173,9 @@ fun GuidedOnboardingFlow(
           ) { Text(stringResource(Res.string.onboardingFinish)) }
         }
 
-        GuidedOnboardingStep.Completed -> Unit
+        GuidedOnboardingStep.Completed -> {
+          Unit
+        }
       }
     }
   }

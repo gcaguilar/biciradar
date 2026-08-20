@@ -191,15 +191,21 @@ fun BiziMobileApp(
     }
   val isMapReady =
     when {
-      mobilePlatform == MobileUiPlatform.IOS && preferredMapApp == PreferredMapApp.GoogleMaps ->
+      mobilePlatform == MobileUiPlatform.IOS && preferredMapApp == PreferredMapApp.GoogleMaps -> {
         mapSupportStatus.googleMapsSdkLinked && canSelectGoogleMapsInIos
-      mobilePlatform == MobileUiPlatform.IOS -> false
-      else ->
+      }
+
+      mobilePlatform == MobileUiPlatform.IOS -> {
+        false
+      }
+
+      else -> {
         when (mapSupportStatus.embeddedProvider) {
           EmbeddedMapProvider.GoogleMaps -> mapSupportStatus.isGoogleMapsReady()
           EmbeddedMapProvider.None -> false
           else -> true
         }
+      }
     }
   CompositionLocalProvider(LocalMetroViewModelFactory provides resolvedGraph.metroViewModelFactory) {
     val appRootViewModel = metroViewModel<AppRootViewModel>(key = "app-root")
@@ -259,6 +265,7 @@ fun BiziMobileApp(
               CircularProgressIndicator()
             }
           }
+
           !isCityConfigured -> {
             CitySelectionScreen(
               onCitySelected = { city ->
@@ -268,6 +275,7 @@ fun BiziMobileApp(
               },
             )
           }
+
           shouldShowGuidedOnboarding -> {
             val onboardingCallbacks =
               remember(
@@ -310,6 +318,7 @@ fun BiziMobileApp(
               callbacks = onboardingCallbacks,
             )
           }
+
           else -> {
             Box(Modifier.fillMaxSize()) {
               AnimatedContent(

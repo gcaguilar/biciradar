@@ -32,12 +32,27 @@ internal fun shortcutIdFor(
   assistantLaunchRequest: AssistantLaunchRequest?,
 ): String? =
   when {
-    assistantLaunchRequest is AssistantLaunchRequest.StationStatus -> STATION_STATUS_ACTION
-    assistantLaunchRequest is AssistantLaunchRequest.StationBikeCount -> STATION_BIKE_COUNT_ACTION
-    assistantLaunchRequest is AssistantLaunchRequest.StationSlotCount -> STATION_SLOT_COUNT_ACTION
-    assistantLaunchRequest is AssistantLaunchRequest.RouteToStation -> ROUTE_TO_STATION_ACTION
-    assistantLaunchRequest is AssistantLaunchRequest.SearchStation -> SHOW_STATION_ACTION
-    else ->
+    assistantLaunchRequest is AssistantLaunchRequest.StationStatus -> {
+      STATION_STATUS_ACTION
+    }
+
+    assistantLaunchRequest is AssistantLaunchRequest.StationBikeCount -> {
+      STATION_BIKE_COUNT_ACTION
+    }
+
+    assistantLaunchRequest is AssistantLaunchRequest.StationSlotCount -> {
+      STATION_SLOT_COUNT_ACTION
+    }
+
+    assistantLaunchRequest is AssistantLaunchRequest.RouteToStation -> {
+      ROUTE_TO_STATION_ACTION
+    }
+
+    assistantLaunchRequest is AssistantLaunchRequest.SearchStation -> {
+      SHOW_STATION_ACTION
+    }
+
+    else -> {
       when (launchRequest) {
         MobileLaunchRequest.Favorites -> FAVORITE_STATIONS_ACTION
         MobileLaunchRequest.NearestStation -> NEAREST_STATION_ACTION
@@ -50,4 +65,5 @@ internal fun shortcutIdFor(
         MobileLaunchRequest.SavedPlaceAlerts -> SAVED_PLACE_ALERTS_ACTION
         else -> null
       }
+    }
   }

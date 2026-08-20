@@ -230,8 +230,14 @@ class FavoritesViewModel(
   fun onClearCategoryAssignment(categoryId: String) {
     viewModelScope.launch {
       when (categoryId) {
-        FavoriteCategoryIds.HOME -> favoritesManagementUseCase.setHomeStationId(null)
-        FavoriteCategoryIds.WORK -> favoritesManagementUseCase.setWorkStationId(null)
+        FavoriteCategoryIds.HOME -> {
+          favoritesManagementUseCase.setHomeStationId(null)
+        }
+
+        FavoriteCategoryIds.WORK -> {
+          favoritesManagementUseCase.setWorkStationId(null)
+        }
+
         else -> {
           uiState.value.stationCategory
             .filterValues { it == categoryId }

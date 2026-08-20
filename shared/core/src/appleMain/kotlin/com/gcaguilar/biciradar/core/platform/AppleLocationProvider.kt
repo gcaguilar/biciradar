@@ -49,10 +49,13 @@ internal class AppleLocationProvider : LocationProvider {
         kCLAuthorizationStatusAuthorizedAlways,
         kCLAuthorizationStatusAuthorizedWhenInUse,
         -> requestOrReturnCachedLocation()
+
         kCLAuthorizationStatusNotDetermined -> locationManager.requestWhenInUseAuthorization()
+
         kCLAuthorizationStatusDenied,
         kCLAuthorizationStatusRestricted,
         -> finish(null)
+
         else -> locationManager.requestWhenInUseAuthorization()
       }
     }
@@ -62,9 +65,11 @@ internal class AppleLocationProvider : LocationProvider {
       kCLAuthorizationStatusAuthorizedAlways,
       kCLAuthorizationStatusAuthorizedWhenInUse,
       -> requestOrReturnCachedLocation()
+
       kCLAuthorizationStatusDenied,
       kCLAuthorizationStatusRestricted,
       -> finish(null)
+
       else -> Unit
     }
   }

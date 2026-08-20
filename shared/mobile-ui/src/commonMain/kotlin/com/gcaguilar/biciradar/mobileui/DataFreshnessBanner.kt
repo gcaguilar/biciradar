@@ -73,6 +73,7 @@ fun DataFreshnessBanner(
           stringResource(Res.string.dataFreshnessUpdatedMinutes, m),
         )
       }
+
       DataFreshness.StaleUsable -> {
         val m = minutes ?: 1
         DataFreshnessStyle(
@@ -82,20 +83,24 @@ fun DataFreshnessBanner(
           stringResource(Res.string.dataFreshnessStale, m),
         )
       }
-      DataFreshness.Expired ->
+
+      DataFreshness.Expired -> {
         DataFreshnessStyle(
           LocalBiziColors.current.red.copy(alpha = 0.1f),
           LocalBiziColors.current.red,
           LocalBiziColors.current.red,
           stringResource(Res.string.dataFreshnessExpired),
         )
-      DataFreshness.Unavailable ->
+      }
+
+      DataFreshness.Unavailable -> {
         DataFreshnessStyle(
           LocalBiziColors.current.red.copy(alpha = 0.14f),
           LocalBiziColors.current.red,
           LocalBiziColors.current.red,
           stringResource(Res.string.dataFreshnessUnavailable),
         )
+      }
     }
 
   Surface(

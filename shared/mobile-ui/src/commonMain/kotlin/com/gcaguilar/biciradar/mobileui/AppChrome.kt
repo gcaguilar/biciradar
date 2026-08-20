@@ -71,7 +71,10 @@ internal fun BoxScope.EngagementTopOverlays(
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     when (val banner = updateBanner) {
-      TopUpdateBanner.Hidden -> Unit
+      TopUpdateBanner.Hidden -> {
+        Unit
+      }
+
       is TopUpdateBanner.Available -> {
         Surface(
           color = colors.blue.copy(alpha = 0.12f),

@@ -114,18 +114,21 @@ private fun EnvironmentalLegendRow(layer: MapEnvironmentalLayer) {
   val c = LocalBiziColors.current
   val labels =
     when (layer) {
-      MapEnvironmentalLayer.AirQuality ->
+      MapEnvironmentalLayer.AirQuality -> {
         listOf(
           stringResource(Res.string.environmentalLegendGood),
           stringResource(Res.string.environmentalLegendModerate),
           stringResource(Res.string.environmentalLegendPoor),
         )
-      MapEnvironmentalLayer.Pollen ->
+      }
+
+      MapEnvironmentalLayer.Pollen -> {
         listOf(
           stringResource(Res.string.environmentalLegendLow),
           stringResource(Res.string.environmentalLegendMedium),
           stringResource(Res.string.environmentalLegendHigh),
         )
+      }
     }
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -134,18 +137,21 @@ private fun EnvironmentalLegendRow(layer: MapEnvironmentalLayer) {
   ) {
     val legendColors =
       when (layer) {
-        MapEnvironmentalLayer.AirQuality ->
+        MapEnvironmentalLayer.AirQuality -> {
           listOf(
             BiziDataColors.AqiGood,
             BiziDataColors.AqiModerate,
             BiziDataColors.AqiBad,
           )
-        MapEnvironmentalLayer.Pollen ->
+        }
+
+        MapEnvironmentalLayer.Pollen -> {
           listOf(
             BiziDataColors.PollenLow,
             BiziDataColors.PollenMedium,
             BiziDataColors.PollenHigh,
           )
+        }
       }
     legendColors.zip(labels).forEach { (color, label) ->
       Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -193,13 +193,29 @@ fun formatMonitoringStatusText(
   kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Bikes,
 ): String =
   when (status) {
-    SurfaceMonitoringStatus.Monitoring ->
+    SurfaceMonitoringStatus.Monitoring -> {
       if (kind == SurfaceMonitoringKind.Docks) "Monitorizando huecos" else "Monitorizando bicis"
-    SurfaceMonitoringStatus.ChangedToEmpty -> "Sin bicis"
-    SurfaceMonitoringStatus.ChangedToFull -> "Sin huecos"
-    SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa sugerida"
-    SurfaceMonitoringStatus.Ended -> "Finalizada"
-    SurfaceMonitoringStatus.Expired -> "Expirada"
+    }
+
+    SurfaceMonitoringStatus.ChangedToEmpty -> {
+      "Sin bicis"
+    }
+
+    SurfaceMonitoringStatus.ChangedToFull -> {
+      "Sin huecos"
+    }
+
+    SurfaceMonitoringStatus.AlternativeAvailable -> {
+      "Alternativa sugerida"
+    }
+
+    SurfaceMonitoringStatus.Ended -> {
+      "Finalizada"
+    }
+
+    SurfaceMonitoringStatus.Expired -> {
+      "Expirada"
+    }
   }
 
 /**
@@ -236,9 +252,15 @@ fun formatMonitoringNotificationBody(
   distanceFormatter: (Int) -> String = ::formatDistance,
 ): String =
   when (session.status) {
-    SurfaceMonitoringStatus.Ended -> "${session.stationName} · Finalizada por el usuario"
-    SurfaceMonitoringStatus.Expired -> "${session.stationName} · Tiempo agotado"
-    else ->
+    SurfaceMonitoringStatus.Ended -> {
+      "${session.stationName} · Finalizada por el usuario"
+    }
+
+    SurfaceMonitoringStatus.Expired -> {
+      "${session.stationName} · Tiempo agotado"
+    }
+
+    else -> {
       listOfNotNull(
         formatMonitoringStatusText(session.status, session.kind),
         "${session.bikesAvailable} bicis",
@@ -246,6 +268,7 @@ fun formatMonitoringNotificationBody(
         formatMonitoringCountdown(remainingSeconds),
         formatMonitoringAlternativeText(session, distanceFormatter),
       ).joinToString(" · ")
+    }
   }
 
 /**

@@ -59,23 +59,41 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun savedPlaceAlertTargetLabel(target: SavedPlaceAlertTarget): String =
   when (target) {
-    is SavedPlaceAlertTarget.Home -> stringResource(Res.string.savedPlaceAlertsTargetHome)
-    is SavedPlaceAlertTarget.Work -> stringResource(Res.string.savedPlaceAlertsTargetWork)
-    is SavedPlaceAlertTarget.FavoriteStation ->
+    is SavedPlaceAlertTarget.Home -> {
+      stringResource(Res.string.savedPlaceAlertsTargetHome)
+    }
+
+    is SavedPlaceAlertTarget.Work -> {
+      stringResource(Res.string.savedPlaceAlertsTargetWork)
+    }
+
+    is SavedPlaceAlertTarget.FavoriteStation -> {
       stringResource(Res.string.savedPlaceAlertsTargetFavorite, target.stationName ?: target.stationId)
-    is SavedPlaceAlertTarget.CategoryStation ->
+    }
+
+    is SavedPlaceAlertTarget.CategoryStation -> {
       target.categoryLabel ?: target.categoryId
+    }
   }
 
 @Composable
 private fun savedPlaceAlertConditionLabel(condition: SavedPlaceAlertCondition): String =
   when (condition) {
-    is SavedPlaceAlertCondition.BikesAtLeast ->
+    is SavedPlaceAlertCondition.BikesAtLeast -> {
       if (condition.count == 1) stringResource(Res.string.alertPresetBikesAtLeast1) else "${condition.count}+"
-    is SavedPlaceAlertCondition.DocksAtLeast ->
+    }
+
+    is SavedPlaceAlertCondition.DocksAtLeast -> {
       if (condition.count == 1) stringResource(Res.string.alertPresetDocksAtLeast1) else "${condition.count}+"
-    SavedPlaceAlertCondition.BikesEqualsZero -> stringResource(Res.string.alertPresetBikesZero)
-    SavedPlaceAlertCondition.DocksEqualsZero -> stringResource(Res.string.alertPresetDocksZero)
+    }
+
+    SavedPlaceAlertCondition.BikesEqualsZero -> {
+      stringResource(Res.string.alertPresetBikesZero)
+    }
+
+    SavedPlaceAlertCondition.DocksEqualsZero -> {
+      stringResource(Res.string.alertPresetDocksZero)
+    }
   }
 
 @OptIn(ExperimentalMaterial3Api::class)

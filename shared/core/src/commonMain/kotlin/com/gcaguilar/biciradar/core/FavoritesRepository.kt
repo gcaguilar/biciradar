@@ -508,7 +508,10 @@ private fun FavoritesSyncSnapshot.normalized(): FavoritesSyncSnapshot {
   val baseCategories = mergeCategories(systemCategories(), categories)
   val normalizedMap =
     when {
-      stationCategory.isNotEmpty() -> stationCategory.toMutableMap()
+      stationCategory.isNotEmpty() -> {
+        stationCategory.toMutableMap()
+      }
+
       else -> {
         val migrated = mutableMapOf<String, String>()
         favoriteIds.forEach { migrated[it] = FavoriteCategoryIds.FAVORITE }

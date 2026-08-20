@@ -120,7 +120,7 @@ internal class EngagementCoordinator(
     try {
       feedbackUseCase.markUpdateChecked(clock())
       when (val update = feedbackUseCase.checkForUpdate()) {
-        is UpdateAvailabilityState.Available ->
+        is UpdateAvailabilityState.Available -> {
           updateUiState(
             TopUpdateBanner.Available(
               version = update.versionName,
@@ -128,9 +128,15 @@ internal class EngagementCoordinator(
               storeUrl = update.storeUrl,
             ),
           )
-        is UpdateAvailabilityState.Downloaded ->
+        }
+
+        is UpdateAvailabilityState.Downloaded -> {
           updateUiState(TopUpdateBanner.Downloaded(update.versionName))
-        else -> Unit
+        }
+
+        else -> {
+          Unit
+        }
       }
     } finally {
       runtimeState.update { it.copy(updateCheckInFlight = false) }

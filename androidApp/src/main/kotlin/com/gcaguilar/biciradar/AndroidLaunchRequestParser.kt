@@ -126,35 +126,48 @@ internal fun parseLaunchPayload(
     )
   val assistantLaunchRequest =
     when (action) {
-      STATION_STATUS_ACTION ->
+      STATION_STATUS_ACTION -> {
         buildAssistantLaunchRequest(
           stationId = normalizedStationId,
           stationQuery = normalizedStationQuery,
           stationIdFactory = AssistantLaunchRequest::StationStatus,
           stationQueryFactory = AssistantLaunchRequest::StationStatus,
         )
-      STATION_BIKE_COUNT_ACTION ->
+      }
+
+      STATION_BIKE_COUNT_ACTION -> {
         buildAssistantLaunchRequest(
           stationId = normalizedStationId,
           stationQuery = normalizedStationQuery,
           stationIdFactory = AssistantLaunchRequest::StationBikeCount,
           stationQueryFactory = AssistantLaunchRequest::StationBikeCount,
         )
-      STATION_SLOT_COUNT_ACTION ->
+      }
+
+      STATION_SLOT_COUNT_ACTION -> {
         buildAssistantLaunchRequest(
           stationId = normalizedStationId,
           stationQuery = normalizedStationQuery,
           stationIdFactory = AssistantLaunchRequest::StationSlotCount,
           stationQueryFactory = AssistantLaunchRequest::StationSlotCount,
         )
-      ROUTE_TO_STATION_ACTION ->
+      }
+
+      ROUTE_TO_STATION_ACTION -> {
         if (normalizedStationId == null && normalizedStationQuery != null) {
           AssistantLaunchRequest.RouteToStation(stationQuery = normalizedStationQuery)
         } else {
           null
         }
-      SHOW_STATION_ACTION -> normalizedStationQuery?.let(AssistantLaunchRequest::SearchStation)
-      else -> null
+      }
+
+      SHOW_STATION_ACTION -> {
+        normalizedStationQuery?.let(AssistantLaunchRequest::SearchStation)
+      }
+
+      else -> {
+        null
+      }
     }
 
   return AndroidLaunchPayload(

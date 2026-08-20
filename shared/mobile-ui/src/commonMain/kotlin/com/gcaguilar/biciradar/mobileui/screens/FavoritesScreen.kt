@@ -956,18 +956,27 @@ private fun countLabelForFavorites(count: Int): String =
 @Composable
 private fun savedPlaceAlertConditionSummary(condition: SavedPlaceAlertCondition): String =
   when (condition) {
-    is SavedPlaceAlertCondition.BikesAtLeast ->
+    is SavedPlaceAlertCondition.BikesAtLeast -> {
       if (condition.count == 1) {
         stringResource(Res.string.favoritesAlertConditionBikesSingular)
       } else {
         stringResource(Res.string.favoritesAlertConditionBikesPlural, condition.count)
       }
-    is SavedPlaceAlertCondition.DocksAtLeast ->
+    }
+
+    is SavedPlaceAlertCondition.DocksAtLeast -> {
       if (condition.count == 1) {
         stringResource(Res.string.favoritesAlertConditionSlotsSingular)
       } else {
         stringResource(Res.string.favoritesAlertConditionSlotsPlural, condition.count)
       }
-    SavedPlaceAlertCondition.BikesEqualsZero -> stringResource(Res.string.favoritesAlertConditionNoBikes)
-    SavedPlaceAlertCondition.DocksEqualsZero -> stringResource(Res.string.favoritesAlertConditionNoSlots)
+    }
+
+    SavedPlaceAlertCondition.BikesEqualsZero -> {
+      stringResource(Res.string.favoritesAlertConditionNoBikes)
+    }
+
+    SavedPlaceAlertCondition.DocksEqualsZero -> {
+      stringResource(Res.string.favoritesAlertConditionNoSlots)
+    }
   }

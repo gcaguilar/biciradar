@@ -44,12 +44,17 @@ fun determineStationMarkerColor(
   highlighted: Boolean,
 ): StationMarkerColor =
   when {
-    station.bikesAvailable > 0 && station.slotsFree > 0 ->
+    station.bikesAvailable > 0 && station.slotsFree > 0 -> {
       if (highlighted) StationMarkerColor.DarkGreen else StationMarkerColor.Green
-    station.bikesAvailable == 0 && station.slotsFree == 0 ->
+    }
+
+    station.bikesAvailable == 0 && station.slotsFree == 0 -> {
       if (highlighted) StationMarkerColor.DarkRed else StationMarkerColor.Red
-    else ->
+    }
+
+    else -> {
       if (highlighted) StationMarkerColor.DarkOrange else StationMarkerColor.Orange
+    }
   }
 
 @Composable

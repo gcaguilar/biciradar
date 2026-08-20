@@ -313,7 +313,9 @@ class TripViewModel(
         }
       }
 
-      null -> Unit
+      null -> {
+        Unit
+      }
     }
   }
 

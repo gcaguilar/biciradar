@@ -211,17 +211,23 @@ class SurfaceMonitoringRepositoryImpl(
 
           val alternative =
             when {
-              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 ->
+              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 -> {
                 findAlternativeStation(
                   updatedStation,
                   kind,
                 )
-              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 ->
+              }
+
+              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 -> {
                 findAlternativeStation(
                   updatedStation,
                   kind,
                 )
-              else -> null
+              }
+
+              else -> {
+                null
+              }
             }
 
           val status =
@@ -229,13 +235,17 @@ class SurfaceMonitoringRepositoryImpl(
               kind == SurfaceMonitoringKind.Bikes &&
                 updatedStation.bikesAvailable == 0 &&
                 alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
+
               kind == SurfaceMonitoringKind.Docks &&
                 updatedStation.slotsFree == 0 &&
                 alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
+
               kind == SurfaceMonitoringKind.Bikes &&
                 updatedStation.bikesAvailable == 0 -> SurfaceMonitoringStatus.ChangedToEmpty
+
               kind == SurfaceMonitoringKind.Docks &&
                 updatedStation.slotsFree == 0 -> SurfaceMonitoringStatus.ChangedToFull
+
               else -> SurfaceMonitoringStatus.Monitoring
             }
 
@@ -328,18 +338,29 @@ class SurfaceMonitoringRepositoryImpl(
         ""
       }
     return when (session.status) {
-      SurfaceMonitoringStatus.ChangedToEmpty ->
+      SurfaceMonitoringStatus.ChangedToEmpty -> {
         "Ya no quedan bicis en ${session.stationName}.$alternative"
-      SurfaceMonitoringStatus.ChangedToFull ->
+      }
+
+      SurfaceMonitoringStatus.ChangedToFull -> {
         "Ya no quedan huecos libres en ${session.stationName}.$alternative"
-      SurfaceMonitoringStatus.AlternativeAvailable ->
+      }
+
+      SurfaceMonitoringStatus.AlternativeAvailable -> {
         "${session.stationName} ya no sirve. Tienes una alternativa cercana.$alternative"
-      SurfaceMonitoringStatus.Ended ->
+      }
+
+      SurfaceMonitoringStatus.Ended -> {
         "Has detenido la monitorizacion de ${session.stationName}."
-      SurfaceMonitoringStatus.Expired ->
+      }
+
+      SurfaceMonitoringStatus.Expired -> {
         "La monitorizacion de ${session.stationName} ha terminado."
-      SurfaceMonitoringStatus.Monitoring ->
+      }
+
+      SurfaceMonitoringStatus.Monitoring -> {
         "${session.stationName}: ${session.bikesAvailable} bicis y ${session.docksAvailable} huecos."
+      }
     }
   }
 }

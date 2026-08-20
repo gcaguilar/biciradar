@@ -117,6 +117,8 @@ internal fun ScreenContent(
 
     // Top-level tabs render through their own per-tab BiziNavHost, not through this
     // single-screen dispatcher. CitySelection isn't reachable from BiziNavHost today.
-    else -> Unit
+    else -> {
+      Unit
+    }
   }
 }

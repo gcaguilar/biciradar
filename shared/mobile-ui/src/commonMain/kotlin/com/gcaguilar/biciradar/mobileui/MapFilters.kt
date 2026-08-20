@@ -79,10 +79,15 @@ internal fun availableMapFilters(stations: List<Station>): Set<MapFilter> {
       stations.any { station ->
         when (filter) {
           MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
+
           MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
+
           MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
+
           MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
+
           MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
+
           MapFilter.AIR_QUALITY,
           MapFilter.POLLEN,
           -> false
@@ -112,10 +117,15 @@ internal fun applyMapFilters(
     availabilityFilters.any { filter ->
       when (filter) {
         MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
+
         MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
+
         MapFilter.ONLY_SLOTS -> station.bikesAvailable == 0 && station.slotsFree > 0
+
         MapFilter.ONLY_EBIKES -> station.ebikesAvailable > 0
+
         MapFilter.ONLY_REGULAR_BIKES -> station.regularBikesAvailable > 0
+
         MapFilter.AIR_QUALITY,
         MapFilter.POLLEN,
         -> true

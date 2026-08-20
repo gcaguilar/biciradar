@@ -497,7 +497,10 @@ private class IOSRouteLauncher : RouteLauncher {
       PreferredMapApp.GoogleMaps -> {
         if (isGoogleMapsInstalled()) PreferredMapApp.GoogleMaps else PreferredMapApp.AppleMaps
       }
-      PreferredMapApp.AppleMaps -> PreferredMapApp.AppleMaps
+
+      PreferredMapApp.AppleMaps -> {
+        PreferredMapApp.AppleMaps
+      }
     }
 
   private fun isGoogleMapsInstalled(): Boolean {

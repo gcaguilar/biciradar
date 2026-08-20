@@ -122,8 +122,11 @@ internal fun WearRoot(
       val errorMessage = uiState.errorMessage
 
       when {
-        screenshotSurface != null -> WearScreenshotRoot(screenshotSurface = screenshotSurface)
-        selectedStation != null ->
+        screenshotSurface != null -> {
+          WearScreenshotRoot(screenshotSurface = screenshotSurface)
+        }
+
+        selectedStation != null -> {
           WearStationDetail(
             station = selectedStation,
             isFavorite = selectedStation.id in uiState.favoriteIds,
@@ -142,19 +145,22 @@ internal fun WearRoot(
                 }
               },
           )
+        }
 
-        uiState.isLoading ->
+        uiState.isLoading -> {
           CircularProgressIndicator(
             colors = ProgressIndicatorDefaults.colors(indicatorColor = WearPrimary),
           )
+        }
 
-        errorMessage != null ->
+        errorMessage != null -> {
           WearErrorScreen(
             message = errorMessage,
             onRetry = viewModel::onRetry,
           )
+        }
 
-        else ->
+        else -> {
           WearDashboard(
             stations = uiState.stations,
             favoriteIds = uiState.favoriteIds,
@@ -171,6 +177,7 @@ internal fun WearRoot(
             onRouteToSavedPlace = viewModel::onRoute,
             onStopMonitoring = viewModel::onStopMonitoring,
           )
+        }
       }
     }
   }
@@ -179,9 +186,11 @@ internal fun WearRoot(
 @Composable
 private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
   when (screenshotSurface) {
-    WearScreenshotSurface.Dashboard -> WearScreenshotDashboard()
+    WearScreenshotSurface.Dashboard -> {
+      WearScreenshotDashboard()
+    }
 
-    WearScreenshotSurface.StationDetail ->
+    WearScreenshotSurface.StationDetail -> {
       WearStationDetail(
         station = sampleWearStation,
         isFavorite = true,
@@ -193,8 +202,11 @@ private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
         onRoute = {},
         onRouteInPhone = {},
       )
+    }
 
-    WearScreenshotSurface.Monitoring -> WearScreenshotMonitoring()
+    WearScreenshotSurface.Monitoring -> {
+      WearScreenshotMonitoring()
+    }
   }
 }
 
@@ -911,7 +923,9 @@ private fun WearButtonLabel(
 private fun wearStatusColor(level: SurfaceStatusLevel): Color =
   when (level) {
     SurfaceStatusLevel.Good -> WearSecondary
+
     SurfaceStatusLevel.Low -> Color(0xFFF28000)
+
     SurfaceStatusLevel.Empty,
     SurfaceStatusLevel.Full,
     SurfaceStatusLevel.Unavailable,

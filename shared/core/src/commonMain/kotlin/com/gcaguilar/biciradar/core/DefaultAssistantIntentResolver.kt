@@ -9,11 +9,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
     searchRadiusMeters: Int,
   ): AssistantResolution =
     when (action) {
-      AssistantAction.FavoriteStations ->
+      AssistantAction.FavoriteStations -> {
         AssistantResolution(
           spokenResponse = "You have ${favoriteIds.size} favorite stations",
         )
-      AssistantAction.NearestStation ->
+      }
+
+      AssistantAction.NearestStation -> {
         nearestStationResolution(
           selection = selectNearbyStation(stationsState.stations, searchRadiusMeters),
           emptyMessage = "No nearby stations found",
@@ -24,7 +26,9 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
             "No stations within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
           },
         )
-      AssistantAction.NearestStationWithBikes ->
+      }
+
+      AssistantAction.NearestStationWithBikes -> {
         nearestStationResolution(
           selection = selectNearbyStationWithBikes(stationsState.stations, searchRadiusMeters),
           emptyMessage = "No nearby stations with bikes",
@@ -35,7 +39,9 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
             "No stations with bikes within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
           },
         )
-      AssistantAction.NearestStationWithSlots ->
+      }
+
+      AssistantAction.NearestStationWithSlots -> {
         nearestStationResolution(
           selection = selectNearbyStationWithSlots(stationsState.stations, searchRadiusMeters),
           emptyMessage = "No nearby stations with free slots",
@@ -46,6 +52,8 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
             "No stations with slots within ${radiusMeters}m. Nearest is ${station.distanceMeters}m away: ${station.name}. ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free"
           },
         )
+      }
+
       is AssistantAction.RouteToStation -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         if (station != null) {
@@ -59,6 +67,7 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
           )
         }
       }
+
       is AssistantAction.StationBikeCount -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         if (station != null) {
@@ -72,6 +81,7 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
           )
         }
       }
+
       is AssistantAction.StationSlotCount -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         if (station != null) {
@@ -85,11 +95,13 @@ class DefaultAssistantIntentResolver : AssistantIntentResolver {
           )
         }
       }
+
       is AssistantAction.StationStatus -> {
         val station = stationsState.stations.firstOrNull { it.id == action.stationId }
         if (station != null) {
           AssistantResolution(
-            spokenResponse = "${station.name}: ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free",
+            spokenResponse =
+              "${station.name}: ${station.bikesAvailable} bikes available, ${station.slotsFree} slots free",
             highlightedStationId = station.id,
           )
         } else {

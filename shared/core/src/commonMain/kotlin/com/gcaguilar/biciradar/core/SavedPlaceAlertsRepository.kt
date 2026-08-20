@@ -388,25 +388,31 @@ private fun Saved_place_alert_rules.toRule(): SavedPlaceAlertRule? {
   val kind = runCatching { SavedPlaceKind.valueOf(target_kind) }.getOrNull() ?: return null
   val target: SavedPlaceAlertTarget =
     when (kind) {
-      SavedPlaceKind.Favorite ->
+      SavedPlaceKind.Favorite -> {
         SavedPlaceAlertTarget.FavoriteStation(
           stationId = target_station_id,
           cityId = target_city_id,
           stationName = target_station_name,
         )
-      SavedPlaceKind.Home ->
+      }
+
+      SavedPlaceKind.Home -> {
         SavedPlaceAlertTarget.Home(
           stationId = target_station_id,
           cityId = target_city_id,
           stationName = target_station_name,
         )
-      SavedPlaceKind.Work ->
+      }
+
+      SavedPlaceKind.Work -> {
         SavedPlaceAlertTarget.Work(
           stationId = target_station_id,
           cityId = target_city_id,
           stationName = target_station_name,
         )
-      SavedPlaceKind.Category ->
+      }
+
+      SavedPlaceKind.Category -> {
         SavedPlaceAlertTarget.CategoryStation(
           stationId = target_station_id,
           cityId = target_city_id,
@@ -414,6 +420,7 @@ private fun Saved_place_alert_rules.toRule(): SavedPlaceAlertRule? {
           categoryId = target_category_id ?: return null,
           categoryLabel = target_category_label,
         )
+      }
     }
   val condition =
     when (condition_kind) {

@@ -130,24 +130,29 @@ private fun stationMarkerColor(
   highlighted: Boolean,
 ): UIColor =
   when {
-    station.bikesAvailable > 0 && station.slotsFree > 0 ->
+    station.bikesAvailable > 0 && station.slotsFree > 0 -> {
       if (highlighted) {
         UIColor.colorWithRed(0.10, 0.50, 0.10, 1.0) // dark green
       } else {
         UIColor.colorWithRed(0.20, 0.72, 0.20, 1.0) // green
       }
-    station.bikesAvailable == 0 && station.slotsFree == 0 ->
+    }
+
+    station.bikesAvailable == 0 && station.slotsFree == 0 -> {
       if (highlighted) {
         UIColor.colorWithRed(0.66, 0.08, 0.10, 1.0) // dark red
       } else {
         UIColor.colorWithRed(0.84, 0.10, 0.12, 1.0) // red
       }
-    else ->
+    }
+
+    else -> {
       if (highlighted) {
         UIColor.colorWithRed(0.70, 0.35, 0.00, 1.0) // dark orange
       } else {
         UIColor.colorWithRed(0.95, 0.50, 0.00, 1.0) // orange
       }
+    }
   }
 
 @OptIn(ExperimentalForeignApi::class)

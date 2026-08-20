@@ -82,6 +82,7 @@ internal fun StationPatternCard(
             CircularProgressIndicator(color = colors.red, modifier = Modifier.size(24.dp))
           }
         }
+
         isError || patterns.isEmpty() -> {
           Box(
             modifier = Modifier.fillMaxWidth().height(80.dp),
@@ -94,6 +95,7 @@ internal fun StationPatternCard(
             )
           }
         }
+
         else -> {
           val dayType = if (showWeekend) "WEEKEND" else "WEEKDAY"
           val filtered = patterns.filter { it.dayType == dayType }.sortedBy { it.hour }

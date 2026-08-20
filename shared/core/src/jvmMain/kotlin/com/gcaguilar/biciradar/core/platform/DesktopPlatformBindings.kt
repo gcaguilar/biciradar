@@ -191,10 +191,13 @@ private class DesktopRouteLauncher : RouteLauncher {
     when (
       settingsRepository?.currentPreferredMapApp() ?: PreferredMapApp.AppleMaps
     ) {
-      PreferredMapApp.AppleMaps ->
+      PreferredMapApp.AppleMaps -> {
         "https://maps.apple.com/?daddr=${destination.latitude},${destination.longitude}&dirflg=${if (cycling) "b" else "w"}"
-      PreferredMapApp.GoogleMaps ->
+      }
+
+      PreferredMapApp.GoogleMaps -> {
         "https://www.google.com/maps/dir/?api=1&destination=${destination.latitude},${destination.longitude}&travelmode=${if (cycling) "bicycling" else "walking"}"
+      }
     }
 }
 

@@ -196,9 +196,13 @@ object LegacyBlobToRelationalMigration {
 
 private fun <T> QueryResult<T>.expectValue(): T =
   when (this) {
-    is QueryResult.Value -> value
-    is QueryResult.AsyncValue ->
+    is QueryResult.Value -> {
+      value
+    }
+
+    is QueryResult.AsyncValue -> {
       error("Legacy migration requires a synchronous SQLite driver (got async query result)")
+    }
   }
 
 internal fun normalizeLegacyOnboardingForMigration(snapshot: SettingsSnapshot): SettingsSnapshot =
