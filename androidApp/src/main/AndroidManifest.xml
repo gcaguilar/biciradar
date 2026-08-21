@@ -38,6 +38,14 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
+        <!--
+          Glance declares this trampoline for non-activity actions inside lazy collections.
+          Our widgets only launch MainActivity and do not use lazy collections, so leaving the
+          component enabled only allows stale or malformed widget PendingIntents to crash here.
+        -->
+        <activity
+            android:name="androidx.glance.appwidget.action.InvisibleActionTrampolineActivity"
+            tools:node="remove" />
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
