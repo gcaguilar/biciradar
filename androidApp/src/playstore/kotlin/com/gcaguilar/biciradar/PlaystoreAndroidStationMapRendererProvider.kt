@@ -22,7 +22,7 @@ import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.MarkerInfoWindowContent
+import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
@@ -141,7 +141,7 @@ class PlaystoreAndroidStationMapRendererProvider : AndroidStationMapRenderer {
             remember(station.location.latitude, station.location.longitude) {
               MarkerState(position = LatLng(station.location.latitude, station.location.longitude))
             }
-          MarkerInfoWindowContent(
+          Marker(
             state = markerState,
             title = station.name,
             snippet = stationSnippet(station),
@@ -153,19 +153,19 @@ class PlaystoreAndroidStationMapRendererProvider : AndroidStationMapRenderer {
               onStationSelected(station)
               false
             },
-          ) {}
+          )
         }
       }
       if (pinLocation != null) {
         key("destination-pin") {
-          MarkerInfoWindowContent(
+          Marker(
             state =
               remember(pinLocation.latitude, pinLocation.longitude) {
                 MarkerState(position = LatLng(pinLocation.latitude, pinLocation.longitude))
               },
             title = pinTitle,
             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE),
-          ) {}
+          )
         }
       }
     }
