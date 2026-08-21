@@ -60,7 +60,6 @@ import com.gcaguilar.biciradar.mobileui.FeedbackBottomSheet
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
-import com.gcaguilar.biciradar.mobileui.components.buttons.RefreshButtonWithCountdown
 import com.gcaguilar.biciradar.mobileui.components.cards.QuickRouteActionCard
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -78,6 +77,7 @@ internal fun NearbyScreen(
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   onRequestLocationPermission: () -> Unit,
+  refreshControl: @Composable () -> Unit,
   showFeedbackBottomSheet: Boolean,
   onFeedbackDismiss: () -> Unit,
   onOpenFeedbackForm: () -> Unit,
@@ -119,11 +119,7 @@ internal fun NearbyScreen(
                   color = LocalBiziColors.current.muted,
                 )
               }
-              RefreshButtonWithCountdown(
-                countdown = state.refreshCountdownSeconds,
-                loading = state.isLoading,
-                onRefresh = onRefresh,
-              )
+              refreshControl()
             }
           } else {
             Row(
@@ -147,11 +143,7 @@ internal fun NearbyScreen(
                   color = LocalBiziColors.current.muted,
                 )
               }
-              RefreshButtonWithCountdown(
-                countdown = state.refreshCountdownSeconds,
-                loading = state.isLoading,
-                onRefresh = onRefresh,
-              )
+              refreshControl()
             }
           }
           Row(

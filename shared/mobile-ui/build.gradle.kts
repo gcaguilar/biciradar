@@ -42,6 +42,7 @@ kotlin {
     target.binaries.framework {
       baseName = "BiziMobileUi"
       isStatic = true
+      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=18.6"
       export(project(":shared:core"))
       linkerOpts("-lsqlite3")
     }

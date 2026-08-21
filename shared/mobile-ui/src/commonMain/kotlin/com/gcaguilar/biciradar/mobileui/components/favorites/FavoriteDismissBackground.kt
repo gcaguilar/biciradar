@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.components.favorites
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -18,12 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.deleteFavorite
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -31,22 +30,20 @@ import org.jetbrains.compose.resources.stringResource
  *
  * Muestra un indicador visual rojo cuando el usuario hace swipe para eliminar.
  *
- * @param mobilePlatform La plataforma actual (afecta el radio de esquinas)
- * @param progress Progreso del swipe (0f a 1f)
+ * @param progressProvider Provee el progreso del swipe (0f a 1f) en la fase de dibujo.
  */
 @Composable
-internal fun FavoriteDismissBackground(
-  mobilePlatform: MobileUiPlatform,
-  progress: Float,
-) {
-  val clampedProgress = progress.coerceIn(0f, 1f)
+internal fun FavoriteDismissBackground(progressProvider: () -> Float) {
+  val colors = LocalBiziColors.current
   Box(
     modifier =
       Modifier
         .fillMaxWidth()
         .clip(LocalBiziCardShape.current)
-        .background(LocalBiziColors.current.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
-        .padding(horizontal = 20.dp, vertical = 12.dp),
+        .drawBehind {
+          val clampedProgress = progressProvider().coerceIn(0f, 1f)
+          drawRect(colors.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
+        }.padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,
   ) {
     Row(
@@ -56,14 +53,14 @@ internal fun FavoriteDismissBackground(
       Icon(
         imageVector = Icons.Default.Delete,
         contentDescription = null,
-        tint = LocalBiziColors.current.red,
+        tint = colors.red,
         modifier = Modifier.size(24.dp),
       )
       Spacer(modifier = Modifier.width(4.dp))
       Text(
         text = stringResource(Res.string.deleteFavorite),
         style = MaterialTheme.typography.labelLarge,
-        color = LocalBiziColors.current.red,
+        color = colors.red,
       )
     }
   }

@@ -48,6 +48,8 @@ data class ShortcutGuide(
   val icon: String,
 )
 
+internal val sortedCitiesByDisplayName = City.entries.sortedBy(City::displayName)
+
 @AssistedInject
 internal class ProfileViewModel(
   private val settingsRepository: SettingsRepository,
@@ -104,10 +106,9 @@ internal class ProfileViewModel(
       val normalizedQuery = cityQuery.trim().normalizedForSearch()
       val filteredCities =
         if (normalizedQuery.isBlank()) {
-          City.entries.sortedBy { it.displayName }
+          sortedCitiesByDisplayName
         } else {
-          City.entries
-            .sortedBy { it.displayName }
+          sortedCitiesByDisplayName
             .filter { city -> city.displayName.normalizedForSearch().contains(normalizedQuery) }
         }
       base.copy(

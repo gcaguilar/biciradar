@@ -15,6 +15,7 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.components.buttons.RefreshButtonWithCountdown
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.NearbyScreen
@@ -25,6 +26,7 @@ import com.gcaguilar.biciradar.mobileui.screens.TripDestinationSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripMapPickerScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
+import com.gcaguilar.biciradar.mobileui.viewmodel.sortedCitiesByDisplayName
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 
@@ -110,6 +112,7 @@ internal object BiziMobileAppContent {
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
     onRequestLocationPermission: () -> Unit,
+    refreshControl: @Composable () -> Unit,
     showFeedbackNudge: Boolean,
     onFeedbackOpened: () -> Unit,
     onFeedbackDismiss: () -> Unit,
@@ -129,6 +132,7 @@ internal object BiziMobileAppContent {
       onFavoriteToggle = onFavoriteToggle,
       onQuickRoute = onQuickRoute,
       onRequestLocationPermission = onRequestLocationPermission,
+      refreshControl = refreshControl,
       showFeedbackBottomSheet = showFeedbackBottomSheet,
       onFeedbackDismiss = {
         onFeedbackDismiss()
@@ -164,11 +168,30 @@ internal object BiziMobileAppContent {
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
       onRequestLocationPermission = viewModel::onRequestLocationPermission,
+      refreshControl = {
+        NearbyRefreshControl(
+          viewModel = viewModel,
+          loading = uiState.isLoading,
+        )
+      },
       showFeedbackNudge = showFeedbackNudge,
       onFeedbackOpened = onFeedbackOpened,
       onFeedbackDismiss = onFeedbackDismiss,
       onOpenFeedbackForm = onOpenFeedbackForm,
       paddingValues = paddingValues,
+    )
+  }
+
+  @Composable
+  private fun NearbyRefreshControl(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModel,
+    loading: Boolean,
+  ) {
+    val countdown by viewModel.refreshCountdownSeconds.collectAsState()
+    RefreshButtonWithCountdown(
+      countdown = countdown,
+      loading = loading,
+      onRefresh = viewModel::onRefresh,
     )
   }
 
@@ -220,7 +243,7 @@ internal object BiziMobileAppContent {
     FavoritesSearchScreen(
       mobilePlatform = mobilePlatform,
       allStations = uiState.allStations,
-      favoriteStationIds = uiState.favoriteStations.mapTo(mutableSetOf()) { it.id },
+      favoriteStationIds = uiState.favoriteIds,
       homeStationId = uiState.homeStation?.id,
       workStationId = uiState.workStation?.id,
       categories = uiState.categories,
@@ -289,7 +312,7 @@ internal object BiziMobileAppContent {
         themePreference = themePreference,
         selectedCity = selectedCity,
         showProfileSetupCard = showProfileSetupCard,
-        filteredCities = City.entries.sortedBy { it.displayName },
+        filteredCities = sortedCitiesByDisplayName,
       ),
     mobilePlatform = mobilePlatform,
     paddingValues = paddingValues,
