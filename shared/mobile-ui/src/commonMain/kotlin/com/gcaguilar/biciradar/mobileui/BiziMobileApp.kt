@@ -12,11 +12,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -132,7 +134,7 @@ fun BiziMobileApp(
    * app's single NavController (see [MobileTabNavigator]). Only the iOS Liquid Glass
    * shell passes this; Android leaves it null and keeps using [BiziBottomBar].
    */
-  onTabNavigatorReady: ((MobileTabNavigator) -> Unit)? = null,
+  onTabNavigatorReady: ((MobileTabNavigator?) -> Unit)? = null,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val resolvedGraph: MobileGraph =
@@ -170,17 +172,6 @@ fun BiziMobileApp(
   val scope = rememberCoroutineScope()
   val appState = rememberAppState()
   val navController = rememberNavController()
-  // Hand the native shell (iOS Liquid Glass TabView) a way to switch tabs on THIS
-  // NavController. There is exactly one BiziMobileApp / one NavController for the whole
-  // app, so the native tab bar drives the same navigation Compose already owns instead
-  // of each tab mounting its own copy of the app.
-  if (onTabNavigatorReady != null) {
-    val tabNavigator =
-      remember(navController) {
-        MobileTabNavigator { screen -> navController.navigateToPrimaryDestination(screen) }
-      }
-    LaunchedEffect(tabNavigator) { onTabNavigatorReady.invoke(tabNavigator) }
-  }
   val stationsState by resolvedGraph.observeStationsState.state.collectAsState()
   val searchRadiusMeters by resolvedGraph.observeSettings.searchRadiusMeters.collectAsState()
   val preferredMapApp by resolvedGraph.observeSettings.preferredMapApp.collectAsState()
@@ -364,6 +355,10 @@ fun BiziMobileApp(
                       NavigationHost(
                         config = navConfig.copy(paddingValues = innerPadding),
                       )
+                      NativeTabNavigatorRegistration(
+                        navController = navController,
+                        onTabNavigatorReady = onTabNavigatorReady,
+                      )
                     }
                     OverlayManager(
                       mobilePlatform = mobilePlatform,
@@ -386,4 +381,30 @@ fun BiziMobileApp(
       }
     }
   } // end CompositionLocalProvider
+}
+
+/**
+ * Publishes the native-tab handle only while [NavigationHost] is mounted.
+ *
+ * `NavHost` assigns [NavHostController.graph] during its composition. Publishing earlier
+ * allowed UIKit to call `selectTab()` while bootstrap/onboarding/splash was still on screen,
+ * which attempted to navigate through a controller with no graph and terminated Kotlin/Native.
+ */
+@Composable
+private fun NativeTabNavigatorRegistration(
+  navController: NavHostController,
+  onTabNavigatorReady: ((MobileTabNavigator?) -> Unit)?,
+) {
+  if (onTabNavigatorReady == null) return
+
+  val latestOnTabNavigatorReady = rememberUpdatedState(onTabNavigatorReady)
+  val tabNavigator =
+    remember(navController) {
+      MobileTabNavigator { screen -> navController.navigateToPrimaryDestination(screen) }
+  }
+
+  DisposableEffect(tabNavigator) {
+    latestOnTabNavigatorReady.value.invoke(tabNavigator)
+    onDispose { latestOnTabNavigatorReady.value.invoke(null) }
+  }
 }

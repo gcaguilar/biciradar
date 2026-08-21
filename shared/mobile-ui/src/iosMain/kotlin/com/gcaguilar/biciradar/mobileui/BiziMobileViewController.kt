@@ -103,6 +103,7 @@ class BiziMainViewControllerWrapper(
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
   private var tripRepository: TripRepository? = null
   private var tabNavigator: MobileTabNavigator? = null
+  private var pendingTab: Screen? = null
 
   val viewController: UIViewController =
     ComposeUIViewController(
@@ -119,7 +120,15 @@ class BiziMainViewControllerWrapper(
           },
           onNavigateNative = onNavigate,
           onActivateNative = onActivate,
-          onTabNavigatorReady = { navigator -> tabNavigator = navigator },
+          onTabNavigatorReady = { navigator ->
+            tabNavigator = navigator
+            navigator?.let { readyNavigator ->
+              pendingTab?.let { tab ->
+                pendingTab = null
+                readyNavigator.selectTab(tab)
+              }
+            }
+          },
         )
       }
     }
@@ -129,12 +138,17 @@ class BiziMainViewControllerWrapper(
    * `TabView` in the Liquid Glass shell, which owns only the tab bar chrome — navigation
    * itself stays inside this single Compose instance, exactly as on Android.
    *
-   * No-op until Compose has composed at least once (the navigator is published from the
-   * composition); the initial tab is [Screen.Nearby] anyway, which is what the native
-   * TabView starts on.
+   * If Compose is showing bootstrap/onboarding/splash, the selected tab is retained and
+   * applied as soon as its [androidx.navigation.NavHostController] has a graph. This avoids
+   * letting a UIKit tap cross the Objective-C boundary into a graph-less NavController.
    */
   fun selectTab(tab: Screen) {
-    tabNavigator?.selectTab(tab)
+    val navigator = tabNavigator
+    if (navigator == null) {
+      pendingTab = tab
+    } else {
+      navigator.selectTab(tab)
+    }
   }
 
   fun updateLaunchRequest(request: MobileLaunchRequest?) {
