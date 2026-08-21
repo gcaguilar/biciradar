@@ -81,8 +81,8 @@ class WatchOSPlatformBindings(
   override val platform: String = "watchos"
   override val osVersion: String = WKInterfaceDevice.currentDevice().systemVersion()
   override val routeLauncher: RouteLauncher = WatchOSRouteLauncher()
-  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = WatchOSStorageDirectoryProvider()
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
   override val watchSyncBridge: WatchSyncBridge = WatchOSSyncBridge()
 }
 

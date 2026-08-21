@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * Persisted after a successful `/install/register` call.
- * [publicKeyBase64] is the DER-encoded RSA public key, Base64-encoded.
+ * [publicKeyBase64] is the DER-encoded Ed25519 public key, Base64-encoded.
  */
 @Serializable
 data class InstallationIdentity(
@@ -45,6 +45,8 @@ internal data class RegisterRequest(
   val appVersion: String,
   val osVersion: String,
   val publicKey: String,
+  val challenge: String,
+  val signature: String,
 )
 
 @Serializable

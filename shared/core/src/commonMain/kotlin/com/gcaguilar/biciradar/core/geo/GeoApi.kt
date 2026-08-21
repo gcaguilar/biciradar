@@ -76,26 +76,18 @@ class GeoApiImpl(
     logger.debug("GeoApi", ">>> /geo/reverse body=$requestBody")
 
     val token = tokenManager.getValidToken()
-    val signedHeaders =
-      requestSigner.signedHeaders(
-        method = "POST",
-        path = "/geo/reverse",
-        body = requestBody.encodeToByteArray(),
-      )
-    logger.debug("GeoApi", "using installationId=${signedHeaders.installationId}")
+    val signedRequest = requestSigner.signedBody(requestBody)
+    logger.debug("GeoApi", "using installationId=${signedRequest.installationId}")
 
     val response =
       try {
         httpClient.post("$BASE_URL/geo/reverse") {
           expectSuccess = false
           contentType(ContentType.Application.Json)
-          setBody(requestBody)
+          setBody(signedRequest.bodyJson)
           headers {
             append("Authorization", "Bearer ${token.token}")
-            append("X-Installation-Id", signedHeaders.installationId)
-            append("X-Timestamp", signedHeaders.timestamp.toString())
-            append("X-Nonce", signedHeaders.nonce)
-            append("X-Signature", signedHeaders.signature)
+            append("X-Installation-Id", signedRequest.installationId)
           }
         }
       } catch (cancelled: CancellationException) {
@@ -142,26 +134,18 @@ class GeoApiImpl(
     val token = if (isRetry) tokenManager.forceRefresh() else tokenManager.getValidToken()
     logger.debug("GeoApi", "token acquired (expires=${token.expiresAtEpochMs})")
 
-    val signedHeaders =
-      requestSigner.signedHeaders(
-        method = "POST",
-        path = path,
-        body = bodyJson.encodeToByteArray(),
-      )
-    logger.debug("GeoApi", "using installationId=${signedHeaders.installationId}")
+    val signedRequest = requestSigner.signedBody(bodyJson)
+    logger.debug("GeoApi", "using installationId=${signedRequest.installationId}")
 
     val response =
       try {
         httpClient.post("$BASE_URL$path") {
           expectSuccess = false
           contentType(ContentType.Application.Json)
-          setBody(bodyJson)
+          setBody(signedRequest.bodyJson)
           headers {
             append("Authorization", "Bearer ${token.token}")
-            append("X-Installation-Id", signedHeaders.installationId)
-            append("X-Timestamp", signedHeaders.timestamp.toString())
-            append("X-Nonce", signedHeaders.nonce)
-            append("X-Signature", signedHeaders.signature)
+            append("X-Installation-Id", signedRequest.installationId)
           }
         }
       } catch (cancelled: CancellationException) {
@@ -201,25 +185,17 @@ class GeoApiImpl(
     forceRefresh: Boolean,
   ): GeoResult? {
     val token = if (forceRefresh) tokenManager.forceRefresh() else tokenManager.getValidToken()
-    val signedHeaders =
-      requestSigner.signedHeaders(
-        method = "POST",
-        path = "/geo/reverse",
-        body = bodyJson.encodeToByteArray(),
-      )
+    val signedRequest = requestSigner.signedBody(bodyJson)
 
     val response =
       try {
         httpClient.post("$BASE_URL/geo/reverse") {
           expectSuccess = false
           contentType(ContentType.Application.Json)
-          setBody(bodyJson)
+          setBody(signedRequest.bodyJson)
           headers {
             append("Authorization", "Bearer ${token.token}")
-            append("X-Installation-Id", signedHeaders.installationId)
-            append("X-Timestamp", signedHeaders.timestamp.toString())
-            append("X-Nonce", signedHeaders.nonce)
-            append("X-Signature", signedHeaders.signature)
+            append("X-Installation-Id", signedRequest.installationId)
           }
         }
       } catch (cancelled: CancellationException) {

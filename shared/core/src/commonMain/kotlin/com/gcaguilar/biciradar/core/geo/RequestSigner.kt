@@ -3,53 +3,43 @@ package com.gcaguilar.biciradar.core.geo
 import dev.zacsweers.metro.Inject
 
 /**
- * Signs geo API requests using the device's RSA private key.
+ * Produces the Ed25519-signed request shape accepted by datosbizi.com.
  *
- * Signing payload format (as per datosbizi.com spec):
- *   METHOD + "\n" + PATH + "\n" + BODY_SHA256_HEX + "\n" + TIMESTAMP + "\n" + NONCE
- *
- * All timestamps are Unix seconds (not milliseconds).
+ * The server verifies `"$timestamp.$bodyWithoutSignature"`, where the timestamp is
+ * expressed in milliseconds and is also part of the JSON body. Keeping this wire
+ * representation here prevents Android and iOS from drifting apart.
  */
 @Inject
 class RequestSigner(
   private val identityRepo: InstallationIdentityRepository,
 ) {
-  /**
-   * Produces the four signed headers needed for every geo request:
-   * `X-Installation-Id`, `X-Timestamp`, `X-Nonce`, `X-Signature`.
-   *
-   * @param method   HTTP method uppercased, e.g. "POST"
-   * @param path     Absolute path, e.g. "/geo/search"
-   * @param body     Raw UTF-8 request body bytes (used for SHA-256 digest)
-   */
-  suspend fun signedHeaders(
-    method: String,
-    path: String,
-    body: ByteArray,
-  ): SignedHeaders {
+  suspend fun signedBody(unsignedBodyJson: String): SignedRequestBody {
+    check(unsignedBodyJson.startsWith('{') && unsignedBodyJson.endsWith('}')) {
+      "Geo request body must be a JSON object"
+    }
     val (identity, keyPair) = identityRepo.getOrRegister()
-    val timestamp = currentTimeMs() / 1000L
-    val nonce = TokenManager.generateNonce()
-    val bodyHash = sha256Hex(body)
+    val timestamp = currentTimeMs()
+    val bodyWithoutSignature =
+      unsignedBodyJson.dropLast(1) +
+        if (unsignedBodyJson == "{}") {
+          "\"timestamp\":$timestamp}"
+        } else {
+          ",\"timestamp\":$timestamp}"
+        }
+    val signature = keyPair.sign("$timestamp.$bodyWithoutSignature".encodeToByteArray())
+    val bodyJson = bodyWithoutSignature.dropLast(1) + ",\"signature\":\"$signature\"}"
 
-    val payload = "$method\n$path\n$bodyHash\n$timestamp\n$nonce"
-    val signature = keyPair.sign(payload.encodeToByteArray())
-
-    return SignedHeaders(
+    return SignedRequestBody(
       installationId = identity.installationId,
-      timestamp = timestamp,
-      nonce = nonce,
-      signature = signature,
+      bodyJson = bodyJson,
     )
   }
 }
 
-data class SignedHeaders(
+data class SignedRequestBody(
   val installationId: String,
-  val timestamp: Long,
-  val nonce: String,
-  val signature: String,
+  val bodyJson: String,
 )
 
-/** Returns the lowercase hex-encoded SHA-256 digest of [data]. Platform-specific. */
+/** Retained for the existing platform digest implementations. */
 internal expect fun sha256Hex(data: ByteArray): String

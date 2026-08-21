@@ -13,12 +13,15 @@ import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
 import platform.CoreFoundation.CFDictionaryCreateMutable
+import platform.CoreFoundation.CFDictionaryRef
 import platform.CoreFoundation.CFDictionarySetValue
 import platform.CoreFoundation.CFRelease
+import platform.CoreFoundation.CFStringCreateWithCString
 import platform.CoreFoundation.CFStringRef
 import platform.CoreFoundation.CFTypeRef
 import platform.CoreFoundation.kCFAllocatorDefault
 import platform.CoreFoundation.kCFBooleanTrue
+import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.CoreFoundation.kCFTypeDictionaryKeyCallBacks
 import platform.CoreFoundation.kCFTypeDictionaryValueCallBacks
 import platform.Foundation.CFBridgingRelease
@@ -101,11 +104,14 @@ actual class SecureKeyStore actual constructor(
     keyPair: PlatformKeyPair,
   ) {
     deleteKeyPair(alias)
+    val value = pack(keyPair).toNSData()
     val status =
-      withKeychainQuery(alias, value = pack(keyPair).toNSData()) { query ->
+      withKeychainQuery(alias, value = value) { query ->
         SecItemAdd(query, null)
       }
-    check(status == errSecSuccess) { "Unable to save Ed25519 private key to Keychain: $status" }
+    check(status == errSecSuccess) {
+      "Unable to save Ed25519 private key to Keychain: $status"
+    }
   }
 }
 
@@ -130,35 +136,45 @@ private fun unpack(value: ByteArray): PlatformKeyPair? {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun keychainQuery(
+private fun <T> withKeychainQuery(
   alias: String,
   returnData: Boolean = false,
   value: NSData? = null,
-) = buildCFDictionary {
-  put(kSecClass, kSecClassGenericPassword)
-  put(kSecAttrService, KEYCHAIN_SERVICE)
-  put(kSecAttrAccount, alias)
-  if (returnData) {
-    putCF(kSecReturnData, kCFBooleanTrue)
-    put(kSecMatchLimit, kSecMatchLimitOne)
-  }
-  if (value != null) {
-    put(kSecAttrAccessible, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-    put(kSecValueData, value)
-  }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private inline fun <T> withKeychainQuery(
-  alias: String,
-  returnData: Boolean = false,
-  value: NSData? = null,
-  block: (platform.CoreFoundation.CFDictionaryRef?) -> T,
+  block: (CFDictionaryRef?) -> T,
 ): T {
-  val query = keychainQuery(alias, returnData, value)
+  // Security's keys and values are CoreFoundation types, so the query must be a real
+  // CFDictionary. Building it as an NSMutableDictionary means casting CFStringRef
+  // constants to NSString, which throws ClassCastException at runtime.
+  val owned = mutableListOf<CFTypeRef>()
+  val query =
+    CFDictionaryCreateMutable(
+      kCFAllocatorDefault,
+      0,
+      kCFTypeDictionaryKeyCallBacks.ptr,
+      kCFTypeDictionaryValueCallBacks.ptr,
+    )
+  fun cfString(text: String): CFStringRef? =
+    CFStringCreateWithCString(kCFAllocatorDefault, text, kCFStringEncodingUTF8)
+      ?.also { owned += it }
   return try {
+    CFDictionarySetValue(query, kSecClass, kSecClassGenericPassword)
+    CFDictionarySetValue(query, kSecAttrService, cfString(KEYCHAIN_SERVICE))
+    CFDictionarySetValue(query, kSecAttrAccount, cfString(alias))
+    if (returnData) {
+      CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue)
+      CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne)
+    }
+    if (value != null) {
+      CFDictionarySetValue(
+        query,
+        kSecAttrAccessible,
+        kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+      )
+      CFDictionarySetValue(query, kSecValueData, CFBridgingRetain(value)?.also { owned += it })
+    }
     block(query)
   } finally {
+    owned.forEach { CFRelease(it) }
     if (query != null) CFRelease(query)
   }
 }
@@ -172,44 +188,5 @@ private fun NSData.toByteArray(): ByteArray =
   ByteArray(length.toInt()).also { destination ->
     destination.usePinned { pinned -> memcpy(pinned.addressOf(0), bytes, length) }
   }
-
-@OptIn(ExperimentalForeignApi::class)
-private fun buildCFDictionary(block: CFDictionaryBuilder.() -> Unit): platform.CoreFoundation.CFDictionaryRef? {
-  return memScoped {
-    val dict =
-      CFDictionaryCreateMutable(
-        kCFAllocatorDefault,
-        0,
-        kCFTypeDictionaryKeyCallBacks.ptr,
-        kCFTypeDictionaryValueCallBacks.ptr,
-      )
-    CFDictionaryBuilder(dict).block()
-    dict
-  }
-}
-
-@OptIn(ExperimentalForeignApi::class)
-private class CFDictionaryBuilder(
-  private val dict: platform.CoreFoundation.CFMutableDictionaryRef?,
-) {
-  fun putCF(
-    key: CFStringRef?,
-    value: CFTypeRef?,
-  ) {
-    CFDictionarySetValue(dict, key, value)
-  }
-
-  fun put(
-    key: CFStringRef?,
-    value: Any?,
-  ) {
-    val bridgedValue = value?.let { CFBridgingRetain(it) }
-    try {
-      CFDictionarySetValue(dict, key, bridgedValue)
-    } finally {
-      if (bridgedValue != null) CFRelease(bridgedValue)
-    }
-  }
-}
 
 private const val KEYCHAIN_SERVICE = "com.gcaguilar.biciradar.installation-key"

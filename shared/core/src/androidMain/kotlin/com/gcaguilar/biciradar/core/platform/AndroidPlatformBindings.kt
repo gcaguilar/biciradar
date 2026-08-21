@@ -170,8 +170,8 @@ class AndroidPlatformBindings(
     } else {
       AndroidRouteLauncher(context)
     }
-  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
   override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
   override val appVersion: String =
     runCatching {
