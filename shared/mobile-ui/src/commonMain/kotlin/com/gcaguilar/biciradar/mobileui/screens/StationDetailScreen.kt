@@ -133,6 +133,7 @@ internal fun StationDetailScreen(
   PlatformBackHandler(enabled = true, onBack = onBack)
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   var showWeekend by rememberSaveable { mutableStateOf(false) }
+  val mapStations = remember(station) { listOf(station) }
   Box(Modifier.fillMaxSize()) {
     Scaffold(
       modifier = Modifier.fillMaxSize(),
@@ -343,7 +344,7 @@ internal fun StationDetailScreen(
             ) {
               PlatformStationMap(
                 modifier = Modifier.fillMaxWidth().height(200.dp),
-                stations = listOf(station),
+                stations = mapStations,
                 userLocation = userLocation,
                 highlightedStationId = station.id,
                 isMapReady = isMapReady,

@@ -87,6 +87,13 @@ object ChangelogCatalog {
             Res.string.changelogFeedbackFavoritesDescription,
           ),
         ),
+      "0.22.17" to
+        listOf(
+          ChangelogCatalogEntry(
+            Res.string.changelogPerformanceReliabilityTitle,
+            Res.string.changelogPerformanceReliabilityDescription,
+          ),
+        ),
     )
 
   fun catalogVersionSet(): Set<String> = entriesByVersion.keys

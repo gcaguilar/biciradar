@@ -193,6 +193,8 @@
     <string name="changelogNearbyScrollDescription">La pantalla A prop ara es desplaça com un sol bloc, amb accions ràpides, avisos i estacions dins del mateix scroll.</string>
     <string name="changelogFeedbackFavoritesTitle">Feedback i preferits més clars</string>
     <string name="changelogFeedbackFavoritesDescription">Hem millorat l\'accés al formulari de feedback i el desat d\'estacions des de la cerca perquè sigui més directe.</string>
+    <string name="changelogPerformanceReliabilityTitle">Més rendiment i estabilitat</string>
+    <string name="changelogPerformanceReliabilityDescription">Hem millorat la navegació, els mapes, els preferits i les actualitzacions en segon pla, a més de les Activitats en directe a iOS.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancela·la mapa</string>

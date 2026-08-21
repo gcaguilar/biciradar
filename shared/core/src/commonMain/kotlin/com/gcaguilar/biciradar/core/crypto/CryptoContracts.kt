@@ -1,22 +1,23 @@
 package com.gcaguilar.biciradar.core.crypto
 
+import com.gcaguilar.biciradar.core.StorageDirectoryProvider
+
 /**
- * Platform-specific RSA key pair backed by secure hardware storage
- * (Android Keystore on Android, Secure Enclave/Keychain on iOS).
+ * Platform-specific Ed25519 key pair backed by secure platform storage
+ * (Android Keystore-encrypted storage on Android, Keychain on iOS).
  *
  * The key pair is generated once and never leaves the secure enclave in
  * plain form. [publicKeyDerBase64] is the only exportable material — it
  * is sent to the server during installation registration.
  *
- * Use [sign] to produce an RSA-SHA256-PKCS1v1.5 signature over arbitrary
- * bytes. The private key never leaves the platform security boundary.
+ * Use [sign] to produce an Ed25519 signature over arbitrary bytes.
  */
 expect class PlatformKeyPair {
-  /** DER-encoded RSA public key, Base64-encoded (no line breaks). */
+  /** DER-encoded (SPKI) Ed25519 public key, Base64-encoded (no line breaks). */
   val publicKeyDerBase64: String
 
-  /** Signs [data] with the private RSA key. Returns Base64-encoded signature. */
-  fun sign(data: ByteArray): String
+  /** Signs [data] with the private Ed25519 key. Returns a Base64-encoded signature. */
+  suspend fun sign(data: ByteArray): String
 }
 
 /**
@@ -26,15 +27,17 @@ expect class PlatformKeyPair {
  * If a key pair already exists under that alias it is returned without
  * re-generating, making this function idempotent.
  */
-expect class SecureKeyStore {
+expect class SecureKeyStore(
+  storageDirectoryProvider: StorageDirectoryProvider,
+) {
   /**
    * Returns the existing key pair for [alias] if one exists,
    * or generates and stores a new one.
    */
-  fun getOrCreateKeyPair(alias: String): PlatformKeyPair
+  suspend fun getOrCreateKeyPair(alias: String): PlatformKeyPair
 
   /** Deletes the key pair stored under [alias], if any. */
   fun deleteKeyPair(alias: String)
 }
 
-internal const val INSTALLATION_KEY_ALIAS = "bizi_installation_key"
+internal const val INSTALLATION_KEY_ALIAS = "bizi_installation_ed25519_key"

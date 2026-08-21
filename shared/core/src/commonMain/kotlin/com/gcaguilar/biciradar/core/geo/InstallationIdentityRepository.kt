@@ -10,6 +10,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -18,13 +19,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import kotlin.io.encoding.Base64
 
 /**
  * Manages the device's installation identity.
  *
  * On first call to [getOrRegister] it:
- *  1. Generates (or loads) an RSA key pair via [SecureKeyStore].
- *  2. POSTs the public key to `/api/install/register`.
+ *  1. Generates (or loads) an Ed25519 key pair via [SecureKeyStore].
+ *  2. POSTs a proof of possession to `/api/install/register`.
  *  3. Persists the returned [InstallationIdentity] (including refreshToken) to disk.
  *
  * Subsequent calls return the cached identity instantly.
@@ -72,11 +74,15 @@ class InstallationIdentityRepository(
       }
     logger.debug("InstallRepo", "key pair OK publicKey=${keyPair.publicKeyDerBase64.take(20)}...")
 
-    if (persisted != null) {
+    if (persisted != null && persisted.publicKeyBase64 == keyPair.publicKeyDerBase64) {
       logger.debug("InstallRepo", "found persisted identity installationId=${persisted.installationId}")
       val result = persisted to keyPair
       cached = result
       return result
+    }
+    if (persisted != null) {
+      logger.warn("InstallRepo", "persisted identity does not match the local key — registering again")
+      fileSystem.delete(identityPath())
     }
 
     // 2. Register with the server
@@ -85,6 +91,8 @@ class InstallationIdentityRepository(
       "no persisted identity — registering with server platform=$platform appVersion=$appVersion osVersion=$osVersion",
     )
     val publicKeyBase64 = keyPair.publicKeyDerBase64
+    val challenge = Base64.Default.encode(kotlin.random.Random.nextBytes(REGISTRATION_CHALLENGE_BYTES))
+    val proofPayload = listOf(platform, appVersion, osVersion, publicKeyBase64, challenge).joinToString("\n")
     val response =
       try {
         httpClient.post("$BASE_URL/install/register") {
@@ -97,6 +105,8 @@ class InstallationIdentityRepository(
                 appVersion = appVersion,
                 osVersion = osVersion,
                 publicKey = publicKeyBase64,
+                challenge = challenge,
+                signature = keyPair.sign(proofPayload.encodeToByteArray()),
               ),
             ),
           )
@@ -110,11 +120,12 @@ class InstallationIdentityRepository(
 
     logger.debug("InstallRepo", "/install/register status=${response.status.value}")
     if (!response.status.isSuccess()) {
+      val errorBody = response.safeBodyAsText()
       logger.warn(
         "InstallRepo",
-        "SERVER ERROR /install/register: ${response.status.value} ${response.status.description}",
+        "SERVER ERROR /install/register: ${response.status.value} ${response.status.description} body=$errorBody",
       )
-      throw GeoError.Server(response.status.value, response.status.description)
+      throw GeoError.Server(response.status.value, errorBody ?: response.status.description)
     }
 
     val registerResponse =
@@ -193,5 +204,9 @@ class InstallationIdentityRepository(
 
   companion object {
     internal const val BASE_URL = "https://datosbizi.com/api"
+    private const val REGISTRATION_CHALLENGE_BYTES = 32
   }
 }
+
+private suspend fun io.ktor.client.statement.HttpResponse.safeBodyAsText(): String? =
+  runCatching { bodyAsText().takeIf { it.isNotBlank() } }.getOrNull()

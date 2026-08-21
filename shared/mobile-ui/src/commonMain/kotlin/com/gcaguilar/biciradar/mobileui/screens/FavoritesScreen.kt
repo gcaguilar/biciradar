@@ -652,8 +652,7 @@ internal fun DismissibleFavoriteStationRow(
     enableDismissFromStartToEnd = false,
     backgroundContent = {
       FavoriteDismissBackground(
-        mobilePlatform = mobilePlatform,
-        progress = dismissState.progress,
+        progressProvider = { dismissState.progress },
       )
     },
     content = {

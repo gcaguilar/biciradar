@@ -22,7 +22,7 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
         lastHighlightedStationId = nil
         lastRecenterRequestToken = 0
 
-        let mapView = GMSMapView(frame: .zero)
+        let mapView = GMSMapView(options: GMSMapViewOptions())
         mapView.settings.rotateGestures = false
         mapView.settings.tiltGestures = false
         mapView.settings.compassButton = false

@@ -99,7 +99,7 @@ class DesktopPlatformBindings(
   override val permissionPrompter: PermissionPrompter = DesktopPermissionPrompter()
   override val reviewPrompter: ReviewPrompter = DesktopReviewPrompter(appConfiguration)
   override val routeLauncher: RouteLauncher = desktopRouteLauncher
-  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectory)
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectory
   override val watchSyncBridge: WatchSyncBridge = DesktopWatchSyncBridge()
 

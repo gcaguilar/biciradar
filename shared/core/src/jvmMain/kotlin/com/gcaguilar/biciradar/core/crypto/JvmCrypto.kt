@@ -1,5 +1,6 @@
 package com.gcaguilar.biciradar.core.crypto
 
+import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -7,46 +8,36 @@ import java.security.Signature
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * JVM actual — backed by in-memory key store (used for unit tests only;
- * the JVM target is not shipped as a production app binary).
- */
+/** JVM actual — in-memory implementation used by desktop and tests. */
 actual class PlatformKeyPair(
   private val alias: String,
 ) {
   actual val publicKeyDerBase64: String
-    get() {
-      val pub =
-        JvmKeyStore.getPublicKey(alias)
-          ?: error("No RSA public key found for alias '$alias'")
-      return Base64.getEncoder().encodeToString(pub.encoded)
-    }
+    get() =
+      Base64.getEncoder().encodeToString(
+        JvmKeyStore.getPublicKey(alias)?.encoded ?: error("No public key for '$alias'"),
+      )
 
-  actual fun sign(data: ByteArray): String {
-    val priv =
-      JvmKeyStore.getPrivateKey(alias)
-        ?: error("No private key found for alias '$alias'")
-    val sig = Signature.getInstance("SHA256withRSA")
-    sig.initSign(priv)
-    sig.update(data)
-    return Base64.getEncoder().encodeToString(sig.sign())
+  actual suspend fun sign(data: ByteArray): String {
+    val signature = Signature.getInstance("Ed25519")
+    signature.initSign(JvmKeyStore.getPrivateKey(alias) ?: error("No private key for '$alias'"))
+    signature.update(data)
+    return Base64.getEncoder().encodeToString(signature.sign())
   }
 }
 
-actual class SecureKeyStore {
-  actual fun getOrCreateKeyPair(alias: String): PlatformKeyPair {
+actual class SecureKeyStore actual constructor(
+  storageDirectoryProvider: StorageDirectoryProvider,
+) {
+  actual suspend fun getOrCreateKeyPair(alias: String): PlatformKeyPair {
     if (!JvmKeyStore.contains(alias)) {
-      val gen = KeyPairGenerator.getInstance("RSA")
-      gen.initialize(2048)
-      val kp = gen.generateKeyPair()
-      JvmKeyStore.store(alias, kp.private, kp.public)
+      val pair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
+      JvmKeyStore.store(alias, pair.private, pair.public)
     }
     return PlatformKeyPair(alias)
   }
 
-  actual fun deleteKeyPair(alias: String) {
-    JvmKeyStore.delete(alias)
-  }
+  actual fun deleteKeyPair(alias: String) = JvmKeyStore.delete(alias)
 }
 
 private object JvmKeyStore {
@@ -55,11 +46,11 @@ private object JvmKeyStore {
 
   fun store(
     alias: String,
-    priv: PrivateKey,
-    pub: PublicKey,
+    privateKey: PrivateKey,
+    publicKey: PublicKey,
   ) {
-    privateKeys[alias] = priv
-    publicKeys[alias] = pub
+    privateKeys[alias] = privateKey
+    publicKeys[alias] = publicKey
   }
 
   fun getPrivateKey(alias: String): PrivateKey? = privateKeys[alias]

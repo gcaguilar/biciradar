@@ -648,11 +648,11 @@ class CoreRepositoryTest {
             }
           override val osVersion: String = "test-os"
           override val platform: String = "test-platform"
-          override val secureKeyStore: SecureKeyStore = SecureKeyStore()
           override val storageDirectoryProvider: StorageDirectoryProvider =
             object : StorageDirectoryProvider {
               override val rootPath: String = temporaryRoot
             }
+          override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
           override val watchSyncBridge: WatchSyncBridge =
             object : WatchSyncBridge {
               override suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot) = Unit

@@ -401,7 +401,7 @@ private fun NativeTabNavigatorRegistration(
   val tabNavigator =
     remember(navController) {
       MobileTabNavigator { screen -> navController.navigateToPrimaryDestination(screen) }
-  }
+    }
 
   DisposableEffect(tabNavigator) {
     latestOnTabNavigatorReady.value.invoke(tabNavigator)

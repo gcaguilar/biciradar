@@ -11,7 +11,7 @@ final class SurfaceMonitoringActivityController {
     private var lastPublishedFingerprint: MonitoringSurfaceFingerprint?
 
     func startRefreshing() {
-        guard #available(iOS 16.1, *) else { return }
+        guard #available(iOS 16.2, *) else { return }
         stopRefreshing()
         refreshTask = Task {
             await syncFromSurfaceSnapshot()
@@ -28,13 +28,13 @@ final class SurfaceMonitoringActivityController {
     }
 
     func syncNow() {
-        guard #available(iOS 16.1, *) else { return }
+        guard #available(iOS 16.2, *) else { return }
         Task {
             await syncFromSurfaceSnapshot()
         }
     }
 
-    @available(iOS 16.1, *)
+    @available(iOS 16.2, *)
     private func syncFromSurfaceSnapshot() async {
         let session = BiziSurfaceStore.activeMonitoringSession()
         let activities = Activity<BiziMonitoringActivityAttributes>.activities
@@ -43,7 +43,7 @@ final class SurfaceMonitoringActivityController {
 
         guard let session else {
             for activity in activities {
-                await activity.end(using: activity.contentState, dismissalPolicy: .immediate)
+                await activity.end(activity.content, dismissalPolicy: .immediate)
             }
             if lastPublishedFingerprint != fingerprint {
                 lastPublishedFingerprint = fingerprint
@@ -57,9 +57,9 @@ final class SurfaceMonitoringActivityController {
         let contentState = monitoringContentState(from: session)
 
         if let activity = activities.first(where: { $0.attributes.stationId == session.stationId }) {
-            await activity.update(using: contentState)
+            await activity.update(ActivityContent(state: contentState, staleDate: nil))
             for otherActivity in activities where otherActivity.id != activity.id {
-                await otherActivity.end(using: otherActivity.contentState, dismissalPolicy: .immediate)
+                await otherActivity.end(otherActivity.content, dismissalPolicy: .immediate)
             }
             if lastPublishedFingerprint != fingerprint {
                 lastPublishedFingerprint = fingerprint
@@ -76,7 +76,7 @@ final class SurfaceMonitoringActivityController {
         )
         _ = try? Activity.request(
             attributes: attributes,
-            contentState: contentState,
+            content: ActivityContent(state: contentState, staleDate: nil),
             pushType: nil
         )
         if lastPublishedFingerprint != fingerprint {

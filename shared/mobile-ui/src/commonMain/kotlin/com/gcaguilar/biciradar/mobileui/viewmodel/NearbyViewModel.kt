@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -33,7 +34,6 @@ data class NearbyUiState(
   val favoriteIds: Set<String> = emptySet(),
   val isLoading: Boolean = false,
   val errorMessage: String? = null,
-  val refreshCountdownSeconds: Int = 0,
   val nearestSelection: NearbyStationSelection =
     NearbyStationSelection(
       withinRadiusStation = null,
@@ -68,7 +68,8 @@ class NearbyViewModel(
   private val routeLauncher: RouteLauncher,
   private val permissionPrompter: PermissionPrompter,
 ) : ViewModel() {
-  private val refreshCountdownSeconds = MutableStateFlow(0)
+  private val _refreshCountdownSeconds = MutableStateFlow(0)
+  val refreshCountdownSeconds: StateFlow<Int> = _refreshCountdownSeconds.asStateFlow()
   private val locationPermissionGranted = MutableStateFlow(true)
 
   val uiState: StateFlow<NearbyUiState> =
@@ -76,15 +77,13 @@ class NearbyViewModel(
       stationsRepository.state,
       favoritesRepository.favoriteIds,
       settingsRepository.searchRadiusMeters,
-      refreshCountdownSeconds,
       locationPermissionGranted,
-    ) { stationsState, favoriteIds, radius, countdown, locationGranted ->
+    ) { stationsState, favoriteIds, radius, locationGranted ->
       NearbyUiState(
         stations = stationsState.stations,
         favoriteIds = favoriteIds,
         isLoading = stationsState.isLoading,
         errorMessage = stationsState.errorMessage,
-        refreshCountdownSeconds = countdown,
         nearestSelection = selectNearbyStation(stationsState.stations, radius),
         searchRadiusMeters = radius,
         dataFreshness = stationsState.freshness,
@@ -109,14 +108,14 @@ class NearbyViewModel(
         isActive.first { it }
         for (remaining in intervalSeconds downTo 1) {
           if (!isActive.value) break
-          refreshCountdownSeconds.update { remaining }
+          _refreshCountdownSeconds.update { remaining }
           delay(1_000)
         }
         if (!isActive.value) {
-          refreshCountdownSeconds.update { 0 }
+          _refreshCountdownSeconds.update { 0 }
           continue
         }
-        refreshCountdownSeconds.update { 0 }
+        _refreshCountdownSeconds.update { 0 }
         val ids =
           stationsRepository.state.value.stations
             .take(20)

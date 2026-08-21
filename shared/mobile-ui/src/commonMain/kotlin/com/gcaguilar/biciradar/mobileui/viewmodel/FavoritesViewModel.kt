@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 data class FavoritesUiState(
   val allStations: List<Station> = emptyList(),
   val favoriteStations: List<Station> = emptyList(),
+  val favoriteIds: Set<String> = emptySet(),
   val homeStation: Station? = null,
   val workStation: Station? = null,
   val searchQuery: String = "",
@@ -83,6 +84,13 @@ class FavoritesViewModel(
       FavoritesRelationState(
         stations = stationsState.stations,
         favoriteIds = favoriteIds,
+        favoriteStations =
+          visibleFavoriteStations(
+            stations = stationsState.stations,
+            favoriteIds = favoriteIds,
+            homeStationId = homeStationId,
+            workStationId = workStationId,
+          ),
         homeStationId = homeStationId,
         workStationId = workStationId,
         categories = emptyList(),
@@ -284,6 +292,13 @@ class FavoritesViewModel(
     FavoritesRelationState(
       stations = stations,
       favoriteIds = favoriteIds,
+      favoriteStations =
+        visibleFavoriteStations(
+          stations = stations,
+          favoriteIds = favoriteIds,
+          homeStationId = homeStationId,
+          workStationId = workStationId,
+        ),
       homeStationId = homeStationId,
       workStationId = workStationId,
       categories = categories,
@@ -301,13 +316,8 @@ class FavoritesViewModel(
   ): FavoritesUiState =
     FavoritesUiState(
       allStations = stations,
-      favoriteStations =
-        visibleFavoriteStations(
-          stations = stations,
-          favoriteIds = favoriteIds,
-          homeStationId = homeStationId,
-          workStationId = workStationId,
-        ),
+      favoriteStations = favoriteStations,
+      favoriteIds = favoriteIds,
       homeStation = stations.find { it.id == homeStationId },
       workStation = stations.find { it.id == workStationId },
       searchQuery = query,
@@ -333,6 +343,7 @@ class FavoritesViewModel(
 internal data class FavoritesRelationState(
   val stations: List<Station>,
   val favoriteIds: Set<String>,
+  val favoriteStations: List<Station>,
   val homeStationId: String?,
   val workStationId: String?,
   val categories: List<FavoriteCategory>,

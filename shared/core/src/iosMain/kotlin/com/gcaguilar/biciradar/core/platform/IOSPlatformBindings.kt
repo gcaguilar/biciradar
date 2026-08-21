@@ -152,8 +152,8 @@ class IOSPlatformBindings(
   override val platform: String = "ios"
   override val osVersion: String = UIDevice.currentDevice.systemVersion
   override val routeLauncher: RouteLauncher = iosRouteLauncher
-  override val secureKeyStore: SecureKeyStore = SecureKeyStore()
   override val storageDirectoryProvider: StorageDirectoryProvider = storageDirectoryProviderInstance
+  override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
   override val watchSyncBridge: WatchSyncBridge = IOSWatchSyncBridge()
 
   /**

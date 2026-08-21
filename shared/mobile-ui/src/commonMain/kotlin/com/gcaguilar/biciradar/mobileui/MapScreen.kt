@@ -20,6 +20,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -64,11 +65,37 @@ internal fun MapScreen(
   paddingValues: PaddingValues,
 ) {
   val nearestStation = state.nearestSelection.highlightedStation
-  val estimatedEnvironmentalSnapshots =
-    if (state.activeEnvironmentalLayer == null) {
-      emptyList()
-    } else {
-      buildMapEnvironmentalZoneSnapshots(state.stations)
+  val environmentalZoneSnapshots =
+    remember(state.activeEnvironmentalLayer, state.stations, state.zones) {
+      if (state.activeEnvironmentalLayer == null) {
+        emptyList()
+      } else {
+        state.zones.ifEmpty { buildMapEnvironmentalZoneSnapshots(state.stations) }
+      }
+    }
+  val platformEnvironmentalOverlay =
+    remember(state.activeEnvironmentalLayer, environmentalZoneSnapshots) {
+      state.activeEnvironmentalLayer?.let { layer ->
+        EnvironmentalOverlayData(
+          layer =
+            when (layer) {
+              MapEnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
+              MapEnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
+            },
+          zones =
+            environmentalZoneSnapshots.mapNotNull { zone ->
+              val value =
+                when (layer) {
+                  MapEnvironmentalLayer.AirQuality -> zone.airQualityScore
+                  MapEnvironmentalLayer.Pollen -> zone.pollenScore
+                } ?: return@mapNotNull null
+              EnvironmentalOverlayZone(
+                center = GeoPoint(zone.centerLatitude, zone.centerLongitude),
+                value = value,
+              )
+            },
+        )
+      }
     }
 
   Box(
@@ -78,31 +105,6 @@ internal fun MapScreen(
         .padding(paddingValues)
         .background(pageBackgroundColor(mobilePlatform)),
   ) {
-    val platformEnvironmentalOverlay =
-      state.activeEnvironmentalLayer?.let { layer ->
-        EnvironmentalOverlayData(
-          layer =
-            when (layer) {
-              MapEnvironmentalLayer.AirQuality -> EnvironmentalOverlayLayer.AirQuality
-              MapEnvironmentalLayer.Pollen -> EnvironmentalOverlayLayer.Pollen
-            },
-          zones =
-            state.zones
-              .ifEmpty { estimatedEnvironmentalSnapshots }
-              .mapNotNull { zone ->
-                val value =
-                  when (layer) {
-                    MapEnvironmentalLayer.AirQuality -> zone.airQualityScore
-                    MapEnvironmentalLayer.Pollen -> zone.pollenScore
-                  } ?: return@mapNotNull null
-                EnvironmentalOverlayZone(
-                  center = GeoPoint(zone.centerLatitude, zone.centerLongitude),
-                  value = value,
-                )
-              },
-        )
-      }
-
     PlatformStationMap(
       modifier = Modifier.fillMaxSize(),
       stations = state.stations,
@@ -242,7 +244,7 @@ internal fun MapScreen(
       ) {
         EnvironmentalLayerCard(
           layer = state.activeEnvironmentalLayer,
-          zones = if (state.zones.isNotEmpty()) state.zones else estimatedEnvironmentalSnapshots,
+          zones = environmentalZoneSnapshots,
           onClear = onClearEnvironmentalFilters,
         )
       }

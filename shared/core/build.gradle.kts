@@ -31,7 +31,7 @@ kotlin {
     target.binaries.framework {
       baseName = "BiziSharedCore"
       isStatic = true
-      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=16.0"
+      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=18.6"
       linkerOpts("-lsqlite3")
     }
   }
@@ -45,6 +45,7 @@ kotlin {
   }
   sourceSets {
     commonMain.dependencies {
+      implementation(libs.cryptography.core)
       implementation(libs.coroutines.core)
       implementation(libs.ktor.client.content.negotiation)
       implementation(libs.ktor.client.core)
@@ -65,15 +66,18 @@ kotlin {
     androidMain.dependencies {
       implementation(libs.androidx.activity)
       implementation(libs.androidx.core.ktx)
+      implementation(libs.bouncycastle)
       implementation(libs.ktor.client.okhttp)
       implementation(libs.sqldelight.runtime)
       implementation(libs.sqldelight.android.driver)
     }
     jvmMain.dependencies {
+      implementation(libs.bouncycastle)
       implementation(libs.ktor.client.cio)
       implementation(libs.sqldelight.sqlite.driver)
     }
     appleMain.dependencies {
+      implementation(libs.cryptography.provider.cryptokit)
       implementation(libs.ktor.client.darwin)
       implementation(libs.sqldelight.runtime)
       implementation(libs.sqldelight.native.driver)

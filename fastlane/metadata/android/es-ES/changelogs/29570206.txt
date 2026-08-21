@@ -1,0 +1,1 @@
+Mejoras de rendimiento y estabilidad en Wear OS, con correcciones y optimizaciones de compilación.

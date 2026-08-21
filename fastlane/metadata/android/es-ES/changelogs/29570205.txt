@@ -1,0 +1,1 @@
+Mejoras de rendimiento y estabilidad, con correcciones en la navegación, los mapas, los favoritos y las actualizaciones en segundo plano.
