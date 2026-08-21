@@ -50,7 +50,7 @@ struct BiciRadarApp: App {
                     AppleLaunchRequestStore.shared.save(request)
                     applyPendingLaunchRequest()
                 }
-                .onChange(of: scenePhase) { newPhase in
+                .onChange(of: scenePhase) { _, newPhase in
                     switch newPhase {
                     case .active:
                         applyPendingLaunchRequest()
