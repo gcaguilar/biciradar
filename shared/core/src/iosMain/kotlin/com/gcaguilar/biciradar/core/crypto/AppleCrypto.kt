@@ -153,6 +153,7 @@ private fun <T> withKeychainQuery(
       kCFTypeDictionaryKeyCallBacks.ptr,
       kCFTypeDictionaryValueCallBacks.ptr,
     )
+
   fun cfString(text: String): CFStringRef? =
     CFStringCreateWithCString(kCFAllocatorDefault, text, kCFStringEncodingUTF8)
       ?.also { owned += it }
