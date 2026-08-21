@@ -69,6 +69,7 @@ bash tooling/project/check_fdroid_submission.sh
 - Add `GOOGLE_MAPS_API_KEY` if you want iOS CI builds to bundle the Google Maps key.
 - Add review-compliance secrets `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`, and optional `APP_REVIEW_NOTES`.
 - Add the repository variable `APP_USES_ENCRYPTION` and keep the App Store workflow secrets in a protected environment such as `app-store` for public repositories.
+- Update the localized App Store release notes in `fastlane/metadata/ios/*/release_notes.txt` before publishing a new version. The store workflow uploads them before submitting the build for review.
 - Set `APPLE_EXPORT_METHOD=app-store` and `APPLE_SIGNING_CERTIFICATE_TYPE=Apple Distribution` for the store workflow.
 - Run `tooling/generic-mobile-ci/print_ios_store_ci_values.sh` locally to print the exact secret and variable values to paste into GitHub.
 - Generate archives:

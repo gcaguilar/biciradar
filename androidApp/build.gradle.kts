@@ -133,7 +133,8 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-      if (hasAndroidCiSigning) {
+        signingConfig = signingConfigs.getByName("debug")
+        if (hasAndroidCiSigning) {
         signingConfig = signingConfigs.getByName("release")
       }
     }
