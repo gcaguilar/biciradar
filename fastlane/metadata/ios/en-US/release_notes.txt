@@ -1,1 +1,1 @@
-Stability improvements and bug fixes.
+Improved performance and reliability, with fixes for navigation, maps, favorites, and Live Activities.

@@ -227,6 +227,8 @@
     <string name="changelogNearbyScrollDescription">La pantalla Cerca ahora se desplaza como un bloque completo, con acciones rápidas, avisos y estaciones en un mismo scroll.</string>
     <string name="changelogFeedbackFavoritesTitle">Feedback y favoritas más claros</string>
     <string name="changelogFeedbackFavoritesDescription">Mejoramos el acceso al formulario de feedback y el guardado de estaciones desde la búsqueda para que sea más directo.</string>
+    <string name="changelogPerformanceReliabilityTitle">Más rendimiento y estabilidad</string>
+    <string name="changelogPerformanceReliabilityDescription">Hemos mejorado la navegación, los mapas, las favoritas y las actualizaciones en segundo plano, además de las Actividades en directo en iOS.</string>
     <string name="destinationPlaceholder">Escribe una dirección o lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

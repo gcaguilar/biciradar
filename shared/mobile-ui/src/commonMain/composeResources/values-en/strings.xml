@@ -226,6 +226,8 @@
     <string name="changelogNearbyScrollDescription">The Nearby screen now scrolls as a single surface, so quick actions, notices, and stations move together.</string>
     <string name="changelogFeedbackFavoritesTitle">Clearer feedback and favorites flow</string>
     <string name="changelogFeedbackFavoritesDescription">Improved access to the feedback form and made saving stations from search more direct.</string>
+    <string name="changelogPerformanceReliabilityTitle">Improved performance and reliability</string>
+    <string name="changelogPerformanceReliabilityDescription">We improved navigation, maps, favorites, and background updates, as well as Live Activities on iOS.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

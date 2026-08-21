@@ -11,12 +11,13 @@ class ChangelogCatalogTest {
     assertEquals("0.19.0", ChangelogCatalog.latestVersionAtOrBefore("0.20.0"))
     assertEquals("0.21.0", ChangelogCatalog.latestVersionAtOrBefore("0.21.0"))
     assertEquals("0.21.1", ChangelogCatalog.latestVersionAtOrBefore("0.22.0"))
+    assertEquals("0.22.17", ChangelogCatalog.latestVersionAtOrBefore("0.22.17"))
   }
 
   @Test
   fun `history is sorted from newest to oldest`() {
     assertEquals(
-      listOf("0.22.9", "0.22.2", "0.21.1", "0.21.0", "0.19.0", "0.18.1"),
+      listOf("0.22.17", "0.22.9", "0.22.2", "0.21.1", "0.21.0", "0.19.0", "0.18.1"),
       ChangelogCatalog.history().map { it.versionName },
     )
   }
