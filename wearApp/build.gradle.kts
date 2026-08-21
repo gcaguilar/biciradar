@@ -46,10 +46,12 @@ val wearCiKeyPassword =
   project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
     ?: System.getenv("BIZI_CI_KEY_PASSWORD")
 val hasWearCiSigning =
-  wearCiKeystorePath != null &&
-    wearCiKeystorePassword != null &&
-    wearCiKeyAlias != null &&
-    wearCiKeyPassword != null
+  wearCiKeystorePath
+    ?.takeIf(String::isNotBlank)
+    ?.let { file(it).isFile } == true &&
+    !wearCiKeystorePassword.isNullOrBlank() &&
+    !wearCiKeyAlias.isNullOrBlank() &&
+    !wearCiKeyPassword.isNullOrBlank()
 
 if (crashReportingEnabled) {
   apply(plugin = "com.google.gms.google-services")
@@ -134,6 +136,37 @@ android {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
+}
+
+abstract class VerifyPlayStoreReleaseSigningTask : DefaultTask() {
+  @get:Input abstract val signingAvailable: Property<Boolean>
+
+  @TaskAction
+  fun verify() {
+    check(signingAvailable.get()) {
+      "Play Store release signing requires a readable BIZI_CI_KEYSTORE_PATH and non-blank " +
+        "BIZI_CI_KEYSTORE_PASSWORD, BIZI_CI_KEY_ALIAS, and BIZI_CI_KEY_PASSWORD."
+    }
+  }
+}
+
+val verifyPlayStoreReleaseSigning =
+  tasks.register<VerifyPlayStoreReleaseSigningTask>("verifyPlayStoreReleaseSigning") {
+    signingAvailable.set(hasWearCiSigning)
+  }
+
+val playStoreReleasePackagingTasks =
+  tasks.matching {
+    it.name in
+      setOf(
+        "assemblePlaystoreRelease",
+        "bundlePlaystoreRelease",
+        "validateSigningPlaystoreRelease",
+      )
+  }
+
+playStoreReleasePackagingTasks.configureEach {
+  dependsOn(verifyPlayStoreReleaseSigning)
 }
 
 dependencies {

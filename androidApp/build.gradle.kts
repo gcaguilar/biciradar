@@ -77,10 +77,12 @@ val androidCiKeyPassword =
   project.findProperty("BIZI_CI_KEY_PASSWORD") as? String
     ?: System.getenv("BIZI_CI_KEY_PASSWORD")
 val hasAndroidCiSigning =
-  androidCiKeystorePath != null &&
-    androidCiKeystorePassword != null &&
-    androidCiKeyAlias != null &&
-    androidCiKeyPassword != null
+  androidCiKeystorePath
+    ?.takeIf(String::isNotBlank)
+    ?.let { file(it).isFile } == true &&
+    !androidCiKeystorePassword.isNullOrBlank() &&
+    !androidCiKeyAlias.isNullOrBlank() &&
+    !androidCiKeyPassword.isNullOrBlank()
 
 android {
   namespace = "com.gcaguilar.biciradar"
@@ -133,8 +135,8 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-        signingConfig = signingConfigs.getByName("debug")
-        if (hasAndroidCiSigning) {
+      signingConfig = signingConfigs.getByName("debug")
+      if (hasAndroidCiSigning) {
         signingConfig = signingConfigs.getByName("release")
       }
     }
@@ -144,6 +146,37 @@ android {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
+}
+
+abstract class VerifyPlayStoreReleaseSigningTask : DefaultTask() {
+  @get:Input abstract val signingAvailable: Property<Boolean>
+
+  @TaskAction
+  fun verify() {
+    check(signingAvailable.get()) {
+      "Play Store release signing requires a readable BIZI_CI_KEYSTORE_PATH and non-blank " +
+        "BIZI_CI_KEYSTORE_PASSWORD, BIZI_CI_KEY_ALIAS, and BIZI_CI_KEY_PASSWORD."
+    }
+  }
+}
+
+val verifyPlayStoreReleaseSigning =
+  tasks.register<VerifyPlayStoreReleaseSigningTask>("verifyPlayStoreReleaseSigning") {
+    signingAvailable.set(hasAndroidCiSigning)
+  }
+
+val playStoreReleasePackagingTasks =
+  tasks.matching {
+    it.name in
+      setOf(
+        "assemblePlaystoreRelease",
+        "bundlePlaystoreRelease",
+        "validateSigningPlaystoreRelease",
+      )
+  }
+
+playStoreReleasePackagingTasks.configureEach {
+  dependsOn(verifyPlayStoreReleaseSigning)
 }
 
 dependencies {
