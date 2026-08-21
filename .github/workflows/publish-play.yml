@@ -101,6 +101,21 @@ jobs:
             androidApp/build/outputs/bundle/playstoreRelease/*.aab
             androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
+      - name: Prepare localized Android release notes
+        run: |
+          version_code=$(sed -nE 's/^[[:space:]]*versionCode = ([0-9]+)$/\1/p' androidApp/build.gradle.kts | head -n 1)
+          notes_directory="$RUNNER_TEMP/android-whats-new"
+          mkdir -p "$notes_directory"
+          for locale in en-US es-ES; do
+            source_file="fastlane/metadata/android/$locale/changelogs/$version_code.txt"
+            if [[ ! -f "$source_file" ]]; then
+              echo "::error::Missing Android release notes: $source_file"
+              exit 1
+            fi
+            cp "$source_file" "$notes_directory/whatsnew-$locale"
+          done
+          echo "ANDROID_WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
+
       - name: Validate Android update criticality
         run: |
           priority="${{ github.event.inputs.update_criticality }}"
@@ -120,6 +135,7 @@ jobs:
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
           inAppUpdatePriority: ${{ github.event.inputs.update_criticality }}
+          whatsNewDirectory: ${{ env.ANDROID_WHATS_NEW_DIR }}
 
   publish-wear:
     name: Publish WearOS AAB to Play
@@ -195,6 +211,21 @@ jobs:
             wearApp/build/outputs/bundle/playstoreRelease/*.aab
             wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
 
+      - name: Prepare localized Wear OS release notes
+        run: |
+          version_code=$(sed -nE 's/^[[:space:]]*versionCode = ([0-9]+)$/\1/p' wearApp/build.gradle.kts | head -n 1)
+          notes_directory="$RUNNER_TEMP/wear-whats-new"
+          mkdir -p "$notes_directory"
+          for locale in en-US es-ES; do
+            source_file="fastlane/metadata/android/$locale/changelogs/$version_code.txt"
+            if [[ ! -f "$source_file" ]]; then
+              echo "::error::Missing Wear OS release notes: $source_file"
+              exit 1
+            fi
+            cp "$source_file" "$notes_directory/whatsnew-$locale"
+          done
+          echo "WEAR_WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
+
       - name: Publish WearOS to Play Console production track
         uses: r0adkll/upload-google-play@v1.1.5
         with:
@@ -205,3 +236,4 @@ jobs:
           tracks: wear:production
           status: completed
           releaseName: ${{ env.RELEASE_TAG }}
+          whatsNewDirectory: ${{ env.WEAR_WHATS_NEW_DIR }}

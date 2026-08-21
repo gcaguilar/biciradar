@@ -1,5 +1,12 @@
 # Release Checklist
 
+## Version and shared release notes
+
+- Update `VERSION`, `BUILD_NUMBER`, Android, Wear OS, `apple/project.yml`, and the checked-in Xcode project together.
+- Set the Android `versionCode` to one more than the highest code previously used by either Android or Wear OS. Set the Wear OS code to Android +1, and keep the Apple build number aligned with Android.
+- Add the new `versionName` to `ChangelogCatalog` and update its localized Compose resources in Spanish, English, Catalan, and Basque.
+- Update the catalog ordering test so the new version is the first entry.
+
 ## Android and Wear OS
 
 - Define `GOOGLE_MAPS_API_KEY` if you want real Android map tiles.
@@ -7,6 +14,7 @@
 - Add [wearApp/google-services.json](wearApp/google-services.json) to enable Firebase Crashlytics on Wear OS.
 - Configure release signing in `androidApp` and `wearApp`.
 - Both apps share the same `applicationId` (com.gcaguilar.biciradar) and are published to the same Play Store listing using different form factor tracks.
+- Update the localized Google Play release notes in `fastlane/metadata/android/{en-US,es-ES}/changelogs/<versionCode>.txt` for both the Android and Wear OS version codes. The Play workflow uploads them automatically.
 - Generate builds:
 
 ```bash
