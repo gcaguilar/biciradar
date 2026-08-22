@@ -34,7 +34,7 @@ androidx-glance-appwidget = "1.1.1"
 androidx-glance-material3 = "1.1.1"
 osmdroid = "6.1.20"
 cryptography = "0.6.0"
-bouncycastle = "1.83"
+bouncycastle = "1.85.2"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
