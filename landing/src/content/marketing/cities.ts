@@ -3,6 +3,7 @@ import type { CityKey, Locale } from './types';
 export interface CityDefinition {
   key: CityKey;
   slug: string;
+  legacySlugs?: string[];
   system: string;
   names: Record<Locale, string>;
 }
@@ -70,7 +71,8 @@ export const cityDefinitions: Record<CityKey, CityDefinition> = {
   },
   bilbao: {
     key: 'bilbao',
-    slug: 'bilbao Bilbo',
+    slug: 'bilbao-bilbo',
+    legacySlugs: ['bilbao Bilbo'],
     system: 'Bilbao',
     names: {
       es: 'Bilbao',
@@ -243,5 +245,5 @@ export const orderedCityKeys = Object.keys(cityDefinitions) as CityKey[];
 export function getCityBySlug(slug: string) {
   return orderedCityKeys
     .map((key) => cityDefinitions[key])
-    .find((city) => city.slug === slug);
+    .find((city) => city.slug === slug || city.legacySlugs?.includes(slug));
 }

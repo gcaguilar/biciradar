@@ -44,6 +44,20 @@ const structuredData = [
       },
     })),
   },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'BiciRadar',
+    applicationCategory: 'TravelApplication',
+    operatingSystem: 'iOS, Android, watchOS, Wear OS',
+    description: content.home.seo.description,
+    url: absolutePageUrl(`/${locale}/`, site, import.meta.env.BASE_URL),
+    downloadUrl: [
+      'https://apps.apple.com/es/app/biciradar/id6760931316',
+      'https://play.google.com/store/apps/details?id=com.gcaguilar.biciradar',
+    ],
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+  },
 ];
 ---
 
