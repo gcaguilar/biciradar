@@ -75,6 +75,81 @@ internal fun StationDetailBottomSheet(
   modifier: Modifier = Modifier,
 ) {
   val c = LocalBiziColors.current
+  StationDetailCard(
+    modifier = modifier,
+    station = station,
+    headerLabel = getHeaderLabel(isFallbackSelection, isShowingNearestSelection, searchRadiusMeters),
+    useFallbackSummary = isFallbackSelection,
+    mobilePlatform = mobilePlatform,
+    onDismiss = onDismiss,
+  ) {
+    // Botones de acción
+    Row(
+      modifier = Modifier.horizontalScroll(rememberScrollState()),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      RoutePill(
+        label = stringResource(Res.string.route),
+        onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
+        icon = routeIcon,
+        onClick = { onQuickRoute(station) },
+      )
+      if (mobilePlatform == MobileUiPlatform.IOS) {
+        FavoritePill(
+          active = isFavorite,
+          onClick = onFavoriteToggle,
+          label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
+        )
+      } else {
+        OutlineActionPill(
+          label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
+          tint = c.onAccent,
+          borderTint = c.onAccent.copy(alpha = 0.32f),
+          onClick = onFavoriteToggle,
+        )
+      }
+      OutlineActionPill(
+        label = stringResource(Res.string.details),
+        tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
+        borderTint =
+          if (mobilePlatform ==
+            MobileUiPlatform.IOS
+          ) {
+            c.red.copy(alpha = 0.16f)
+          } else {
+            c.onAccent.copy(alpha = 0.32f)
+          },
+        onClick = { onOpenStationDetails(station) },
+      )
+    }
+  }
+}
+
+/**
+ * Contenido visual compartido de la tarjeta de estación seleccionada en el mapa.
+ *
+ * Se reutiliza desde el mapa (con las píldoras de acciones) y desde el selector de
+ * estación del viaje (con un único botón de confirmar), para que ambos muestren el
+ * mismo aspecto: etiqueta de cabecera, nombre, dirección y resumen de disponibilidad.
+ *
+ * @param station La estación seleccionada
+ * @param headerLabel Etiqueta de cabecera (p. ej. "Estación seleccionada")
+ * @param useFallbackSummary Si el resumen debe ser el de "sin estaciones cerca"
+ * @param mobilePlatform Plataforma para adaptar colores y borde
+ * @param onDismiss Callback de cierre; si es null no se muestra el icono de cerrar
+ * @param actions Contenido de la fila inferior de acciones
+ */
+@Composable
+internal fun StationDetailCard(
+  station: Station,
+  headerLabel: String,
+  useFallbackSummary: Boolean,
+  mobilePlatform: MobileUiPlatform,
+  modifier: Modifier = Modifier,
+  onDismiss: (() -> Unit)? = null,
+  actions: @Composable () -> Unit = {},
+) {
+  val c = LocalBiziColors.current
   val overlayTitle = if (mobilePlatform == MobileUiPlatform.IOS) c.ink else c.onAccent
   val overlayBody = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else c.onAccent.copy(alpha = 0.84f)
 
@@ -97,16 +172,18 @@ internal fun StationDetailBottomSheet(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-          text = getHeaderLabel(isFallbackSelection, isShowingNearestSelection, searchRadiusMeters),
+          text = headerLabel,
           color = if (mobilePlatform == MobileUiPlatform.IOS) c.red else overlayBody,
           style = MaterialTheme.typography.bodySmall,
         )
-        Icon(
-          imageVector = Icons.Filled.Close,
-          contentDescription = stringResource(Res.string.close),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
-          modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
-        )
+        if (onDismiss != null) {
+          Icon(
+            imageVector = Icons.Filled.Close,
+            contentDescription = stringResource(Res.string.close),
+            tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
+            modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
+          )
+        }
       }
 
       // Información de la estación
@@ -134,7 +211,7 @@ internal fun StationDetailBottomSheet(
       // Resumen con distancia, bicis y slots
       Text(
         text =
-          if (isFallbackSelection) {
+          if (useFallbackSummary) {
             stringResource(
               Res.string.mapNearestFallbackSummary,
               formatDistance(station.distanceMeters),
@@ -153,45 +230,7 @@ internal fun StationDetailBottomSheet(
         style = MaterialTheme.typography.bodyMedium,
       )
 
-      // Botones de acción
-      Row(
-        modifier = Modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        RoutePill(
-          label = stringResource(Res.string.route),
-          onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
-          icon = routeIcon,
-          onClick = { onQuickRoute(station) },
-        )
-        if (mobilePlatform == MobileUiPlatform.IOS) {
-          FavoritePill(
-            active = isFavorite,
-            onClick = onFavoriteToggle,
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-          )
-        } else {
-          OutlineActionPill(
-            label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-            tint = c.onAccent,
-            borderTint = c.onAccent.copy(alpha = 0.32f),
-            onClick = onFavoriteToggle,
-          )
-        }
-        OutlineActionPill(
-          label = stringResource(Res.string.details),
-          tint = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
-          borderTint =
-            if (mobilePlatform ==
-              MobileUiPlatform.IOS
-            ) {
-              c.red.copy(alpha = 0.16f)
-            } else {
-              c.onAccent.copy(alpha = 0.32f)
-            },
-          onClick = { onOpenStationDetails(station) },
-        )
-      }
+      actions()
     }
   }
 }

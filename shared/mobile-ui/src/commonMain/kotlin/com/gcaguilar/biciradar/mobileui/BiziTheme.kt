@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -279,5 +280,25 @@ internal fun Modifier.responsivePageWidth(): Modifier {
     fillMaxSize()
   } else {
     fillMaxSize().widthIn(max = maxWidth)
+  }
+}
+
+/**
+ * Como [responsivePageWidth] pero solo limita el ancho: el contenido mide lo que
+ * necesite de alto. Úsalo para overlays que no deben ocupar toda la pantalla, como
+ * tarjetas ancladas a un borde.
+ */
+@Composable
+internal fun Modifier.responsiveContentWidth(): Modifier {
+  val maxWidth =
+    when (LocalBiziWindowLayout.current) {
+      BiziWindowLayout.Compact -> null
+      BiziWindowLayout.Medium -> 760.dp
+      BiziWindowLayout.Expanded -> 920.dp
+    }
+  return if (maxWidth == null) {
+    fillMaxWidth()
+  } else {
+    fillMaxWidth().widthIn(max = maxWidth)
   }
 }

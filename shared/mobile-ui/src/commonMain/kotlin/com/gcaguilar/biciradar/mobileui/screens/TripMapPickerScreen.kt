@@ -39,7 +39,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.back
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.destinationPlaceholder
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.favoritesAvailabilitySummary
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapSelectedStationLabel
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.suggestions
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tapMapToPickDestination
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tapMapToPickStation
@@ -60,7 +60,9 @@ import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.components.inputs.SuggestionRow
+import com.gcaguilar.biciradar.mobileui.components.map.StationDetailCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
+import com.gcaguilar.biciradar.mobileui.responsiveContentWidth
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripUiState
@@ -275,41 +277,48 @@ internal fun TripMapPickerScreen(
       }
 
       if (state.canConfirmMapSelection) {
-        Card(
-          modifier =
-            Modifier
-              .align(Alignment.BottomCenter)
-              .responsivePageWidth()
-              .padding(16.dp),
-          shape = LocalBiziCardShape.current,
-          colors = biziCardColors(),
-          border = biziCardBorder(),
-          elevation = biziCardElevation(),
-        ) {
-          Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            if (pickerMode == TripMapPickerMode.Station) {
-              val selectedStation = state.selectedMapStation
-              if (selectedStation != null) {
-                Text(
-                  text = selectedStation.name,
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                  text =
-                    stringResource(
-                      Res.string.favoritesAvailabilitySummary,
-                      selectedStation.bikesAvailable,
-                      selectedStation.slotsFree,
-                    ),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = c.muted,
-                )
+        if (pickerMode == TripMapPickerMode.Station) {
+          state.selectedMapStation?.let { selectedStation ->
+            StationDetailCard(
+              modifier =
+                Modifier
+                  .align(Alignment.BottomCenter)
+                  .responsiveContentWidth()
+                  .padding(16.dp),
+              station = selectedStation,
+              headerLabel = stringResource(Res.string.mapSelectedStationLabel),
+              useFallbackSummary = false,
+              mobilePlatform = mobilePlatform,
+            ) {
+              Button(
+                onClick = onConfirmMapSelection,
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                  ButtonDefaults.buttonColors(
+                    containerColor = if (mobilePlatform == MobileUiPlatform.IOS) c.red else c.onAccent,
+                    contentColor = if (mobilePlatform == MobileUiPlatform.IOS) c.onAccent else c.red,
+                  ),
+              ) {
+                Text(stringResource(Res.string.tripConfirmStation))
               }
-            } else {
+            }
+          }
+        } else {
+          Card(
+            modifier =
+              Modifier
+                .align(Alignment.BottomCenter)
+                .responsiveContentWidth()
+                .padding(16.dp),
+            shape = LocalBiziCardShape.current,
+            colors = biziCardColors(),
+            border = biziCardBorder(),
+            elevation = biziCardElevation(),
+          ) {
+            Column(
+              modifier = Modifier.padding(16.dp),
+              verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
               Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                   text = stringResource(Res.string.tripSelectedPoint),
@@ -325,23 +334,13 @@ internal fun TripMapPickerScreen(
                   fontWeight = FontWeight.SemiBold,
                 )
               }
-            }
-            Button(
-              onClick = onConfirmMapSelection,
-              modifier = Modifier.fillMaxWidth(),
-              colors =
-                ButtonDefaults.buttonColors(
-                  containerColor = if (pickerMode == TripMapPickerMode.Destination) c.red else c.blue,
-                ),
-            ) {
-              Text(
-                text =
-                  if (pickerMode == TripMapPickerMode.Destination) {
-                    stringResource(Res.string.tripConfirmDestination)
-                  } else {
-                    stringResource(Res.string.tripConfirmStation)
-                  },
-              )
+              Button(
+                onClick = onConfirmMapSelection,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = c.red),
+              ) {
+                Text(stringResource(Res.string.tripConfirmDestination))
+              }
             }
           }
         }
