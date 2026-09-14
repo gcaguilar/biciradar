@@ -84,8 +84,8 @@ android {
     applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 36
-    versionCode = 29570206
-    versionName = "0.22.17"
+    versionCode = 29570208
+    versionName = "0.22.18"
   }
 
   flavorDimensions += "tier"

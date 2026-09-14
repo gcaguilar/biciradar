@@ -225,6 +225,14 @@
     <string name="changelogFeedbackFavoritesDescription">Feedback formularioaren sarbidea eta bilaketatik geltokiak gordetzeko fluxua hobetu ditugu zuzenagoa izan dadin.</string>
     <string name="changelogPerformanceReliabilityTitle">Errendimendu eta egonkortasun hobeak</string>
     <string name="changelogPerformanceReliabilityDescription">Nabigazioa, mapak, gogokoak eta atzeko planoko eguneratzeak hobetu ditugu, baita iOSeko Zuzeneko Jarduerak ere.</string>
+    <string name="changelogNearbyFiltersTitle">Iragazkiak eta ordena gertuko geltokietan</string>
+    <string name="changelogNearbyFiltersDescription">Iragazi bizikleta motaren, distantziaren eta gogokoen arabera, eta ordenatu geltokiak hurbiltasunaren, izenaren edo ordu honetarako aurreikusitako eskuragarritasunaren arabera.</string>
+    <string name="changelogTripModeTitle">Bidaia-modua: oinez edo bizikletan</string>
+    <string name="changelogTripModeDescription">Aukeratu bidaia-modu global bat eta gertuko geltokietan, mapan eta ibilbideetan aplikatuko da.</string>
+    <string name="changelogHomeQuickActionsTitle">Etxeko pantailako ekintza azkarrak</string>
+    <string name="changelogHomeQuickActionsDescription">iPhone-n, eduki sakatuta Bici Radar-en ikonoa zure gogoko geltokietara eta beste ekintza batzuetara azkar sartzeko, aplikazioa ireki gabe.</string>
+    <string name="changelogReliabilityPolishTitle">Egonkortasun eta erosotasun gehiago</string>
+    <string name="changelogReliabilityPolishDescription">Onboarding-a, aplikazioko iritziak eta ertzen eta teklatuaren kudeaketa hobetu ditugu esperientzia leunagoa izateko.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

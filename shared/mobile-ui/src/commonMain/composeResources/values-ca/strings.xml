@@ -225,6 +225,14 @@
     <string name="changelogFeedbackFavoritesDescription">Hem millorat l\'accés al formulari de feedback i el desat d\'estacions des de la cerca perquè sigui més directe.</string>
     <string name="changelogPerformanceReliabilityTitle">Més rendiment i estabilitat</string>
     <string name="changelogPerformanceReliabilityDescription">Hem millorat la navegació, els mapes, els preferits i les actualitzacions en segon pla, a més de les Activitats en directe a iOS.</string>
+    <string name="changelogNearbyFiltersTitle">Filtres i ordenació a les estacions properes</string>
+    <string name="changelogNearbyFiltersDescription">Filtra per tipus de bicicleta, distància i preferits, i ordena les estacions per proximitat, nom o disponibilitat prevista a aquesta hora.</string>
+    <string name="changelogTripModeTitle">Mode de desplaçament: a peu o en bici</string>
+    <string name="changelogTripModeDescription">Tria un mode de desplaçament global i s'aplicarà a les estacions properes, el mapa i les rutes.</string>
+    <string name="changelogHomeQuickActionsTitle">Accions ràpides a la pantalla d'inici</string>
+    <string name="changelogHomeQuickActionsDescription">A l'iPhone, mantén premuda la icona de Bici Radar per accedir ràpidament a les teves estacions preferides i a altres accions sense obrir l'app.</string>
+    <string name="changelogReliabilityPolishTitle">Més estabilitat i comoditat</string>
+    <string name="changelogReliabilityPolishDescription">Hem millorat l'onboarding, les ressenyes a l'app i la gestió de les vores i el teclat per a una experiència més fluida.</string>
     <string name="destinationPlaceholder">Escriu una adreça o lloc</string>
     <string name="clear">Esborra</string>
     <string name="cancelMap">Cancel·la el mapa</string>

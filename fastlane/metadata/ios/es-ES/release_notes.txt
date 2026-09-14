@@ -1,1 +1,1 @@
-Mejoras de rendimiento y estabilidad, con correcciones en la navegación, los mapas, los favoritos y las Actividades en directo.
+Filtros y ordenación en las estaciones cercanas, un modo de viaje global a pie o en bici que se aplica en el mapa y las rutas, acciones rápidas en la pantalla de inicio en iPhone y más estabilidad en la navegación.

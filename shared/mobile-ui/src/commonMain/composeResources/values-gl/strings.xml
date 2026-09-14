@@ -259,6 +259,14 @@
     <string name="changelogFeedbackFavoritesDescription">Melloramos o acceso ao formulario de feedback e o gardado de estacións desde a busca para que sexa máis directo.</string>
     <string name="changelogPerformanceReliabilityTitle">Máis rendemento e estabilidade</string>
     <string name="changelogPerformanceReliabilityDescription">Melloramos a navegación, os mapas, as favoritas e as actualizacións en segundo plano, ademais das Actividades en directo en iOS.</string>
+    <string name="changelogNearbyFiltersTitle">Filtros e orden nas estacións próximas</string>
+    <string name="changelogNearbyFiltersDescription">Filtra por tipo de bici, distancia e favoritas, e ordena as estacións por proximidade, nome ou dispoñibilidade prevista para esta hora.</string>
+    <string name="changelogTripModeTitle">Modo de viaxe: a pé ou en bici</string>
+    <string name="changelogTripModeDescription">Escolle un modo de viaxe global e aplicarase nas estacións próximas, no mapa e nas rutas.</string>
+    <string name="changelogHomeQuickActionsTitle">Accións rápidas na pantalla de inicio</string>
+    <string name="changelogHomeQuickActionsDescription">No iPhone, mantén premida a icona de Bici Radar para acceder rapidamente ás túas estacións favoritas e a outras accións sen abrir a app.</string>
+    <string name="changelogReliabilityPolishTitle">Máis estabilidade e comodidade</string>
+    <string name="changelogReliabilityPolishDescription">Melloramos o onboarding, as avaliacións na app e o manexo dos bordos e do teclado para unha experiencia máis fluída.</string>
     <string name="destinationPlaceholder">Escribe un enderezo ou lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

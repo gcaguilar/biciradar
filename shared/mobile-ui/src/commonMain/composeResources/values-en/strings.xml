@@ -258,6 +258,14 @@
     <string name="changelogFeedbackFavoritesDescription">Improved access to the feedback form and made saving stations from search more direct.</string>
     <string name="changelogPerformanceReliabilityTitle">Improved performance and reliability</string>
     <string name="changelogPerformanceReliabilityDescription">We improved navigation, maps, favorites, and background updates, as well as Live Activities on iOS.</string>
+    <string name="changelogNearbyFiltersTitle">Filters and sorting for nearby stations</string>
+    <string name="changelogNearbyFiltersDescription">Filter by bike type, distance and favorites, and sort stations by proximity, name or expected availability at this time.</string>
+    <string name="changelogTripModeTitle">Trip mode: walking or by bike</string>
+    <string name="changelogTripModeDescription">Choose a global trip mode and it will apply across nearby stations, the map and routes.</string>
+    <string name="changelogHomeQuickActionsTitle">Home Screen quick actions</string>
+    <string name="changelogHomeQuickActionsDescription">On iPhone, press and hold the Bici Radar icon to jump quickly to your favorite stations and other actions without opening the app.</string>
+    <string name="changelogReliabilityPolishTitle">More stability and comfort</string>
+    <string name="changelogReliabilityPolishDescription">We improved onboarding, in-app reviews and how the app handles screen edges and the keyboard for a smoother experience.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

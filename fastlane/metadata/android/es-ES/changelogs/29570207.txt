@@ -1,0 +1,1 @@
+Novedades y mejoras: filtros y ordenación en las estaciones cercanas (por tipo de bici, distancia y favoritas) y un modo de viaje global a pie o en bici que se aplica también en el mapa y las rutas, con más estabilidad y una navegación más fluida.

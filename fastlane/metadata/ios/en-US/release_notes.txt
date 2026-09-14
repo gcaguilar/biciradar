@@ -1,1 +1,1 @@
-Improved performance and reliability, with fixes for navigation, maps, favorites, and Live Activities.
+Filters and sorting for nearby stations, a global walking or cycling trip mode applied to the map and routes, Home Screen quick actions on iPhone, and more stable navigation.

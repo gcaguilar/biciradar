@@ -1,0 +1,1 @@
+New features and improvements: filters and sorting for nearby stations (by bike type, distance and favorites) and a global trip mode for walking or cycling that also applies to the map and routes, with more stability and smoother navigation.
