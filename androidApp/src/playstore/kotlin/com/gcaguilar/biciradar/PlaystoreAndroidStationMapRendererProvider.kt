@@ -13,6 +13,8 @@ import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobileui.AndroidStationMapRenderer
 import com.gcaguilar.biciradar.mobileui.BiziDataColors
+import com.gcaguilar.biciradar.mobileui.ENVIRONMENTAL_OVERLAY_FILL_ALPHA
+import com.gcaguilar.biciradar.mobileui.ENVIRONMENTAL_OVERLAY_STROKE_ALPHA
 import com.gcaguilar.biciradar.mobileui.EnvironmentalOverlayData
 import com.gcaguilar.biciradar.mobileui.EnvironmentalOverlayLayer
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -129,8 +131,8 @@ class PlaystoreAndroidStationMapRendererProvider : AndroidStationMapRenderer {
         Circle(
           center = LatLng(zone.center.latitude, zone.center.longitude),
           radius = 450.0,
-          fillColor = tone.copy(alpha = 0.22f),
-          strokeColor = tone.copy(alpha = 0.45f),
+          fillColor = tone.copy(alpha = ENVIRONMENTAL_OVERLAY_FILL_ALPHA),
+          strokeColor = tone.copy(alpha = ENVIRONMENTAL_OVERLAY_STROKE_ALPHA),
           strokeWidth = 1f,
         )
       }

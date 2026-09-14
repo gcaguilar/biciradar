@@ -25,6 +25,8 @@ import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobileui.AndroidStationMapRenderer
 import com.gcaguilar.biciradar.mobileui.BiziDataColors
+import com.gcaguilar.biciradar.mobileui.ENVIRONMENTAL_OVERLAY_FILL_ALPHA
+import com.gcaguilar.biciradar.mobileui.ENVIRONMENTAL_OVERLAY_STROKE_ALPHA
 import com.gcaguilar.biciradar.mobileui.EnvironmentalOverlayData
 import com.gcaguilar.biciradar.mobileui.EnvironmentalOverlayLayer
 import org.osmdroid.config.Configuration
@@ -156,8 +158,8 @@ class FdroidAndroidStationMapRendererProvider : AndroidStationMapRenderer {
           view.overlays +=
             Polygon().apply {
               points = Polygon.pointsAsCircle(zone.center.toOsmGeoPoint(), 450.0)
-              fillColor = tone.copy(alpha = 0.22f).toArgb()
-              strokeColor = tone.copy(alpha = 0.45f).toArgb()
+              fillColor = tone.copy(alpha = ENVIRONMENTAL_OVERLAY_FILL_ALPHA).toArgb()
+              strokeColor = tone.copy(alpha = ENVIRONMENTAL_OVERLAY_STROKE_ALPHA).toArgb()
               strokeWidth = 2f
             }
         }

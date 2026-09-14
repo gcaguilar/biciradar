@@ -90,8 +90,12 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
                 let center = CLLocationCoordinate2DMake(zone.center.latitude, zone.center.longitude)
                 let circle = GMSCircle(position: center, radius: 450)
                 let tone = environmentalTone(layer: overlay.layer, value: Int(zone.value))
-                circle.fillColor = tone.withAlphaComponent(0.22)
-                circle.strokeColor = tone.withAlphaComponent(0.45)
+                circle.fillColor = tone.withAlphaComponent(
+                    CGFloat(PlatformStationMapKt.ENVIRONMENTAL_OVERLAY_FILL_ALPHA)
+                )
+                circle.strokeColor = tone.withAlphaComponent(
+                    CGFloat(PlatformStationMapKt.ENVIRONMENTAL_OVERLAY_STROKE_ALPHA)
+                )
                 circle.strokeWidth = 1
                 circle.map = mapView
                 environmentalCircles.append(circle)

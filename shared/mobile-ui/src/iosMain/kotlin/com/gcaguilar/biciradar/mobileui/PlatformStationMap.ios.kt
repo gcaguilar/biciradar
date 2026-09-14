@@ -413,8 +413,8 @@ private class StationMapDelegate(
         layer = currentEnvironmentalLayer(),
         value = value,
       )
-    renderer.fillColor = tone.colorWithAlphaComponent(0.22)
-    renderer.strokeColor = tone.colorWithAlphaComponent(0.45)
+    renderer.fillColor = tone.colorWithAlphaComponent(ENVIRONMENTAL_OVERLAY_FILL_ALPHA.toDouble())
+    renderer.strokeColor = tone.colorWithAlphaComponent(ENVIRONMENTAL_OVERLAY_STROKE_ALPHA.toDouble())
     renderer.lineWidth = 1.0
     return renderer
   }
