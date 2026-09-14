@@ -398,4 +398,15 @@
     <string name="desktopMapPickerHint">Click a station in the list or use pinned coordinates.</string>
     <string name="desktopMapSelectedLocation">Selected location: %.5f, %.5f</string>
     <string name="desktopMapCurrentLocation">Current location: %.5f, %.5f</string>
+
+    <!-- Added translations -->
+    <string name="favoritesSearchSelectCategory">Select category</string>
+    <string name="monitoringChecksEvery30s">Checked every 30 s</string>
+    <string name="remainingTimeLabel">Time remaining</string>
+    <string name="tripRouteFlowTitle">Suggested route</string>
+    <string name="tripCurrentLocationLabel">My current location</string>
+    <string name="tripStationDistanceInBike">%1$s by bike</string>
+    <string name="tripWalkingTimeToDestination">~%1$d min on foot</string>
+    <string name="tripDestinationCityFallback">Destination</string>
+    <string name="tripStationMetersLabel">Meters</string>
 </resources>

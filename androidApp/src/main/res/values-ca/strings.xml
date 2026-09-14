@@ -1,14 +1,14 @@
 <resources>
     <string name="app_name">Bici Radar</string>
-    <string name="shortcut_nearest_station">Estacio propera</string>
+    <string name="shortcut_nearest_station">Estació propera</string>
     <string name="shortcut_nearest_station_with_bikes">Propera amb bicis</string>
     <string name="shortcut_nearest_station_with_slots">Propera amb ancoratges</string>
     <string name="shortcut_favorites">Els meus favorits</string>
-    <string name="shortcut_route">Ruta a la estacio</string>
-    <string name="shortcut_station_status">Estat de la estacio</string>
-    <string name="shortcut_station_bikes">Bicis a la estacio</string>
-    <string name="shortcut_station_slots">Ancoratges a la estacio</string>
-    <string name="shortcut_show_station">Buscar estacio</string>
+    <string name="shortcut_route">Ruta a l\'estació</string>
+    <string name="shortcut_station_status">Estat de l\'estació</string>
+    <string name="shortcut_station_bikes">Bicis a l\'estació</string>
+    <string name="shortcut_station_slots">Ancoratges a l\'estació</string>
+    <string name="shortcut_show_station">Buscar estació</string>
     <string name="widget_favorite_description">Estat ràpid de la teva estació favorita</string>
     <string name="widget_favorite_empty_title">Bici Radar</string>
     <string name="widget_open_app_to_refresh">Obre l\'app per actualitzar</string>

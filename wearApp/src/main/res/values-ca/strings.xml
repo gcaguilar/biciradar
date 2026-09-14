@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Bici Radar Wear</string>
-    <string name="tile_favorite_label">Favorita</string>
+    <string name="tile_favorite_label">Preferida</string>
     <string name="tile_favorite_description">Resum de l\'estació preferida</string>
     <string name="tile_nearby_label">Properes</string>
     <string name="tile_nearby_description">Llista de les estacions més properes</string>

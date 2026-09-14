@@ -3,8 +3,8 @@
     <string name="shortcut_nearest_station">Geltoki gertukoa</string>
     <string name="shortcut_nearest_station_with_bikes">Bizikletak gertuan</string>
     <string name="shortcut_nearest_station_with_slots">Leku gertuan</string>
-    <string name="shortcut_favorites">Niregogokoak</string>
-    <string name="shortcut_route">Bidea geldotokira</string>
+    <string name="shortcut_favorites">Nire gogokoak</string>
+    <string name="shortcut_route">Bidea geltokira</string>
     <string name="shortcut_station_status">Geltokiaren egoera</string>
     <string name="shortcut_station_bikes">Bizikletak geltokian</string>
     <string name="shortcut_station_slots">Lekuak geltokian</string>
