@@ -12,8 +12,9 @@ actual fun currentLocalTimeSnapshot(): LocalTimeSnapshot {
       fromDate = NSDate(),
     )
   val weekday = components.weekday
+  val weekdayValue: Long? = weekday?.toLong()
   return LocalTimeSnapshot(
     hour = components.hour.toInt(),
-    isWeekend = weekday == 1L || weekday == 7L,
+    isWeekend = weekdayValue == 1L || weekdayValue == 7L,
   )
 }
