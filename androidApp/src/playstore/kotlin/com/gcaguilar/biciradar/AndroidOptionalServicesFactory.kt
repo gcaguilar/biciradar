@@ -35,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object AndroidOptionalServicesFactory {
   @JvmStatic
@@ -82,11 +83,19 @@ private class PlaystoreReviewPrompter(
   private val context: Context,
   private val activityProvider: () -> Activity?,
 ) : ReviewPrompter {
-  override suspend fun requestInAppReview() {
-    val activity = activityProvider() ?: return
+  override suspend fun requestInAppReview(): Boolean {
+    val activity = activityProvider() ?: return false
     val manager = ReviewManagerFactory.create(context)
-    val info = runCatching { Tasks.await(manager.requestReviewFlow()) }.getOrNull() ?: return
-    runCatching { Tasks.await(manager.launchReviewFlow(activity, info)) }
+    // requestReviewFlow only performs a lightweight in-task check; keep it off the main thread.
+    val info =
+      withContext(Dispatchers.IO) {
+        runCatching { Tasks.await(manager.requestReviewFlow()) }.getOrNull()
+      } ?: return false
+    // launchReviewFlow shows a UI and must run on the main thread. Do not await it: the task
+    // completes only after the user dismisses the (optional) dialog.
+    return withContext(Dispatchers.Main) {
+      runCatching { manager.launchReviewFlow(activity, info) }.isSuccess
+    }
   }
 
   override fun openStoreWriteReview() {
@@ -100,16 +109,18 @@ private class PlaystoreReviewPrompter(
       return
     }
     val manager = ReviewManagerFactory.create(context)
-    val info = runCatching { Tasks.await(manager.requestReviewFlow()) }.getOrNull()
+    val info =
+      withContext(Dispatchers.IO) {
+        runCatching { Tasks.await(manager.requestReviewFlow()) }.getOrNull()
+      }
     if (info == null) {
       openStoreWriteReview()
       return
     }
     val launched =
-      runCatching {
-        Tasks.await(manager.launchReviewFlow(activity, info))
-        true
-      }.getOrDefault(false)
+      withContext(Dispatchers.Main) {
+        runCatching { manager.launchReviewFlow(activity, info) }.isSuccess
+      }
     if (!launched) openStoreWriteReview()
   }
 

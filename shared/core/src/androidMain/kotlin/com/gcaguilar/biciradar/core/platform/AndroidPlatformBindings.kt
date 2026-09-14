@@ -102,7 +102,7 @@ class AndroidPlatformBindings(
   private val androidExternalLinks = AndroidExternalLinks(context, appConfiguration)
   private val androidReviewPrompter =
     optionalServices?.createReviewPrompter { experienceActivity }
-      ?: AndroidReviewPrompter(context) { experienceActivity }
+      ?: AndroidReviewPrompter(context)
   private val androidAppUpdatePrompter by lazy {
     optionalServices?.createAppUpdatePrompter(
       { experienceActivity },

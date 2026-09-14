@@ -55,14 +55,15 @@ internal class AndroidPermissionPrompter(
   }
 }
 
+/**
+ * F-Droid fallback: there is no Play In-App Review API available, so the automatic in-app
+ * prompt is a no-op instead of unexpectedly opening the store listing. The manual Profile CTA
+ * goes through [requestInAppReviewOrStoreFallback] / [openStoreWriteReview].
+ */
 internal class AndroidReviewPrompter(
   private val context: Context,
-  private val activityProvider: () -> Activity?,
 ) : ReviewPrompter {
-  override suspend fun requestInAppReview() {
-    if (activityProvider() == null) return
-    openStoreWriteReview()
-  }
+  override suspend fun requestInAppReview(): Boolean = false
 
   override fun openStoreWriteReview() {
     openStoreUri("market://details?id=${context.packageName}&showAllReviews=true")

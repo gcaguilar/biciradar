@@ -5,7 +5,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 private const val REVIEW_MIN_INSTALL_AGE_MILLIS = 7L * 24L * 60L * 60L * 1000L
-private const val REVIEW_MIN_COOLDOWN_MILLIS = 120L * 24L * 60L * 60L * 1000L
 
 @Serializable
 enum class StationDataSource {
@@ -158,7 +157,6 @@ enum class ReviewEligibilityReason {
   InstallTooRecent,
   NotEnoughPositiveSignals,
   UnavailableDataThisSession,
-  CooldownActive,
   AlreadyRequestedForVersion,
 }
 
@@ -191,11 +189,6 @@ fun reviewEligibility(
   }
   if (engagement.lastReviewRequestedVersion == appVersion) {
     return ReviewEligibility(false, ReviewEligibilityReason.AlreadyRequestedForVersion, positiveSignals)
-  }
-  if (engagement.lastReviewRequestedAtEpoch != null &&
-    nowEpoch - engagement.lastReviewRequestedAtEpoch < REVIEW_MIN_COOLDOWN_MILLIS
-  ) {
-    return ReviewEligibility(false, ReviewEligibilityReason.CooldownActive, positiveSignals)
   }
   return ReviewEligibility(true, ReviewEligibilityReason.Eligible, positiveSignals)
 }

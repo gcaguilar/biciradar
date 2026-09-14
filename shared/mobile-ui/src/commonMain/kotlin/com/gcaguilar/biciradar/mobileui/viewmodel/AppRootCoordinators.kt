@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 
 internal data class OnboardingPresentationState(
   val onboardingChecklist: OnboardingChecklistSnapshot,
@@ -110,6 +111,9 @@ internal class OnboardingCoordinator(
 internal class EngagementCoordinator(
   private val feedbackUseCase: FeedbackUseCase,
 ) {
+  /** Serializes review attempts so concurrent startup signals cannot double-request. */
+  private val reviewRequestMutex = Mutex()
+
   suspend fun maybeCheckForUpdates(
     runtimeState: MutableStateFlow<AppRootRuntimeState>,
     updateUiState: (TopUpdateBanner) -> Unit,
@@ -159,16 +163,22 @@ internal class EngagementCoordinator(
     clock: () -> Long,
   ) {
     if (!isOnboardingCompleted) return
-    val eligibility =
-      feedbackUseCase.checkReviewEligibility(
-        appVersion = appVersion,
-        onboardingCompleted = isOnboardingCompleted,
-        currentFreshness = dataFreshness,
-        nowEpoch = clock(),
-      )
-    if (eligibility.isEligible) {
-      feedbackUseCase.requestInAppReview()
-      feedbackUseCase.markReviewPrompted(appVersion, clock())
+    if (!reviewRequestMutex.tryLock()) return
+    try {
+      val eligibility =
+        feedbackUseCase.checkReviewEligibility(
+          appVersion = appVersion,
+          onboardingCompleted = isOnboardingCompleted,
+          currentFreshness = dataFreshness,
+          nowEpoch = clock(),
+        )
+      if (!eligibility.isEligible) return
+      // Only consume the once-per-version slot when the platform call actually happened.
+      if (feedbackUseCase.requestInAppReview()) {
+        feedbackUseCase.markReviewPrompted(appVersion, clock())
+      }
+    } finally {
+      reviewRequestMutex.unlock()
     }
   }
 

@@ -697,8 +697,9 @@ private class AppRootFakeAppUpdatePrompter(
 private class AppRootFakeReviewPrompter : ReviewPrompter {
   var requestCount = 0
 
-  override suspend fun requestInAppReview() {
+  override suspend fun requestInAppReview(): Boolean {
     requestCount++
+    return true
   }
 
   override fun openStoreWriteReview() = Unit

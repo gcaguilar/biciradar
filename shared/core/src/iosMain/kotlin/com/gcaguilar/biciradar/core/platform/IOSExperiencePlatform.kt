@@ -18,6 +18,8 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.Foundation.NSURL
 import platform.StoreKit.SKStoreReviewController
 import platform.UIKit.UIApplication
+import platform.UIKit.UISceneActivationStateForegroundActive
+import platform.UIKit.UIWindowScene
 
 @Serializable
 private data class ItunesLookupResponse(
@@ -58,11 +60,22 @@ internal class IOSPermissionPrompterImpl : PermissionPrompter {
 internal class IOSReviewPrompterImpl(
   private val appConfiguration: AppConfiguration,
 ) : ReviewPrompter {
-  override suspend fun requestInAppReview() {
+  override suspend fun requestInAppReview(): Boolean =
     runCatching {
-      SKStoreReviewController.requestReview()
-    }
-  }
+      val scene = foregroundActiveWindowScene()
+      if (scene != null) {
+        // Scene-based API (iOS 14+); the deprecated no-arg call is kept as a fallback.
+        SKStoreReviewController.requestReviewInScene(scene)
+      } else {
+        SKStoreReviewController.requestReview()
+      }
+      true
+    }.getOrDefault(false)
+
+  private fun foregroundActiveWindowScene(): UIWindowScene? =
+    UIApplication.sharedApplication.connectedScenes
+      .filterIsInstance<UIWindowScene>()
+      .firstOrNull { it.activationState == UISceneActivationStateForegroundActive }
 
   override fun openStoreWriteReview() {
     val urlString = appConfiguration.iosAppStoreUrl ?: return

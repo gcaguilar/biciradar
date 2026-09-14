@@ -157,7 +157,7 @@ private class DesktopExternalLinks(
 private class DesktopReviewPrompter(
   private val appConfiguration: AppConfiguration,
 ) : ReviewPrompter {
-  override suspend fun requestInAppReview() = Unit
+  override suspend fun requestInAppReview(): Boolean = false
 
   override fun openStoreWriteReview() {
     val reviewUrl =

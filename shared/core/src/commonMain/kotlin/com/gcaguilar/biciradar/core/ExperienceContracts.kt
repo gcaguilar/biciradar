@@ -14,7 +14,15 @@ interface PermissionPrompter {
 
 /** In-app review (fire-and-forget). Manual profile CTA should use [openStoreWriteReview]. */
 interface ReviewPrompter {
-  suspend fun requestInAppReview()
+  /**
+   * Attempts to show the platform in-app review prompt.
+   *
+   * @return true when the platform call was actually made (the OS may still decide not to
+   *   display the dialog), false when the prompt could not be attempted at all (e.g. no
+   *   foreground host, unsupported platform). Callers use this to avoid consuming the
+   *   once-per-version slot on a call that never reached the platform.
+   */
+  suspend fun requestInAppReview(): Boolean
 
   suspend fun requestInAppReviewOrStoreFallback() {
     requestInAppReview()
@@ -41,7 +49,7 @@ object NoOpPermissionPrompter : PermissionPrompter {
 }
 
 object NoOpReviewPrompter : ReviewPrompter {
-  override suspend fun requestInAppReview() = Unit
+  override suspend fun requestInAppReview(): Boolean = false
 
   override fun openStoreWriteReview() = Unit
 }

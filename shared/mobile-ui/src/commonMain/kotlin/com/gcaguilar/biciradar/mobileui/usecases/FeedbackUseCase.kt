@@ -45,10 +45,11 @@ internal class FeedbackUseCase(
 
   /**
    * Requests an in-app review from the user.
+   *
+   * @return true when the platform call was actually made, so the caller knows whether the
+   *   once-per-version slot should be consumed.
    */
-  suspend fun requestInAppReview() {
-    reviewPrompter.requestInAppReview()
-  }
+  suspend fun requestInAppReview(): Boolean = reviewPrompter.requestInAppReview()
 
   /**
    * Checks review eligibility based on engagement metrics.
