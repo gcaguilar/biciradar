@@ -174,7 +174,7 @@ getCacheMetadata:
 SELECT * FROM cache_metadata LIMIT 1;
 
 insertStation:
-INSERT INTO stations (id, name, address, latitude, longitude, bikes_available, slots_free, ebikes_available, regular_bikes_available, updated_at)
+INSERT OR REPLACE INTO stations (id, name, address, latitude, longitude, bikes_available, slots_free, ebikes_available, regular_bikes_available, updated_at)
 VALUES (:id, :name, :address, :latitude, :longitude, :bikesAvailable, :slotsFree, :ebikesAvailable, :regularBikesAvailable, :updatedAt);
 
 updateStationBikeDockCounts:

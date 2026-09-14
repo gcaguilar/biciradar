@@ -510,6 +510,33 @@ class DbFirstReactiveRepositoryJvmTest {
       assertEquals("station-db-cache", bundle.favoriteStation?.id)
       assertTrue(bundle.state.isDataFresh)
     }
+
+  @Test
+  fun `station cache save tolerates duplicate station ids`() =
+    runTest {
+      val database = createTestDatabase()
+      val store = StationCacheStore(database)
+      val station =
+        Station(
+          id = "station-dup",
+          name = "Station Dup",
+          address = "Centro",
+          location = GeoPoint(41.65, -0.88),
+          bikesAvailable = 4,
+          slotsFree = 6,
+          distanceMeters = 100,
+        )
+
+      store.save(
+        cityId = City.ZARAGOZA.id,
+        stations = listOf(station, station.copy(name = "Station Dup duplicate")),
+      )
+
+      val stored = store.loadStations(City.ZARAGOZA.id)
+      assertNotNull(stored)
+      assertEquals(1, stored.size)
+      assertEquals("station-dup", stored.single().id)
+    }
 }
 
 private suspend fun <T> ReceiveTurbine<T>.awaitMatch(predicate: (T) -> Boolean): T {

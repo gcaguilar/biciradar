@@ -103,7 +103,7 @@ class StationCacheStore(
         database.transaction {
           database.biciradarQueries.deleteAllStations()
           database.biciradarQueries.deleteAllCacheMetadata()
-          stations.forEach { station ->
+          stations.distinctBy { station -> station.id }.forEach { station ->
             database.biciradarQueries.insertStation(
               id = station.id,
               name = station.name,
