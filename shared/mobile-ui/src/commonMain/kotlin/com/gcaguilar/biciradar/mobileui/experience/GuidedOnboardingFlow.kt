@@ -203,21 +203,14 @@ private fun GuidedOnboardingHighlightsScreen(
         .background(MaterialTheme.colorScheme.background)
         .windowInsetsPadding(WindowInsets.safeDrawing),
   ) {
-    TextButton(
-      onClick = onSkipAll,
-      modifier =
-        Modifier
-          .align(Alignment.TopEnd)
-          .padding(horizontal = 24.dp),
-    ) {
-      Text(stringResource(Res.string.onboardingSkip))
-    }
     Column(
       modifier =
         Modifier
           .fillMaxSize()
           .verticalScroll(rememberScrollState())
-          .padding(24.dp),
+          .padding(horizontal = 24.dp)
+          // Leave room for the pinned footer so the last card is never hidden behind it.
+          .padding(top = 24.dp, bottom = 104.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
       horizontalAlignment = Alignment.Start,
     ) {
@@ -256,7 +249,29 @@ private fun GuidedOnboardingHighlightsScreen(
           }
         }
       }
-      Spacer(Modifier.height(8.dp))
+    }
+    // Pinned skip action. Drawn *after* the scrollable column so it stays on top and
+    // receives taps instead of being swallowed by the scroll container.
+    Box(
+      modifier =
+        Modifier
+          .align(Alignment.TopEnd)
+          .background(MaterialTheme.colorScheme.background)
+          .padding(horizontal = 24.dp),
+    ) {
+      TextButton(onClick = onSkipAll) {
+        Text(stringResource(Res.string.onboardingSkip))
+      }
+    }
+    // Pinned footer: only the feature cards scroll, the continue action stays put.
+    Box(
+      modifier =
+        Modifier
+          .align(Alignment.BottomCenter)
+          .fillMaxWidth()
+          .background(MaterialTheme.colorScheme.background)
+          .padding(horizontal = 24.dp, vertical = 16.dp),
+    ) {
       Button(
         onClick = onContinue,
         modifier = Modifier.fillMaxWidth(),
