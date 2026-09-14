@@ -135,6 +135,14 @@ fun BiziMobileApp(
    * shell passes this; Android leaves it null and keeps using [BiziBottomBar].
    */
   onTabNavigatorReady: ((MobileTabNavigator?) -> Unit)? = null,
+  /**
+   * Reports whether this app's navigable chrome (the shell that hosts the tab bar) is on
+   * screen. `false` while bootstrap, city selection, guided onboarding, or the in-app
+   * splash are showing; `true` once the normal navigation shell is mounted. The iOS
+   * native `UITabBar` overlay uses this to hide itself during onboarding; Android leaves
+   * it null and draws its own bottom bar inside the shell.
+   */
+  onNativeChromeVisibilityChanged: ((Boolean) -> Unit)? = null,
 ) {
   val mobilePlatform = remember { currentMobileUiPlatform() }
   val resolvedGraph: MobileGraph =
@@ -239,6 +247,19 @@ fun BiziMobileApp(
       ) {
         useInAppStartupSplash && !appRootUiState.startupLaunchReady
       }
+
+    // The navigation shell (and therefore any native tab chrome) is only on screen once
+    // settings are bootstrapped, the city is chosen, guided onboarding is done, and the
+    // in-app splash has finished. Everything before that is a full-screen gate that must
+    // not be covered by the native tab bar.
+    val nativeChromeVisible =
+      appRootUiState.settingsBootstrapped &&
+        isCityConfigured &&
+        !shouldShowGuidedOnboarding &&
+        !showStartupSplash
+    LaunchedEffect(onNativeChromeVisibilityChanged, nativeChromeVisible) {
+      onNativeChromeVisibilityChanged?.invoke(nativeChromeVisible)
+    }
 
     ThemeProvider(mobilePlatform, themePreference) {
       val windowLayout = LocalBiziWindowLayout.current

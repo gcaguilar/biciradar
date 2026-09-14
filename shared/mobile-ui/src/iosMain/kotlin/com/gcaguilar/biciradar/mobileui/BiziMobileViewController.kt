@@ -50,6 +50,12 @@ fun MainViewControllerWrapper(
   onNavigate: ((Screen) -> Unit)? = null,
   onActivate: ((Screen) -> Unit)? = null,
   /**
+   * Reports whether Compose's navigable shell is on screen, so the native iOS `UITabBar`
+   * overlay can hide itself while bootstrap/city selection/guided onboarding/splash are
+   * showing. See [BiziMobileApp.onNativeChromeVisibilityChanged].
+   */
+  onNativeChromeVisibilityChanged: ((Boolean) -> Unit)? = null,
+  /**
    * Shared dependency graph to reuse across multiple Compose mount points (e.g. one
    * per tab, in the native TabView shell). Leave null to keep today's behavior of
    * creating a fresh graph for this single view controller. When embedding several
@@ -76,6 +82,7 @@ fun MainViewControllerWrapper(
     remoteConfigBridge = remoteConfigBridge,
     onNavigate = onNavigate,
     onActivate = onActivate,
+    onNativeChromeVisibilityChanged = onNativeChromeVisibilityChanged,
     graph = graph,
     platformBindings = platformBindings,
   )
@@ -89,6 +96,7 @@ class BiziMainViewControllerWrapper(
   remoteConfigBridge: IOSRemoteConfigBridge?,
   onNavigate: ((Screen) -> Unit)? = null,
   onActivate: ((Screen) -> Unit)? = null,
+  onNativeChromeVisibilityChanged: ((Boolean) -> Unit)? = null,
   graph: SharedGraph? = null,
   platformBindings: IOSPlatformBindings? = null,
 ) {
@@ -120,6 +128,7 @@ class BiziMainViewControllerWrapper(
           },
           onNavigateNative = onNavigate,
           onActivateNative = onActivate,
+          onNativeChromeVisibilityChanged = onNativeChromeVisibilityChanged,
           onTabNavigatorReady = { navigator ->
             tabNavigator = navigator
             navigator?.let { readyNavigator ->

@@ -78,6 +78,12 @@ enum BiziTab: Hashable, CaseIterable {
 final class NativeShellModel {
     var selectedTab: BiziTab = .nearby
 
+    /// Whether Compose's navigable shell is on screen. `false` while the bootstrap,
+    /// city-selection, guided-onboarding or in-app-splash gates are showing, so the
+    /// native tab bar stays hidden instead of floating over them. Updated from Compose,
+    /// which may call off the main thread.
+    var isChromeVisible = false
+
     /// Not `let` only because the `onActivate` closure needs `self`; assigned once in `init`.
     private(set) var wrapper: BiziMainViewControllerWrapper!
 
@@ -99,6 +105,11 @@ final class NativeShellModel {
             onActivate: { [weak self] screen in
                 guard let tab = BiziTab.from(screen: screen) else { return }
                 DispatchQueue.main.async { self?.selectedTab = tab }
+            },
+            // Hide the native bar over the onboarding/city-selection/splash gates.
+            // Kotlin `Boolean` crosses the Objective-C boundary boxed as `KotlinBoolean`.
+            onNativeChromeVisibilityChanged: { [weak self] visible in
+                DispatchQueue.main.async { self?.isChromeVisible = visible.boolValue }
             },
             // Mismo grafo y MISMAS `IOSPlatformBindings` que usan los widgets/atajos/watch
             // sync (`BiziAppleGraph`) — ver `BiziSharedGraph` en BiziAppleGraph.swift. Antes
@@ -156,12 +167,18 @@ struct NativeNavContentView: View {
             // A standalone bar has no content area at all — it is only the chrome, laid
             // over Compose, and iOS 26 still renders it with the Liquid Glass material
             // because it is the stock system bar.
-            NativeTabBar(
-                tabs: BiziTab.allCases,
-                selected: model.selectedTab,
-                onSelect: { model.select($0) }
-            )
-            .frame(height: NativeTabBar.height)
+            //
+            // Only drawn while Compose reports its navigable shell on screen: bootstrap,
+            // city selection, guided onboarding and the in-app splash are full-screen
+            // gates that must not be covered by the tab bar.
+            if model.isChromeVisible {
+                NativeTabBar(
+                    tabs: BiziTab.allCases,
+                    selected: model.selectedTab,
+                    onSelect: { model.select($0) }
+                )
+                .frame(height: NativeTabBar.height)
+            }
         }
         .tint(Color(.accent))
     }
