@@ -12,8 +12,8 @@ data class AppConfiguration(
   val feedbackFormUrl: String = "https://tally.so/r/A7bYRk",
   val privacyPolicyUrl: String = "https://gcaguilar.github.io/biciradar-privacy-policy/",
   /** Numeric App Store id for lookup / write-review URLs; empty disables iOS update banner until configured. */
-  val iosAppStoreId: String = "",
-  val iosAppBundleId: String = "com.gcaguilar.biciradar",
+  val iosAppStoreId: String = "6760931316",
+  val iosAppBundleId: String = "com.gcaguilar.biciradar.ios",
 ) {
   val gbfsDiscoveryUrl: String get() = city.gbfsDiscoveryUrl
 
