@@ -3,12 +3,15 @@ package com.gcaguilar.biciradar.mobileui
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.listSaver
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
 
 internal enum class MapFilter(
   val labelKey: StringResource,
 ) {
+  HAS_BIKES(Res.string.mapFilterHasBikes),
+  HAS_SLOTS(Res.string.mapFilterHasSlots),
   BIKES_AND_SLOTS(Res.string.mapFilterBikesAndSlots),
   ONLY_BIKES(Res.string.mapFilterOnlyBikes),
   ONLY_SLOTS(Res.string.mapFilterOnlySlots),
@@ -36,6 +39,8 @@ private val environmentalMapFilters =
 
 private val stationAvailabilityMapFilters =
   setOf(
+    MapFilter.HAS_BIKES,
+    MapFilter.HAS_SLOTS,
     MapFilter.BIKES_AND_SLOTS,
     MapFilter.ONLY_BIKES,
     MapFilter.ONLY_SLOTS,
@@ -47,6 +52,40 @@ internal fun isEnvironmentalMapFilter(filter: MapFilter): Boolean = filter in en
 
 internal fun stationAvailabilityFilters(activeFilters: Set<MapFilter>): Set<MapFilter> =
   activeFilters.filterTo(linkedSetOf()) { it in stationAvailabilityMapFilters }
+
+/** Map availability filter that best matches a global [TripMode]. */
+internal fun defaultAvailabilityMapFilterForTripMode(mode: TripMode): MapFilter =
+  when (mode) {
+    TripMode.Pedestrian -> MapFilter.HAS_BIKES
+    TripMode.Cyclist -> MapFilter.HAS_SLOTS
+  }
+
+/**
+ * Orders the visible chips so the mode's primary availability filter comes first
+ * and its counterpart last, keeping the granular filters and environmental
+ * layers in between and at the end.
+ */
+internal fun orderedMapFiltersForTripMode(
+  mode: TripMode,
+  availableFilters: Set<MapFilter>,
+): List<MapFilter> {
+  val primary = defaultAvailabilityMapFilterForTripMode(mode)
+  val counterpart =
+    when (primary) {
+      MapFilter.HAS_BIKES -> MapFilter.HAS_SLOTS
+      MapFilter.HAS_SLOTS -> MapFilter.HAS_BIKES
+      else -> null
+    }
+  val orderedAvailability =
+    stationAvailabilityMapFilters.toList().sortedBy { filter ->
+      when (filter) {
+        primary -> 0
+        counterpart -> 2
+        else -> 1
+      }
+    }
+  return (orderedAvailability + environmentalMapFilters).filter { it in availableFilters }
+}
 
 internal fun toggleMapFilterSelection(
   activeFilters: Set<MapFilter>,
@@ -78,6 +117,10 @@ internal fun availableMapFilters(stations: List<Station>): Set<MapFilter> {
     stationAvailabilityMapFilters.filterTo(linkedSetOf()) { filter ->
       stations.any { station ->
         when (filter) {
+          MapFilter.HAS_BIKES -> station.bikesAvailable > 0
+
+          MapFilter.HAS_SLOTS -> station.slotsFree > 0
+
           MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
 
           MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0
@@ -116,6 +159,10 @@ internal fun applyMapFilters(
   return stations.filter { station ->
     availabilityFilters.any { filter ->
       when (filter) {
+        MapFilter.HAS_BIKES -> station.bikesAvailable > 0
+
+        MapFilter.HAS_SLOTS -> station.slotsFree > 0
+
         MapFilter.BIKES_AND_SLOTS -> station.bikesAvailable > 0 && station.slotsFree > 0
 
         MapFilter.ONLY_BIKES -> station.bikesAvailable > 0 && station.slotsFree == 0

@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.AutocompleteResult
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DEFAULT_SEARCH_RADIUS_METERS
+import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -17,6 +18,7 @@ import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
@@ -77,6 +79,7 @@ class SearchRadiusViewModelTest {
           settingsRepository = settingsRepository,
           routeLauncher = NoOpRouteLauncher,
           permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = SearchRadiusNoOpDatosBiziApi,
         )
 
       advanceUntilIdle()
@@ -329,6 +332,10 @@ private object NoOpRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
 
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
+}
+
+private object SearchRadiusNoOpDatosBiziApi : DatosBiziApi {
+  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = emptyList()
 }
 
 private class FakeTripRepository : TripRepository {

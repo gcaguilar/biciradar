@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,24 +16,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Directions
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocalParking
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,33 +49,26 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.findSavedPlaceAlertRule
-import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.back
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.home
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.openRoute
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.removeFromFavorites
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.save
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saveThisStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saveThisStationDescription
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.saveToFavorites
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.saved
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsStationDetailHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
-import com.gcaguilar.biciradar.mobile_ui.generated.resources.source
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stationMarkedHome
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stationMarkedHomeAndWork
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.stationMarkedWork
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tapHomeOrWorkToAssign
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.work
 import com.gcaguilar.biciradar.mobileui.BiziAlpha
-import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.BiziSpacing
-import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
@@ -94,7 +81,6 @@ import com.gcaguilar.biciradar.mobileui.components.SavedPlacePill
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
 import com.gcaguilar.biciradar.mobileui.components.station.StationDetailAlertBell
-import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
 import com.gcaguilar.biciradar.mobileui.components.station.StationPatternCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -107,7 +93,6 @@ internal fun StationDetailScreen(
   state: StationDetailUiState,
   mobilePlatform: MobileUiPlatform,
   isMapReady: Boolean,
-  onRefreshStations: () -> Unit,
   onBack: () -> Unit,
   onToggleFavorite: () -> Unit,
   onToggleHome: () -> Unit,
@@ -122,9 +107,6 @@ internal fun StationDetailScreen(
   val isWorkStation = state.isWorkStation
   val userLocation = state.userLocation
   val supportsUsagePatterns = state.supportsUsagePatterns
-  val dataFreshness = state.dataFreshness
-  val lastUpdatedEpoch = state.lastUpdatedEpoch
-  val stationsLoading = state.stationsLoading
   val savedPlaceAlertsCityId = state.savedPlaceAlertsCityId
   val savedPlaceAlertRules = state.savedPlaceAlertRules
   val patterns = state.patterns
@@ -145,7 +127,7 @@ internal fun StationDetailScreen(
               .background(LocalBiziColors.current.surface)
               .windowInsetsPadding(WindowInsets.statusBars)
               .height(48.dp)
-              .padding(end = 16.dp),
+              .padding(end = 4.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
           IconButton(onClick = onBack) {
@@ -159,6 +141,12 @@ internal fun StationDetailScreen(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
           )
+          IconButton(onClick = onRoute) {
+            Icon(
+              Icons.Filled.Directions,
+              contentDescription = stringResource(Res.string.openRoute),
+            )
+          }
         }
       },
     ) { innerPadding ->
@@ -181,55 +169,23 @@ internal fun StationDetailScreen(
           verticalArrangement = Arrangement.spacedBy(BiziSpacing.screenPadding),
         ) {
           item {
-            BiziCard {
-              Column(
-                modifier = Modifier.padding(BiziSpacing.cardPadding),
-                verticalArrangement = Arrangement.spacedBy(BiziSpacing.large),
-              ) {
-                Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically,
-                ) {
-                  Text(
-                    station.name,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
-                  )
-                  FavoritePill(
-                    active = isFavorite,
-                    onClick = onToggleFavorite,
-                    label = if (isFavorite) stringResource(Res.string.saved) else stringResource(Res.string.save),
-                  )
-                }
-                Text(
-                  station.address,
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = LocalBiziColors.current.muted,
-                )
-                DataFreshnessBanner(
-                  freshness = dataFreshness,
-                  lastUpdatedEpoch = lastUpdatedEpoch,
-                  loading = stationsLoading,
-                  onRefresh = onRefreshStations,
-                  modifier = Modifier.padding(top = BiziSpacing.medium),
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.large)) {
-                  StationMetricPill(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(Res.string.distance),
-                    value = formatDistance(station.distanceMeters),
-                    tint = LocalBiziColors.current.blue,
-                  )
-                  StationMetricPill(
-                    modifier = Modifier.weight(1f),
-                    label = stringResource(Res.string.source),
-                    value = station.sourceLabel,
-                    tint = LocalBiziColors.current.muted,
-                  )
-                }
-              }
+            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
+              AvailabilityCard(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.slots),
+                value = station.slotsFree.toString(),
+                icon = Icons.Filled.LocalParking,
+                tint = LocalBiziColors.current.blue,
+                mobilePlatform = mobilePlatform,
+              )
+              AvailabilityCard(
+                modifier = Modifier.weight(1f),
+                label = stringResource(Res.string.bikes),
+                value = station.bikesAvailable.toString(),
+                icon = Icons.AutoMirrored.Filled.DirectionsBike,
+                tint = LocalBiziColors.current.red,
+                mobilePlatform = mobilePlatform,
+              )
             }
           }
           if (!isFavorite) {
@@ -352,26 +308,6 @@ internal fun StationDetailScreen(
               )
             }
           }
-          item {
-            Row(horizontalArrangement = Arrangement.spacedBy(BiziSpacing.xLarge)) {
-              AvailabilityCard(
-                modifier = Modifier.weight(1f),
-                label = stringResource(Res.string.bikes),
-                value = station.bikesAvailable.toString(),
-                icon = Icons.AutoMirrored.Filled.DirectionsBike,
-                tint = LocalBiziColors.current.red,
-                mobilePlatform = mobilePlatform,
-              )
-              AvailabilityCard(
-                modifier = Modifier.weight(1f),
-                label = stringResource(Res.string.slots),
-                value = station.slotsFree.toString(),
-                icon = Icons.Filled.LocalParking,
-                tint = LocalBiziColors.current.blue,
-                mobilePlatform = mobilePlatform,
-              )
-            }
-          }
           if (supportsUsagePatterns) {
             item {
               StationPatternCard(
@@ -380,31 +316,6 @@ internal fun StationDetailScreen(
                 isError = patternsError,
                 showWeekend = showWeekend,
                 onToggleDayType = { showWeekend = !showWeekend },
-              )
-            }
-          }
-          item {
-            Button(onClick = onRoute, modifier = Modifier.fillMaxWidth()) {
-              Icon(Icons.Filled.Directions, contentDescription = null)
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(Res.string.openRoute))
-            }
-          }
-          item {
-            OutlinedButton(onClick = onToggleFavorite, modifier = Modifier.fillMaxWidth()) {
-              Icon(
-                if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = null,
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(
-                if (isFavorite) {
-                  stringResource(
-                    Res.string.removeFromFavorites,
-                  )
-                } else {
-                  stringResource(Res.string.saveToFavorites)
-                },
               )
             }
           }

@@ -10,6 +10,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertCondition
 import com.gcaguilar.biciradar.core.SavedPlaceAlertRule
 import com.gcaguilar.biciradar.core.SavedPlaceAlertTarget
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.core.findStationMatchingQuery
 import com.gcaguilar.biciradar.mobileui.usecases.FavoritesManagementUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.RouteLaunchUseCase
@@ -42,6 +43,7 @@ data class FavoritesUiState(
   val dataFreshness: DataFreshness = DataFreshness.Unavailable,
   val lastUpdatedEpoch: Long? = null,
   val stationsLoading: Boolean = false,
+  val tripMode: TripMode = TripMode.Pedestrian,
 )
 
 @Inject
@@ -145,12 +147,22 @@ class FavoritesViewModel(
     )
 
   val uiState: StateFlow<FavoritesUiState> =
-    combine(relationState, searchQuery, newCategoryName) { relation, query, categoryName ->
-      relation.toUiState(query, categoryName)
+    combine(
+      relationState,
+      searchQuery,
+      newCategoryName,
+      favoritesManagementUseCase.tripMode,
+    ) { relation, query, categoryName, tripMode ->
+      relation.toUiState(query, categoryName, tripMode)
     }.stateIn(
       scope = viewModelScope,
       started = SharingStarted.Eagerly,
-      initialValue = relationState.value.toUiState(searchQuery.value, newCategoryName.value),
+      initialValue =
+        relationState.value.toUiState(
+          searchQuery.value,
+          newCategoryName.value,
+          favoritesManagementUseCase.tripMode.value,
+        ),
     )
 
   fun onSearchQueryChange(query: String) {
@@ -313,6 +325,7 @@ class FavoritesViewModel(
   private fun FavoritesRelationState.toUiState(
     query: String,
     categoryName: String,
+    tripMode: TripMode,
   ): FavoritesUiState =
     FavoritesUiState(
       allStations = stations,
@@ -333,6 +346,7 @@ class FavoritesViewModel(
       dataFreshness = dataFreshness,
       lastUpdatedEpoch = lastUpdatedEpoch,
       stationsLoading = stationsLoading,
+      tripMode = tripMode,
     )
 
   private fun homeStationId(): String? = favoritesManagementUseCase.homeStationId.value

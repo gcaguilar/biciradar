@@ -87,6 +87,7 @@ class FavoritesViewModelTest {
           routeLaunchUseCase =
             RouteLaunchUseCase(
               routeLauncher = NoOpFavoriteRouteLauncher,
+              settingsRepository = FakeFavoriteSettingsRepository(),
             ),
         )
 
@@ -134,6 +135,7 @@ class FavoritesViewModelTest {
           routeLaunchUseCase =
             RouteLaunchUseCase(
               routeLauncher = NoOpFavoriteRouteLauncher,
+              settingsRepository = FakeFavoriteSettingsRepository(),
             ),
         )
 
@@ -179,6 +181,7 @@ class FavoritesViewModelTest {
           routeLaunchUseCase =
             RouteLaunchUseCase(
               routeLauncher = NoOpFavoriteRouteLauncher,
+              settingsRepository = FakeFavoriteSettingsRepository(),
             ),
         )
 
@@ -234,6 +237,7 @@ class FavoritesViewModelTest {
           routeLaunchUseCase =
             RouteLaunchUseCase(
               routeLauncher = NoOpFavoriteRouteLauncher,
+              settingsRepository = FakeFavoriteSettingsRepository(),
             ),
         )
 
@@ -291,6 +295,7 @@ class FavoritesViewModelTest {
           routeLaunchUseCase =
             RouteLaunchUseCase(
               routeLauncher = NoOpFavoriteRouteLauncher,
+              settingsRepository = FakeFavoriteSettingsRepository(),
             ),
         )
 

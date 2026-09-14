@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobileui.BiziAlpha
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -22,6 +23,7 @@ internal fun RoutePill(
   label: String,
   onClick: () -> Unit,
   onDarkBackground: Boolean = false,
+  icon: ImageVector = Icons.AutoMirrored.Filled.DirectionsBike,
 ) {
   val c = LocalBiziColors.current
   val pillColor = if (onDarkBackground) c.onAccent else c.blue
@@ -36,7 +38,7 @@ internal fun RoutePill(
     unselectedBorderColor = Color.Transparent,
   ) { contentColor ->
     Icon(
-      imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
+      imageVector = icon,
       contentDescription = null,
       tint = contentColor,
       modifier = Modifier.size(16.dp),

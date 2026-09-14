@@ -13,6 +13,8 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
+import com.gcaguilar.biciradar.core.TripMode
+import com.gcaguilar.biciradar.core.launchForTripMode
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,7 @@ class FavoritesManagementUseCase(
   val workStationId: StateFlow<String?> = favoritesRepository.workStationId
   val stationsState: StateFlow<StationsState> = stationsRepository.state
   val selectedCity: StateFlow<City> = settingsRepository.selectedCity
+  val tripMode: StateFlow<TripMode> = settingsRepository.tripMode
   val categories: StateFlow<List<FavoriteCategory>> = favoritesCategories.categories
   val stationCategory: StateFlow<Map<String, String>> = favoritesCategories.stationCategory
 
@@ -130,8 +133,9 @@ class SavedPlaceAlertsUseCase(
 @Inject
 class RouteLaunchUseCase(
   private val routeLauncher: RouteLauncher,
+  private val settingsRepository: SettingsRepository,
 ) {
   fun launchRoute(station: Station) {
-    routeLauncher.launch(station)
+    routeLauncher.launchForTripMode(station, settingsRepository.tripMode.value)
   }
 }

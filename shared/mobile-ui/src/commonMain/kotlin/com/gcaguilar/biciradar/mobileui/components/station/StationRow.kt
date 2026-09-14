@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,6 +44,7 @@ internal fun StationRow(
   onClick: () -> Unit,
   onFavoriteToggle: () -> Unit,
   onQuickRoute: (() -> Unit)? = null,
+  routeIcon: ImageVector = Icons.AutoMirrored.Filled.DirectionsBike,
   savedPlaceAlertSlot: @Composable (() -> Unit)? = null,
   extraActions: @Composable (() -> Unit)? = null,
   showFavoriteCta: Boolean = true,
@@ -77,16 +81,16 @@ internal fun StationRow(
             station.name,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
           )
-          Text(
-            station.address,
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalBiziColors.current.muted,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-          )
+          station.addressSubtitleOrNull()?.let { address ->
+            Text(
+              address,
+              style = MaterialTheme.typography.bodySmall,
+              color = LocalBiziColors.current.muted,
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
         }
         Spacer(Modifier.width(12.dp))
         Row(
@@ -97,6 +101,7 @@ internal fun StationRow(
             RoutePill(
               label = stringResource(Res.string.route),
               onClick = quickRoute,
+              icon = routeIcon,
             )
           }
           savedPlaceAlertSlot?.invoke()
@@ -153,3 +158,10 @@ internal fun StationRow(
     }
   }
 }
+
+/**
+ * Address line for a station card, or null when it would just repeat the title
+ * (several feeds fall back to the station name when no address is available).
+ */
+internal fun Station.addressSubtitleOrNull(): String? =
+  address.trim().takeIf { it.isNotEmpty() && !it.equals(name.trim(), ignoreCase = true) }

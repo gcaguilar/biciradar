@@ -24,6 +24,10 @@ internal object BiziAlpha {
   const val strongSelectedBorder = 0.25f
   const val overlay = 0.58f
   const val accentTrack = 0.15f
+
+  /** Selected background/border for the map filter chips, which sit over the map. */
+  const val mapFilterSelectedTint = 0.20f
+  const val mapFilterSelectedBorder = 0.35f
 }
 
 internal object BiziMotion {

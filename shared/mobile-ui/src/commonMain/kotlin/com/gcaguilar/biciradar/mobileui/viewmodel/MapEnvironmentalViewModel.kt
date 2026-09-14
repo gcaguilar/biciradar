@@ -13,8 +13,10 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.core.filterStationsByQuery
-import com.gcaguilar.biciradar.core.selectNearbyStation
+import com.gcaguilar.biciradar.core.launchForTripMode
+import com.gcaguilar.biciradar.core.selectNearbyStationForTripMode
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalZoneSnapshot
 import com.gcaguilar.biciradar.mobileui.MapFilter
@@ -23,14 +25,17 @@ import com.gcaguilar.biciradar.mobileui.applyMapFilters
 import com.gcaguilar.biciradar.mobileui.availableMapFilters
 import com.gcaguilar.biciradar.mobileui.buildMapEnvironmentalZoneSnapshots
 import com.gcaguilar.biciradar.mobileui.clearEnvironmentalMapFilters
+import com.gcaguilar.biciradar.mobileui.defaultAvailabilityMapFilterForTripMode
 import com.gcaguilar.biciradar.mobileui.isEnvironmentalMapFilter
 import com.gcaguilar.biciradar.mobileui.sanitizeActiveMapFilters
+import com.gcaguilar.biciradar.mobileui.stationAvailabilityFilters
 import com.gcaguilar.biciradar.mobileui.toggleMapFilterSelection
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoMap
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -61,6 +66,9 @@ internal data class MapEnvironmentalUiState(
   val availableFilters: Set<MapFilter> = emptySet(),
   val zones: List<MapEnvironmentalZoneSnapshot> = emptyList(),
   val persistedActiveFilters: Set<MapFilter> = emptySet(),
+  /** Explicit filters plus the trip mode's recommended availability filter, if none is explicit. */
+  val activeFilters: Set<MapFilter> = emptySet(),
+  val tripMode: TripMode = TripMode.Pedestrian,
   val activeEnvironmentalLayer: MapEnvironmentalLayer? = null,
   val selectedMapStation: Station? = null,
   val selectedMapStationId: String? = null,
@@ -75,6 +83,8 @@ internal data class MapEnvironmentalUiState(
 private data class MapEnvironmentalMutableState(
   val searchQuery: String = "",
   val persistedActiveFilters: Set<MapFilter> = emptySet(),
+  /** True once the user explicitly toggled an availability filter in this session. */
+  val hasExplicitAvailabilityFilter: Boolean = false,
   val selectedMapStationId: String? = null,
   val hasExplicitMapSelection: Boolean = false,
   val isCardDismissed: Boolean = false,
@@ -132,18 +142,25 @@ internal class MapEnvironmentalViewModel(
       emptyList(),
     )
 
+  private val searchPreferences: Flow<Pair<Int, TripMode>> =
+    combine(
+      settingsRepository.searchRadiusMeters,
+      settingsRepository.tripMode,
+    ) { radius, mode -> radius to mode }
+
   val uiState: StateFlow<MapEnvironmentalUiState> =
     combine(
       stationsStateInternal,
       favoriteIdsInternal,
-      settingsRepository.searchRadiusMeters,
+      searchPreferences,
       mutableState,
       zonesState,
-    ) { stationsState, favoriteIds, searchRadiusMeters, state, zones ->
+    ) { stationsState, favoriteIds, (searchRadiusMeters, tripMode), state, zones ->
       buildUiState(
         stationsState = stationsState,
         favoriteIds = favoriteIds,
         searchRadiusMeters = searchRadiusMeters,
+        tripMode = tripMode,
         state = state,
         zones = zones,
       )
@@ -213,7 +230,13 @@ internal class MapEnvironmentalViewModel(
     val current = mutableState.value.persistedActiveFilters
     val sanitized = sanitizeActiveMapFilters(current, availableFilters)
     if (sanitized != current) {
-      mutableState.update { it.copy(persistedActiveFilters = sanitized) }
+      val hasExplicitAvailability = stationAvailabilityFilters(sanitized).isNotEmpty()
+      mutableState.update {
+        it.copy(
+          persistedActiveFilters = sanitized,
+          hasExplicitAvailabilityFilter = it.hasExplicitAvailabilityFilter || hasExplicitAvailability,
+        )
+      }
       latestLayer.value = activeEnvironmentalLayerForFilters(sanitized)
       persistFilters(sanitized)
     }
@@ -248,7 +271,12 @@ internal class MapEnvironmentalViewModel(
   }
 
   fun onPersistedMapFiltersChanged(filters: Set<MapFilter>) {
-    mutableState.update { it.copy(persistedActiveFilters = filters) }
+    mutableState.update {
+      it.copy(
+        persistedActiveFilters = filters,
+        hasExplicitAvailabilityFilter = stationAvailabilityFilters(filters).isNotEmpty(),
+      )
+    }
     latestLayer.value = activeEnvironmentalLayerForFilters(filters)
     persistFilters(filters)
   }
@@ -257,17 +285,30 @@ internal class MapEnvironmentalViewModel(
     filter: MapFilter,
     availableFilters: Set<MapFilter>,
   ) {
-    val currentFilters = mutableState.value.persistedActiveFilters
-    val toggled = toggleMapFilterSelection(currentFilters, filter)
+    val currentEffective =
+      effectiveMapFilters(
+        persistedFilters = mutableState.value.persistedActiveFilters,
+        availableFilters = availableFilters,
+        tripMode = settingsRepository.tripMode.value,
+        hasExplicitAvailabilityFilter = mutableState.value.hasExplicitAvailabilityFilter,
+      )
+    val toggled = toggleMapFilterSelection(currentEffective, filter)
     val next = sanitizeActiveMapFilters(toggled, availableFilters)
     mutableState.update {
       it.copy(
         persistedActiveFilters = next,
+        hasExplicitAvailabilityFilter = it.hasExplicitAvailabilityFilter || !isEnvironmentalMapFilter(filter),
         showEnvironmentalSheet = if (isEnvironmentalMapFilter(filter)) filter in next else it.showEnvironmentalSheet,
       )
     }
     latestLayer.value = activeEnvironmentalLayerForFilters(next)
     persistFilters(next)
+  }
+
+  fun onTripModeChanged(mode: TripMode) {
+    viewModelScope.launch {
+      settingsRepository.setTripMode(mode)
+    }
   }
 
   fun onStationSelected(stationId: String) {
@@ -326,21 +367,29 @@ internal class MapEnvironmentalViewModel(
   }
 
   fun onQuickRoute(station: Station) {
-    routeLauncher.launch(station)
+    routeLauncher.launchForTripMode(station, settingsRepository.tripMode.value)
   }
 
   private fun buildUiState(
     stationsState: StationsState,
     favoriteIds: Set<String>,
     searchRadiusMeters: Int,
+    tripMode: TripMode,
     state: MapEnvironmentalMutableState,
     zones: List<MapEnvironmentalZoneSnapshot>,
   ): MapEnvironmentalUiState {
     val filteredStations = filterStationsByQuery(stationsState.stations, state.searchQuery)
     val availableFilters = availableMapFilters(filteredStations)
-    val activeFilters = sanitizeActiveMapFilters(state.persistedActiveFilters, availableFilters)
+    val persistedActiveFilters = sanitizeActiveMapFilters(state.persistedActiveFilters, availableFilters)
+    val activeFilters =
+      effectiveMapFilters(
+        persistedFilters = persistedActiveFilters,
+        availableFilters = availableFilters,
+        tripMode = tripMode,
+        hasExplicitAvailabilityFilter = state.hasExplicitAvailabilityFilter,
+      )
     val mapStations = applyMapFilters(filteredStations, activeFilters)
-    val nearestSelection = selectNearbyStation(stationsState.stations, searchRadiusMeters)
+    val nearestSelection = selectNearbyStationForTripMode(stationsState.stations, searchRadiusMeters, tripMode)
     // Trust mutableState directly — explicit reconciliation is done via reconcileSelection().
     val selectedStation = state.selectedMapStationId?.let { id -> mapStations.firstOrNull { it.id == id } }
     val activeLayer = activeEnvironmentalLayerForFilters(activeFilters)
@@ -358,7 +407,9 @@ internal class MapEnvironmentalViewModel(
       userLocation = stationsState.userLocation,
       availableFilters = availableFilters,
       zones = zones,
-      persistedActiveFilters = activeFilters,
+      persistedActiveFilters = persistedActiveFilters,
+      activeFilters = activeFilters,
+      tripMode = tripMode,
       activeEnvironmentalLayer = activeLayer,
       selectedMapStation = selectedStation,
       selectedMapStationId = state.selectedMapStationId,
@@ -403,6 +454,27 @@ internal class MapEnvironmentalViewModel(
         pollenScore = reading?.pollenIndex,
       )
     }
+}
+
+/**
+ * Explicit filters plus the trip mode's recommended availability filter when the
+ * user has not explicitly chosen one. The default is never persisted; it only
+ * shapes what the map shows and which chip appears selected.
+ */
+private fun effectiveMapFilters(
+  persistedFilters: Set<MapFilter>,
+  availableFilters: Set<MapFilter>,
+  tripMode: TripMode,
+  hasExplicitAvailabilityFilter: Boolean,
+): Set<MapFilter> {
+  val sanitized = sanitizeActiveMapFilters(persistedFilters, availableFilters)
+  if (hasExplicitAvailabilityFilter) return sanitized
+  if (stationAvailabilityFilters(sanitized).isNotEmpty()) return sanitized
+
+  val default = defaultAvailabilityMapFilterForTripMode(tripMode)
+  if (default !in availableFilters) return sanitized
+
+  return (sanitized + default).filterTo(linkedSetOf()) { it in availableFilters }
 }
 
 private fun resolveSelection(

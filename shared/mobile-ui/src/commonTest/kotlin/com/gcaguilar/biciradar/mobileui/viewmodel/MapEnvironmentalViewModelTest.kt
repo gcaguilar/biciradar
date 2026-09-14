@@ -16,6 +16,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.mobileui.MapEnvironmentalLayer
 import com.gcaguilar.biciradar.mobileui.MapFilter
 import kotlinx.coroutines.Dispatchers
@@ -280,6 +281,33 @@ class MapEnvironmentalViewModelTest {
     }
 
   @Test
+  fun `quick route follows the trip mode`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeMapEnvironmentalSettingsRepository()
+      val routeLauncher = RecordingMapRouteLauncher()
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = settingsRepository,
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = routeLauncher,
+        )
+      advanceUntilIdle()
+      val selected = station("a", 41.7, -0.8)
+
+      viewModel.onQuickRoute(selected)
+      advanceUntilIdle()
+      assertEquals(listOf(selected), routeLauncher.launchedStations)
+      assertTrue(routeLauncher.bikeDestinations.isEmpty())
+
+      settingsRepository.tripMode.value = TripMode.Cyclist
+      viewModel.onQuickRoute(selected)
+      advanceUntilIdle()
+      assertEquals(listOf(selected.location), routeLauncher.bikeDestinations)
+    }
+
+  @Test
   fun `clearing environmental filters removes environmental items hides sheet and persists`() =
     runTest(dispatcher) {
       val settingsRepository =
@@ -359,6 +387,79 @@ class MapEnvironmentalViewModelTest {
       assertEquals("a", viewModel.uiState.value.selectedMapStationId)
       assertFalse(viewModel.uiState.value.hasExplicitMapSelection)
     }
+
+  @Test
+  fun `trip mode recommends an availability filter when none is explicit`() =
+    runTest(dispatcher) {
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
+        )
+      advanceUntilIdle()
+      viewModel.onStationsChanged(listOf(station("s1", 41.65, -0.88)))
+      advanceUntilIdle()
+
+      assertEquals(emptySet(), viewModel.uiState.value.persistedActiveFilters)
+      assertEquals(setOf(MapFilter.HAS_BIKES), viewModel.uiState.value.activeFilters)
+
+      viewModel.onTripModeChanged(TripMode.Cyclist)
+      advanceUntilIdle()
+
+      assertEquals(setOf(MapFilter.HAS_SLOTS), viewModel.uiState.value.activeFilters)
+    }
+
+  @Test
+  fun `explicit availability filter is respected across trip mode changes`() =
+    runTest(dispatcher) {
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
+        )
+      advanceUntilIdle()
+      viewModel.onStationsChanged(listOf(station("s1", 41.65, -0.88)))
+      advanceUntilIdle()
+
+      val available = viewModel.uiState.value.availableFilters
+      assertTrue(MapFilter.BIKES_AND_SLOTS in available)
+      viewModel.onToggleFilter(MapFilter.BIKES_AND_SLOTS, available)
+      advanceUntilIdle()
+      assertEquals(setOf(MapFilter.BIKES_AND_SLOTS), viewModel.uiState.value.activeFilters)
+
+      viewModel.onTripModeChanged(TripMode.Cyclist)
+      advanceUntilIdle()
+
+      assertEquals(setOf(MapFilter.BIKES_AND_SLOTS), viewModel.uiState.value.activeFilters)
+    }
+
+  @Test
+  fun `clearing the recommended filter is not overridden by the mode default`() =
+    runTest(dispatcher) {
+      val viewModel =
+        MapEnvironmentalViewModel(
+          environmentalRepository = FakeEnvironmentalRepository(),
+          settingsRepository = FakeMapEnvironmentalSettingsRepository(),
+          stationsRepository = FakeMapStationsRepository(),
+          favoritesRepository = FakeMapFavoritesRepository(),
+          routeLauncher = NoOpMapRouteLauncher(),
+        )
+      advanceUntilIdle()
+      viewModel.onStationsChanged(listOf(station("s1", 41.65, -0.88)))
+      advanceUntilIdle()
+      assertEquals(setOf(MapFilter.HAS_BIKES), viewModel.uiState.value.activeFilters)
+
+      viewModel.onToggleFilter(MapFilter.HAS_BIKES, viewModel.uiState.value.availableFilters)
+      advanceUntilIdle()
+
+      assertEquals(emptySet(), viewModel.uiState.value.activeFilters)
+    }
 }
 
 private class FakeEnvironmentalRepository : EnvironmentalRepository {
@@ -408,6 +509,7 @@ private class FakeMapEnvironmentalSettingsRepository(
   var bootstrapCalls: Int = 0
   var storedPersistedFilterNames: Set<String> = persistedFilterNames
   val persistedFilterWrites = mutableListOf<Set<String>>()
+  override val tripMode = MutableStateFlow(TripMode.Pedestrian)
 
   override suspend fun bootstrap() {
     bootstrapCalls++
@@ -432,6 +534,10 @@ private class FakeMapEnvironmentalSettingsRepository(
   override suspend fun setThemePreference(preference: ThemePreference) = Unit
 
   override suspend fun setSelectedCity(city: City) = Unit
+
+  override suspend fun setTripMode(mode: TripMode) {
+    tripMode.value = mode
+  }
 
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
 
@@ -491,4 +597,19 @@ private class NoOpMapRouteLauncher : RouteLauncher {
   override fun launch(station: Station) = Unit
 
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
+}
+
+private class RecordingMapRouteLauncher : RouteLauncher {
+  val launchedStations = mutableListOf<Station>()
+  val bikeDestinations = mutableListOf<GeoPoint>()
+
+  override fun launch(station: Station) {
+    launchedStations += station
+  }
+
+  override fun launchWalkToLocation(destination: GeoPoint) = Unit
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    bikeDestinations += destination
+  }
 }

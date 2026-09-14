@@ -16,19 +16,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.gcaguilar.biciradar.core.TripMode
+import com.gcaguilar.biciradar.mobileui.BiziAlpha
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MapFilter
 import com.gcaguilar.biciradar.mobileui.components.BiziSelectableChip
+import com.gcaguilar.biciradar.mobileui.orderedMapFiltersForTripMode
 import org.jetbrains.compose.resources.stringResource
 
 /**
  * Panel de filtros del mapa con chips seleccionables.
  *
+ * @param tripMode Modo global que ordena los chips y decide el filtro recomendado
  * @param activeFilters Conjunto de filtros actualmente activos
  * @param onToggleFilter Callback cuando se alterna un filtro
  */
 @Composable
 internal fun MapFiltersPanel(
+  tripMode: TripMode,
   activeFilters: Set<MapFilter>,
   availableFilters: Set<MapFilter>,
   onToggleFilter: (MapFilter) -> Unit,
@@ -38,7 +43,7 @@ internal fun MapFiltersPanel(
     modifier = modifier.horizontalScroll(rememberScrollState()),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    MapFilter.entries.filter { it in availableFilters }.forEach { filter ->
+    orderedMapFiltersForTripMode(tripMode, availableFilters).forEach { filter ->
       MapFilterChip(
         filter = filter,
         label = stringResource(filter.labelKey),
@@ -59,6 +64,8 @@ private fun MapFilterChip(
   val c = LocalBiziColors.current
   val accent =
     when (filter) {
+      MapFilter.HAS_BIKES -> c.blue
+      MapFilter.HAS_SLOTS -> c.red
       MapFilter.BIKES_AND_SLOTS -> c.green
       MapFilter.ONLY_BIKES -> c.blue
       MapFilter.ONLY_SLOTS -> c.red
@@ -71,6 +78,8 @@ private fun MapFilterChip(
     selected = selected,
     onClick = onClick,
     tint = accent,
+    selectedContainerColor = accent.copy(alpha = BiziAlpha.mapFilterSelectedTint),
+    selectedBorderColor = accent.copy(alpha = BiziAlpha.mapFilterSelectedBorder),
   ) { contentColor ->
     MapColorDot(color = accent)
     Text(

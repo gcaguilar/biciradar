@@ -134,7 +134,8 @@ internal fun MapScreen(
       )
       if (mobilePlatform != MobileUiPlatform.Desktop) {
         MapFiltersPanel(
-          activeFilters = state.persistedActiveFilters,
+          tripMode = state.tripMode,
+          activeFilters = state.activeFilters,
           availableFilters = state.availableFilters,
           onToggleFilter = { filter -> onToggleFilter(filter, state.availableFilters) },
         )
@@ -216,6 +217,7 @@ internal fun MapScreen(
               isFallbackSelection = state.isShowingNearestFallback,
               searchRadiusMeters = state.searchRadiusMeters,
               mobilePlatform = mobilePlatform,
+              routeIcon = state.tripMode.routeIcon(),
               onFavoriteToggle = { onFavoriteToggle(station) },
               onOpenStationDetails = { onStationSelected(station) },
               onQuickRoute = { onQuickRoute(station) },

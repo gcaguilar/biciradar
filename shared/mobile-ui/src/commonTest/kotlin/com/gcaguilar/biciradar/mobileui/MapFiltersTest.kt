@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui
 
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.TripMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -92,6 +93,59 @@ class MapFiltersTest {
     val sanitized = sanitizeActiveMapFilters(active, available)
 
     assertEquals(setOf(MapFilter.POLLEN), sanitized)
+  }
+
+  @Test
+  fun `trip mode recommends the matching availability filter`() {
+    assertEquals(MapFilter.HAS_BIKES, defaultAvailabilityMapFilterForTripMode(TripMode.Pedestrian))
+    assertEquals(MapFilter.HAS_SLOTS, defaultAvailabilityMapFilterForTripMode(TripMode.Cyclist))
+  }
+
+  @Test
+  fun `trip mode orders the recommended filter first and its counterpart last`() {
+    val available = setOf(MapFilter.HAS_BIKES, MapFilter.HAS_SLOTS, MapFilter.ONLY_BIKES, MapFilter.POLLEN)
+
+    val pedestrian = orderedMapFiltersForTripMode(TripMode.Pedestrian, available).filterNot(::isEnvironmentalMapFilter)
+    assertEquals(
+      listOf(MapFilter.HAS_BIKES, MapFilter.ONLY_BIKES, MapFilter.HAS_SLOTS),
+      pedestrian,
+    )
+
+    val cyclist = orderedMapFiltersForTripMode(TripMode.Cyclist, available).filterNot(::isEnvironmentalMapFilter)
+    assertEquals(
+      listOf(MapFilter.HAS_SLOTS, MapFilter.ONLY_BIKES, MapFilter.HAS_BIKES),
+      cyclist,
+    )
+  }
+
+  @Test
+  fun `has bikes filter keeps every station with bikes regardless of slots`() {
+    val stations =
+      listOf(
+        station(id = "mixed", bikes = 2, slots = 3),
+        station(id = "only-slots", bikes = 0, slots = 5),
+        station(id = "empty", bikes = 0, slots = 0),
+      )
+
+    assertEquals(
+      listOf("mixed"),
+      applyMapFilters(stations, setOf(MapFilter.HAS_BIKES)).map { it.id },
+    )
+  }
+
+  @Test
+  fun `has slots filter keeps every station with free slots regardless of bikes`() {
+    val stations =
+      listOf(
+        station(id = "mixed", bikes = 2, slots = 3),
+        station(id = "only-slots", bikes = 0, slots = 5),
+        station(id = "empty", bikes = 0, slots = 0),
+      )
+
+    assertEquals(
+      listOf("mixed", "only-slots"),
+      applyMapFilters(stations, setOf(MapFilter.HAS_SLOTS)).map { it.id },
+    )
   }
 }
 

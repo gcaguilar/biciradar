@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.SavedPlaceAlertsRepository
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
+import com.gcaguilar.biciradar.core.launchForTripMode
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,7 +61,7 @@ class StationDetailUseCase(
     }
 
   fun launchRoute(station: Station) {
-    routeLauncher.launch(station)
+    routeLauncher.launchForTripMode(station, settingsRepository.tripMode.value)
   }
 
   suspend fun upsertAlertRule(

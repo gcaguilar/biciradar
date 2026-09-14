@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.components.station.FavoritePill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
 import com.gcaguilar.biciradar.mobileui.components.station.RoutePill
+import com.gcaguilar.biciradar.mobileui.components.station.addressSubtitleOrNull
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -65,6 +67,7 @@ internal fun StationDetailBottomSheet(
   isFallbackSelection: Boolean,
   searchRadiusMeters: Int,
   mobilePlatform: MobileUiPlatform,
+  routeIcon: ImageVector,
   onFavoriteToggle: () -> Unit,
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
@@ -117,13 +120,15 @@ internal fun StationDetailBottomSheet(
           color = overlayTitle,
           fontWeight = FontWeight.Bold,
         )
-        Text(
-          text = station.address,
-          style = MaterialTheme.typography.bodySmall,
-          color = overlayBody,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-        )
+        station.addressSubtitleOrNull()?.let { address ->
+          Text(
+            text = address,
+            style = MaterialTheme.typography.bodySmall,
+            color = overlayBody,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
       }
 
       // Resumen con distancia, bicis y slots
@@ -156,6 +161,7 @@ internal fun StationDetailBottomSheet(
         RoutePill(
           label = stringResource(Res.string.route),
           onDarkBackground = mobilePlatform != MobileUiPlatform.IOS,
+          icon = routeIcon,
           onClick = { onQuickRoute(station) },
         )
         if (mobilePlatform == MobileUiPlatform.IOS) {

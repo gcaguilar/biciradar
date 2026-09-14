@@ -30,17 +30,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.loadStations
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapLocationFallbackDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStationsOnScreen
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearby
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyCardActionsHint
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyFiltersNoResultsAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyFiltersNoResultsDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyFiltersNoResultsTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionBody
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyLocationPermissionTitle
@@ -52,6 +60,10 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyNoSlotsNearby
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyQuickActionsDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyRadiusFallbackHint
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStations
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSortedByBikesDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSortedByNameDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSortedByPredictedDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSortedBySlotsDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyStationsSortedDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.nearbyUpdatingStations
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.retry
@@ -59,12 +71,20 @@ import com.gcaguilar.biciradar.mobileui.DataFreshnessBanner
 import com.gcaguilar.biciradar.mobileui.FeedbackBottomSheet
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.NearbyBikeType
+import com.gcaguilar.biciradar.mobileui.NearbyMaxDistance
+import com.gcaguilar.biciradar.mobileui.NearbySort
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
+import com.gcaguilar.biciradar.mobileui.components.NearbyFiltersButton
+import com.gcaguilar.biciradar.mobileui.components.NearbyFiltersSheet
+import com.gcaguilar.biciradar.mobileui.components.TripModeSelector
 import com.gcaguilar.biciradar.mobileui.components.cards.QuickRouteActionCard
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
+import com.gcaguilar.biciradar.mobileui.routeIcon
 import com.gcaguilar.biciradar.mobileui.viewmodel.NearbyUiState
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -77,12 +97,19 @@ internal fun NearbyScreen(
   onFavoriteToggle: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
   onRequestLocationPermission: () -> Unit,
+  onTripModeSelected: (TripMode) -> Unit,
+  onBikeTypeSelected: (NearbyBikeType) -> Unit,
+  onMaxDistanceSelected: (NearbyMaxDistance) -> Unit,
+  onFavoritesOnlyToggled: () -> Unit,
+  onSortSelected: (NearbySort) -> Unit,
+  onClearFilters: () -> Unit,
   refreshControl: @Composable () -> Unit,
   showFeedbackBottomSheet: Boolean,
   onFeedbackDismiss: () -> Unit,
   onOpenFeedbackForm: () -> Unit,
   paddingValues: PaddingValues,
 ) {
+  var showFiltersSheet by remember { mutableStateOf(false) }
   Box(
     modifier =
       Modifier
@@ -138,7 +165,7 @@ internal fun NearbyScreen(
                   color = LocalBiziColors.current.red,
                 )
                 Text(
-                  text = stringResource(Res.string.nearbyStationsSortedDescription),
+                  text = stringResource(state.filters.sort.descriptionResource()),
                   style = MaterialTheme.typography.bodyMedium,
                   color = LocalBiziColors.current.muted,
                 )
@@ -146,6 +173,12 @@ internal fun NearbyScreen(
               refreshControl()
             }
           }
+          TripModeSelector(
+            selectedMode = state.tripMode,
+            onModeSelected = onTripModeSelected,
+            mobilePlatform = mobilePlatform,
+            modifier = Modifier.fillMaxWidth(),
+          )
           Row(
             modifier = Modifier.animateContentSize(animationSpec = spring(dampingRatio = 0.9f, stiffness = 500f)),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -196,18 +229,30 @@ internal fun NearbyScreen(
 
       item("stations-header") {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text =
-              if (state.isLoading) {
-                stringResource(
-                  Res.string.nearbyUpdatingStations,
-                )
-              } else {
-                stringResource(Res.string.nearbyStations)
-              },
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-          )
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+              text =
+                if (state.isLoading) {
+                  stringResource(
+                    Res.string.nearbyUpdatingStations,
+                  )
+                } else {
+                  stringResource(Res.string.nearbyStations)
+                },
+              modifier = Modifier.weight(1f),
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.width(12.dp))
+            NearbyFiltersButton(
+              activeCount = state.filters.activeCount,
+              onClick = { showFiltersSheet = true },
+            )
+          }
           Text(
             text =
               if (state.nearestSelection.usesFallback) {
@@ -243,12 +288,21 @@ internal fun NearbyScreen(
           exit = fadeOut(animationSpec = tween(120)) + shrinkVertically(animationSpec = tween(120)),
           label = "nearby-empty",
         ) {
-          EmptyStatePlaceholder(
-            title = stringResource(Res.string.mapNoStationsOnScreen),
-            description = stringResource(Res.string.mapLocationFallbackDescription),
-            primaryAction = stringResource(Res.string.loadStations),
-            onPrimaryAction = onRetry,
-          )
+          if (state.filters.isDefault) {
+            EmptyStatePlaceholder(
+              title = stringResource(Res.string.mapNoStationsOnScreen),
+              description = stringResource(Res.string.mapLocationFallbackDescription),
+              primaryAction = stringResource(Res.string.loadStations),
+              onPrimaryAction = onRetry,
+            )
+          } else {
+            EmptyStatePlaceholder(
+              title = stringResource(Res.string.nearbyFiltersNoResultsTitle),
+              description = stringResource(Res.string.nearbyFiltersNoResultsDescription),
+              primaryAction = stringResource(Res.string.nearbyFiltersNoResultsAction),
+              onPrimaryAction = onClearFilters,
+            )
+          }
         }
       }
 
@@ -260,9 +314,23 @@ internal fun NearbyScreen(
           onClick = { onStationSelected(station) },
           onFavoriteToggle = { onFavoriteToggle(station) },
           onQuickRoute = { onQuickRoute(station) },
+          routeIcon = state.tripMode.routeIcon(),
         )
       }
     }
+  }
+
+  if (showFiltersSheet) {
+    NearbyFiltersSheet(
+      filters = state.filters,
+      showBikeTypeFilter = state.supportsBikeTypeFilter,
+      onBikeTypeSelected = onBikeTypeSelected,
+      onMaxDistanceSelected = onMaxDistanceSelected,
+      onFavoritesOnlyToggled = onFavoritesOnlyToggled,
+      onSortSelected = onSortSelected,
+      onReset = onClearFilters,
+      onDismiss = { showFiltersSheet = false },
+    )
   }
 
   if (showFeedbackBottomSheet) {
@@ -272,3 +340,12 @@ internal fun NearbyScreen(
     )
   }
 }
+
+private fun NearbySort.descriptionResource(): StringResource =
+  when (this) {
+    NearbySort.NEAREST -> Res.string.nearbyStationsSortedDescription
+    NearbySort.MOST_BIKES -> Res.string.nearbyStationsSortedByBikesDescription
+    NearbySort.MOST_SLOTS -> Res.string.nearbyStationsSortedBySlotsDescription
+    NearbySort.NAME -> Res.string.nearbyStationsSortedByNameDescription
+    NearbySort.BEST_PREDICTED_AVAILABILITY -> Res.string.nearbyStationsSortedByPredictedDescription
+  }

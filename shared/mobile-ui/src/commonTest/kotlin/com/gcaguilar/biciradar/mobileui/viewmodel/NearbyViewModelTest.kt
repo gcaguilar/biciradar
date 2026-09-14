@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import app.cash.turbine.test
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.DataFreshness
+import com.gcaguilar.biciradar.core.DatosBiziApi
 import com.gcaguilar.biciradar.core.EngagementSnapshot
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -12,13 +13,18 @@ import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.TripMode
+import com.gcaguilar.biciradar.mobileui.NearbyMaxDistance
+import com.gcaguilar.biciradar.mobileui.NearbySort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -55,6 +61,7 @@ class NearbyViewModelTest {
           settingsRepository = settingsRepository,
           routeLauncher = NearbyNoOpRouteLauncher,
           permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
         )
 
       val station = nearbyStation(id = "s1", distanceMeters = 150)
@@ -98,6 +105,7 @@ class NearbyViewModelTest {
           settingsRepository = settingsRepository,
           routeLauncher = routeLauncher,
           permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
         )
       val station = nearbyStation(id = "station-route", distanceMeters = 250)
 
@@ -114,6 +122,78 @@ class NearbyViewModelTest {
     }
 
   @Test
+  fun `quick route walks on foot and cycles when riding`() =
+    runTest(dispatcher) {
+      val settingsRepository = NearbyTestSettingsRepository()
+      val routeLauncher = NearbyRecordingRouteLauncher()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = NearbyTestStationsRepository(),
+          favoritesRepository = NearbyTestFavoritesRepository(),
+          settingsRepository = settingsRepository,
+          routeLauncher = routeLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
+        )
+      val station = nearbyStation(id = "station-route", distanceMeters = 250)
+
+      viewModel.onQuickRoute(station)
+      runCurrent()
+      assertEquals("station-route", routeLauncher.lastStationId)
+      assertEquals(null, routeLauncher.lastBikeDestination)
+
+      settingsRepository.tripMode.value = TripMode.Cyclist
+      viewModel.onQuickRoute(station)
+      runCurrent()
+
+      assertEquals(station.location, routeLauncher.lastBikeDestination)
+    }
+
+  @Test
+  fun `trip mode orders stations and updates the nearest selection`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val settingsRepository = NearbyTestSettingsRepository()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = NearbyTestFavoritesRepository(),
+          settingsRepository = settingsRepository,
+          routeLauncher = NearbyNoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
+        )
+      stationsRepository.state.value =
+        StationsState(
+          stations =
+            listOf(
+              nearbyStation(id = "without-bikes", distanceMeters = 50, bikes = 0, slots = 5),
+              nearbyStation(id = "with-bikes", distanceMeters = 300, bikes = 3, slots = 0),
+            ),
+          isLoading = false,
+        )
+
+      viewModel.uiState.test {
+        skipItems(1)
+        runCurrent()
+
+        val pedestrian = awaitItem()
+        assertEquals(listOf("with-bikes"), pedestrian.stations.map { it.id })
+        assertEquals("with-bikes", pedestrian.nearestSelection.highlightedStation?.id)
+
+        viewModel.onTripModeChanged(TripMode.Cyclist)
+        runCurrent()
+
+        val cyclist = awaitItem()
+        assertEquals(TripMode.Cyclist, cyclist.tripMode)
+        assertEquals(listOf("without-bikes"), cyclist.stations.map { it.id })
+        assertEquals("without-bikes", cyclist.nearestSelection.highlightedStation?.id)
+        assertEquals(TripMode.Cyclist, settingsRepository.tripMode.value)
+        cancelAndIgnoreRemainingEvents()
+      }
+    }
+
+  @Test
   fun `setActive triggers load when stations list is empty`() =
     runTest(dispatcher) {
       val stationsRepository = NearbyTestStationsRepository()
@@ -124,6 +204,7 @@ class NearbyViewModelTest {
           settingsRepository = NearbyTestSettingsRepository(),
           routeLauncher = NearbyNoOpRouteLauncher,
           permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
         )
 
       viewModel.setActive(true)
@@ -145,6 +226,7 @@ class NearbyViewModelTest {
           settingsRepository = NearbyTestSettingsRepository(),
           routeLauncher = NearbyNoOpRouteLauncher,
           permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
         )
       stationsRepository.state.value =
         StationsState(
@@ -158,6 +240,60 @@ class NearbyViewModelTest {
       assertEquals(0, stationsRepository.loadIfNeededCalls)
       viewModel.setActive(false)
       runCurrent()
+    }
+
+  @Test
+  fun `filters and sort reshape the visible station list`() =
+    runTest(dispatcher) {
+      val stationsRepository = NearbyTestStationsRepository()
+      val favoritesRepository = NearbyTestFavoritesRepository()
+      val viewModel =
+        NearbyViewModel(
+          stationsRepository = stationsRepository,
+          favoritesRepository = favoritesRepository,
+          settingsRepository = NearbyTestSettingsRepository(),
+          routeLauncher = NearbyNoOpRouteLauncher,
+          permissionPrompter = NoOpPermissionPrompter,
+          datosBiziApi = NearbyNoOpDatosBiziApi,
+        )
+      stationsRepository.state.value =
+        StationsState(
+          stations =
+            listOf(
+              nearbyStation(id = "near-few", distanceMeters = 100, bikes = 1, slots = 5),
+              nearbyStation(id = "far-many", distanceMeters = 1_500, bikes = 8, slots = 2),
+            ),
+          isLoading = false,
+        )
+      favoritesRepository.favoriteIds.value = setOf("far-many")
+
+      fun visibleIds(): List<String> {
+        val visibleStations = viewModel.uiState.value.stations
+        return visibleStations.map { it.id }
+      }
+
+      advanceUntilIdle()
+      val initial = viewModel.uiState.value
+      assertEquals(listOf("near-few", "far-many"), visibleIds())
+      assertEquals(true, initial.filters.isDefault)
+      assertEquals(true, initial.supportsBikeTypeFilter)
+
+      viewModel.onSortSelected(NearbySort.MOST_BIKES)
+      advanceUntilIdle()
+      assertEquals(listOf("far-many", "near-few"), visibleIds())
+
+      viewModel.onMaxDistanceSelected(NearbyMaxDistance.KILOMETERS_1)
+      advanceUntilIdle()
+      assertEquals(listOf("near-few"), visibleIds())
+
+      viewModel.onClearFilters()
+      viewModel.onFavoritesOnlyToggled()
+      advanceUntilIdle()
+      assertEquals(listOf("far-many"), visibleIds())
+
+      viewModel.onClearFilters()
+      advanceUntilIdle()
+      assertEquals(listOf("near-few", "far-many"), visibleIds())
     }
 }
 
@@ -214,6 +350,7 @@ private class NearbyTestSettingsRepository : SettingsRepository {
   override val hasCompletedOnboarding = MutableStateFlow(true)
   override val onboardingChecklist = MutableStateFlow(OnboardingChecklistSnapshot(completedAtEpoch = 1L))
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot())
+  override val tripMode = MutableStateFlow(TripMode.Pedestrian)
 
   override suspend fun bootstrap() = Unit
 
@@ -237,6 +374,10 @@ private class NearbyTestSettingsRepository : SettingsRepository {
 
   override suspend fun setSelectedCity(city: City) = Unit
 
+  override suspend fun setTripMode(mode: TripMode) {
+    tripMode.value = mode
+  }
+
   override suspend fun setHasCompletedOnboarding(completed: Boolean) = Unit
 
   override suspend fun setOnboardingChecklist(snapshot: OnboardingChecklistSnapshot) = Unit
@@ -252,12 +393,17 @@ private class NearbyTestSettingsRepository : SettingsRepository {
 
 private class NearbyRecordingRouteLauncher : RouteLauncher {
   var lastStationId: String? = null
+  var lastBikeDestination: GeoPoint? = null
 
   override fun launch(station: Station) {
     lastStationId = station.id
   }
 
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
+
+  override fun launchBikeToLocation(destination: GeoPoint) {
+    lastBikeDestination = destination
+  }
 }
 
 private object NearbyNoOpRouteLauncher : RouteLauncher {
@@ -266,16 +412,22 @@ private object NearbyNoOpRouteLauncher : RouteLauncher {
   override fun launchWalkToLocation(destination: GeoPoint) = Unit
 }
 
+private object NearbyNoOpDatosBiziApi : DatosBiziApi {
+  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = emptyList()
+}
+
 private fun nearbyStation(
   id: String,
   distanceMeters: Int,
+  bikes: Int = 4,
+  slots: Int = 6,
 ): Station =
   Station(
     id = id,
     name = "Station $id",
     address = "Centro",
     location = GeoPoint(41.65, -0.88),
-    bikesAvailable = 4,
-    slotsFree = 6,
+    bikesAvailable = bikes,
+    slotsFree = slots,
     distanceMeters = distanceMeters,
   )

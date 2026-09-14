@@ -15,6 +15,7 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.mobileui.components.buttons.RefreshButtonWithCountdown
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
@@ -112,6 +113,12 @@ internal object BiziMobileAppContent {
     onFavoriteToggle: (Station) -> Unit,
     onQuickRoute: (Station) -> Unit,
     onRequestLocationPermission: () -> Unit,
+    onTripModeSelected: (TripMode) -> Unit,
+    onBikeTypeSelected: (com.gcaguilar.biciradar.mobileui.NearbyBikeType) -> Unit,
+    onMaxDistanceSelected: (com.gcaguilar.biciradar.mobileui.NearbyMaxDistance) -> Unit,
+    onFavoritesOnlyToggled: () -> Unit,
+    onSortSelected: (com.gcaguilar.biciradar.mobileui.NearbySort) -> Unit,
+    onClearFilters: () -> Unit,
     refreshControl: @Composable () -> Unit,
     showFeedbackNudge: Boolean,
     onFeedbackOpened: () -> Unit,
@@ -132,6 +139,12 @@ internal object BiziMobileAppContent {
       onFavoriteToggle = onFavoriteToggle,
       onQuickRoute = onQuickRoute,
       onRequestLocationPermission = onRequestLocationPermission,
+      onTripModeSelected = onTripModeSelected,
+      onBikeTypeSelected = onBikeTypeSelected,
+      onMaxDistanceSelected = onMaxDistanceSelected,
+      onFavoritesOnlyToggled = onFavoritesOnlyToggled,
+      onSortSelected = onSortSelected,
+      onClearFilters = onClearFilters,
       refreshControl = refreshControl,
       showFeedbackBottomSheet = showFeedbackBottomSheet,
       onFeedbackDismiss = {
@@ -168,6 +181,12 @@ internal object BiziMobileAppContent {
       onFavoriteToggle = viewModel::onFavoriteToggle,
       onQuickRoute = viewModel::onQuickRoute,
       onRequestLocationPermission = viewModel::onRequestLocationPermission,
+      onTripModeSelected = viewModel::onTripModeChanged,
+      onBikeTypeSelected = viewModel::onBikeTypeSelected,
+      onMaxDistanceSelected = viewModel::onMaxDistanceSelected,
+      onFavoritesOnlyToggled = viewModel::onFavoritesOnlyToggled,
+      onSortSelected = viewModel::onSortSelected,
+      onClearFilters = viewModel::onClearFilters,
       refreshControl = {
         NearbyRefreshControl(
           viewModel = viewModel,
@@ -452,7 +471,6 @@ internal object BiziMobileAppContent {
       state = uiState,
       mobilePlatform = mobilePlatform,
       isMapReady = isMapReady,
-      onRefreshStations = viewModel::onRefresh,
       onBack = onBack,
       onToggleFavorite = viewModel::onToggleFavorite,
       onToggleHome = viewModel::onToggleHome,

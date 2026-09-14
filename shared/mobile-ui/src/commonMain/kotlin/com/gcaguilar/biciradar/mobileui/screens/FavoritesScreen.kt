@@ -53,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -126,6 +127,7 @@ import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
+import com.gcaguilar.biciradar.mobileui.routeIcon
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesUiState
 import org.jetbrains.compose.resources.stringResource
 
@@ -167,6 +169,7 @@ internal fun FavoritesScreen(
   val savedPlaceAlertRules = state.savedPlaceAlertRules
   val categories = state.categories
   val stationCategory = state.stationCategory
+  val routeIcon = state.tripMode.routeIcon()
   var alertEditor by remember { mutableStateOf<Pair<SavedPlaceAlertTarget, SavedPlaceAlertRule?>?>(null) }
   val newCategoryName = state.newCategoryName
   val colors = LocalBiziColors.current
@@ -347,6 +350,7 @@ internal fun FavoritesScreen(
                 onClear = onClearHomeStation,
                 onOpenStationDetails = onStationSelected,
                 onQuickRoute = onQuickRoute,
+                routeIcon = routeIcon,
                 onSavedPlaceAlertClick =
                   run {
                     val s = homeStation
@@ -392,6 +396,7 @@ internal fun FavoritesScreen(
                 onClear = onClearWorkStation,
                 onOpenStationDetails = onStationSelected,
                 onQuickRoute = onQuickRoute,
+                routeIcon = routeIcon,
                 onSavedPlaceAlertClick =
                   run {
                     val s = workStation
@@ -454,6 +459,7 @@ internal fun FavoritesScreen(
                   onClear = { onClearCategoryAssignment(category.id) },
                   onOpenStationDetails = onStationSelected,
                   onQuickRoute = onQuickRoute,
+                  routeIcon = routeIcon,
                   onSavedPlaceAlertClick =
                     run {
                       val s = assignedStation
@@ -591,6 +597,7 @@ internal fun FavoritesScreen(
             onAssignHome = { onAssignHomeStation(station) },
             onAssignWork = { onAssignWorkStation(station) },
             onQuickRoute = { onQuickRoute(station) },
+            routeIcon = routeIcon,
             onRemoveFavorite = { onRemoveFavorite(station) },
             onSavedPlaceAlertClick =
               if (onUpsertSavedPlaceAlert != null) {
@@ -636,6 +643,7 @@ internal fun DismissibleFavoriteStationRow(
   onAssignHome: () -> Unit,
   onAssignWork: () -> Unit,
   onQuickRoute: () -> Unit,
+  routeIcon: ImageVector,
   onRemoveFavorite: () -> Unit,
   onSavedPlaceAlertClick: (() -> Unit)?,
   savedPlaceAlertActive: Boolean,
@@ -663,6 +671,7 @@ internal fun DismissibleFavoriteStationRow(
         onClick = onClick,
         onFavoriteToggle = onRemoveFavorite,
         onQuickRoute = onQuickRoute,
+        routeIcon = routeIcon,
         savedPlaceAlertSlot =
           if (onSavedPlaceAlertClick != null) {
             {
@@ -712,6 +721,7 @@ internal fun SavedPlaceCard(
   onClear: () -> Unit,
   onOpenStationDetails: (Station) -> Unit,
   onQuickRoute: (Station) -> Unit,
+  routeIcon: ImageVector,
   onSavedPlaceAlertClick: (() -> Unit)? = null,
   savedPlaceAlertLabel: String? = null,
   savedPlaceAlertActive: Boolean = false,
@@ -823,6 +833,8 @@ internal fun SavedPlaceCard(
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = colors.red, contentColor = colors.onAccent),
           ) {
+            Icon(routeIcon, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(Res.string.route))
           }
         } else {
@@ -830,6 +842,8 @@ internal fun SavedPlaceCard(
             onClick = { onQuickRoute(station) },
             modifier = Modifier.fillMaxWidth(),
           ) {
+            Icon(routeIcon, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
             Text(stringResource(Res.string.route))
           }
         }
