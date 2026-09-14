@@ -34,6 +34,21 @@ interface RouteLauncher {
   }
 }
 
+/**
+ * Launches directions to [station] honoring the user's [tripMode]: walking while on foot
+ * and cycling directions while riding. Single source of truth for every route action
+ * (home, map and station detail) so none of them silently ignores the mode.
+ */
+fun RouteLauncher.launchForTripMode(
+  station: Station,
+  tripMode: TripMode,
+) {
+  when (tripMode) {
+    TripMode.Pedestrian -> launch(station)
+    TripMode.Cyclist -> launchBikeToLocation(station.location)
+  }
+}
+
 interface AssistantIntentResolver {
   suspend fun resolve(
     action: AssistantAction,

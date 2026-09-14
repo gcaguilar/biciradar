@@ -20,4 +20,5 @@ class ObserveSettings(
   val searchRadiusMeters: StateFlow<Int> get() = settingsRepository.searchRadiusMeters
   val preferredMapApp: StateFlow<PreferredMapApp> get() = settingsRepository.preferredMapApp
   val themePreference: StateFlow<ThemePreference> get() = settingsRepository.themePreference
+  val tripMode: StateFlow<TripMode> get() = settingsRepository.tripMode
 }

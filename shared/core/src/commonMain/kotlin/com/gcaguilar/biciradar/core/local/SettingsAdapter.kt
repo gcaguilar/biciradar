@@ -6,6 +6,7 @@ import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsSnapshot
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.TripMode
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 
 /**
@@ -81,6 +82,7 @@ data class UpsertSettingsArgs(
   val engagementLastUpdateCheckAtEpoch: Long?,
   val engagementLastUpdateBannerDismissedAtEpoch: Long?,
   val preferredMonitoringDurationSeconds: Long?,
+  val tripMode: String,
 )
 
 /**
@@ -133,6 +135,7 @@ internal class DefaultSettingsAdapter : SettingsAdapter {
         ),
       mapFilterNames = mapFilterNames,
       preferredMonitoringDurationSeconds = row.preferred_monitoring_duration_seconds?.toInt(),
+      tripMode = TripMode.valueOf(row.trip_mode),
     )
 
   override fun toUpsertArgs(snapshot: SettingsSnapshot): UpsertSettingsArgs {
@@ -175,6 +178,7 @@ internal class DefaultSettingsAdapter : SettingsAdapter {
       engagementLastUpdateCheckAtEpoch = e.lastUpdateCheckAtEpoch,
       engagementLastUpdateBannerDismissedAtEpoch = e.lastUpdateBannerDismissedAtEpoch,
       preferredMonitoringDurationSeconds = s.preferredMonitoringDurationSeconds?.toLong(),
+      tripMode = s.tripMode.name,
     )
   }
 

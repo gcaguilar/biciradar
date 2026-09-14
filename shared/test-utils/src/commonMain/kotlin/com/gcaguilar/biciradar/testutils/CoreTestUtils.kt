@@ -25,6 +25,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.TripMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -46,6 +47,7 @@ open class FakeSettingsRepository(
   override val hasCompletedOnboarding = MutableStateFlow(onboardingChecklist.isCompleted())
   override val onboardingChecklist = MutableStateFlow(onboardingChecklist)
   override val engagementSnapshot = MutableStateFlow(EngagementSnapshot(installedAtEpoch = 1L))
+  override val tripMode = MutableStateFlow(TripMode.Pedestrian)
 
   override suspend fun bootstrap() = Unit
 
@@ -102,6 +104,10 @@ open class FakeSettingsRepository(
 
   override suspend fun setEngagementSnapshot(snapshot: EngagementSnapshot) {
     engagementSnapshot.value = snapshot
+  }
+
+  override suspend fun setTripMode(mode: TripMode) {
+    tripMode.value = mode
   }
 
   override suspend fun ensureChangelogStringBaseline(appVersion: String) = Unit

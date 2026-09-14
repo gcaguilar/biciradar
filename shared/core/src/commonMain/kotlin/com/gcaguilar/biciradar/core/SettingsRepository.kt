@@ -29,6 +29,14 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 /**
+ * Constant fallback flow for implementations that do not persist [TripMode].
+ *
+ * Real implementations (`SettingsRepositoryImpl`) override [PreferencesRepository.tripMode];
+ * test fakes inherit this read-only default so they do not need to implement the new preference.
+ */
+private val defaultTripModeFlow: StateFlow<TripMode> = MutableStateFlow(TripMode.Pedestrian)
+
+/**
  * Narrow interface for user preferences.
  *
  * Consumers that only read/write preferences (search radius, map app, city, theme)
@@ -41,6 +49,7 @@ interface PreferencesRepository {
   val lastSeenChangelogAppVersion: StateFlow<String?>
   val themePreference: StateFlow<ThemePreference>
   val selectedCity: StateFlow<City>
+  val tripMode: StateFlow<TripMode> get() = defaultTripModeFlow
 
   fun currentSearchRadiusMeters(): Int
 
@@ -61,6 +70,8 @@ interface PreferencesRepository {
   suspend fun setThemePreference(preference: ThemePreference)
 
   suspend fun setSelectedCity(city: City)
+
+  suspend fun setTripMode(mode: TripMode) {}
 
   suspend fun persistedMapFilterNames(): Set<String> = emptySet()
 
@@ -209,6 +220,11 @@ class SettingsRepositoryImpl(
       .map { snapshot -> snapshot.selectedCityId.let { City.fromId(it) } ?: City.defaultCity() }
       .stateIn(scope, SharingStarted.Eagerly, City.defaultCity())
 
+  override val tripMode: StateFlow<TripMode> =
+    readModel
+      .map { it.tripMode }
+      .stateIn(scope, SharingStarted.Eagerly, TripMode.Pedestrian)
+
   // --- OnboardingRepository delegate properties ---
 
   override val hasCompletedOnboarding: StateFlow<Boolean> =
@@ -284,6 +300,10 @@ class SettingsRepositoryImpl(
 
   override suspend fun setSelectedCity(city: City) {
     mutatePersist { it.copy(selectedCityId = city.id) }
+  }
+
+  override suspend fun setTripMode(mode: TripMode) {
+    mutatePersist { it.copy(tripMode = mode) }
   }
 
   override suspend fun persistedMapFilterNames(): Set<String> {
@@ -440,4 +460,5 @@ internal data class SettingsSnapshot(
   val engagementSnapshot: EngagementSnapshot = EngagementSnapshot(),
   val mapFilterNames: Set<String> = emptySet(),
   val preferredMonitoringDurationSeconds: Int? = null,
+  val tripMode: TripMode = TripMode.Pedestrian,
 )

@@ -100,7 +100,8 @@ CREATE TABLE app_settings (
   engagement_dismissed_update_version TEXT,
   engagement_last_update_check_at_epoch INTEGER,
   engagement_last_update_banner_dismissed_at_epoch INTEGER,
-  preferred_monitoring_duration_seconds INTEGER
+  preferred_monitoring_duration_seconds INTEGER,
+  trip_mode TEXT NOT NULL DEFAULT 'Pedestrian'
 );
 
 CREATE TABLE settings_map_filter_name (
@@ -336,7 +337,8 @@ INSERT OR REPLACE INTO app_settings (
   engagement_dismissed_update_version,
   engagement_last_update_check_at_epoch,
   engagement_last_update_banner_dismissed_at_epoch,
-  preferred_monitoring_duration_seconds
+  preferred_monitoring_duration_seconds,
+  trip_mode
 )
 VALUES (
   :id,
@@ -373,7 +375,8 @@ VALUES (
   :engagementDismissedUpdateVersion,
   :engagementLastUpdateCheckAtEpoch,
   :engagementLastUpdateBannerDismissedAtEpoch,
-  :preferredMonitoringDurationSeconds
+  :preferredMonitoringDurationSeconds,
+  :tripMode
 );
 
 deleteAllSettingsMapFilterNames:

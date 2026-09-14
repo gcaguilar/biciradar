@@ -32,6 +32,7 @@ object LegacyBlobToRelationalMigration {
     json: Json,
   ) {
     CORE_RELATIONAL_DDL.forEach { sql -> driver.execute(null, sql, 0) }
+    ensureAppSettingsTripModeColumn(driver)
     database.transaction {
       migrateSavedPlaceAlertsIfBlobgy(driver, json, database)
       migrateSettingsBlobIfPresent(driver, json, database)
@@ -41,6 +42,22 @@ object LegacyBlobToRelationalMigration {
 
   private fun createSavedPlaceTableIfMissing(driver: SqlDriver) {
     driver.execute(null, SAVED_PLACE_ALERT_RULES_DDL, 0)
+  }
+
+  /**
+   * Adds the `app_settings.trip_mode` column to databases created before the
+   * global trip mode existed. `CREATE TABLE IF NOT EXISTS` does not evolve an
+   * existing table, and the project has no `.sqm` migrations, so this is the
+   * idempotent upgrade path.
+   */
+  private fun ensureAppSettingsTripModeColumn(driver: SqlDriver) {
+    if (!tableExists(driver, "app_settings")) return
+    if (appSettingsHasTripModeColumn(driver)) return
+    driver.execute(
+      null,
+      "ALTER TABLE app_settings ADD COLUMN trip_mode TEXT NOT NULL DEFAULT 'Pedestrian'",
+      0,
+    )
   }
 
   private fun migrateSettingsBlobIfPresent(
@@ -192,6 +209,15 @@ object LegacyBlobToRelationalMigration {
         { cursor -> QueryResult.Value(cursor.next().value) },
         0,
       ).expectValue()
+
+  private fun appSettingsHasTripModeColumn(driver: SqlDriver): Boolean =
+    driver
+      .executeQuery(
+        null,
+        "SELECT 1 FROM pragma_table_info('app_settings') WHERE name='trip_mode' LIMIT 1",
+        { cursor -> QueryResult.Value(cursor.next().value) },
+        0,
+      ).expectValue()
 }
 
 private fun <T> QueryResult<T>.expectValue(): T =
@@ -255,6 +281,7 @@ internal fun upsertSettingsFromSnapshot(
     engagementLastUpdateCheckAtEpoch = args.engagementLastUpdateCheckAtEpoch,
     engagementLastUpdateBannerDismissedAtEpoch = args.engagementLastUpdateBannerDismissedAtEpoch,
     preferredMonitoringDurationSeconds = args.preferredMonitoringDurationSeconds,
+    tripMode = args.tripMode,
   )
   db.biciradarQueries.deleteAllSettingsMapFilterNames()
   snapshot.mapFilterNames.forEach { name: String ->
@@ -557,7 +584,8 @@ private val CORE_RELATIONAL_DDL: List<String> =
       engagement_dismissed_update_version TEXT,
       engagement_last_update_check_at_epoch INTEGER,
       engagement_last_update_banner_dismissed_at_epoch INTEGER,
-      preferred_monitoring_duration_seconds INTEGER
+      preferred_monitoring_duration_seconds INTEGER,
+      trip_mode TEXT NOT NULL DEFAULT 'Pedestrian'
     )
     """.trimIndent().replace("\n", " "),
     """
