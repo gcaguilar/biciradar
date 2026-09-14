@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -70,7 +70,7 @@ internal fun CitySelectionScreen(onCitySelected: (City) -> Unit) {
       Modifier
         .fillMaxSize()
         .background(colors.background)
-        .windowInsetsPadding(WindowInsets.statusBars)
+        .windowInsetsPadding(WindowInsets.safeDrawing)
         .padding(24.dp),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,

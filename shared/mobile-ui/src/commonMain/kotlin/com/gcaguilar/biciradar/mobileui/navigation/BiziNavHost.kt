@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -97,7 +98,10 @@ internal fun BiziNavHost(
   NavHost(
     navController = navController,
     startDestination = startDestination,
-    modifier = modifier.padding(paddingValues),
+    // The shell already applies the window insets as padding. Consume them here so that
+    // destinations with their own `Scaffold`/`TopAppBar` (which query `WindowInsets`
+    // internally) don't apply the status bar / navigation bar a second time.
+    modifier = modifier.padding(paddingValues).consumeWindowInsets(paddingValues),
   ) {
     composable<Screen.Nearby>(
       deepLinks =
