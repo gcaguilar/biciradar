@@ -82,6 +82,8 @@ Current Wear OS coverage:
 - Live Activity controller: `apple/iosApp/SurfaceMonitoringActivityController.swift`
 - Widget extension sources: `apple/iosWidgets`
 - App Intents / Shortcuts: `apple/iosApp/BiziShortcuts.swift`
+- Home Screen quick actions: `apple/iosApp/BiziHomeScreenQuickActions.swift`
+- Quick action tap handling: `apple/iosApp/BiziAppDelegate.swift`
 
 Current iOS surface coverage:
 
@@ -91,6 +93,16 @@ Current iOS surface coverage:
 - Lock Screen widgets
 - Live Activity for active monitoring with alternative details, tap-through to the suggested station, and Dynamic Island support
 - App Intents and Siri Shortcuts with station and city parameters
+- Home Screen quick actions (app icon long-press) for nearby, favorites, monitoring, and saved places `Casa` / `Trabajo`, derived from the same shared snapshot as Android
+
+Current iOS deep links (shared with Home Screen quick actions, parsed by `AppleDeepLinkParser`):
+
+- `biciradar://home`
+- `biciradar://map`
+- `biciradar://station/{id}`
+- `biciradar://favorites`
+- `biciradar://monitor/{id}`
+- `biciradar://city/{id}`
 
 ## Apple Watch
 

@@ -10,6 +10,9 @@ import WidgetKit
 struct BiciRadarApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
+    /// Receives Home Screen quick-action taps and forwards them as launch requests.
+    @UIApplicationDelegateAdaptor(BiziAppDelegate.self) private var appDelegate
+
     /// The one live Compose instance, owned by `BiziComposeShell` and mounted by
     /// `NativeNavContentView`. Deep links, foreground refresh and the final background
     /// check all go through this same wrapper — there is no second, unmounted copy.
@@ -40,6 +43,8 @@ struct BiciRadarApp: App {
                 .onAppear {
                     SurfaceMonitoringActivityController.shared.startRefreshing()
                     FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
+                    // Long-press menu is derived from the shared snapshot; refresh it on launch.
+                    BiziHomeScreenQuickActionPublisher.publish()
                     AppleSurfaceRefreshCoordinator.shared.refreshNow(
                         reason: "initial app appear",
                         forceDataRefresh: false
@@ -50,12 +55,18 @@ struct BiciRadarApp: App {
                     AppleLaunchRequestStore.shared.save(request)
                     applyPendingLaunchRequest()
                 }
+                // A quick action tapped while the scene is already active does not change the
+                // scene phase, so apply the stored request directly.
+                .onReceive(NotificationCenter.default.publisher(for: .biziHomeScreenQuickActionRequested)) { _ in
+                    applyPendingLaunchRequest()
+                }
                 .onChange(of: scenePhase) { _, newPhase in
                     switch newPhase {
                     case .active:
                         applyPendingLaunchRequest()
                         FavoritesSyncBridge.shared.syncWatchContextFromAppGroup()
                         SurfaceMonitoringActivityController.shared.startRefreshing()
+                        BiziHomeScreenQuickActionPublisher.publish()
                         composeWrapper.requestRefresh()
                         AppleSurfaceRefreshCoordinator.shared.refreshNow(
                             reason: "scene active",
@@ -194,6 +205,8 @@ final class AppleSurfaceRefreshCoordinator {
             }
             _ = try await BiziAppleGraph.shared.refreshWidgetData(reloadTimelines: false)
 
+            // Snapshot just changed: keep the Home Screen long-press menu in sync.
+            BiziHomeScreenQuickActionPublisher.publish()
             WidgetTimelineReloadScheduler.shared.scheduleReloads()
 
             if syncMonitoring {

@@ -11,6 +11,9 @@
 		02B036610C3FFBF56B5E9661 /* BiciRadarWatchWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8CA65F3C3A1404B9783F42 /* BiciRadarWatchWidgets.swift */; };
 		076783DCA69B74B1CB23A910 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */; };
 		07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */; };
+		6A1B2C3D0000000000000001 /* BiziAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */; };
+		6A1B2C3D0000000000000002 /* BiziHomeScreenQuickActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */; };
+		6A1B2C3D0000000000000003 /* BiziHomeScreenQuickActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */; };
 		094F33A9590778EE38A1991B /* BiziSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ED889F69B12E0E79E964DC /* BiziSyncModels.swift */; };
 		098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */; };
 		0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
@@ -217,6 +220,9 @@
 		A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchGraph.swift; sourceTree = "<group>"; };
 		A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcutDialogHelpers.swift; sourceTree = "<group>"; };
 		AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
+		6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppDelegate.swift; sourceTree = "<group>"; };
+		6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActions.swift; sourceTree = "<group>"; };
+		6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActionsTests.swift; sourceTree = "<group>"; };
 		AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziBackgroundTaskHandler.swift; sourceTree = "<group>"; };
 		AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunnerTests.swift; sourceTree = "<group>"; };
@@ -369,6 +375,8 @@
 			children = (
 				20A562478B548CD00B2A3A54 /* AppleDeepLinkParser.swift */,
 				AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */,
+				6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */,
+				6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */,
 				E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */,
 				6BF902119A13611BE50A2CD9 /* Assets.xcassets */,
 				26CAE5B20B8CABB6A3FCBAE0 /* BiciRadar.entitlements */,
@@ -452,6 +460,7 @@
 				D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */,
 				B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */,
 				A0E6222A15D0E28626C21925 /* AppleSurfaceStoreTests.swift */,
+				6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */,
 				A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */,
 				28FE3CE8E7F903FD961C2C1F /* SurfaceMonitoringActivityControllerTests.swift */,
 			);
@@ -797,6 +806,8 @@
 				07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */,
 				23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */,
 				197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */,
+				6A1B2C3D0000000000000001 /* BiziAppDelegate.swift in Sources */,
+				6A1B2C3D0000000000000002 /* BiziHomeScreenQuickActions.swift in Sources */,
 				DE5D9DE6223430D70D5C6921 /* BiziAppleGraph.swift in Sources */,
 				7CA48B71A16FECEFF2D3762D /* BiziBackgroundTaskHandler.swift in Sources */,
 				D39D1E161D597545C7B424A5 /* BiziMonitoringActivityAttributes.swift in Sources */,
@@ -843,6 +854,7 @@
 				E549E2DA4C6AB6C75B22A6DF /* AppleLaunchRequestStoreTests.swift in Sources */,
 				A001DF2D53BACE1211D784CE /* AppleShortcutRunnerTests.swift in Sources */,
 				81F41182612B41CFB2D5B596 /* AppleSurfaceStoreTests.swift in Sources */,
+				6A1B2C3D0000000000000003 /* BiziHomeScreenQuickActionsTests.swift in Sources */,
 				1B59A4F9B0439B18C0014937 /* FavoritesSyncBridgeTests.swift in Sources */,
 				9BAEC7333252F521025582E1 /* SurfaceMonitoringActivityControllerTests.swift in Sources */,
 			);
