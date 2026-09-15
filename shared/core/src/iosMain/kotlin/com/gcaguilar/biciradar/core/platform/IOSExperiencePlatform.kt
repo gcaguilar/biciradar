@@ -60,17 +60,16 @@ internal class IOSPermissionPrompterImpl : PermissionPrompter {
 internal class IOSReviewPrompterImpl(
   private val appConfiguration: AppConfiguration,
 ) : ReviewPrompter {
-  override suspend fun requestInAppReview(): Boolean =
-    runCatching {
-      val scene = foregroundActiveWindowScene()
-      if (scene != null) {
-        // Scene-based API (iOS 14+); the deprecated no-arg call is kept as a fallback.
-        SKStoreReviewController.requestReviewInScene(scene)
-      } else {
-        SKStoreReviewController.requestReview()
-      }
+  override suspend fun requestInAppReview(): Boolean {
+    // `requestReviewInScene` requires a foreground-active scene; without one we report
+    // that the call was never made so the caller can fall back to the store listing.
+    val scene = foregroundActiveWindowScene() ?: return false
+    return runCatching {
+      // Scene-based API (iOS 14+); this is what actually triggers StoreKit's prompt.
+      SKStoreReviewController.requestReviewInScene(scene)
       true
     }.getOrDefault(false)
+  }
 
   private fun foregroundActiveWindowScene(): UIWindowScene? =
     UIApplication.sharedApplication.connectedScenes

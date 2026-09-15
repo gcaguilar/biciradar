@@ -375,12 +375,8 @@ internal object BiziMobileAppContent {
       onOpenShortcuts = onOpenShortcuts,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
       onRateApp = {
-        if (mobilePlatform == MobileUiPlatform.Android) {
-          scope.launch {
-            platformBindings.reviewPrompter.requestInAppReviewOrStoreFallback()
-          }
-        } else {
-          platformBindings.reviewPrompter.openStoreWriteReview()
+        scope.launch {
+          platformBindings.reviewPrompter.requestInAppReviewOrStoreFallback()
         }
       },
     )

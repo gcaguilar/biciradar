@@ -12,7 +12,14 @@ interface PermissionPrompter {
   suspend fun requestLocationPermission(): Boolean
 }
 
-/** In-app review (fire-and-forget). Manual profile CTA should use [openStoreWriteReview]. */
+/**
+ * In-app review (fire-and-forget) plus a manual "write a review" CTA.
+ *
+ * The automatic startup signal should call [requestInAppReview] directly and only consume
+ * the once-per-version slot when it returns true. The manual profile CTA should call
+ * [requestInAppReviewOrStoreFallback], which tries the in-app prompt and opens the store
+ * listing when the platform call could not be made.
+ */
 interface ReviewPrompter {
   /**
    * Attempts to show the platform in-app review prompt.
@@ -24,8 +31,14 @@ interface ReviewPrompter {
    */
   suspend fun requestInAppReview(): Boolean
 
+  /**
+   * Tries the platform in-app review prompt first; when the prompt cannot be attempted
+   * at all (e.g. no foreground host or unsupported platform), falls back to opening the
+   * store so the user can still rate the app. Implementations that can't reliably drive
+   * the in-app prompt should override this to open the store directly.
+   */
   suspend fun requestInAppReviewOrStoreFallback() {
-    requestInAppReview()
+    if (!requestInAppReview()) openStoreWriteReview()
   }
 
   fun openStoreWriteReview()
