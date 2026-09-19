@@ -13,7 +13,7 @@ plugins {
   alias(libs.plugins.kotlin.serialization) apply false
   alias(libs.plugins.ktlint) apply false
   alias(libs.plugins.metro) apply false
-  id("com.github.ben-manes.versions") version "0.61.0"
+  id("com.github.ben-manes.versions") version "0.63.1"
 }
 
 allprojects {
