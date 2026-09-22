@@ -56,6 +56,11 @@ eminent-ellipse/.vscode/
 garminApp/bin/
 garminApp/gen/
 
+# Backend lives in its own private repository (gcaguilar/biciradar-back)
+# Anchored to the repository root: a bare `backend/` would also hide the app's
+# `shared/core/.../core/backend/` package.
+/backend/
+
 # Build outputs
 bin/
 gen/
