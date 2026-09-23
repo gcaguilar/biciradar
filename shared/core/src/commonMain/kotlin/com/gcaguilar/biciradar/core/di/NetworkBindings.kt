@@ -12,6 +12,12 @@ import com.gcaguilar.biciradar.core.GooglePlacesApiImpl
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.RoutingBiziApi
 import com.gcaguilar.biciradar.core.SettingsRepository
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.AuthTokenProvider
+import com.gcaguilar.biciradar.core.auth.asTokenProvider
+import com.gcaguilar.biciradar.core.backend.BackendConfig
+import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
+import com.gcaguilar.biciradar.core.backend.RoutineBackendApi
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
 import dev.zacsweers.metro.Provides
@@ -59,4 +65,34 @@ object NetworkBindings {
   @SingleIn(AppScope::class)
   @Provides
   fun provideGooglePlacesApi(httpClient: HttpClient): GooglePlacesApi = GooglePlacesApiImpl(httpClient)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideBackendConfig(appConfiguration: com.gcaguilar.biciradar.core.AppConfiguration): BackendConfig =
+    BackendConfig(appConfiguration.backendBaseUrl)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideAuthTokenProvider(authProvider: AuthProvider): AuthTokenProvider = authProvider.asTokenProvider()
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideBiciRadarApiClient(
+    httpClient: HttpClient,
+    json: Json,
+    backendConfig: BackendConfig,
+    authTokenProvider: AuthTokenProvider,
+    logger: Logger,
+  ): BiciRadarApiClient =
+    BiciRadarApiClient(
+      httpClient = httpClient,
+      json = json,
+      config = backendConfig,
+      tokenProvider = authTokenProvider,
+      logger = logger,
+    )
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideRoutineBackendApi(client: BiciRadarApiClient): RoutineBackendApi = client
 }
