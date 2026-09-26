@@ -44,7 +44,7 @@ jobs:
           java-version: "21"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.1
+        uses: android-actions/setup-android@v4.0.4
 
       - name: Install pinned Android build-tools
         run: sdkmanager "build-tools;36.0.0"
