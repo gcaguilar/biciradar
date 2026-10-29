@@ -58,7 +58,6 @@
 -keep class androidx.compose.runtime.** { *; }
 -dontwarn androidx.compose.**
 -keep class androidx.work.impl.WorkDatabase_Impl { <init>(); *; }
--keep class com.gcaguilar.biciradar.SavedPlaceAlertsWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }
 
 -keep class com.google.android.gms.maps.** { *; }
 -keep interface com.google.android.gms.maps.** { *; }

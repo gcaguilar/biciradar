@@ -118,8 +118,8 @@ internal class WearViewModel(
     }
 
     viewModelScope.launch {
-      observeSurfaceMonitoring.state.collect { session ->
-        latestActiveMonitoring = session?.takeIf { it.isActive }
+      observeSurfaceMonitoring.state.collect { sessions ->
+        latestActiveMonitoring = sessions.values.firstOrNull { it.isActive }
         publishUiState()
       }
     }

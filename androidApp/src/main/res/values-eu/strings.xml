@@ -37,6 +37,7 @@
     <string name="notification_action_share">Partekatu</string>
     <string name="notification_action_map">Mapa</string>
     <string name="notification_action_alternative">Alternatiba</string>
+    <string name="notification_monitoring_multiple_title">%1$d geltoki zaintzen</string>
     
     <!-- Notification Channel -->
     <string name="notification_channel_monitoring_title">Geltokien monitorizazioa</string>

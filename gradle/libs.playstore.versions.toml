@@ -20,6 +20,7 @@ play-services-location = { module = "com.google.android.gms:play-services-locati
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
 play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "play-services-wearable" }
 remote-config-sdk = { module = "com.google.firebase:firebase-config" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 [plugins]
 crash-reporting = { id = "com.google.firebase.crashlytics", version.ref = "crash-reporting-plugin" }

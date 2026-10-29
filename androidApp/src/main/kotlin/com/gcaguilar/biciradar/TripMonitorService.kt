@@ -15,6 +15,7 @@ import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.ToggleFavoriteStation
+import com.gcaguilar.biciradar.core.formatMonitoringCountdown
 import com.gcaguilar.biciradar.core.remainingSeconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +45,9 @@ class TripMonitorService : Service() {
     get() = BiziAppGraph.graph.toggleFavoriteStation
 
   private var countdownJob: Job? = null
-  private var currentSession: SurfaceMonitoringSession? = null
+  private var currentSessions: Map<String, SurfaceMonitoringSession> = emptyMap()
+
+  private fun activeSessions(): List<SurfaceMonitoringSession> = currentSessions.values.filter { it.isActive }
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -103,30 +106,30 @@ class TripMonitorService : Service() {
 
   private fun observeMonitoringState() {
     observeSurfaceMonitoring.state
-      .onEach { session: SurfaceMonitoringSession? ->
-        currentSession = session
-        if (session == null || !session.isActive) {
+      .onEach { sessions: Map<String, SurfaceMonitoringSession> ->
+        currentSessions = sessions
+        if (sessions.values.none { it.isActive }) {
           countdownJob?.cancel()
           updateWidgets()
           stopSelf()
           return@onEach
         }
-        startCountdown(session)
+        startCountdown()
         updateWidgets()
       }.launchIn(serviceScope)
   }
 
   /**
-   * Inicia la cuenta regresiva que actualiza la notificación cada segundo
+   * Inicia la cuenta regresiva que actualiza la notificación cada segundo.
    */
-  private fun startCountdown(session: SurfaceMonitoringSession) {
-    countdownJob?.cancel()
+  private fun startCountdown() {
+    if (countdownJob?.isActive == true) return
     countdownJob =
       serviceScope.launch {
-        while (isActive && session.isActive) {
+        while (isActive && activeSessions().isNotEmpty()) {
           notificationManager.notify(
             FOREGROUND_NOTIFICATION_ID,
-            buildForegroundNotification(session = session),
+            buildForegroundNotification(sessions = activeSessions()),
           )
           delay(1000)
         }
@@ -134,12 +137,11 @@ class TripMonitorService : Service() {
   }
 
   private fun updateNotification() {
-    currentSession?.let { session ->
-      notificationManager.notify(
-        FOREGROUND_NOTIFICATION_ID,
-        buildForegroundNotification(session = session),
-      )
-    }
+    if (activeSessions().isEmpty()) return
+    notificationManager.notify(
+      FOREGROUND_NOTIFICATION_ID,
+      buildForegroundNotification(sessions = activeSessions()),
+    )
   }
 
   private fun updateWidgets() {
@@ -153,22 +155,39 @@ class TripMonitorService : Service() {
   }
 
   /**
-   * Construye la notificación con estilo Material You
+   * Construye la notificación con estilo Material You.
+   * Soporta una o varias sesiones de monitorización concurrentes.
    */
   private fun buildForegroundNotification(
-    session: SurfaceMonitoringSession? = null,
-    text: String =
-      session
-        ?.let {
-          monitoringNotificationBody(it, it.remainingSeconds())
-        }.orEmpty(),
+    sessions: List<SurfaceMonitoringSession> = emptyList(),
+    text: String? = null,
   ): Notification {
+    val active = sessions.filter { it.isActive }.ifEmpty { sessions }
+    val primary = active.firstOrNull()
+    val singleSession = primary?.takeIf { active.size == 1 }
+    val bodyText =
+      text
+        ?: if (active.size > 1) {
+          active.joinToString("\n") { session ->
+            "${session.stationName} · ${formatMonitoringCountdown(session.remainingSeconds())}"
+          }
+        } else {
+          primary?.let { monitoringNotificationBody(it, it.remainingSeconds()) }.orEmpty()
+        }
+
+    val title =
+      if (active.size > 1) {
+        getString(R.string.notification_monitoring_multiple_title, active.size)
+      } else {
+        primary?.let(::monitoringNotificationTitle) ?: "BiciRadar"
+      }
+
     val openIntent =
-      session?.stationId?.let(::stationPendingIntent)
+      primary?.stationId?.let(::stationPendingIntent)
         ?: appPendingIntent(Uri.parse("biciradar://favorites"))
 
     val isFavorite =
-      session?.stationId?.let {
+      singleSession?.stationId?.let {
         observeFavorites.favoriteIds.value.contains(it)
       } ?: false
 
@@ -176,8 +195,8 @@ class TripMonitorService : Service() {
       NotificationCompat
         .Builder(this, CHANNEL_ID)
         .setSmallIcon(android.R.drawable.ic_menu_directions)
-        .setContentTitle(session?.let(::monitoringNotificationTitle) ?: "BiciRadar")
-        .setContentText(text)
+        .setContentTitle(title)
+        .setContentText(bodyText)
         .setContentIntent(openIntent)
         .setOngoing(true)
         .setOnlyAlertOnce(true)
@@ -196,8 +215,8 @@ class TripMonitorService : Service() {
       stopPendingIntent(),
     )
 
-    // Acción: Favorito (si hay sesión)
-    session?.stationId?.let { stationId ->
+    // Acción: Favorito (sólo con una sesión activa)
+    singleSession?.stationId?.let { stationId ->
       val favoriteIcon =
         if (isFavorite) {
           android.R.drawable.btn_star_big_on
@@ -218,8 +237,8 @@ class TripMonitorService : Service() {
       )
     }
 
-    // Acción: Compartir
-    session?.let { s ->
+    // Acción: Compartir (sólo con una sesión activa)
+    singleSession?.let { s ->
       builder.addAction(
         android.R.drawable.ic_menu_share,
         getString(R.string.notification_action_share),
@@ -234,8 +253,8 @@ class TripMonitorService : Service() {
       appPendingIntent(Uri.parse("biciradar://map")),
     )
 
-    // Acción: Alternativa (si existe)
-    session?.alternativeStationId?.let { stationId ->
+    // Acción: Alternativa (sólo con una sesión activa)
+    singleSession?.alternativeStationId?.let { stationId ->
       builder.addAction(
         android.R.drawable.ic_menu_mylocation,
         getString(R.string.notification_action_alternative),
@@ -244,12 +263,12 @@ class TripMonitorService : Service() {
     }
 
     // Estilo expandido con toda la información
-    if (text.isNotBlank()) {
+    if (bodyText.isNotBlank()) {
       builder.setStyle(
         NotificationCompat
           .BigTextStyle()
-          .bigText(text)
-          .setBigContentTitle(session?.let(::monitoringNotificationTitle)),
+          .bigText(bodyText)
+          .setBigContentTitle(title),
       )
     }
 

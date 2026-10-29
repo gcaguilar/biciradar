@@ -95,6 +95,27 @@ android {
     versionCode = 29570207
     versionName = "0.22.18"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
+
+    fun quoted(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+    fun configValue(
+      property: String,
+      envVar: String,
+    ): String = providers.gradleProperty(property).getOrElse(System.getenv(envVar).orEmpty())
+
+    buildConfigField("String", "BACKEND_BASE_URL", quoted(configValue("bizi.backendBaseUrl", "BICI_BACKEND_URL")))
+    buildConfigField("String", "AUTH0_DOMAIN", quoted(configValue("bizi.auth0Domain", "BICI_AUTH0_DOMAIN")))
+    buildConfigField("String", "AUTH0_CLIENT_ID", quoted(configValue("bizi.auth0ClientId", "BICI_AUTH0_CLIENT_ID")))
+    buildConfigField("String", "AUTH0_AUDIENCE", quoted(configValue("bizi.auth0Audience", "BICI_AUTH0_AUDIENCE")))
+
+    // The Auth0 SDK's RedirectActivity manifest declares ${auth0Domain} and
+    // ${auth0Scheme}; without them the manifest merger fails the release build.
+    manifestPlaceholders["auth0Domain"] =
+      configValue("bizi.auth0Domain", "BICI_AUTH0_DOMAIN")
+        .removePrefix("https://")
+        .trimEnd('/')
+    manifestPlaceholders["auth0Scheme"] =
+      configValue("bizi.auth0Scheme", "BICI_AUTH0_SCHEME").ifBlank { "biciradar" }
   }
 
   flavorDimensions += "tier"
@@ -194,10 +215,23 @@ dependencies {
   implementation(libs.google.material)
   testImplementation(libs.junit)
   add("fdroidImplementation", libs.osmdroid.android)
+  // Auth0 pulls androidx.credentials + Google Play Services; F-Droid must stay
+  // GMS-free, so the transitive Play Services are excluded there. The browser
+  // (custom tabs) login path does not need them.
+  add("fdroidImplementation", libs.auth0.android)
+  // Auth0 pulls androidx.credentials + Google Play Services; F-Droid must stay
+  // GMS-free, so the transitive Play Services are excluded there. The browser
+  // (custom tabs) login path does not need them.
+  configurations.matching { it.name.startsWith("fdroid") }.configureEach {
+    exclude(group = "com.google.android.gms")
+    exclude(group = "androidx.credentials", module = "credentials-play-services-auth")
+  }
 
   // Play Store flavor dependencies
+  add("playstoreImplementation", libs.auth0.android)
   add("playstoreImplementation", playstore.maps.compose)
   add("playstoreImplementation", playstore.remote.config.sdk)
+  add("playstoreImplementation", playstore.firebase.messaging)
   add("playstoreImplementation", playstore.play.services.maps)
   add("playstoreImplementation", playstore.play.services.wearable)
   add("playstoreImplementation", playstore.play.review.ktx)

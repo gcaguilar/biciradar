@@ -24,11 +24,29 @@ object BiziAppGraph {
   fun initialize(application: Application) {
     if (_graph != null) return // Ya inicializado
 
+    val configuration =
+      AppConfiguration(
+        backendBaseUrl = BuildConfig.BACKEND_BASE_URL,
+        auth0Domain = BuildConfig.AUTH0_DOMAIN,
+        auth0ClientId = BuildConfig.AUTH0_CLIENT_ID,
+        auth0Audience = BuildConfig.AUTH0_AUDIENCE,
+      )
     val bindings =
       AndroidPlatformBindings(
         context = application.applicationContext,
-        appConfiguration = AppConfiguration(),
+        appConfiguration = configuration,
       )
+    if (configuration.auth0Configured) {
+      bindings.authProviderOverride =
+        AndroidAuth0Provider(
+          context = application.applicationContext,
+          configuration = configuration,
+          activityProvider = { bindings.experienceActivity },
+        )
+    } else if (BuildConfig.DEBUG && configuration.backendConfigured) {
+      // Local smoke testing against a backend with AUTH_DISABLED=true.
+      bindings.authProviderOverride = com.gcaguilar.biciradar.core.auth.DevAuthProvider
+    }
     _platformBindings = bindings
     _graph = createMobileGraph(bindings)
     bindings.onGraphCreated(graph)

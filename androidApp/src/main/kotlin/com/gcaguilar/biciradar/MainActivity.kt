@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.auth0.android.provider.WebAuthProvider
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.mobileui.BiziMobileApp
 import com.gcaguilar.biciradar.mobileui.LocalAndroidStationMapRenderer
@@ -126,6 +127,9 @@ class MainActivity : ComponentActivity() {
       }
     }
 
+    // Complete an Auth0 WebAuth redirect that started before process death.
+    runCatching { WebAuthProvider.resume(intent) }
+
     applyLaunchPayload(intent)
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
 
@@ -149,8 +153,6 @@ class MainActivity : ComponentActivity() {
     }
 
     platformBindings.appUpdateLauncher = appUpdateLauncher
-
-    SavedPlaceAlertsWorker.schedule(applicationContext)
   }
 
   override fun onStart() {
@@ -178,6 +180,7 @@ class MainActivity : ComponentActivity() {
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     setIntent(intent)
+    runCatching { WebAuthProvider.resume(intent) }
     applyLaunchPayload(intent)
     AndroidAssistantShortcuts.reportUsed(this, launchRequest, assistantLaunchRequest)
   }
@@ -193,8 +196,8 @@ class MainActivity : ComponentActivity() {
     var serviceRunning = false
 
     graph.observeSurfaceMonitoring.state
-      .onEach { state ->
-        val shouldRun = state?.isActive == true
+      .onEach { sessions ->
+        val shouldRun = sessions.values.any { it.isActive }
         if (shouldRun && !serviceRunning) {
           TripMonitorService.start(applicationContext)
           serviceRunning = true

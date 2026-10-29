@@ -37,6 +37,7 @@
     <string name="notification_action_share">Share</string>
     <string name="notification_action_map">Map</string>
     <string name="notification_action_alternative">Alternative</string>
+    <string name="notification_monitoring_multiple_title">Watching %1$d stations</string>
     
     <!-- Notification Channel -->
     <string name="notification_channel_monitoring_title">Station monitoring</string>

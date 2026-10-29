@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar
 
-import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -26,16 +25,11 @@ class WidgetRefreshWorker(
       return Result.success()
     }
 
+    // Scheduled widget refreshes must not hit the network (plan §I): they render
+    // the last persisted snapshot. Fresh data comes from the app foreground and
+    // from pushes, which refresh the cache and then trigger this worker.
     return runCatching {
-      if (!BiziAppGraph.isInitialized()) {
-        BiziAppGraph.initialize(applicationContext as Application)
-      }
-
-      val graph = BiziAppGraph.graph
-      graph.bootstrapSession.execute()
-      graph.refreshStationDataIfNeeded.execute(forceRefresh = true)
       updateAllWidgets(applicationContext)
-
       Result.success()
     }.getOrElse {
       Result.retry()

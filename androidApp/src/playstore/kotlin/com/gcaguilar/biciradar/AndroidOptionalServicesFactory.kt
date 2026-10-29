@@ -77,6 +77,9 @@ private class PhoneAndroidOptionalServices(
   ): AppUpdatePrompter = PlaystoreAppUpdatePrompter(context, activityProvider, launcher)
 
   override fun createWatchSyncBridge(): WatchSyncBridge = PlaystoreWatchSyncBridge(context)
+
+  override fun createDeviceTokenProvider(): com.gcaguilar.biciradar.core.push.DeviceTokenProvider =
+    FcmDeviceTokenProvider(context)
 }
 
 private class PlaystoreReviewPrompter(
