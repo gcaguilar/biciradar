@@ -92,9 +92,26 @@ data class SurfaceSnapshotBundle(
   val homeStation: SurfaceStationSnapshot? = null,
   val workStation: SurfaceStationSnapshot? = null,
   val nearbyStations: List<SurfaceStationSnapshot> = emptyList(),
+  /**
+   * Sesión "principal" para consumidores que sólo renderizan una (widgets del
+   * reloj, notificación resumen). Se corresponde con la primera sesión de
+   * [monitoringSessions].
+   */
   val monitoringSession: SurfaceMonitoringSession? = null,
+  /**
+   * Todas las sesiones de monitorización concurrentes (una por estación).
+   * Una rutina puede arrancar varias a la vez.
+   */
+  val monitoringSessions: List<SurfaceMonitoringSession> = emptyList(),
   val state: SurfaceState,
-)
+) {
+  /** Sesiones activas, o las últimas conocidas si no hay ninguna activa. */
+  val visibleMonitoringSessions: List<SurfaceMonitoringSession>
+    get() =
+      monitoringSessions
+        .ifEmpty { listOfNotNull(monitoringSession) }
+        .let { sessions -> sessions.filter { it.isActive }.ifEmpty { sessions } }
+}
 
 fun Station.toSurfaceSnapshot(
   cityId: String,

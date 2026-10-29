@@ -27,4 +27,6 @@ interface SharedGraph :
   SurfaceFeatureDeps,
   PlatformFeatureDeps,
   TripFeatureDeps,
-  OnboardingFeatureDeps
+  OnboardingFeatureDeps,
+  RoutineFeatureDeps,
+  BackendFeatureDeps

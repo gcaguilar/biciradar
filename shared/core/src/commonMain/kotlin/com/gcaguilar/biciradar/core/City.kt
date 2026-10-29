@@ -9,13 +9,18 @@ enum class City(
   val gbfsDiscoveryUrl: String,
   val defaultLatitude: Double,
   val defaultLongitude: Double,
+  /**
+   * Catalog metadata: the city has a native usage-pattern provider. Runtime
+   * gating lives in `DatosBiziApi.supports`, which also covers the cities
+   * served by the BiciRadar backend.
+   */
   val supportsUsagePatterns: Boolean,
   val supportsEbikes: Boolean,
 ) {
   ZARAGOZA(
     id = "zaragoza",
     displayName = "Zaragoza",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bizi/gbfs.json",
+    gbfsDiscoveryUrl = "https://zaragoza.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 41.6488,
     defaultLongitude = -0.8751,
     supportsUsagePatterns = true,
@@ -24,7 +29,7 @@ enum class City(
   MADRID(
     id = "madrid",
     displayName = "Madrid",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bicimad/gbfs.json",
+    gbfsDiscoveryUrl = "https://madrid.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 40.4168,
     defaultLongitude = -3.7038,
     supportsUsagePatterns = false,
@@ -33,7 +38,7 @@ enum class City(
   BARCELONA(
     id = "barcelona",
     displayName = "Barcelona",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bicing/gbfs.json",
+    gbfsDiscoveryUrl = "https://barcelona.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 41.3851,
     defaultLongitude = 2.1734,
     supportsUsagePatterns = false,
@@ -42,7 +47,7 @@ enum class City(
   VALENCIA(
     id = "valencia",
     displayName = "Valencia",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/valenbisi/gbfs.json",
+    gbfsDiscoveryUrl = "https://api.cyclocity.fr/contracts/valence/gbfs/v3/gbfs.json",
     defaultLatitude = 39.4717,
     defaultLongitude = -0.3713,
     supportsUsagePatterns = false,
@@ -51,7 +56,7 @@ enum class City(
   SEVILLA(
     id = "sevilla",
     displayName = "Sevilla",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/sevici/gbfs.json",
+    gbfsDiscoveryUrl = "https://api.cyclocity.fr/contracts/seville/gbfs/v3/gbfs.json",
     defaultLatitude = 37.3891,
     defaultLongitude = -5.9845,
     supportsUsagePatterns = false,
@@ -96,7 +101,7 @@ enum class City(
   VALLADOLID(
     id = "valladolid",
     displayName = "Valladolid",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/biki/gbfs.json",
+    gbfsDiscoveryUrl = "https://valladolid.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 41.6234,
     defaultLongitude = -4.7515,
     supportsUsagePatterns = false,
@@ -105,7 +110,7 @@ enum class City(
   PALMA(
     id = "palma",
     displayName = "Palma de Mallorca",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bicipalma/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_ea/gbfs.json",
     defaultLatitude = 39.5696,
     defaultLongitude = 2.6502,
     supportsUsagePatterns = false,
@@ -114,7 +119,7 @@ enum class City(
   LAS_PALMAS(
     id = "las_palmas",
     displayName = "Las Palmas",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/sitycleta-las-palmas-las-palmas-de-gran-canaria/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_el/gbfs.json",
     defaultLatitude = 28.1248,
     defaultLongitude = -15.4300,
     supportsUsagePatterns = false,
@@ -123,7 +128,7 @@ enum class City(
   A_CORUNA(
     id = "a_coruna",
     displayName = "A Coruña",
-    gbfsDiscoveryUrl = "https://acoruna.publicbikesystem.net/customer/gbfs/v2/gbfs.json",
+    gbfsDiscoveryUrl = "https://acoruna.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 43.3623,
     defaultLongitude = -8.4115,
     supportsUsagePatterns = false,
@@ -141,7 +146,7 @@ enum class City(
   RIVAS_VACIAMADRID(
     id = "rivas",
     displayName = "Rivas-Vaciamadrid",
-    gbfsDiscoveryUrl = "https://rivas.publicbikesystem.net/customer/gbfs/v2/gbfs.json",
+    gbfsDiscoveryUrl = "https://rivas.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 40.3270,
     defaultLongitude = -3.5145,
     supportsUsagePatterns = false,
@@ -150,7 +155,7 @@ enum class City(
   DONOSTIA(
     id = "donostia",
     displayName = "Donostia",
-    gbfsDiscoveryUrl = "https://sansebastian.publicbikesystem.net/customer/gbfs/v2/gbfs.json",
+    gbfsDiscoveryUrl = "https://sansebastian.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json",
     defaultLatitude = 43.3201,
     defaultLongitude = -1.9838,
     supportsUsagePatterns = false,
@@ -159,7 +164,7 @@ enum class City(
   REUS(
     id = "reus",
     displayName = "Reus",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/ganxeta-reus/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.ganxeta.cat/v3/gbfs.json",
     defaultLatitude = 41.1579,
     defaultLongitude = 1.1083,
     supportsUsagePatterns = false,
@@ -168,7 +173,7 @@ enum class City(
   SANTANDER(
     id = "santander",
     displayName = "Santander",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/tuebici/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_ek/gbfs.json",
     defaultLatitude = 43.4625,
     defaultLongitude = -3.8189,
     supportsUsagePatterns = false,
@@ -204,7 +209,7 @@ enum class City(
   ARTEIXO(
     id = "arteixo",
     displayName = "Arteixo",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/biciarteixo/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_aa/gbfs.json",
     defaultLatitude = 43.3122,
     defaultLongitude = -8.5062,
     supportsUsagePatterns = false,
@@ -231,7 +236,7 @@ enum class City(
   BOADILLA_DEL_MONTE(
     id = "boadilla_del_monte",
     displayName = "Boadilla del Monte",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bibo/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_by/gbfs.json",
     defaultLatitude = 40.4159,
     defaultLongitude = -3.8940,
     supportsUsagePatterns = false,
@@ -384,7 +389,7 @@ enum class City(
   LOGRONO(
     id = "logrono",
     displayName = "Logroño",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/bicilog/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_ej/gbfs.json",
     defaultLatitude = 42.4621,
     defaultLongitude = -2.4468,
     supportsUsagePatterns = false,
@@ -429,7 +434,7 @@ enum class City(
   TORRENT(
     id = "torrent",
     displayName = "Torrent",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/torrentbici/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_en/gbfs.json",
     defaultLatitude = 39.4317,
     defaultLongitude = -0.4722,
     supportsUsagePatterns = false,
@@ -465,7 +470,7 @@ enum class City(
   VITORIA_GASTEIZ(
     id = "vitoria_gasteiz",
     displayName = "Vitoria-Gasteiz",
-    gbfsDiscoveryUrl = "https://api.citybik.es/gbfs/2/mugibike/gbfs.json",
+    gbfsDiscoveryUrl = "https://gbfs.partners.fifteen.eu/gbfs/2.2/vitoria/en/gbfs.json",
     defaultLatitude = 42.8512,
     defaultLongitude = -2.6805,
     supportsUsagePatterns = false,

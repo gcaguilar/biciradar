@@ -17,7 +17,7 @@ import com.gcaguilar.biciradar.core.SurfaceState
 import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.Surface_header
-import com.gcaguilar.biciradar.core.Surface_monitoring
+import com.gcaguilar.biciradar.core.Surface_monitoring_sessions
 import com.gcaguilar.biciradar.core.Surface_station_row
 import kotlinx.serialization.json.Json
 
@@ -33,6 +33,7 @@ object LegacyBlobToRelationalMigration {
   ) {
     CORE_RELATIONAL_DDL.forEach { sql -> driver.execute(null, sql, 0) }
     ensureAppSettingsTripModeColumn(driver)
+    ensureRoutineStepColumns(driver)
     database.transaction {
       migrateSavedPlaceAlertsIfBlobgy(driver, json, database)
       migrateSettingsBlobIfPresent(driver, json, database)
@@ -58,6 +59,20 @@ object LegacyBlobToRelationalMigration {
       "ALTER TABLE app_settings ADD COLUMN trip_mode TEXT NOT NULL DEFAULT 'Pedestrian'",
       0,
     )
+  }
+
+  /**
+   * Adds the per-step city, threshold, fallback and alternative-radius columns
+   * to `routine_steps` databases created before routines were synchronised with
+   * the backend. `CREATE TABLE IF NOT EXISTS` does not evolve an existing table.
+   */
+  private fun ensureRoutineStepColumns(driver: SqlDriver) {
+    if (!tableExists(driver, "routine_steps")) return
+    if (tableHasColumn(driver, "routine_steps", "city_id")) return
+    driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN city_id TEXT NOT NULL DEFAULT ''", 0)
+    driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN threshold INTEGER", 0)
+    driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN fallback_station_id TEXT", 0)
+    driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN alternative_radius_meters INTEGER", 0)
   }
 
   private fun migrateSettingsBlobIfPresent(
@@ -211,13 +226,22 @@ object LegacyBlobToRelationalMigration {
       ).expectValue()
 
   private fun appSettingsHasTripModeColumn(driver: SqlDriver): Boolean =
+    tableHasColumn(driver, "app_settings", "trip_mode")
+
+  private fun tableHasColumn(
+    driver: SqlDriver,
+    table: String,
+    column: String,
+  ): Boolean =
     driver
       .executeQuery(
         null,
-        "SELECT 1 FROM pragma_table_info('app_settings') WHERE name='trip_mode' LIMIT 1",
+        "SELECT 1 FROM pragma_table_info('$table') WHERE name=? LIMIT 1",
         { cursor -> QueryResult.Value(cursor.next().value) },
-        0,
-      ).expectValue()
+        1,
+      ) {
+        bindString(0, column)
+      }.expectValue()
 }
 
 private fun <T> QueryResult<T>.expectValue(): T =
@@ -314,12 +338,11 @@ private fun persistSurfaceBundle(
   bundle.nearbyStations.forEachIndexed { index, snap ->
     insertStationRow(db, "nearby", index, snap)
   }
-  val session = bundle.monitoringSession
-  if (session == null) {
-    db.biciradarQueries.clearSurfaceMonitoringRow()
-  } else {
-    db.biciradarQueries.upsertSurfaceMonitoring(
-      id = 1L,
+  val sessions = bundle.visibleMonitoringSessions
+  db.biciradarQueries.deleteAllSurfaceMonitoringSessions()
+  db.biciradarQueries.clearSurfaceMonitoringRow()
+  sessions.forEach { session ->
+    db.biciradarQueries.upsertSurfaceMonitoringSession(
       stationId = session.stationId,
       stationName = session.stationName,
       cityId = session.cityId,
@@ -370,16 +393,16 @@ private fun insertStationRow(
 internal fun loadSurfaceBundleFromDb(db: BiciRadarDatabase): SurfaceSnapshotBundle? {
   val header = db.biciradarQueries.getSurfaceHeader().executeAsOneOrNull() ?: return null
   val rows = db.biciradarQueries.getAllSurfaceStationRows().executeAsList()
-  val monRow = db.biciradarQueries.getSurfaceMonitoring().executeAsOneOrNull()
-  return surfaceBundleFromRows(header, rows, monRow)
+  val monRows = db.biciradarQueries.getAllSurfaceMonitoringSessions().executeAsList()
+  return surfaceBundleFromRows(header, rows, monRows)
 }
 
 internal fun surfaceBundleFromRows(
   header: Surface_header,
   rows: List<Surface_station_row>,
-  monRow: Surface_monitoring?,
+  monRows: List<Surface_monitoring_sessions>,
 ): SurfaceSnapshotBundle? {
-  if (rows.isEmpty() && monRow?.station_id == null) {
+  if (rows.isEmpty() && monRows.isEmpty()) {
     return null
   }
   val byRole = rows.groupBy { it.role }
@@ -407,24 +430,24 @@ internal fun surfaceBundleFromRows(
   val home = byRole["home"]?.firstOrNull()?.let(::mapRow)
   val work = byRole["work"]?.firstOrNull()?.let(::mapRow)
   val nearby = byRole["nearby"].orEmpty().sortedBy { it.slot_index }.map(::mapRow)
-  val monitoring =
-    monRow?.station_id?.let { sid ->
+  val monitoringSessions =
+    monRows.map { mon ->
       SurfaceMonitoringSession(
-        stationId = sid,
-        stationName = monRow.station_name!!,
-        cityId = monRow.city_id!!,
-        kind = SurfaceMonitoringKind.valueOf(monRow.kind!!),
-        status = SurfaceMonitoringStatus.valueOf(monRow.status!!),
-        bikesAvailable = monRow.bikes_available!!.toInt(),
-        docksAvailable = monRow.docks_available!!.toInt(),
-        statusLevel = SurfaceStatusLevel.valueOf(monRow.status_level!!),
-        startedAtEpoch = monRow.started_at_epoch!!,
-        expiresAtEpoch = monRow.expires_at_epoch!!,
-        lastUpdatedEpoch = monRow.last_updated_epoch!!,
-        isActive = monRow.is_active!! != 0L,
-        alternativeStationId = monRow.alternative_station_id,
-        alternativeStationName = monRow.alternative_station_name,
-        alternativeDistanceMeters = monRow.alternative_distance_meters?.toInt(),
+        stationId = mon.station_id,
+        stationName = mon.station_name,
+        cityId = mon.city_id,
+        kind = SurfaceMonitoringKind.valueOf(mon.kind),
+        status = SurfaceMonitoringStatus.valueOf(mon.status),
+        bikesAvailable = mon.bikes_available.toInt(),
+        docksAvailable = mon.docks_available.toInt(),
+        statusLevel = SurfaceStatusLevel.valueOf(mon.status_level),
+        startedAtEpoch = mon.started_at_epoch,
+        expiresAtEpoch = mon.expires_at_epoch,
+        lastUpdatedEpoch = mon.last_updated_epoch,
+        isActive = mon.is_active != 0L,
+        alternativeStationId = mon.alternative_station_id,
+        alternativeStationName = mon.alternative_station_name,
+        alternativeDistanceMeters = mon.alternative_distance_meters?.toInt(),
       )
     }
   return SurfaceSnapshotBundle(
@@ -433,7 +456,8 @@ internal fun surfaceBundleFromRows(
     homeStation = home,
     workStation = work,
     nearbyStations = nearby,
-    monitoringSession = monitoring,
+    monitoringSession = monitoringSessions.firstOrNull(),
+    monitoringSessions = monitoringSessions,
     state =
       SurfaceState(
         hasLocationPermission = header.state_has_location != 0L,
@@ -649,6 +673,74 @@ private val CORE_RELATIONAL_DDL: List<String> =
       alternative_station_id TEXT,
       alternative_station_name TEXT,
       alternative_distance_meters INTEGER
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS surface_monitoring_sessions (
+      station_id TEXT PRIMARY KEY NOT NULL,
+      station_name TEXT NOT NULL,
+      city_id TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      status TEXT NOT NULL,
+      bikes_available INTEGER NOT NULL,
+      docks_available INTEGER NOT NULL,
+      status_level TEXT NOT NULL,
+      started_at_epoch INTEGER NOT NULL,
+      expires_at_epoch INTEGER NOT NULL,
+      last_updated_epoch INTEGER NOT NULL,
+      is_active INTEGER NOT NULL,
+      alternative_station_id TEXT,
+      alternative_station_name TEXT,
+      alternative_distance_meters INTEGER
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS routines (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      days_bitmap INTEGER NOT NULL,
+      hour INTEGER NOT NULL,
+      minute INTEGER NOT NULL,
+      is_enabled INTEGER NOT NULL
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS routine_steps (
+      id TEXT PRIMARY KEY NOT NULL,
+      routine_id TEXT NOT NULL,
+      position INTEGER NOT NULL DEFAULT 0,
+      station_id TEXT NOT NULL,
+      station_name TEXT NOT NULL,
+      city_id TEXT NOT NULL DEFAULT '',
+      duration_seconds INTEGER NOT NULL,
+      kind TEXT NOT NULL,
+      threshold INTEGER,
+      fallback_station_id TEXT,
+      alternative_radius_meters INTEGER
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS routine_sync_state (
+      id INTEGER PRIMARY KEY NOT NULL,
+      has_synced INTEGER NOT NULL DEFAULT 0
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS routine_dirty_ids (
+      routine_id TEXT PRIMARY KEY NOT NULL
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS routine_pending_deletes (
+      routine_id TEXT PRIMARY KEY NOT NULL
+    )
+    """.trimIndent().replace("\n", " "),
+    """
+    CREATE TABLE IF NOT EXISTS trip_monitoring_window (
+      id INTEGER PRIMARY KEY NOT NULL,
+      window_id TEXT NOT NULL,
+      station_id TEXT NOT NULL,
+      started_at INTEGER NOT NULL
     )
     """.trimIndent().replace("\n", " "),
   )

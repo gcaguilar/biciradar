@@ -154,7 +154,7 @@ class SurfaceRepositoryTest {
         )
 
       repository.bootstrap()
-      repository.saveMonitoringSession(null)
+      repository.saveMonitoringSessions(emptyList())
       repository.refreshSnapshot()
 
       val initialBundle = repository.currentBundle()!!

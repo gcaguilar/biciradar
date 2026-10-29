@@ -16,10 +16,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-private const val SURFACE_MONITORING_POLLING_INTERVAL_MILLIS = 30_000L
-
+/**
+ * Gestiona una o varias sesiones de monitorización concurrentes, indexadas por
+ * `stationId`. Una rutina puede arrancar varias estaciones a la vez.
+ *
+ * Desde la migración al backend la comprobación real de estaciones vive en el
+ * servidor y los avisos llegan por push: aquí sólo queda el estado de
+ * visualización (cuenta atrás, caducidad y persistencia para widgets/reloj).
+ */
 interface SurfaceMonitoringRepository {
-  val state: StateFlow<SurfaceMonitoringSession?>
+  /** Sesiones conocidas por estación (activas y finalizadas recientes). */
+  val state: StateFlow<Map<String, SurfaceMonitoringSession>>
 
   suspend fun bootstrap()
 
@@ -34,9 +41,14 @@ interface SurfaceMonitoringRepository {
     kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Docks,
   ): Boolean
 
-  fun stopMonitoring()
+  /** Detiene la sesión de [stationId], o todas las sesiones activas si es `null`. */
+  fun stopMonitoring(stationId: String? = null)
 
   suspend fun clearMonitoring()
+
+  fun sessionFor(stationId: String): SurfaceMonitoringSession?
+
+  fun activeSessions(): List<SurfaceMonitoringSession>
 }
 
 /**
@@ -47,45 +59,54 @@ interface SurfaceMonitoringRepository {
 @ContributesBinding(AppScope::class)
 @Inject
 class SurfaceMonitoringRepositoryImpl(
-  private val biziApi: BiziApi,
   private val favoritesRepository: FavoritesRepository,
-  private val localNotifier: LocalNotifier,
   private val engagementRepository: EngagementRepository,
   private val scope: CoroutineScope,
   private val settingsRepository: SettingsRepository,
   private val stationsRepository: StationsRepository,
   private val surfaceSnapshotRepository: SurfaceSnapshotRepository,
 ) : SurfaceMonitoringRepository {
-  private val mutableState = MutableStateFlow<SurfaceMonitoringSession?>(null)
+  private val mutableState = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
 
   @kotlin.concurrent.Volatile private var bootstrapped = false
-  private var countdownJob: Job? = null
-  private var monitoringJob: Job? = null
+  private val countdownJobs = mutableMapOf<String, Job>()
   private val finishMutex = Mutex()
 
-  override val state: StateFlow<SurfaceMonitoringSession?> = mutableState.asStateFlow()
+  override val state: StateFlow<Map<String, SurfaceMonitoringSession>> = mutableState.asStateFlow()
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
     surfaceSnapshotRepository.bootstrap()
-    val persisted = surfaceSnapshotRepository.currentBundle()?.monitoringSession
-    if (persisted != null) {
-      val nowEpoch = currentTimeMs()
-      if (persisted.isActive && persisted.expiresAtEpoch > nowEpoch) {
-        mutableState.value = persisted
-        startWorkers(persisted.stationId, persisted.kind)
-      } else if (persisted.isActive) {
-        val expired =
-          persisted.copy(
-            isActive = false,
-            status = SurfaceMonitoringStatus.Expired,
-            lastUpdatedEpoch = nowEpoch,
-          )
-        mutableState.value = expired
-        surfaceSnapshotRepository.saveMonitoringSession(expired)
-      } else {
-        mutableState.value = persisted
+    val bundle = surfaceSnapshotRepository.currentBundle()
+    val persisted =
+      bundle?.monitoringSessions?.takeIf { it.isNotEmpty() }
+        ?: listOfNotNull(bundle?.monitoringSession)
+    val nowEpoch = currentTimeMs()
+    val restored = mutableMapOf<String, SurfaceMonitoringSession>()
+    persisted.forEach { session ->
+      when {
+        session.isActive && session.expiresAtEpoch > nowEpoch -> {
+          restored[session.stationId] = session
+          startWorkers(session.stationId)
+        }
+
+        session.isActive -> {
+          restored[session.stationId] =
+            session.copy(
+              isActive = false,
+              status = SurfaceMonitoringStatus.Expired,
+              lastUpdatedEpoch = nowEpoch,
+            )
+        }
+
+        else -> {
+          restored[session.stationId] = session
+        }
       }
+    }
+    mutableState.value = restored
+    if (persisted.any { it.isActive && it.expiresAtEpoch <= nowEpoch }) {
+      saveSessions()
     }
     bootstrapped = true
   }
@@ -114,10 +135,10 @@ class SurfaceMonitoringRepositoryImpl(
         lastUpdatedEpoch = nowEpoch,
         isActive = true,
       )
-    stopInternal(updateState = false)
-    mutableState.value = session
-    surfaceSnapshotRepository.saveMonitoringSession(session)
-    startWorkers(station.id, kind)
+    cancelWorkers(stationId)
+    mutableState.value = mutableState.value + (station.id to session)
+    saveSessions()
+    startWorkers(station.id)
     return true
   }
 
@@ -137,138 +158,47 @@ class SurfaceMonitoringRepositoryImpl(
     return startMonitoring(favoriteStationId, durationSeconds, kind)
   }
 
-  override fun stopMonitoring() {
-    val current = mutableState.value ?: return
-    scope.launch {
-      val ended =
-        current.copy(
+  override fun stopMonitoring(stationId: String?) {
+    val current = mutableState.value
+    val targets = if (stationId == null) current.values.toList() else listOfNotNull(current[stationId])
+    if (targets.isEmpty()) return
+    val nowEpoch = currentTimeMs()
+    val updated = current.toMutableMap()
+    targets.forEach { session ->
+      cancelWorkers(session.stationId)
+      updated[session.stationId] =
+        session.copy(
           isActive = false,
           status = SurfaceMonitoringStatus.Ended,
-          lastUpdatedEpoch = currentTimeMs(),
+          lastUpdatedEpoch = nowEpoch,
         )
-      stopInternal(updateState = false)
-      mutableState.value = ended
-      surfaceSnapshotRepository.saveMonitoringSession(ended)
     }
+    mutableState.value = updated
+    scope.launch { saveSessions() }
   }
 
   override suspend fun clearMonitoring() {
-    stopInternal(updateState = true)
-    surfaceSnapshotRepository.saveMonitoringSession(null)
+    mutableState.value.keys
+      .toList()
+      .forEach(::cancelWorkers)
+    mutableState.value = emptyMap()
+    surfaceSnapshotRepository.saveMonitoringSessions(emptyList())
   }
 
-  private fun startWorkers(
-    stationId: String,
-    kind: SurfaceMonitoringKind,
-  ) {
-    countdownJob?.cancel()
-    monitoringJob?.cancel()
-    countdownJob =
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = mutableState.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = mutableState.value.values.filter { it.isActive }
+
+  private fun startWorkers(stationId: String) {
+    cancelWorkers(stationId)
+    countdownJobs[stationId] =
       scope.launch {
         while (true) {
           delay(1_000L)
-          val current = mutableState.value ?: break
+          val current = mutableState.value[stationId] ?: break
           if (!current.isActive) break
           if (current.remainingSeconds() <= 0) {
-            finishMonitoring(status = SurfaceMonitoringStatus.Expired)
-            break
-          }
-        }
-      }
-    monitoringJob =
-      scope.launch {
-        stationsRepository.loadIfNeeded()
-        var firstCheck = true
-        while (true) {
-          val current = mutableState.value ?: break
-          if (!current.isActive) break
-          if (!firstCheck) delay(SURFACE_MONITORING_POLLING_INTERVAL_MILLIS)
-          firstCheck = false
-
-          val availability =
-            runCatching {
-              biziApi.fetchAvailability(listOf(stationId))
-            }.getOrNull() ?: continue
-
-          val update = availability[stationId] ?: continue
-          val nowEpoch = currentTimeMs()
-          val currentStation = stationsRepository.stationById(stationId)
-          val updatedStation =
-            (
-              currentStation ?: Station(
-                id = current.stationId,
-                name = current.stationName,
-                address = current.stationName,
-                location = GeoPoint(0.0, 0.0),
-                bikesAvailable = current.bikesAvailable,
-                slotsFree = current.docksAvailable,
-                distanceMeters = 0,
-              )
-            ).copy(
-              bikesAvailable = update.bikesAvailable,
-              slotsFree = update.slotsFree,
-            )
-
-          val alternative =
-            when {
-              kind == SurfaceMonitoringKind.Bikes && updatedStation.bikesAvailable == 0 -> {
-                findAlternativeStation(
-                  updatedStation,
-                  kind,
-                )
-              }
-
-              kind == SurfaceMonitoringKind.Docks && updatedStation.slotsFree == 0 -> {
-                findAlternativeStation(
-                  updatedStation,
-                  kind,
-                )
-              }
-
-              else -> {
-                null
-              }
-            }
-
-          val status =
-            when {
-              kind == SurfaceMonitoringKind.Bikes &&
-                updatedStation.bikesAvailable == 0 &&
-                alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
-
-              kind == SurfaceMonitoringKind.Docks &&
-                updatedStation.slotsFree == 0 &&
-                alternative != null -> SurfaceMonitoringStatus.AlternativeAvailable
-
-              kind == SurfaceMonitoringKind.Bikes &&
-                updatedStation.bikesAvailable == 0 -> SurfaceMonitoringStatus.ChangedToEmpty
-
-              kind == SurfaceMonitoringKind.Docks &&
-                updatedStation.slotsFree == 0 -> SurfaceMonitoringStatus.ChangedToFull
-
-              else -> SurfaceMonitoringStatus.Monitoring
-            }
-
-          val session =
-            current.copy(
-              bikesAvailable = updatedStation.bikesAvailable,
-              docksAvailable = updatedStation.slotsFree,
-              status = status,
-              statusLevel = updatedStation.surfaceStatusLevel(),
-              lastUpdatedEpoch = nowEpoch,
-              alternativeStationId = alternative?.id,
-              alternativeStationName = alternative?.name,
-              alternativeDistanceMeters = alternative?.distanceMeters,
-            )
-          mutableState.value = session
-          surfaceSnapshotRepository.saveMonitoringSession(session)
-
-          if (status != SurfaceMonitoringStatus.Monitoring) {
-            localNotifier.notify(
-              title = monitoringTitle(session),
-              body = monitoringBody(session),
-            )
-            finishMonitoring(status = status, alternative = alternative)
+            finishMonitoring(stationId, status = SurfaceMonitoringStatus.Expired)
             break
           }
         }
@@ -276,14 +206,15 @@ class SurfaceMonitoringRepositoryImpl(
   }
 
   private suspend fun finishMonitoring(
+    stationId: String,
     status: SurfaceMonitoringStatus,
     alternative: Station? = null,
   ) {
     finishMutex.withLock {
-      if (mutableState.value?.isActive != true) return
+      if (mutableState.value[stationId]?.isActive != true) return
     }
-    val current = mutableState.value ?: return
-    stopInternal(updateState = false)
+    val current = mutableState.value[stationId] ?: return
+    cancelWorkers(stationId)
     val finished =
       current.copy(
         isActive = false,
@@ -293,75 +224,17 @@ class SurfaceMonitoringRepositoryImpl(
         alternativeStationName = alternative?.name ?: current.alternativeStationName,
         alternativeDistanceMeters = alternative?.distanceMeters ?: current.alternativeDistanceMeters,
       )
-    mutableState.value = finished
-    surfaceSnapshotRepository.saveMonitoringSession(finished)
+    mutableState.value = mutableState.value + (stationId to finished)
+    saveSessions()
     engagementRepository.markMonitoringCompleted()
   }
 
-  private fun stopInternal(updateState: Boolean) {
-    countdownJob?.cancel()
-    countdownJob = null
-    monitoringJob?.cancel()
-    monitoringJob = null
-    if (updateState) {
-      mutableState.value = null
-    }
+  private suspend fun saveSessions() {
+    surfaceSnapshotRepository.saveMonitoringSessions(mutableState.value.values.toList())
   }
 
-  private fun findAlternativeStation(
-    monitoredStation: Station,
-    kind: SurfaceMonitoringKind,
-  ): Station? =
-    selectAlternativeStation(
-      monitoredStation = monitoredStation,
-      candidates = stationsRepository.state.value.stations,
-      kind = kind,
-      maxRadiusMeters = settingsRepository.currentSearchRadiusMeters(),
-    )
-
-  private fun monitoringTitle(session: SurfaceMonitoringSession): String =
-    when (session.status) {
-      SurfaceMonitoringStatus.ChangedToEmpty -> "Estacion vacia: ${session.stationName}"
-      SurfaceMonitoringStatus.ChangedToFull -> "Estacion llena: ${session.stationName}"
-      SurfaceMonitoringStatus.AlternativeAvailable -> "Alternativa disponible"
-      SurfaceMonitoringStatus.Ended -> "Monitorizacion detenida"
-      SurfaceMonitoringStatus.Expired -> "Monitorizacion expirada"
-      SurfaceMonitoringStatus.Monitoring -> session.stationName
-    }
-
-  private fun monitoringBody(session: SurfaceMonitoringSession): String {
-    val alternative =
-      if (session.alternativeStationName != null) {
-        " Alternativa: ${session.alternativeStationName}" +
-          session.alternativeDistanceMeters?.let { " ($it m)." }.orEmpty()
-      } else {
-        ""
-      }
-    return when (session.status) {
-      SurfaceMonitoringStatus.ChangedToEmpty -> {
-        "Ya no quedan bicis en ${session.stationName}.$alternative"
-      }
-
-      SurfaceMonitoringStatus.ChangedToFull -> {
-        "Ya no quedan huecos libres en ${session.stationName}.$alternative"
-      }
-
-      SurfaceMonitoringStatus.AlternativeAvailable -> {
-        "${session.stationName} ya no sirve. Tienes una alternativa cercana.$alternative"
-      }
-
-      SurfaceMonitoringStatus.Ended -> {
-        "Has detenido la monitorizacion de ${session.stationName}."
-      }
-
-      SurfaceMonitoringStatus.Expired -> {
-        "La monitorizacion de ${session.stationName} ha terminado."
-      }
-
-      SurfaceMonitoringStatus.Monitoring -> {
-        "${session.stationName}: ${session.bikesAvailable} bicis y ${session.docksAvailable} huecos."
-      }
-    }
+  private fun cancelWorkers(stationId: String) {
+    countdownJobs.remove(stationId)?.cancel()
   }
 }
 

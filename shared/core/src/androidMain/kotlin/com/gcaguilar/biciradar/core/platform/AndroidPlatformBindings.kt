@@ -49,10 +49,14 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
 import com.gcaguilar.biciradar.core.local.createAndroidDriver
+import com.gcaguilar.biciradar.core.push.DeviceTokenProvider
+import com.gcaguilar.biciradar.core.push.NoOpDeviceTokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -83,6 +87,9 @@ interface AndroidOptionalServices {
   ): AppUpdatePrompter?
 
   fun createWatchSyncBridge(): WatchSyncBridge?
+
+  /** FCM-backed token source; only the Play Store flavor implements this. */
+  fun createDeviceTokenProvider(): DeviceTokenProvider? = null
 }
 
 class AndroidPlatformBindings(
@@ -94,6 +101,17 @@ class AndroidPlatformBindings(
 
   /** Injected by [MainActivity] after registering its [ActivityResultLauncher]. */
   var appUpdateLauncher: ActivityResultLauncher<IntentSenderRequest>? = null
+
+  /**
+   * Platform OIDC session, set by the app shell when Auth0 is configured.
+   * Defaults to anonymous so unconfigured builds stay local-only.
+   */
+  var authProviderOverride: AuthProvider? = null
+
+  override val authProvider: AuthProvider get() = authProviderOverride ?: NoOpAuthProvider
+
+  override val deviceTokenProvider: DeviceTokenProvider
+    get() = optionalServices?.createDeviceTokenProvider() ?: NoOpDeviceTokenProvider
 
   private val isFdroidBuild = context.packageName.contains(".fdroid")
   private val optionalServices = loadOptionalServices(context)

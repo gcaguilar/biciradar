@@ -102,11 +102,14 @@ class StartStationMonitoring(
 class StopStationMonitoring(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) {
-  suspend fun execute(clear: Boolean = false) {
+  suspend fun execute(
+    clear: Boolean = false,
+    stationId: String? = null,
+  ) {
     if (clear) {
       surfaceMonitoringRepository.clearMonitoring()
     } else {
-      surfaceMonitoringRepository.stopMonitoring()
+      surfaceMonitoringRepository.stopMonitoring(stationId)
     }
   }
 }

@@ -512,3 +512,179 @@ VALUES (
 
 clearSurfaceMonitoringRow:
 DELETE FROM surface_monitoring WHERE id = 1;
+
+-- Monitorización concurrente: una fila por estación monitorizada.
+CREATE TABLE surface_monitoring_sessions (
+  station_id TEXT PRIMARY KEY NOT NULL,
+  station_name TEXT NOT NULL,
+  city_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  status TEXT NOT NULL,
+  bikes_available INTEGER NOT NULL,
+  docks_available INTEGER NOT NULL,
+  status_level TEXT NOT NULL,
+  started_at_epoch INTEGER NOT NULL,
+  expires_at_epoch INTEGER NOT NULL,
+  last_updated_epoch INTEGER NOT NULL,
+  is_active INTEGER NOT NULL,
+  alternative_station_id TEXT,
+  alternative_station_name TEXT,
+  alternative_distance_meters INTEGER
+);
+
+getAllSurfaceMonitoringSessions:
+SELECT * FROM surface_monitoring_sessions ORDER BY station_id ASC;
+
+upsertSurfaceMonitoringSession:
+INSERT OR REPLACE INTO surface_monitoring_sessions (
+  station_id,
+  station_name,
+  city_id,
+  kind,
+  status,
+  bikes_available,
+  docks_available,
+  status_level,
+  started_at_epoch,
+  expires_at_epoch,
+  last_updated_epoch,
+  is_active,
+  alternative_station_id,
+  alternative_station_name,
+  alternative_distance_meters
+)
+VALUES (
+  :stationId,
+  :stationName,
+  :cityId,
+  :kind,
+  :status,
+  :bikesAvailable,
+  :docksAvailable,
+  :statusLevel,
+  :startedAtEpoch,
+  :expiresAtEpoch,
+  :lastUpdatedEpoch,
+  :isActive,
+  :alternativeStationId,
+  :alternativeStationName,
+  :alternativeDistanceMeters
+);
+
+deleteAllSurfaceMonitoringSessions:
+DELETE FROM surface_monitoring_sessions;
+
+-- Rutinas: horario compartido (días + hora) que arranca la monitorización de sus estaciones.
+CREATE TABLE routines (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  days_bitmap INTEGER NOT NULL,
+  hour INTEGER NOT NULL,
+  minute INTEGER NOT NULL,
+  is_enabled INTEGER NOT NULL
+);
+
+CREATE TABLE routine_steps (
+  id TEXT PRIMARY KEY NOT NULL,
+  routine_id TEXT NOT NULL,
+  position INTEGER NOT NULL DEFAULT 0,
+  station_id TEXT NOT NULL,
+  station_name TEXT NOT NULL,
+  city_id TEXT NOT NULL DEFAULT '',
+  duration_seconds INTEGER NOT NULL,
+  kind TEXT NOT NULL,
+  threshold INTEGER,
+  fallback_station_id TEXT,
+  alternative_radius_meters INTEGER
+);
+
+getAllRoutines:
+SELECT * FROM routines;
+
+getAllRoutineSteps:
+SELECT * FROM routine_steps ORDER BY routine_id ASC, position ASC;
+
+upsertRoutine:
+INSERT OR REPLACE INTO routines (id, name, days_bitmap, hour, minute, is_enabled)
+VALUES (:id, :name, :daysBitmap, :hour, :minute, :isEnabled);
+
+deleteRoutine:
+DELETE FROM routines WHERE id = :id;
+
+deleteRoutineSteps:
+DELETE FROM routine_steps WHERE routine_id = :routineId;
+
+insertRoutineStep:
+INSERT OR REPLACE INTO routine_steps (id, routine_id, position, station_id, station_name, city_id, duration_seconds, kind, threshold, fallback_station_id, alternative_radius_meters)
+VALUES (:id, :routineId, :position, :stationId, :stationName, :cityId, :durationSeconds, :kind, :threshold, :fallbackStationId, :alternativeRadiusMeters);
+
+deleteAllRoutines:
+DELETE FROM routines;
+
+deleteAllRoutineSteps:
+DELETE FROM routine_steps;
+
+-- Estado de sincronización de rutinas con el backend (una sola fila, id = 1).
+CREATE TABLE routine_sync_state (
+  id INTEGER PRIMARY KEY NOT NULL,
+  has_synced INTEGER NOT NULL DEFAULT 0
+);
+
+-- Rutinas modificadas localmente pendientes de subir.
+CREATE TABLE routine_dirty_ids (
+  routine_id TEXT PRIMARY KEY NOT NULL
+);
+
+-- Rutinas borradas localmente pendientes de borrar en el servidor.
+CREATE TABLE routine_pending_deletes (
+  routine_id TEXT PRIMARY KEY NOT NULL
+);
+
+getRoutineSyncState:
+SELECT * FROM routine_sync_state WHERE id = 1;
+
+upsertRoutineSyncState:
+INSERT OR REPLACE INTO routine_sync_state (id, has_synced) VALUES (1, :hasSynced);
+
+getDirtyRoutineIds:
+SELECT routine_id FROM routine_dirty_ids;
+
+markRoutineDirty:
+INSERT OR IGNORE INTO routine_dirty_ids (routine_id) VALUES (:routineId);
+
+clearRoutineDirty:
+DELETE FROM routine_dirty_ids WHERE routine_id = :routineId;
+
+getPendingRoutineDeletes:
+SELECT routine_id FROM routine_pending_deletes;
+
+markRoutinePendingDelete:
+INSERT OR IGNORE INTO routine_pending_deletes (routine_id) VALUES (:routineId);
+
+clearRoutinePendingDelete:
+DELETE FROM routine_pending_deletes WHERE routine_id = :routineId;
+
+deleteAllRoutineDirty:
+DELETE FROM routine_dirty_ids;
+
+deleteAllRoutinePendingDeletes:
+DELETE FROM routine_pending_deletes;
+
+-- Ventana de viaje efímera abierta en el backend (una sola fila, id = 1). Sirve
+-- para cancelarla al arrancar si el proceso murió con un viaje activo.
+CREATE TABLE trip_monitoring_window (
+  id INTEGER PRIMARY KEY NOT NULL,
+  window_id TEXT NOT NULL,
+  station_id TEXT NOT NULL,
+  started_at INTEGER NOT NULL
+);
+
+getTripMonitoringWindow:
+SELECT * FROM trip_monitoring_window WHERE id = 1;
+
+upsertTripMonitoringWindow:
+INSERT OR REPLACE INTO trip_monitoring_window (id, window_id, station_id, started_at)
+VALUES (1, :windowId, :stationId, :startedAt);
+
+clearTripMonitoringWindow:
+DELETE FROM trip_monitoring_window;

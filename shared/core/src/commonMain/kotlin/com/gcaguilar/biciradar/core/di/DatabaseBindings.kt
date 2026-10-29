@@ -7,6 +7,8 @@ import com.gcaguilar.biciradar.core.NoOpStationsCacheManager
 import com.gcaguilar.biciradar.core.StationCacheStore
 import com.gcaguilar.biciradar.core.StationsCacheManager
 import com.gcaguilar.biciradar.core.StationsCacheManagerImpl
+import com.gcaguilar.biciradar.core.backend.RoutineSyncStore
+import com.gcaguilar.biciradar.core.backend.TripWindowStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -40,4 +42,12 @@ object DatabaseBindings {
     } else {
       NoOpStationsCacheManager()
     }
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideRoutineSyncStore(database: BiciRadarDatabase?): RoutineSyncStore = RoutineSyncStore(database)
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideTripWindowStore(database: BiciRadarDatabase?): TripWindowStore = TripWindowStore(database)
 }

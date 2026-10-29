@@ -198,7 +198,7 @@ class SurfaceUseCasesTest {
       assertEquals(SurfaceMonitoringKind.Bikes, monitoringRepository.lastStartedKind)
       assertTrue(monitoringRepository.stopCalled)
       assertTrue(monitoringRepository.clearCalled)
-      assertEquals(null, monitoringRepository.state.value)
+      assertEquals(emptyMap(), monitoringRepository.state.value)
     }
 }
 
@@ -318,21 +318,25 @@ private class FakeSurfaceSnapshotRepository(
     refreshCalls += 1
   }
 
-  override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) {
-    mutableBundle.value = mutableBundle.value?.copy(monitoringSession = session)
+  override suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>) {
+    mutableBundle.value =
+      mutableBundle.value?.copy(
+        monitoringSession = sessions.firstOrNull(),
+        monitoringSessions = sessions,
+      )
   }
 
   override fun currentBundle(): SurfaceSnapshotBundle? = mutableBundle.value
 }
 
 private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
-  private val mutableState = MutableStateFlow<SurfaceMonitoringSession?>(null)
+  private val mutableState = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
   var lastStartedStationId: String? = null
   var lastStartedKind: SurfaceMonitoringKind? = null
   var stopCalled = false
   var clearCalled = false
 
-  override val state: StateFlow<SurfaceMonitoringSession?> = mutableState
+  override val state: StateFlow<Map<String, SurfaceMonitoringSession>> = mutableState
 
   override suspend fun bootstrap() = Unit
 
@@ -344,19 +348,23 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     lastStartedStationId = stationId
     lastStartedKind = kind
     mutableState.value =
-      SurfaceMonitoringSession(
-        stationId = stationId,
-        stationName = stationId,
-        cityId = City.ZARAGOZA.id,
-        kind = kind,
-        status = SurfaceMonitoringStatus.Monitoring,
-        bikesAvailable = 5,
-        docksAvailable = 4,
-        statusLevel = SurfaceStatusLevel.Good,
-        startedAtEpoch = 1L,
-        expiresAtEpoch = durationSeconds.toLong() * 1_000L,
-        lastUpdatedEpoch = 1L,
-        isActive = true,
+      mutableState.value +
+      (
+        stationId to
+          SurfaceMonitoringSession(
+            stationId = stationId,
+            stationName = stationId,
+            cityId = City.ZARAGOZA.id,
+            kind = kind,
+            status = SurfaceMonitoringStatus.Monitoring,
+            bikesAvailable = 5,
+            docksAvailable = 4,
+            statusLevel = SurfaceStatusLevel.Good,
+            startedAtEpoch = 1L,
+            expiresAtEpoch = durationSeconds.toLong() * 1_000L,
+            lastUpdatedEpoch = 1L,
+            isActive = true,
+          )
       )
     return true
   }
@@ -366,15 +374,29 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     kind: SurfaceMonitoringKind,
   ): Boolean = startMonitoring("favorite", durationSeconds, kind)
 
-  override fun stopMonitoring() {
+  override fun stopMonitoring(stationId: String?) {
     stopCalled = true
-    mutableState.value = mutableState.value?.copy(isActive = false, status = SurfaceMonitoringStatus.Ended)
+    if (stationId == null) {
+      mutableState.value =
+        mutableState.value.mapValues { (_, session) ->
+          session.copy(isActive = false, status = SurfaceMonitoringStatus.Ended)
+        }
+    } else {
+      mutableState.value =
+        mutableState.value.mapValues { (id, session) ->
+          if (id == stationId) session.copy(isActive = false, status = SurfaceMonitoringStatus.Ended) else session
+        }
+    }
   }
 
   override suspend fun clearMonitoring() {
     clearCalled = true
-    mutableState.value = null
+    mutableState.value = emptyMap()
   }
+
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = mutableState.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = mutableState.value.values.filter { it.isActive }
 }
 
 private fun station(

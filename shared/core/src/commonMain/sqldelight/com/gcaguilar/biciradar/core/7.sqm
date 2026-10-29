@@ -1,0 +1,4 @@
+-- Migration 7 (squashed). Adds per-step city, threshold, fallback and
+-- alternative-radius columns to `routine_steps`. As with earlier migrations the
+-- DDL is applied idempotently in LegacyBlobToRelationalMigration.ensure, so this
+-- migration is intentionally a no-op.

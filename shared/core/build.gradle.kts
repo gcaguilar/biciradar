@@ -59,6 +59,7 @@ kotlin {
     commonTest.dependencies {
       implementation(libs.coroutines.test)
       implementation(libs.kotlin.test)
+      implementation(libs.ktor.client.mock)
       implementation(project(":shared:test-utils"))
       implementation(libs.turbine)
     }

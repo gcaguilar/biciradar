@@ -35,6 +35,7 @@ androidx-glance-material3 = "1.1.1"
 osmdroid = "6.1.20"
 cryptography = "0.6.0"
 bouncycastle = "1.83"
+auth0 = "3.21.0"
 
 [libraries]
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -43,8 +44,8 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx-fragment" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
-androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
 androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "androidx-wear-compose" }
 androidx-wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "androidx-wear-compose" }
@@ -66,6 +67,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 metro-runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
@@ -91,6 +93,7 @@ osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "os
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
 cryptography-provider-cryptokit = { module = "dev.whyoleg.cryptography:cryptography-provider-cryptokit", version.ref = "cryptography" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+auth0-android = { module = "com.auth0.android:auth0", version.ref = "auth0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

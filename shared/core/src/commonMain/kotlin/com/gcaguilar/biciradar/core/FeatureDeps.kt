@@ -1,5 +1,10 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
+import com.gcaguilar.biciradar.core.backend.PushMessageBus
+import com.gcaguilar.biciradar.core.backend.PushMessageHandler
+import com.gcaguilar.biciradar.core.backend.SubscriptionSyncService
 import com.gcaguilar.biciradar.core.di.OnboardingGraph
 import com.gcaguilar.biciradar.core.di.TripGraph
 import com.gcaguilar.biciradar.core.geo.GeoApi
@@ -120,6 +125,30 @@ interface SurfaceFeatureDeps {
   val observeSurfaceSnapshot: ObserveSurfaceSnapshot
   val observeSurfaceMonitoring: ObserveSurfaceMonitoring
   val refreshWidgetDataUseCase: RefreshWidgetDataUseCase
+
+  /** Repositorio de monitorización concurrente (varias estaciones a la vez). */
+  val surfaceMonitoringRepository: SurfaceMonitoringRepository
+}
+
+/**
+ * Dependencias del feature de rutinas (monitorización programada).
+ */
+interface RoutineFeatureDeps {
+  val routineRepository: RoutineRepository
+}
+
+/**
+ * Dependencias del cliente del backend y la sesión de Auth0.
+ *
+ * Existen siempre, pero en modo anónimo [BiciRadarApiClient.isConfigured] es
+ * `false` y [AuthProvider.credentialsState] queda en `Anonymous`.
+ */
+interface BackendFeatureDeps {
+  val biciRadarApiClient: BiciRadarApiClient
+  val authProvider: AuthProvider
+  val subscriptionSyncService: SubscriptionSyncService
+  val pushMessageHandler: PushMessageHandler
+  val pushMessageBus: PushMessageBus
 }
 
 /**

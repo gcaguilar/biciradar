@@ -13,6 +13,7 @@ import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.GooglePlacesApiImpl
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.RoutingBiziApi
+import com.gcaguilar.biciradar.core.RoutingDatosBiziApi
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.auth.AuthProvider
 import com.gcaguilar.biciradar.core.auth.AuthTokenProvider
@@ -20,6 +21,7 @@ import com.gcaguilar.biciradar.core.auth.asTokenProvider
 import com.gcaguilar.biciradar.core.backend.BackendConfig
 import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
 import com.gcaguilar.biciradar.core.backend.RoutineBackendApi
+import com.gcaguilar.biciradar.core.backend.UsagePatternsBackendApi
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
 import dev.zacsweers.metro.Provides
@@ -64,7 +66,14 @@ object NetworkBindings {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideDatosBiziApi(httpClient: HttpClient): DatosBiziApi = DatosBiziApiImpl(httpClient)
+  fun provideDatosBiziApi(
+    httpClient: HttpClient,
+    usagePatternsBackendApi: UsagePatternsBackendApi,
+  ): DatosBiziApi =
+    RoutingDatosBiziApi(
+      datosBiziApi = DatosBiziApiImpl(httpClient),
+      backendPatternsApi = usagePatternsBackendApi,
+    )
 
   @SingleIn(AppScope::class)
   @Provides
@@ -99,4 +108,8 @@ object NetworkBindings {
   @SingleIn(AppScope::class)
   @Provides
   fun provideRoutineBackendApi(client: BiciRadarApiClient): RoutineBackendApi = client
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideUsagePatternsBackendApi(client: BiciRadarApiClient): UsagePatternsBackendApi = client
 }

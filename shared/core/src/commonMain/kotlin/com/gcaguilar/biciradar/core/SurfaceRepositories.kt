@@ -33,7 +33,7 @@ interface SurfaceSnapshotRepository {
 
   suspend fun refreshSnapshot()
 
-  suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?)
+  suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>)
 
   fun currentBundle(): SurfaceSnapshotBundle?
 }
@@ -78,9 +78,9 @@ class SurfaceSnapshotRepositoryImpl(
             .asFlow()
             .mapToList(Dispatchers.Default),
           db.biciradarQueries
-            .getSurfaceMonitoring()
+            .getAllSurfaceMonitoringSessions()
             .asFlow()
-            .mapToOneOrNull(Dispatchers.Default),
+            .mapToList(Dispatchers.Default),
         ) { header, rows, mon ->
           if (header == null) {
             null
@@ -162,7 +162,7 @@ class SurfaceSnapshotRepositoryImpl(
       }
     val hasNotificationPermission = localNotifier.hasPermission()
 
-    val previousMonitoring = mutableBundle.value?.monitoringSession
+    val previousMonitoring = mutableBundle.value?.visibleMonitoringSessions.orEmpty()
     val mergedFavorite = favoriteStation.mergeMonitoring(previousMonitoring)
     val mergedHome = homeStation.mergeMonitoring(previousMonitoring)
     val mergedWork = workStation.mergeMonitoring(previousMonitoring)
@@ -174,7 +174,8 @@ class SurfaceSnapshotRepositoryImpl(
         homeStation = mergedHome,
         workStation = mergedWork,
         nearbyStations = nearbyStations,
-        monitoringSession = previousMonitoring,
+        monitoringSession = previousMonitoring.firstOrNull(),
+        monitoringSessions = previousMonitoring,
         state =
           SurfaceState(
             hasLocationPermission = hasLocationPermission,
@@ -193,19 +194,20 @@ class SurfaceSnapshotRepositoryImpl(
     persist(snapshot)
   }
 
-  override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) {
+  override suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>) {
     if (!bootstrapped) bootstrap()
     val current = mutableBundle.value ?: emptyBundle()
-    val updatedFavorite = current.favoriteStation.mergeMonitoring(session)
-    val updatedHome = current.homeStation.mergeMonitoring(session)
-    val updatedWork = current.workStation.mergeMonitoring(session)
+    val updatedFavorite = current.favoriteStation.mergeMonitoring(sessions)
+    val updatedHome = current.homeStation.mergeMonitoring(sessions)
+    val updatedWork = current.workStation.mergeMonitoring(sessions)
     persist(
       current.copy(
         generatedAtEpoch = currentTimeMs(),
         favoriteStation = updatedFavorite,
         homeStation = updatedHome,
         workStation = updatedWork,
-        monitoringSession = session,
+        monitoringSession = sessions.firstOrNull(),
+        monitoringSessions = sessions,
       ),
     )
   }
@@ -321,9 +323,11 @@ private fun List<Station>.rebasedForOrigin(origin: GeoPoint): List<Station> =
     station.copy(distanceMeters = distanceBetween(origin, station.location))
   }
 
-private fun SurfaceStationSnapshot?.mergeMonitoring(session: SurfaceMonitoringSession?): SurfaceStationSnapshot? {
+private fun SurfaceStationSnapshot?.mergeMonitoring(
+  sessions: List<SurfaceMonitoringSession>,
+): SurfaceStationSnapshot? {
   val station = this ?: return null
-  if (session == null || station.id != session.stationId) return station
+  val session = sessions.firstOrNull { it.stationId == station.id } ?: return station
   return station.copy(
     bikesAvailable = session.bikesAvailable,
     docksAvailable = session.docksAvailable,

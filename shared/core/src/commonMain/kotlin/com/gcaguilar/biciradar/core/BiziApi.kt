@@ -9,11 +9,20 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 interface BiziApi {
   suspend fun fetchStations(origin: GeoPoint): List<Station>
@@ -22,14 +31,35 @@ interface BiziApi {
 }
 
 interface DatosBiziApi {
-  suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern>
+  /** Whether hourly usage patterns are available for [cityId]. */
+  fun supports(cityId: String): Boolean
+
+  suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern>
 }
 
+/**
+ * Zaragoza provider: datosbizi.com is the only source of usage patterns for
+ * that city. Every other city is served by the BiciRadar backend (see
+ * `RoutingDatosBiziApi`).
+ */
 class DatosBiziApiImpl(
   private val httpClient: HttpClient,
 ) : DatosBiziApi {
-  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> =
-    httpClient.get("https://datosbizi.com/api/patterns?stationId=${stationId.trimStart('0').ifEmpty { "0" }}").body()
+  override fun supports(cityId: String): Boolean = cityId == City.ZARAGOZA.id
+
+  override suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern> {
+    if (!supports(cityId)) return emptyList()
+    return httpClient
+      .get(
+        "https://datosbizi.com/api/patterns?stationId=${stationId.trimStart('0').ifEmpty { "0" }}",
+      ).body()
+  }
 }
 
 data class StationAvailability(
@@ -45,8 +75,10 @@ class GbfsBiziApi(
   private val settingsRepository: SettingsRepository? = null,
   private val logger: Logger = NoOpLogger,
 ) : BiziApi {
-  private val stationStatusUrlCache = mutableMapOf<String, String>()
-  private val stationStatusUrlCacheLock = Mutex()
+  private val discoveryCache = mutableMapOf<String, GbfsDiscoveryEnvelope>()
+  private val discoveryCacheLock = Mutex()
+  private val vehicleTypePropulsionCache = mutableMapOf<String, Map<String, String>>()
+  private val vehicleTypePropulsionLock = Mutex()
 
   private val gbfsDiscoveryUrl: String
     get() = settingsRepository?.currentSelectedCity()?.gbfsDiscoveryUrl ?: configuration.gbfsDiscoveryUrl
@@ -66,6 +98,8 @@ class GbfsBiziApi(
 
     val stationInfo = httpClient.get(stationInfoUrl).body<GbfsStationInfoEnvelope>()
     val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
+    val cacheKey = settingsRepository?.currentSelectedCity()?.id ?: gbfsDiscoveryUrl
+    val propulsion = resolveVehicleTypePropulsion(discovery, cacheKey)
 
     val statusById = stationStatus.data.stations.associateBy { it.stationId }
 
@@ -73,25 +107,14 @@ class GbfsBiziApi(
       .mapNotNull { info ->
         val status = statusById[info.stationId] ?: return@mapNotNull null
         val location = GeoPoint(info.latitude, info.longitude)
-
-        val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
-        val ebikesCount =
-          vehicleTypes
-            .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-            .sumOf { it.count }
-        val regularBikesCount =
-          vehicleTypes
-            .filter {
-              it.vehicleTypeId.contains("bike", ignoreCase = true) &&
-                !it.vehicleTypeId.contains("ebike", ignoreCase = true)
-            }.sumOf { it.count }
+        val (ebikesCount, regularBikesCount) = status.bikeBreakdown(propulsion)
 
         Station(
           id = info.stationId,
           name = info.name,
           address = info.address ?: info.name,
           location = location,
-          bikesAvailable = status.numBikesAvailable,
+          bikesAvailable = status.bikesAvailable,
           slotsFree = status.numDocksAvailable,
           distanceMeters = distanceBetween(origin, location),
           sourceLabel = "GBFS",
@@ -103,68 +126,99 @@ class GbfsBiziApi(
 
   override suspend fun fetchAvailability(stationIds: List<String>): Map<String, StationAvailability> {
     val cacheKey = settingsRepository?.currentSelectedCity()?.id ?: gbfsDiscoveryUrl
-    val stationStatusUrl = getStationStatusUrl(cacheKey) ?: return emptyMap()
-
     return try {
+      val discovery = discoveryFor(cacheKey) ?: return emptyMap()
+      val stationStatusUrl =
+        discovery.data.feeds
+          .firstOrNull { it.name == "station_status" }
+          ?.url ?: return emptyMap()
+      val propulsion = resolveVehicleTypePropulsion(discovery, cacheKey)
       val stationStatus = httpClient.get(stationStatusUrl).body<GbfsStationStatusEnvelope>()
       val statusById = stationStatus.data.stations.associateBy { it.stationId }
 
       stationIds
         .mapNotNull { id ->
           val status = statusById[id] ?: return@mapNotNull null
-
-          val vehicleTypes = status.vehicleTypesAvailable ?: emptyList()
-          val ebikesCount =
-            vehicleTypes
-              .filter { it.vehicleTypeId.contains("ebike", ignoreCase = true) }
-              .sumOf { it.count }
-          val regularBikesCount =
-            vehicleTypes
-              .filter {
-                it.vehicleTypeId.contains("bike", ignoreCase = true) &&
-                  !it.vehicleTypeId.contains("ebike", ignoreCase = true)
-              }.sumOf { it.count }
+          val (ebikesCount, regularBikesCount) = status.bikeBreakdown(propulsion)
 
           id to
             StationAvailability(
-              bikesAvailable = status.numBikesAvailable,
+              bikesAvailable = status.bikesAvailable,
               slotsFree = status.numDocksAvailable,
               ebikesAvailable = ebikesCount,
               regularBikesAvailable = regularBikesCount,
             )
         }.toMap()
     } catch (e: Exception) {
-      invalidateStationStatusUrl(cacheKey)
+      invalidateCaches(cacheKey)
       logger.warn("GbfsBiziApi", "Failed to fetch availability for $cacheKey", e)
       emptyMap()
     }
   }
 
-  private suspend fun getStationStatusUrl(cacheKey: String): String? {
-    stationStatusUrlCacheLock.withLock {
-      stationStatusUrlCache[cacheKey]?.let { return it }
-    }
-
-    val resolved =
+  /** Resolves and caches the discovery document; the feeds rarely change. */
+  private suspend fun discoveryFor(cacheKey: String): GbfsDiscoveryEnvelope? {
+    discoveryCacheLock.withLock { discoveryCache[cacheKey]?.let { return it } }
+    val discovery =
       runCatching {
-        val discovery = httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
-        discovery.data.feeds
-          .firstOrNull { it.name == "station_status" }
-          ?.url
+        httpClient.get(gbfsDiscoveryUrl).body<GbfsDiscoveryEnvelope>()
       }.onFailure { error ->
-        logger.warn("GbfsBiziApi", "Failed to resolve station_status feed for $cacheKey", error)
-      }.getOrNull()
-
-    if (resolved != null) {
-      stationStatusUrlCacheLock.withLock {
-        stationStatusUrlCache[cacheKey] = resolved
-      }
-    }
-    return resolved
+        logger.warn("GbfsBiziApi", "Failed to resolve GBFS discovery for $cacheKey", error)
+      }.getOrNull() ?: return null
+    discoveryCacheLock.withLock { discoveryCache[cacheKey] = discovery }
+    return discovery
   }
 
-  private suspend fun invalidateStationStatusUrl(cacheKey: String) {
-    stationStatusUrlCacheLock.withLock { stationStatusUrlCache.remove(cacheKey) }
+  /**
+   * Maps `vehicle_type_id` to its GBFS `propulsion_type`. Official feeds keep
+   * operator ids (`FIT`, `EFIT`, `BOOST`, ...), so the country-agnostic id
+   * heuristic alone is not enough to tell e-bikes apart.
+   */
+  private suspend fun resolveVehicleTypePropulsion(
+    discovery: GbfsDiscoveryEnvelope,
+    cacheKey: String,
+  ): Map<String, String> {
+    vehicleTypePropulsionLock.withLock { vehicleTypePropulsionCache[cacheKey]?.let { return it } }
+    val vehicleTypesUrl =
+      discovery.data.feeds
+        .firstOrNull { it.name == "vehicle_types" }
+        ?.url ?: return emptyMap()
+    val types =
+      runCatching {
+        httpClient.get(vehicleTypesUrl).body<GbfsVehicleTypesEnvelope>()
+      }.onFailure { error ->
+        logger.warn("GbfsBiziApi", "Failed to resolve vehicle types for $cacheKey", error)
+      }.getOrNull() ?: return emptyMap()
+    val propulsion = types.data.vehicleTypes.associate { it.vehicleTypeId to it.propulsionType }
+    vehicleTypePropulsionLock.withLock { vehicleTypePropulsionCache[cacheKey] = propulsion }
+    return propulsion
+  }
+
+  private fun GbfsStationStatus.bikeBreakdown(propulsion: Map<String, String>): Pair<Int, Int> {
+    val types = vehicleTypesAvailable ?: return 0 to 0
+    if (types.isEmpty()) return 0 to 0
+    val total = bikesAvailable.coerceAtLeast(0)
+    val electric =
+      types
+        .filter { type ->
+          propulsion[type.vehicleTypeId]?.contains("electric", ignoreCase = true)
+            ?: type.vehicleTypeId.looksElectric()
+        }.sumOf { it.count }
+    // GBFS 3.0 counts can include overflow vehicles, so never exceed the total.
+    val ebikes = electric.coerceAtMost(total)
+    return ebikes to (total - ebikes)
+  }
+
+  private fun String.looksElectric(): Boolean =
+    contains("ebike", ignoreCase = true) ||
+      contains("e-bike", ignoreCase = true) ||
+      contains("electric", ignoreCase = true) ||
+      contains("efit", ignoreCase = true) ||
+      contains("boost", ignoreCase = true)
+
+  private suspend fun invalidateCaches(cacheKey: String) {
+    discoveryCacheLock.withLock { discoveryCache.remove(cacheKey) }
+    vehicleTypePropulsionLock.withLock { vehicleTypePropulsionCache.remove(cacheKey) }
   }
 }
 
@@ -344,8 +398,20 @@ private object GbfsDiscoveryDataSerializer : KSerializer<GbfsDiscoveryData> {
   override val descriptor = buildClassSerialDescriptor("GbfsDiscoveryData")
 
   override fun deserialize(decoder: Decoder): GbfsDiscoveryData {
-    val map = decoder.decodeSerializableValue(MapSerializer(String.serializer(), GbfsDiscoveryLanguage.serializer()))
-    val feeds = (map["es"] ?: map["en"] ?: map.values.firstOrNull())?.feeds ?: emptyList()
+    // GBFS 3.0 keeps feeds at data.feeds; GBFS 2.x nests them per language
+    // (data.es.feeds, data.en.feeds, ...).
+    val map = decoder.decodeSerializableValue(MapSerializer(String.serializer(), JsonElement.serializer()))
+    val direct = map["feeds"] as? JsonArray
+    val nested =
+      map.values
+        .filterIsInstance<JsonObject>()
+        .firstNotNullOfOrNull { it["feeds"] as? JsonArray }
+    val elements = direct ?: nested ?: return GbfsDiscoveryData()
+    val feeds =
+      Json.decodeFromJsonElement(
+        ListSerializer(GbfsFeed.serializer()),
+        elements,
+      )
     return GbfsDiscoveryData(feeds)
   }
 
@@ -384,11 +450,48 @@ private data class GbfsStationInfoData(
 @Serializable
 private data class GbfsStationInfo(
   @SerialName("station_id") val stationId: String,
-  val name: String,
+  @Serializable(with = LocalizedTextSerializer::class) val name: String,
   @SerialName("lat") val latitude: Double,
   @SerialName("lon") val longitude: Double,
-  val address: String? = null,
+  @Serializable(with = LocalizedTextSerializer::class) val address: String? = null,
 )
+
+/**
+ * GBFS 3.0 allows `name`/`address` to be a language list
+ * (`[{"text": "...", "language": "es"}, ...]`) instead of a plain string.
+ * Picks Spanish, then English, then the first entry.
+ */
+private object LocalizedTextSerializer : KSerializer<String> {
+  override val descriptor = PrimitiveSerialDescriptor("LocalizedText", PrimitiveKind.STRING)
+
+  override fun deserialize(decoder: Decoder): String {
+    val jsonDecoder = decoder as? JsonDecoder ?: return decoder.decodeString()
+    val element = jsonDecoder.decodeJsonElement()
+    return when (element) {
+      is JsonPrimitive -> element.content
+      is JsonArray -> pick(element)
+      is JsonObject -> (element["text"] as? JsonPrimitive)?.content ?: ""
+    }
+  }
+
+  private fun pick(array: JsonArray): String {
+    val entries = array.mapNotNull { entry -> (entry as? JsonObject)?.let { textEntry(it) } }
+    val byLanguage = entries.associate { it.second to it.first }
+    return byLanguage["es"] ?: byLanguage["en"] ?: entries.firstOrNull()?.first ?: ""
+  }
+
+  private fun textEntry(entry: JsonObject): Pair<String, String?>? {
+    val text = (entry["text"] as? JsonPrimitive)?.content ?: return null
+    return text to (entry["language"] as? JsonPrimitive)?.content
+  }
+
+  override fun serialize(
+    encoder: Encoder,
+    value: String,
+  ) {
+    encoder.encodeString(value)
+  }
+}
 
 @Serializable
 private data class GbfsStationStatusEnvelope(
@@ -403,13 +506,34 @@ private data class GbfsStationStatusData(
 @Serializable
 private data class GbfsStationStatus(
   @SerialName("station_id") val stationId: String,
-  @SerialName("num_bikes_available") val numBikesAvailable: Int,
+  @SerialName("num_bikes_available") val numBikesAvailable: Int? = null,
+  @SerialName("num_vehicles_available") val numVehiclesAvailable: Int? = null,
   @SerialName("num_docks_available") val numDocksAvailable: Int,
   @SerialName("vehicle_types_available") val vehicleTypesAvailable: List<VehicleTypeAvailable>? = null,
-)
+) {
+  /** GBFS 3.0 renamed `num_bikes_available` to `num_vehicles_available`. */
+  val bikesAvailable: Int
+    get() = numBikesAvailable ?: numVehiclesAvailable ?: 0
+}
 
 @Serializable
 private data class VehicleTypeAvailable(
   @SerialName("vehicle_type_id") val vehicleTypeId: String,
   val count: Int,
+)
+
+@Serializable
+private data class GbfsVehicleTypesEnvelope(
+  val data: GbfsVehicleTypesData,
+)
+
+@Serializable
+private data class GbfsVehicleTypesData(
+  @SerialName("vehicle_types") val vehicleTypes: List<GbfsVehicleType> = emptyList(),
+)
+
+@Serializable
+private data class GbfsVehicleType(
+  @SerialName("vehicle_type_id") val vehicleTypeId: String,
+  @SerialName("propulsion_type") val propulsionType: String = "",
 )

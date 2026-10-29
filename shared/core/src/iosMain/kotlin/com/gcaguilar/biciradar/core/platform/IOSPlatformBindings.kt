@@ -27,10 +27,14 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
 import com.gcaguilar.biciradar.core.WatchSyncBridge
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.LegacyBlobToRelationalMigration
 import com.gcaguilar.biciradar.core.local.createNativeDriver
+import com.gcaguilar.biciradar.core.push.DeviceTokenProvider
+import com.gcaguilar.biciradar.core.push.NoOpDeviceTokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpTimeout
@@ -86,6 +90,15 @@ class IOSPlatformBindings(
   private val remoteConfigBridge: IOSRemoteConfigBridge? = null,
   private val crashlyticsBridge: IOSCrashlyticsBridge? = null,
 ) : PlatformBindings {
+  /** Set from Swift when Auth0.swift is configured; anonymous otherwise. */
+  var authProviderOverride: AuthProvider = NoOpAuthProvider
+
+  /** Set from Swift with an APNs/FCM-backed token source. */
+  var deviceTokenProviderOverride: DeviceTokenProvider = NoOpDeviceTokenProvider
+
+  override val authProvider: AuthProvider get() = authProviderOverride
+
+  override val deviceTokenProvider: DeviceTokenProvider get() = deviceTokenProviderOverride
   private val fileSystemInstance: FileSystem = FileSystem.SYSTEM
   private val storageDirectoryProviderInstance = IOSStorageDirectoryProvider()
   private val json =

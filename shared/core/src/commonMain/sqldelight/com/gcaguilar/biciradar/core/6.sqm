@@ -1,0 +1,3 @@
+-- Migration 6 (squashed). Adds `routines` and `routine_steps`. As with earlier
+-- migrations, the DDL is applied idempotently in
+-- LegacyBlobToRelationalMigration.ensure, so this migration is intentionally a no-op.

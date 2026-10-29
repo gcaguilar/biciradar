@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.backend
 
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.Routine
+import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.auth.AuthTokenProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.ResponseException
@@ -13,6 +14,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 /** Raised for transport, protocol or error-status failures against `/v1`. */
@@ -34,7 +36,8 @@ class BiciRadarApiClient(
   private val config: BackendConfig,
   private val tokenProvider: AuthTokenProvider,
   private val logger: Logger,
-) : RoutineBackendApi {
+) : RoutineBackendApi,
+  UsagePatternsBackendApi {
   override val isConfigured: Boolean get() = config.isConfigured
 
   override suspend fun listRoutines(): List<RoutineDto> {
@@ -89,6 +92,28 @@ class BiciRadarApiClient(
   suspend fun cancelMonitoringWindow(id: String) {
     requireConfigured()
     execute(HttpMethod.Delete, "/v1/monitoring-windows/${encodePath(id)}", null)
+  }
+
+  /**
+   * Rolling 7-day hourly patterns for one station. The endpoint is public, so
+   * no token is required (the shared [execute] still attaches one when signed
+   * in, which the backend ignores).
+   */
+  override suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern> {
+    requireConfigured()
+    val path = "/v1/cities/${encodePath(cityId)}/stations/${encodePath(stationId)}/patterns"
+    val body =
+      try {
+        execute(HttpMethod.Get, path, null)
+      } catch (failure: BackendException) {
+        throw failure.toPatternsFailure(cityId)
+      }
+    return json
+      .decodeFromString(ListSerializer(UsagePatternDto.serializer()), body)
+      .map { it.toStationHourlyPattern() }
   }
 
   private fun requireConfigured() {

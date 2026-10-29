@@ -108,12 +108,19 @@ class LegacyBlobToRelationalMigrationJvmTest {
         "favorite_ids",
         "favorite_roles",
         "favorite_station_category",
+        "routine_dirty_ids",
+        "routine_pending_deletes",
+        "routine_steps",
+        "routine_sync_state",
+        "routines",
         "saved_place_alert_rules",
         "settings_map_filter_name",
         "stations",
         "surface_header",
         "surface_monitoring",
+        "surface_monitoring_sessions",
         "surface_station_row",
+        "trip_monitoring_window",
       ),
       actualTables,
     )
@@ -130,7 +137,13 @@ class LegacyBlobToRelationalMigrationJvmTest {
     database.biciradarQueries.getAllSettingsMapFilterNames().executeAsList()
     database.biciradarQueries.getSurfaceHeader().executeAsOneOrNull()
     database.biciradarQueries.getAllSurfaceStationRows().executeAsList()
-    database.biciradarQueries.getSurfaceMonitoring().executeAsOneOrNull()
+    database.biciradarQueries.getAllSurfaceMonitoringSessions().executeAsList()
+    database.biciradarQueries.getAllRoutines().executeAsList()
+    database.biciradarQueries.getAllRoutineSteps().executeAsList()
+    database.biciradarQueries.getRoutineSyncState().executeAsOneOrNull()
+    database.biciradarQueries.getDirtyRoutineIds().executeAsList()
+    database.biciradarQueries.getPendingRoutineDeletes().executeAsList()
+    database.biciradarQueries.getTripMonitoringWindow().executeAsOneOrNull()
   }
 
   private fun legacyDriver(): JdbcSqliteDriver {

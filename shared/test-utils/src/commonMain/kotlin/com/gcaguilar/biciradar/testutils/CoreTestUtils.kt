@@ -294,13 +294,13 @@ open class FakeSurfaceSnapshotRepository : SurfaceSnapshotRepository {
     refreshCount++
   }
 
-  override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) = Unit
+  override suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>) = Unit
 
   override fun currentBundle(): SurfaceSnapshotBundle? = bundle.value
 }
 
 open class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
-  override val state: MutableStateFlow<SurfaceMonitoringSession?> = MutableStateFlow(null)
+  override val state: MutableStateFlow<Map<String, SurfaceMonitoringSession>> = MutableStateFlow(emptyMap())
   var bootstrapCount = 0
 
   override suspend fun bootstrap() {
@@ -318,11 +318,19 @@ open class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     kind: SurfaceMonitoringKind,
   ): Boolean = false
 
-  override fun stopMonitoring() {
-    state.value = null
+  override fun stopMonitoring(stationId: String?) {
+    if (stationId == null) {
+      state.value = emptyMap()
+    } else {
+      state.value = state.value - stationId
+    }
   }
 
   override suspend fun clearMonitoring() {
-    state.value = null
+    state.value = emptyMap()
   }
+
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = state.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = state.value.values.filter { it.isActive }
 }

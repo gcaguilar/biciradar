@@ -1,7 +1,11 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
 import com.gcaguilar.biciradar.core.crypto.SecureKeyStore
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
+import com.gcaguilar.biciradar.core.push.DeviceTokenProvider
+import com.gcaguilar.biciradar.core.push.NoOpDeviceTokenProvider
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -179,6 +183,15 @@ interface PlatformBindings :
   DatabasePlatform,
   StoragePlatform {
   val appConfiguration: AppConfiguration
+
+  /**
+   * Platform OIDC session. Defaults to anonymous so desktop/wear/tests and
+   * unconfigured builds keep working locally.
+   */
+  val authProvider: AuthProvider get() = NoOpAuthProvider
+
+  /** Push token source. Defaults to a no-op provider on platforms without push. */
+  val deviceTokenProvider: DeviceTokenProvider get() = NoOpDeviceTokenProvider
 
   @AppVersion val appVersion: String
   val assistantIntentResolver: AssistantIntentResolver

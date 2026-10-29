@@ -1,5 +1,13 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.AuthState
+import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
+import com.gcaguilar.biciradar.core.backend.PushMessage
+import com.gcaguilar.biciradar.core.backend.PushMessageBus
+import com.gcaguilar.biciradar.core.backend.StartMonitoringWindowRequest
+import com.gcaguilar.biciradar.core.backend.TripWindowStore
+import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.geo.distanceBetween
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -13,8 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private const val POLLING_INTERVAL_MILLIS = 30_000L
 
 val MONITORING_DURATION_OPTIONS_SECONDS = listOf(5 * 60, 10 * 60, 15 * 60, 20 * 60)
 
@@ -43,6 +49,8 @@ data class TripState(
   val alert: TripAlert? = null,
   val isSearchingStation: Boolean = false,
   val searchError: String? = null,
+  /** Backend monitoring-window id while a trip is being watched. */
+  val activeWindowId: String? = null,
 )
 
 interface TripRepository {
@@ -75,18 +83,37 @@ interface TripRepository {
 @ContributesBinding(AppScope::class)
 @Inject
 class TripRepositoryImpl(
-  private val biziApi: BiziApi,
   private val stationsRepository: StationsRepository,
-  private val localNotifier: LocalNotifier,
-  private val appConfiguration: AppConfiguration,
   private val engagementRepository: EngagementRepository,
   private val scope: CoroutineScope,
+  private val apiClient: BiciRadarApiClient,
+  private val authProvider: AuthProvider,
+  private val settingsRepository: SettingsRepository,
+  private val pushMessageBus: PushMessageBus,
+  private val tripWindowStore: TripWindowStore,
 ) : TripRepository {
   private val mutableState = MutableStateFlow(TripState())
   override val state: StateFlow<TripState> = mutableState.asStateFlow()
 
-  private var monitoringJob: Job? = null
   private var countdownJob: Job? = null
+
+  init {
+    // A trip does not survive process death: any persisted window is orphaned.
+    val orphanWindow = tripWindowStore.current()
+    if (orphanWindow != null) {
+      scope.launch {
+        if (apiClient.isConfigured) {
+          runCatching { apiClient.cancelMonitoringWindow(orphanWindow.windowId) }
+        }
+        if (tripWindowStore.current()?.windowId == orphanWindow.windowId) {
+          tripWindowStore.clear()
+        }
+      }
+    }
+    scope.launch {
+      pushMessageBus.messages.collect(::handlePush)
+    }
+  }
 
   override suspend fun setDestination(
     destination: TripDestination,
@@ -178,9 +205,30 @@ class TripRepositoryImpl(
     val station = mutableState.value.nearestStationWithSlots ?: return
     stopMonitoring()
 
+    // The backend watches the station during an ephemeral window. `threshold = 1`
+    // makes the detector emit only `DOCKS_EMPTY`, matching the previous
+    // "alert when the station fills up" behaviour (plan §H).
+    val windowId =
+      if (apiClient.isConfigured && authProvider.credentialsState.value == AuthState.Authenticated) {
+        runCatching {
+          apiClient.startMonitoringWindow(
+            StartMonitoringWindowRequest(
+              cityId = settingsRepository.currentSelectedCity().id,
+              stationId = station.id,
+              kind = "ARRIVAL",
+              durationSeconds = durationSeconds,
+              threshold = 1,
+            ),
+          )
+        }.getOrNull()
+      } else {
+        null
+      }
+
     mutableState.update {
       it.copy(
         alert = null,
+        activeWindowId = windowId,
         monitoring =
           TripMonitoringState(
             isActive = true,
@@ -188,6 +236,9 @@ class TripRepositoryImpl(
             totalSeconds = durationSeconds,
           ),
       )
+    }
+    if (windowId != null) {
+      tripWindowStore.save(windowId = windowId, stationId = station.id, startedAt = currentTimeMs())
     }
 
     countdownJob =
@@ -205,83 +256,68 @@ class TripRepositoryImpl(
           stopMonitoring()
         }
       }
-
-    monitoringJob =
-      scope.launch {
-        var firstCheck = true
-        while (mutableState.value.monitoring.isActive) {
-          if (!firstCheck) delay(POLLING_INTERVAL_MILLIS)
-          firstCheck = false
-
-          val currentStation = mutableState.value.nearestStationWithSlots ?: break
-          val availability =
-            runCatching {
-              biziApi.fetchAvailability(listOf(currentStation.id))
-            }.getOrNull() ?: continue
-
-          val updated = availability[currentStation.id] ?: continue
-          val updatedStation =
-            currentStation.copy(
-              bikesAvailable = updated.bikesAvailable,
-              slotsFree = updated.slotsFree,
-            )
-          mutableState.update { it.copy(nearestStationWithSlots = updatedStation) }
-
-          if (updatedStation.slotsFree == 0) {
-            val destination = mutableState.value.destination
-            val alternative =
-              if (destination !=
-                null
-              ) {
-                findAlternativeStation(updatedStation, destination.location)
-              } else {
-                null
-              }
-            val alert =
-              TripAlert(
-                fullStation = updatedStation,
-                alternativeStation = alternative,
-                alternativeDistanceMeters = alternative?.distanceMeters,
-              )
-            scope.launch { engagementRepository.markMonitoringCompleted() }
-            stopMonitoring()
-            mutableState.update { it.copy(alert = alert) }
-            val altText =
-              if (alternative !=
-                null
-              ) {
-                " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)."
-              } else {
-                ""
-              }
-            localNotifier.notify(
-              title = "Estación llena: ${updatedStation.name}",
-              body = "No quedan plazas libres.$altText",
-            )
-            break
-          }
-        }
-      }
   }
 
-  private suspend fun findAlternativeStation(
-    fullStation: Station,
-    destination: GeoPoint,
-  ): Station? {
-    val stations = stationsRepository.state.value.stations
-    return stations
-      .filter { it.id != fullStation.id }
-      .map { it.copy(distanceMeters = distanceBetween(destination, it.location)) }
-      .sortedBy { it.distanceMeters }
-      .firstOrNull { it.slotsFree > 0 }
+  /** Terminal push for the active trip window: surface the alternative and cancel early. */
+  private suspend fun handlePush(message: PushMessage) {
+    val current = mutableState.value
+    val windowId = current.activeWindowId ?: return
+    if (message.routineId != windowId) return
+    if (message.event !in TERMINAL_TRIP_EVENTS) return
+
+    val fullStation =
+      current.nearestStationWithSlots
+        ?.copy(slotsFree = 0)
+        ?: stationFor(message.stationId)
+        ?: return
+    val alternative = message.alternative?.let(::stationFor)
+    cancelActiveWindow()
+    mutableState.update {
+      it.copy(
+        monitoring = TripMonitoringState(isActive = false),
+        activeWindowId = null,
+        alert =
+          TripAlert(
+            fullStation = fullStation,
+            alternativeStation = alternative,
+            alternativeDistanceMeters = message.alternative?.distanceMeters,
+          ),
+      )
+    }
+    engagementRepository.markMonitoringCompleted()
+  }
+
+  private fun stationFor(stationId: String): Station? =
+    stationsRepository.state.value.stations
+      .firstOrNull { it.id == stationId }
+
+  private fun stationFor(alternative: com.gcaguilar.biciradar.core.backend.PushAlternative): Station? {
+    val existing = stationFor(alternative.stationId)
+    return if (existing != null) {
+      existing.copy(
+        bikesAvailable = alternative.bikesAvailable,
+        slotsFree = alternative.slotsFree,
+        distanceMeters = alternative.distanceMeters,
+      )
+    } else {
+      null
+    }
+  }
+
+  private fun cancelActiveWindow() {
+    val windowId = mutableState.value.activeWindowId
+    tripWindowStore.clear()
+    if (windowId == null) return
+    scope.launch { runCatching { apiClient.cancelMonitoringWindow(windowId) } }
   }
 
   override fun stopMonitoring() {
-    monitoringJob?.cancel()
-    monitoringJob = null
     countdownJob?.cancel()
     countdownJob = null
-    mutableState.update { it.copy(monitoring = TripMonitoringState(isActive = false)) }
+    cancelActiveWindow()
+    mutableState.update {
+      it.copy(monitoring = TripMonitoringState(isActive = false), activeWindowId = null)
+    }
   }
 
   override fun clearTrip() {
@@ -293,37 +329,13 @@ class TripRepositoryImpl(
     mutableState.update { it.copy(alert = null) }
   }
 
-  override suspend fun doFinalBackgroundCheck() {
-    val station = mutableState.value.nearestStationWithSlots ?: return
-    if (!mutableState.value.monitoring.isActive) return
+  /**
+   * The backend guarantees window expiry, so there is no device-side final
+   * check anymore; kept for API compatibility with the iOS background task.
+   */
+  override suspend fun doFinalBackgroundCheck() = Unit
 
-    val availability =
-      runCatching {
-        biziApi.fetchAvailability(listOf(station.id))
-      }.getOrNull()
-
-    val updated = availability?.get(station.id)
-    if (updated != null && updated.slotsFree == 0) {
-      val destination = mutableState.value.destination
-      val alternative = if (destination != null) findAlternativeStation(station, destination.location) else null
-      val altText =
-        if (alternative !=
-          null
-        ) {
-          " Alternativa: ${alternative.name} (${alternative.distanceMeters}m)."
-        } else {
-          ""
-        }
-      localNotifier.notify(
-        title = "Estación llena: ${station.name}",
-        body = "No quedan plazas libres.$altText",
-      )
-    } else {
-      localNotifier.notify(
-        title = "Monitorización pausada",
-        body = "Abre la app para continuar vigilando ${station.name}.",
-      )
-    }
-    stopMonitoring()
+  private companion object {
+    val TERMINAL_TRIP_EVENTS = setOf("DOCKS_EMPTY", "DOCKS_FULL", "STATION_UNAVAILABLE")
   }
 }
