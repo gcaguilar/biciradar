@@ -1,14 +1,14 @@
-import BiziSharedCore
+import Core
 import Foundation
 
 actor BiziWatchGraph {
     static let shared = BiziWatchGraph()
 
-    private let bindings = WatchOSPlatformBindings(
-        appConfiguration: AppConfiguration.companion.createDefault()
+    private let bindings = platform.WatchOSPlatformBindings(
+        appConfiguration: AppConfiguration.Companion.shared.createDefault()
     )
 
-    private lazy var graph: any SharedGraph = CoreGraphCompanion.shared.create(
+    private lazy var graph: any SharedGraph = di.CoreGraph.Companion.shared.create(
         platformBindings: bindings
     )
     private var hasBootstrapped = false
@@ -68,17 +68,7 @@ actor BiziWatchGraph {
 
     func assistantResponse(for action: any AssistantAction) async throws -> AssistantResolution {
         try await refreshData()
-        return try await withCheckedThrowingContinuation { continuation in
-            graph.resolveAssistantIntent.execute(action: action) { resolution, error in
-                if let error {
-                    continuation.resume(throwing: error)
-                } else if let resolution {
-                    continuation.resume(returning: resolution)
-                } else {
-                    continuation.resume(throwing: WatchGraphError.emptyAssistantResponse)
-                }
-            }
-        }
+        return try await graph.resolveAssistantIntent.execute(action: action)
     }
 
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
@@ -90,22 +80,14 @@ actor BiziWatchGraph {
 
     func refreshData(forceRefresh: Bool = false) async throws {
         try await ensureBootstrapped()
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.refreshStationDataIfNeeded.execute(forceRefresh: forceRefresh) { _, error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-            }
-        }
+        _ = try await graph.refreshStationDataIfNeeded.execute(forceRefresh: forceRefresh)
     }
 
     // MARK: - Private helpers
 
     private func ensureBootstrapped() async throws {
         guard !hasBootstrapped else { return }
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            graph.bootstrapSession.execute { error in
-                if let error { continuation.resume(throwing: error) } else { continuation.resume() }
-            }
-        }
+        try await graph.bootstrapSession.execute()
         hasBootstrapped = true
     }
 
@@ -118,16 +100,5 @@ actor BiziWatchGraph {
             slotsFree: Int(station.slotsFree),
             distanceMeters: Int(station.distanceMeters)
         )
-    }
-}
-
-enum WatchGraphError: LocalizedError {
-    case emptyAssistantResponse
-
-    var errorDescription: String? {
-        switch self {
-        case .emptyAssistantResponse:
-            return "No se recibió respuesta del asistente del reloj."
-        }
     }
 }

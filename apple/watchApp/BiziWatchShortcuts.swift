@@ -1,5 +1,5 @@
 import AppIntents
-import BiziSharedCore
+import Core
 
 enum WatchSavedPlaceShortcut: String, AppEnum {
     case home

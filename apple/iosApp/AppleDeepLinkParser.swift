@@ -1,8 +1,9 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import Foundation
 
 enum AppleDeepLinkParser {
-    static func parse(_ url: URL) -> (any MobileLaunchRequest)? {
+    static func parse(_ url: URL) -> (any navigation.MobileLaunchRequest)? {
         guard url.scheme?.lowercased() == "biciradar" else { return nil }
         let host = url.host?.lowercased()
         let pathComponent = url.pathComponents.dropFirst().first?.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -11,25 +12,25 @@ enum AppleDeepLinkParser {
 
         switch host {
         case "home", "nearby":
-            return MobileLaunchRequestHome.shared
+            return navigation.MobileLaunchRequest.Home.shared
         case "map":
-            return MobileLaunchRequestMap.shared
+            return navigation.MobileLaunchRequest.Map.shared
         case "favorites":
-            return MobileLaunchRequestFavorites.shared
+            return navigation.MobileLaunchRequest.Favorites.shared
         case "alerts":
-            return MobileLaunchRequestSavedPlaceAlerts.shared
+            return navigation.MobileLaunchRequest.SavedPlaceAlerts.shared
         case "station":
             guard let stationId = pathComponent, !stationId.isEmpty else { return nil }
             if action == "route_to_station" {
-                return MobileLaunchRequestRouteToStation(stationId: stationId)
+                return navigation.MobileLaunchRequest.RouteToStation(stationId: stationId)
             }
-            return MobileLaunchRequestShowStation(stationId: stationId)
+            return navigation.MobileLaunchRequest.ShowStation(stationId: stationId)
         case "monitor":
             guard let stationId = pathComponent, !stationId.isEmpty else { return nil }
-            return MobileLaunchRequestMonitorStation(stationId: stationId)
+            return navigation.MobileLaunchRequest.MonitorStation(stationId: stationId)
         case "city":
             guard let cityId = pathComponent, !cityId.isEmpty else { return nil }
-            return MobileLaunchRequestSelectCity(cityId: cityId)
+            return navigation.MobileLaunchRequest.SelectCity(cityId: cityId)
         default:
             return nil
         }

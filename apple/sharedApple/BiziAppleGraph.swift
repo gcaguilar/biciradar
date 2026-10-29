@@ -1,4 +1,5 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import Foundation
 import WidgetKit
 
@@ -33,14 +34,31 @@ struct BiziStationSnapshot: Identifiable, Hashable {
 /// proceso, creadas de forma perezosa (lazy `static let`, con las garantías de inicialización
 /// única y segura de Swift) la primera vez que cualquiera de los dos consumidores las toca.
 enum BiziSharedGraph {
-    static let platformBindings = IOSPlatformBindings(
-        appConfiguration: AppConfiguration.companion.createDefault(),
-        remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge,
-        crashlyticsBridge: FirebaseBootstrap.crashlyticsBridge
-    )
+    static let platformBindings: platform.IOSPlatformBindings = {
+        let configuration = AppleAppConfiguration.make()
+        let bindings = platform.IOSPlatformBindings(
+            appConfiguration: configuration,
+            remoteConfigBridge: FirebaseBootstrap.remoteConfigBridge,
+            crashlyticsBridge: FirebaseBootstrap.crashlyticsBridge
+        )
+        if configuration.auth0Configured {
+            bindings.authProviderOverride = platform.Auth0AuthProvider(
+                gateway: Auth0Service(configuration: configuration)
+            )
+        } else {
+            #if DEBUG
+            if configuration.backendConfigured {
+                // Local smoke testing against a backend with AUTH_DISABLED=true.
+                bindings.authProviderOverride = auth.DevAuthProvider.shared
+            }
+            #endif
+        }
+        bindings.deviceTokenProviderOverride = ApplePushTokenProvider()
+        return bindings
+    }()
 
     static let graph: any SharedGraph = {
-        let graph = MobileGraphFactory.shared.create(platformBindings: platformBindings)
+        let graph = MobileUi.di.MobileGraphFactory.shared.create(platformBindings: platformBindings)
         platformBindings.onGraphCreated(graph: graph)
         return graph
     }()
@@ -152,19 +170,17 @@ actor BiziAppleGraph {
         return station.map(snapshot(from:))
     }
 
-    func deliverSavedPlaceAlertNotificationsIfNeeded() async throws {
-        let facade = try await ensureFacade()
-        let triggers = try await facade.evaluateSavedPlaceAlerts()
-        guard !triggers.isEmpty else { return }
-        let hasPermission = try await BiziSharedGraph.platformBindings.localNotifier.hasPermission().boolValue
-        guard hasPermission else { return }
-        for trigger in triggers {
-            await MainActor.run {
-                BiziNotificationService.shared.postSavedPlaceAlert(
-                    title: trigger.notificationTitle(),
-                    body: trigger.notificationBody(),
-                    ruleId: trigger.ruleId
-                )
+    /// Handles a backend push: publishes it (trip auto-cancel), refreshes the
+    /// station cache and widgets, and deep-links to the station on tap.
+    func handlePushData(data: [String: String]) async {
+        guard let facade = try? await ensureFacade() else { return }
+        try? await facade.onPushData(data: data)
+
+        await MainActor.run {
+            WidgetTimelineReloadScheduler.shared.scheduleReloads()
+            if let stationId = data["stationId"], !stationId.isEmpty {
+                AppleLaunchRequestStore.shared.save(navigation.MobileLaunchRequest.ShowStation(stationId: stationId))
+                NotificationCenter.default.post(name: .biziHomeScreenQuickActionRequested, object: nil)
             }
         }
     }
@@ -172,7 +188,7 @@ actor BiziAppleGraph {
     @discardableResult
     func refreshWidgetData(reloadTimelines: Bool = true) async throws -> Bool {
         let success = try await BiziSharedGraph.graph.refreshWidgetDataUseCase.execute()
-        guard success.boolValue else { return false }
+        guard success else { return false }
         if reloadTimelines {
             await MainActor.run {
                 WidgetCenter.shared.reloadAllTimelines()
@@ -185,7 +201,7 @@ actor BiziAppleGraph {
 
     private func ensureFacade() async throws -> BiziAppleFacade {
         if let existing = _facade { return existing }
-        let newFacade = BiziAppleFacade.companion.create(graph: BiziSharedGraph.graph)
+        let newFacade = BiziAppleFacade.Companion.shared.create(graph: BiziSharedGraph.graph)
         try await newFacade.bootstrap()
         _facade = newFacade
         return newFacade

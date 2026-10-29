@@ -1,4 +1,4 @@
-import BiziSharedCore
+import Core
 import Foundation
 
 protocol WatchGraphClient {
@@ -33,7 +33,7 @@ struct WatchShortcutRunner {
 
     func nearestStationDialog() async -> String {
         await assistantDialog(
-            action: AssistantActionNearestStation.shared,
+            action: AssistantAction.NearestStation.shared,
             emptyMessage: "No he encontrado estaciones de Bizi cerca de ti ahora mismo.",
             errorMessage: "No he podido consultar Bici Radar en el reloj."
         )
@@ -41,7 +41,7 @@ struct WatchShortcutRunner {
 
     func nearestStationWithBikesDialog() async -> String {
         await assistantDialog(
-            action: AssistantActionNearestStationWithBikes.shared,
+            action: AssistantAction.NearestStationWithBikes.shared,
             emptyMessage: "No he encontrado estaciones cercanas con bicis disponibles ahora mismo.",
             errorMessage: "No he podido consultar estaciones con bicis disponibles en el reloj."
         )
@@ -49,7 +49,7 @@ struct WatchShortcutRunner {
 
     func nearestStationWithSlotsDialog() async -> String {
         await assistantDialog(
-            action: AssistantActionNearestStationWithSlots.shared,
+            action: AssistantAction.NearestStationWithSlots.shared,
             emptyMessage: "No he encontrado estaciones cercanas con huecos libres ahora mismo.",
             errorMessage: "No he podido consultar estaciones con huecos libres en el reloj."
         )

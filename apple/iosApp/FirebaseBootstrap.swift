@@ -1,12 +1,16 @@
-import BiziMobileUi
+import Core
+import KotlinRuntime
+import MobileUi
 import Foundation
 import FirebaseCore
 import FirebaseCrashlytics
 import FirebaseRemoteConfig
 
 enum FirebaseBootstrap {
-    static let remoteConfigBridge: IOSRemoteConfigBridge = AppleFirebaseRemoteConfigBridge.shared
-    static let crashlyticsBridge: IOSCrashlyticsBridge = AppleCrashlyticsBridge.shared
+    static let remoteConfigBridge: platform.IOSRemoteConfigBridge = AppleFirebaseRemoteConfigBridge.shared
+    static let crashlyticsBridge: platform.IOSCrashlyticsBridge = AppleCrashlyticsBridge.shared
+
+    static var isConfigured: Bool { FirebaseApp.app() != nil }
 
     static func configureIfAvailable() {
         guard Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil else { return }
@@ -23,18 +27,18 @@ enum FirebaseBootstrap {
     }
 }
 
-private final class AppleCrashlyticsBridge: NSObject, IOSCrashlyticsBridge {
+private final class AppleCrashlyticsBridge: KotlinBase, platform.IOSCrashlyticsBridge {
     static let shared = AppleCrashlyticsBridge()
 
-    func reportNonFatal(throwable: KotlinThrowable) {
-        Crashlytics.crashlytics().record(error: throwable as! NSError)
+    func reportNonFatal(throwable: ExportedKotlinPackages.kotlin.Throwable) {
+        Crashlytics.crashlytics().record(error: throwable)
     }
 }
 
-private final class AppleFirebaseRemoteConfigBridge: NSObject, IOSRemoteConfigBridge {
+private final class AppleFirebaseRemoteConfigBridge: KotlinBase, platform.IOSRemoteConfigBridge {
     static let shared = AppleFirebaseRemoteConfigBridge()
 
-    func getString(key: String, completionHandler_ completionHandler: @escaping @Sendable (String?) -> Void) {
+    func getString(key: String, completionHandler: @escaping (String?) -> Void) {
         guard FirebaseApp.app() != nil else {
             completionHandler(nil)
             return

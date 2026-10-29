@@ -1,5 +1,6 @@
 import AppIntents
-import BiziMobileUi
+import Core
+import MobileUi
 
 struct BiziStationShortcutEntity: AppEntity, Identifiable, Hashable {
     static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Estación")
@@ -70,7 +71,7 @@ struct BiziCityShortcutEntity: AppEntity, Identifiable, Hashable {
 struct BiziCityShortcutEntityQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [BiziCityShortcutEntity] {
         identifiers
-            .compactMap { City.companion.fromId(id: $0) }
+            .compactMap { City.Companion.shared.fromId(id: $0) }
             .map(BiziCityShortcutEntity.init(from:))
     }
 
@@ -79,7 +80,7 @@ struct BiziCityShortcutEntityQuery: EntityStringQuery {
         guard !normalizedQuery.isEmpty else {
             return try await suggestedEntities()
         }
-        return City.entries
+        return City.allCases
             .filter { city in
                 normalizeShortcutSearchText(city.displayName).contains(normalizedQuery) || city.id.contains(normalizedQuery)
             }
@@ -91,7 +92,7 @@ struct BiziCityShortcutEntityQuery: EntityStringQuery {
 
     func suggestedEntities() async throws -> [BiziCityShortcutEntity] {
         let currentCityId = (try? await BiziAppleGraph.shared.currentSelectedCity())?.id
-        return City.entries
+        return City.allCases
             .sorted { lhs, rhs in
                 if lhs.id == currentCityId { return true }
                 if rhs.id == currentCityId { return false }

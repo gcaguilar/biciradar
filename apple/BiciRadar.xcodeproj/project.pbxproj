@@ -11,11 +11,11 @@
 		02B036610C3FFBF56B5E9661 /* BiciRadarWatchWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8CA65F3C3A1404B9783F42 /* BiciRadarWatchWidgets.swift */; };
 		076783DCA69B74B1CB23A910 /* BiziMonitoringActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */; };
 		07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */; };
-		6A1B2C3D0000000000000001 /* BiziAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */; };
-		6A1B2C3D0000000000000002 /* BiziHomeScreenQuickActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */; };
-		6A1B2C3D0000000000000003 /* BiziHomeScreenQuickActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */; };
+		084A40052670F3BB1F28EBE3 /* Auth0Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23F988E33E51217BEF5B9F0 /* Auth0Service.swift */; };
+		0905890ABDF75F3B654E1BC5 /* plan.md in Resources */ = {isa = PBXBuildFile; fileRef = DE167C78D7AEA1F27966C582 /* plan.md */; };
 		094F33A9590778EE38A1991B /* BiziSyncModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60ED889F69B12E0E79E964DC /* BiziSyncModels.swift */; };
 		098CED8AD0CF8061D6B25219 /* FavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */; };
+		09E5C428D201E13A4D7D07D3 /* Auth0 in Frameworks */ = {isa = PBXBuildFile; productRef = 76C5BF9254D43AA64D4E06E0 /* Auth0 */; };
 		0AEF050CD29A75314F038827 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
 		0CBB99FA68E0C68FA05394E5 /* BiziShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */; };
 		0D1C8A45A6C4DE44D7C1ADDA /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = BAD464A56077DE976E524327 /* FirebaseRemoteConfig */; };
@@ -27,6 +27,7 @@
 		197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */; };
 		1B59A4F9B0439B18C0014937 /* FavoritesSyncBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */; };
 		214E52E9BDF1007AADFCF394 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */; };
+		235EA6AFE3C5CB1309D15A79 /* BiziHomeScreenQuickActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90BB6511CFB78AF8D339DA1E /* BiziHomeScreenQuickActions.swift */; };
 		23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */; };
 		2780AD22C001605C544FD181 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05F6FE2989AAE261F81A4893 /* SwiftUI.framework */; };
 		2DD134646E2E5F04FAD12A72 /* ComposeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C9F82510DD82F275630FE3 /* ComposeRootView.swift */; };
@@ -36,7 +37,11 @@
 		3B0132525479D6341D19760E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3478A638F2BB65A5D13B12A9 /* Assets.xcassets */; };
 		439263C7FAB0E4A937F34FE4 /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */; };
 		445515229FD1022684AC7831 /* WatchShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */; };
-		4A98921D1A26D760D684B406 /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 556AFE9CE6EDB4F10439CD71 /* GoogleMaps */; };
+		47A877E0CC035FD6CD8E0717 /* BiziAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169BF6F4E6BD5E55C4298400 /* BiziAppDelegate.swift */; };
+		4A0699F8B5CA13FEDFC4CDBD /* GoogleMaps in Frameworks */ = {isa = PBXBuildFile; productRef = 556AFE9CE6EDB4F10439CD71 /* GoogleMaps */; };
+		4A98921D1A26D760D684B406 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 8686CA98F4909A128D8B4D41 /* FirebaseMessaging */; };
+		4B951374291F73F890E47790 /* ApplePushBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDCECB0B6CE52C095B88E35 /* ApplePushBridge.swift */; };
+		4CEC8AC2C6F84FCCE9168703 /* BiziHomeScreenQuickActionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD1DC5A079A86B693E25255 /* BiziHomeScreenQuickActionsTests.swift */; };
 		516E2F3FB44D2924D7344C89 /* ActivityKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A8B8674DDF38542D150F2EB /* ActivityKit.framework */; };
 		54812821FB0752376F5A2AFB /* BiziNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B91BEC9F4945428E5A6E075 /* BiziNotificationService.swift */; };
 		59C68CDEF53169D19614CEA3 /* GoogleMapsBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF381A1EDBC82B7C77CFA601 /* GoogleMapsBootstrap.swift */; };
@@ -45,6 +50,7 @@
 		62BA8C4991C290FE15261B0D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCDCF1E6F1ACC52F35C8808C /* WidgetKit.framework */; };
 		6811DBE89B7709AFAC31B892 /* BiziSurfaceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1208E0C34C3A4ABB20ACC36 /* BiziSurfaceStore.swift */; };
 		6FDB23AB12353BF6E3AD8545 /* AppleDeepLinkParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A562478B548CD00B2A3A54 /* AppleDeepLinkParser.swift */; };
+		76CFD6C86564C0E03C3F70BC /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 437905A6EE52B74A190E5914 /* CoreLocation.framework */; };
 		78A02D7CA5A442669E153C73 /* BiziWatchShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50DEAA2C967B20FE470914 /* BiziWatchShortcuts.swift */; };
 		7CA48B71A16FECEFF2D3762D /* BiziBackgroundTaskHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */; };
 		7DD2FF6BCB0F319A85B5CF0A /* WatchShortcutRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */; };
@@ -65,6 +71,7 @@
 		931E71807426F78A8AE768E8 /* AppleDeepLinkParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02F1F0034A89949DC590379A /* AppleDeepLinkParserTests.swift */; };
 		9BAEC7333252F521025582E1 /* SurfaceMonitoringActivityControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28FE3CE8E7F903FD961C2C1F /* SurfaceMonitoringActivityControllerTests.swift */; };
 		A001DF2D53BACE1211D784CE /* AppleShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */; };
+		A60939D4A6EBCEFAD9B4A6FC /* AppleAppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3107A5B60085B9088A964E /* AppleAppConfiguration.swift */; };
 		A7B87E73EF408E3AC030AFD3 /* WatchSurfaceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */; };
 		AAA5CF26B8AB8758C8472B41 /* BiciRadarWatchWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AD8848982173D2177464CDD0 /* WatchFavoritesSyncBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */; };
@@ -75,6 +82,7 @@
 		BBA2BA3BF4EE51EBB0B3CC70 /* GoogleMapsStationMapFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */; };
 		BF0997236A0DAFB856DD994F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05F6FE2989AAE261F81A4893 /* SwiftUI.framework */; };
 		BF8778382DAE172FDD9ADB44 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1598AA72441D647040F04BB8 /* XCTest.framework */; };
+		C14FF749FB20B03061E57CB0 /* ApplePushTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7900DD8DCC92C64BEC159E0 /* ApplePushTokenProvider.swift */; };
 		C2B84011CB8B6AD17413F065 /* BiziStationShortcutEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F2F914614DF298F08D32FB9 /* BiziStationShortcutEntity.swift */; };
 		C4321A56C14733C02C6518A9 /* WatchStationShortcutEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0CAFAC56EAB8403BC384B6 /* WatchStationShortcutEntity.swift */; };
 		C54E4CB78645F4F4511915E2 /* WatchShortcutRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF2A897D023496E147F3B0D6 /* WatchShortcutRunnerTests.swift */; };
@@ -175,54 +183,58 @@
 		10C312C0B096247B686E40CE /* WatchSurfaceFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSurfaceFormattingTests.swift; sourceTree = "<group>"; };
 		13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
 		1598AA72441D647040F04BB8 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		169BF6F4E6BD5E55C4298400 /* BiziAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppDelegate.swift; sourceTree = "<group>"; };
 		18889D6CD1084B1BE55442F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		20A562478B548CD00B2A3A54 /* AppleDeepLinkParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleDeepLinkParser.swift; sourceTree = "<group>"; };
 		26CAE5B20B8CABB6A3FCBAE0 /* BiciRadar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadar.entitlements; sourceTree = "<group>"; };
 		28FE3CE8E7F903FD961C2C1F /* SurfaceMonitoringActivityControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceMonitoringActivityControllerTests.swift; sourceTree = "<group>"; };
 		2B50DEAA2C967B20FE470914 /* BiziWatchShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchShortcuts.swift; sourceTree = "<group>"; };
-		2BC9A77B9AF176A78BC317DF /* BiciRadarWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = BiciRadarWatchTests.xctest; path = "BiciRadar Watch Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BC9A77B9AF176A78BC317DF /* BiciRadarWatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BiciRadarWatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BD1DC5A079A86B693E25255 /* BiziHomeScreenQuickActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActionsTests.swift; sourceTree = "<group>"; };
 		31C35FA87704051EDF4F0EE7 /* WatchFavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
 		3478A638F2BB65A5D13B12A9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		38BEA53C2425D0AB6855A389 /* BiziMonitoringActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziMonitoringActivityAttributes.swift; sourceTree = "<group>"; };
+		3D3107A5B60085B9088A964E /* AppleAppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAppConfiguration.swift; sourceTree = "<group>"; };
 		41C6FEFCBBBEBE6A644898CE /* SurfaceMonitoringActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceMonitoringActivityController.swift; sourceTree = "<group>"; };
+		437905A6EE52B74A190E5914 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAvailabilityCache.swift; sourceTree = "<group>"; };
 		4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
 		4E55A8CFDB2BED84333A7249 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		54183542F89617F29EE06161 /* FirebaseBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseBootstrap.swift; sourceTree = "<group>"; };
-		575923083815B43475410B72 /* BiciRadarTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = file; name = BiciRadarTests.xctest; path = "BiciRadar Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		575923083815B43475410B72 /* BiciRadarTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BiciRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		57A65C7005EFB08EB86AF018 /* BiziSharedStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSharedStorage.swift; sourceTree = "<group>"; };
 		5A6D5C019BC4FBE3FFDF5370 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
+		5EDCECB0B6CE52C095B88E35 /* ApplePushBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePushBridge.swift; sourceTree = "<group>"; };
 		5FA81CAFF45F72A3F9E798C6 /* WatchDashboardModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDashboardModelTests.swift; sourceTree = "<group>"; };
 		60ED889F69B12E0E79E964DC /* BiziSyncModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziSyncModels.swift; sourceTree = "<group>"; };
 		637FA5361E656C90A9462F62 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		65EA7DFF87DE12F9A74AA3EA /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		6BF902119A13611BE50A2CD9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6F0CAFAC56EAB8403BC384B6 /* WatchStationShortcutEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStationShortcutEntity.swift; sourceTree = "<group>"; };
-		737078EE1CB532AAEA121054 /* BiciRadarWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; name = BiciRadarWidgets.appex; path = "BiciRadar Widgets.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		737078EE1CB532AAEA121054 /* BiciRadarWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = BiciRadarWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		73BE2847BE323AF95C5E7E8E /* eu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eu; path = eu.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDashboardModel.swift; sourceTree = "<group>"; };
 		7B91BEC9F4945428E5A6E075 /* BiziNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziNotificationService.swift; sourceTree = "<group>"; };
 		7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSurfaceSnapshot.swift; sourceTree = "<group>"; };
 		7FA5C1204AB09733D18F1B7B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		8A8B8674DDF38542D150F2EB /* ActivityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ActivityKit.framework; path = System/Library/Frameworks/ActivityKit.framework; sourceTree = SDKROOT; };
+		90BB6511CFB78AF8D339DA1E /* BiziHomeScreenQuickActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActions.swift; sourceTree = "<group>"; };
 		91C35D52602A10877C0F95B1 /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = gl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		94E146351C07D91814CE43FB /* MapsConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MapsConfig.xcconfig; sourceTree = "<group>"; };
 		97CF6F1666066E4111ADF6F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9F2F914614DF298F08D32FB9 /* BiziStationShortcutEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziStationShortcutEntity.swift; sourceTree = "<group>"; };
 		A0E6222A15D0E28626C21925 /* AppleSurfaceStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSurfaceStoreTests.swift; sourceTree = "<group>"; };
 		A12E3DA9EA2CE92679BAA972 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
-		A15943BE6F812F733F33D68D /* BiciRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiciRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A15943BE6F812F733F33D68D /* BiciRadar.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BiciRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2D7661C15E89970A172881A /* BackgroundTasks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = BackgroundTasks.framework; path = System/Library/Frameworks/BackgroundTasks.framework; sourceTree = SDKROOT; };
 		A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridgeTests.swift; sourceTree = "<group>"; };
 		A38726E9EDC2C86109A41125 /* BiciRadarWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadarWidgets.entitlements; sourceTree = "<group>"; };
 		A559795993E44ACD0F2709D9 /* BiciRadarWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarWidgets.swift; sourceTree = "<group>"; };
 		A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziWatchGraph.swift; sourceTree = "<group>"; };
+		A7900DD8DCC92C64BEC159E0 /* ApplePushTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePushTokenProvider.swift; sourceTree = "<group>"; };
 		A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcutDialogHelpers.swift; sourceTree = "<group>"; };
 		AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStore.swift; sourceTree = "<group>"; };
-		6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppDelegate.swift; sourceTree = "<group>"; };
-		6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActions.swift; sourceTree = "<group>"; };
-		6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziHomeScreenQuickActionsTests.swift; sourceTree = "<group>"; };
 		AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziBackgroundTaskHandler.swift; sourceTree = "<group>"; };
 		AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunnerTests.swift; sourceTree = "<group>"; };
@@ -238,16 +250,18 @@
 		CF27EE4DB0E548D63475C98F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleLaunchRequestStoreTests.swift; sourceTree = "<group>"; };
 		D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchShortcutRunner.swift; sourceTree = "<group>"; };
-		D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = BiciRadarWatchWidgets.appex; path = "BiciRadar Watch Widgets.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BiciRadarWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarApp.swift; sourceTree = "<group>"; };
+		DE167C78D7AEA1F27966C582 /* plan.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = plan.md; sourceTree = "<group>"; };
 		E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
 		EB59C343B1277217A7131D94 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ECC2BF1510F9A4C87BC91E34 /* BiciRadarWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadarWatchWidgets.entitlements; sourceTree = "<group>"; };
 		EDD734E46C2DA4504FDA471D /* NativeNavContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeNavContentView.swift; sourceTree = "<group>"; };
 		EFE4D5CD6A6F7916934E45C4 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F04DAFB5534E3F9676F05A36 /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = gl.lproj/Localizable.strings; sourceTree = "<group>"; };
-		F189CFF421E93B8C23A41D1E /* BiciRadarWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = BiciRadarWatch.app; path = "BiciRadar Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F189CFF421E93B8C23A41D1E /* BiciRadarWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BiciRadarWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F23F988E33E51217BEF5B9F0 /* Auth0Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth0Service.swift; sourceTree = "<group>"; };
 		FFD133974454EF20E0E2776F /* GoogleMapsStationMapFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleMapsStationMapFactory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -278,6 +292,7 @@
 				BF0997236A0DAFB856DD994F /* SwiftUI.framework in Frameworks */,
 				62BA8C4991C290FE15261B0D /* WidgetKit.framework in Frameworks */,
 				8C771CA41A7323BBAA676B4D /* ActivityKit.framework in Frameworks */,
+				76CFD6C86564C0E03C3F70BC /* CoreLocation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,7 +317,9 @@
 				DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */,
 				8BAFF5DCEE0BDA01CA19F0A3 /* FirebaseCrashlytics in Frameworks */,
 				0D1C8A45A6C4DE44D7C1ADDA /* FirebaseRemoteConfig in Frameworks */,
-				4A98921D1A26D760D684B406 /* GoogleMaps in Frameworks */,
+				4A98921D1A26D760D684B406 /* FirebaseMessaging in Frameworks */,
+				09E5C428D201E13A4D7D07D3 /* Auth0 in Frameworks */,
+				4A0699F8B5CA13FEDFC4CDBD /* GoogleMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,15 +390,19 @@
 		86D523296F1E0474E9ED061F /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				3D3107A5B60085B9088A964E /* AppleAppConfiguration.swift */,
 				20A562478B548CD00B2A3A54 /* AppleDeepLinkParser.swift */,
 				AAD96FDD7F2BF8705326AD75 /* AppleLaunchRequestStore.swift */,
-				6A1B2C3D0000000000000004 /* BiziAppDelegate.swift */,
-				6A1B2C3D0000000000000005 /* BiziHomeScreenQuickActions.swift */,
+				5EDCECB0B6CE52C095B88E35 /* ApplePushBridge.swift */,
+				A7900DD8DCC92C64BEC159E0 /* ApplePushTokenProvider.swift */,
 				E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */,
 				6BF902119A13611BE50A2CD9 /* Assets.xcassets */,
+				F23F988E33E51217BEF5B9F0 /* Auth0Service.swift */,
 				26CAE5B20B8CABB6A3FCBAE0 /* BiciRadar.entitlements */,
 				DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */,
+				169BF6F4E6BD5E55C4298400 /* BiziAppDelegate.swift */,
 				AB92CB426458A4D5F2D081D5 /* BiziBackgroundTaskHandler.swift */,
+				90BB6511CFB78AF8D339DA1E /* BiziHomeScreenQuickActions.swift */,
 				7B91BEC9F4945428E5A6E075 /* BiziNotificationService.swift */,
 				4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */,
 				00C9F82510DD82F275630FE3 /* ComposeRootView.swift */,
@@ -429,6 +450,7 @@
 				BA5F0343500174E24CBA4EC9 /* BiciRadarWatchApp.swift */,
 				A59361A5E37E6AAF834D3DE8 /* BiziWatchGraph.swift */,
 				2B50DEAA2C967B20FE470914 /* BiziWatchShortcuts.swift */,
+				DE167C78D7AEA1F27966C582 /* plan.md */,
 				7A83C18D86F5E6B6DD2E5FDE /* WatchDashboardModel.swift */,
 				5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */,
 				D50B05DE889A8727174C980B /* WatchShortcutRunner.swift */,
@@ -443,6 +465,7 @@
 			children = (
 				8A8B8674DDF38542D150F2EB /* ActivityKit.framework */,
 				A2D7661C15E89970A172881A /* BackgroundTasks.framework */,
+				437905A6EE52B74A190E5914 /* CoreLocation.framework */,
 				AE8BE9D2121AE6891AD1DF90 /* libsqlite3.tbd */,
 				05F6FE2989AAE261F81A4893 /* SwiftUI.framework */,
 				65EA7DFF87DE12F9A74AA3EA /* UIKit.framework */,
@@ -460,7 +483,7 @@
 				D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */,
 				B01DBA8AABE43176A21EC702 /* AppleShortcutRunnerTests.swift */,
 				A0E6222A15D0E28626C21925 /* AppleSurfaceStoreTests.swift */,
-				6A1B2C3D0000000000000006 /* BiziHomeScreenQuickActionsTests.swift */,
+				2BD1DC5A079A86B693E25255 /* BiziHomeScreenQuickActionsTests.swift */,
 				A385586E895A4F3E20821917 /* FavoritesSyncBridgeTests.swift */,
 				28FE3CE8E7F903FD961C2C1F /* SurfaceMonitoringActivityControllerTests.swift */,
 			);
@@ -482,7 +505,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 86FF684DF1C35399D46FC9E4 /* Build configuration list for PBXNativeTarget "BiciRadarWatch" */;
 			buildPhases = (
-				C6812B37971F85F621B8B4AF /* Build KMP watchOS framework */,
+				56CAE4666326972C49BCC6BF /* Build KMP Swift export */,
 				41F7F7FE42272502DB2C070E /* Sources */,
 				8348F136215619D79E7993F5 /* Resources */,
 				436A3FB37274D6D13D34B520 /* Frameworks */,
@@ -504,7 +527,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E166EDB380DAA5D0E7C16210 /* Build configuration list for PBXNativeTarget "BiciRadar" */;
 			buildPhases = (
-				5AD3209B868161148A66BAF5 /* Build KMP iOS frameworks */,
+				9BD13D51BE3A7C5E37E5EEF4 /* Build KMP Swift export */,
 				077135ECCACDC8FA5106A1C6 /* Sources */,
 				97B3838758FD73B3A9FD7D25 /* Resources */,
 				FD07C8003E3A01C731DD408A /* Frameworks */,
@@ -524,6 +547,8 @@
 				FDBEC6252D80DCAD5A52992E /* FirebaseCore */,
 				2C2B77CE801F89004E157228 /* FirebaseCrashlytics */,
 				BAD464A56077DE976E524327 /* FirebaseRemoteConfig */,
+				8686CA98F4909A128D8B4D41 /* FirebaseMessaging */,
+				76C5BF9254D43AA64D4E06E0 /* Auth0 */,
 				556AFE9CE6EDB4F10439CD71 /* GoogleMaps */,
 			);
 			productName = BiciRadar;
@@ -534,7 +559,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A2EC1D827328C4742D3F87D8 /* Build configuration list for PBXNativeTarget "BiciRadarWatchTests" */;
 			buildPhases = (
-				2D46521DFCB7E6B157DDD0D4 /* Build KMP watchOS test framework */,
+				A57019AC1EBB9F05D3D9B30C /* Build KMP Swift export (tests) */,
 				EBC2BDE5BF0569B1F2CAF812 /* Sources */,
 				E1341C2C4E9BF4FFA7882F55 /* Frameworks */,
 			);
@@ -653,6 +678,7 @@
 			mainGroup = 2919E6855BAF58BA344071C2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				146C429D8438745F04C9CF11 /* XCRemoteSwiftPackageReference "Auth0.swift" */,
 				A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
 			);
@@ -678,6 +704,7 @@
 			files = (
 				3B0132525479D6341D19760E /* Assets.xcassets in Resources */,
 				E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */,
+				0905890ABDF75F3B654E1BC5 /* plan.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -694,7 +721,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2D46521DFCB7E6B157DDD0D4 /* Build KMP watchOS test framework */ = {
+		56CAE4666326972C49BCC6BF /* Build KMP Swift export */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -704,16 +731,16 @@
 			);
 			inputPaths = (
 			);
-			name = "Build KMP watchOS test framework";
+			name = "Build KMP Swift export";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nmkdir -p \\\n  \"shared/core/build/bin/watchosCurrent/debugFramework\" \\\n  \"shared/core/build/bin/watchosCurrent/releaseFramework\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nCONF_LC=$(echo \"$KMP_CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\nOUT_DIR=\"shared/core/build/bin/watchosCurrent/${CONF_LC}Framework\"\nrm -rf \"$OUT_DIR\"\nmkdir -p \"$OUT_DIR\"\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\n  cp -R \"shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework\" \"$OUT_DIR/\"\nelif [[ \"$PLATFORM_NAME\" == watchos ]]; then\n  ./gradlew --no-configuration-cache \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\n  ARM64_32_FW=\"shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  ARM64_FW=\"shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  cp -R \"$ARM64_FW\" \"$OUT_DIR/\"\n  lipo -create \\\n    \"$ARM64_32_FW/BiziSharedCore\" \\\n    \"$ARM64_FW/BiziSharedCore\" \\\n    -output \"$OUT_DIR/BiziSharedCore.framework/BiziSharedCore\"\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\n# When the watch app is built as part of an iPhone destination, Xcode exposes the\n# iPhone simulator as the target device; Swift export would then build the watch\n# package for iOS. Dropping it makes Gradle use the generic watchOS destination.\nenv -u TARGET_DEVICE_IDENTIFIER -u TARGET_DEVICE_MODEL -u TARGET_DEVICE_OS_VERSION -u TARGET_DEVICE_PLATFORM_NAME \\\n  ./gradlew --no-configuration-cache :shared:watch-export:embedSwiftExportForXcode\n";
 		};
-		5AD3209B868161148A66BAF5 /* Build KMP iOS frameworks */ = {
+		9BD13D51BE3A7C5E37E5EEF4 /* Build KMP Swift export */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -723,14 +750,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Build KMP iOS frameworks";
+			name = "Build KMP Swift export";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nmkdir -p \\\n  \"shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework\" \\\n  \"shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework\" \\\n  \"shared/mobile-ui/build/bin/iosArm64/debugFramework\" \\\n  \"shared/mobile-ui/build/bin/iosArm64/releaseFramework\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64\nelif [[ \"$PLATFORM_NAME\" == iphoneos ]]; then\n  ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64\nelse\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadar.\"\n  echo \"Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'.\"\n  exit 1\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [[ \"$PLATFORM_NAME\" != *simulator* && \"$PLATFORM_NAME\" != iphoneos ]]; then\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadar.\"\n  echo \"Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'.\"\n  exit 1\nfi\n./gradlew --no-configuration-cache :shared:ios-export:embedSwiftExportForXcode\n";
 		};
 		A33BFC3ECF21E2335240B488 /* Copy Compose Resources to app bundle */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -751,7 +778,7 @@
 			shellPath = /bin/sh;
 			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\n./gradlew --no-configuration-cache :shared:mobile-ui:syncComposeResourcesForIos \\\n  -Pcompose.ios.resources.platform=\"$PLATFORM_NAME\" \\\n  -Pcompose.ios.resources.configuration=\"$CONFIGURATION\" \\\n  -Pcompose.ios.resources.archs=\"$ARCHS\" \\\n  -Pkotlin.native.cocoapods.platform=\"$PLATFORM_NAME\" \\\n  -Pkotlin.native.cocoapods.archs=\"$ARCHS\" \\\n  -Pkotlin.native.cocoapods.configuration=\"$CONFIGURATION\"\n";
 		};
-		C6812B37971F85F621B8B4AF /* Build KMP watchOS framework */ = {
+		A57019AC1EBB9F05D3D9B30C /* Build KMP Swift export (tests) */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -761,14 +788,14 @@
 			);
 			inputPaths = (
 			);
-			name = "Build KMP watchOS framework";
+			name = "Build KMP Swift export (tests)";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nmkdir -p \\\n  \"shared/core/build/bin/watchosCurrent/debugFramework\" \\\n  \"shared/core/build/bin/watchosCurrent/releaseFramework\"\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  KMP_CONFIGURATION=\"Release\"\nelse\n  KMP_CONFIGURATION=\"Debug\"\nfi\nCONF_LC=$(echo \"$KMP_CONFIGURATION\" | tr '[:upper:]' '[:lower:]')\nOUT_DIR=\"shared/core/build/bin/watchosCurrent/${CONF_LC}Framework\"\nrm -rf \"$OUT_DIR\"\nmkdir -p \"$OUT_DIR\"\nif [[ \"$PLATFORM_NAME\" == *simulator* ]]; then\n  ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64\n  cp -R \"shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework\" \"$OUT_DIR/\"\nelse\n  ./gradlew --no-configuration-cache \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \\\n    :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64\n  ARM64_32_FW=\"shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  ARM64_FW=\"shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework\"\n  cp -R \"$ARM64_FW\" \"$OUT_DIR/\"\n  lipo -create \\\n    \"$ARM64_32_FW/BiziSharedCore\" \\\n    \"$ARM64_FW/BiziSharedCore\" \\\n    -output \"$OUT_DIR/BiziSharedCore.framework/BiziSharedCore\"\nfi\n";
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/..\"\nif [[ \"$PLATFORM_NAME\" != *simulator* && \"$PLATFORM_NAME\" != watchos ]]; then\n  echo \"Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests.\"\n  echo \"Use an Apple Watch device or a watchOS Simulator.\"\n  exit 1\nfi\nenv -u TARGET_DEVICE_IDENTIFIER -u TARGET_DEVICE_MODEL -u TARGET_DEVICE_OS_VERSION -u TARGET_DEVICE_PLATFORM_NAME \\\n  ./gradlew --no-configuration-cache :shared:watch-export:embedSwiftExportForXcode\n";
 		};
 		F0A8D9A09B9DEAD554C3A735 /* Upload Crashlytics dSYMs */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -802,14 +829,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A60939D4A6EBCEFAD9B4A6FC /* AppleAppConfiguration.swift in Sources */,
 				6FDB23AB12353BF6E3AD8545 /* AppleDeepLinkParser.swift in Sources */,
 				07904E4A8C59A86E402C66E2 /* AppleLaunchRequestStore.swift in Sources */,
+				4B951374291F73F890E47790 /* ApplePushBridge.swift in Sources */,
+				C14FF749FB20B03061E57CB0 /* ApplePushTokenProvider.swift in Sources */,
 				23E7D55F217DB2BAA339B0D4 /* AppleShortcutRunner.swift in Sources */,
+				084A40052670F3BB1F28EBE3 /* Auth0Service.swift in Sources */,
 				197F40C7A2692F604FAB8BF2 /* BiciRadarApp.swift in Sources */,
-				6A1B2C3D0000000000000001 /* BiziAppDelegate.swift in Sources */,
-				6A1B2C3D0000000000000002 /* BiziHomeScreenQuickActions.swift in Sources */,
+				47A877E0CC035FD6CD8E0717 /* BiziAppDelegate.swift in Sources */,
 				DE5D9DE6223430D70D5C6921 /* BiziAppleGraph.swift in Sources */,
 				7CA48B71A16FECEFF2D3762D /* BiziBackgroundTaskHandler.swift in Sources */,
+				235EA6AFE3C5CB1309D15A79 /* BiziHomeScreenQuickActions.swift in Sources */,
 				D39D1E161D597545C7B424A5 /* BiziMonitoringActivityAttributes.swift in Sources */,
 				54812821FB0752376F5A2AFB /* BiziNotificationService.swift in Sources */,
 				91A14CBB28205DABB4AEF6B5 /* BiziSharedStorage.swift in Sources */,
@@ -854,7 +885,7 @@
 				E549E2DA4C6AB6C75B22A6DF /* AppleLaunchRequestStoreTests.swift in Sources */,
 				A001DF2D53BACE1211D784CE /* AppleShortcutRunnerTests.swift in Sources */,
 				81F41182612B41CFB2D5B596 /* AppleSurfaceStoreTests.swift in Sources */,
-				6A1B2C3D0000000000000003 /* BiziHomeScreenQuickActionsTests.swift in Sources */,
+				4CEC8AC2C6F84FCCE9168703 /* BiziHomeScreenQuickActionsTests.swift in Sources */,
 				1B59A4F9B0439B18C0014937 /* FavoritesSyncBridgeTests.swift in Sources */,
 				9BAEC7333252F521025582E1 /* SurfaceMonitoringActivityControllerTests.swift in Sources */,
 			);
@@ -963,22 +994,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -997,24 +1012,13 @@
 		37C9249093A8C991772FC72D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"ARCHS[sdk=watchos*]" = (
-					arm64,
-					arm64_32,
-				);
+				"ARCHS[sdk=watchos*]" = "arm64 arm64_32";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = watchApp/BiciRadarWatch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
@@ -1022,18 +1026,14 @@
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.biciradar.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					BiziSharedCore,
-				);
+				OTHER_LDFLAGS = "$(inherited) -lSharedWatch";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -1044,32 +1044,20 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					BiziSharedCore,
-				);
+				OTHER_LDFLAGS = "$(inherited) -lSharedWatch";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.tests;
 				PRODUCT_NAME = "BiciRadar Watch Tests";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BiciRadar Watch.app/BiciRadar Watch";
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1080,22 +1068,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1196,7 +1168,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.10;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1205,27 +1177,16 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BICI_AUTH0_AUDIENCE = "";
+				BICI_AUTH0_CLIENT_ID = "";
+				BICI_AUTH0_DOMAIN = "";
+				BICI_AUTH0_SCHEME = biciradar;
+				BICI_BACKEND_URL = "";
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
@@ -1233,13 +1194,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-framework",
-					BiziMobileUi,
-					"-lsqlite3",
-				);
+				OTHER_LDFLAGS = "$(inherited) -ObjC -lShared -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios;
 				PRODUCT_NAME = BiciRadar;
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarProfile;
@@ -1254,27 +1209,16 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BICI_AUTH0_AUDIENCE = "";
+				BICI_AUTH0_CLIENT_ID = "";
+				BICI_AUTH0_DOMAIN = "";
+				BICI_AUTH0_SCHEME = biciradar;
+				BICI_BACKEND_URL = "";
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = iosApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
@@ -1282,13 +1226,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-framework",
-					BiziMobileUi,
-					"-lsqlite3",
-				);
+				OTHER_LDFLAGS = "$(inherited) -ObjC -lShared -lsqlite3";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios;
 				PRODUCT_NAME = BiciRadar;
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarProfile;
@@ -1301,24 +1239,13 @@
 		93DDBCD3FDECC764010E4198 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"ARCHS[sdk=watchos*]" = (
-					arm64,
-					arm64_32,
-				);
+				"ARCHS[sdk=watchos*]" = "arm64 arm64_32";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = watchApp/BiciRadarWatch.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = B87AWPVZWB;
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bici Radar Watch";
 				INFOPLIST_KEY_CFBundleIconName = AppIcon;
@@ -1326,18 +1253,14 @@
 				INFOPLIST_KEY_WKApplication = YES;
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.gcaguilar.biciradar.ios;
 				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					BiziSharedCore,
-				);
+				OTHER_LDFLAGS = "$(inherited) -lSharedWatch";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch;
 				PRODUCT_NAME = "BiciRadar Watch";
 				PROVISIONING_PROFILE_SPECIFIER = BiciRadarWatchProfile;
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1365,7 +1288,7 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -1400,32 +1323,20 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
 				"EXCLUDED_ARCHS[sdk=watchsimulator*]" = x86_64;
-				"FRAMEWORK_SEARCH_PATHS[config=Debug]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework",
-				);
-				"FRAMEWORK_SEARCH_PATHS[config=Release]" = (
-					"$(inherited)",
-					"$(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-framework",
-					BiziSharedCore,
-				);
+				OTHER_LDFLAGS = "$(inherited) -lSharedWatch";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gcaguilar.biciradar.ios.watch.tests;
 				PRODUCT_NAME = "BiciRadar Watch Tests";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BiciRadar Watch.app/BiciRadar Watch";
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -1483,7 +1394,7 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.10;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Release;
 		};
@@ -1511,7 +1422,7 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 			};
 			name = Debug;
 		};
@@ -1584,6 +1495,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		146C429D8438745F04C9CF11 /* XCRemoteSwiftPackageReference "Auth0.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/auth0/Auth0.swift";
+			requirement = {
+				kind = exactVersion;
+				version = 3.1.0;
+			};
+		};
 		353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk";
@@ -1612,6 +1531,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */;
 			productName = GoogleMaps;
+		};
+		76C5BF9254D43AA64D4E06E0 /* Auth0 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 146C429D8438745F04C9CF11 /* XCRemoteSwiftPackageReference "Auth0.swift" */;
+			productName = Auth0;
+		};
+		8686CA98F4909A128D8B4D41 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		BAD464A56077DE976E524327 /* FirebaseRemoteConfig */ = {
 			isa = XCSwiftPackageProductDependency;

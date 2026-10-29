@@ -1,5 +1,6 @@
 @testable import BiciRadar
-import BiziMobileUi
+import Core
+import MobileUi
 import XCTest
 
 @MainActor
@@ -25,55 +26,55 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
     }
 
     func testFavoritesRequestRoundTripsAndClears() {
-        store.save(MobileLaunchRequestFavorites.shared)
+        store.save(navigation.MobileLaunchRequest.Favorites.shared)
 
         XCTAssertEqual(defaults.string(forKey: "bizizaragoza.pendingAction"), "favorite_stations")
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.Favorites)
         XCTAssertNil(store.takePendingRequest())
     }
 
     func testHomeAndMapRequestsRoundTrip() {
-        store.save(MobileLaunchRequestHome.shared)
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestHome)
+        store.save(navigation.MobileLaunchRequest.Home.shared)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.Home)
 
-        store.save(MobileLaunchRequestMap.shared)
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestMap)
+        store.save(navigation.MobileLaunchRequest.Map.shared)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.Map)
     }
 
     func testLegacyFavoritesActionStillLoads() {
         defaults.set("favorites", forKey: "bizizaragoza.pendingAction")
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestFavorites)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.Favorites)
     }
 
     func testNearestStationRequestRoundTrips() {
-        store.save(MobileLaunchRequestNearestStation.shared)
+        store.save(navigation.MobileLaunchRequest.NearestStation.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStation)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.NearestStation)
     }
 
     func testNearestStationWithBikesRequestRoundTrips() {
-        store.save(MobileLaunchRequestNearestStationWithBikes.shared)
+        store.save(navigation.MobileLaunchRequest.NearestStationWithBikes.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStationWithBikes)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.NearestStationWithBikes)
     }
 
     func testNearestStationWithSlotsRequestRoundTrips() {
-        store.save(MobileLaunchRequestNearestStationWithSlots.shared)
+        store.save(navigation.MobileLaunchRequest.NearestStationWithSlots.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestNearestStationWithSlots)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.NearestStationWithSlots)
     }
 
     func testOpenAssistantRequestRoundTrips() {
-        store.save(MobileLaunchRequestOpenAssistant.shared)
+        store.save(navigation.MobileLaunchRequest.OpenAssistant.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestOpenAssistant)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.OpenAssistant)
     }
 
     func testStationStatusRequestRoundTrips() {
-        store.save(MobileLaunchRequestStationStatus.shared)
+        store.save(navigation.MobileLaunchRequest.StationStatus.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestStationStatus)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.StationStatus)
     }
 
     func testRouteRequestRequiresStationIdentifier() {
@@ -83,41 +84,41 @@ final class AppleLaunchRequestStoreTests: XCTestCase {
     }
 
     func testRouteRequestPreservesStationIdentifier() {
-        store.save(MobileLaunchRequestRouteToStation(stationId: "station-42"))
+        store.save(navigation.MobileLaunchRequest.RouteToStation(stationId: "station-42"))
 
-        let request = store.takePendingRequest() as? MobileLaunchRequestRouteToStation
+        let request = store.takePendingRequest() as? navigation.MobileLaunchRequest.RouteToStation
         XCTAssertEqual(request?.stationId, "station-42")
         XCTAssertNil(store.takePendingRequest())
     }
 
     func testShowStationRequestPreservesStationIdentifier() {
-        store.save(MobileLaunchRequestShowStation(stationId: "station-9"))
+        store.save(navigation.MobileLaunchRequest.ShowStation(stationId: "station-9"))
 
-        let request = store.takePendingRequest() as? MobileLaunchRequestShowStation
+        let request = store.takePendingRequest() as? navigation.MobileLaunchRequest.ShowStation
         XCTAssertEqual(request?.stationId, "station-9")
         XCTAssertNil(store.takePendingRequest())
     }
 
     func testMonitorStationRequestPreservesStationIdentifier() {
-        store.save(MobileLaunchRequestMonitorStation(stationId: "station-9"))
+        store.save(navigation.MobileLaunchRequest.MonitorStation(stationId: "station-9"))
 
-        let request = store.takePendingRequest() as? MobileLaunchRequestMonitorStation
+        let request = store.takePendingRequest() as? navigation.MobileLaunchRequest.MonitorStation
         XCTAssertEqual(request?.stationId, "station-9")
         XCTAssertNil(store.takePendingRequest())
     }
 
     func testSelectCityRequestPreservesCityIdentifier() {
-        store.save(MobileLaunchRequestSelectCity(cityId: "zaragoza"))
+        store.save(navigation.MobileLaunchRequest.SelectCity(cityId: "zaragoza"))
 
-        let request = store.takePendingRequest() as? MobileLaunchRequestSelectCity
+        let request = store.takePendingRequest() as? navigation.MobileLaunchRequest.SelectCity
         XCTAssertEqual(request?.cityId, "zaragoza")
         XCTAssertNil(store.takePendingRequest())
     }
 
     func testSavedPlaceAlertsRequestRoundTrip() {
-        store.save(MobileLaunchRequestSavedPlaceAlerts.shared)
+        store.save(navigation.MobileLaunchRequest.SavedPlaceAlerts.shared)
 
-        XCTAssertTrue(store.takePendingRequest() is MobileLaunchRequestSavedPlaceAlerts)
+        XCTAssertTrue(store.takePendingRequest() is navigation.MobileLaunchRequest.SavedPlaceAlerts)
         XCTAssertNil(store.takePendingRequest())
     }
 

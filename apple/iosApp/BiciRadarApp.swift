@@ -1,5 +1,6 @@
 import AppIntents
-import BiziMobileUi
+import Core
+import MobileUi
 import Foundation
 import OSLog
 import SwiftUI
@@ -49,6 +50,8 @@ struct BiciRadarApp: App {
                         reason: "initial app appear",
                         forceDataRefresh: false
                     )
+                    // Ask for notification permission so the backend push can be shown.
+                    requestNotificationPermission()
                 }
                 .onOpenURL { url in
                     guard let request = AppleDeepLinkParser.parse(url) else { return }
@@ -101,6 +104,9 @@ struct BiciRadarApp: App {
     private func requestNotificationPermission() {
         Task {
             await BiziNotificationService.shared.requestAuthorization()
+            await MainActor.run {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
         }
     }
 

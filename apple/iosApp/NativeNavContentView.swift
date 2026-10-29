@@ -1,4 +1,5 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import SwiftUI
 import UIKit
 
@@ -30,13 +31,13 @@ enum BiziTab: Hashable, CaseIterable {
     case nearby, map, favorites, trip, profile
 
     /// Top-level Compose destination this tab maps to.
-    var screen: Screen {
+    var screen: navigation.Screen {
         switch self {
-        case .nearby: return Screen.Nearby()
-        case .map: return Screen.Map()
-        case .favorites: return Screen.Favorites()
-        case .trip: return Screen.Trip(prefilledQuery: nil)
-        case .profile: return Screen.Profile()
+        case .nearby: return navigation.Screen.Nearby.shared
+        case .map: return navigation.Screen.Map.shared
+        case .favorites: return navigation.Screen.Favorites.shared
+        case .trip: return navigation.Screen.Trip(prefilledQuery: nil)
+        case .profile: return navigation.Screen.Profile.shared
         }
     }
 
@@ -60,13 +61,13 @@ enum BiziTab: Hashable, CaseIterable {
         }
     }
 
-    static func from(screen: Screen) -> BiziTab? {
+    static func from(screen: navigation.Screen) -> BiziTab? {
         switch screen {
-        case is Screen.Nearby: return .nearby
-        case is Screen.Map: return .map
-        case is Screen.Favorites: return .favorites
-        case is Screen.Trip: return .trip
-        case is Screen.Profile: return .profile
+        case is navigation.Screen.Nearby: return .nearby
+        case is navigation.Screen.Map: return .map
+        case is navigation.Screen.Favorites: return .favorites
+        case is navigation.Screen.Trip: return .trip
+        case is navigation.Screen.Profile: return .profile
         default: return nil
         }
     }
@@ -91,7 +92,7 @@ final class NativeShellModel {
         let factory: (any StationMapViewFactory)? = GoogleMapsBootstrap.isSdkLinked()
             ? GoogleMapsStationMapFactory()
             : nil
-        wrapper = BiziMobileViewControllerKt.MainViewControllerWrapper(
+        wrapper = MainViewControllerWrapper(
             // Deep links arrive through `BiciRadarApp.applyPendingLaunchRequest()` →
             // `wrapper.updateLaunchRequest(...)`, same as before the native shell.
             launchRequest: nil,
@@ -107,9 +108,8 @@ final class NativeShellModel {
                 DispatchQueue.main.async { self?.selectedTab = tab }
             },
             // Hide the native bar over the onboarding/city-selection/splash gates.
-            // Kotlin `Boolean` crosses the Objective-C boundary boxed as `KotlinBoolean`.
             onNativeChromeVisibilityChanged: { [weak self] visible in
-                DispatchQueue.main.async { self?.isChromeVisible = visible.boolValue }
+                DispatchQueue.main.async { self?.isChromeVisible = visible }
             },
             // Mismo grafo y MISMAS `IOSPlatformBindings` que usan los widgets/atajos/watch
             // sync (`BiziAppleGraph`) — ver `BiziSharedGraph` en BiziAppleGraph.swift. Antes

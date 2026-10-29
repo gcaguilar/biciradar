@@ -94,7 +94,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "54F2A93AE922E3FF791E5616"
             BuildableName = "BiciRadar Watch.app"
-            BlueprintName = "BiciRadarWatch"
             ReferencedContainer = "container:BiciRadar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -111,7 +110,6 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "54F2A93AE922E3FF791E5616"
             BuildableName = "BiciRadar Watch.app"
-            BlueprintName = "BiciRadarWatch"
             ReferencedContainer = "container:BiciRadar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

@@ -1,4 +1,5 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import SwiftUI
 import UIKit
 

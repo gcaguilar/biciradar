@@ -5,4 +5,14 @@
 // tiles → mapa en blanco / render loop atascado en el arranque.
 GOOGLE_MAPS_IOS_API_KEY =
 
+// Configuración del backend/Auth0 de iOS. Los valores reales van en
+// LocalSecrets.xcconfig (ignorado por git). OJO: en xcconfig `//` inicia un
+// comentario, así que para una URL usa el truco `https:/$()/host` o define
+// BICI_BACKEND_URL como variable de entorno del scheme en Debug.
+BICI_BACKEND_URL =
+BICI_AUTH0_DOMAIN =
+BICI_AUTH0_CLIENT_ID =
+BICI_AUTH0_AUDIENCE =
+BICI_AUTH0_SCHEME = biciradar
+
 #include? "LocalSecrets.xcconfig"

@@ -112,6 +112,33 @@
             ReferencedContainer = "container:BiciRadar.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "BICI_BACKEND_URL"
+            value = "https://api.biciradar.es"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BICI_AUTH0_DOMAIN"
+            value = "dev-tbwmrj5wi0ecsgfy.us.auth0.com"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BICI_AUTH0_CLIENT_ID"
+            value = "aZGKO54uXXAOZ9kyKMd7FTHX050Al2Bp"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BICI_AUTH0_AUDIENCE"
+            value = "https://api.datosbizi.app"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "BICI_AUTH0_SCHEME"
+            value = "biciradar"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

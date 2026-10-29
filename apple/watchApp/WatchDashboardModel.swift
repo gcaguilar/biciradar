@@ -1,4 +1,4 @@
-import BiziSharedCore
+import Core
 import Foundation
 import SwiftUI
 import WidgetKit

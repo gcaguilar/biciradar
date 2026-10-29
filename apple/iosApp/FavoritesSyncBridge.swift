@@ -1,4 +1,5 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import Foundation
 import WatchConnectivity
 
@@ -134,7 +135,7 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
            routeRequestedAt > defaults.double(forKey: lastRouteRequestAtKey) {
             defaults.set(routeRequestedAt, forKey: lastRouteRequestAtKey)
             routeRequestStore.save(
-                MobileLaunchRequestRouteToStation(stationId: routeStationId)
+                navigation.MobileLaunchRequest.RouteToStation(stationId: routeStationId)
             )
         }
     }

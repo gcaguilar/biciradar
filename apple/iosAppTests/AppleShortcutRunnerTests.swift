@@ -1,5 +1,6 @@
 @testable import BiciRadar
-import BiziMobileUi
+import Core
+import MobileUi
 import XCTest
 
 final class AppleShortcutRunnerTests: XCTestCase {
@@ -22,7 +23,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
 
         XCTAssertEqual(dialog, "Tus favoritas en Bici Radar. Tienes 2 en total: Plaza España, Plaza Aragón.")
         XCTAssertEqual(requests.count, 1)
-        XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
+        XCTAssertTrue(requests.first is navigation.MobileLaunchRequest.Favorites)
     }
 
     func testFavoriteStationsDialogOnlyListsFirstThreeStations() async {
@@ -57,7 +58,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
 
         XCTAssertEqual(dialog, "Abre Bici Radar. Todavía no tienes estaciones favoritas guardadas.")
         XCTAssertEqual(requests.count, 1)
-        XCTAssertTrue(requests.first is MobileLaunchRequestFavorites)
+        XCTAssertTrue(requests.first is navigation.MobileLaunchRequest.Favorites)
     }
 
     func testOpenFavoriteStationDialogFallsBackToFavoriteListAndStoresRequest() async {
@@ -77,7 +78,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Abriendo tu estación favorita en Bici Radar.")
-        XCTAssertEqual((requests.last as? MobileLaunchRequestShowStation)?.stationId, "station-1")
+        XCTAssertEqual((requests.last as? navigation.MobileLaunchRequest.ShowStation)?.stationId, "station-1")
     }
 
     func testOpenNearbyStationsDialogStoresHomeRequest() async {
@@ -93,7 +94,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Abriendo estaciones cercanas en Bici Radar.")
-        XCTAssertTrue(requests.last is MobileLaunchRequestHome)
+        XCTAssertTrue(requests.last is navigation.MobileLaunchRequest.Home)
     }
 
     func testMonitorFavoriteStationDialogStoresMonitorRequest() async {
@@ -113,7 +114,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Preparando la monitorización de tu estación favorita en Bici Radar.")
-        XCTAssertEqual((requests.last as? MobileLaunchRequestMonitorStation)?.stationId, "station-2")
+        XCTAssertEqual((requests.last as? navigation.MobileLaunchRequest.MonitorStation)?.stationId, "station-2")
     }
 
     func testChangeCityDialogStoresSelectionAndUpdatesGraph() async {
@@ -136,7 +137,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
 
         XCTAssertEqual(dialog, "Cambiando a Madrid en Bici Radar.")
         XCTAssertEqual(selectedCityIds, ["madrid"])
-        XCTAssertEqual((requests.last as? MobileLaunchRequestSelectCity)?.cityId, "madrid")
+        XCTAssertEqual((requests.last as? navigation.MobileLaunchRequest.SelectCity)?.cityId, "madrid")
     }
 
     func testStationStatusDialogReportsStationByIdIdentifier() async {
@@ -199,7 +200,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Preparando ruta hacia Universidad en Bici Radar.")
-        let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
+        let routeRequest = requests.last as? navigation.MobileLaunchRequest.RouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-48")
     }
 
@@ -220,7 +221,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Preparando ruta hacia Universidad en Bici Radar.")
-        let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
+        let routeRequest = requests.last as? navigation.MobileLaunchRequest.RouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-48")
     }
 
@@ -256,7 +257,7 @@ final class AppleShortcutRunnerTests: XCTestCase {
         let requests = await recorder.requests()
 
         XCTAssertEqual(dialog, "Preparando ruta hacia Campus Río Ebro en Bici Radar.")
-        let routeRequest = requests.last as? MobileLaunchRequestRouteToStation
+        let routeRequest = requests.last as? navigation.MobileLaunchRequest.RouteToStation
         XCTAssertEqual(routeRequest?.stationId, "station-work")
     }
 
@@ -292,13 +293,13 @@ final class AppleShortcutRunnerTests: XCTestCase {
 }
 
 private actor LaunchRequestRecorder {
-    private var storedRequests: [MobileLaunchRequest] = []
+    private var storedRequests: [navigation.MobileLaunchRequest] = []
 
-    func append(_ request: MobileLaunchRequest) {
+    func append(_ request: navigation.MobileLaunchRequest) {
         storedRequests.append(request)
     }
 
-    func requests() -> [MobileLaunchRequest] {
+    func requests() -> [navigation.MobileLaunchRequest] {
         storedRequests
     }
 }
@@ -320,7 +321,7 @@ private struct FakeAppleGraph: AppleGraphClient {
     var matchedStation: BiziStationSnapshot?
     var queryMatches: [String: BiziStationSnapshot] = [:]
     var stationById: [String: BiziStationSnapshot] = [:]
-    var currentCity: City = City.companion.defaultCity()
+    var currentCity: City = City.Companion.shared.defaultCity()
     var onSetSelectedCity: ((City) async -> Void)?
 
     func favoriteStations() async throws -> [BiziStationSnapshot] {

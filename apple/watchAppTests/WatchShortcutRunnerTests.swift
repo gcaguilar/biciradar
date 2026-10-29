@@ -1,4 +1,4 @@
-import BiziSharedCore
+import Core
 import XCTest
 
 final class WatchShortcutRunnerTests: XCTestCase {

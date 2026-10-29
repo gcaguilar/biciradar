@@ -1,5 +1,6 @@
 import AppIntents
-import BiziMobileUi
+import Core
+import MobileUi
 
 enum SavedPlaceShortcut: String, AppEnum {
     case home

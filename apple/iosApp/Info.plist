@@ -6,6 +6,16 @@
 	<array>
 		<string>com.gcaguilar.biciradar.ios.refresh</string>
 	</array>
+	<key>BiziAuth0Audience</key>
+	<string>$(BICI_AUTH0_AUDIENCE)</string>
+	<key>BiziAuth0ClientId</key>
+	<string>$(BICI_AUTH0_CLIENT_ID)</string>
+	<key>BiziAuth0Domain</key>
+	<string>$(BICI_AUTH0_DOMAIN)</string>
+	<key>BiziAuth0Scheme</key>
+	<string>$(BICI_AUTH0_SCHEME)</string>
+	<key>BiziBackendBaseUrl</key>
+	<string>$(BICI_BACKEND_URL)</string>
 	<key>BiziGoogleMapsApiKey</key>
 	<string>$(GOOGLE_MAPS_IOS_API_KEY)</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
@@ -68,7 +78,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
- 	<key>LSApplicationQueriesSchemes</key>
+	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>comgooglemaps</string>
 	</array>
@@ -85,6 +95,7 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

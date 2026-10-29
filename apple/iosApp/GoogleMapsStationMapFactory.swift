@@ -1,8 +1,10 @@
-import BiziMobileUi
+import Core
+import KotlinRuntime
+import MobileUi
 import GoogleMaps
 import UIKit
 
-final class GoogleMapsStationMapFactory: StationMapViewFactory {
+final class GoogleMapsStationMapFactory: KotlinBase, StationMapViewFactory {
     private var onStationSelected: ((Station) -> Void)?
     private weak var mapDelegate: GoogleMapsStationMapDelegate?
     private var hasZoomed = false
@@ -91,10 +93,10 @@ final class GoogleMapsStationMapFactory: StationMapViewFactory {
                 let circle = GMSCircle(position: center, radius: 450)
                 let tone = environmentalTone(layer: overlay.layer, value: Int(zone.value))
                 circle.fillColor = tone.withAlphaComponent(
-                    CGFloat(PlatformStationMapKt.ENVIRONMENTAL_OVERLAY_FILL_ALPHA)
+                    CGFloat(ENVIRONMENTAL_OVERLAY_FILL_ALPHA)
                 )
                 circle.strokeColor = tone.withAlphaComponent(
-                    CGFloat(PlatformStationMapKt.ENVIRONMENTAL_OVERLAY_STROKE_ALPHA)
+                    CGFloat(ENVIRONMENTAL_OVERLAY_STROKE_ALPHA)
                 )
                 circle.strokeWidth = 1
                 circle.map = mapView

@@ -1,5 +1,6 @@
 @testable import BiciRadar
-import BiziMobileUi
+import Core
+import MobileUi
 import XCTest
 
 @MainActor
@@ -43,7 +44,7 @@ final class FavoritesSyncBridgeTests: XCTestCase {
             Set(defaults.stringArray(forKey: FavoritesSyncBridge.favoritesCacheKey) ?? []),
             Set(["101", "202"])
         )
-        let request = routeStore.takePendingRequest() as? MobileLaunchRequestRouteToStation
+        let request = routeStore.takePendingRequest() as? navigation.MobileLaunchRequest.RouteToStation
         XCTAssertEqual(request?.stationId, "303")
     }
 

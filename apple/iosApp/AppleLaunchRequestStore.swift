@@ -1,4 +1,5 @@
-import BiziMobileUi
+import Core
+import MobileUi
 import Foundation
 
 @MainActor
@@ -30,45 +31,45 @@ final class AppleLaunchRequestStore: ObservableObject {
         self.defaults = defaults
     }
 
-    func save(_ request: any MobileLaunchRequest) {
+    func save(_ request: any navigation.MobileLaunchRequest) {
         switch request {
-        case is MobileLaunchRequestHome:
+        case is navigation.MobileLaunchRequest.Home:
             defaults.set(LaunchAction.home, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestMap:
+        case is navigation.MobileLaunchRequest.Map:
             defaults.set(LaunchAction.map, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestFavorites:
+        case is navigation.MobileLaunchRequest.Favorites:
             defaults.set(LaunchAction.favoriteStations, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestNearestStation:
+        case is navigation.MobileLaunchRequest.NearestStation:
             defaults.set(LaunchAction.nearestStation, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestNearestStationWithBikes:
+        case is navigation.MobileLaunchRequest.NearestStationWithBikes:
             defaults.set(LaunchAction.nearestStationWithBikes, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestNearestStationWithSlots:
+        case is navigation.MobileLaunchRequest.NearestStationWithSlots:
             defaults.set(LaunchAction.nearestStationWithSlots, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestOpenAssistant:
+        case is navigation.MobileLaunchRequest.OpenAssistant:
             defaults.set(LaunchAction.openAssistant, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case is MobileLaunchRequestStationStatus:
+        case is navigation.MobileLaunchRequest.StationStatus:
             defaults.set(LaunchAction.stationStatus, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
-        case let request as MobileLaunchRequestMonitorStation:
+        case let request as navigation.MobileLaunchRequest.MonitorStation:
             defaults.set(LaunchAction.monitorStation, forKey: actionKey)
             defaults.set(request.stationId, forKey: stationIdKey)
-        case let request as MobileLaunchRequestSelectCity:
+        case let request as navigation.MobileLaunchRequest.SelectCity:
             defaults.set(LaunchAction.selectCity, forKey: actionKey)
             defaults.set(request.cityId, forKey: stationIdKey)
-        case let request as MobileLaunchRequestRouteToStation:
+        case let request as navigation.MobileLaunchRequest.RouteToStation:
             defaults.set(LaunchAction.routeToStation, forKey: actionKey)
             defaults.set(request.stationId, forKey: stationIdKey)
-        case let request as MobileLaunchRequestShowStation:
+        case let request as navigation.MobileLaunchRequest.ShowStation:
             defaults.set(LaunchAction.showStation, forKey: actionKey)
             defaults.set(request.stationId, forKey: stationIdKey)
-        case is MobileLaunchRequestSavedPlaceAlerts:
+        case is navigation.MobileLaunchRequest.SavedPlaceAlerts:
             defaults.set(LaunchAction.savedPlaceAlerts, forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
         default:
@@ -77,7 +78,7 @@ final class AppleLaunchRequestStore: ObservableObject {
         }
     }
 
-    func takePendingRequest() -> (any MobileLaunchRequest)? {
+    func takePendingRequest() -> (any navigation.MobileLaunchRequest)? {
         defer {
             defaults.removeObject(forKey: actionKey)
             defaults.removeObject(forKey: stationIdKey)
@@ -88,35 +89,35 @@ final class AppleLaunchRequestStore: ObservableObject {
 
         switch action {
         case LaunchAction.home:
-            return MobileLaunchRequestHome.shared
+            return navigation.MobileLaunchRequest.Home.shared
         case LaunchAction.map:
-            return MobileLaunchRequestMap.shared
+            return navigation.MobileLaunchRequest.Map.shared
         case LaunchAction.favoriteStations, LaunchAction.legacyFavorites:
-            return MobileLaunchRequestFavorites.shared
+            return navigation.MobileLaunchRequest.Favorites.shared
         case LaunchAction.nearestStation:
-            return MobileLaunchRequestNearestStation.shared
+            return navigation.MobileLaunchRequest.NearestStation.shared
         case LaunchAction.nearestStationWithBikes:
-            return MobileLaunchRequestNearestStationWithBikes.shared
+            return navigation.MobileLaunchRequest.NearestStationWithBikes.shared
         case LaunchAction.nearestStationWithSlots:
-            return MobileLaunchRequestNearestStationWithSlots.shared
+            return navigation.MobileLaunchRequest.NearestStationWithSlots.shared
         case LaunchAction.openAssistant:
-            return MobileLaunchRequestOpenAssistant.shared
+            return navigation.MobileLaunchRequest.OpenAssistant.shared
         case LaunchAction.stationStatus:
-            return MobileLaunchRequestStationStatus.shared
+            return navigation.MobileLaunchRequest.StationStatus.shared
         case LaunchAction.monitorStation:
             guard let stationId else { return nil }
-            return MobileLaunchRequestMonitorStation(stationId: stationId)
+            return navigation.MobileLaunchRequest.MonitorStation(stationId: stationId)
         case LaunchAction.selectCity:
             guard let stationId else { return nil }
-            return MobileLaunchRequestSelectCity(cityId: stationId)
+            return navigation.MobileLaunchRequest.SelectCity(cityId: stationId)
         case LaunchAction.routeToStation:
             guard let stationId else { return nil }
-            return MobileLaunchRequestRouteToStation(stationId: stationId)
+            return navigation.MobileLaunchRequest.RouteToStation(stationId: stationId)
         case LaunchAction.showStation:
             guard let stationId else { return nil }
-            return MobileLaunchRequestShowStation(stationId: stationId)
+            return navigation.MobileLaunchRequest.ShowStation(stationId: stationId)
         case LaunchAction.savedPlaceAlerts:
-            return MobileLaunchRequestSavedPlaceAlerts.shared
+            return navigation.MobileLaunchRequest.SavedPlaceAlerts.shared
         default:
             return nil
         }

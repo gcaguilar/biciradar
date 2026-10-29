@@ -18,7 +18,7 @@ options:
     - gl
   deploymentTarget:
     iOS: "18.6"
-    watchOS: "9.0"
+    watchOS: "11.0"
 
 settings:
   base:
@@ -33,6 +33,9 @@ packages:
   GoogleMaps:
     url: https://github.com/googlemaps/ios-maps-sdk
     exactVersion: 11.0.0
+  Auth0:
+    url: https://github.com/auth0/Auth0.swift
+    exactVersion: 3.1.0
 
 targets:
   BiciRadar:
@@ -56,6 +59,10 @@ targets:
         product: FirebaseCrashlytics
       - package: Firebase
         product: FirebaseRemoteConfig
+      - package: Firebase
+        product: FirebaseMessaging
+      - package: Auth0
+        product: Auth0
       - package: GoogleMaps
         product: GoogleMaps
       - target: BiciRadarWidgets
@@ -63,30 +70,17 @@ targets:
       - target: BiciRadarWatch
         embed: true
     preBuildScripts:
-      - name: Build KMP iOS frameworks
+      - name: Build KMP Swift export
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
-          mkdir -p \
-            "shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework" \
-            "shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework" \
-            "shared/mobile-ui/build/bin/iosArm64/debugFramework" \
-            "shared/mobile-ui/build/bin/iosArm64/releaseFramework"
-          if [ "$CONFIGURATION" = "Release" ]; then
-            KMP_CONFIGURATION="Release"
-          else
-            KMP_CONFIGURATION="Debug"
-          fi
-          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosSimulatorArm64
-          elif [[ "$PLATFORM_NAME" == iphoneos ]]; then
-            ./gradlew --no-configuration-cache :shared:mobile-ui:link${KMP_CONFIGURATION}FrameworkIosArm64
-          else
+          if [[ "$PLATFORM_NAME" != *simulator* && "$PLATFORM_NAME" != iphoneos ]]; then
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadar."
             echo "Use an iPhone device or an iOS Simulator, not 'My Mac (Designed for iPad/iPhone)'."
             exit 1
           fi
+          ./gradlew --no-configuration-cache :shared:ios-export:embedSwiftExportForXcode
     postBuildScripts:
       - name: Copy Compose Resources to app bundle
         basedOnDependencyAnalysis: false
@@ -147,23 +141,16 @@ targets:
         DEVELOPMENT_TEAM: B87AWPVZWB
         CODE_SIGN_IDENTITY: "Apple Distribution"
         PROVISIONING_PROFILE_SPECIFIER: "BiciRadarProfile"
+        BICI_BACKEND_URL: ""
+        BICI_AUTH0_DOMAIN: ""
+        BICI_AUTH0_CLIENT_ID: ""
+        BICI_AUTH0_AUDIENCE: ""
+        BICI_AUTH0_SCHEME: biciradar
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: iosApp/Info.plist
-        OTHER_LDFLAGS: $(inherited) -ObjC -framework BiziMobileUi -lsqlite3
+        OTHER_LDFLAGS: $(inherited) -ObjC -lShared -lsqlite3
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios
         PRODUCT_NAME: BiciRadar
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
@@ -209,18 +196,6 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
-        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphonesimulator*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Debug][sdk=iphoneos*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphonesimulator*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosSimulatorArm64/releaseFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release][sdk=iphoneos*]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/mobile-ui/build/bin/iosArm64/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.tests
         PRODUCT_NAME: BiciRadar Tests
@@ -228,7 +203,7 @@ targets:
   BiciRadarWatch:
     type: application
     platform: watchOS
-    deploymentTarget: "9.0"
+    deploymentTarget: "11.0"
     sources:
       - path: watchApp
       - path: watchShared
@@ -241,38 +216,16 @@ targets:
       - target: BiciRadarWatchWidgets
         embed: true
     preBuildScripts:
-      - name: Build KMP watchOS framework
+      - name: Build KMP Swift export
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
-          mkdir -p \
-            "shared/core/build/bin/watchosCurrent/debugFramework" \
-            "shared/core/build/bin/watchosCurrent/releaseFramework"
-          if [ "$CONFIGURATION" = "Release" ]; then
-            KMP_CONFIGURATION="Release"
-          else
-            KMP_CONFIGURATION="Debug"
-          fi
-          CONF_LC=$(echo "$KMP_CONFIGURATION" | tr '[:upper:]' '[:lower:]')
-          OUT_DIR="shared/core/build/bin/watchosCurrent/${CONF_LC}Framework"
-          rm -rf "$OUT_DIR"
-          mkdir -p "$OUT_DIR"
-          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
-            cp -R "shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework" "$OUT_DIR/"
-          else
-            ./gradlew --no-configuration-cache \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64
-            ARM64_32_FW="shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            ARM64_FW="shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            cp -R "$ARM64_FW" "$OUT_DIR/"
-            lipo -create \
-              "$ARM64_32_FW/BiziSharedCore" \
-              "$ARM64_FW/BiziSharedCore" \
-              -output "$OUT_DIR/BiziSharedCore.framework/BiziSharedCore"
-          fi
+          # When the watch app is built as part of an iPhone destination, Xcode exposes the
+          # iPhone simulator as the target device; Swift export would then build the watch
+          # package for iOS. Dropping it makes Gradle use the generic watchOS destination.
+          env -u TARGET_DEVICE_IDENTIFIER -u TARGET_DEVICE_MODEL -u TARGET_DEVICE_OS_VERSION -u TARGET_DEVICE_PLATFORM_NAME \
+            ./gradlew --no-configuration-cache :shared:watch-export:embedSwiftExportForXcode
     settings:
       base:
         CODE_SIGN_ENTITLEMENTS: watchApp/BiciRadarWatch.entitlements
@@ -283,12 +236,6 @@ targets:
         ARCHS[sdk=watchos*]: "arm64 arm64_32"
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        FRAMEWORK_SEARCH_PATHS[config=Debug]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bici Radar Watch
         INFOPLIST_KEY_CFBundleIconName: AppIcon
@@ -296,14 +243,14 @@ targets:
         INFOPLIST_KEY_WKApplication: YES
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: com.gcaguilar.biciradar.ios
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
+        OTHER_LDFLAGS: $(inherited) -lSharedWatch
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch
         PRODUCT_NAME: BiciRadar Watch
 
   BiciRadarWatchWidgets:
     type: app-extension
     platform: watchOS
-    deploymentTarget: "9.0"
+    deploymentTarget: "11.0"
     sources:
       - path: watchWidgets
       - path: watchShared
@@ -329,7 +276,7 @@ targets:
   BiciRadarWatchTests:
     type: bundle.unit-test
     platform: watchOS
-    deploymentTarget: "9.0"
+    deploymentTarget: "11.0"
     sources:
       - path: watchAppTests
       - path: watchShared
@@ -345,56 +292,26 @@ targets:
       - sdk: WatchConnectivity.framework
       - sdk: libsqlite3.tbd
     preBuildScripts:
-      - name: Build KMP watchOS test framework
+      - name: Build KMP Swift export (tests)
         basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           cd "$SRCROOT/.."
-          mkdir -p \
-            "shared/core/build/bin/watchosCurrent/debugFramework" \
-            "shared/core/build/bin/watchosCurrent/releaseFramework"
-          if [ "$CONFIGURATION" = "Release" ]; then
-            KMP_CONFIGURATION="Release"
-          else
-            KMP_CONFIGURATION="Debug"
-          fi
-          CONF_LC=$(echo "$KMP_CONFIGURATION" | tr '[:upper:]' '[:lower:]')
-          OUT_DIR="shared/core/build/bin/watchosCurrent/${CONF_LC}Framework"
-          rm -rf "$OUT_DIR"
-          mkdir -p "$OUT_DIR"
-          if [[ "$PLATFORM_NAME" == *simulator* ]]; then
-            ./gradlew --no-configuration-cache :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosSimulatorArm64
-            cp -R "shared/core/build/bin/watchosSimulatorArm64/${CONF_LC}Framework/BiziSharedCore.framework" "$OUT_DIR/"
-          elif [[ "$PLATFORM_NAME" == watchos ]]; then
-            ./gradlew --no-configuration-cache \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosArm64 \
-              :shared:core:link${KMP_CONFIGURATION}FrameworkWatchosDeviceArm64
-            ARM64_32_FW="shared/core/build/bin/watchosArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            ARM64_FW="shared/core/build/bin/watchosDeviceArm64/${CONF_LC}Framework/BiziSharedCore.framework"
-            cp -R "$ARM64_FW" "$OUT_DIR/"
-            lipo -create \
-              "$ARM64_32_FW/BiziSharedCore" \
-              "$ARM64_FW/BiziSharedCore" \
-              -output "$OUT_DIR/BiziSharedCore.framework/BiziSharedCore"
-          else
+          if [[ "$PLATFORM_NAME" != *simulator* && "$PLATFORM_NAME" != watchos ]]; then
             echo "Unsupported destination platform '$PLATFORM_NAME' for BiciRadarWatchTests."
             echo "Use an Apple Watch device or a watchOS Simulator."
             exit 1
           fi
+          env -u TARGET_DEVICE_IDENTIFIER -u TARGET_DEVICE_MODEL -u TARGET_DEVICE_OS_VERSION -u TARGET_DEVICE_PLATFORM_NAME \
+            ./gradlew --no-configuration-cache :shared:watch-export:embedSwiftExportForXcode
     settings:
       base:
         BUNDLE_LOADER: "$(TEST_HOST)"
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
         EXCLUDED_ARCHS[sdk=watchsimulator*]: x86_64
-        FRAMEWORK_SEARCH_PATHS[config=Debug]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/debugFramework
-        FRAMEWORK_SEARCH_PATHS[config=Release]:
-          - $(inherited)
-          - $(SRCROOT)/../shared/core/build/bin/watchosCurrent/releaseFramework
         GENERATE_INFOPLIST_FILE: YES
-        OTHER_LDFLAGS: $(inherited) -framework BiziSharedCore
+        OTHER_LDFLAGS: $(inherited) -lSharedWatch
         PRODUCT_BUNDLE_IDENTIFIER: com.gcaguilar.biciradar.ios.watch.tests
         PRODUCT_NAME: BiciRadar Watch Tests
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/BiciRadar Watch.app/BiciRadar Watch"
