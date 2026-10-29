@@ -22,8 +22,10 @@ dependencyResolutionManagement {
 rootProject.name = "biciradar"
 
 include(":shared:core")
+include(":shared:ios-export")
 include(":shared:mobile-ui")
 include(":shared:test-utils")
+include(":shared:watch-export")
 include(":androidApp")
 include(":wearApp")
 include(":desktopApp")
