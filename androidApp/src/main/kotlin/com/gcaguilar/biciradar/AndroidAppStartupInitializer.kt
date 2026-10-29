@@ -30,6 +30,18 @@ class AndroidAppStartupInitializer : Initializer<Unit> {
         description = "Notificacion persistente durante la monitorizacion de estaciones"
       }
     notificationManager.createNotificationChannel(monitoringChannel)
+
+    // Channel the backend names in its FCM messages; without it Android falls
+    // back to the generic "Miscellaneous" channel and loses the heads-up alert.
+    val alertsChannel =
+      NotificationChannel(
+        BACKEND_ALERTS_CHANNEL_ID,
+        "Bici Radar avisos",
+        NotificationManager.IMPORTANCE_HIGH,
+      ).apply {
+        description = "Avisos de estaciones llenas o vacías enviados por el servidor"
+      }
+    notificationManager.createNotificationChannel(alertsChannel)
   }
 
   override fun dependencies(): List<Class<out Initializer<*>>> = emptyList()
@@ -37,5 +49,6 @@ class AndroidAppStartupInitializer : Initializer<Unit> {
   private companion object {
     const val TRIP_NOTIFICATION_CHANNEL_ID = "bizi_trip"
     const val SURFACE_MONITORING_CHANNEL_ID = "bizi_station_monitoring"
+    const val BACKEND_ALERTS_CHANNEL_ID = "biciradar_alerts"
   }
 }
