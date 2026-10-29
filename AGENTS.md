@@ -24,9 +24,13 @@ platform apps --------------------> shared/core
 
 - `shared/core`: shared models, repositories, networking, serialization,
   persistence, platform contracts, and Metro dependency-injection graph. It is
-  exported to Apple code as `BiziSharedCore`.
+  exported to Apple code through Kotlin Swift export as the `Core` module.
 - `shared/mobile-ui`: Compose Multiplatform screens and presentation logic
-  shared by the phone apps. It is exported to Apple code as `BiziMobileUi`.
+  shared by the phone apps. It is exported to Apple code through Kotlin Swift
+  export as the `MobileUi` module.
+- `shared/ios-export` and `shared/watch-export`: code-less umbrella modules that
+  run Swift export for the iPhone (`Core` + `MobileUi`) and the Apple Watch
+  (`Core` only). Xcode builds them through `embedSwiftExportForXcode`.
 - `shared/test-utils`: reusable test fixtures and helpers.
 - `androidApp`: Android phone shell and Android-only integrations. It has
   `playstore` and `fdroid` product flavors.
@@ -37,6 +41,12 @@ platform apps --------------------> shared/core
   watchOS, widgets, shortcuts, and Apple-specific integrations.
 - `desktopApp`: desktop target. Treat it as experimental and inspect its
   current Gradle configuration before assuming feature parity.
+- `backend`: standalone Kotlin + Ktor push-monitoring backend. It is no longer
+  part of this monorepo: it lives in its own private repository
+  (`git@github.com:gcaguilar/biciradar-back.git`) with its own Gradle build and
+  wrapper. A local `backend/` checkout is git-ignored here. See that repository's
+  `README.md`; the plan lives in `backend_plan.md`. Do not apply the app Gradle
+  workflow to it.
 - `docs`: technical, release, and packaging documentation.
 - `docs/wiki`: end-user documentation in GitHub Wiki format.
 - `tooling/project`: repository-specific smoke, release, hook, icon, and
