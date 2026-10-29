@@ -25,6 +25,9 @@ settings:
     CURRENT_PROJECT_VERSION: 29570207
     MARKETING_VERSION: 0.22.18
     SWIFT_VERSION: "5.10"
+    # The "Build KMP Swift export" phases run Gradle, which writes outside the declared
+    # outputs; Xcode's user-script sandbox blocks that.
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
 
 packages:
   Firebase:
