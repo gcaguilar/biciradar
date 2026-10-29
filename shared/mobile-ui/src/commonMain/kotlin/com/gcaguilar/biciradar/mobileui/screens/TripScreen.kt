@@ -194,7 +194,7 @@ internal fun TripScreen(
         }
       }
 
-      item("routines") {
+      if (state.destination == null) item("routines") {
         BiziSectionCard(title = stringResource(Res.string.routinesTitle)) {
           Text(
             text = stringResource(Res.string.tripRoutinesDescription),
@@ -234,7 +234,7 @@ internal fun TripScreen(
         }
       }
 
-      item("hero") {
+      if (state.destination == null) item("hero") {
         BiziSectionCard(
           title = stringResource(Res.string.whereAreYouGoing),
           contentSpacing = BiziSpacing.xxLarge,
