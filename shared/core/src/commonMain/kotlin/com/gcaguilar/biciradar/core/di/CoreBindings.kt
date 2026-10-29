@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core.di
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.EngagementStorage
 import com.gcaguilar.biciradar.core.SettingsRepository
 import dev.zacsweers.metro.AppScope
@@ -19,6 +21,8 @@ import kotlinx.serialization.json.Json
  * - Configuración de Json
  * - EngagementStorage (delegado a SettingsRepository)
  */
+@OptIn(ExperimentalObjCRefinement::class)
+@HiddenFromObjC
 @BindingContainer
 object CoreBindings {
   @SingleIn(AppScope::class)

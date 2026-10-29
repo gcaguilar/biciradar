@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -68,6 +70,8 @@ interface StationsCacheManager {
    * @param availability Mapa de ID de estación a par (bikesAvailable, slotsFree)
    * @param refreshedAt Timestamp de la actualización
    */
+  @OptIn(ExperimentalObjCRefinement::class)
+  @HiddenFromObjC
   suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,
@@ -133,6 +137,8 @@ class StationsCacheManagerImpl(
     cacheStore.save(cityId, stations)
   }
 
+  @OptIn(ExperimentalObjCRefinement::class)
+  @HiddenFromObjC
   override suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,
@@ -161,6 +167,8 @@ class NoOpStationsCacheManager : StationsCacheManager {
     stations: List<Station>,
   ) {}
 
+  @OptIn(ExperimentalObjCRefinement::class)
+  @HiddenFromObjC
   override suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,

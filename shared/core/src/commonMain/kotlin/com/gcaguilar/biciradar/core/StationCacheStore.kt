@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.local.StationEntity
@@ -70,6 +72,8 @@ class StationCacheStore(
       null
     }
 
+  @OptIn(ExperimentalObjCRefinement::class)
+  @HiddenFromObjC
   override suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,

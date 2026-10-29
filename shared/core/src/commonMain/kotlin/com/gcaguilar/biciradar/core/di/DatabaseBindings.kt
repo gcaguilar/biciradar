@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core.di
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.DatabaseFactory
 import com.gcaguilar.biciradar.core.NoOpStationsCacheManager
 import com.gcaguilar.biciradar.core.StationCacheStore
@@ -19,6 +21,8 @@ import kotlinx.serialization.json.Json
  * - BiciRadarDatabase (nullable si no hay factory disponible)
  * - StationsCacheManager (con implementación real o no-op)
  */
+@OptIn(ExperimentalObjCRefinement::class)
+@HiddenFromObjC
 @BindingContainer
 object DatabaseBindings {
   @SingleIn(AppScope::class)

@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.local.StationEntity
 
 /**
@@ -30,6 +32,8 @@ interface StationCacheStorage {
   /**
    * Updates station bike/dock counts for the given availability data.
    */
+  @OptIn(ExperimentalObjCRefinement::class)
+  @HiddenFromObjC
   suspend fun updateAvailability(
     availability: Map<String, Pair<Int, Int>>,
     refreshedAt: Long,

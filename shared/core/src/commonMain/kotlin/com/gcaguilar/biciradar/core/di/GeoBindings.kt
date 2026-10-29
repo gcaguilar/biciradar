@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core.di
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.OsVersion
@@ -28,6 +30,8 @@ import okio.FileSystem
  * - GeoSearchUseCase (búsqueda de lugares)
  * - ReverseGeocodeUseCase (geocodificación inversa)
  */
+@OptIn(ExperimentalObjCRefinement::class)
+@HiddenFromObjC
 @BindingContainer
 object GeoBindings {
   @SingleIn(AppScope::class)

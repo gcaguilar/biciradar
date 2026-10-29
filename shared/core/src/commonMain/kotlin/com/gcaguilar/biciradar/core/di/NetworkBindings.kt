@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core.di
 
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.BiziApi
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.CityBikesBiziApi
@@ -33,6 +35,8 @@ import kotlinx.serialization.json.Json
  * - APIs de Bizi (GBFS y datosbizi.com)
  * - API de Google Places
  */
+@OptIn(ExperimentalObjCRefinement::class)
+@HiddenFromObjC
 @BindingContainer
 object NetworkBindings {
   @SingleIn(AppScope::class)
