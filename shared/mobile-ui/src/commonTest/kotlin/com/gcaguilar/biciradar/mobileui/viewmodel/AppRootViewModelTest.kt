@@ -3,16 +3,21 @@ package com.gcaguilar.biciradar.mobileui.viewmodel
 import com.gcaguilar.biciradar.core.AppUpdatePrompter
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.ReviewPrompter
+import com.gcaguilar.biciradar.core.Routine
+import com.gcaguilar.biciradar.core.RoutineRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
+import com.gcaguilar.biciradar.core.backend.BackendConfig
 import com.gcaguilar.biciradar.mobileui.initialization.AppInitializer
 import com.gcaguilar.biciradar.mobileui.usecases.ChangelogUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.ResolveOnboardingPresentationUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.RoutineManagementUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import com.gcaguilar.biciradar.testutils.FakeEngagementRepository
@@ -23,6 +28,7 @@ import com.gcaguilar.biciradar.testutils.FakeStationsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -94,6 +100,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
 
       val viewModel =
@@ -175,6 +182,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
 
       val viewModel =
@@ -249,6 +257,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
 
       val viewModel =
@@ -320,6 +329,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
 
       val viewModel =
@@ -391,6 +401,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
       val viewModel =
         AppRootViewModel(
@@ -461,6 +472,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
       val viewModel =
         AppRootViewModel(
@@ -539,6 +551,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
       val viewModel =
         AppRootViewModel(
@@ -604,6 +617,7 @@ class AppRootViewModelTest {
           startupUseCase = startupUseCase,
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
+          routineManagementUseCase = appRootRoutineManagementUseCase(),
         )
       val viewModel =
         AppRootViewModel(
@@ -640,6 +654,32 @@ private typealias FakeAppRootFavoritesRepository = FakeFavoritesRepository
 private typealias FakeAppRootStationsRepository = FakeStationsRepository
 private typealias AppRootFakeSavedPlaceAlertsRepository = FakeSavedPlaceAlertsRepository
 
+private class AppRootFakeRoutineRepository : RoutineRepository {
+  override val state: StateFlow<List<Routine>> = MutableStateFlow(emptyList())
+
+  override suspend fun bootstrap() = Unit
+
+  override fun routineById(id: String): Routine? = null
+
+  override suspend fun upsertRoutine(routine: Routine) = Unit
+
+  override suspend fun deleteRoutine(id: String) = Unit
+
+  override suspend fun setEnabled(
+    id: String,
+    enabled: Boolean,
+  ) = Unit
+}
+
+private fun appRootRoutineManagementUseCase() =
+  RoutineManagementUseCase(
+    routineRepository = AppRootFakeRoutineRepository(),
+    stationsRepository = FakeAppRootStationsRepository(),
+    settingsRepository = FakeSettingsRepository(),
+    authProvider = NoOpAuthProvider,
+    backendConfig = BackendConfig(),
+  )
+
 private class AppRootFakeSurfaceSnapshotRepository : SurfaceSnapshotRepository {
   override val bundle: MutableStateFlow<SurfaceSnapshotBundle?> = MutableStateFlow(null)
   var bootstrapCount = 0
@@ -653,13 +693,14 @@ private class AppRootFakeSurfaceSnapshotRepository : SurfaceSnapshotRepository {
     refreshCount++
   }
 
-  override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) = Unit
+  override suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>) = Unit
 
   override fun currentBundle(): SurfaceSnapshotBundle? = bundle.value
 }
 
 private class AppRootFakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
-  override val state: MutableStateFlow<SurfaceMonitoringSession?> = MutableStateFlow(null)
+  override val state: MutableStateFlow<Map<String, SurfaceMonitoringSession>> =
+    MutableStateFlow(emptyMap())
   var bootstrapCount = 0
 
   override suspend fun bootstrap() {
@@ -677,9 +718,13 @@ private class AppRootFakeSurfaceMonitoringRepository : SurfaceMonitoringReposito
     kind: SurfaceMonitoringKind,
   ): Boolean = false
 
-  override fun stopMonitoring() = Unit
+  override fun stopMonitoring(stationId: String?) = Unit
 
   override suspend fun clearMonitoring() = Unit
+
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = state.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = state.value.values.filter { it.isActive }
 }
 
 private class AppRootFakeAppUpdatePrompter(

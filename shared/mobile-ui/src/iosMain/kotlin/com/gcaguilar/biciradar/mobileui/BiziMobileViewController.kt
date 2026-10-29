@@ -103,6 +103,8 @@ class BiziMainViewControllerWrapper(
   private val resolvedPlatformBindings: IOSPlatformBindings =
     platformBindings ?: IOSPlatformBindings(remoteConfigBridge = remoteConfigBridge)
 
+  private val sharedGraph: SharedGraph? = graph
+
   private var currentLaunchRequest: MobileLaunchRequest? by mutableStateOf(
     value = initialLaunchRequest,
     policy = neverEqualPolicy(),

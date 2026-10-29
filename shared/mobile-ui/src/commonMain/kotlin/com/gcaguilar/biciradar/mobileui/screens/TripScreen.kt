@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
@@ -36,16 +37,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.auth.AuthState
+import com.gcaguilar.biciradar.core.geo.currentLocalTimeSnapshot
 import com.gcaguilar.biciradar.core.geo.distanceBetween
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.gotIt
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesManage
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.searchingNearbyStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.trip
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripBikeRouteAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripCreateRoutineFromTrip
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapDestinationTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMapStationAction
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlternative
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripRoutinesDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationFull
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationNoLongerHasSlots
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSubtitle
@@ -77,13 +84,27 @@ internal fun TripScreen(
   onStopMonitoring: () -> Unit,
   onDurationSelected: (Int) -> Unit,
   onStartMonitoring: () -> Unit,
+  onLogin: () -> Unit,
   onRefreshStations: () -> Unit,
   onOpenDestinationPicker: () -> Unit,
   onOpenStationPicker: () -> Unit,
+  onOpenRoutines: () -> Unit,
+  onCreateRoutineFromTrip: (String, String, Int, Int) -> Unit,
   onLaunchBikeRoute: (Station) -> Unit,
   paddingValues: PaddingValues,
 ) {
   val colors = LocalBiziColors.current
+
+  if (state.authState != AuthState.Authenticated) {
+    TripAuthGate(
+      mobilePlatform = mobilePlatform,
+      loginInProgress = state.authLoginInProgress,
+      loginError = state.authLoginError,
+      paddingValues = paddingValues,
+      onLogin = onLogin,
+    )
+    return
+  }
 
   Box(
     modifier =
@@ -169,6 +190,46 @@ internal fun TripScreen(
             ) {
               Text(stringResource(Res.string.gotIt))
             }
+          }
+        }
+      }
+
+      item("routines") {
+        BiziSectionCard(title = stringResource(Res.string.routinesTitle)) {
+          Text(
+            text = stringResource(Res.string.tripRoutinesDescription),
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.muted,
+          )
+          Button(
+            onClick = onOpenRoutines,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Schedule,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(Res.string.routinesManage))
+          }
+          OutlinedButton(
+            onClick = {
+              val station = state.nearestStationWithSlots ?: return@OutlinedButton
+              val now = currentLocalTimeSnapshot()
+              val travelMinutes = ((state.distanceToStation ?: 0) / 250) + 5
+              val totalMinutes = now.hour * 60 + travelMinutes
+              onCreateRoutineFromTrip(
+                station.id,
+                station.name,
+                (totalMinutes / 60).mod(24),
+                totalMinutes % 60,
+              )
+            },
+            enabled = state.nearestStationWithSlots != null,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
+            Text(stringResource(Res.string.tripCreateRoutineFromTrip))
           }
         }
       }

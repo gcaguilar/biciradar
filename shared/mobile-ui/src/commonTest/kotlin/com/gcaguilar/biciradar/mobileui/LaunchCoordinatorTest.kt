@@ -290,13 +290,13 @@ private class LaunchFakeSurfaceSnapshotRepository : SurfaceSnapshotRepository {
     refreshCount++
   }
 
-  override suspend fun saveMonitoringSession(session: SurfaceMonitoringSession?) = Unit
+  override suspend fun saveMonitoringSessions(sessions: List<SurfaceMonitoringSession>) = Unit
 
   override fun currentBundle(): SurfaceSnapshotBundle? = bundle.value
 }
 
 private class LaunchFakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
-  override val state = MutableStateFlow<SurfaceMonitoringSession?>(null)
+  override val state = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
   var startMonitoringStationId: String? = null
 
   override suspend fun bootstrap() = Unit
@@ -308,19 +308,23 @@ private class LaunchFakeSurfaceMonitoringRepository : SurfaceMonitoringRepositor
   ): Boolean {
     startMonitoringStationId = stationId
     state.value =
-      SurfaceMonitoringSession(
-        stationId = stationId,
-        stationName = stationId,
-        cityId = City.ZARAGOZA.id,
-        kind = kind,
-        status = SurfaceMonitoringStatus.Monitoring,
-        bikesAvailable = 5,
-        docksAvailable = 6,
-        statusLevel = SurfaceStatusLevel.Good,
-        startedAtEpoch = 1L,
-        expiresAtEpoch = 2L,
-        lastUpdatedEpoch = 1L,
-        isActive = true,
+      state.value +
+      (
+        stationId to
+          SurfaceMonitoringSession(
+            stationId = stationId,
+            stationName = stationId,
+            cityId = City.ZARAGOZA.id,
+            kind = kind,
+            status = SurfaceMonitoringStatus.Monitoring,
+            bikesAvailable = 5,
+            docksAvailable = 6,
+            statusLevel = SurfaceStatusLevel.Good,
+            startedAtEpoch = 1L,
+            expiresAtEpoch = 2L,
+            lastUpdatedEpoch = 1L,
+            isActive = true,
+          )
       )
     return true
   }
@@ -330,9 +334,13 @@ private class LaunchFakeSurfaceMonitoringRepository : SurfaceMonitoringRepositor
     kind: SurfaceMonitoringKind,
   ): Boolean = false
 
-  override fun stopMonitoring() = Unit
+  override fun stopMonitoring(stationId: String?) = Unit
 
   override suspend fun clearMonitoring() = Unit
+
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = state.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = state.value.values.filter { it.isActive }
 }
 
 private fun station(

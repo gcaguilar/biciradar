@@ -26,6 +26,8 @@ import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.MapEnvironmentalViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.NearbyViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineListViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel
@@ -234,7 +236,72 @@ internal fun BiziNavHost(
               navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Station.name))
             }
           },
+        onOpenRoutines =
+          remember(navController) {
+            {
+              navController.navigate(Screen.Routines) { launchSingleTop = true }
+            }
+          },
+        onCreateRoutineFromTrip =
+          remember(navController) {
+            { stationId, stationName, hour, minute ->
+              navController.navigate(
+                Screen.RoutineEditor(
+                  prefillStationId = stationId,
+                  prefillStationName = stationName,
+                  prefillHour = hour,
+                  prefillMinute = minute,
+                ),
+              ) { launchSingleTop = true }
+            }
+          },
         paddingValues = PaddingValues(),
+      )
+    }
+
+    composable<Screen.Routines> {
+      val routinesViewModel = metroViewModel<RoutineListViewModel>(key = "routines")
+      BiziMobileAppContent.RoutinesScreenContent(
+        viewModel = routinesViewModel,
+        mobilePlatform = mobilePlatform,
+        paddingValues = PaddingValues(),
+        onBack = remember(navController) { { navController.popBackStack() } },
+        onCreateRoutine =
+          remember(navController) {
+            {
+              navController.navigate(Screen.RoutineEditor()) { launchSingleTop = true }
+            }
+          },
+        onEditRoutine =
+          remember(navController) {
+            { routineId ->
+              navController.navigate(Screen.RoutineEditor(routineId)) { launchSingleTop = true }
+            }
+          },
+      )
+    }
+
+    composable<Screen.RoutineEditor> { backStackEntry ->
+      val route = backStackEntry.toRoute<Screen.RoutineEditor>()
+      val editorViewModel =
+        assistedMetroViewModel<RoutineEditorViewModel, RoutineEditorViewModel.Factory>(
+          key = "routine-editor-${route.routineId}-${route.prefillStationId}",
+        ) {
+          create(
+            route.routineId,
+            route.prefillStationId,
+            route.prefillStationName,
+            route.prefillHour,
+            route.prefillMinute,
+          )
+        }
+      BiziMobileAppContent.RoutineEditorScreenContent(
+        viewModel = editorViewModel,
+        mobilePlatform = mobilePlatform,
+        isMapReady = isMapReady,
+        paddingValues = PaddingValues(),
+        onBack = remember(navController) { { navController.popBackStack() } },
+        onSaved = remember(navController) { { navController.popBackStack() } },
       )
     }
 
@@ -425,6 +492,14 @@ private fun NavBackStackEntry.toScreenOrNull(): Screen? {
 
     routeId.startsWith(checkNotNull(Screen.TripMapPicker::class.qualifiedName)) -> {
       runCatching { toRoute<Screen.TripMapPicker>() }.getOrNull()
+    }
+
+    routeId.startsWith(checkNotNull(Screen.RoutineEditor::class.qualifiedName)) -> {
+      runCatching { toRoute<Screen.RoutineEditor>() }.getOrNull()
+    }
+
+    routeId.startsWith(checkNotNull(Screen.Routines::class.qualifiedName)) -> {
+      Screen.Routines
     }
 
     routeId.startsWith(checkNotNull(Screen.Profile::class.qualifiedName)) -> {

@@ -15,6 +15,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.TripAlert
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripMonitoringState
+import com.gcaguilar.biciradar.core.auth.AuthState
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
@@ -64,6 +65,9 @@ data class TripUiState(
   val dataFreshness: DataFreshness = DataFreshness.Unavailable,
   val lastUpdatedEpoch: Long? = null,
   val stationsLoading: Boolean = false,
+  val authState: AuthState = AuthState.Anonymous,
+  val authLoginInProgress: Boolean = false,
+  val authLoginError: Boolean = false,
 )
 
 @FlowPreview
@@ -91,6 +95,8 @@ class TripViewModel(
     val selectedMapStation: Station? = null,
     val selectedMapLocationLabel: String? = null,
     val canConfirmMapSelection: Boolean = false,
+    val authLoginInProgress: Boolean = false,
+    val authLoginError: Boolean = false,
   )
 
   private val transientUiState = MutableStateFlow(TripTransientUiState())
@@ -103,7 +109,8 @@ class TripViewModel(
       tripManagementUseCase.searchRadiusMeters,
       tripManagementUseCase.tripState,
       effectiveStationsState,
-    ) { transient, radius, tripState, stationsState ->
+      tripManagementUseCase.authState,
+    ) { transient, radius, tripState, stationsState, authState ->
       TripUiState(
         query = transient.query,
         suggestions = transient.suggestions,
@@ -130,6 +137,9 @@ class TripViewModel(
         dataFreshness = stationsState.freshness,
         lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
         stationsLoading = stationsState.isLoading,
+        authState = authState,
+        authLoginInProgress = transient.authLoginInProgress,
+        authLoginError = transient.authLoginError,
       )
     }.stateIn(
       viewModelScope,
@@ -148,6 +158,7 @@ class TripViewModel(
         dataFreshness = effectiveStationsState.value.freshness,
         lastUpdatedEpoch = effectiveStationsState.value.lastUpdatedEpoch,
         stationsLoading = effectiveStationsState.value.isLoading,
+        authState = tripManagementUseCase.authState.value,
       ),
     )
 
@@ -362,9 +373,23 @@ class TripViewModel(
   }
 
   fun onStartMonitoringRequested() {
+    if (uiState.value.authState != AuthState.Authenticated) {
+      onLogin()
+      return
+    }
     viewModelScope.launch {
       val hasPermission = localNotifier.requestPermission()
       if (hasPermission) onStartMonitoring()
+    }
+  }
+
+  /** Inicia sesión o registra una cuenta antes de poder vigilar la estación. */
+  fun onLogin() {
+    if (transientUiState.value.authLoginInProgress) return
+    transientUiState.update { it.copy(authLoginInProgress = true, authLoginError = false) }
+    viewModelScope.launch {
+      val success = tripManagementUseCase.login()
+      transientUiState.update { it.copy(authLoginInProgress = false, authLoginError = !success) }
     }
   }
 

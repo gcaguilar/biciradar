@@ -39,6 +39,19 @@ sealed class Screen {
   ) : Screen()
 
   @Serializable
+  data object Routines : Screen()
+
+  @Serializable
+  data class RoutineEditor(
+    val routineId: String? = null,
+    /** When set (and [routineId] is null), pre-fills a new routine with this station as an ARRIVAL step. */
+    val prefillStationId: String? = null,
+    val prefillStationName: String? = null,
+    val prefillHour: Int? = null,
+    val prefillMinute: Int? = null,
+  ) : Screen()
+
+  @Serializable
   data object Profile : Screen()
 
   @Serializable

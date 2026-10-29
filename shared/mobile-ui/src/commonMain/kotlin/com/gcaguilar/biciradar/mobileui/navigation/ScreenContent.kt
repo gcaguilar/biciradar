@@ -6,6 +6,8 @@ import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.mobileui.BiziMobileAppContent
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.viewmodel.FavoritesViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineListViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.SavedPlaceAlertsViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.ShortcutsViewModel
 import com.gcaguilar.biciradar.mobileui.viewmodel.StationDetailViewModel
@@ -112,6 +114,41 @@ internal fun ScreenContent(
         initialAction = null,
         onInitialActionConsumed = {},
         onBack = onBack,
+      )
+    }
+
+    is Screen.Routines -> {
+      val viewModel = metroViewModel<RoutineListViewModel>(key = "routines")
+      BiziMobileAppContent.RoutinesScreenContent(
+        viewModel = viewModel,
+        mobilePlatform = mobilePlatform,
+        paddingValues = PaddingValues(),
+        onBack = onBack,
+        onCreateRoutine = { onNavigate(Screen.RoutineEditor()) },
+        onEditRoutine = { routineId -> onNavigate(Screen.RoutineEditor(routineId)) },
+      )
+    }
+
+    is Screen.RoutineEditor -> {
+      val viewModel =
+        assistedMetroViewModel<RoutineEditorViewModel, RoutineEditorViewModel.Factory>(
+          key = "routine-editor-${route.routineId}-${route.prefillStationId}",
+        ) {
+          create(
+            route.routineId,
+            route.prefillStationId,
+            route.prefillStationName,
+            route.prefillHour,
+            route.prefillMinute,
+          )
+        }
+      BiziMobileAppContent.RoutineEditorScreenContent(
+        viewModel = viewModel,
+        mobilePlatform = mobilePlatform,
+        isMapReady = isMapReady,
+        paddingValues = PaddingValues(),
+        onBack = onBack,
+        onSaved = onBack,
       )
     }
 

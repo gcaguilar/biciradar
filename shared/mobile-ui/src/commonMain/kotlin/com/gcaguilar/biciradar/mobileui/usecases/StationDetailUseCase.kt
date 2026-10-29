@@ -55,10 +55,16 @@ class StationDetailUseCase(
     favoritesRepository.setWorkStationId(if (currentWorkId == stationId) null else stationId)
   }
 
-  suspend fun fetchStationPatterns(stationId: String): Result<List<StationHourlyPattern>> =
-    runCatching {
-      datosBiziApi.fetchPatterns(stationId)
+  suspend fun fetchStationPatterns(stationId: String): Result<List<StationHourlyPattern>> {
+    val city = selectedCity.value
+    if (!datosBiziApi.supports(city.id)) return Result.success(emptyList())
+    return runCatching {
+      datosBiziApi.fetchPatterns(city.id, stationId)
     }
+  }
+
+  /** Whether the current provider can serve usage patterns for [city]. */
+  fun supportsUsagePatterns(city: City): Boolean = datosBiziApi.supports(city.id)
 
   fun launchRoute(station: Station) {
     routeLauncher.launchForTripMode(station, settingsRepository.tripMode.value)
@@ -90,7 +96,7 @@ class StationDetailUseCase(
         isFavorite = stationId in favorites,
         isHomeStation = homeId == stationId,
         isWorkStation = workId == stationId,
-        supportsUsagePatterns = city.supportsUsagePatterns,
+        supportsUsagePatterns = datosBiziApi.supports(city.id),
         savedPlaceAlertsCityId = city.id,
         savedPlaceAlertRules = rules,
       )

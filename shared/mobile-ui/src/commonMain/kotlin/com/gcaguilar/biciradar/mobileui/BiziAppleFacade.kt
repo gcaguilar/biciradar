@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.mobileui
 
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.AssistantResolution
+import com.gcaguilar.biciradar.core.BackendFeatureDeps
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.FavoritesFeatureDeps
 import com.gcaguilar.biciradar.core.PlatformFeatureDeps
@@ -44,6 +45,7 @@ class BiziAppleFacade private constructor(
   private val favorites: FavoritesFeatureDeps,
   private val session: SessionFeatureDeps,
   private val platform: PlatformFeatureDeps,
+  private val backend: BackendFeatureDeps,
 ) {
   // ─────────────────────────── Sesión / arranque ───────────────────────────
 
@@ -142,6 +144,17 @@ class BiziAppleFacade private constructor(
    */
   suspend fun evaluateSavedPlaceAlerts(): List<SavedPlaceAlertTrigger> = favorites.evaluateSavedPlaceAlerts.execute()
 
+  // ─────────────────────────── Push ─────────────────────────────────────────
+
+  /**
+   * Handles the `data` dictionary of a remote notification. Parses the backend
+   * payload, publishes it (trip auto-cancel) and refreshes the station cache and
+   * widget data. Swift should call this before presenting the notification.
+   */
+  suspend fun onPushData(data: Map<String, String>) {
+    backend.pushMessageHandler.onDataMessage(data)
+  }
+
   // ─────────────────────────── Factory ─────────────────────────────────────
 
   companion object {
@@ -156,6 +169,7 @@ class BiziAppleFacade private constructor(
         favorites = graph,
         session = graph,
         platform = graph,
+        backend = graph,
       )
   }
 }

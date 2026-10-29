@@ -180,14 +180,17 @@ class NearbyViewModel(
           lastCityId = city.id
           patternCache.value = emptyMap()
         }
-        if (sort == NearbySort.BEST_PREDICTED_AVAILABILITY && city.supportsUsagePatterns) {
-          loadMissingPatterns(stations)
+        if (sort == NearbySort.BEST_PREDICTED_AVAILABILITY && datosBiziApi.supports(city.id)) {
+          loadMissingPatterns(stations, city.id)
         }
       }
     }
   }
 
-  private suspend fun loadMissingPatterns(stations: List<Station>) {
+  private suspend fun loadMissingPatterns(
+    stations: List<Station>,
+    cityId: String,
+  ) {
     val missing =
       stations
         .take(PATTERN_STATION_LIMIT)
@@ -199,7 +202,7 @@ class NearbyViewModel(
     for (id in missing) {
       val patterns =
         try {
-          datosBiziApi.fetchPatterns(id)
+          datosBiziApi.fetchPatterns(cityId, id)
         } catch (cancellation: CancellationException) {
           throw cancellation
         } catch (_: Exception) {

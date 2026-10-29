@@ -28,6 +28,7 @@ import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
 import com.gcaguilar.biciradar.core.geo.GeoApi
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
@@ -102,6 +103,7 @@ class SearchRadiusViewModelTest {
         TripManagementUseCase(
           tripRepository = tripRepository,
           settingsRepository = settingsRepository,
+          authProvider = NoOpAuthProvider,
         )
       val surfaceMonitoringUseCase =
         SurfaceMonitoringUseCase(
@@ -335,7 +337,12 @@ private object NoOpRouteLauncher : RouteLauncher {
 }
 
 private object SearchRadiusNoOpDatosBiziApi : DatosBiziApi {
-  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = emptyList()
+  override fun supports(cityId: String): Boolean = false
+
+  override suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern> = emptyList()
 }
 
 private class FakeTripRepository : TripRepository {
@@ -363,7 +370,8 @@ private class FakeTripRepository : TripRepository {
 }
 
 private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
-  override val state: StateFlow<SurfaceMonitoringSession?> = MutableStateFlow(null)
+  override val state: MutableStateFlow<Map<String, SurfaceMonitoringSession>> =
+    MutableStateFlow(emptyMap())
 
   override suspend fun bootstrap() = Unit
 
@@ -378,9 +386,13 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     kind: SurfaceMonitoringKind,
   ): Boolean = true
 
-  override fun stopMonitoring() = Unit
+  override fun stopMonitoring(stationId: String?) = Unit
 
   override suspend fun clearMonitoring() = Unit
+
+  override fun sessionFor(stationId: String): SurfaceMonitoringSession? = state.value[stationId]
+
+  override fun activeSessions(): List<SurfaceMonitoringSession> = state.value.values.filter { it.isActive }
 }
 
 private class FakeGeoApi : GeoApi {

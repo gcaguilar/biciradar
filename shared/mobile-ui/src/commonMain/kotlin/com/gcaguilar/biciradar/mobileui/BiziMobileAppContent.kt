@@ -21,11 +21,17 @@ import com.gcaguilar.biciradar.mobileui.screens.FavoritesScreen
 import com.gcaguilar.biciradar.mobileui.screens.FavoritesSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.NearbyScreen
 import com.gcaguilar.biciradar.mobileui.screens.ProfileScreen
+import com.gcaguilar.biciradar.mobileui.screens.RoutineEditorScreen
+import com.gcaguilar.biciradar.mobileui.screens.RoutineListScreen
 import com.gcaguilar.biciradar.mobileui.screens.ShortcutsScreen
 import com.gcaguilar.biciradar.mobileui.screens.StationDetailScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripDestinationSearchScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripMapPickerScreen
 import com.gcaguilar.biciradar.mobileui.screens.TripScreen
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorEvent
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineListViewModel
+import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineStationPickerMode
 import com.gcaguilar.biciradar.mobileui.viewmodel.TripMapPickerMode
 import com.gcaguilar.biciradar.mobileui.viewmodel.sortedCitiesByDisplayName
 import kotlinx.coroutines.FlowPreview
@@ -39,6 +45,8 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     onOpenDestinationPicker: () -> Unit,
     onOpenStationPicker: () -> Unit,
+    onOpenRoutines: () -> Unit,
+    onCreateRoutineFromTrip: (String, String, Int, Int) -> Unit,
     paddingValues: PaddingValues,
   ) {
     val state by viewModel.uiState.collectAsState()
@@ -50,9 +58,12 @@ internal object BiziMobileAppContent {
       onStopMonitoring = viewModel::onStopMonitoring,
       onDurationSelected = viewModel::onDurationSelected,
       onStartMonitoring = viewModel::onStartMonitoringRequested,
+      onLogin = viewModel::onLogin,
       onRefreshStations = viewModel::onRefresh,
       onOpenDestinationPicker = onOpenDestinationPicker,
       onOpenStationPicker = onOpenStationPicker,
+      onOpenRoutines = onOpenRoutines,
+      onCreateRoutineFromTrip = onCreateRoutineFromTrip,
       onLaunchBikeRoute = viewModel::onLaunchBikeRoute,
       paddingValues = paddingValues,
     )
@@ -100,6 +111,72 @@ internal object BiziMobileAppContent {
       onBack = onBack,
       onQueryChange = viewModel::onQueryChange,
       onSuggestionSelected = viewModel::onSuggestionSelected,
+    )
+  }
+
+  @Composable
+  fun RoutinesScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.RoutineListViewModel,
+    mobilePlatform: MobileUiPlatform,
+    paddingValues: PaddingValues,
+    onBack: () -> Unit,
+    onCreateRoutine: () -> Unit,
+    onEditRoutine: (String) -> Unit,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    RoutineListScreen(
+      state = uiState,
+      mobilePlatform = mobilePlatform,
+      paddingValues = paddingValues,
+      onBack = onBack,
+      onCreateRoutine = onCreateRoutine,
+      onEditRoutine = onEditRoutine,
+      onToggleEnabled = viewModel::onToggleEnabled,
+      onDeleteRoutine = viewModel::onDelete,
+      onRetry = viewModel::onRetry,
+      onLogin = viewModel::onLogin,
+      onLogout = viewModel::onLogout,
+    )
+  }
+
+  @Composable
+  fun RoutineEditorScreenContent(
+    viewModel: com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorViewModel,
+    mobilePlatform: MobileUiPlatform,
+    isMapReady: Boolean,
+    paddingValues: PaddingValues,
+    onBack: () -> Unit,
+    onSaved: () -> Unit,
+  ) {
+    val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(viewModel) {
+      viewModel.events.collect { event ->
+        when (event) {
+          is RoutineEditorEvent.Saved -> onSaved()
+        }
+      }
+    }
+    RoutineEditorScreen(
+      state = uiState,
+      mobilePlatform = mobilePlatform,
+      isMapReady = isMapReady,
+      paddingValues = paddingValues,
+      onBack = onBack,
+      onNameChange = viewModel::onNameChange,
+      onDayToggle = viewModel::onDayToggle,
+      onTimeChanged = viewModel::onTimeChanged,
+      onAddStation = { viewModel.onEnterPicker(RoutineStationPickerMode.Favorites) },
+      onRemoveStep = viewModel::onRemoveStep,
+      onStepDurationSelected = viewModel::onStepDurationSelected,
+      onStepKindSelected = viewModel::onStepKindSelected,
+      onSave = viewModel::onSave,
+      onExitPicker = viewModel::onExitPicker,
+      onPickerModeChange = viewModel::onEnterPicker,
+      onPickerQueryChange = viewModel::onPickerQueryChange,
+      onStationPicked = { station ->
+        viewModel.onAddStep(station)
+        viewModel.onExitPicker()
+      },
     )
   }
 

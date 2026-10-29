@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.mobileui.initialization
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
+import com.gcaguilar.biciradar.mobileui.usecases.RoutineManagementUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.StartupUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceManagementUseCase
 import dev.zacsweers.metro.Inject
@@ -22,6 +23,7 @@ internal class AppInitializer(
   private val startupUseCase: StartupUseCase,
   private val feedbackUseCase: FeedbackUseCase,
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
+  private val routineManagementUseCase: RoutineManagementUseCase,
 ) {
   private val clock: () -> Long = ::epochMillisForUi
 
@@ -66,6 +68,9 @@ internal class AppInitializer(
   ) {
     // Initialize surface repositories
     surfaceManagementUseCase.bootstrap()
+
+    // Rutinas: no-critico — el scheduler de plataforma recomputa al emitir.
+    runCatching { routineManagementUseCase.bootstrap() }
 
     // Initialize settings first (throws on failure)
     initializeSettings()

@@ -8,6 +8,8 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.AuthState
 import com.gcaguilar.biciradar.core.geo.GeoError
 import com.gcaguilar.biciradar.core.geo.GeoResult
 import com.gcaguilar.biciradar.core.geo.GeoSearchUseCase
@@ -24,9 +26,16 @@ import kotlinx.coroutines.flow.StateFlow
 class TripManagementUseCase(
   private val tripRepository: TripRepository,
   private val settingsRepository: SettingsRepository,
+  private val authProvider: AuthProvider,
 ) {
   val tripState: StateFlow<TripState> = tripRepository.state
   val searchRadiusMeters: StateFlow<Int> = settingsRepository.searchRadiusMeters
+
+  /** Sesión actual; vigilar una estación requiere cuenta. */
+  val authState: StateFlow<AuthState> = authProvider.credentialsState
+
+  /** Lanza el inicio de sesión interactivo. `true` si se obtuvo sesión. */
+  suspend fun login(): Boolean = authProvider.login()
 
   suspend fun setDestination(
     destination: TripDestination,

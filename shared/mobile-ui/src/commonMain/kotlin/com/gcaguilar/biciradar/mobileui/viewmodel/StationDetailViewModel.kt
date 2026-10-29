@@ -12,6 +12,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
+import com.gcaguilar.biciradar.core.backend.PatternsNotOfferedException
 import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
@@ -90,7 +91,7 @@ class StationDetailViewModel(
         isFavorite = stationId in favoriteIds,
         isHomeStation = homeStationId == stationId,
         isWorkStation = workStationId == stationId,
-        supportsUsagePatterns = cityRulesState.selectedCity.supportsUsagePatterns,
+        supportsUsagePatterns = stationDetailUseCase.supportsUsagePatterns(cityRulesState.selectedCity),
         savedPlaceAlertsCityId = cityRulesState.selectedCity.id,
         savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
       )
@@ -127,12 +128,20 @@ class StationDetailViewModel(
     viewModelScope.launch {
       patternState.update { it.copy(loading = true, error = false) }
       val result = stationDetailUseCase.fetchStationPatterns(stationId)
+      val failure = result.exceptionOrNull()
+      if (failure is PatternsNotOfferedException) {
+        // The backend has no history for this city: hide the card instead of
+        // showing an empty state that will never fill.
+        patternState.update { it.copy(patterns = emptyList(), loading = false, error = false, offered = false) }
+        return@launch
+      }
       val patterns = result.getOrNull()
       patternState.update {
         it.copy(
           patterns = patterns.orEmpty(),
           loading = false,
           error = patterns == null,
+          offered = true,
         )
       }
     }
@@ -189,7 +198,7 @@ class StationDetailViewModel(
       isFavorite = stationId in favoriteIds,
       isHomeStation = homeStationId == stationId,
       isWorkStation = workStationId == stationId,
-      supportsUsagePatterns = cityRulesState.selectedCity.supportsUsagePatterns,
+      supportsUsagePatterns = stationDetailUseCase.supportsUsagePatterns(cityRulesState.selectedCity),
       savedPlaceAlertsCityId = cityRulesState.selectedCity.id,
       savedPlaceAlertRules = cityRulesState.savedPlaceAlertRules,
     )
@@ -207,7 +216,7 @@ class StationDetailViewModel(
       isFavorite = isFavorite,
       isHomeStation = isHomeStation,
       isWorkStation = isWorkStation,
-      supportsUsagePatterns = supportsUsagePatterns,
+      supportsUsagePatterns = supportsUsagePatterns && patternsState.offered,
       savedPlaceAlertsCityId = savedPlaceAlertsCityId,
       savedPlaceAlertRules = savedPlaceAlertRules,
       patterns = patternsState.patterns,
@@ -220,6 +229,8 @@ internal data class PatternState(
   val patterns: List<StationHourlyPattern> = emptyList(),
   val loading: Boolean = true,
   val error: Boolean = false,
+  /** False when the backend reported that this city has no usage history. */
+  val offered: Boolean = true,
 )
 
 internal data class StationDetailRelationState(

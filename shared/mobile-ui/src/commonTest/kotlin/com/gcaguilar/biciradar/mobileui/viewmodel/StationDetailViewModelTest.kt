@@ -17,6 +17,7 @@ import com.gcaguilar.biciradar.core.StationHourlyPattern
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.backend.PatternsNotOfferedException
 import com.gcaguilar.biciradar.mobileui.usecases.StationDetailUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -120,6 +121,88 @@ class StationDetailViewModelTest {
       assertFalse(viewModel.uiState.value.supportsUsagePatterns)
       assertEquals(City.MADRID.id, viewModel.uiState.value.savedPlaceAlertsCityId)
       assertEquals(1, viewModel.uiState.value.savedPlaceAlertRules.size)
+    }
+
+  @Test
+  fun `patterns are fetched for the selected city when the provider covers it`() =
+    runTest(dispatcher) {
+      val settingsRepository = FakeStationDetailSettingsRepository()
+      val datosBiziApi =
+        FakeStationDetailDatosBiziApi(
+          patterns =
+            listOf(
+              StationHourlyPattern(
+                stationId = "station-1",
+                dayType = "WEEKDAY",
+                hour = 9,
+                bikesAvg = 3.0,
+                anchorsAvg = 5.0,
+                occupancyAvg = 0.375,
+                sampleCount = 4,
+              ),
+            ),
+          supportedCityIds = setOf(City.ZARAGOZA.id, City.MADRID.id),
+        )
+      val stationDetailUseCase =
+        StationDetailUseCase(
+          favoritesRepository = FakeStationDetailFavoritesRepository(),
+          settingsRepository = settingsRepository,
+          savedPlaceAlertsRepository = FakeStationDetailAlertsRepository(),
+          datosBiziApi = datosBiziApi,
+          routeLauncher = NoOpStationDetailRouteLauncher,
+        )
+      val viewModel =
+        StationDetailViewModel(
+          stationDetailUseCase = stationDetailUseCase,
+          stationsRepository = FakeStationDetailStationsRepository(),
+          stationId = "station-1",
+        )
+
+      advanceUntilIdle()
+
+      assertTrue(viewModel.uiState.value.supportsUsagePatterns)
+      assertEquals(listOf(City.ZARAGOZA.id to "station-1"), datosBiziApi.calls)
+
+      // A city served by the backend is gated and queried with its own cityId.
+      settingsRepository.selectedCity.value = City.MADRID
+      viewModel.refreshPatterns()
+      advanceUntilIdle()
+
+      assertTrue(viewModel.uiState.value.supportsUsagePatterns)
+      assertEquals(City.MADRID.id to "station-1", datosBiziApi.calls.last())
+      assertEquals(1, viewModel.uiState.value.patterns.size)
+      assertFalse(viewModel.uiState.value.patternsError)
+    }
+
+  @Test
+  fun `hides the patterns card when the backend has no history for the city`() =
+    runTest(dispatcher) {
+      val datosBiziApi =
+        FakeStationDetailDatosBiziApi(
+          supportedCityIds = setOf(City.ZARAGOZA.id, City.MADRID.id),
+          failure = PatternsNotOfferedException(City.ZARAGOZA.id),
+        )
+      val stationDetailUseCase =
+        StationDetailUseCase(
+          favoritesRepository = FakeStationDetailFavoritesRepository(),
+          settingsRepository = FakeStationDetailSettingsRepository(),
+          savedPlaceAlertsRepository = FakeStationDetailAlertsRepository(),
+          datosBiziApi = datosBiziApi,
+          routeLauncher = NoOpStationDetailRouteLauncher,
+        )
+      val viewModel =
+        StationDetailViewModel(
+          stationDetailUseCase = stationDetailUseCase,
+          stationsRepository = FakeStationDetailStationsRepository(),
+          stationId = "station-1",
+        )
+
+      advanceUntilIdle()
+
+      assertFalse(viewModel.uiState.value.supportsUsagePatterns)
+      assertEquals(0, viewModel.uiState.value.patterns.size)
+      assertFalse(viewModel.uiState.value.patternsLoading)
+      assertFalse(viewModel.uiState.value.patternsError)
     }
 }
 
@@ -225,9 +308,22 @@ private class FakeStationDetailAlertsRepository : SavedPlaceAlertsRepository {
 }
 
 private class FakeStationDetailDatosBiziApi(
-  private val patterns: List<StationHourlyPattern>,
+  private val patterns: List<StationHourlyPattern> = emptyList(),
+  private val supportedCityIds: Set<String> = setOf(City.ZARAGOZA.id),
+  private val failure: Throwable? = null,
 ) : DatosBiziApi {
-  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = patterns
+  val calls = mutableListOf<Pair<String, String>>()
+
+  override fun supports(cityId: String): Boolean = cityId in supportedCityIds
+
+  override suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern> {
+    calls += cityId to stationId
+    failure?.let { throw it }
+    return if (supports(cityId)) patterns else emptyList()
+  }
 }
 
 private object NoOpStationDetailRouteLauncher : RouteLauncher {

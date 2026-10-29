@@ -413,7 +413,12 @@ private object NearbyNoOpRouteLauncher : RouteLauncher {
 }
 
 private object NearbyNoOpDatosBiziApi : DatosBiziApi {
-  override suspend fun fetchPatterns(stationId: String): List<StationHourlyPattern> = emptyList()
+  override fun supports(cityId: String): Boolean = false
+
+  override suspend fun fetchPatterns(
+    cityId: String,
+    stationId: String,
+  ): List<StationHourlyPattern> = emptyList()
 }
 
 private fun nearbyStation(
