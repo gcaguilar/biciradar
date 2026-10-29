@@ -18,10 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.TripMonitoringFailure
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitorThisStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.monitorThisStationDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.startMonitoring
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMonitoringNotificationsUnavailable
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMonitoringSignInRequired
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripMonitoringUnavailable
 import com.gcaguilar.biciradar.mobileui.BiziCard
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
@@ -31,6 +35,7 @@ internal fun TripMonitoringSetupCard(
   selectedDurationSeconds: Int,
   onDurationSelected: (Int) -> Unit,
   onStartMonitoring: () -> Unit,
+  failure: TripMonitoringFailure? = null,
 ) {
   val c = LocalBiziColors.current
   BiziCard {
@@ -65,6 +70,20 @@ internal fun TripMonitoringSetupCard(
               ),
           )
         }
+      }
+      failure?.let {
+        Text(
+          text =
+            stringResource(
+              when (it) {
+                TripMonitoringFailure.SignInRequired -> Res.string.tripMonitoringSignInRequired
+                TripMonitoringFailure.NotificationsUnavailable -> Res.string.tripMonitoringNotificationsUnavailable
+                TripMonitoringFailure.BackendUnavailable -> Res.string.tripMonitoringUnavailable
+              },
+            ),
+          style = MaterialTheme.typography.bodySmall,
+          color = c.red,
+        )
       }
       Button(
         onClick = onStartMonitoring,

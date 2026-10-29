@@ -14,6 +14,7 @@ import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.TripAlert
 import com.gcaguilar.biciradar.core.TripDestination
+import com.gcaguilar.biciradar.core.TripMonitoringFailure
 import com.gcaguilar.biciradar.core.TripMonitoringState
 import com.gcaguilar.biciradar.core.auth.AuthState
 import com.gcaguilar.biciradar.core.geo.GeoResult
@@ -60,6 +61,7 @@ data class TripUiState(
   val nearestStationWithSlots: Station? = null,
   val distanceToStation: Int? = null,
   val monitoring: TripMonitoringState = TripMonitoringState(),
+  val monitoringFailure: TripMonitoringFailure? = null,
   val stations: List<Station> = emptyList(),
   val userLocation: GeoPoint? = null,
   val dataFreshness: DataFreshness = DataFreshness.Unavailable,
@@ -132,6 +134,7 @@ class TripViewModel(
         nearestStationWithSlots = tripState.nearestStationWithSlots,
         distanceToStation = tripState.distanceToStation,
         monitoring = tripState.monitoring,
+        monitoringFailure = tripState.monitoringFailure,
         stations = stationsState.stations,
         userLocation = stationsState.userLocation,
         dataFreshness = stationsState.freshness,
@@ -361,14 +364,17 @@ class TripViewModel(
 
   fun onStartMonitoring() {
     viewModelScope.launch {
+      val durationSeconds = uiState.value.selectedDurationSeconds
+      tripManagementUseCase.startMonitoring(durationSeconds)
+      // Surfaces (widgets, watch) only mirror a watch the backend actually accepted.
+      if (!tripManagementUseCase.tripState.value.monitoring.isActive) return@launch
       tripManagementUseCase.nearestStationWithSlots?.let { stationId ->
         surfaceMonitoringUseCase.startMonitoring(
           stationId = stationId,
-          durationSeconds = uiState.value.selectedDurationSeconds,
+          durationSeconds = durationSeconds,
           kind = SurfaceMonitoringKind.Docks,
         )
       }
-      tripManagementUseCase.startMonitoring(uiState.value.selectedDurationSeconds)
     }
   }
 

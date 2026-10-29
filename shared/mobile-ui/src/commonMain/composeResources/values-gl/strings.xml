@@ -163,6 +163,9 @@
     <string name="tripStationNoLongerHasSlots">"%1$s" xa non ten prazas libres.</string>
     <string name="tripSuggestedAlternative">Alternativa suxerida: %1$s · %2$s m — %3$s prazas.</string>
     <string name="tripNoNearbyAlternative">Non se atopou alternativa próxima con prazas.</string>
+    <string name="tripMonitoringSignInRequired">Inicia sesión para vixiar a estación.</string>
+    <string name="tripMonitoringNotificationsUnavailable">Activa as notificacións para que poidamos avisarte.</string>
+    <string name="tripMonitoringUnavailable">Non se puido activar a vixilancia. Revisa a conexión e téntao de novo.</string>
     <string name="gotIt">Entendido</string>
     <string name="whereAreYouGoing">A onde vas?</string>
     <string name="walkRouteTo">Ruta a pé a %1$s</string>

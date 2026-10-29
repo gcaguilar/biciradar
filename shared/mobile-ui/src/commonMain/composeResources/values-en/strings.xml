@@ -162,6 +162,9 @@
     <string name="tripStationNoLongerHasSlots">"%1$s" no longer has free slots.</string>
     <string name="tripSuggestedAlternative">Suggested alternative: %1$s · %2$s — %3$s slots.</string>
     <string name="tripNoNearbyAlternative">No nearby alternative with free slots was found.</string>
+    <string name="tripMonitoringSignInRequired">Sign in to watch the station.</string>
+    <string name="tripMonitoringNotificationsUnavailable">Enable notifications so we can alert you.</string>
+    <string name="tripMonitoringUnavailable">Couldn't start watching. Check your connection and try again.</string>
     <string name="gotIt">Got it</string>
     <string name="whereAreYouGoing">Where are you going?</string>
     <string name="walkRouteTo">Walking route to %1$s</string>

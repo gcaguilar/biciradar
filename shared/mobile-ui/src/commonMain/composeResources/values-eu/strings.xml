@@ -129,6 +129,9 @@
     <string name="tripStationNoLongerHasSlots">"%1$s"-k ez du jada leku librerik.</string>
     <string name="tripSuggestedAlternative">Iradokitako alternatiba: %1$s · %2$s — %3$s leku.</string>
     <string name="tripNoNearbyAlternative">Ez da gertuko alternatibarik aurkitu lekuekin.</string>
+    <string name="tripMonitoringSignInRequired">Hasi saioa geltokia zaintzeko.</string>
+    <string name="tripMonitoringNotificationsUnavailable">Aktibatu jakinarazpenak abisatu ahal izateko.</string>
+    <string name="tripMonitoringUnavailable">Ezin izan da zaintza aktibatu. Egiaztatu konexioa eta saiatu berriro.</string>
     <string name="gotIt">Ulertuta</string>
     <string name="whereAreYouGoing">Nora zoaz?</string>
     <string name="walkRouteTo">Oinezko ibilbidea %1$s-ra</string>

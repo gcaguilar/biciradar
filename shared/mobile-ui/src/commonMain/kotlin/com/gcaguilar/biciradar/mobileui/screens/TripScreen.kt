@@ -434,6 +434,7 @@ internal fun TripScreen(
               selectedDurationSeconds = state.selectedDurationSeconds,
               onDurationSelected = onDurationSelected,
               onStartMonitoring = onStartMonitoring,
+              failure = state.monitoringFailure,
             )
           }
         }

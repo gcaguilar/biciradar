@@ -129,6 +129,9 @@
     <string name="tripStationNoLongerHasSlots">\"%1$s\" ja no té places lliures.</string>
     <string name="tripSuggestedAlternative">Alternativa suggerida: %1$s · %2$s m — %3$s places.</string>
     <string name="tripNoNearbyAlternative">No s\'ha trobat cap alternativa propera amb places.</string>
+    <string name="tripMonitoringSignInRequired">Inicia sessió per vigilar l\'estació.</string>
+    <string name="tripMonitoringNotificationsUnavailable">Activa les notificacions perquè puguem avisar-te.</string>
+    <string name="tripMonitoringUnavailable">No s\'ha pogut activar la vigilància. Revisa la connexió i torna-ho a provar.</string>
     <string name="gotIt">Entesos</string>
     <string name="whereAreYouGoing">On vas?</string>
     <string name="walkRouteTo">Ruta a peu cap a %1$s</string>
