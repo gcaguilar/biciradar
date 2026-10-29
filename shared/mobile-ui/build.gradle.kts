@@ -38,16 +38,6 @@ kotlin {
 
   applyDefaultHierarchyTemplate()
 
-  listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
-    target.binaries.framework {
-      baseName = "BiziMobileUi"
-      isStatic = true
-      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=18.6"
-      export(project(":shared:core"))
-      linkerOpts("-lsqlite3")
-    }
-  }
-
   sourceSets {
     commonMain.dependencies {
       api(project(":shared:core"))

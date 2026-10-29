@@ -27,22 +27,6 @@ kotlin {
 
   applyDefaultHierarchyTemplate()
 
-  listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
-    target.binaries.framework {
-      baseName = "BiziSharedCore"
-      isStatic = true
-      freeCompilerArgs += "-Xoverride-konan-properties=minVersion.ios=18.6"
-      linkerOpts("-lsqlite3")
-    }
-  }
-
-  listOf(watchosArm64(), watchosDeviceArm64(), watchosSimulatorArm64()).forEach { target ->
-    target.binaries.framework {
-      baseName = "BiziSharedCore"
-      isStatic = true
-      linkerOpts("-lsqlite3")
-    }
-  }
   sourceSets {
     commonMain.dependencies {
       implementation(libs.cryptography.core)

@@ -57,9 +57,6 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build KMP iOS framework
-        run: ./gradlew :shared:mobile-ui:linkReleaseFrameworkIosArm64
-
       - name: Write iOS secrets
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}

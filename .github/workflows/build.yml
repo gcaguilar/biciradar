@@ -211,9 +211,6 @@ jobs:
             echo EOF
           } >> "$GITHUB_ENV"
 
-      - name: Build KMP frameworks
-        run: ./gradlew :shared:mobile-ui:linkDebugFrameworkIosSimulatorArm64 :shared:core:linkDebugFrameworkIosSimulatorArm64 :shared:core:linkDebugFrameworkWatchosSimulatorArm64
-
       - name: Run iOS tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -292,9 +289,6 @@ jobs:
             echo "$destination"
             echo EOF
           } >> "$GITHUB_ENV"
-
-      - name: Build KMP watchOS frameworks
-        run: ./gradlew :shared:core:linkDebugFrameworkWatchosSimulatorArm64
 
       - name: Run watchOS tests
         run: |
