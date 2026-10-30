@@ -32,7 +32,20 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="${auth0Scheme}" />
+                <!--
+                  Only the app's own deep links. Without a host this filter also
+                  swallowed the Auth0 callback (biciradar://<tenant>/android/…),
+                  competing with the SDK's AuthenticationActivity and showing two
+                  identical "BiciRadar" entries in the chooser.
+                -->
+                <data android:scheme="${auth0Scheme}" android:host="home" />
+                <data android:scheme="${auth0Scheme}" android:host="nearby" />
+                <data android:scheme="${auth0Scheme}" android:host="map" />
+                <data android:scheme="${auth0Scheme}" android:host="favorites" />
+                <data android:scheme="${auth0Scheme}" android:host="alerts" />
+                <data android:scheme="${auth0Scheme}" android:host="station" />
+                <data android:scheme="${auth0Scheme}" android:host="monitor" />
+                <data android:scheme="${auth0Scheme}" android:host="city" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
