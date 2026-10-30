@@ -182,7 +182,6 @@ dependencies {
   implementation(libs.androidx.wear.compose.navigation)
   implementation(libs.androidx.wear.tiles)
   implementation(libs.androidx.wear.ongoing)
-  implementation(libs.androidx.wear.watchface.complications.data.source)
   implementation(libs.androidx.wear.watchface.complications.data.source.ktx)
   testImplementation(libs.junit)
 
