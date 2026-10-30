@@ -65,7 +65,29 @@ In Debug you can instead set `BICI_*` environment variables in the Xcode scheme,
 which avoids the `//` escaping. Then run `xcodegen generate` from `apple/` after
 editing `project.yml` (the checked-in project is generated).
 
-### 4. Android (`~/.gradle/gradle.properties` or env vars)
+### 4. Push notifications (APNs + FCM)
+
+Two different credentials are involved and they do not live in the same place:
+
+- **APNs auth key (`.p8`)** — a *server* credential. Upload it in the Firebase
+  console (Project settings → Cloud Messaging → Apple app configuration) with
+  its Key ID and the Team ID. The backend never sees it, and it must never be a
+  GitHub secret or a committed file.
+- **Provisioning profile** — the app needs the **Push Notifications** capability
+  enabled on the App ID `com.gcaguilar.biciradar.ios`, and the App Store profile
+  regenerated afterwards. A profile created before the capability was enabled has
+  no `aps-environment` entitlement, so TestFlight builds cannot register a token.
+
+`aps-environment` is not hardcoded: the entitlements file expands
+`$(APS_ENVIRONMENT)`, which is `development` in Debug and `production` in
+Release (`project.yml`). That lets one entitlements file sign both.
+
+After enabling the capability, update the `APPLE_PROVISIONING_PROFILE_BASE64`
+secret with the new profile. CI fails early if the profile lacks the entitlement
+(`Verify push entitlement in the iOS profile`), instead of producing an app that
+silently receives nothing.
+
+### 5. Android (`~/.gradle/gradle.properties` or env vars)
 
 ```properties
 bizi.backendBaseUrl=https://api.tu-servidor.com
@@ -77,7 +99,7 @@ bizi.auth0Audience=https://api.biciradar.app
 Env equivalents: `BICI_BACKEND_URL`, `BICI_AUTH0_DOMAIN`, `BICI_AUTH0_CLIENT_ID`,
 `BICI_AUTH0_AUDIENCE`.
 
-### 5. Local smoke testing without Auth0
+### 6. Local smoke testing without Auth0
 
 If the backend runs with `AUTH_DISABLED=true` and the app has a backend URL but
 no Auth0 values, Debug builds wire `DevAuthProvider` so routines/subscriptions

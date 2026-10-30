@@ -150,6 +150,23 @@ jobs:
             exit 1
           fi
 
+      - name: Verify push entitlement in the iOS profile
+        run: |
+          profile="${RUNNER_TEMP}/signing-profile.mobileprovision"
+          profile_plist="${RUNNER_TEMP}/signing-profile-entitlements.plist"
+          security cms -D -i "$profile" > "$profile_plist"
+
+          aps_environment="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:aps-environment' "$profile_plist" 2>/dev/null || true)"
+          if [[ -z "$aps_environment" ]]; then
+            echo "::error::The iOS provisioning profile has no aps-environment entitlement. Enable Push Notifications on the App ID com.gcaguilar.biciradar.ios, regenerate the App Store profile and update APPLE_PROVISIONING_PROFILE_BASE64."
+            exit 1
+          fi
+          if [[ "$aps_environment" != "production" ]]; then
+            echo "::error::The App Store profile grants aps-environment=$aps_environment; a distribution profile must grant production."
+            exit 1
+          fi
+          echo "Push entitlement OK: aps-environment=$aps_environment"
+
       - name: Set up Ruby and Bundler
         uses: ruby/setup-ruby@v1.321.0
         with:

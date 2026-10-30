@@ -1177,6 +1177,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
+				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
@@ -1204,6 +1205,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
+				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";

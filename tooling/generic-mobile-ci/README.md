@@ -4,7 +4,7 @@ These scripts are the reusable part of this repository's release automation. The
 
 ## Included scripts
 
-- `install_apple_signing_assets.sh`: imports an Apple signing certificate and provisioning profile into the CI keychain.
+- `install_apple_signing_assets.sh`: imports an Apple signing certificate and provisioning profile into the CI keychain, and fails if the profile has no `aps-environment` entitlement (push would silently not work).
 - `export_ios_ipa.sh`: archives and exports a signed iOS IPA with manual signing.
 - `resolve_xcode_destination.sh`: picks a usable iOS or watchOS simulator destination for CI.
 - `print_ios_store_ci_values.sh`: prints GitHub `secrets` and `vars` values for an App Store workflow.

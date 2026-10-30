@@ -144,6 +144,11 @@ targets:
         DEVELOPMENT_TEAM: B87AWPVZWB
         CODE_SIGN_IDENTITY: "Apple Distribution"
         PROVISIONING_PROFILE_SPECIFIER: "BiciRadarProfile"
+        # The entitlement is expanded by Xcode from this setting, so Debug builds
+        # register against APNs sandbox and Release builds against production.
+        # A single hardcoded value cannot sign both: the distribution profile
+        # only allows `production`.
+        APS_ENVIRONMENT: development
         # Backend/Auth0 values come from Config/MapsConfig.xcconfig (which includes
         # the git-ignored LocalSecrets.xcconfig). Do not declare them here: build
         # settings override the xcconfig, and an empty value silently disables
@@ -157,6 +162,9 @@ targets:
         PRODUCT_NAME: BiciRadar
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          APS_ENVIRONMENT: production
 
   BiciRadarWidgets:
     type: app-extension

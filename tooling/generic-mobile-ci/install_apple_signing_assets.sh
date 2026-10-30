@@ -46,6 +46,18 @@ security default-keychain -s "$keychain_path"
 mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
 security cms -D -i "$profile_path" > "$profile_plist_path"
 
+# Fail fast when the profile cannot receive push notifications: the backend can
+# be delivering correctly while the app silently registers no token.
+aps_environment="$(
+  /usr/libexec/PlistBuddy -c 'Print :Entitlements:aps-environment' "$profile_plist_path" 2>/dev/null || true
+)"
+if [[ -z "$aps_environment" ]]; then
+  echo "error: the provisioning profile has no aps-environment entitlement." >&2
+  echo "       Enable Push Notifications on the App ID and regenerate the profile." >&2
+  exit 1
+fi
+echo "Push entitlement: aps-environment=${aps_environment}"
+
 profile_uuid="$(
   /usr/libexec/PlistBuddy -c 'Print UUID' "$profile_plist_path"
 )"
