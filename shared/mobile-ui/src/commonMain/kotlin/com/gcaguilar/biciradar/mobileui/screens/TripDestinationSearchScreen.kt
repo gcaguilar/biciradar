@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.gcaguilar.biciradar.core.Station
+import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
@@ -57,6 +59,7 @@ internal fun TripDestinationSearchScreen(
   onBack: () -> Unit,
   onQueryChange: (String) -> Unit,
   onSuggestionSelected: (com.gcaguilar.biciradar.core.geo.GeoResult) -> Unit,
+  onFavoriteSelected: (Station) -> Unit,
 ) {
   val colors = LocalBiziColors.current
 
@@ -112,6 +115,33 @@ internal fun TripDestinationSearchScreen(
             onValueChange = onQueryChange,
             label = stringResource(Res.string.destinationPlaceholder),
           )
+        }
+
+        // Las favoritas se quedan fijas arriba: son destinos habituales y no
+        // deberían depender de lo que se escriba en el buscador.
+        if (state.favoriteStations.isNotEmpty()) {
+          item("favorites-header") {
+            Text(
+              text = stringResource(Res.string.favorites),
+              style = MaterialTheme.typography.labelMedium,
+              color = colors.muted,
+            )
+          }
+
+          items(state.favoriteStations, key = { "favorite-${it.id}" }) { station ->
+            SuggestionRow(
+              title = station.name,
+              secondaryText =
+                listOfNotNull(
+                  tripDestinationSecondaryText(station.name, station.address),
+                  formatDistance(station.distanceMeters),
+                ).joinToString(" · "),
+              onClick = {
+                onFavoriteSelected(station)
+                onBack()
+              },
+            )
+          }
         }
 
         when {

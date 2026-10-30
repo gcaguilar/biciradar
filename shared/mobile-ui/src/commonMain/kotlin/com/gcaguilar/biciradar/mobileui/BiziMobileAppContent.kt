@@ -111,6 +111,7 @@ internal object BiziMobileAppContent {
       onBack = onBack,
       onQueryChange = viewModel::onQueryChange,
       onSuggestionSelected = viewModel::onSuggestionSelected,
+      onFavoriteSelected = viewModel::onFavoriteDestinationSelected,
     )
   }
 

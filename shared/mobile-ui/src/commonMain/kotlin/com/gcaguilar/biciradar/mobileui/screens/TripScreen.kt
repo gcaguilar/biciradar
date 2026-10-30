@@ -94,6 +94,7 @@ internal fun TripScreen(
   paddingValues: PaddingValues,
 ) {
   val colors = LocalBiziColors.current
+  val showPlanning = state.showPlanning
 
   if (state.authState != AuthState.Authenticated) {
     TripAuthGate(
@@ -194,91 +195,85 @@ internal fun TripScreen(
         }
       }
 
-      if (state.destination == null) item("routines") {
-        BiziSectionCard(title = stringResource(Res.string.routinesTitle)) {
-          Text(
-            text = stringResource(Res.string.tripRoutinesDescription),
-            style = MaterialTheme.typography.bodyMedium,
-            color = colors.muted,
-          )
-          Button(
-            onClick = onOpenRoutines,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            Icon(
-              imageVector = Icons.Filled.Schedule,
-              contentDescription = null,
-              modifier = Modifier.size(18.dp),
+      if (showPlanning) {
+        item("routines") {
+          BiziSectionCard(title = stringResource(Res.string.routinesTitle)) {
+            Text(
+              text = stringResource(Res.string.tripRoutinesDescription),
+              style = MaterialTheme.typography.bodyMedium,
+              color = colors.muted,
             )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(Res.string.routinesManage))
-          }
-          OutlinedButton(
-            onClick = {
-              val station = state.nearestStationWithSlots ?: return@OutlinedButton
-              val now = currentLocalTimeSnapshot()
-              val travelMinutes = ((state.distanceToStation ?: 0) / 250) + 5
-              val totalMinutes = now.hour * 60 + travelMinutes
-              onCreateRoutineFromTrip(
-                station.id,
-                station.name,
-                (totalMinutes / 60).mod(24),
-                totalMinutes % 60,
+            Button(
+              onClick = onOpenRoutines,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
               )
-            },
-            enabled = state.nearestStationWithSlots != null,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            Text(stringResource(Res.string.tripCreateRoutineFromTrip))
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(Res.string.routinesManage))
+            }
+            OutlinedButton(
+              onClick = {
+                val station = state.nearestStationWithSlots ?: return@OutlinedButton
+                val now = currentLocalTimeSnapshot()
+                val travelMinutes = ((state.distanceToStation ?: 0) / 250) + 5
+                val totalMinutes = now.hour * 60 + travelMinutes
+                onCreateRoutineFromTrip(
+                  station.id,
+                  station.name,
+                  (totalMinutes / 60).mod(24),
+                  totalMinutes % 60,
+                )
+              },
+              enabled = state.nearestStationWithSlots != null,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Text(stringResource(Res.string.tripCreateRoutineFromTrip))
+            }
           }
         }
       }
 
-      if (state.destination == null) item("hero") {
-        BiziSectionCard(
-          title = stringResource(Res.string.whereAreYouGoing),
-          contentSpacing = BiziSpacing.xxLarge,
-        ) {
-          Text(
-            text =
-              if (state.destination == null) {
-                stringResource(Res.string.tripSubtitle)
-              } else {
-                state.destination.name
-              },
-            style =
-              if (state.destination == null) {
-                MaterialTheme.typography.bodyMedium
-              } else {
-                MaterialTheme.typography.titleMedium
-              },
-            color = if (state.destination == null) colors.muted else colors.ink,
-            maxLines = if (state.destination == null) 2 else 3,
-            overflow = TextOverflow.Ellipsis,
-          )
-          Button(
-            onClick = onOpenDestinationPicker,
-            modifier = Modifier.fillMaxWidth(),
+      if (showPlanning) {
+        item("hero") {
+          BiziSectionCard(
+            title = stringResource(Res.string.whereAreYouGoing),
+            contentSpacing = BiziSpacing.xxLarge,
           ) {
-            Icon(
-              imageVector = Icons.Filled.Search,
-              contentDescription = null,
-              modifier = Modifier.size(18.dp),
+            Text(
+              text = stringResource(Res.string.tripSubtitle),
+              style = MaterialTheme.typography.bodyMedium,
+              color = colors.muted,
+              maxLines = 2,
+              overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(Res.string.tripMapDestinationTitle))
-          }
-          OutlinedButton(
-            onClick = onOpenStationPicker,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            Icon(
-              imageVector = Icons.Filled.Map,
-              contentDescription = null,
-              modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(Res.string.tripMapStationAction))
+            Button(
+              onClick = onOpenDestinationPicker,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(Res.string.tripMapDestinationTitle))
+            }
+            OutlinedButton(
+              onClick = onOpenStationPicker,
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Map,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(Res.string.tripMapStationAction))
+            }
           }
         }
       }

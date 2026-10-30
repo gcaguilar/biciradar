@@ -11,6 +11,7 @@ import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.NoOpPermissionPrompter
+import com.gcaguilar.biciradar.core.ObserveFavorites
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
@@ -130,6 +131,7 @@ class SearchRadiusViewModelTest {
           surfaceMonitoringUseCase = surfaceMonitoringUseCase,
           geoLocationUseCase = geoLocationUseCase,
           stationsRepository = FakeSearchRadiusStationsRepository(),
+          observeFavorites = ObserveFavorites(FakeFavoritesRepository()),
           localNotifier = FakeSearchRadiusLocalNotifier(),
           routeLauncher = FakeSearchRadiusRouteLauncher(),
         )

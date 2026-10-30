@@ -7,6 +7,7 @@ import com.gcaguilar.biciradar.core.DataFreshness
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.ObserveFavorites
 import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
@@ -63,6 +64,8 @@ data class TripUiState(
   val monitoring: TripMonitoringState = TripMonitoringState(),
   val monitoringFailure: TripMonitoringFailure? = null,
   val stations: List<Station> = emptyList(),
+  /** Favoritas de la ciudad actual, ordenadas por cercanía; atajos al elegir destino. */
+  val favoriteStations: List<Station> = emptyList(),
   val userLocation: GeoPoint? = null,
   val dataFreshness: DataFreshness = DataFreshness.Unavailable,
   val lastUpdatedEpoch: Long? = null,
@@ -70,7 +73,15 @@ data class TripUiState(
   val authState: AuthState = AuthState.Anonymous,
   val authLoginInProgress: Boolean = false,
   val authLoginError: Boolean = false,
-)
+) {
+  /**
+   * Sin destino y sin viaje en marcha, la pantalla ofrece planificar: elegir a
+   * dónde vas y gestionar rutinas. En cuanto hay destino o el viaje está activo
+   * esos bloques solo estorban.
+   */
+  val showPlanning: Boolean
+    get() = destination == null && !monitoring.isActive
+}
 
 @FlowPreview
 @Inject
@@ -81,6 +92,7 @@ class TripViewModel(
   private val surfaceMonitoringUseCase: SurfaceMonitoringUseCase,
   private val geoLocationUseCase: GeoLocationUseCase,
   private val stationsRepository: StationsRepository,
+  private val observeFavorites: ObserveFavorites,
   private val localNotifier: LocalNotifier,
   private val routeLauncher: RouteLauncher,
 ) : ViewModel() {
@@ -105,14 +117,21 @@ class TripViewModel(
 
   private val effectiveStationsState: StateFlow<StationsState> = stationsRepository.state
 
+  /** Categorías y favoritas comparten la misma instantánea para no desalinearse. */
+  private val stationsWithFavoriteIds =
+    combine(effectiveStationsState, observeFavorites.favoriteIds) { stationsState, favoriteIds ->
+      stationsState to favoriteIds
+    }
+
   val uiState: StateFlow<TripUiState> =
     combine(
       transientUiState,
       tripManagementUseCase.searchRadiusMeters,
       tripManagementUseCase.tripState,
-      effectiveStationsState,
+      stationsWithFavoriteIds,
       tripManagementUseCase.authState,
-    ) { transient, radius, tripState, stationsState, authState ->
+    ) { transient, radius, tripState, stationsSnapshot, authState ->
+      val (stationsState, favoriteIds) = stationsSnapshot
       TripUiState(
         query = transient.query,
         suggestions = transient.suggestions,
@@ -136,6 +155,10 @@ class TripViewModel(
         monitoring = tripState.monitoring,
         monitoringFailure = tripState.monitoringFailure,
         stations = stationsState.stations,
+        favoriteStations =
+          stationsState.stations
+            .filter { it.id in favoriteIds }
+            .sortedBy { it.distanceMeters },
         userLocation = stationsState.userLocation,
         dataFreshness = stationsState.freshness,
         lastUpdatedEpoch = stationsState.lastUpdatedEpoch,
@@ -157,6 +180,10 @@ class TripViewModel(
         distanceToStation = tripManagementUseCase.tripState.value.distanceToStation,
         monitoring = tripManagementUseCase.tripState.value.monitoring,
         stations = effectiveStationsState.value.stations,
+        favoriteStations =
+          effectiveStationsState.value.stations
+            .filter { it.id in observeFavorites.favoriteIds.value }
+            .sortedBy { it.distanceMeters },
         userLocation = effectiveStationsState.value.userLocation,
         dataFreshness = effectiveStationsState.value.freshness,
         lastUpdatedEpoch = effectiveStationsState.value.lastUpdatedEpoch,
@@ -255,6 +282,24 @@ class TripViewModel(
       commitDestination(
         name = result.tripDisplayLabel(),
         location = GeoPoint(result.latitude, result.longitude),
+      )
+    }
+  }
+
+  /** Atajo del buscador de destino: una estación favorita es un destino válido. */
+  fun onFavoriteDestinationSelected(station: Station) {
+    transientUiState.update {
+      it.copy(
+        query = station.name,
+        suggestions = emptyList(),
+        isLoadingSuggestions = false,
+        suggestionsError = null,
+      )
+    }
+    viewModelScope.launch {
+      commitDestination(
+        name = station.name,
+        location = station.location,
       )
     }
   }

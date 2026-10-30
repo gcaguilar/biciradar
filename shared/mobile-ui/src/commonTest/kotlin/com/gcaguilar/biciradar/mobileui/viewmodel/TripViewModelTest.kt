@@ -7,6 +7,7 @@ import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.GooglePlacesApi
 import com.gcaguilar.biciradar.core.LocalNotifier
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
+import com.gcaguilar.biciradar.core.ObserveFavorites
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.PlaceDetails
 import com.gcaguilar.biciradar.core.PlacePrediction
@@ -33,6 +34,7 @@ import com.gcaguilar.biciradar.core.geo.ReverseGeocodeUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.GeoLocationUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.SurfaceMonitoringUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.TripManagementUseCase
+import com.gcaguilar.biciradar.testutils.FakeFavoritesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,6 +105,65 @@ class TripViewModelTest {
         viewModel.uiState.value.isLoadingSuggestions
           .not(),
       )
+    }
+
+  @Test
+  fun `favorite stations are offered as destination shortcuts ordered by distance`() =
+    runTest(dispatcher) {
+      val near =
+        Station(
+          id = "fav-near",
+          name = "Plaza España",
+          address = "Centro",
+          location = GeoPoint(41.6488, -0.8891),
+          bikesAvailable = 3,
+          slotsFree = 4,
+          distanceMeters = 100,
+        )
+      val far =
+        Station(
+          id = "fav-far",
+          name = "Estación Delicias",
+          address = "Delicias",
+          location = GeoPoint(41.6585, -0.9077),
+          bikesAvailable = 2,
+          slotsFree = 6,
+          distanceMeters = 900,
+        )
+      val other =
+        Station(
+          id = "not-favorite",
+          name = "Puerta del Carmen",
+          address = "Centro",
+          location = GeoPoint(41.6499, -0.8872),
+          bikesAvailable = 5,
+          slotsFree = 5,
+          distanceMeters = 50,
+        )
+      val favoritesRepository =
+        FakeFavoritesRepository().apply {
+          favoriteIds.value = setOf(far.id, near.id)
+        }
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = TripTestTripRepository(),
+          geoApi = TripTestGeoApi(),
+          favoritesRepository = favoritesRepository,
+          stationsRepository = TripTestStationsRepository(listOf(far, other, near)),
+        )
+
+      advanceUntilIdle()
+
+      val favoriteStations = viewModel.uiState.value.favoriteStations
+      assertEquals(listOf(near.id, far.id), favoriteStations.map { it.id })
+
+      viewModel.onFavoriteDestinationSelected(near)
+      advanceUntilIdle()
+
+      val destination = viewModel.uiState.value.destination
+      assertEquals(near.name, destination?.name)
+      assertEquals(near.location, destination?.location)
     }
 
   @Test
@@ -296,6 +357,8 @@ private fun buildTripViewModel(
   geoApi: TripTestGeoApi,
   authProvider: AuthProvider = TripTestAuthProvider(AuthState.Authenticated),
   localNotifier: TripTestLocalNotifier = TripTestLocalNotifier(),
+  favoritesRepository: FakeFavoritesRepository = FakeFavoritesRepository(),
+  stationsRepository: TripTestStationsRepository = TripTestStationsRepository(),
 ): TripViewModel {
   val tripManagementUseCase =
     TripManagementUseCase(
@@ -326,7 +389,8 @@ private fun buildTripViewModel(
     tripManagementUseCase = tripManagementUseCase,
     surfaceMonitoringUseCase = surfaceMonitoringUseCase,
     geoLocationUseCase = geoLocationUseCase,
-    stationsRepository = TripTestStationsRepository(),
+    stationsRepository = stationsRepository,
+    observeFavorites = ObserveFavorites(favoritesRepository),
     localNotifier = localNotifier,
     routeLauncher = TripTestRouteLauncher(),
   )
@@ -499,8 +563,10 @@ private class TripTestGooglePlacesApi : GooglePlacesApi {
   ): AutocompleteResult = AutocompleteResult(predictions = emptyList(), status = "OK")
 }
 
-private class TripTestStationsRepository : StationsRepository {
-  override val state = MutableStateFlow(StationsState())
+private class TripTestStationsRepository(
+  stations: List<Station> = emptyList(),
+) : StationsRepository {
+  override val state = MutableStateFlow(StationsState(stations = stations))
 
   override suspend fun loadIfNeeded() = Unit
 
