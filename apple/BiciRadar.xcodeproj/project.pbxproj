@@ -1178,11 +1178,6 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BICI_AUTH0_AUDIENCE = "";
-				BICI_AUTH0_CLIENT_ID = "";
-				BICI_AUTH0_DOMAIN = "";
-				BICI_AUTH0_SCHEME = biciradar;
-				BICI_BACKEND_URL = "";
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
@@ -1210,11 +1205,6 @@
 			baseConfigurationReference = 94E146351C07D91814CE43FB /* MapsConfig.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BICI_AUTH0_AUDIENCE = "";
-				BICI_AUTH0_CLIENT_ID = "";
-				BICI_AUTH0_DOMAIN = "";
-				BICI_AUTH0_SCHEME = biciradar;
-				BICI_BACKEND_URL = "";
 				CODE_SIGN_ENTITLEMENTS = iosApp/BiciRadar.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
