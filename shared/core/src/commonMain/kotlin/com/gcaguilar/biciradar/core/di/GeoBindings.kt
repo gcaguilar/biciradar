@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.core.di
 
-import kotlin.experimental.ExperimentalObjCRefinement
-import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.AppVersion
 import com.gcaguilar.biciradar.core.Logger
 import com.gcaguilar.biciradar.core.OsVersion
@@ -18,6 +16,8 @@ import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import okio.FileSystem
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 
 /**
  * Binding Container para dependencias de geolocalización y APIs geo.

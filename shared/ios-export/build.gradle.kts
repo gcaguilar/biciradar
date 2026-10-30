@@ -1,7 +1,7 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.export.SwiftExportVisibility
 import org.jetbrains.kotlin.gradle.swiftexport.ExperimentalSwiftExportDsl
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
-import org.jetbrains.kotlin.gradle.plugin.mpp.export.SwiftExportVisibility
 
 plugins {
   alias(libs.plugins.kotlin.multiplatform)

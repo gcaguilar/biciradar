@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.core.di
 
-import kotlin.experimental.ExperimentalObjCRefinement
-import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.EngagementStorage
 import com.gcaguilar.biciradar.core.SettingsRepository
 import dev.zacsweers.metro.AppScope
@@ -12,6 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 
 /**
  * Binding Container para dependencias core de la aplicación.

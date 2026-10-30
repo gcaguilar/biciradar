@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.core.di
 
-import kotlin.experimental.ExperimentalObjCRefinement
-import kotlin.native.HiddenFromObjC
 import com.gcaguilar.biciradar.core.BiziApi
 import com.gcaguilar.biciradar.core.BiziHttpClientFactory
 import com.gcaguilar.biciradar.core.CityBikesBiziApi
@@ -28,6 +26,8 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
+import kotlin.experimental.ExperimentalObjCRefinement
+import kotlin.native.HiddenFromObjC
 
 /**
  * Binding Container para dependencias de red.

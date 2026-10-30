@@ -1,8 +1,8 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.local.StationEntity
 import kotlin.experimental.ExperimentalObjCRefinement
 import kotlin.native.HiddenFromObjC
-import com.gcaguilar.biciradar.core.local.StationEntity
 
 /**
  * Low-level cache interface for station availability data.
