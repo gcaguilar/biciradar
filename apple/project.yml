@@ -32,13 +32,13 @@ settings:
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
-    exactVersion: 12.18.0
+    exactVersion: 13.1.1
   GoogleMaps:
     url: https://github.com/googlemaps/ios-maps-sdk
-    exactVersion: 11.0.0
+    exactVersion: 11.2.0
   Auth0:
     url: https://github.com/auth0/Auth0.swift
-    exactVersion: 3.1.0
+    exactVersion: 3.2.0
 
 targets:
   BiciRadar:

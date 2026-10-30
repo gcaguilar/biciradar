@@ -1494,7 +1494,7 @@
 			repositoryURL = "https://github.com/auth0/Auth0.swift";
 			requirement = {
 				kind = exactVersion;
-				version = 3.1.0;
+				version = 3.2.0;
 			};
 		};
 		353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
@@ -1502,7 +1502,7 @@
 			repositoryURL = "https://github.com/googlemaps/ios-maps-sdk";
 			requirement = {
 				kind = exactVersion;
-				version = 11.0.0;
+				version = 11.2.0;
 			};
 		};
 		A51AAF73BBF72B8751D09E87 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
@@ -1510,7 +1510,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = exactVersion;
-				version = 12.18.0;
+				version = 13.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
