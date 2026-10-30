@@ -44,7 +44,11 @@ kotlin {
 // Keep in sync with WATCHOS_DEPLOYMENT_TARGET in apple/project.yml.
 // Kotlin/Native otherwise emits its own default minimum (14.0 / 7.0), which clashes with the
 // Xcode project and triggers "Overriding deployment version" warnings at link time.
-val konanOsVersionMin = "-Xoverride-konan-properties=osVersionMin.watchos_arm64=11.0;osVersionMin.watchos_device_arm64=11.0;osVersionMin.watchos_simulator_arm64=11.0"
+val konanOsVersionMin =
+  "-Xoverride-konan-properties=" +
+    "osVersionMin.watchos_arm64=11.0;" +
+    "osVersionMin.watchos_device_arm64=11.0;" +
+    "osVersionMin.watchos_simulator_arm64=11.0"
 tasks.withType<KotlinNativeCompile>().configureEach {
   compilerOptions.freeCompilerArgs.add(konanOsVersionMin)
 }
