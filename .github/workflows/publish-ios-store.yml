@@ -173,7 +173,7 @@ jobs:
           echo "Push entitlement OK: aps-environment=$aps_environment"
 
       - name: Set up Ruby and Bundler
-        uses: ruby/setup-ruby@v1.327.0
+        uses: ruby/setup-ruby@v1.335.0
         with:
           ruby-version: '3.3'
           bundler-cache: true
