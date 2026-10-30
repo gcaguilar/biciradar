@@ -151,6 +151,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
+      - name: Select Xcode 26.6
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+
       - name: Set up Java 21
         uses: actions/setup-java@v5.7.0
         with:
@@ -239,6 +244,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+
+      - name: Select Xcode 26.6
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
 
       - name: Set up Java 21
         uses: actions/setup-java@v5.7.0

@@ -36,6 +36,11 @@ jobs:
         with:
           fetch-tags: true
 
+      - name: Select Xcode 26.6
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+
       - name: Resolve release version
         run: |
           release_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
