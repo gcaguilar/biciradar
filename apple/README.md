@@ -99,6 +99,11 @@ bizi.auth0Audience=https://api.biciradar.app
 Env equivalents: `BICI_BACKEND_URL`, `BICI_AUTH0_DOMAIN`, `BICI_AUTH0_CLIENT_ID`,
 `BICI_AUTH0_AUDIENCE`.
 
+In CI the Play Store release reads them from the repository secrets
+`BICI_BACKEND_URL`, `BICI_AUTH0_DOMAIN`, `BICI_AUTH0_AUDIENCE`, and
+`BICI_AUTH0_CLIENT_ID_ANDROID`. `:androidApp:bundlePlaystoreRelease` fails when
+any of them is empty, so a production AAB cannot silently ship without sign-in.
+
 ### 6. Local smoke testing without Auth0
 
 If the backend runs with `AUTH_DISABLED=true` and the app has a backend URL but

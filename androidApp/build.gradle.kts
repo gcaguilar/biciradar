@@ -64,6 +64,26 @@ val googleMapsApiKey =
     .environmentVariable("GOOGLE_MAPS_API_KEY")
     .orElse("")
 
+fun configuredValue(
+  property: String,
+  envVar: String,
+): String =
+  project.providers
+    .gradleProperty(property)
+    .getOrElse(System.getenv(envVar).orEmpty())
+
+// Auth0's Android SDK reads the tenant from BuildConfig (Auth0.getInstance) and
+// the redirect filter from the `auth0Domain`/`auth0Scheme` manifest placeholders.
+// Both must come from the same source so the callback URL matches the tenant.
+val biziBackendBaseUrl = configuredValue("bizi.backendBaseUrl", "BICI_BACKEND_URL")
+val biziAuth0Domain =
+  configuredValue("bizi.auth0Domain", "BICI_AUTH0_DOMAIN")
+    .removePrefix("https://")
+    .trimEnd('/')
+val biziAuth0ClientId = configuredValue("bizi.auth0ClientId", "BICI_AUTH0_CLIENT_ID")
+val biziAuth0Audience = configuredValue("bizi.auth0Audience", "BICI_AUTH0_AUDIENCE")
+val biziAuth0Scheme = configuredValue("bizi.auth0Scheme", "BICI_AUTH0_SCHEME").ifBlank { "biciradar" }
+
 val androidCiKeystorePath =
   project.findProperty("BIZI_CI_KEYSTORE_PATH") as? String
     ?: System.getenv("BIZI_CI_KEYSTORE_PATH")
@@ -100,24 +120,15 @@ android {
 
     fun quoted(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
-    fun configValue(
-      property: String,
-      envVar: String,
-    ): String = providers.gradleProperty(property).getOrElse(System.getenv(envVar).orEmpty())
-
-    buildConfigField("String", "BACKEND_BASE_URL", quoted(configValue("bizi.backendBaseUrl", "BICI_BACKEND_URL")))
-    buildConfigField("String", "AUTH0_DOMAIN", quoted(configValue("bizi.auth0Domain", "BICI_AUTH0_DOMAIN")))
-    buildConfigField("String", "AUTH0_CLIENT_ID", quoted(configValue("bizi.auth0ClientId", "BICI_AUTH0_CLIENT_ID")))
-    buildConfigField("String", "AUTH0_AUDIENCE", quoted(configValue("bizi.auth0Audience", "BICI_AUTH0_AUDIENCE")))
+    buildConfigField("String", "BACKEND_BASE_URL", quoted(biziBackendBaseUrl))
+    buildConfigField("String", "AUTH0_DOMAIN", quoted(biziAuth0Domain))
+    buildConfigField("String", "AUTH0_CLIENT_ID", quoted(biziAuth0ClientId))
+    buildConfigField("String", "AUTH0_AUDIENCE", quoted(biziAuth0Audience))
 
     // The Auth0 SDK's RedirectActivity manifest declares ${auth0Domain} and
     // ${auth0Scheme}; without them the manifest merger fails the release build.
-    manifestPlaceholders["auth0Domain"] =
-      configValue("bizi.auth0Domain", "BICI_AUTH0_DOMAIN")
-        .removePrefix("https://")
-        .trimEnd('/')
-    manifestPlaceholders["auth0Scheme"] =
-      configValue("bizi.auth0Scheme", "BICI_AUTH0_SCHEME").ifBlank { "biciradar" }
+    manifestPlaceholders["auth0Domain"] = biziAuth0Domain
+    manifestPlaceholders["auth0Scheme"] = biziAuth0Scheme
   }
 
   flavorDimensions += "tier"
@@ -200,6 +211,50 @@ val playStoreReleasePackagingTasks =
 
 playStoreReleasePackagingTasks.configureEach {
   dependsOn(verifyPlayStoreReleaseSigning)
+}
+
+abstract class VerifyPlayStoreReleaseConfigTask : DefaultTask() {
+  @get:Input abstract val backendBaseUrl: Property<String>
+
+  @get:Input abstract val auth0Domain: Property<String>
+
+  @get:Input abstract val auth0ClientId: Property<String>
+
+  @get:Input abstract val auth0Audience: Property<String>
+
+  @TaskAction
+  fun verify() {
+    val missing =
+      listOf(
+        "BICI_BACKEND_URL (bizi.backendBaseUrl)" to backendBaseUrl.get(),
+        "BICI_AUTH0_DOMAIN (bizi.auth0Domain)" to auth0Domain.get(),
+        "BICI_AUTH0_CLIENT_ID (bizi.auth0ClientId)" to auth0ClientId.get(),
+        "BICI_AUTH0_AUDIENCE (bizi.auth0Audience)" to auth0Audience.get(),
+      ).filter { (_, value) -> value.isBlank() }
+        .map { (name, _) -> name }
+
+    check(missing.isEmpty()) {
+      "Play Store releases must include backend and Auth0 configuration; missing: " +
+        missing.joinToString() +
+        ". Set them as environment variables or Gradle properties before bundling."
+    }
+  }
+}
+
+val verifyPlayStoreReleaseConfig =
+  tasks.register<VerifyPlayStoreReleaseConfigTask>("verifyPlayStoreReleaseConfig") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Fails when a Play Store bundle would ship without backend/Auth0 configuration."
+    backendBaseUrl.set(biziBackendBaseUrl)
+    auth0Domain.set(biziAuth0Domain)
+    auth0ClientId.set(biziAuth0ClientId)
+    auth0Audience.set(biziAuth0Audience)
+  }
+
+// Only the Play upload artifact is gated: assemblePlaystoreRelease is also used
+// for local release builds that intentionally run in anonymous mode.
+tasks.matching { it.name == "bundlePlaystoreRelease" }.configureEach {
+  dependsOn(verifyPlayStoreReleaseConfig)
 }
 
 dependencies {

@@ -143,6 +143,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
+          BICI_BACKEND_URL: ${{ secrets.BICI_BACKEND_URL }}
+          BICI_AUTH0_DOMAIN: ${{ secrets.BICI_AUTH0_DOMAIN }}
+          BICI_AUTH0_CLIENT_ID: ${{ secrets.BICI_AUTH0_CLIENT_ID_ANDROID }}
+          BICI_AUTH0_AUDIENCE: ${{ secrets.BICI_AUTH0_AUDIENCE }}
           BIZI_CI_KEYSTORE_PATH: ${{ runner.temp }}/bizi-ci.keystore
           BIZI_CI_KEYSTORE_PASSWORD: ${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}
           BIZI_CI_KEY_ALIAS: ${{ secrets.BIZI_CI_KEY_ALIAS }}
@@ -152,6 +156,9 @@ jobs:
             echo "::warning::GOOGLE_MAPS_API_KEY_ANDROID secret is empty — Google Maps will not work in this build"
           else
             echo "GOOGLE_MAPS_API_KEY is set (${#GOOGLE_MAPS_API_KEY} chars)"
+          fi
+          if [[ -z "$BICI_AUTH0_DOMAIN" ]]; then
+            echo "::warning::Auth0 secrets are not configured — this release build has login disabled"
           fi
           ./gradlew :androidApp:assemblePlaystoreRelease :wearApp:assemblePlaystoreRelease
 

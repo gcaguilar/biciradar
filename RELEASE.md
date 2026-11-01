@@ -13,6 +13,15 @@
 - Add [androidApp/google-services.json](androidApp/google-services.json) to enable Firebase Crashlytics on Android.
 - Add [wearApp/google-services.json](wearApp/google-services.json) to enable Firebase Crashlytics on Wear OS.
 - Configure release signing in `androidApp` and `wearApp`.
+- Configure the backend/Auth0 secrets used by the Play release build:
+  - `BICI_BACKEND_URL`: backend base URL, for example `https://api.biciradar.es`.
+  - `BICI_AUTH0_DOMAIN`: tenant domain, for example `tenant.eu.auth0.com`.
+  - `BICI_AUTH0_CLIENT_ID_ANDROID`: client ID of the Android Auth0 application.
+  - `BICI_AUTH0_AUDIENCE`: API identifier that produces the access token.
+  The Play workflow fails before building when any of them is missing, and
+  `:androidApp:bundlePlaystoreRelease` refuses to create an AAB without them.
+  Local release APKs built with `assemblePlaystoreRelease` still allow anonymous
+  mode for smoke testing.
 - Both apps share the same `applicationId` (com.gcaguilar.biciradar) and are published to the same Play Store listing using different form factor tracks.
 - Update the localized Google Play release notes in `fastlane/metadata/android/{en-US,es-ES}/changelogs/<versionCode>.txt` for both the Android and Wear OS version codes. The Play workflow uploads them automatically.
 - Generate builds:

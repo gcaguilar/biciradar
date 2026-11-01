@@ -228,9 +228,34 @@ jobs:
             printf '%s' "$GOOGLE_SERVICES_JSON" > "${{ matrix.services_path }}"
           fi
 
+      - name: Verify Android release configuration
+        if: matrix.target == 'android'
+        env:
+          BICI_BACKEND_URL: ${{ secrets.BICI_BACKEND_URL }}
+          BICI_AUTH0_DOMAIN: ${{ secrets.BICI_AUTH0_DOMAIN }}
+          BICI_AUTH0_CLIENT_ID: ${{ secrets.BICI_AUTH0_CLIENT_ID_ANDROID }}
+          BICI_AUTH0_AUDIENCE: ${{ secrets.BICI_AUTH0_AUDIENCE }}
+        run: |
+          missing=()
+          for name in BICI_BACKEND_URL BICI_AUTH0_DOMAIN BICI_AUTH0_CLIENT_ID BICI_AUTH0_AUDIENCE; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf '::error::Missing required Android release secrets: %s\n' "${missing[*]}"
+            echo "A Play Store release without backend/Auth0 configuration ships with sign-in and sync disabled."
+            exit 1
+          fi
+          echo "Backend and Auth0 configuration present."
+
       - name: Build release bundle
         env:
           GOOGLE_MAPS_API_KEY: ${{ matrix.target == 'android' && secrets.GOOGLE_MAPS_API_KEY_ANDROID || '' }}
+          BICI_BACKEND_URL: ${{ secrets.BICI_BACKEND_URL }}
+          BICI_AUTH0_DOMAIN: ${{ secrets.BICI_AUTH0_DOMAIN }}
+          BICI_AUTH0_CLIENT_ID: ${{ secrets.BICI_AUTH0_CLIENT_ID_ANDROID }}
+          BICI_AUTH0_AUDIENCE: ${{ secrets.BICI_AUTH0_AUDIENCE }}
         run: |
           echo "Keystore path: ${{ runner.temp }}/bizi-ci.keystore"
           echo "Keystore exists: $(test -f '${{ runner.temp }}/bizi-ci.keystore' && echo 'yes' || echo 'no')"
