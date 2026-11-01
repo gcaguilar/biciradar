@@ -216,6 +216,8 @@ targets:
     deploymentTarget: "11.0"
     sources:
       - path: watchApp
+        excludes:
+          - plan.md
       - path: watchShared
       - path: sharedApple/BiziSyncModels.swift
       - path: sharedApple/BiziShortcutDialogHelpers.swift
