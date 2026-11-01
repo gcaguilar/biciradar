@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.VerticalDivider
@@ -18,9 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.gcaguilar.biciradar.mobileui.BiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
+import com.gcaguilar.biciradar.mobileui.layout.BiziWindowInfo
+import com.gcaguilar.biciradar.mobileui.layout.BiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.navigation.BiziBottomBar
 import com.gcaguilar.biciradar.mobileui.navigation.MobileNavigationRail
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -36,7 +39,7 @@ private val NativeTabBarHeight = 56.dp
 internal fun BiziNavigationShell(
   mobilePlatform: MobileUiPlatform,
   navController: NavHostController,
-  windowLayout: BiziWindowLayout,
+  windowInfo: BiziWindowInfo,
   /**
    * True when a native host (SwiftUI TabView with iOS 26 Liquid Glass) already renders
    * the tab bar / navigation rail chrome, so Compose must not draw its own on top of it.
@@ -73,7 +76,7 @@ internal fun BiziNavigationShell(
     return
   }
 
-  if (windowLayout == BiziWindowLayout.Compact) {
+  if (windowInfo.layout == BiziWindowLayout.Compact) {
     Scaffold(
       containerColor = pageBackgroundColor(mobilePlatform),
       bottomBar = {
@@ -103,6 +106,12 @@ internal fun BiziNavigationShell(
       navController = navController,
     )
     VerticalDivider(color = LocalBiziColors.current.panel)
+    // Foldables in book posture report a separating vertical hinge: keep the seam out of
+    // both the rail and the content by reserving its width as a gutter. The list-detail
+    // scaffolds used by the list screens additionally avoid the hinge themselves.
+    windowInfo.separatingHinge?.takeIf { it.isVertical }?.let { hinge ->
+      Spacer(Modifier.width(hinge.size))
+    }
     Box(
       modifier =
         Modifier

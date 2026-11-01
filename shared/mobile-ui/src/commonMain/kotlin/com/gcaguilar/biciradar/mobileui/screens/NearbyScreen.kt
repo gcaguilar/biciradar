@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.filled.LocalParking
@@ -80,6 +82,7 @@ import com.gcaguilar.biciradar.mobileui.components.NearbyFiltersSheet
 import com.gcaguilar.biciradar.mobileui.components.TripModeSelector
 import com.gcaguilar.biciradar.mobileui.components.cards.QuickRouteActionCard
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
+import com.gcaguilar.biciradar.mobileui.layout.BiziStationGridMinCellWidth
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.routeIcon
@@ -118,12 +121,14 @@ internal fun NearbyScreen(
         .background(pageBackgroundColor(mobilePlatform)),
     contentAlignment = Alignment.TopCenter,
   ) {
-    LazyColumn(
+    LazyVerticalGrid(
+      columns = GridCells.Adaptive(minSize = BiziStationGridMinCellWidth),
       modifier = Modifier.responsivePageWidth(),
       contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      item("header") {
+      item("header", span = { GridItemSpan(maxLineSpan) }) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
           if (mobilePlatform == MobileUiPlatform.IOS) {
             Row(
@@ -207,7 +212,7 @@ internal fun NearbyScreen(
         }
       }
 
-      item("freshness") {
+      item("freshness", span = { GridItemSpan(maxLineSpan) }) {
         DataFreshnessBanner(
           freshness = state.dataFreshness,
           lastUpdatedEpoch = state.lastUpdatedEpoch,
@@ -217,7 +222,7 @@ internal fun NearbyScreen(
       }
 
       if (!state.locationPermissionGranted) {
-        item("location-permission") {
+        item("location-permission", span = { GridItemSpan(maxLineSpan) }) {
           EmptyStatePlaceholder(
             title = stringResource(Res.string.nearbyLocationPermissionTitle),
             description = stringResource(Res.string.nearbyLocationPermissionBody),
@@ -227,7 +232,7 @@ internal fun NearbyScreen(
         }
       }
 
-      item("stations-header") {
+      item("stations-header", span = { GridItemSpan(maxLineSpan) }) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
           Row(
             modifier = Modifier.fillMaxWidth(),
@@ -281,7 +286,7 @@ internal fun NearbyScreen(
         }
       }
 
-      item("stations-empty") {
+      item("stations-empty", span = { GridItemSpan(maxLineSpan) }) {
         AnimatedVisibility(
           visible = !state.isLoading && state.stations.isEmpty(),
           enter = fadeIn(animationSpec = tween(200)) + expandVertically(animationSpec = tween(200)),

@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -54,6 +53,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.savedPlaceAlertsTit
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
+import com.gcaguilar.biciradar.mobileui.components.BiziBottomSheet
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -106,7 +106,7 @@ internal fun SavedPlaceAlertEditorSheet(
   onRemove: () -> Unit,
 ) {
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-  ModalBottomSheet(
+  BiziBottomSheet(
     onDismissRequest = onDismiss,
     sheetState = sheetState,
   ) {

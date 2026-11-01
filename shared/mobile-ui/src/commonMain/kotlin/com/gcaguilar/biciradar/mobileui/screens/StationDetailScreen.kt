@@ -100,6 +100,11 @@ internal fun StationDetailScreen(
   onRoute: () -> Unit,
   onUpsertSavedPlaceAlert: (SavedPlaceAlertTarget, SavedPlaceAlertCondition) -> Unit,
   onRemoveSavedPlaceAlertForTarget: (SavedPlaceAlertTarget) -> Unit,
+  /**
+   * Whether the top bar renders the back arrow. Two-pane list-detail layouts hide it
+   * because the list pane is still visible, but the system back gesture keeps working.
+   */
+  showBackButton: Boolean = true,
 ) {
   val station = state.station ?: return
   val isFavorite = state.isFavorite
@@ -130,8 +135,10 @@ internal fun StationDetailScreen(
               .padding(end = 4.dp),
           verticalAlignment = Alignment.CenterVertically,
         ) {
-          IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+          if (showBackButton) {
+            IconButton(onClick = onBack) {
+              Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.back))
+            }
           }
           Text(
             text = station.name,

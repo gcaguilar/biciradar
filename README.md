@@ -162,3 +162,7 @@ End-user content:
 
 - `docs/wiki/Home.md`: wiki homepage (recommended).
 - `docs/wiki/GUIA_USUARIO.md`: consolidated one-page guide.
+
+## Adaptive layout
+
+Window-size, foldable posture, list-detail and grid behavior: `docs/ADAPTIVE_LAYOUT.md`.

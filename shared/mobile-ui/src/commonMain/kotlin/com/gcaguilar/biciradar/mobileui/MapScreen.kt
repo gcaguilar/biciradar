@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +33,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapNoStationsOnScre
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapTryAnotherQuery
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.mapUpdateFailed
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.retry
+import com.gcaguilar.biciradar.mobileui.components.BiziBottomSheet
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.map.EnvironmentalLayerCard
 import com.gcaguilar.biciradar.mobileui.components.map.MapControls
@@ -239,7 +239,7 @@ internal fun MapScreen(
     // Bottom sheet de capa ambiental
     if (state.activeEnvironmentalLayer != null && state.showEnvironmentalSheet) {
       val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-      ModalBottomSheet(
+      BiziBottomSheet(
         onDismissRequest = onEnvironmentalSheetDismissed,
         sheetState = sheetState,
         containerColor = LocalBiziColors.current.surface,

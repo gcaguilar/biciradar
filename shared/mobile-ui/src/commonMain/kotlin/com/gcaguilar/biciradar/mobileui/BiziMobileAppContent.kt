@@ -539,6 +539,7 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     isMapReady: Boolean,
     onBack: () -> Unit,
+    showBackButton: Boolean = true,
   ) {
     val uiState by viewModel.uiState.collectAsState()
     StationDetailScreen(
@@ -552,6 +553,7 @@ internal object BiziMobileAppContent {
       onRoute = { uiState.station?.let(viewModel::onRoute) },
       onUpsertSavedPlaceAlert = viewModel::onUpsertSavedPlaceAlert,
       onRemoveSavedPlaceAlertForTarget = viewModel::onRemoveSavedPlaceAlertForTarget,
+      showBackButton = showBackButton,
     )
   }
 }

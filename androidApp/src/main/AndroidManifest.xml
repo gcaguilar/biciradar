@@ -23,6 +23,7 @@
         <activity
             android:name="com.gcaguilar.biciradar.MainActivity"
             android:exported="true"
+            android:resizeableActivity="true"
             android:theme="@style/Theme.BiciRadar.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

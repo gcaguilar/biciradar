@@ -49,6 +49,8 @@ kotlin {
       implementation(compose.runtime)
       implementation(compose.ui)
       implementation(libs.jetbrains.compose.material3.adaptive)
+      implementation(libs.jetbrains.compose.material3.adaptive.layout)
+      implementation(libs.jetbrains.compose.material3.adaptive.navigation)
       implementation(libs.compose.resources)
       implementation(libs.metro.runtime)
       implementation(libs.metrox.viewmodel)

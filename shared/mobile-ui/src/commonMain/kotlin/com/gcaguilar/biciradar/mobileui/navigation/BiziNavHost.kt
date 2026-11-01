@@ -117,21 +117,27 @@ internal fun BiziNavHost(
         nearbyViewModel.setActive(true)
         onDispose { nearbyViewModel.setActive(false) }
       }
-      BiziMobileAppContent.NearbyScreenContent(
-        viewModel = nearbyViewModel,
+      StationListDetailHost(
         mobilePlatform = mobilePlatform,
-        onStationSelected =
+        isMapReady = isMapReady,
+        onOpenStationFullScreen =
           remember(navController) {
             { station ->
               navController.navigate(Screen.StationDetail(station.id))
             }
           },
-        showFeedbackNudge = showNearbyFeedbackNudge,
-        onFeedbackOpened = onNearbyFeedbackOpened,
-        onFeedbackDismiss = onNearbyFeedbackDismiss,
-        onOpenFeedbackForm = onOpenNearbyFeedbackForm,
-        paddingValues = PaddingValues(),
-      )
+      ) { onStationSelected ->
+        BiziMobileAppContent.NearbyScreenContent(
+          viewModel = nearbyViewModel,
+          mobilePlatform = mobilePlatform,
+          onStationSelected = onStationSelected,
+          showFeedbackNudge = showNearbyFeedbackNudge,
+          onFeedbackOpened = onNearbyFeedbackOpened,
+          onFeedbackDismiss = onNearbyFeedbackDismiss,
+          onOpenFeedbackForm = onOpenNearbyFeedbackForm,
+          paddingValues = PaddingValues(),
+        )
+      }
     }
 
     composable<Screen.Map>(
@@ -161,26 +167,32 @@ internal fun BiziNavHost(
       deepLinks = listOf(navDeepLink<Screen.Favorites>(basePath = DeepLinks.FAVORITES_URI)),
     ) {
       val favoritesViewModel = metroViewModel<FavoritesViewModel>(key = "favorites")
-      BiziMobileAppContent.FavoritesScreenContent(
-        viewModel = favoritesViewModel,
+      StationListDetailHost(
         mobilePlatform = mobilePlatform,
-        onOpenAssistant = onOpenAssistant,
-        onOpenSavedPlaceAlerts =
-          remember(navController) {
-            { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
-          },
-        onOpenSearch =
-          remember(navController) {
-            { navController.navigate(Screen.FavoritesSearch) { launchSingleTop = true } }
-          },
-        onStationSelected =
+        isMapReady = isMapReady,
+        onOpenStationFullScreen =
           remember(navController) {
             { station ->
               navController.navigate(Screen.StationDetail(station.id))
             }
           },
-        paddingValues = PaddingValues(),
-      )
+      ) { onStationSelected ->
+        BiziMobileAppContent.FavoritesScreenContent(
+          viewModel = favoritesViewModel,
+          mobilePlatform = mobilePlatform,
+          onOpenAssistant = onOpenAssistant,
+          onOpenSavedPlaceAlerts =
+            remember(navController) {
+              { navController.navigate(Screen.SavedPlaceAlerts) { launchSingleTop = true } }
+            },
+          onOpenSearch =
+            remember(navController) {
+              { navController.navigate(Screen.FavoritesSearch) { launchSingleTop = true } }
+            },
+          onStationSelected = onStationSelected,
+          paddingValues = PaddingValues(),
+        )
+      }
     }
 
     composable<Screen.FavoritesSearch> { backStackEntry ->

@@ -1,7 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.theme
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
@@ -9,19 +7,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.ThemePreference
-import com.gcaguilar.biciradar.mobileui.BiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.DarkBiziColors
 import com.gcaguilar.biciradar.mobileui.LightBiziColors
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
-import com.gcaguilar.biciradar.mobileui.LocalBiziWindowLayout
 import com.gcaguilar.biciradar.mobileui.LocalIsDarkTheme
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.biziColorScheme
 import com.gcaguilar.biciradar.mobileui.dynamicBiziColors
+import com.gcaguilar.biciradar.mobileui.layout.LocalBiziWindowInfo
+import com.gcaguilar.biciradar.mobileui.layout.rememberBiziWindowInfo
 import com.gcaguilar.biciradar.mobileui.platformDynamicColorScheme
-import com.gcaguilar.biciradar.mobileui.rememberBiziWindowLayout
+import com.gcaguilar.biciradar.mobileui.pageBackgroundColor as biziPageBackgroundColor
+import com.gcaguilar.biciradar.mobileui.responsivePageWidth as biziResponsivePageWidth
 
 // Re-export theme components from BiziTheme.kt for centralized access
 
@@ -51,12 +49,12 @@ fun ThemeProvider(
     } else {
       LightBiziColors
     }
-  val windowLayout = rememberBiziWindowLayout()
+  val windowInfo = rememberBiziWindowInfo()
 
   CompositionLocalProvider(
     LocalBiziColors provides colors,
     LocalIsDarkTheme provides isDark,
-    LocalBiziWindowLayout provides windowLayout,
+    LocalBiziWindowInfo provides windowInfo,
   ) {
     MaterialTheme(
       colorScheme =
@@ -73,27 +71,14 @@ fun ThemeProvider(
 
 /**
  * Returns the appropriate background color for the current platform.
+ * Public re-export of the shared implementation in `BiziTheme.kt`.
  */
 @Composable
-fun pageBackgroundColor(platform: MobileUiPlatform): Color {
-  val c = LocalBiziColors.current
-  return if (platform == MobileUiPlatform.IOS) c.groupedBackground else c.background
-}
+fun pageBackgroundColor(platform: MobileUiPlatform): Color = biziPageBackgroundColor(platform)
 
 /**
  * Modifier that constrains the width based on the current window layout.
+ * Public re-export of the shared implementation in `BiziTheme.kt`.
  */
 @Composable
-fun Modifier.responsivePageWidth(): Modifier {
-  val maxWidth =
-    when (LocalBiziWindowLayout.current) {
-      BiziWindowLayout.Compact -> null
-      BiziWindowLayout.Medium -> 760.dp
-      BiziWindowLayout.Expanded -> 920.dp
-    }
-  return if (maxWidth == null) {
-    this.fillMaxSize()
-  } else {
-    this.fillMaxSize().widthIn(max = maxWidth)
-  }
-}
+fun Modifier.responsivePageWidth(): Modifier = biziResponsivePageWidth()

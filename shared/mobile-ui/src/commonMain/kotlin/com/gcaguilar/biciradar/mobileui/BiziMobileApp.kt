@@ -35,6 +35,7 @@ import com.gcaguilar.biciradar.mobileui.components.OverlayManager
 import com.gcaguilar.biciradar.mobileui.di.MobileGraph
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingCallbacks
 import com.gcaguilar.biciradar.mobileui.experience.GuidedOnboardingFlow
+import com.gcaguilar.biciradar.mobileui.layout.LocalBiziWindowInfo
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileTabNavigator
@@ -262,7 +263,7 @@ fun BiziMobileApp(
     }
 
     ThemeProvider(mobilePlatform, themePreference) {
-      val windowLayout = LocalBiziWindowLayout.current
+      val windowInfo = LocalBiziWindowInfo.current
       Surface(
         modifier = modifier.fillMaxSize(),
         color = pageBackgroundColor(mobilePlatform),
@@ -366,7 +367,7 @@ fun BiziMobileApp(
                     BiziNavigationShell(
                       mobilePlatform = mobilePlatform,
                       navController = navController,
-                      windowLayout = windowLayout,
+                      windowInfo = windowInfo,
                       // A native SwiftUI TabView is present whenever onActivateNative is
                       // wired up (see NativeNavContentView.swift) — that's the signal to
                       // hide Compose's own bottom bar/rail, independent of whether pushes

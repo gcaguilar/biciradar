@@ -22,8 +22,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
@@ -125,6 +127,7 @@ import com.gcaguilar.biciradar.mobileui.components.favorites.StatusPill
 import com.gcaguilar.biciradar.mobileui.components.station.OutlineActionPill
 import com.gcaguilar.biciradar.mobileui.components.station.StationRow
 import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
+import com.gcaguilar.biciradar.mobileui.layout.BiziStationGridMinCellWidth
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.routeIcon
@@ -221,7 +224,8 @@ internal fun FavoritesScreen(
         .background(pageBackgroundColor(mobilePlatform)),
     contentAlignment = Alignment.TopCenter,
   ) {
-    LazyColumn(
+    LazyVerticalGrid(
+      columns = GridCells.Adaptive(minSize = BiziStationGridMinCellWidth),
       modifier =
         if (mobilePlatform ==
           MobileUiPlatform.Desktop
@@ -232,8 +236,9 @@ internal fun FavoritesScreen(
         },
       contentPadding = PaddingValues(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -285,7 +290,7 @@ internal fun FavoritesScreen(
           }
         }
       }
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         FavoritesSearchLauncher(
           mobilePlatform = mobilePlatform,
           value = searchQuery,
@@ -293,7 +298,7 @@ internal fun FavoritesScreen(
           onClick = onOpenSearch,
         )
       }
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         DataFreshnessBanner(
           freshness = dataFreshness,
           lastUpdatedEpoch = lastUpdatedEpoch,
@@ -301,13 +306,13 @@ internal fun FavoritesScreen(
           onRefresh = onRefreshStations,
         )
       }
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         SectionHeader(
           title = stringResource(Res.string.favoritesPinnedSection),
           countLabel = countLabelForPinned(pinnedCount),
         )
       }
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         val rule =
           homeStation?.let { station ->
             findSavedPlaceAlertRule(
@@ -515,7 +520,7 @@ internal fun FavoritesScreen(
         }
       }
       if (customCategories.isNotEmpty() || assignmentCandidate != null) {
-        item {
+        item(span = { GridItemSpan(maxLineSpan) }) {
           BiziSectionCard(
             title = stringResource(Res.string.favoritesCustomCategoriesTitle),
           ) {
@@ -567,7 +572,7 @@ internal fun FavoritesScreen(
           }
         }
       }
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         AnimatedVisibility(
           visible = stations.isEmpty() && homeStation == null && workStation == null,
           enter = fadeIn(animationSpec = tween(180)) + expandVertically(animationSpec = tween(180)),
@@ -581,7 +586,7 @@ internal fun FavoritesScreen(
         }
       }
       if (stations.isNotEmpty()) {
-        item {
+        item(span = { GridItemSpan(maxLineSpan) }) {
           SectionHeader(
             title = stringResource(Res.string.favoritesOtherSection),
             countLabel = countLabelForFavorites(stations.distinctBy { it.id }.size),

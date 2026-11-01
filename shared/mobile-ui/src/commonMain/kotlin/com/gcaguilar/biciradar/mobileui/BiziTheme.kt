@@ -10,7 +10,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -20,8 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowSizeClass
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.mobileui.layout.BiziWindowLayout
+import com.gcaguilar.biciradar.mobileui.layout.LocalBiziWindowInfo
 
 // --- Light-mode palette raw tokens ---
 private val BiziLight = Color(0xFFF8F6F6)
@@ -128,14 +128,6 @@ internal val BiziShapes =
     extraLarge = RoundedCornerShape(28.dp),
   )
 
-internal enum class BiziWindowLayout {
-  Compact,
-  Medium,
-  Expanded,
-}
-
-internal val LocalBiziWindowLayout = staticCompositionLocalOf { BiziWindowLayout.Compact }
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun BiziTheme(
@@ -176,22 +168,6 @@ internal fun BiziTheme(
       motionScheme = MotionScheme.expressive(),
       content = content,
     )
-  }
-}
-
-@Composable
-internal fun rememberBiziWindowLayout(): BiziWindowLayout {
-  val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
-  return when {
-    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND) &&
-      windowSizeClass.isHeightAtLeastBreakpoint(
-        WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND,
-      ) -> BiziWindowLayout.Expanded
-
-    windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND) &&
-      windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND) -> BiziWindowLayout.Medium
-
-    else -> BiziWindowLayout.Compact
   }
 }
 
@@ -271,7 +247,7 @@ internal fun pageBackgroundColor(platform: MobileUiPlatform): Color {
 @Composable
 internal fun Modifier.responsivePageWidth(): Modifier {
   val maxWidth =
-    when (LocalBiziWindowLayout.current) {
+    when (LocalBiziWindowInfo.current.layout) {
       BiziWindowLayout.Compact -> null
       BiziWindowLayout.Medium -> 760.dp
       BiziWindowLayout.Expanded -> 920.dp
@@ -291,7 +267,7 @@ internal fun Modifier.responsivePageWidth(): Modifier {
 @Composable
 internal fun Modifier.responsiveContentWidth(): Modifier {
   val maxWidth =
-    when (LocalBiziWindowLayout.current) {
+    when (LocalBiziWindowInfo.current.layout) {
       BiziWindowLayout.Compact -> null
       BiziWindowLayout.Medium -> 760.dp
       BiziWindowLayout.Expanded -> 920.dp

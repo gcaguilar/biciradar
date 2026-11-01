@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobileui.components.BiziBottomSheet
 import org.jetbrains.compose.resources.stringResource
 
 internal sealed interface TopUpdateBanner {
@@ -186,7 +186,7 @@ internal fun FeedbackBottomSheet(
 ) {
   val colors = LocalBiziColors.current
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-  ModalBottomSheet(
+  BiziBottomSheet(
     onDismissRequest = onDismiss,
     sheetState = sheetState,
     containerColor = colors.surface,

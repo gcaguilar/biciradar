@@ -22,7 +22,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -93,7 +92,7 @@ internal fun NearbyFiltersSheet(
 ) {
   val colors = LocalBiziColors.current
   val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-  ModalBottomSheet(
+  BiziBottomSheet(
     onDismissRequest = onDismiss,
     sheetState = sheetState,
     containerColor = colors.surface,
