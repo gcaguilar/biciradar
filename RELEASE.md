@@ -33,11 +33,35 @@ To publish both mobile and WearOS versions under the same app listing:
 6. Return to Advanced settings and click **Manage** next to "Wear OS"
 7. Opt-in to distribution and review the terms of service
 
-The CI workflow publishes:
-- Mobile app to the `alpha` track
-- WearOS app to the `wear:alpha` dedicated form factor track
+The CI workflow (`.github/workflows/publish-play.yml`) resolves the destination
+track from the manual `release_track` input:
 
-For Android mobile, the workflow publishes `alpha` with `status: completed` and a configurable `update_criticality` value mapped to Play's `inAppUpdatePriority`.
+- `closed_testing` (default): publishes the mobile app to the track named by
+  `closed_track` (`alpha` by default, which is Play's standard closed testing
+  track) and Wear OS to `wear:<closed_track>`.
+- `production`: publishes the mobile app to `production` and Wear OS to
+  `wear:production`.
+
+`release_status` controls the release state:
+
+- `completed` (default): the release goes live on the selected track
+  immediately.
+- `draft`: the release is created but is not sent for review; submit it manually
+  from Play Console.
+- `staged`: production only. Creates an `inProgress` staged rollout using
+  `user_fraction` (default `0.1`).
+
+The `prepare` job validates the combination of inputs and writes the resolved
+tracks and status to the run summary. Android still maps `update_criticality`
+to Play's `inAppUpdatePriority`.
+
+To publish a build whose `versionCode` is new to Play, run the workflow with
+`release_track=production`. To promote a build that is already available in
+closed testing, use **Promote release** in Play Console (or the Play Developer
+API tracks endpoint): the workflow always uploads the built AAB, and Play
+rejects uploading a `versionCode` that already exists. A first production
+rollout may require the app to have gone through an internal or closed track
+beforehand.
 
 Users will see one app listing, but Google Play serves the appropriate version based on their device.
 

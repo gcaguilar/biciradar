@@ -12,6 +12,33 @@ on:
           - all
           - android
           - wear
+      release_track:
+        description: 'Play track to publish to'
+        required: true
+        default: 'closed_testing'
+        type: choice
+        options:
+          - closed_testing
+          - production
+      closed_track:
+        description: 'Closed testing track name (only used when release_track=closed_testing)'
+        required: false
+        default: 'alpha'
+        type: string
+      release_status:
+        description: 'Release status (staged requires release_track=production and user_fraction)'
+        required: true
+        default: 'completed'
+        type: choice
+        options:
+          - completed
+          - draft
+          - staged
+      user_fraction:
+        description: 'Staged rollout fraction, 0 < x < 1 (only used when release_status=staged)'
+        required: false
+        default: '0.1'
+        type: string
       update_criticality:
         description: 'Android update criticality (0-5)'
         required: true
@@ -23,8 +50,91 @@ permissions:
   id-token: write
 
 jobs:
+  prepare:
+    name: Resolve Play track and release status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      track: ${{ steps.resolve.outputs.track }}
+      wear_track: ${{ steps.resolve.outputs.wear_track }}
+      status: ${{ steps.resolve.outputs.status }}
+      user_fraction: ${{ steps.resolve.outputs.user_fraction }}
+    steps:
+      - id: resolve
+        name: Validate and resolve inputs
+        env:
+          RELEASE_TRACK: ${{ github.event.inputs.release_track }}
+          CLOSED_TRACK: ${{ github.event.inputs.closed_track }}
+          RELEASE_STATUS: ${{ github.event.inputs.release_status }}
+          USER_FRACTION: ${{ github.event.inputs.user_fraction }}
+        run: |
+          set -euo pipefail
+
+          closed_track="${CLOSED_TRACK:-alpha}"
+          if [[ ! "$closed_track" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+            echo "::error::closed_track must be a lowercase Play track name (for example alpha or qa)"
+            exit 1
+          fi
+
+          case "$RELEASE_TRACK" in
+            production)
+              track="production"
+              ;;
+            closed_testing)
+              track="$closed_track"
+              ;;
+            *)
+              echo "::error::release_track must be closed_testing or production"
+              exit 1
+              ;;
+          esac
+
+          case "$RELEASE_STATUS" in
+            completed)
+              status="completed"
+              fraction=""
+              ;;
+            draft)
+              status="draft"
+              fraction=""
+              ;;
+            staged)
+              status="inProgress"
+              fraction="${USER_FRACTION:-}"
+              if [[ "$RELEASE_TRACK" != "production" ]]; then
+                echo "::error::Staged rollouts are only supported for release_track=production"
+                exit 1
+              fi
+              if [[ ! "$fraction" =~ ^0\.[0-9]+$ ]]; then
+                echo "::error::user_fraction must be greater than 0 and lower than 1 (for example 0.1)"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::release_status must be completed, draft or staged"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "track=$track"
+            echo "wear_track=wear:$track"
+            echo "status=$status"
+            echo "user_fraction=$fraction"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Play publish plan"
+            echo ""
+            echo "| Target | Track | Status | User fraction |"
+            echo "| --- | --- | --- | --- |"
+            echo "| Android phone | \`$track\` | \`$status\` | ${fraction:-n/a} |"
+            echo "| Wear OS | \`wear:$track\` | \`$status\` | ${fraction:-n/a} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   publish-android:
     name: Publish Android AAB to Play
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'android'
@@ -126,21 +236,23 @@ jobs:
             exit 1
           fi
 
-      - name: Publish to Play Console alpha track
+      - name: Publish to Play Console
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
           releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: alpha
-          status: completed
+          tracks: ${{ needs.prepare.outputs.track }}
+          status: ${{ needs.prepare.outputs.status }}
+          userFraction: ${{ needs.prepare.outputs.user_fraction }}
           releaseName: ${{ env.RELEASE_TAG }}
           inAppUpdatePriority: ${{ github.event.inputs.update_criticality }}
           whatsNewDirectory: ${{ env.ANDROID_WHATS_NEW_DIR }}
 
   publish-wear:
     name: Publish WearOS AAB to Play
+    needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
     if: github.event.inputs.target == 'all' || github.event.inputs.target == 'wear'
@@ -230,14 +342,15 @@ jobs:
           done
           echo "WEAR_WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
 
-      - name: Publish WearOS to Play Console production track
+      - name: Publish WearOS to Play Console
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
           releaseFiles: wearApp/build/outputs/bundle/playstoreRelease/*.aab
           mappingFile: wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: wear:production
-          status: completed
+          tracks: ${{ needs.prepare.outputs.wear_track }}
+          status: ${{ needs.prepare.outputs.status }}
+          userFraction: ${{ needs.prepare.outputs.user_fraction }}
           releaseName: ${{ env.RELEASE_TAG }}
           whatsNewDirectory: ${{ env.WEAR_WHATS_NEW_DIR }}
