@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   lint:
     name: Kotlin style
@@ -220,6 +224,17 @@ jobs:
             echo EOF
           } >> "$GITHUB_ENV"
 
+      - name: Build iOS tests
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: |
+          xcodebuild \
+            -project apple/BiciRadar.xcodeproj \
+            -scheme BiciRadariOSTests \
+            -destination "$IOS_DESTINATION" \
+            -derivedDataPath "$RUNNER_TEMP/derived-data-ios" \
+            -resultBundlePath "$RUNNER_TEMP/ios-build.xcresult" \
+            build-for-testing
+
       - name: Run iOS tests
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
@@ -232,12 +247,14 @@ jobs:
             test
 
       - name: Upload iOS test results on failure
-        if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: failure()
         uses: actions/upload-artifact@v7.0.1
         with:
           name: ios-test-results
           if-no-files-found: ignore
-          path: ${{ runner.temp }}/ios-tests.xcresult
+          path: |
+            ${{ runner.temp }}/ios-tests.xcresult
+            ${{ runner.temp }}/ios-build.xcresult
 
 
   watchos:

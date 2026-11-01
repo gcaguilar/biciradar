@@ -120,7 +120,7 @@ Main workflow: `.github/workflows/build.yml`.
 It runs on `push` to `main`, `pull_request`, and manual dispatch, with parallel jobs:
 
 - `android`: shared JVM tests, Android unit tests, and debug APK builds (phone + wear).
-- `ios`: iPhone tests and simulator `.app` artifact.
+- `ios`: iPhone test bundle build on pull requests and iPhone tests on `main`.
 - `watchos`: Apple Watch tests and simulator `.app` artifact.
 
 Published artifacts:
