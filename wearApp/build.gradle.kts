@@ -83,7 +83,7 @@ android {
   defaultConfig {
     applicationId = wearApplicationId
     minSdk = 30
-    targetSdk = 36
+    targetSdk = 37
     versionCode = 29570208
     versionName = "0.22.18"
   }
