@@ -86,7 +86,9 @@ val hasAndroidCiSigning =
 
 android {
   namespace = "com.gcaguilar.biciradar"
-  compileSdk = 37
+  compileSdk {
+    version = release(37) { minorApiLevel = 1 }
+  }
 
   defaultConfig {
     applicationId = "com.gcaguilar.biciradar"
