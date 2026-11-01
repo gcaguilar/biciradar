@@ -16,7 +16,10 @@ BUMP_SCRIPT="${REPO_ROOT}/tooling/project/bump_version.sh"
 
 # Stage only the version files that may have changed.
 git add \
+  "${REPO_ROOT}/VERSION" \
+  "${REPO_ROOT}/BUILD_NUMBER" \
   "${REPO_ROOT}/apple/project.yml" \
+  "${REPO_ROOT}/apple/BiciRadar.xcodeproj/project.pbxproj" \
   "${REPO_ROOT}/androidApp/build.gradle.kts" \
   "${REPO_ROOT}/wearApp/build.gradle.kts" \
   2>/dev/null || true

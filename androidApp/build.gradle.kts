@@ -94,8 +94,8 @@ android {
     applicationId = "com.gcaguilar.biciradar"
     minSdk = 29
     targetSdk = 37
-    versionCode = 29570207
-    versionName = "0.22.18"
+    versionCode = 29570209
+    versionName = "0.22.19"
     manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey.get()
 
     fun quoted(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""

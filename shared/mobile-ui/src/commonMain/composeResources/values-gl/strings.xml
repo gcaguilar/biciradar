@@ -270,6 +270,14 @@
     <string name="changelogHomeQuickActionsDescription">No iPhone, mantén premida a icona de Bici Radar para acceder rapidamente ás túas estacións favoritas e a outras accións sen abrir a app.</string>
     <string name="changelogReliabilityPolishTitle">Máis estabilidade e comodidade</string>
     <string name="changelogReliabilityPolishDescription">Melloramos o onboarding, as avaliacións na app e o manexo dos bordos e do teclado para unha experiencia máis fluída.</string>
+    <string name="changelogAccountRoutinesTitle">Conta e rutinas de vixilancia</string>
+    <string name="changelogAccountRoutinesDescription">Inicia sesión para vixiar as túas estacións con rutinas programadas: escolle días, hora e estacións, e a vixilancia comeza 10 minutos antes. As túas rutinas sincronízanse entre dispositivos.</string>
+    <string name="changelogPushAlertsTitle">Avisos push coa app pechada</string>
+    <string name="changelogPushAlertsDescription">Os avisos das túas estacións favoritas e das rutinas chegan como notificacións push, tamén coa app pechada e no reloxo.</string>
+    <string name="changelogTripDestinationsTitle">Destinos favoritos no modo viaxe</string>
+    <string name="changelogTripDestinationsDescription">Escolle unha estación favorita como destino da viaxe e oculta os bloques que xa non necesitas. Se a vixilancia non pode comezar, agora veralo no canto dunha conta atrás baleira.</string>
+    <string name="changelogPlatformUpdateTitle">Android 17 e dependencias actualizadas</string>
+    <string name="changelogPlatformUpdateDescription">Compatible con Android 17 (API 37) no móbil e no reloxo, con Compose Multiplatform, Kotlin e o resto de librarías actualizadas. Ademais, as ligazóns da app só se abren para os seus propios dominios.</string>
     <string name="destinationPlaceholder">Escribe un enderezo ou lugar</string>
     <string name="clear">Borrar</string>
     <string name="cancelMap">Cancelar mapa</string>

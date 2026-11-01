@@ -1,0 +1,1 @@
+Your account now unlocks monitoring routines: schedule which stations to watch, on which days and at what time. Alerts arrive as push notifications even with the app closed, trip mode accepts favorite destinations, and the app targets Android 17 with updated libraries.

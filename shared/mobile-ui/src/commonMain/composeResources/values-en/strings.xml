@@ -269,6 +269,14 @@
     <string name="changelogHomeQuickActionsDescription">On iPhone, press and hold the Bici Radar icon to jump quickly to your favorite stations and other actions without opening the app.</string>
     <string name="changelogReliabilityPolishTitle">More stability and comfort</string>
     <string name="changelogReliabilityPolishDescription">We improved onboarding, in-app reviews and how the app handles screen edges and the keyboard for a smoother experience.</string>
+    <string name="changelogAccountRoutinesTitle">Account and monitoring routines</string>
+    <string name="changelogAccountRoutinesDescription">Sign in to watch your stations with scheduled routines: pick days, time and stations, and monitoring starts 10 minutes before. Your routines sync across devices.</string>
+    <string name="changelogPushAlertsTitle">Push alerts with the app closed</string>
+    <string name="changelogPushAlertsDescription">Alerts for your favorite stations and routines now arrive as push notifications, even with the app closed and on your watch.</string>
+    <string name="changelogTripDestinationsTitle">Favorite destinations in trip mode</string>
+    <string name="changelogTripDestinationsDescription">Pick a favorite station as your trip destination and hide the blocks you no longer need. If watching cannot start, you now see it instead of an empty countdown.</string>
+    <string name="changelogPlatformUpdateTitle">Android 17 and updated dependencies</string>
+    <string name="changelogPlatformUpdateDescription">Compatible with Android 17 (API 37) on phone and watch, with Compose Multiplatform, Kotlin and the rest of the libraries updated. App links now only open for the app's own domains.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>
     <string name="cancelMap">Cancel map</string>

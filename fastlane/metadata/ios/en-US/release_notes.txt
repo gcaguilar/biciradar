@@ -1,1 +1,1 @@
-Filters and sorting for nearby stations, a global walking or cycling trip mode applied to the map and routes, Home Screen quick actions on iPhone, and more stable navigation.
+Monitoring routines with your account: schedule which stations to watch, on which days and at what time, and get push alerts even with the app closed. Trip mode now accepts favorite destinations, and the iPhone and Apple Watch apps are rebuilt on the shared Kotlin code for faster, more consistent updates.

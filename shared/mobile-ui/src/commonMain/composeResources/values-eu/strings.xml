@@ -236,6 +236,14 @@
     <string name="changelogHomeQuickActionsDescription">iPhone-n, eduki sakatuta Bici Radar-en ikonoa zure gogoko geltokietara eta beste ekintza batzuetara azkar sartzeko, aplikazioa ireki gabe.</string>
     <string name="changelogReliabilityPolishTitle">Egonkortasun eta erosotasun gehiago</string>
     <string name="changelogReliabilityPolishDescription">Onboarding-a, aplikazioko iritziak eta ertzen eta teklatuaren kudeaketa hobetu ditugu esperientzia leunagoa izateko.</string>
+    <string name="changelogAccountRoutinesTitle">Kontua eta zaintza-errutinak</string>
+    <string name="changelogAccountRoutinesDescription">Hasi saioa zure geltokiak errutina programatuekin zaintzeko: aukeratu egunak, ordua eta geltokiak, eta zaintza adierazitako ordua baino 10 minutu lehenago hasten da. Zure errutinak gailuen artean sinkronizatzen dira.</string>
+    <string name="changelogPushAlertsTitle">Push abisuak aplikazioa itxita dagoenean</string>
+    <string name="changelogPushAlertsDescription">Gogoko geltokien eta errutinen abisuak push jakinarazpen gisa iristen dira, aplikazioa itxita dagoenean eta erlojuan ere.</string>
+    <string name="changelogTripDestinationsTitle">Gogoko helmugak bidaia-moduan</string>
+    <string name="changelogTripDestinationsDescription">Aukeratu gogoko geltoki bat bidaiaren helmuga gisa eta ezkutatu jada behar ez dituzun blokeak. Zaintza hasi ezin bada, orain ikusiko duzu, kontaketa hutsaren ordez.</string>
+    <string name="changelogPlatformUpdateTitle">Android 17 eta mendekotasun eguneratuak</string>
+    <string name="changelogPlatformUpdateDescription">Android 17 (API 37) bateragarria da mobilarentzako eta erlojuarentzako, Compose Multiplatform, Kotlin eta gainerako liburutegiak eguneratuta. Gainera, aplikazioko estekak bere domeinuetarako soilik irekitzen dira.</string>
     <string name="destinationPlaceholder">Idatzi helbide edo leku bat</string>
     <string name="clear">Garbitu</string>
     <string name="cancelMap">Utzi mapa</string>

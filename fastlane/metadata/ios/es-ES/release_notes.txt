@@ -1,1 +1,1 @@
-Filtros y ordenación en las estaciones cercanas, un modo de viaje global a pie o en bici que se aplica en el mapa y las rutas, acciones rápidas en la pantalla de inicio en iPhone y más estabilidad en la navegación.
+Rutinas de vigilancia con tu cuenta: programa qué estaciones vigilar, qué días y a qué hora, y recibe avisos push incluso con la app cerrada. El modo viaje acepta ahora destinos favoritos, y las apps de iPhone y Apple Watch se reconstruyen sobre el código Kotlin compartido para recibir novedades de forma más rápida y coherente.
