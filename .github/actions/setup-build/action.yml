@@ -37,7 +37,12 @@ runs:
     - name: Accept Android SDK licenses non-interactively
       if: inputs.android-sdk == 'true'
       shell: bash
-      run: yes | sdkmanager --licenses >/dev/null
+      run: |
+        # Step shells run with `-o pipefail` and `yes` gets SIGPIPE as soon as
+        # sdkmanager stops reading, so the pipeline exits non-zero even when
+        # every license was accepted. setup-android already accepts the
+        # licenses, so treat this step as best effort instead of failing here.
+        yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
     - name: Set up Gradle
       uses: gradle/actions/setup-gradle@v6.4.0
