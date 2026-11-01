@@ -117,18 +117,26 @@ The repository already includes safe fallbacks when Firebase files are missing o
 
 Main workflow: `.github/workflows/build.yml`.
 
-It runs on `push` to `main`, `pull_request`, and manual dispatch, with parallel jobs:
+It runs on `push` to `main`, `pull_request`, and manual dispatch, and skips
+documentation-only, Play metadata, Fastlane, landing, and Garmin changes. Jobs
+run in parallel:
 
-- `android`: shared JVM tests, Android unit tests, and debug APK builds (phone + wear).
+- `changes`: detects whether the watchOS inputs changed.
+- `lint`: `ktlintCheckAll`.
+- `android`: shared JVM tests and Android/Wear unit tests on every run; the Play
+  release bundles are only assembled on `main`.
 - `ios`: iPhone test bundle build on pull requests and iPhone tests on `main`.
-- `watchos`: Apple Watch tests and simulator `.app` artifact.
+- `watchos`: Apple Watch tests when `apple/**`, `shared/**`, `wearApp/**`, the
+  Gradle build files, or the CI helpers change, and on manual dispatch.
 
-Published artifacts:
+The toolchain setup (JDK, Android SDK, Gradle, and script permissions) lives in
+the composite action `.github/actions/setup-build`.
 
-- `android-debug-apks`
-- `ios-simulator-app`
-- `watchos-simulator-app`
-- `ios-device-ipa` (when Apple signing secrets are configured)
+Artifacts are uploaded only on failure and kept for 14 days:
+
+- `android-test-reports`
+- `ios-test-results`
+- `watchos-test-results`
 
 ### Optional Firebase App Distribution
 

@@ -49,12 +49,17 @@ permissions:
   contents: read
   id-token: write
 
+concurrency:
+  group: publish-play
+  cancel-in-progress: false
+
 jobs:
   prepare:
     name: Resolve Play track and release status
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
+      apps: ${{ steps.resolve.outputs.apps }}
       track: ${{ steps.resolve.outputs.track }}
       wear_track: ${{ steps.resolve.outputs.wear_track }}
       status: ${{ steps.resolve.outputs.status }}
@@ -63,12 +68,23 @@ jobs:
       - id: resolve
         name: Validate and resolve inputs
         env:
+          TARGET: ${{ github.event.inputs.target }}
           RELEASE_TRACK: ${{ github.event.inputs.release_track }}
           CLOSED_TRACK: ${{ github.event.inputs.closed_track }}
           RELEASE_STATUS: ${{ github.event.inputs.release_status }}
           USER_FRACTION: ${{ github.event.inputs.user_fraction }}
+          UPDATE_CRITICALITY: ${{ github.event.inputs.update_criticality }}
         run: |
           set -euo pipefail
+
+          case "$TARGET" in
+            all|android|wear)
+              ;;
+            *)
+              echo "::error::target must be all, android or wear"
+              exit 1
+              ;;
+          esac
 
           closed_track="${CLOSED_TRACK:-alpha}"
           if [[ ! "$closed_track" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
@@ -116,7 +132,40 @@ jobs:
               ;;
           esac
 
+          if [[ ! "$UPDATE_CRITICALITY" =~ ^[0-5]$ ]]; then
+            echo "::error::update_criticality must be a single digit between 0 and 5"
+            exit 1
+          fi
+
+          apps="$(jq -cn \
+            --arg target "$TARGET" \
+            --arg track "$track" \
+            --arg wear_track "wear:$track" '
+              [
+                {
+                  target: "android",
+                  label: "Android phone",
+                  module: "androidApp",
+                  track: $track,
+                  services_secret: "GOOGLE_SERVICES_JSON_ANDROID",
+                  services_path: "androidApp/google-services.json",
+                  update_criticality: true
+                },
+                {
+                  target: "wear",
+                  label: "Wear OS",
+                  module: "wearApp",
+                  track: $wear_track,
+                  services_secret: "GOOGLE_SERVICES_JSON_WEAR",
+                  services_path: "wearApp/google-services.json",
+                  update_criticality: false
+                }
+              ]
+              | map(select($target == "all" or .target == $target))
+            ')"
+
           {
+            echo "apps=$apps"
             echo "track=$track"
             echo "wear_track=wear:$track"
             echo "status=$status"
@@ -128,16 +177,20 @@ jobs:
             echo ""
             echo "| Target | Track | Status | User fraction |"
             echo "| --- | --- | --- | --- |"
-            echo "| Android phone | \`$track\` | \`$status\` | ${fraction:-n/a} |"
-            echo "| Wear OS | \`wear:$track\` | \`$status\` | ${fraction:-n/a} |"
+            jq -r --arg status "$status" --arg fraction "$fraction" \
+              '.[] | "| \(.label) | `\(.track)` | `\($status)` | \(if $fraction == "" then "n/a" else $fraction end) |"' \
+              <<< "$apps"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  publish-android:
-    name: Publish Android AAB to Play
+  publish:
+    name: Publish ${{ matrix.label }} to Play
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
-    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'android'
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare.outputs.apps) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
@@ -148,24 +201,10 @@ jobs:
         run: |
           release_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "RELEASE_TAG=${release_tag:-$(git rev-parse --short HEAD)}" >> "$GITHUB_ENV"
-          echo "Building Android release: ${release_tag:-$(git rev-parse --short HEAD)}"
+          echo "Building ${{ matrix.label }} release: ${release_tag:-$(git rev-parse --short HEAD)}"
 
-      - name: Set up Java 21
-        uses: actions/setup-java@v6.0.1
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.4
-        with:
-          packages: platform-tools
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
-        with:
-          build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
-          build-scan-terms-of-use-agree: "yes"
+      - name: Set up build toolchain
+        uses: ./.github/actions/setup-build
 
       - id: auth
         name: Authenticate to Google Cloud
@@ -175,182 +214,71 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
           create_credentials_file: true
 
-      - name: Make Gradle wrapper executable
-        run: chmod +x gradlew
-
-      - name: Write Android secrets
+      - name: Write signing and Firebase assets
         env:
           BIZI_CI_KEYSTORE_BASE64: ${{ secrets.BIZI_CI_KEYSTORE_BASE64 }}
-          GOOGLE_SERVICES_JSON_ANDROID: ${{ secrets.GOOGLE_SERVICES_JSON_ANDROID }}
+          GOOGLE_SERVICES_JSON: ${{ secrets[matrix.services_secret] }}
         run: |
           if [[ -z "$BIZI_CI_KEYSTORE_BASE64" ]]; then
             echo "::error::BIZI_CI_KEYSTORE_BASE64 secret is required"
             exit 1
           fi
           printf '%s' "$BIZI_CI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bizi-ci.keystore"
-          if [[ -n "$GOOGLE_SERVICES_JSON_ANDROID" ]]; then
-            printf '%s' "$GOOGLE_SERVICES_JSON_ANDROID" > androidApp/google-services.json
+          if [[ -n "$GOOGLE_SERVICES_JSON" ]]; then
+            printf '%s' "$GOOGLE_SERVICES_JSON" > "${{ matrix.services_path }}"
           fi
 
-      - name: Build Android release bundle
+      - name: Build release bundle
         env:
-          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY_ANDROID }}
+          GOOGLE_MAPS_API_KEY: ${{ matrix.target == 'android' && secrets.GOOGLE_MAPS_API_KEY_ANDROID || '' }}
         run: |
           echo "Keystore path: ${{ runner.temp }}/bizi-ci.keystore"
           echo "Keystore exists: $(test -f '${{ runner.temp }}/bizi-ci.keystore' && echo 'yes' || echo 'no')"
-          ./gradlew :androidApp:bundlePlaystoreRelease --no-build-cache \
+          ./gradlew :${{ matrix.module }}:bundlePlaystoreRelease --no-build-cache \
             -PBIZI_CI_KEYSTORE_PATH="${{ runner.temp }}/bizi-ci.keystore" \
             -PBIZI_CI_KEYSTORE_PASSWORD="${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}" \
             -PBIZI_CI_KEY_ALIAS="${{ secrets.BIZI_CI_KEY_ALIAS }}" \
             -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
 
-      - name: Upload Android release bundle artifact
+      - name: Upload release bundle artifact
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: android-release-bundle
+          name: ${{ matrix.target }}-release-bundle
           if-no-files-found: error
+          retention-days: 14
           path: |
-            androidApp/build/outputs/bundle/playstoreRelease/*.aab
-            androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
+            ${{ matrix.module }}/build/outputs/bundle/playstoreRelease/*.aab
+            ${{ matrix.module }}/build/outputs/mapping/playstoreRelease/mapping.txt
 
-      - name: Prepare localized Android release notes
+      - name: Prepare localized release notes
         run: |
-          version_code=$(sed -nE 's/^[[:space:]]*versionCode = ([0-9]+)$/\1/p' androidApp/build.gradle.kts | head -n 1)
-          notes_directory="$RUNNER_TEMP/android-whats-new"
+          version_code=$(sed -nE 's/^[[:space:]]*versionCode = ([0-9]+)$/\1/p' "${{ matrix.module }}/build.gradle.kts" | head -n 1)
+          if [[ -z "$version_code" ]]; then
+            echo "::error::Could not read versionCode from ${{ matrix.module }}/build.gradle.kts"
+            exit 1
+          fi
+          notes_directory="$RUNNER_TEMP/${{ matrix.target }}-whats-new"
           mkdir -p "$notes_directory"
           for locale in en-US es-ES; do
             source_file="fastlane/metadata/android/$locale/changelogs/$version_code.txt"
             if [[ ! -f "$source_file" ]]; then
-              echo "::error::Missing Android release notes: $source_file"
+              echo "::error::Missing release notes for ${{ matrix.label }}: $source_file"
               exit 1
             fi
             cp "$source_file" "$notes_directory/whatsnew-$locale"
           done
-          echo "ANDROID_WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
-
-      - name: Validate Android update criticality
-        run: |
-          priority="${{ github.event.inputs.update_criticality }}"
-          if ! [[ "$priority" =~ ^[0-5]$ ]]; then
-            echo "::error::update_criticality must be a single digit between 0 and 5"
-            exit 1
-          fi
+          echo "WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
 
       - name: Publish to Play Console
         uses: r0adkll/upload-google-play@v1.1.5
         with:
           serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
           packageName: com.gcaguilar.biciradar
-          releaseFiles: androidApp/build/outputs/bundle/playstoreRelease/*.aab
-          mappingFile: androidApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: ${{ needs.prepare.outputs.track }}
+          releaseFiles: ${{ matrix.module }}/build/outputs/bundle/playstoreRelease/*.aab
+          mappingFile: ${{ matrix.module }}/build/outputs/mapping/playstoreRelease/mapping.txt
+          tracks: ${{ matrix.track }}
           status: ${{ needs.prepare.outputs.status }}
           userFraction: ${{ needs.prepare.outputs.user_fraction }}
           releaseName: ${{ env.RELEASE_TAG }}
-          inAppUpdatePriority: ${{ github.event.inputs.update_criticality }}
-          whatsNewDirectory: ${{ env.ANDROID_WHATS_NEW_DIR }}
-
-  publish-wear:
-    name: Publish WearOS AAB to Play
-    needs: prepare
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: github.event.inputs.target == 'all' || github.event.inputs.target == 'wear'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7.0.1
-        with:
-          fetch-tags: true
-
-      - name: Resolve release version
-        run: |
-          release_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          echo "RELEASE_TAG=${release_tag:-$(git rev-parse --short HEAD)}" >> "$GITHUB_ENV"
-          echo "Building Wear release: ${release_tag:-$(git rev-parse --short HEAD)}"
-
-      - name: Set up Java 21
-        uses: actions/setup-java@v6.0.1
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4.0.4
-        with:
-          packages: platform-tools
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
-        with:
-          build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
-          build-scan-terms-of-use-agree: "yes"
-
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v3.0.0
-        with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
-          create_credentials_file: true
-
-      - name: Make Gradle wrapper executable
-        run: chmod +x gradlew
-
-      - name: Write Wear secrets
-        env:
-          BIZI_CI_KEYSTORE_BASE64: ${{ secrets.BIZI_CI_KEYSTORE_BASE64 }}
-          GOOGLE_SERVICES_JSON_WEAR: ${{ secrets.GOOGLE_SERVICES_JSON_WEAR }}
-        run: |
-          if [[ -z "$BIZI_CI_KEYSTORE_BASE64" ]]; then
-            echo "::error::BIZI_CI_KEYSTORE_BASE64 secret is required"
-            exit 1
-          fi
-          printf '%s' "$BIZI_CI_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/bizi-ci.keystore"
-          if [[ -n "$GOOGLE_SERVICES_JSON_WEAR" ]]; then
-            printf '%s' "$GOOGLE_SERVICES_JSON_WEAR" > wearApp/google-services.json
-          fi
-
-      - name: Build Wear release bundle
-        run: |
-          ./gradlew :wearApp:bundlePlaystoreRelease --no-build-cache \
-            -PBIZI_CI_KEYSTORE_PATH="${{ runner.temp }}/bizi-ci.keystore" \
-            -PBIZI_CI_KEYSTORE_PASSWORD="${{ secrets.BIZI_CI_KEYSTORE_PASSWORD }}" \
-            -PBIZI_CI_KEY_ALIAS="${{ secrets.BIZI_CI_KEY_ALIAS }}" \
-            -PBIZI_CI_KEY_PASSWORD="${{ secrets.BIZI_CI_KEY_PASSWORD }}"
-
-      - name: Upload Wear release bundle artifact
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: wear-release-bundle
-          if-no-files-found: error
-          path: |
-            wearApp/build/outputs/bundle/playstoreRelease/*.aab
-            wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
-
-      - name: Prepare localized Wear OS release notes
-        run: |
-          version_code=$(sed -nE 's/^[[:space:]]*versionCode = ([0-9]+)$/\1/p' wearApp/build.gradle.kts | head -n 1)
-          notes_directory="$RUNNER_TEMP/wear-whats-new"
-          mkdir -p "$notes_directory"
-          for locale in en-US es-ES; do
-            source_file="fastlane/metadata/android/$locale/changelogs/$version_code.txt"
-            if [[ ! -f "$source_file" ]]; then
-              echo "::error::Missing Wear OS release notes: $source_file"
-              exit 1
-            fi
-            cp "$source_file" "$notes_directory/whatsnew-$locale"
-          done
-          echo "WEAR_WHATS_NEW_DIR=$notes_directory" >> "$GITHUB_ENV"
-
-      - name: Publish WearOS to Play Console
-        uses: r0adkll/upload-google-play@v1.1.5
-        with:
-          serviceAccountJson: ${{ steps.auth.outputs.credentials_file_path }}
-          packageName: com.gcaguilar.biciradar
-          releaseFiles: wearApp/build/outputs/bundle/playstoreRelease/*.aab
-          mappingFile: wearApp/build/outputs/mapping/playstoreRelease/mapping.txt
-          tracks: ${{ needs.prepare.outputs.wear_track }}
-          status: ${{ needs.prepare.outputs.status }}
-          userFraction: ${{ needs.prepare.outputs.user_fraction }}
-          releaseName: ${{ env.RELEASE_TAG }}
-          whatsNewDirectory: ${{ env.WEAR_WHATS_NEW_DIR }}
+          inAppUpdatePriority: ${{ matrix.update_criticality && github.event.inputs.update_criticality || '' }}
+          whatsNewDirectory: ${{ env.WHATS_NEW_DIR }}

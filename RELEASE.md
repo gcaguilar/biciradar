@@ -52,8 +52,10 @@ track from the manual `release_track` input:
   `user_fraction` (default `0.1`).
 
 The `prepare` job validates the combination of inputs and writes the resolved
-tracks and status to the run summary. Android still maps `update_criticality`
-to Play's `inAppUpdatePriority`.
+tracks and status to the run summary. It also expands the `target` input into
+the publish matrix: `all` publishes Android and Wear OS in parallel, while
+`android` or `wear` publishes only that form factor. Android still maps
+`update_criticality` to Play's `inAppUpdatePriority`.
 
 To publish a build whose `versionCode` is new to Play, run the workflow with
 `release_track=production`. To promote a build that is already available in

@@ -1,0 +1,56 @@
+name: Set up build toolchain
+description: Installs the shared Java, Android SDK, and Gradle toolchain used by the CI workflows.
+
+inputs:
+  java-version:
+    description: Temurin JDK version.
+    required: false
+    default: "21"
+  android-sdk:
+    description: Install Android platform tools and accept the SDK licenses.
+    required: false
+    default: "true"
+  cache-cleanup:
+    description: Cache cleanup policy for gradle/actions/setup-gradle.
+    required: false
+    default: on-success
+  chmod-scripts:
+    description: Mark the Gradle wrapper and CI helper scripts as executable.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v6.0.1
+      with:
+        distribution: temurin
+        java-version: ${{ inputs.java-version }}
+
+    - name: Set up Android SDK
+      if: inputs.android-sdk == 'true'
+      uses: android-actions/setup-android@v4.0.4
+      with:
+        packages: platform-tools
+
+    - name: Accept Android SDK licenses non-interactively
+      if: inputs.android-sdk == 'true'
+      shell: bash
+      run: yes | sdkmanager --licenses >/dev/null
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v6.4.0
+      with:
+        build-scan-terms-of-use-url: https://gradle.com/help/legal-terms-of-use
+        build-scan-terms-of-use-agree: "yes"
+        cache-cleanup: ${{ inputs.cache-cleanup }}
+
+    - name: Make repository scripts executable
+      if: inputs.chmod-scripts == 'true'
+      shell: bash
+      run: |
+        chmod +x gradlew
+        if [[ -d tooling/generic-mobile-ci ]]; then
+          find tooling/generic-mobile-ci -maxdepth 1 -type f -name '*.sh' -exec chmod +x {} +
+        fi
