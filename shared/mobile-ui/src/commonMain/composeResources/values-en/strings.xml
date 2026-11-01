@@ -269,6 +269,8 @@
     <string name="changelogHomeQuickActionsDescription">On iPhone, press and hold the Bici Radar icon to jump quickly to your favorite stations and other actions without opening the app.</string>
     <string name="changelogReliabilityPolishTitle">More stability and comfort</string>
     <string name="changelogReliabilityPolishDescription">We improved onboarding, in-app reviews and how the app handles screen edges and the keyboard for a smoother experience.</string>
+    <string name="changelogAccountLoginFixTitle">Fixed sign-in</string>
+    <string name="changelogAccountLoginFixDescription">Signing in to your account works again and syncs routines and alerts across devices.</string>
     <string name="changelogAccountRoutinesTitle">Account and monitoring routines</string>
     <string name="changelogAccountRoutinesDescription">Sign in to watch your stations with scheduled routines: pick days, time and stations, and monitoring starts 10 minutes before. Your routines sync across devices.</string>
     <string name="changelogPushAlertsTitle">Push alerts with the app closed</string>

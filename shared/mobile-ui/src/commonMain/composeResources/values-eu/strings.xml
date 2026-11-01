@@ -236,6 +236,8 @@
     <string name="changelogHomeQuickActionsDescription">iPhone-n, eduki sakatuta Bici Radar-en ikonoa zure gogoko geltokietara eta beste ekintza batzuetara azkar sartzeko, aplikazioa ireki gabe.</string>
     <string name="changelogReliabilityPolishTitle">Egonkortasun eta erosotasun gehiago</string>
     <string name="changelogReliabilityPolishDescription">Onboarding-a, aplikazioko iritziak eta ertzen eta teklatuaren kudeaketa hobetu ditugu esperientzia leunagoa izateko.</string>
+    <string name="changelogAccountLoginFixTitle">Saioa hasteko konponketa</string>
+    <string name="changelogAccountLoginFixDescription">Zure kontuarekin saioa hasteak berriro funtzionatzen du eta errutinak eta abisuak gailuen artean sinkronizatzen ditu.</string>
     <string name="changelogAccountRoutinesTitle">Kontua eta zaintza-errutinak</string>
     <string name="changelogAccountRoutinesDescription">Hasi saioa zure geltokiak errutina programatuekin zaintzeko: aukeratu egunak, ordua eta geltokiak, eta zaintza adierazitako ordua baino 10 minutu lehenago hasten da. Zure errutinak gailuen artean sinkronizatzen dira.</string>
     <string name="changelogPushAlertsTitle">Push abisuak aplikazioa itxita dagoenean</string>

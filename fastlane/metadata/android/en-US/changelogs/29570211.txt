@@ -1,0 +1,1 @@
+Fixed sign-in with your BiciRadar account. You can now sync monitoring routines and alerts across devices.

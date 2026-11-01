@@ -270,6 +270,8 @@
     <string name="changelogHomeQuickActionsDescription">En iPhone, mantén pulsado el icono de Bici Radar para acceder rápido a tus estaciones favoritas y a otras acciones sin abrir la app.</string>
     <string name="changelogReliabilityPolishTitle">Más estabilidad y comodidad</string>
     <string name="changelogReliabilityPolishDescription">Mejoramos el onboarding, las reseñas en la app y el tratamiento de bordes y teclado para una experiencia más fluida.</string>
+    <string name="changelogAccountLoginFixTitle">Inicio de sesión corregido</string>
+    <string name="changelogAccountLoginFixDescription">El inicio de sesión con tu cuenta vuelve a funcionar y sincroniza rutinas y avisos entre dispositivos.</string>
     <string name="changelogAccountRoutinesTitle">Cuenta y rutinas de vigilancia</string>
     <string name="changelogAccountRoutinesDescription">Inicia sesión para vigilar tus estaciones con rutinas programadas: elige días, hora y estaciones, y la vigilancia empieza 10 minutos antes. Tus rutinas se sincronizan entre dispositivos.</string>
     <string name="changelogPushAlertsTitle">Avisos push con la app cerrada</string>

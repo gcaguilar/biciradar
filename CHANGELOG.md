@@ -5,6 +5,25 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## 0.22.20
+
+`versionName` 0.22.20 · Android `29570211` · Wear OS `29570212` · Apple
+`29570211`.
+
+### App
+
+- **Inicio de sesión corregido**: el AAB de Play vuelve a incluir la
+  configuración del backend y de Auth0, por lo que el login y la sincronización
+  de rutinas y avisos funcionan en la versión publicada.
+
+### Release
+
+- `VERSION` y `BUILD_NUMBER` suben a 0.22.20 y 2137.
+- El workflow de Play pasa `BICI_BACKEND_URL`, `BICI_AUTH0_DOMAIN`,
+  `BICI_AUTH0_AUDIENCE` y `BICI_AUTH0_CLIENT_ID_ANDROID`, y falla antes de
+  construir si alguno falta. `bundlePlaystoreRelease` también rechaza un AAB
+  sin esa configuración. Corrige el build 0.22.19, que llegó a Play sin Auth0.
+
 ## 0.22.19
 
 `versionName` 0.22.19 · Android `29570209` · Wear OS `29570210` · Apple

@@ -1,0 +1,1 @@
+Corregido el inicio de sesión con tu cuenta de BiciRadar. Ya puedes sincronizar rutinas de vigilancia y avisos entre dispositivos.
