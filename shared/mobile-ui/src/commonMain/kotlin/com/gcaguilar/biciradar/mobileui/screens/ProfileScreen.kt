@@ -66,11 +66,14 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSetupCardBod
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSetupCardTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.rateApp
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesManage
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.selectedCity
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.settings
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcuts
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.shortcutsReviewCommands
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.system
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripRoutinesDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.viewWhatsNew
 import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -97,6 +100,7 @@ internal fun ProfileScreen(
   onShowChangelog: () -> Unit,
   onOpenOnboarding: () -> Unit,
   onOpenShortcuts: () -> Unit,
+  onOpenRoutines: () -> Unit,
   onOpenFeedback: () -> Unit,
   onRateApp: () -> Unit,
 ) {
@@ -145,6 +149,14 @@ internal fun ProfileScreen(
           description = stringResource(Res.string.shortcutsReviewCommands, mobilePlatform.profileAssistantName()),
           actionLabel = stringResource(Res.string.openShortcutsGuide),
           onAction = onOpenShortcuts,
+        )
+      }
+      item {
+        BiziSectionCard(
+          title = stringResource(Res.string.routinesTitle),
+          description = stringResource(Res.string.tripRoutinesDescription),
+          actionLabel = stringResource(Res.string.routinesManage),
+          onAction = onOpenRoutines,
         )
       }
       item {

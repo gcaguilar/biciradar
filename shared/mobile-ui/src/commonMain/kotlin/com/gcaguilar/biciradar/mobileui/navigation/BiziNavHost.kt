@@ -383,6 +383,10 @@ internal fun BiziNavHost(
           remember(navController) {
             { navController.navigate(Screen.Shortcuts) { launchSingleTop = true } }
           },
+        onOpenRoutines =
+          remember(navController) {
+            { navController.navigate(Screen.Routines) { launchSingleTop = true } }
+          },
         platformBindings = platformBindings,
         onShowChangelogManual = onShowChangelogManual,
       )

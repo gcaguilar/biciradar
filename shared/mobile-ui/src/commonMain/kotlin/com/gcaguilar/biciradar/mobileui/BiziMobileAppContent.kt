@@ -401,6 +401,7 @@ internal object BiziMobileAppContent {
     onOpenFeedback: () -> Unit = {},
     onOpenOnboarding: () -> Unit = {},
     onOpenShortcuts: () -> Unit = {},
+    onOpenRoutines: () -> Unit = {},
     onRateApp: () -> Unit = {},
   ) = ProfileScreen(
     state =
@@ -424,6 +425,7 @@ internal object BiziMobileAppContent {
     onShowChangelog = onShowChangelog,
     onOpenOnboarding = onOpenOnboarding,
     onOpenShortcuts = onOpenShortcuts,
+    onOpenRoutines = onOpenRoutines,
     onOpenFeedback = onOpenFeedback,
     onRateApp = onRateApp,
   )
@@ -437,6 +439,7 @@ internal object BiziMobileAppContent {
     onOpenShortcuts: () -> Unit,
     platformBindings: PlatformBindings,
     onShowChangelogManual: () -> Unit,
+    onOpenRoutines: () -> Unit = {},
   ) {
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
@@ -453,6 +456,7 @@ internal object BiziMobileAppContent {
       onShowChangelog = onShowChangelogManual,
       onOpenOnboarding = onOpenOnboarding,
       onOpenShortcuts = onOpenShortcuts,
+      onOpenRoutines = onOpenRoutines,
       onOpenFeedback = { platformBindings.externalLinks.openFeedbackForm() },
       onRateApp = {
         scope.launch {
