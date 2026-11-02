@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
+  alias(libs.plugins.ksp)
   alias(playstore.plugins.google.services) apply false
   alias(playstore.plugins.crash.reporting) apply false
 }
@@ -165,6 +166,12 @@ androidComponents {
   }
 }
 
+ksp {
+  // Emits a single AppFunctions inventory for the whole module, alongside the
+  // generated AppFunctionService that the manifest points at.
+  arg("appfunctions:aggregateAppFunctions", "true")
+}
+
 abstract class VerifyPlayStoreReleaseSigningTask : DefaultTask() {
   @get:Input abstract val signingAvailable: Property<Boolean>
 
@@ -244,6 +251,8 @@ dependencies {
   implementation(project(":shared:core"))
   implementation(project(":shared:mobile-ui"))
   implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.appfunctions)
+  ksp(libs.androidx.appfunctions.compiler)
   implementation(libs.androidx.fragment)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.core.splashscreen)

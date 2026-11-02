@@ -4,12 +4,14 @@ composeMultiplatform = "1.13.0-beta01"
 coroutines = "1.11.0"
 turbine = "1.2.1"
 kotlin = "2.5.0-Beta2"
+ksp = "2.3.13"
 ktor = "3.6.1"
 metro = "1.5.1"
 okio = "3.18.2"
 serialization = "1.12.0"
 sqldelight = "2.4.1"
 androidx-activity = "1.13.0"
+androidx-appfunctions = "1.0.0-beta01"
 androidx-fragment = "1.9.1"
 androidx-lifecycle = "2.11.0"
 androidx-core = "1.19.1"
@@ -38,6 +40,8 @@ auth0 = "4.3.0"
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 androidx-activity = { module = "androidx.activity:activity", version.ref = "androidx-activity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-appfunctions = { module = "androidx.appfunctions:appfunctions", version.ref = "androidx-appfunctions" }
+androidx-appfunctions-compiler = { module = "androidx.appfunctions:appfunctions-compiler", version.ref = "androidx-appfunctions" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx-fragment" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
@@ -100,6 +104,7 @@ compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMu
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
