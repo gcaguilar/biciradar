@@ -7,6 +7,25 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
 
 ## Unreleased
 
+### App
+
+- **Modo viaje**: elegir una estación en el mapa también entra en modo viaje. Las
+  rutinas y el bloque para elegir destino dejan de aparecer y una X en la tarjeta
+  de estación permite volver a planificar. "Crear rutina desde este viaje" pasa a
+  la tarjeta de estación, donde la estación ya está elegida.
+- **Viaje**: la estación elegida se actualiza con cada refresco de disponibilidad,
+  se puede cambiar la estación aunque ya haya destino, el selector de destino en
+  el mapa es accesible desde el buscador y el aviso distingue una estación no
+  disponible de una estación llena.
+- **Rutinas**: se pueden gestionar también desde Perfil, sin tener que limpiar el
+  viaje activo.
+- **Buscador de destino**: limpiar el viaje reinicia la búsqueda, y borrar y
+  volver a escribir el mismo texto lanza la búsqueda otra vez.
+- **Vigilancia**: los avisos push cierran la sesión también en el reloj y los
+  widgets; detener o limpiar un viaje solo termina la sesión de esa estación, sin
+  cortar las rutinas que vigilan otras. Si se deniegan las notificaciones, se
+  muestra el motivo en lugar de no hacer nada.
+
 ### Release
 
 - Se elimina la variante `fdroid` de `androidApp` y `wearApp`, junto con su
