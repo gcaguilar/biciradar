@@ -1,0 +1,40 @@
+BiciRadar shows the availability of public bike-sharing stations in Spanish cities
+using official GBFS feeds and open-data services such as CityBik.es. This update
+focuses on UI refinements, Home Screen and Lock Screen widgets, Live Activities for
+monitored stations, local caching, performance work and additional public data
+sources. The main user flow is unchanged.
+
+CONTENT AND MONETIZATION
+No ads, in-app purchases, subscriptions or user-generated content. The app bundles
+no advertising or third-party analytics SDKs; Firebase Crashlytics is used only for
+crash reporting.
+
+ACCOUNTS (OPTIONAL)
+Browsing the map and station list, favorites and widgets work without signing in.
+Signing in (Auth0) is only required to sync station monitoring across devices and to
+receive availability alerts while the app is closed.
+Account deletion: Profile -> Account -> Delete account. It calls DELETE /v1/me,
+removes the account data and signs the user out.
+Demo account for review: <email> / <password>
+
+LOCATION
+"When In Use" location is requested only to center the map and list nearby stations.
+It is processed on the device and is not stored or sent to our servers. The app does
+not request background location.
+
+DATA AND CACHING
+Station data from public GBFS endpoints and CityBik.es is cached locally on the
+device (SQLite) to reduce network usage and improve performance. The cache remains
+on the device.
+
+NOTIFICATIONS
+Local notifications alert the user when a monitored station changes availability.
+For signed-in users, the stations they choose to monitor (favorites and alert rules)
+and a device push token are synced to our backend so alerts can arrive when the app
+is not running. This data is used only for that purpose and never for advertising
+or tracking.
+
+REVIEWER STEPS
+1. Open the app without signing in: map, station list, favorites and widgets work.
+2. Sign in with the demo account, add a favorite or alert rule, then use
+   Profile -> Account -> Delete account to verify the account-deletion flow.
