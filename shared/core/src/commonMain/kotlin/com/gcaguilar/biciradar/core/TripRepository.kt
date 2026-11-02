@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -66,6 +67,18 @@ data class TripState(
   /** Set when the last attempt to start watching failed; nothing is being watched. */
   val monitoringFailure: TripMonitoringFailure? = null,
 )
+
+/**
+ * Reemplaza la estación elegida por su versión más reciente del listado sin
+ * perder la distancia relativa al destino. Si no hay estación o ya no aparece,
+ * el estado se queda como está.
+ */
+internal fun TripState.withFreshStation(stations: List<Station>): TripState {
+  val current = nearestStationWithSlots ?: return this
+  val fresh = stations.firstOrNull { it.id == current.id } ?: return this
+  val updated = fresh.copy(distanceMeters = current.distanceMeters)
+  return if (updated == current) this else copy(nearestStationWithSlots = updated)
+}
 
 interface TripRepository {
   val state: StateFlow<TripState>
@@ -127,6 +140,12 @@ class TripRepositoryImpl(
     }
     scope.launch {
       pushMessageBus.messages.collect(::handlePush)
+    }
+    // Mantén la estación elegida al día cuando llega un refresco de disponibilidad.
+    scope.launch {
+      stationsRepository.state.collect { stationsState ->
+        mutableState.update { it.withFreshStation(stationsState.stations) }
+      }
     }
   }
 
