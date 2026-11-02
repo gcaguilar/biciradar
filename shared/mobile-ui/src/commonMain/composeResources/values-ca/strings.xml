@@ -252,6 +252,10 @@
     <string name="changelogRoutinesMonitoringDescription">Gestiona les rutines des de Perfil i atura cada vigilància sense tallar les altres. Si es denegen les notificacions, ara veuràs el motiu.</string>
     <string name="changelogAccountDeletionTitle">Elimina el teu compte</string>
     <string name="changelogAccountDeletionDescription">Ara pots esborrar el teu compte i les seves dades des de Perfil, tal com exigeixen l\'App Store i Google Play. L\'app t\'avisa si falla la connexió perquè ho puguis tornar a provar.</string>
+    <string name="changelogWatchRouteTitle">Ruta des del rellotge</string>
+    <string name="changelogWatchRouteDescription">Obre la ruta a una estació al mòbil des de la fitxa del rellotge: el Maps arrenca al telèfon amb la destinació a punt.</string>
+    <string name="changelogFavoritesSyncTitle">Favorites sempre en sintonia</string>
+    <string name="changelogFavoritesSyncDescription">Els canvis de favorites entre mòbil i rellotge s\'apliquen a l\'instant, també en treure una estació o canviar Casa i Feina.</string>
     <string name="changelogTripFlowTitle">Mode de desplaçament des del mapa</string>
     <string name="changelogTripFlowDescription">Tria una estació al mapa per entrar en el mode de desplaçament, canvia de destinació quan vulguis i crea una rutina des del desplaçament.</string>
     <string name="changelogPlatformUpdateDescription">Compatible amb Android 17 (API 37) al mòbil i al rellotge, amb Compose Multiplatform, Kotlin i la resta de llibreries actualitzades. A més, els enllaços de l'aplicació només s'obren per als seus propis dominis.</string>

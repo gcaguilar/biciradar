@@ -5,6 +5,30 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## 0.23.2
+
+`versionName` 0.23.2 · Android `29570221` · Wear OS `29570222` · Apple
+`29570221`.
+
+### App
+
+- **Reloj**: la ficha de una estación permite abrir la ruta en el teléfono. Maps
+  arranca en el móvil con el destino listo y el reloj muestra el progreso.
+- **Favoritas**: la sincronización entre móvil y reloj se aplica al instante,
+  también al quitar una estación o cambiar Casa y Trabajo, y despierta el proceso
+  del otro dispositivo aunque la app esté cerrada.
+
+### Release
+
+- `VERSION` y `BUILD_NUMBER` suben a 0.23.2 y 2147. `tooling/project/bump_version.sh`
+  deja Android e iOS en `29570221` y Wear OS en `29570222`.
+- Notas de Play para `29570221` (móvil) y `29570222` (Wear OS).
+- Integración interna: los bridges de DataLayer dejan de bloquear el hilo
+  principal, el snapshot de favoritas viaja como JSON completo con `updatedAt` y
+  merge last-writer-wins, y ambas apps reaccionan a los cambios mediante
+  `DATA_CHANGED`. La ruta del reloj al móvil usa RemoteIntents, por lo que ya no
+  depende de lanzar una actividad desde segundo plano.
+
 ## 0.23.1
 
 `versionName` 0.23.1 · Android `29570217` · Wear OS `29570218` · Apple

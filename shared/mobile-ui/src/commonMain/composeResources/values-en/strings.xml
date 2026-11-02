@@ -285,6 +285,10 @@
     <string name="changelogRoutinesMonitoringDescription">Manage routines from Profile and stop each monitoring session without cutting the others. If notifications are denied, you now see why.</string>
     <string name="changelogAccountDeletionTitle">Delete your account</string>
     <string name="changelogAccountDeletionDescription">You can now delete your account and its data from Profile, as required by the App Store and Google Play. The app warns you if the connection fails so you can retry.</string>
+    <string name="changelogWatchRouteTitle">Route from your watch</string>
+    <string name="changelogWatchRouteDescription">Start the route to a station on your phone from the watch station card: Maps opens on the phone with the destination ready.</string>
+    <string name="changelogFavoritesSyncTitle">Favorites always in sync</string>
+    <string name="changelogFavoritesSyncDescription">Favorite changes between phone and watch apply immediately, including removing a station or changing Home and Work.</string>
     <string name="changelogTripFlowTitle">Trip mode from the map</string>
     <string name="changelogTripFlowDescription">Pick a station on the map to enter trip mode, change the destination whenever you want and create a routine from the trip.</string>
     <string name="changelogPlatformUpdateDescription">Compatible with Android 17 (API 37) on phone and watch, with Compose Multiplatform, Kotlin and the rest of the libraries updated. App links now only open for the app's own domains.</string>

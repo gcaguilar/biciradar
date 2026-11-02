@@ -286,6 +286,10 @@
     <string name="changelogRoutinesMonitoringDescription">Xestiona as rutinas desde Perfil e detén cada vixilancia sen cortar as demais. Se se denegan as notificacións, agora verás o motivo.</string>
     <string name="changelogAccountDeletionTitle">Elimina a túa conta</string>
     <string name="changelogAccountDeletionDescription">Agora podes borrar a túa conta e os seus datos desde Perfil, tal como esixen a App Store e Google Play. A app avísache se falla a conexión para que poidas reintentalo.</string>
+    <string name="changelogWatchRouteTitle">Ruta desde o reloxo</string>
+    <string name="changelogWatchRouteDescription">Abre a ruta a unha estación no móbil desde a ficha do reloxo: Maps arrinca no teléfono co destino listo.</string>
+    <string name="changelogFavoritesSyncTitle">Favoritas sempre en sintonía</string>
+    <string name="changelogFavoritesSyncDescription">Os cambios de favoritas entre móbil e reloxo aplícanse ao momento, tamén ao quitar unha estación ou cambiar Casa e Traballo.</string>
     <string name="changelogTripFlowTitle">Modo de viaxe desde o mapa</string>
     <string name="changelogTripFlowDescription">Escolle unha estación no mapa para entrar no modo de viaxe, cambia de destino cando queiras e crea unha rutina desde a viaxe.</string>
     <string name="changelogPlatformUpdateDescription">Compatible con Android 17 (API 37) no móbil e no reloxo, con Compose Multiplatform, Kotlin e o resto de librarías actualizadas. Ademais, as ligazóns da app só se abren para os seus propios dominios.</string>

@@ -1,0 +1,1 @@
+Abre la ruta a una estación en el teléfono desde la ficha del reloj. Las favoritas se sincronizan al instante con el móvil, también al quitarlas.

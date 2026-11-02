@@ -1,0 +1,1 @@
+Las favoritas y el reloj vuelven a estar en sintonía: los cambios se aplican al instante, también al quitar una estación o cambiar Casa y Trabajo. Incluye mejoras internas de estabilidad.
