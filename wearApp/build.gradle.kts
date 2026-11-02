@@ -1,3 +1,4 @@
+import com.android.build.api.variant.HostTestBuilder
 import java.util.Properties
 
 plugins {
@@ -115,6 +116,19 @@ android {
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
+  }
+}
+
+androidComponents {
+  beforeVariants { variantBuilder ->
+    // AGP registers Compose preview runfiles for every Compose variant, but it
+    // disables host unit tests on release variants and excludes Android
+    // resources from them. Compose preview needs both, otherwise creating any
+    // preview task fails (and `./gradlew tasks` with it).
+    variantBuilder.hostTests[HostTestBuilder.UNIT_TEST_TYPE]?.apply {
+      enable = true
+      includeAndroidResources = true
+    }
   }
 }
 
