@@ -160,6 +160,8 @@
     <string name="tripSubtitle">Find where to leave your bike near your destination and monitor that station until you arrive.</string>
     <string name="tripStationFull">Station full</string>
     <string name="tripStationNoLongerHasSlots">"%1$s" no longer has free slots.</string>
+    <string name="tripStationUnavailable">Station unavailable</string>
+    <string name="tripStationUnavailableDescription">"%1$s" is no longer available.</string>
     <string name="tripSuggestedAlternative">Suggested alternative: %1$s · %2$s — %3$s slots.</string>
     <string name="tripNoNearbyAlternative">No nearby alternative with free slots was found.</string>
     <string name="tripMonitoringSignInRequired">Sign in to watch the station.</string>

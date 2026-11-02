@@ -161,6 +161,8 @@
     <string name="tripSubtitle">Atopa onde deixar a bici preto do teu destino e vixía a estación ata chegar.</string>
     <string name="tripStationFull">Estación chea</string>
     <string name="tripStationNoLongerHasSlots">"%1$s" xa non ten prazas libres.</string>
+    <string name="tripStationUnavailable">Estación non dispoñible</string>
+    <string name="tripStationUnavailableDescription">"%1$s" xa non está operativa.</string>
     <string name="tripSuggestedAlternative">Alternativa suxerida: %1$s · %2$s m — %3$s prazas.</string>
     <string name="tripNoNearbyAlternative">Non se atopou alternativa próxima con prazas.</string>
     <string name="tripMonitoringSignInRequired">Inicia sesión para vixiar a estación.</string>

@@ -55,6 +55,8 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripNoNearbyAlterna
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripRoutinesDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationFull
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationNoLongerHasSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationUnavailable
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationUnavailableDescription
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedAlternative
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.whereAreYouGoing
@@ -145,6 +147,7 @@ internal fun TripScreen(
       }
 
       state.alert?.let { alert ->
+        val stationUnavailable = alert.event == "STATION_UNAVAILABLE"
         item("alert") {
           BiziStatusCard(
             tint = colors.red,
@@ -157,14 +160,22 @@ internal fun TripScreen(
             ) {
               Icon(Icons.Filled.Sync, contentDescription = null, tint = colors.red)
               Text(
-                text = stringResource(Res.string.tripStationFull),
+                text =
+                  stringResource(
+                    if (stationUnavailable) Res.string.tripStationUnavailable else Res.string.tripStationFull,
+                  ),
                 style = MaterialTheme.typography.titleMedium,
                 color = colors.red,
                 fontWeight = FontWeight.Bold,
               )
             }
             Text(
-              text = stringResource(Res.string.tripStationNoLongerHasSlots, alert.fullStation.name),
+              text =
+                if (stationUnavailable) {
+                  stringResource(Res.string.tripStationUnavailableDescription, alert.fullStation.name)
+                } else {
+                  stringResource(Res.string.tripStationNoLongerHasSlots, alert.fullStation.name)
+                },
               style = MaterialTheme.typography.bodyMedium,
             )
             alert.alternativeStation?.let { alternativeStation ->

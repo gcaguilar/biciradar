@@ -161,6 +161,8 @@
     <string name="tripSubtitle">Encuentra dónde dejar la bici cerca de tu destino y vigila la estación hasta llegar.</string>
     <string name="tripStationFull">Estación llena</string>
     <string name="tripStationNoLongerHasSlots">"%1$s" ya no tiene plazas libres.</string>
+    <string name="tripStationUnavailable">Estación no disponible</string>
+    <string name="tripStationUnavailableDescription">"%1$s" ya no está operativa.</string>
     <string name="tripSuggestedAlternative">Alternativa sugerida: %1$s · %2$s m — %3$s plazas.</string>
     <string name="tripNoNearbyAlternative">No se encontró alternativa cercana con plazas.</string>
     <string name="tripMonitoringSignInRequired">Inicia sesión para vigilar la estación.</string>

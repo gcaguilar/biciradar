@@ -37,6 +37,8 @@ data class TripAlert(
   val fullStation: Station,
   val alternativeStation: Station?,
   val alternativeDistanceMeters: Int?,
+  /** Backend event that ended the window, e.g. `DOCKS_EMPTY` or `STATION_UNAVAILABLE`. */
+  val event: String = "",
 )
 
 data class TripMonitoringState(
@@ -342,6 +344,7 @@ class TripRepositoryImpl(
             fullStation = fullStation,
             alternativeStation = alternative,
             alternativeDistanceMeters = message.alternative?.distanceMeters,
+            event = message.event,
           ),
       )
     }
