@@ -226,24 +226,6 @@ internal fun TripScreen(
               Spacer(Modifier.width(8.dp))
               Text(stringResource(Res.string.routinesManage))
             }
-            OutlinedButton(
-              onClick = {
-                val station = state.nearestStationWithSlots ?: return@OutlinedButton
-                val now = currentLocalTimeSnapshot()
-                val travelMinutes = ((state.distanceToStation ?: 0) / 250) + 5
-                val totalMinutes = now.hour * 60 + travelMinutes
-                onCreateRoutineFromTrip(
-                  station.id,
-                  station.name,
-                  (totalMinutes / 60).mod(24),
-                  totalMinutes % 60,
-                )
-              },
-              enabled = state.nearestStationWithSlots != null,
-              modifier = Modifier.fillMaxWidth(),
-            ) {
-              Text(stringResource(Res.string.tripCreateRoutineFromTrip))
-            }
           }
         }
       }
@@ -427,6 +409,42 @@ internal fun TripScreen(
               )
               Spacer(Modifier.width(8.dp))
               Text(stringResource(Res.string.tripBikeRouteAction))
+            }
+            OutlinedButton(
+              onClick = {
+                val now = currentLocalTimeSnapshot()
+                val travelMinutes = ((state.distanceToStation ?: 0) / 250) + 5
+                val totalMinutes = now.hour * 60 + travelMinutes
+                onCreateRoutineFromTrip(
+                  suggestedStation.id,
+                  suggestedStation.name,
+                  (totalMinutes / 60).mod(24),
+                  totalMinutes % 60,
+                )
+              },
+              modifier = Modifier.fillMaxWidth(),
+            ) {
+              Icon(
+                imageVector = Icons.Filled.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(Res.string.tripCreateRoutineFromTrip))
+            }
+            if (state.destination != null) {
+              OutlinedButton(
+                onClick = onOpenStationPicker,
+                modifier = Modifier.fillMaxWidth(),
+              ) {
+                Icon(
+                  imageVector = Icons.Filled.Map,
+                  contentDescription = null,
+                  modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(Res.string.tripMapStationAction))
+              }
             }
           }
         }
