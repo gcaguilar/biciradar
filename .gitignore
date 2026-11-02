@@ -52,10 +52,6 @@ eminent-ellipse/.vscode/
 **/.settings/
 **/.classpath
 
-# Garmin Connect IQ
-garminApp/bin/
-garminApp/gen/
-
 # Backend lives in its own private repository (gcaguilar/biciradar-back)
 # Anchored to the repository root: a bare `backend/` would also hide the app's
 # `shared/core/.../core/backend/` package.
@@ -65,13 +61,6 @@ garminApp/gen/
 bin/
 gen/
 apple/watchApp/plan.md
-
-# Garmin developer key
-**/developer_key
-
-# VS Code settings (per-project)
-.garmin.vscode/
-garminApp/.vscode/settings.json
 
 .pycache/
 codex-skills/

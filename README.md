@@ -96,8 +96,8 @@ The repository already includes safe fallbacks when Firebase files are missing o
 Main workflow: `.github/workflows/build.yml`.
 
 It runs on `push` to `main`, `pull_request`, and manual dispatch, and skips
-documentation-only, Play metadata, Fastlane, landing, and Garmin changes. Jobs
-run in parallel:
+documentation-only, Play metadata, Fastlane, and landing changes. Jobs run in
+parallel:
 
 - `changes`: detects whether the watchOS inputs changed.
 - `lint`: `ktlintCheckAll`.

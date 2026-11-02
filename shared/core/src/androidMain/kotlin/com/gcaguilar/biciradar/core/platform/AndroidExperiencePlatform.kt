@@ -56,7 +56,7 @@ internal class AndroidPermissionPrompter(
 }
 
 /**
- * F-Droid fallback: there is no Play In-App Review API available, so the automatic in-app
+ * Fallback prompter for builds without the Play In-App Review API: the automatic in-app
  * prompt is a no-op instead of unexpectedly opening the store listing. The manual Profile CTA
  * goes through [requestInAppReviewOrStoreFallback] / [openStoreWriteReview].
  */
