@@ -329,7 +329,7 @@ internal fun TripScreen(
       if (destinationForRoute != null && suggestedStation != null && !state.isSearchingStation) {
         item("route-flow") {
           val walkingMinutes =
-            remember(suggestedStation.id, destinationForRoute.name) {
+            remember(suggestedStation.id, destinationForRoute.location) {
               val meters = distanceBetween(suggestedStation.location, destinationForRoute.location)
               (meters / 80).coerceAtLeast(1)
             }
