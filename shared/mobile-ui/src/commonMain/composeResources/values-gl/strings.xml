@@ -282,6 +282,10 @@
     <string name="changelogTripDestinationsTitle">Destinos favoritos no modo viaxe</string>
     <string name="changelogTripDestinationsDescription">Escolle unha estación favorita como destino da viaxe e oculta os bloques que xa non necesitas. Se a vixilancia non pode comezar, agora veralo no canto dunha conta atrás baleira.</string>
     <string name="changelogPlatformUpdateTitle">Android 17 e dependencias actualizadas</string>
+    <string name="changelogRoutinesMonitoringTitle">Rutinas e vixilancia máis claras</string>
+    <string name="changelogRoutinesMonitoringDescription">Xestiona as rutinas desde Perfil e detén cada vixilancia sen cortar as demais. Se se denegan as notificacións, agora verás o motivo.</string>
+    <string name="changelogTripFlowTitle">Modo de viaxe desde o mapa</string>
+    <string name="changelogTripFlowDescription">Escolle unha estación no mapa para entrar no modo de viaxe, cambia de destino cando queiras e crea unha rutina desde a viaxe.</string>
     <string name="changelogPlatformUpdateDescription">Compatible con Android 17 (API 37) no móbil e no reloxo, con Compose Multiplatform, Kotlin e o resto de librarías actualizadas. Ademais, as ligazóns da app só se abren para os seus propios dominios.</string>
     <string name="destinationPlaceholder">Escribe un enderezo ou lugar</string>
     <string name="clear">Borrar</string>

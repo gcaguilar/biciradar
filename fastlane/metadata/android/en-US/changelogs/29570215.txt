@@ -1,0 +1,1 @@
+Trip mode now starts when you pick a station on the map, lets you change the destination and create a routine from the trip. Manage routines from Profile, and each monitoring session stops only its own station. If notifications are denied, you now see why.

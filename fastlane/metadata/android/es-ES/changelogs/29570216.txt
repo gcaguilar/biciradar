@@ -1,0 +1,1 @@
+Inicia sesión y gestiona tus rutinas de vigilancia también desde el reloj. Los avisos push cierran la vigilancia en el reloj y cada sesión se detiene solo en su estación, sin cortar las demás.

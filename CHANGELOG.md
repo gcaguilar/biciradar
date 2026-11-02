@@ -5,7 +5,10 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
-## Unreleased
+## 0.23.0
+
+`versionName` 0.23.0 · Android `29570215` · Wear OS `29570216` · Apple
+`29570215`.
 
 ### App
 
@@ -32,6 +35,10 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
   implementación de mapas OpenStreetMap (`osmdroid`), el workflow de
   publicación, los metadatos de F-Droid y las notas de envío. El flavor
   `playstore` se mantiene sin cambios.
+- `VERSION` y `BUILD_NUMBER` suben a 0.23.0 y 2141. `tooling/project/bump_version.sh`
+  deja Android e iOS en `29570215` y Wear OS en `29570216`.
+- Notas de Play para `29570215` (móvil) y `29570216` (Wear OS) y notas de la
+  App Store para iPhone y Apple Watch.
 
 ## 0.22.21
 

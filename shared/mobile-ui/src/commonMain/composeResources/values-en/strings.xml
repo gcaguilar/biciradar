@@ -281,6 +281,10 @@
     <string name="changelogTripDestinationsTitle">Favorite destinations in trip mode</string>
     <string name="changelogTripDestinationsDescription">Pick a favorite station as your trip destination and hide the blocks you no longer need. If watching cannot start, you now see it instead of an empty countdown.</string>
     <string name="changelogPlatformUpdateTitle">Android 17 and updated dependencies</string>
+    <string name="changelogRoutinesMonitoringTitle">Clearer routines and monitoring</string>
+    <string name="changelogRoutinesMonitoringDescription">Manage routines from Profile and stop each monitoring session without cutting the others. If notifications are denied, you now see why.</string>
+    <string name="changelogTripFlowTitle">Trip mode from the map</string>
+    <string name="changelogTripFlowDescription">Pick a station on the map to enter trip mode, change the destination whenever you want and create a routine from the trip.</string>
     <string name="changelogPlatformUpdateDescription">Compatible with Android 17 (API 37) on phone and watch, with Compose Multiplatform, Kotlin and the rest of the libraries updated. App links now only open for the app's own domains.</string>
     <string name="destinationPlaceholder">Type an address or place</string>
     <string name="clear">Clear</string>

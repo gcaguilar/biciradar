@@ -1,0 +1,1 @@
+El modo viaje se activa también al elegir una estación en el mapa, permite cambiar de destino y crear una rutina desde el viaje. Las rutinas se gestionan desde Perfil y cada vigilancia se detiene solo en su estación. Si faltan permisos de notificaciones, ahora verás el motivo.
