@@ -1,0 +1,1 @@
+Sign-in now works in the Play build. Sync your monitoring routines and alerts across devices.

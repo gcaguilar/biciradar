@@ -14,6 +14,27 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
   publicación, los metadatos de F-Droid y las notas de envío. El flavor
   `playstore` se mantiene sin cambios.
 
+## 0.22.21
+
+`versionName` 0.22.21 · Android `29570213` · Wear OS `29570214` · Apple
+`29570213`.
+
+### App
+
+- **Inicio de sesión corregido en producción**: el AAB de Play apunta otra vez
+  al tenant de Auth0 correcto (`dev-8nf57og7xa3urr1i`), que ya tiene
+  registradas las callback URLs de Android e iOS.
+
+### Release
+
+- `VERSION` y `BUILD_NUMBER` suben a 0.22.21 y 2139.
+- Los secretos `BICI_AUTH0_DOMAIN` y `BICI_AUTH0_CLIENT_ID_ANDROID` dejan de
+  apuntar al tenant `dev-tbwmrj5wi0ecsgfy`; `BICI_AUTH0_AUDIENCE` vuelve a
+  `https://api.datosbizi.com`.
+- `publish-ios-store.yml` escribe backend, Auth0 y esquema en
+  `apple/Config/LocalSecrets.xcconfig` y falla si faltan, en lugar de generar un
+  archive sin login.
+
 ## 0.22.20
 
 `versionName` 0.22.20 · Android `29570211` · Wear OS `29570212` · Apple

@@ -80,8 +80,38 @@ jobs:
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_IOS }}
+          BICI_BACKEND_URL: ${{ secrets.BICI_BACKEND_URL }}
+          BICI_AUTH0_DOMAIN: ${{ secrets.BICI_AUTH0_DOMAIN }}
+          BICI_AUTH0_CLIENT_ID: ${{ secrets.BICI_AUTH0_CLIENT_ID_IOS }}
+          BICI_AUTH0_AUDIENCE: ${{ secrets.BICI_AUTH0_AUDIENCE }}
         run: |
-          printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY" > apple/Config/LocalSecrets.xcconfig
+          missing=()
+          for name in BICI_BACKEND_URL BICI_AUTH0_DOMAIN BICI_AUTH0_CLIENT_ID BICI_AUTH0_AUDIENCE; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf '::error::Missing required iOS release secrets: %s\n' "${missing[*]}"
+            echo "An App Store build without backend/Auth0 configuration ships with sign-in and sync disabled."
+            exit 1
+          fi
+
+          # xcconfig treats `//` as the start of a comment, so URLs have to be
+          # written as `https:/$()/host`; `$()` expands to nothing at build time.
+          escape_xcconfig_url() {
+            printf '%s' "$1" | sed 's|//|/$()/|'
+          }
+
+          {
+            printf 'GOOGLE_MAPS_IOS_API_KEY = %s\n' "$GOOGLE_MAPS_API_KEY"
+            printf 'BICI_BACKEND_URL = %s\n' "$(escape_xcconfig_url "$BICI_BACKEND_URL")"
+            printf 'BICI_AUTH0_DOMAIN = %s\n' "$BICI_AUTH0_DOMAIN"
+            printf 'BICI_AUTH0_CLIENT_ID = %s\n' "$BICI_AUTH0_CLIENT_ID"
+            printf 'BICI_AUTH0_AUDIENCE = %s\n' "$(escape_xcconfig_url "$BICI_AUTH0_AUDIENCE")"
+            printf 'BICI_AUTH0_SCHEME = biciradar\n'
+          } > apple/Config/LocalSecrets.xcconfig
+
           if [[ -n "$GOOGLE_SERVICE_INFO_PLIST" ]]; then
             printf '%s' "$GOOGLE_SERVICE_INFO_PLIST" > apple/iosApp/GoogleService-Info.plist
           fi

@@ -1,0 +1,1 @@
+Correcciones y mejoras de estabilidad para la vigilancia y la sincronización de la cuenta.
