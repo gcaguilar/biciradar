@@ -32,10 +32,10 @@ platform apps --------------------> shared/core
   run Swift export for the iPhone (`Core` + `MobileUi`) and the Apple Watch
   (`Core` only). Xcode builds them through `embedSwiftExportForXcode`.
 - `shared/test-utils`: reusable test fixtures and helpers.
-- `androidApp`: Android phone shell and Android-only integrations. It has a
-  `playstore` product flavor.
-- `wearApp`: Compose for Wear OS, including watch-specific surfaces. It has a
-  `playstore` product flavor.
+- `androidApp`: Android phone shell and Android-only integrations. Its only
+  product flavor is `playstore`.
+- `wearApp`: Compose for Wear OS, including watch-specific surfaces. Its only
+  product flavor is `playstore`.
 - `apple`: XcodeGen project definition plus SwiftUI/App Intents code for iOS,
   watchOS, widgets, shortcuts, and Apple-specific integrations.
 - `desktopApp`: desktop target. Treat it as experimental and inspect its
@@ -54,8 +54,8 @@ platform apps --------------------> shared/core
 - `landing` and `eminent-ellipse`: independent Node-based work areas. Read each
   directory's manifest and documentation before changing it; do not apply the
   Gradle workflow to them.
-- `fastlane`, `metadata`, `VERSION`, and `BUILD_NUMBER`: store-distribution and
-  release inputs. Do not update them casually.
+- `fastlane`, `VERSION`, and `BUILD_NUMBER`: store-distribution and release
+  inputs. Do not update them casually.
 
 Core technologies include Kotlin Multiplatform, Compose Multiplatform, Compose
 for Wear OS, SwiftUI, App Intents, Ktor, Kotlin serialization, SQLDelight, and
@@ -84,11 +84,17 @@ crosses modules or platform boundaries.
 ```bash
 ./gradlew :shared:core:jvmTest
 ./gradlew :shared:mobile-ui:compileKotlinIosSimulatorArm64
-./gradlew :androidApp:compileDebugKotlinAndroid
-./gradlew :wearApp:compileDebugKotlinAndroid
+./gradlew :androidApp:compilePlaystoreDebugKotlin
+./gradlew :wearApp:compilePlaystoreDebugKotlin
 ./gradlew ktlintCheckAll
 ./gradlew build
 ```
+
+Android and Wear tasks are flavor-qualified because `playstore` is the only
+flavor: compilation is `:androidApp:compilePlaystoreDebugKotlin` and unit tests
+are `:androidApp:testPlaystoreDebugUnitTest` (same pattern for `:wearApp:`).
+CI installs Temurin JDK 21 through `.github/actions/setup-build`; match that
+version locally to reproduce a CI failure.
 
 Apply Kotlin formatting only when needed:
 
@@ -104,9 +110,24 @@ For device and simulator smoke tests, use the repository helper:
 ```bash
 ./tooling/project/run_smoke.sh
 ./tooling/project/run_smoke.sh android-assistant emulator-5554
-./tooling/project/run_smoke.sh ios "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
-./tooling/project/run_smoke.sh watchos "platform=watchOS Simulator,name=Apple Watch Series 11 (46mm),OS=26.2"
+./tooling/project/run_smoke.sh ios
+./tooling/project/run_smoke.sh watchos
 ```
+
+For Apple targets the destination argument is optional: the script falls back to
+`tooling/generic-mobile-ci/resolve_xcode_destination.sh`, which lists the
+available simulators and picks the newest runtime and preferred device. Only
+pass an explicit destination when you need to pin one:
+
+```bash
+./tooling/project/run_smoke.sh ios "platform=iOS Simulator,name=iPhone 18 Pro,OS=27.0"
+./tooling/project/run_smoke.sh watchos "platform=watchOS Simulator,name=Apple Watch Series 12 (46mm),OS=27.0"
+```
+
+Take names from `xcrun simctl list devices available` on the machine you are
+using. The CI image (`xcode-27`) ships iOS 27 and watchOS 27 simulators, so
+device names from older Xcode versions (for example `iPhone 17 Pro`,
+`OS=26.2`) do not exist there.
 
 Smoke-test destinations are examples and depend on locally installed runtimes.
 Apple builds and smoke tests require macOS, Xcode, and the expected simulator.
@@ -119,8 +140,8 @@ Validation expectations by change type:
 | --- | --- |
 | Shared core logic | `:shared:core:jvmTest` plus affected target compilation |
 | Shared Compose UI | relevant shared UI compilation plus one consuming app build |
-| Android phone | affected flavor unit tests or compilation |
-| Wear OS | Wear compilation and a watch smoke test when available |
+| Android phone | `:androidApp:testPlaystoreDebugUnitTest` or `:androidApp:compilePlaystoreDebugKotlin` |
+| Wear OS | `:wearApp:compilePlaystoreDebugKotlin` and a watch smoke test when available |
 | Apple bridge/contracts | iOS and watchOS framework/app compilation on macOS |
 | Formatting/build logic | `ktlintCheckAll` and the affected Gradle task |
 | Release/CI | targeted workflow or helper validation and documentation review |
@@ -151,7 +172,7 @@ reserve device tests for actual platform integration.
 ## Flavor and Service Boundaries
 
 - `playstore` uses Firebase/Crashlytics, Google Maps, Google Play Services,
-  wearable sync, and Garmin integrations where configured.
+  and wearable sync.
 - Keep Play-only imports and dependencies inside the `playstore` source set.
   Never make common code reference a class supplied only by a Play dependency.
 - Do not assume secrets or vendor configuration files exist. Android and Wear
@@ -176,9 +197,35 @@ reserve device tests for actual platform integration.
 
 ## CI and Releases
 
-The main workflow is `.github/workflows/build.yml`. It validates Android,
-iPhone, and Apple Watch in parallel and publishes debug/simulator artifacts;
-signed Apple artifacts and Firebase distribution are conditional on secrets.
+The workflows live in `.github/workflows`:
+
+- `build.yml` is the main validation pipeline. It runs Android unit tests (plus
+  a signed Play Store build on `main`), builds iOS tests on pull requests and
+  runs them on `main`, and runs watchOS tests when Apple, shared, Wear, Gradle,
+  or workflow inputs change (the `changes` job decides). Failed runs upload
+  test reports as artifacts; no debug or simulator builds are published.
+- `publish-play.yml` (manual dispatch) builds signed phone and Wear AABs,
+  uploads them as artifacts, and publishes them to Play.
+- `publish-ios-store.yml` (manual dispatch) builds, signs, and uploads the IPA
+  to App Store Connect, keeping the IPA as an artifact.
+- `deploy-landing.yml` builds `landing/` and deploys it to GitHub Pages.
+
+Shared toolchain setup for the Gradle jobs lives in `.github/actions/setup-build`
+(Temurin JDK, Android SDK, Gradle caching). Change it there instead of
+duplicating steps per job.
+
+Runner policy:
+
+| Runner | Use it for |
+| --- | --- |
+| `ubuntu-slim` | Lightweight jobs only: diffing, shell/`jq` validation, the landing Node build, and the Pages deploy. It has 1 CPU, 5 GB RAM, an unprivileged container (no Docker-in-Docker, no privileged mounts) and a **hard 15-minute job limit**, so keep `timeout-minutes` at 10 or below. |
+| `ubuntu-24.04` | Anything that runs Gradle, needs the Android SDK, or can exceed ~10 minutes: Android tests and release build, `ktlintCheckAll`, Play publishing. |
+| `xcode-27` | Every Apple job (iOS, watchOS, App Store publishing). It deliberately uses the image's default Xcode instead of pinning one with `xcode-select`, so the compiler changes when GitHub updates the image; log it with `xcodebuild -version` rather than pinning it. |
+
+Do not move a Gradle or Android job to `ubuntu-slim` to save capacity: the
+15-minute cap and 5 GB of RAM make those builds fail, not merely slower. Apple
+DerivedData cache keys include the Xcode generation (`xcode27`) so artifacts
+from an older Xcode image are never reused.
 
 Before changing CI or release behavior, read:
 
@@ -199,7 +246,8 @@ versioning, and Apple project settings; follow `RELEASE.md` as the authority.
 - All affected implementations and call sites were updated.
 - Targeted tests or compilation passed.
 - Ktlint passed for Kotlin changes.
-- F-Droid isolation still holds when relevant.
+- Play-only code stays inside the `playstore` source set.
+- New or changed CI jobs follow the runner policy in "CI and Releases".
 - No secrets, local SDK paths, signing files, or generated build output were
   added.
 - User and technical documentation were updated when behavior or workflow
