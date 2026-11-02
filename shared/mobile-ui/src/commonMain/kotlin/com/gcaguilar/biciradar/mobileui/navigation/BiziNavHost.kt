@@ -334,6 +334,14 @@ internal fun BiziNavHost(
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
         onBack = remember(navController) { { navController.popBackStack() } },
+        onOpenMapPicker =
+          remember(navController) {
+            {
+              navController.navigate(Screen.TripMapPicker(TripMapPickerMode.Destination.name)) {
+                popUpTo<Screen.TripDestinationSearch> { inclusive = true }
+              }
+            }
+          },
       )
     }
 

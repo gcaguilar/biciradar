@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -57,6 +58,7 @@ internal fun TripDestinationSearchScreen(
   mobilePlatform: MobileUiPlatform,
   paddingValues: PaddingValues,
   onBack: () -> Unit,
+  onOpenMapPicker: () -> Unit,
   onQueryChange: (String) -> Unit,
   onSuggestionSelected: (com.gcaguilar.biciradar.core.geo.GeoResult) -> Unit,
   onFavoriteSelected: (Station) -> Unit,
@@ -84,6 +86,14 @@ internal fun TripDestinationSearchScreen(
             Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = stringResource(Res.string.back),
+            )
+          }
+        },
+        actions = {
+          IconButton(onClick = onOpenMapPicker) {
+            Icon(
+              imageVector = Icons.Filled.Map,
+              contentDescription = stringResource(Res.string.tripMapDestinationTitle),
             )
           }
         },

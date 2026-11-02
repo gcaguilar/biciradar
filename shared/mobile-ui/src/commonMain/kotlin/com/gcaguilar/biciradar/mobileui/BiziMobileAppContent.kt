@@ -102,6 +102,7 @@ internal object BiziMobileAppContent {
     mobilePlatform: MobileUiPlatform,
     paddingValues: PaddingValues,
     onBack: () -> Unit,
+    onOpenMapPicker: () -> Unit,
   ) {
     val state by viewModel.uiState.collectAsState()
     TripDestinationSearchScreen(
@@ -109,6 +110,7 @@ internal object BiziMobileAppContent {
       mobilePlatform = mobilePlatform,
       paddingValues = paddingValues,
       onBack = onBack,
+      onOpenMapPicker = onOpenMapPicker,
       onQueryChange = viewModel::onQueryChange,
       onSuggestionSelected = viewModel::onSuggestionSelected,
       onFavoriteSelected = viewModel::onFavoriteDestinationSelected,

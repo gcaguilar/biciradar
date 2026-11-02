@@ -89,6 +89,7 @@ internal fun ScreenContent(
         mobilePlatform = mobilePlatform,
         paddingValues = PaddingValues(),
         onBack = onBack,
+        onOpenMapPicker = { onNavigate(Screen.TripMapPicker(TripMapPickerMode.Destination.name)) },
       )
     }
 
