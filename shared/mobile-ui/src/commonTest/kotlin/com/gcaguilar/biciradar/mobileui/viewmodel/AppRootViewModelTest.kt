@@ -736,6 +736,8 @@ private class AppRootFakeSurfaceMonitoringRepository : SurfaceMonitoringReposito
 
   override suspend fun clearMonitoring() = Unit
 
+  override suspend fun applyRemoteSessions(sessions: List<SurfaceMonitoringSession>) = Unit
+
   override fun sessionFor(stationId: String): SurfaceMonitoringSession? = state.value[stationId]
 
   override fun activeSessions(): List<SurfaceMonitoringSession> = state.value.values.filter { it.isActive }

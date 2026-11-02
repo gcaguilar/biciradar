@@ -434,6 +434,8 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     mutableState.value = emptyMap()
   }
 
+  override suspend fun applyRemoteSessions(sessions: List<SurfaceMonitoringSession>) = Unit
+
   override fun sessionFor(stationId: String): SurfaceMonitoringSession? = mutableState.value[stationId]
 
   override fun activeSessions(): List<SurfaceMonitoringSession> = mutableState.value.values.filter { it.isActive }

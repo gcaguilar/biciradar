@@ -25,10 +25,18 @@ data class WatchMonitoringResultPayload(
   val failure: String? = null,
 )
 
+/** Sesiones activas del teléfono, para espejarlas en el reloj. */
+@Serializable
+data class WatchMonitoringSessionsPayload(
+  val updatedAt: Long,
+  val sessions: List<SurfaceMonitoringSession>,
+)
+
 /** Serialización y rutas de los mensajes Wearable entre reloj y teléfono. */
 object WatchMonitoringProtocol {
   const val COMMAND_PATH = "/bici/monitoring-command"
   const val RESULT_PATH = "/bici/monitoring-result"
+  const val SESSIONS_PATH = "/bizi/monitoring-sessions"
 
   const val ACTION_START = "start"
   const val ACTION_STOP = "stop"
@@ -49,5 +57,13 @@ object WatchMonitoringProtocol {
   fun decodeResult(bytes: ByteArray): WatchMonitoringResultPayload? =
     runCatching {
       json.decodeFromString(WatchMonitoringResultPayload.serializer(), bytes.decodeToString())
+    }.getOrNull()
+
+  fun encodeSessions(payload: WatchMonitoringSessionsPayload): ByteArray =
+    json.encodeToString(WatchMonitoringSessionsPayload.serializer(), payload).encodeToByteArray()
+
+  fun decodeSessions(bytes: ByteArray): WatchMonitoringSessionsPayload? =
+    runCatching {
+      json.decodeFromString(WatchMonitoringSessionsPayload.serializer(), bytes.decodeToString())
     }.getOrNull()
 }

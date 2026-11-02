@@ -46,6 +46,13 @@ interface SurfaceMonitoringRepository {
   /** Detiene la sesión de [stationId], o todas las sesiones activas si es `null`. */
   fun stopMonitoring(stationId: String? = null)
 
+  /**
+   * Reemplaza el estado local con las sesiones activas publicadas por el
+   * teléfono. El teléfono es la fuente de verdad: las sesiones que no vengan
+   * en [sessions] se retiran, y las que vengan arrancan su cuenta atrás.
+   */
+  suspend fun applyRemoteSessions(sessions: List<SurfaceMonitoringSession>)
+
   suspend fun clearMonitoring()
 
   fun sessionFor(stationId: String): SurfaceMonitoringSession?
@@ -187,6 +194,19 @@ class SurfaceMonitoringRepositoryImpl(
       .forEach(::cancelWorkers)
     mutableState.value = emptyMap()
     surfaceSnapshotRepository.saveMonitoringSessions(emptyList())
+  }
+
+  override suspend fun applyRemoteSessions(sessions: List<SurfaceMonitoringSession>) {
+    if (!bootstrapped) bootstrap()
+    val nowEpoch = currentTimeMs()
+    val active =
+      sessions
+        .filter { it.isActive && it.expiresAtEpoch > nowEpoch }
+        .associateBy { it.stationId }
+    mutableState.value.keys.forEach(::cancelWorkers)
+    mutableState.value = active
+    active.keys.forEach(::startWorkers)
+    saveSessions()
   }
 
   override fun sessionFor(stationId: String): SurfaceMonitoringSession? = mutableState.value[stationId]

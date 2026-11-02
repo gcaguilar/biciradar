@@ -52,4 +52,33 @@ class WatchMonitoringProtocolTest {
     assertNull(WatchMonitoringProtocol.decodeCommand("not json".encodeToByteArray()))
     assertNull(WatchMonitoringProtocol.decodeResult(byteArrayOf(0x00, 0x01)))
   }
+
+  @Test
+  fun `sessions payload round trips`() {
+    val session =
+      SurfaceMonitoringSession(
+        stationId = "station-42",
+        stationName = "Plaza Espana",
+        cityId = "zaragoza",
+        kind = SurfaceMonitoringKind.Docks,
+        status = SurfaceMonitoringStatus.Monitoring,
+        bikesAvailable = 3,
+        docksAvailable = 7,
+        statusLevel = SurfaceStatusLevel.Good,
+        startedAtEpoch = 1_000,
+        expiresAtEpoch = 601_000,
+        lastUpdatedEpoch = 1_000,
+        isActive = true,
+        windowId = "window-1",
+      )
+    val payload =
+      WatchMonitoringSessionsPayload(
+        updatedAt = 2_000,
+        sessions = listOf(session),
+      )
+
+    val decoded = WatchMonitoringProtocol.decodeSessions(WatchMonitoringProtocol.encodeSessions(payload))
+
+    assertEquals(payload, decoded)
+  }
 }

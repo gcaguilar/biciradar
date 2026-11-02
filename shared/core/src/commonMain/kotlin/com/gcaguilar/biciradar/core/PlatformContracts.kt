@@ -102,6 +102,12 @@ interface WatchMonitoringBridge {
 
   /** Teléfono: responde al reloj tras ejecutar un comando. */
   suspend fun sendResult(result: WatchMonitoringCommandResult) = Unit
+
+  /** Teléfono: publica las sesiones activas para que el reloj las espeje. */
+  suspend fun publishSessions(sessions: List<SurfaceMonitoringSession>) = Unit
+
+  /** Reloj: último estado publicado por el teléfono, si lo hay. */
+  suspend fun latestSessions(): List<SurfaceMonitoringSession>? = null
 }
 
 object NoOpWatchMonitoringBridge : WatchMonitoringBridge

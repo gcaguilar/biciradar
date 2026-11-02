@@ -63,6 +63,11 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -100,6 +105,9 @@ class AndroidPlatformBindings(
   private val context: Context,
   override val appConfiguration: AppConfiguration = AppConfiguration(),
 ) : PlatformBindings {
+  /** Scope del proceso para puentes de plataforma (publicación al reloj, etc.). */
+  private val platformScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
   /** Activity used for in-app review / flexible updates; set from [attachExperienceActivity]. */
   var experienceActivity: Activity? = null
 
@@ -208,6 +216,13 @@ class AndroidPlatformBindings(
   override fun onGraphCreated(graph: SharedGraph) {
     watchSyncBridge.bindOnRemoteFavoritesChanged {
       graph.syncFavoritesFromPeer.execute()
+    }
+    // El reloj no puede vigilar por su cuenta: publica el estado real de las
+    // sesiones para que las espeje y pare su cuenta atrás cuando terminan.
+    platformScope.launch {
+      graph.observeSurfaceMonitoring.state.collect { sessions ->
+        watchMonitoringBridge.publishSessions(sessions.values.filter { it.isActive })
+      }
     }
   }
 }

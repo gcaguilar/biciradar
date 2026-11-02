@@ -12,11 +12,13 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.TripMonitoringFailure
 import com.gcaguilar.biciradar.core.WatchMonitoringBridge
 import com.gcaguilar.biciradar.core.WatchMonitoringCommandPayload
 import com.gcaguilar.biciradar.core.WatchMonitoringCommandResult
 import com.gcaguilar.biciradar.core.WatchMonitoringProtocol
+import com.gcaguilar.biciradar.core.WatchMonitoringSessionsPayload
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.platform.AndroidOptionalServices
 import com.google.android.gms.tasks.Tasks
@@ -191,6 +193,7 @@ private class WearPlaystoreWatchMonitoringBridge(
   private val appContext = context.applicationContext
   private val messageClient by lazy { runCatching { Wearable.getMessageClient(appContext) }.getOrNull() }
   private val nodeClient by lazy { runCatching { Wearable.getNodeClient(appContext) }.getOrNull() }
+  private val dataClient by lazy { runCatching { Wearable.getDataClient(appContext) }.getOrNull() }
 
   private val results = MutableSharedFlow<WatchMonitoringCommandResult>(extraBufferCapacity = 4)
   override val commandResults: Flow<WatchMonitoringCommandResult> = results.asSharedFlow()
@@ -238,6 +241,38 @@ private class WearPlaystoreWatchMonitoringBridge(
       ),
     )
   }
+
+  override suspend fun latestSessions(): List<SurfaceMonitoringSession>? {
+    val client = dataClient ?: return null
+    return runCatching {
+      withContext(Dispatchers.IO) {
+        val items = Tasks.await(client.getDataItems(buildSessionsUri()))
+        try {
+          var newest: WatchMonitoringSessionsPayload? = null
+          for (index in 0 until items.count) {
+            val data = items.get(index).data ?: continue
+            val payload = WatchMonitoringProtocol.decodeSessions(data) ?: continue
+            val current = newest
+            if (current == null || payload.updatedAt > current.updatedAt) {
+              newest = payload
+            }
+          }
+          newest?.sessions
+        } finally {
+          items.release()
+        }
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to read monitoring sessions", error)
+    }.getOrNull()
+  }
+
+  private fun buildSessionsUri(): Uri =
+    Uri
+      .Builder()
+      .scheme(PutDataRequest.WEAR_URI_SCHEME)
+      .path(WatchMonitoringProtocol.SESSIONS_PATH)
+      .build()
 
   private suspend fun sendCommand(payload: WatchMonitoringCommandPayload) {
     val client = messageClient ?: return

@@ -13,11 +13,13 @@ import com.gcaguilar.biciradar.core.FavoritesSyncCodec
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
+import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
 import com.gcaguilar.biciradar.core.WatchMonitoringBridge
 import com.gcaguilar.biciradar.core.WatchMonitoringCommandResult
 import com.gcaguilar.biciradar.core.WatchMonitoringProtocol
 import com.gcaguilar.biciradar.core.WatchMonitoringResultPayload
+import com.gcaguilar.biciradar.core.WatchMonitoringSessionsPayload
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.platform.AndroidOptionalServices
 import com.google.android.gms.tasks.Tasks
@@ -374,6 +376,30 @@ private class PlaystoreWatchMonitoringBridge(
   private val appContext = context.applicationContext
   private val messageClient by lazy { runCatching { Wearable.getMessageClient(appContext) }.getOrNull() }
   private val nodeClient by lazy { runCatching { Wearable.getNodeClient(appContext) }.getOrNull() }
+  private val dataClient by lazy { runCatching { Wearable.getDataClient(appContext) }.getOrNull() }
+
+  override suspend fun publishSessions(sessions: List<SurfaceMonitoringSession>) {
+    val client = dataClient ?: return
+    val payload =
+      WatchMonitoringProtocol.encodeSessions(
+        WatchMonitoringSessionsPayload(
+          updatedAt = System.currentTimeMillis(),
+          sessions = sessions,
+        ),
+      )
+    runCatching {
+      withContext(Dispatchers.IO) {
+        val request =
+          PutDataRequest
+            .create(WatchMonitoringProtocol.SESSIONS_PATH)
+            .setData(payload)
+            .setUrgent()
+        Tasks.await(client.putDataItem(request))
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to publish monitoring sessions", error)
+    }
+  }
 
   override suspend fun sendResult(result: WatchMonitoringCommandResult) {
     val client = messageClient ?: return

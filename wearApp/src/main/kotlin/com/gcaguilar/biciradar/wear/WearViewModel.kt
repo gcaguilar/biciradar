@@ -21,6 +21,7 @@ import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SyncFavoritesFromPeer
@@ -70,6 +71,7 @@ internal class WearViewModel(
   private val stopStationMonitoring: StopStationMonitoring,
   private val routeLauncher: RouteLauncher,
   private val watchMonitoringBridge: WatchMonitoringBridge,
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
@@ -134,7 +136,13 @@ internal class WearViewModel(
 
     viewModelScope.launch {
       observeSurfaceMonitoring.state.collect { sessions ->
-        latestActiveMonitoring = sessions.values.firstOrNull { it.isActive }
+        val active = sessions.values.firstOrNull { it.isActive }
+        // El teléfono es la fuente de verdad: si ya no queda sesión, la
+        // cuenta atrás del reloj (y su ongoing activity) también termina.
+        if (latestActiveMonitoring != null && active == null) {
+          ongoingActivity.stop()
+        }
+        latestActiveMonitoring = active
         publishUiState()
       }
     }
@@ -350,6 +358,10 @@ internal class WearViewModel(
     forceRefresh: Boolean = false,
   ) {
     syncFavoritesFromPeer.execute()
+    // Espeja las sesiones reales del teléfono (puede haber terminado por push).
+    watchMonitoringBridge.latestSessions()?.let { sessions ->
+      surfaceMonitoringRepository.applyRemoteSessions(sessions)
+    }
     canRouteOnWatch = canLaunchWatchRoute()
     canRouteInPhone = phoneRouteRequester.isRouteAvailable()
     if (forceRefresh) {
@@ -427,5 +439,6 @@ internal class WearViewModelFactory(
       stopStationMonitoring = graph.stopStationMonitoring,
       routeLauncher = graph.routeLauncher,
       watchMonitoringBridge = watchMonitoringBridge,
+      surfaceMonitoringRepository = graph.surfaceMonitoringRepository,
     )
 }
