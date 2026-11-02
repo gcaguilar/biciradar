@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1E1E1E</color>
+    <!-- The adaptive icon keeps its white background in dark mode: the logo
+         colours are designed for a light background. -->
+    <color name="ic_launcher_background">#FFFFFF</color>
     <color name="bizi_splash_background">#121212</color>
 </resources>
