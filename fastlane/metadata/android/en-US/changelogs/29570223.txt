@@ -1,0 +1,1 @@
+Monitor from your watch: your phone now watches the station and sends the alerts. The app restores your session on launch, shortcuts and the widget really watch the station, and stopping from the notification only ends that station.

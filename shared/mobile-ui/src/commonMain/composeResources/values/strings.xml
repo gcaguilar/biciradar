@@ -290,6 +290,10 @@
     <string name="changelogWatchRouteDescription">Abre la ruta a una estación en el móvil desde la ficha del reloj: Maps arranca en el teléfono con el destino listo.</string>
     <string name="changelogFavoritesSyncTitle">Favoritas siempre en sintonía</string>
     <string name="changelogFavoritesSyncDescription">Los cambios de favoritas entre móvil y reloj se aplican al momento, también al quitar una estación o cambiar Casa y Trabajo.</string>
+    <string name="changelogWatchMonitoringTitle">Vigilar desde el reloj</string>
+    <string name="changelogWatchMonitoringDescription">Vigilar una estación desde el reloj ahora la vigila el teléfono de verdad: los avisos llegan y la cuenta atrás del reloj se detiene cuando termina.</string>
+    <string name="changelogMonitoringReliabilityTitle">Avisos de estación fiables</string>
+    <string name="changelogMonitoringReliabilityDescription">La sesión se restaura al abrir la app, los atajos y el widget vigilan de verdad y detener desde la notificación solo termina esa estación.</string>
     <string name="changelogTripFlowTitle">Modo viaje desde el mapa</string>
     <string name="changelogTripFlowDescription">Elige una estación en el mapa para entrar en modo viaje, cambia de destino cuando quieras y crea una rutina desde el viaje.</string>
     <string name="changelogPlatformUpdateDescription">Compatible con Android 17 (API 37) en móvil y reloj, con Compose Multiplatform, Kotlin y el resto de librerías actualizadas. Además, los enlaces de la app solo se abren para sus propios dominios.</string>

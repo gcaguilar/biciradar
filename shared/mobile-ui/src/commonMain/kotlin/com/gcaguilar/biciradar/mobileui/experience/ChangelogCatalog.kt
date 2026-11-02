@@ -23,8 +23,16 @@ data class ChangelogVersionSection(
 object ChangelogCatalog {
   private val entriesByVersion: Map<String, List<ChangelogCatalogEntry>> =
     mapOf(
-      "0.23.2" to
+      "0.23.3" to
         listOf(
+          ChangelogCatalogEntry(
+            Res.string.changelogWatchMonitoringTitle,
+            Res.string.changelogWatchMonitoringDescription,
+          ),
+          ChangelogCatalogEntry(
+            Res.string.changelogMonitoringReliabilityTitle,
+            Res.string.changelogMonitoringReliabilityDescription,
+          ),
           ChangelogCatalogEntry(
             Res.string.changelogWatchRouteTitle,
             Res.string.changelogWatchRouteDescription,

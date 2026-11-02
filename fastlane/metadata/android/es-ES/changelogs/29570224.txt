@@ -1,0 +1,1 @@
+Iniciar la vigilancia en el reloj ahora pide al teléfono que vigile la estación: llegan los avisos y la cuenta atrás del reloj se detiene al terminar.

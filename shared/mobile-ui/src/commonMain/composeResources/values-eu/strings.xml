@@ -256,6 +256,10 @@
     <string name="changelogWatchRouteDescription">Ireki estazio baterako ibilbidea telefonon erlojuko fitxatik: Maps telefonon abiatuko da helmuga prest.</string>
     <string name="changelogFavoritesSyncTitle">Gogokoak beti sinkronizatuta</string>
     <string name="changelogFavoritesSyncDescription">Telefonoaren eta erlojuaren arteko gogokoen aldaketak berehala aplikatzen dira, estazio bat kentzean edo Etxea eta Lana aldatzean ere.</string>
+    <string name="changelogWatchMonitoringTitle">Erlojutik zaindu</string>
+    <string name="changelogWatchMonitoringDescription">Erlojutik geltoki bat zaintzea orain telefonuak egiten du benetan: abisuak iristen dira eta erlojuaren atzera-kontua amaitzean gelditzen da.</string>
+    <string name="changelogMonitoringReliabilityTitle">Geltoki-abisu fidagarriak</string>
+    <string name="changelogMonitoringReliabilityDescription">Saioa aplikazioa irekitzean berreskuratzen da, lasterbideek eta widgetak benetan zaintzen dute eta jakinarazpenetik gelditzeak geltoki hori baino ez du amaitzen.</string>
     <string name="changelogTripFlowTitle">Bidaia-modua mapatik</string>
     <string name="changelogTripFlowDescription">Aukeratu geltoki bat mapan bidaia-moduan sartzeko, aldatu helmuga nahi duzunean eta sortu errutina bat bidaiatik.</string>
     <string name="changelogPlatformUpdateDescription">Android 17 (API 37) bateragarria da mobilarentzako eta erlojuarentzako, Compose Multiplatform, Kotlin eta gainerako liburutegiak eguneratuta. Gainera, aplikazioko estekak bere domeinuetarako soilik irekitzen dira.</string>

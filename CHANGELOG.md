@@ -5,13 +5,21 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
-## 0.23.2
+## 0.23.3
 
-`versionName` 0.23.2 · Android `29570221` · Wear OS `29570222` · Apple
-`29570221`.
+`versionName` 0.23.3 · Android `29570223` · Wear OS `29570224` · Apple
+`29570223`.
 
 ### App
 
+- **Vigilancia desde el reloj**: vigilar una estación desde el reloj (ficha o
+  favorita) ahora la vigila de verdad el teléfono, que es quien recibe los
+  avisos. La cuenta atrás del reloj se detiene cuando la ventana termina y, si
+  el teléfono no puede vigilar, el reloj lo explica en vez de fingir.
+- **Avisos de estación fiables**: la sesión se restaura al abrir la app, así que
+  la monitorización no pide login tras cada reinicio; los atajos, el widget y el
+  deep link de vigilancia abren una ventana real de avisos, y detener desde la
+  notificación solo termina esa estación, sin cortar las rutinas de otras.
 - **Reloj**: la ficha de una estación permite abrir la ruta en el teléfono. Maps
   arranca en el móvil con el destino listo y el reloj muestra el progreso.
 - **Favoritas**: la sincronización entre móvil y reloj se aplica al instante,
@@ -20,14 +28,25 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
 
 ### Release
 
-- `VERSION` y `BUILD_NUMBER` suben a 0.23.2 y 2147. `tooling/project/bump_version.sh`
-  deja Android e iOS en `29570221` y Wear OS en `29570222`.
-- Notas de Play para `29570221` (móvil) y `29570222` (Wear OS).
+- `VERSION` y `BUILD_NUMBER` suben a 0.23.3 y 2149. `tooling/project/bump_version.sh`
+  deja Android e iOS en `29570223` y Wear OS en `29570224`.
+- Notas de Play para `29570223` (móvil) y `29570224` (Wear OS).
 - Integración interna: los bridges de DataLayer dejan de bloquear el hilo
   principal, el snapshot de favoritas viaja como JSON completo con `updatedAt` y
   merge last-writer-wins, y ambas apps reaccionan a los cambios mediante
   `DATA_CHANGED`. La ruta del reloj al móvil usa RemoteIntents, por lo que ya no
   depende de lanzar una actividad desde segundo plano.
+
+### CI
+
+- Los jobs de Apple pasan a la imagen `xcode-27`: iOS, watchOS y la publicación
+  en App Store compilan y prueban contra el SDK de iOS 27 usando el Xcode que
+  trae la imagen por defecto (hoy 27.1), sin forzar una versión concreta. Las
+  cachés de DerivedData llevan la versión de Xcode en la clave para no reutilizar
+  artefactos de Xcode 26.
+- Los jobs ligeros (`Detect changed areas`, build y deploy de la landing y la
+  validación previa de Play) corren en `ubuntu-slim`; las compilaciones que
+  necesitan toolchain Android o más de 15 minutos siguen en `ubuntu-24.04`.
 
 ## 0.23.1
 

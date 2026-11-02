@@ -1,0 +1,1 @@
+Starting monitoring on the watch now asks your phone to watch the station, so alerts arrive and the watch countdown stops when it ends.

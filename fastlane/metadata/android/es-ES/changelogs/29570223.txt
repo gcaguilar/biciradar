@@ -1,0 +1,1 @@
+Vigila desde el reloj: ahora es el teléfono quien vigila la estación y te avisa. La app recuerda tu sesión al abrirse, los atajos y el widget vigilan de verdad y detener desde la notificación solo termina esa estación.
