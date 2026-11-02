@@ -45,4 +45,7 @@
     <string name="notification_channel_widget_refresh_title">Widgeten eguneraketa</string>
     <string name="notification_channel_widget_refresh_description">Atzeko planoan dagoen zerbitzua widgetak eguneratuta mantentzen ditu</string>
     <string name="widget_refresh_service_notification">Widgetak eguneratzen…</string>
+
+    <!-- AppFunctions -->
+    <string name="appfunctions_display_description">Egiaztatu bizikleta publikoko geltokien erabilgarritasuna, zaindu geltokiak eta kudeatu gogokoak</string>
 </resources>

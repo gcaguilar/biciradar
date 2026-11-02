@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppFunctionAppMetadata xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"
+    appfn:instructions="BiciRadar exposes real-time availability of public bike-sharing stations in Spanish cities and manages the user's favorite stations.
+Operational patterns:
+- Every function acts on the city currently selected in the app; 'getCurrentCity' identifies it.
+- Resolve station names to station IDs with 'searchStations', 'findNearestStation' or 'listFavoriteStations' before calling 'getStationAvailability', 'addFavoriteStation', 'removeFavoriteStation', 'openStationInApp', 'setHomeStation', 'setWorkStation', 'startStationMonitoring', 'stopStationMonitoring' or 'createSavedPlaceAlert'. Never invent or reuse a station ID from a different city or conversation.
+- For questions about saved stations, prefer 'listFavoriteStations' over chaining several 'getStationAvailability' calls.
+- When the user refers to home or work, pass 'home'/'casa' or 'work'/'trabajo'/'oficina' as the 'searchStations' query and let BiciRadar resolve the pinned station.
+- Pass the user's latitude and longitude to 'findNearestStation' and 'listNearbyStations' when known. Without a location, distances are -1 but the functions still answer.
+- 'setHomeStation' and 'setWorkStation' replace the previous pin for their category and are independent of favorites: pinning does not make a station favorite, so do not tell the user it was saved as favorite.
+- Monitoring is time-boxed: it ends automatically (10 minutes by default, 60 at most). A 'started' value of false means no alert was scheduled; report that honestly and explain the fix instead of claiming the station is being watched.
+- 'stopStationMonitoring' with no stationId stops every active session, not just one station.
+- 'createSavedPlaceAlert' requires the station to be a favorite or the matching pinned home/work station. Alerts are replaced per station and target, so repeating a call updates the condition rather than adding another rule.
+Constraints:
+- Availability changes every few minutes. Never cache a station or availability result across conversations.
+- 'addFavoriteStation' and 'removeFavoriteStation' are not toggles: adding an existing favorite and removing a non-favorite are no-ops.
+- A null result from 'findNearestStation' or an empty list from a listing function is a valid answer. Report it instead of retrying the same request.
+- Changing the selected city is not available through these functions. Ask the user to switch city in BiciRadar."
+    appfn:displayDescription="@string/appfunctions_display_description" />

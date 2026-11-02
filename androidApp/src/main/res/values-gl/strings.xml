@@ -45,4 +45,7 @@
     <string name="notification_channel_widget_refresh_title">Actualización de widgets</string>
     <string name="notification_channel_widget_refresh_description">Servizo en segundo plano que mantén os widgets actualizados</string>
     <string name="widget_refresh_service_notification">Actualizando widgets…</string>
+
+    <!-- AppFunctions -->
+    <string name="appfunctions_display_description">Consulta a dispoñibilidade das estacións de bici pública, vixía estacións e xestiona as túas favoritas</string>
 </resources>

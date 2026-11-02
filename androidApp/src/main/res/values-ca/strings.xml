@@ -45,4 +45,7 @@
     <string name="notification_channel_widget_refresh_title">Actualització de widgets</string>
     <string name="notification_channel_widget_refresh_description">Servei en segon pla que manté els widgets actualitzats</string>
     <string name="widget_refresh_service_notification">Actualitzant widgets…</string>
+
+    <!-- AppFunctions -->
+    <string name="appfunctions_display_description">Consulta la disponibilitat d\'estacions de bici pública, vigila estacions i gestiona les teves preferides</string>
 </resources>

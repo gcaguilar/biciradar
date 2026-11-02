@@ -45,4 +45,7 @@
     <string name="notification_channel_widget_refresh_title">Widget updates</string>
     <string name="notification_channel_widget_refresh_description">Background service keeping widgets updated</string>
     <string name="widget_refresh_service_notification">Updating widgets…</string>
+
+    <!-- AppFunctions -->
+    <string name="appfunctions_display_description">Check public bike station availability, monitor stations and manage your favorites</string>
 </resources>
