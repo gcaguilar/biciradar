@@ -167,6 +167,7 @@ dependencies {
 
   // Play Store flavor dependencies
   add("playstoreImplementation", playstore.play.services.wearable)
+  add("playstoreImplementation", playstore.wear.remote.interactions)
   add("playstoreImplementation", platform(playstore.mobile.services.bom))
   add("playstoreImplementation", playstore.crash.reporting.sdk)
 }
@@ -220,6 +221,9 @@ val verifyPlaystoreReleaseR8Mapping =
         "void <init>(android.content.Context)" to "<init>",
         "boolean isRouteAvailable()" to "isRouteAvailable",
         "boolean requestRoute(java.lang.String)" to "requestRoute",
+        "void setOnAvailabilityChanged(kotlin.jvm.functions.Function1)" to "setOnAvailabilityChanged",
+        "void requestRouteAsync(java.lang.String,kotlin.jvm.functions.Function1)" to "requestRouteAsync",
+        "void clear()" to "clear",
       ),
     )
   }

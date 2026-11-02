@@ -8,6 +8,7 @@ play-review = "2.0.2"
 play-services-location = "21.4.0"
 play-services-maps = "20.1.0"
 play-services-wearable = "20.0.1"
+wear-remote-interactions = "1.2.0"
 
 [libraries]
 crash-reporting-sdk = { module = "com.google.firebase:firebase-crashlytics" }
@@ -19,6 +20,7 @@ play-review-ktx = { module = "com.google.android.play:review-ktx", version.ref =
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "play-services-maps" }
 play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "play-services-wearable" }
+wear-remote-interactions = { module = "androidx.wear:wear-remote-interactions", version.ref = "wear-remote-interactions" }
 remote-config-sdk = { module = "com.google.firebase:firebase-config" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 

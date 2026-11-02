@@ -87,6 +87,15 @@ internal class WearViewModel(
   private var canRouteInPhone: Boolean = phoneRouteRequester.isRouteAvailable()
 
   init {
+    phoneRouteRequester.setOnAvailabilityChanged { available ->
+      viewModelScope.launch {
+        if (canRouteInPhone != available) {
+          canRouteInPhone = available
+          publishUiState()
+        }
+      }
+    }
+
     viewModelScope.launch {
       observeStationsState.state.collect { state ->
         latestStations = state.stations
@@ -143,6 +152,11 @@ internal class WearViewModel(
         refreshWearSurface(appContext)
       }
     }
+  }
+
+  override fun onCleared() {
+    phoneRouteRequester.clear()
+    super.onCleared()
   }
 
   fun onPermissionRefresh(refreshKey: Int) {

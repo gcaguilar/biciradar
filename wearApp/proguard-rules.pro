@@ -13,4 +13,7 @@
     public <init>(android.content.Context);
     public boolean isRouteAvailable();
     public boolean requestRoute(java.lang.String);
+    public void setOnAvailabilityChanged(kotlin.jvm.functions.Function1);
+    public void requestRouteAsync(java.lang.String, kotlin.jvm.functions.Function1);
+    public void clear();
 }
