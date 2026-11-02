@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.initialization
 
 import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
+import com.gcaguilar.biciradar.core.SessionBootstrap
 import com.gcaguilar.biciradar.core.epochMillisForUi
 import com.gcaguilar.biciradar.mobileui.usecases.FeedbackUseCase
 import com.gcaguilar.biciradar.mobileui.usecases.RoutineManagementUseCase
@@ -24,6 +25,7 @@ internal class AppInitializer(
   private val feedbackUseCase: FeedbackUseCase,
   private val surfaceManagementUseCase: SurfaceManagementUseCase,
   private val routineManagementUseCase: RoutineManagementUseCase,
+  private val sessionBootstrap: SessionBootstrap,
 ) {
   private val clock: () -> Long = ::epochMillisForUi
 
@@ -66,6 +68,13 @@ internal class AppInitializer(
     onFavoritesBootstrapped: () -> Unit,
     updatePendingChangelog: () -> Unit,
   ) {
+    // Restaura la sesión antes de leer nada: Auth0 recupera las credenciales
+    // persistidas y se arranca la sincronización de suscripciones. Sin esto el
+    // teléfono arranca como anónimo y la monitorización de estación pide login
+    // en cada reinicio. Los repositorios son idempotentes, así que las
+    // inicializaciones de abajo pueden repetirse sin coste.
+    runCatching { sessionBootstrap.execute() }
+
     // Initialize surface repositories
     surfaceManagementUseCase.bootstrap()
 

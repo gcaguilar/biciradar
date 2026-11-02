@@ -5,6 +5,7 @@ import com.gcaguilar.biciradar.core.OnboardingChecklistSnapshot
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.Routine
 import com.gcaguilar.biciradar.core.RoutineRepository
+import com.gcaguilar.biciradar.core.SessionBootstrap
 import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
@@ -47,6 +48,7 @@ class AppRootViewModelTest {
 
   @BeforeTest
   fun setUp() {
+    AppRootSessionBootstrap.executeCount = 0
     Dispatchers.setMain(dispatcher)
   }
 
@@ -101,6 +103,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
 
       val viewModel =
@@ -126,6 +129,9 @@ class AppRootViewModelTest {
       advanceUntilIdle()
 
       assertTrue(viewModel.uiState.value.settingsBootstrapped)
+      // El arranque del teléfono debe restaurar la sesión; si no, monitoring
+      // pide login en cada reinicio.
+      assertEquals(1, AppRootSessionBootstrap.executeCount)
       assertTrue(viewModel.uiState.value.favoritesBootstrapped)
       assertTrue(viewModel.uiState.value.startupLaunchReady)
       assertEquals(true, viewModel.uiState.value.cityConfigured)
@@ -183,6 +189,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
 
       val viewModel =
@@ -258,6 +265,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
 
       val viewModel =
@@ -330,6 +338,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
 
       val viewModel =
@@ -402,6 +411,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
       val viewModel =
         AppRootViewModel(
@@ -473,6 +483,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
       val viewModel =
         AppRootViewModel(
@@ -552,6 +563,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
       val viewModel =
         AppRootViewModel(
@@ -618,6 +630,7 @@ class AppRootViewModelTest {
           feedbackUseCase = feedbackUseCase,
           surfaceManagementUseCase = surfaceManagementUseCase,
           routineManagementUseCase = appRootRoutineManagementUseCase(),
+          sessionBootstrap = AppRootSessionBootstrap,
         )
       val viewModel =
         AppRootViewModel(
@@ -748,4 +761,13 @@ private class AppRootFakeReviewPrompter : ReviewPrompter {
   }
 
   override fun openStoreWriteReview() = Unit
+}
+
+/** Registra el bootstrap de sesión: restaura credenciales y arranca la sincronización. */
+private object AppRootSessionBootstrap : SessionBootstrap {
+  var executeCount = 0
+
+  override suspend fun execute() {
+    executeCount++
+  }
 }
