@@ -22,8 +22,7 @@ internal actual fun PlatformStationMap(
 ) {
   val renderer = LocalAndroidStationMapRenderer.current
 
-  // On Android the flavor-specific renderer is the authoritative source of embedded map support.
-  // F-Droid provides an osmdroid renderer even though it does not expose Google Maps readiness.
+  // On Android the Play Store renderer is the authoritative source of embedded map support.
   if (renderer != null) {
     renderer.Render(
       modifier = modifier,

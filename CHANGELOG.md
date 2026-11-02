@@ -5,6 +5,15 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## Unreleased
+
+### Release
+
+- Se elimina la variante `fdroid` de `androidApp` y `wearApp`, junto con su
+  implementación de mapas OpenStreetMap (`osmdroid`), el workflow de
+  publicación, los metadatos de F-Droid y las notas de envío. El flavor
+  `playstore` se mantiene sin cambios.
+
 ## 0.22.20
 
 `versionName` 0.22.20 · Android `29570211` · Wear OS `29570212` · Apple

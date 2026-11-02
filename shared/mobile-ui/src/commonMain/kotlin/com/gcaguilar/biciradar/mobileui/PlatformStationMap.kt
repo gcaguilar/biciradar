@@ -24,7 +24,7 @@ data class EnvironmentalOverlayData(
  * Opacity of the environmental overlay (air quality / pollen) drawn over the map.
  *
  * Shared by every platform renderer so the active filter layer stays legible over
- * the map on Android (Google Maps / osmdroid) and Apple (MapKit) alike.
+ * the map on Android (Google Maps) and Apple (MapKit) alike.
  */
 const val ENVIRONMENTAL_OVERLAY_FILL_ALPHA = 0.34f
 const val ENVIRONMENTAL_OVERLAY_STROKE_ALPHA = 0.55f

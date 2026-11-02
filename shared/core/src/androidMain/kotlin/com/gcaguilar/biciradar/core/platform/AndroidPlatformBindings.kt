@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -113,7 +112,6 @@ class AndroidPlatformBindings(
   override val deviceTokenProvider: DeviceTokenProvider
     get() = optionalServices?.createDeviceTokenProvider() ?: NoOpDeviceTokenProvider
 
-  private val isFdroidBuild = context.packageName.contains(".fdroid")
   private val optionalServices = loadOptionalServices(context)
 
   private val androidPermissionPrompter = AndroidPermissionPrompter(context)
@@ -156,38 +154,27 @@ class AndroidPlatformBindings(
     }
   override val fileSystem: FileSystem = FileSystem.SYSTEM
   override val googleMapsApiKey: String? =
-    if (isFdroidBuild) {
-      null
-    } else {
-      runCatching {
-        val packageManager = context.packageManager
-        val applicationInfo =
-          packageManager.getApplicationInfo(
-            context.packageName,
-            PackageManager.GET_META_DATA,
-          )
-        applicationInfo.metaData
-          ?.getString("com.google.android.geo.API_KEY")
-          ?.trim()
-          ?.takeIf { it.isNotBlank() }
-      }.getOrNull()
-    }
+    runCatching {
+      val packageManager = context.packageManager
+      val applicationInfo =
+        packageManager.getApplicationInfo(
+          context.packageName,
+          PackageManager.GET_META_DATA,
+        )
+      applicationInfo.metaData
+        ?.getString("com.google.android.geo.API_KEY")
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+    }.getOrNull()
   override val httpClientFactory: BiziHttpClientFactory = AndroidHttpClientFactory()
   private val androidLocalNotifier = AndroidLocalNotifier(context)
   private val androidWatchSyncBridge = optionalServices?.createWatchSyncBridge() ?: AndroidWatchSyncBridge(context)
   override val localNotifier: LocalNotifier = androidLocalNotifier
   override val locationProvider: LocationProvider = AndroidLocationProvider(context)
-  override val mapSupport: MapSupport = if (isFdroidBuild) FdroidMapSupport() else AndroidMapSupport(context)
+  override val mapSupport: MapSupport = AndroidMapSupport(context)
   override val platform: String = "android"
   override val osVersion: String = "Android ${android.os.Build.VERSION.RELEASE}"
-  override val routeLauncher: RouteLauncher =
-    if (isFdroidBuild) {
-      FdroidRouteLauncher(
-        context,
-      )
-    } else {
-      AndroidRouteLauncher(context)
-    }
+  override val routeLauncher: RouteLauncher = AndroidRouteLauncher(context)
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
   override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
@@ -368,81 +355,6 @@ private class AndroidMapSupport(
       googleMapsApiKeyConfigured = apiKey.isNotBlank(),
     )
   }
-}
-
-private class FdroidMapSupport : MapSupport {
-  override fun currentStatus(): MapSupportStatus =
-    MapSupportStatus(
-      embeddedProvider = EmbeddedMapProvider.Osmdroid,
-      googleMapsSdkLinked = false,
-      googleMapsApiKeyConfigured = false,
-    )
-}
-
-private class FdroidRouteLauncher(
-  private val context: Context,
-) : RouteLauncher {
-  override fun launch(station: Station) {
-    launchFirstSupportedGeoUri(
-      Uri.parse(
-        "geo:${station.location.latitude},${station.location.longitude}?q=${Uri.encode(station.name)}",
-      ),
-      Uri.parse(
-        "geo:0,0?q=${station.location.latitude},${station.location.longitude}(${Uri.encode(station.name)})",
-      ),
-    )
-  }
-
-  override fun launchWalkToLocation(destination: GeoPoint) {
-    launchFirstSupportedIntent(
-      navigationIntent(destination, mode = "w"),
-      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}")),
-      geoIntent(Uri.parse("geo:0,0?q=${destination.latitude},${destination.longitude}")),
-    )
-  }
-
-  override fun launchBikeToLocation(destination: GeoPoint) {
-    launchFirstSupportedIntent(
-      navigationIntent(destination, mode = "b"),
-      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}?mode=b")),
-      geoIntent(Uri.parse("geo:${destination.latitude},${destination.longitude}")),
-      geoIntent(Uri.parse("geo:0,0?q=${destination.latitude},${destination.longitude}")),
-    )
-  }
-
-  private fun launchFirstSupportedGeoUri(vararg geoUris: Uri) {
-    launchFirstSupportedIntent(*geoUris.map(::geoIntent).toTypedArray())
-  }
-
-  private fun launchFirstSupportedIntent(vararg intents: Intent) {
-    intents.forEach { intent ->
-      try {
-        context.startActivity(intent)
-        return
-      } catch (_: ActivityNotFoundException) {
-        // Try the next URI variant.
-      } catch (_: SecurityException) {
-        // Try the next URI variant.
-      }
-    }
-  }
-
-  private fun navigationIntent(
-    destination: GeoPoint,
-    mode: String,
-  ): Intent =
-    Intent(
-      Intent.ACTION_VIEW,
-      Uri.parse("google.navigation:q=${destination.latitude},${destination.longitude}&mode=$mode"),
-    ).apply {
-      setPackage("com.google.android.apps.maps")
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
-
-  private fun geoIntent(geoUri: Uri): Intent =
-    Intent(Intent.ACTION_VIEW, geoUri).apply {
-      addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    }
 }
 
 private class AndroidLocationProvider(

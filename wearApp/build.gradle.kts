@@ -8,9 +8,6 @@ plugins {
   alias(playstore.plugins.google.services) apply false
 }
 
-val crashReportingTaskMarker = "crash" + "lytics"
-val mobileServicesGroupPrefix = "com.google." + "fire" + "base:"
-
 val localProperties =
   Properties().apply {
     val localPropertiesFile = rootProject.file("local.properties")
@@ -61,19 +58,6 @@ if (crashReportingEnabled) {
         .get()
         .pluginId,
   )
-
-  tasks.configureEach {
-    val taskName = name.lowercase()
-    if (
-      taskName.contains("fdroid") &&
-      (
-        taskName.endsWith("googleservices") ||
-          taskName.contains(crashReportingTaskMarker)
-      )
-    ) {
-      enabled = false
-    }
-  }
 }
 
 android {
@@ -92,12 +76,6 @@ android {
 
   flavorDimensions += "tier"
   productFlavors {
-    create("fdroid") {
-      dimension = "tier"
-      applicationIdSuffix = ".wear.fdroid"
-      versionNameSuffix = "-fdroid"
-      proguardFiles("fdroid-proguard-rules.pro")
-    }
     create("playstore") {
       dimension = "tier"
       // Play Store specific configuration (default)
@@ -191,56 +169,6 @@ dependencies {
   add("playstoreImplementation", playstore.play.services.wearable)
   add("playstoreImplementation", platform(playstore.mobile.services.bom))
   add("playstoreImplementation", playstore.crash.reporting.sdk)
-}
-
-abstract class VerifyDependencyPrefixesTask : DefaultTask() {
-  @get:Input abstract val configurationName: Property<String>
-
-  @get:Input abstract val forbiddenPrefixes: ListProperty<String>
-
-  @TaskAction
-  fun verify() {
-    val forbidden =
-      project.configurations
-        .getByName(configurationName.get())
-        .incoming
-        .resolutionResult
-        .allComponents
-        .mapNotNull { component ->
-          component.moduleVersion?.let { "${it.group}:${it.name}:${it.version}" }
-        }.filter { dependency ->
-          forbiddenPrefixes.get().any(dependency::startsWith)
-        }.sorted()
-
-    check(forbidden.isEmpty()) {
-      buildString {
-        appendLine("Forbidden dependencies found in wearApp fdroidReleaseRuntimeClasspath:")
-        forbidden.forEach { appendLine(" - $it") }
-      }
-    }
-  }
-}
-
-val verifyFdroidReleaseDependencies by
-  tasks.registering(VerifyDependencyPrefixesTask::class) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Fails when the F-Droid runtime classpath contains forbidden proprietary SDKs."
-    notCompatibleWithConfigurationCache("Inspects resolved Gradle configurations during execution.")
-    configurationName.set("fdroidReleaseRuntimeClasspath")
-    forbiddenPrefixes.set(
-      listOf(
-        "com.google.android.gms:",
-        "com.google.android.play:",
-        mobileServicesGroupPrefix,
-        "com.google.maps.android:",
-      ),
-    )
-  }
-
-// Ligado sólo al assemble de F-Droid para no invalidar el configuration cache
-// del resto de tareas (la verificación no es compatible con config cache).
-tasks.matching { it.name == "assembleFdroidRelease" }.configureEach {
-  dependsOn(verifyFdroidReleaseDependencies)
 }
 
 abstract class VerifyR8MappingTask : DefaultTask() {

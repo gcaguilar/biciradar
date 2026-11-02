@@ -30,7 +30,6 @@ jetbrains-compose-material3-adaptive = "1.4.0-alpha01"
 ktlint-gradle = "14.2.0"
 androidx-glance-appwidget = "1.2.0"
 androidx-glance-material3 = "1.2.0"
-osmdroid = "6.1.20"
 cryptography = "0.6.0"
 bouncycastle = "1.86"
 auth0 = "4.3.0"
@@ -86,7 +85,6 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "androidx-glance-appwidget" }
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "androidx-glance-material3" }
-osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
 cryptography-provider-cryptokit = { module = "dev.whyoleg.cryptography:cryptography-provider-cryptokit", version.ref = "cryptography" }
 bouncycastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }

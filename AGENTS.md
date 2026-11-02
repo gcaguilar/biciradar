@@ -32,11 +32,10 @@ platform apps --------------------> shared/core
   run Swift export for the iPhone (`Core` + `MobileUi`) and the Apple Watch
   (`Core` only). Xcode builds them through `embedSwiftExportForXcode`.
 - `shared/test-utils`: reusable test fixtures and helpers.
-- `androidApp`: Android phone shell and Android-only integrations. It has
-  `playstore` and `fdroid` product flavors.
-- `wearApp`: Compose for Wear OS, including watch-specific surfaces. It also
-  contains `playstore` and `fdroid` source sets, although Wear is not currently
-  part of the F-Droid release submission.
+- `androidApp`: Android phone shell and Android-only integrations. It has a
+  `playstore` product flavor.
+- `wearApp`: Compose for Wear OS, including watch-specific surfaces. It has a
+  `playstore` product flavor.
 - `apple`: XcodeGen project definition plus SwiftUI/App Intents code for iOS,
   watchOS, widgets, shortcuts, and Apple-specific integrations.
 - `desktopApp`: desktop target. Treat it as experimental and inspect its
@@ -114,15 +113,6 @@ Apple builds and smoke tests require macOS, Xcode, and the expected simulator.
 If a platform cannot be tested in the current environment, run all portable
 checks and report the unverified target explicitly.
 
-For the current Android F-Droid submission flow:
-
-```bash
-./gradlew :androidApp:testFdroidDebugUnitTest
-./gradlew :androidApp:assembleFdroidDebug
-./gradlew :androidApp:assembleFdroidRelease
-bash tooling/project/check_fdroid_submission.sh
-```
-
 Validation expectations by change type:
 
 | Change area | Minimum useful validation |
@@ -133,7 +123,6 @@ Validation expectations by change type:
 | Wear OS | Wear compilation and a watch smoke test when available |
 | Apple bridge/contracts | iOS and watchOS framework/app compilation on macOS |
 | Formatting/build logic | `ktlintCheckAll` and the affected Gradle task |
-| F-Droid code | F-Droid test, assembly, and submission checker |
 | Release/CI | targeted workflow or helper validation and documentation review |
 
 Add or update tests for behavior changes. Favor deterministic tests around
@@ -161,16 +150,10 @@ reserve device tests for actual platform integration.
 
 ## Flavor and Service Boundaries
 
-- `playstore` may use Firebase/Crashlytics, Google Maps, Google Play Services,
+- `playstore` uses Firebase/Crashlytics, Google Maps, Google Play Services,
   wearable sync, and Garmin integrations where configured.
-- `fdroid` must remain free of Firebase, Google Play Services, Google Maps SDK,
-  and Garmin Connect IQ runtime dependencies. Android F-Droid maps use
-  OpenStreetMap through osmdroid.
-- Keep Play-only imports and dependencies inside Play-specific source sets.
-  Never make common or F-Droid code reference a class supplied only by a Play
-  dependency.
-- The Android F-Droid application ID is
-  `com.gcaguilar.biciradar.fdroid`.
+- Keep Play-only imports and dependencies inside the `playstore` source set.
+  Never make common code reference a class supplied only by a Play dependency.
 - Do not assume secrets or vendor configuration files exist. Android and Wear
   must retain their safe behavior without `google-services.json`; Apple must
   retain its fallback without `GoogleService-Info.plist`; local maps keys are
@@ -201,7 +184,6 @@ Before changing CI or release behavior, read:
 
 - `README.md`
 - `RELEASE.md`
-- `docs/fdroid/README.md`
 - `apple/README.md`
 - `tooling/README.md`
 - the affected workflow and helper scripts

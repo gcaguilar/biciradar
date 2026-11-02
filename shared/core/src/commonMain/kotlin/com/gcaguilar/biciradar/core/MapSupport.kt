@@ -4,7 +4,6 @@ enum class EmbeddedMapProvider {
   None,
   AppleMapKit,
   GoogleMaps,
-  Osmdroid,
 }
 
 data class MapSupportStatus(

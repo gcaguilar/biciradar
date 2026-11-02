@@ -6,9 +6,6 @@ plugins {
   alias(playstore.plugins.crash.reporting) apply false
 }
 
-val crashReportingTaskMarker = "crash" + "lytics"
-val mobileServicesGroupPrefix = "com.google." + "fire" + "base:"
-
 val googleServicesJson = file("google-services.json")
 val requestedTasks =
   gradle.startParameter.taskNames
@@ -34,29 +31,6 @@ if (shouldApplyGoogleServices) {
         .get()
         .pluginId,
   )
-
-  tasks.configureEach {
-    val taskName = name.lowercase()
-    if (
-      taskName.contains("fdroid") &&
-      (
-        taskName.endsWith("googleservices") ||
-          taskName.contains(crashReportingTaskMarker)
-      )
-    ) {
-      enabled = false
-    }
-  }
-}
-
-androidComponents {
-  beforeVariants(selector().withBuildType("release").withFlavor("tier" to "fdroid")) { variantBuilder ->
-    // Keep the Play Store release optimized while making the F-Droid APK easier to reproduce.
-    variantBuilder.isMinifyEnabled = false
-    variantBuilder.shrinkResources = false
-    variantBuilder.dependenciesInfo.includeInApk = false
-    variantBuilder.dependenciesInfo.includeInBundle = false
-  }
 }
 
 val googleMapsApiKey =
@@ -133,12 +107,6 @@ android {
 
   flavorDimensions += "tier"
   productFlavors {
-    create("fdroid") {
-      dimension = "tier"
-      applicationIdSuffix = ".fdroid"
-      versionNameSuffix = "-fdroid"
-      proguardFiles("fdroid-proguard-rules.pro")
-    }
     create("playstore") {
       dimension = "tier"
       // Play Store specific configuration (default)
@@ -271,8 +239,6 @@ dependencies {
   implementation(libs.androidx.glance.material3)
   implementation(libs.google.material)
   testImplementation(libs.junit)
-  add("fdroidImplementation", libs.osmdroid.android)
-  add("fdroidImplementation", libs.auth0.android)
 
   // Play Store flavor dependencies
   add("playstoreImplementation", libs.auth0.android)
@@ -285,70 +251,6 @@ dependencies {
   add("playstoreImplementation", playstore.play.app.update.ktx)
   add("playstoreImplementation", platform(playstore.mobile.services.bom))
   add("playstoreImplementation", playstore.crash.reporting.sdk)
-}
-
-abstract class VerifyDependencyPrefixesTask : DefaultTask() {
-  @get:Input abstract val configurationName: Property<String>
-
-  @get:Input abstract val forbiddenPrefixes: ListProperty<String>
-
-  @TaskAction
-  fun verify() {
-    val forbidden =
-      project.configurations
-        .getByName(configurationName.get())
-        .incoming
-        .resolutionResult
-        .allComponents
-        .mapNotNull { component ->
-          component.moduleVersion?.let { "${it.group}:${it.name}:${it.version}" }
-        }.filter { dependency ->
-          forbiddenPrefixes.get().any(dependency::startsWith)
-        }.sorted()
-
-    check(forbidden.isEmpty()) {
-      buildString {
-        appendLine("Forbidden dependencies found in androidApp fdroidReleaseRuntimeClasspath:")
-        forbidden.forEach { appendLine(" - $it") }
-      }
-    }
-  }
-}
-
-val verifyFdroidReleaseDependencies by
-  tasks.registering(VerifyDependencyPrefixesTask::class) {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Fails when the F-Droid runtime classpath contains forbidden proprietary SDKs."
-    notCompatibleWithConfigurationCache("Inspects resolved Gradle configurations during execution.")
-    configurationName.set("fdroidReleaseRuntimeClasspath")
-    forbiddenPrefixes.set(
-      listOf(
-        "com.google.android.gms:",
-        "com.google.android.play:",
-        mobileServicesGroupPrefix,
-        "com.google.maps.android:",
-      ),
-    )
-  }
-
-// Ligado sólo al assemble de F-Droid para no invalidar el configuration cache
-// del resto de tareas (la verificación no es compatible con config cache).
-tasks.matching { it.name == "assembleFdroidRelease" }.configureEach {
-  dependsOn(verifyFdroidReleaseDependencies)
-}
-
-tasks.configureEach {
-  val taskName = name.lowercase()
-  if (
-    taskName.contains("fdroidrelease") &&
-    (
-      taskName.contains("artprofile") ||
-        taskName.contains("baselineprofile") ||
-        taskName.contains("versioncontrolinfo")
-    )
-  ) {
-    enabled = false
-  }
 }
 
 abstract class VerifyR8MappingTask : DefaultTask() {

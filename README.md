@@ -53,28 +53,6 @@ End-user documentation lives in `docs/wiki/` (GitHub Wiki format).
 ./gradlew build
 ```
 
-### Build for F-Droid
-
-The Android app defines a dedicated `fdroid` flavor for the current submission flow. The Wear app still keeps a `fdroid` flavor in the codebase, but it is not currently part of the F-Droid release process.
-
-Common commands:
-
-```bash
-./gradlew :androidApp:testFdroidDebugUnitTest
-./gradlew :androidApp:assembleFdroidDebug
-./gradlew :androidApp:assembleFdroidRelease
-bash tooling/project/check_fdroid_submission.sh
-```
-
-Notes:
-
-- F-Droid builds do not require `androidApp/google-services.json`.
-- Android F-Droid package ID: `com.gcaguilar.biciradar.fdroid`.
-- Play Store publishing commands remain separate and use the `playstore` flavor.
-- The F-Droid runtime strips Firebase, Play Services wearable sync, Google Maps SDK usage, and Garmin Connect IQ integrations.
-- The embedded Android map in F-Droid uses OpenStreetMap tiles via `osmdroid` instead of Google Maps.
-- Signed upstream APKs for F-Droid verification are published to GitHub Releases via `.github/workflows/publish-fdroid.yml`.
-
 ### Quick smoke tests
 
 Unified script:
@@ -154,7 +132,6 @@ App Store publishing workflow: `.github/workflows/publish-ios-store.yml` (manual
 ## Release
 
 Build and release checklist: `RELEASE.md`.
-F-Droid submission notes: `docs/fdroid/README.md`.
 
 ## User wiki
 

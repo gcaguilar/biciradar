@@ -34,7 +34,6 @@ the backend.
 - Register the callbacks/logouts:
   - iOS: `biciradar://TU_DOMAIN/ios/com.gcaguilar.biciradar.ios/callback`
   - Android: `biciradar://TU_DOMAIN/android/com.gcaguilar.biciradar/callback`
-    and `biciradar://TU_DOMAIN/android/com.gcaguilar.biciradar.fdroid/callback`
 - Grant types: Authorization Code + Refresh Token (rotation on).
 - Scope: `openid profile email offline_access`.
 

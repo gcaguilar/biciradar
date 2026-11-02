@@ -85,7 +85,7 @@ either have no list to return to or are themselves full-screen overlays.
 ```bash
 ./gradlew :shared:mobile-ui:jvmTest
 ./gradlew :shared:mobile-ui:compileAndroidMain
-./gradlew :androidApp:compilePlaystoreDebugKotlin :androidApp:compileFdroidDebugKotlin
+./gradlew :androidApp:compilePlaystoreDebugKotlin
 ./gradlew ktlintCheckAll
 ```
 
