@@ -89,8 +89,8 @@ class SurfaceMonitoringUseCase(
     surfaceMonitoringRepository.startMonitoring(stationId, durationSeconds, kind)
   }
 
-  fun stopMonitoring() {
-    surfaceMonitoringRepository.stopMonitoring()
+  fun stopMonitoring(stationId: String? = null) {
+    surfaceMonitoringRepository.stopMonitoring(stationId)
   }
 
   suspend fun clearMonitoring() {

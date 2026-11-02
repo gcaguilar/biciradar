@@ -455,27 +455,34 @@ class TripViewModel(
   }
 
   fun onStopMonitoring() {
+    val stationId = tripManagementUseCase.nearestStationWithSlots
     tripManagementUseCase.stopMonitoring()
-    surfaceMonitoringUseCase.stopMonitoring()
+    // Solo la sesión de superficie de este viaje: una rutina puede estar
+    // vigilando otras estaciones a la vez.
+    stationId?.let(surfaceMonitoringUseCase::stopMonitoring)
   }
 
   fun onClearTrip() {
+    val stationId = tripManagementUseCase.nearestStationWithSlots
+    queryInput.update { "" }
     transientUiState.update {
       it.copy(
+        query = "",
+        suggestions = emptyList(),
         isLoadingSuggestions = false,
         suggestionsError = null,
-        mapPickerActive = false,
         isReverseGeocoding = false,
         pickedLocation = null,
         mapPickerMode = null,
         selectedMapStation = null,
         selectedMapLocationLabel = null,
         canConfirmMapSelection = false,
+        localMonitoringFailure = null,
       )
     }
     tripManagementUseCase.clearTrip()
     viewModelScope.launch {
-      surfaceMonitoringUseCase.clearMonitoring()
+      stationId?.let(surfaceMonitoringUseCase::stopMonitoring)
     }
   }
 
