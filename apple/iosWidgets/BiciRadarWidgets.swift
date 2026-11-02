@@ -88,7 +88,10 @@ struct NearbyStationsWidget: Widget {
         }
         .configurationDisplayName("Estaciones cercanas")
         .description("Muestra las estaciones más próximas desde el último snapshot disponible.")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        // `.systemExtraLarge` is iPad-only (ignored on iPhone). The inner display of a
+        // foldable (iPhone Duo unfolded) is iPad-sized, so the widget can be placed there
+        // too and would otherwise be limited to the phone families.
+        .supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
     }
 }
 
@@ -296,8 +299,19 @@ private struct NearbyStationsWidgetView: View {
     let entry: SurfaceEntry
     @Environment(\.widgetFamily) private var family
 
+    /// Extra large (iPad / folded-out iPhone Duo) gets the widest layout, so it fits more
+    /// stations and splits them into two columns instead of stretching a single one.
+    private var isExtraLarge: Bool { family == .systemExtraLarge }
+    private var maxStations: Int {
+        switch family {
+        case .systemExtraLarge: return 8
+        case .systemLarge: return 5
+        default: return 3
+        }
+    }
+
     var body: some View {
-        let visibleStations = family == .systemLarge ? entry.nearbyStations.prefix(5) : entry.nearbyStations.prefix(3)
+        let visibleStations = entry.nearbyStations.prefix(maxStations)
         let content = ZStack {
             LinearGradient(colors: [Color(red: 0.95, green: 0.97, blue: 1.0), Color.white], startPoint: .topLeading, endPoint: .bottomTrailing)
             if visibleStations.isEmpty {
@@ -308,24 +322,20 @@ private struct NearbyStationsWidgetView: View {
                     Text("Cerca de ti")
                         .font(.headline)
                         .foregroundStyle(Color(red: 0.05, green: 0.11, blue: 0.16))
-                    ForEach(Array(visibleStations)) { station in
-                        HStack(spacing: 8) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(station.nameShort)
-                                    .font(.caption.weight(.semibold))
-                                    .lineLimit(1)
-                                Text(station.distanceMeters.map(formatWidgetDistance) ?? station.statusTextShort)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("\(station.bikesAvailable) / \(station.docksAvailable)")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(statusColor(station.statusLevel))
+                    LazyVGrid(
+                        columns: Array(
+                            repeating: GridItem(.flexible(), spacing: 12, alignment: .leading),
+                            count: isExtraLarge ? 2 : 1
+                        ),
+                        alignment: .leading,
+                        spacing: 10
+                    ) {
+                        ForEach(Array(visibleStations)) { station in
+                            stationRow(station)
                         }
                     }
                     Spacer(minLength: 0)
-                    if family == .systemLarge {
+                    if family == .systemLarge || isExtraLarge {
                         Text(BiziSurfaceStore.freshnessText(lastUpdatedEpoch: entry.state?.lastSyncEpoch))
                             .font(.caption2)
                             .foregroundStyle(BiziSurfaceStore.isStale(lastUpdatedEpoch: entry.state?.lastSyncEpoch) ? .orange : .secondary)
@@ -335,6 +345,23 @@ private struct NearbyStationsWidgetView: View {
             }
         }
         return content.widgetURL(URL(string: "biciradar://home"))
+    }
+
+    private func stationRow(_ station: AppleSurfaceStationSnapshot) -> some View {
+        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(station.nameShort)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                Text(station.distanceMeters.map(formatWidgetDistance) ?? station.statusTextShort)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text("\(station.bikesAvailable) / \(station.docksAvailable)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(statusColor(station.statusLevel))
+        }
     }
 }
 
@@ -578,10 +605,16 @@ struct BiziMonitoringLiveActivityWidget: Widget {
                 DynamicIslandExpandedRegion(.trailing) {
                     Text("\(context.state.docksAvailable) huecos")
                 }
+                // The station name goes in the center region: it is the one piece of context
+                // that must stay readable on both Dynamic Islands (outer and inner display),
+                // and it used to be crammed into the bottom region next to the status.
+                DynamicIslandExpandedRegion(.center) {
+                    Text(context.attributes.stationName)
+                        .font(.headline)
+                        .lineLimit(1)
+                }
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(alignment: .leading) {
-                        Text(context.attributes.stationName)
-                            .font(.headline)
                         Text(context.state.statusText)
                             .font(.caption)
                             .foregroundStyle(context.state.isStale ? .orange : .secondary)
@@ -608,7 +641,10 @@ struct BiziMonitoringLiveActivityWidget: Widget {
             } compactTrailing: {
                 Label("\(context.state.docksAvailable)", systemImage: "parkingsign")
             } minimal: {
-                Text(String(context.state.statusText.prefix(1)))
+                // A single status initial carried no information. The bike count is the number
+                // people glance at, and it still fits the minimal pill/circle.
+                Text("\(context.state.bikesAvailable)")
+                    .font(.caption2.bold())
             }
             .widgetURL(URL(string: "biciradar://monitor/\(context.attributes.stationId)"))
         }
@@ -672,10 +708,22 @@ private struct StationSummaryWidgetCard: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Text("\(value)")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: metricValueFontSize, weight: .bold, design: .rounded))
                 .foregroundStyle(tint)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// The metric digits used to be a fixed 28pt, which looked tiny on `systemLarge` and
+    /// `systemExtraLarge` (iPad and the inner display of a foldable). Scale with the family
+    /// instead of the point size, so the card reads the same at every size.
+    private var metricValueFontSize: CGFloat {
+        switch family {
+        case .systemExtraLarge: return 40
+        case .systemLarge: return 34
+        case .systemMedium: return 28
+        default: return 24
+        }
     }
 }
 
