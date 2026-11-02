@@ -22,6 +22,7 @@ import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.core.TripDestination
+import com.gcaguilar.biciradar.core.TripMonitoringFailure
 import com.gcaguilar.biciradar.core.TripMonitoringState
 import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.TripState
@@ -278,6 +279,174 @@ class TripViewModelTest {
     }
 
   @Test
+  fun `station picked from the map without destination leaves planning`() =
+    runTest(dispatcher) {
+      val tripRepository = TripTestTripRepository()
+      val station =
+        Station(
+          id = "station-1",
+          name = "Plaza Espana",
+          address = "Centro, Zaragoza",
+          location = GeoPoint(41.649, -0.887),
+          bikesAvailable = 4,
+          slotsFree = 7,
+          distanceMeters = 120,
+        )
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = tripRepository,
+          geoApi = TripTestGeoApi(),
+        )
+
+      assertTrue(viewModel.uiState.value.showPlanning)
+
+      viewModel.onEnterMapPicker(TripMapPickerMode.Station)
+      viewModel.onStationPickedFromMap(station)
+      viewModel.onConfirmMapSelection()
+      advanceUntilIdle()
+
+      assertFalse(viewModel.uiState.value.showPlanning)
+      assertEquals(null, viewModel.uiState.value.destination)
+      assertEquals(station, viewModel.uiState.value.nearestStationWithSlots)
+    }
+
+  @Test
+  fun `clearing the query and retyping the same text searches again`() =
+    runTest(dispatcher) {
+      val geoApi =
+        TripTestGeoApi(
+          searchResults =
+            mapOf(
+              "plaza" to
+                listOf(
+                  GeoResult(
+                    id = "geo-1",
+                    name = "Plaza",
+                    address = "Centro",
+                    latitude = 41.65,
+                    longitude = -0.88,
+                  ),
+                ),
+            ),
+        )
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = TripTestTripRepository(),
+          geoApi = geoApi,
+        )
+
+      viewModel.onQueryChange("plaza")
+      advanceTimeBy(500)
+      advanceUntilIdle()
+      assertTrue(
+        viewModel.uiState.value.suggestions
+          .isNotEmpty(),
+      )
+
+      viewModel.onQueryChange("")
+      advanceUntilIdle()
+      assertTrue(
+        viewModel.uiState.value.suggestions
+          .isEmpty(),
+      )
+
+      viewModel.onQueryChange("plaza")
+      advanceTimeBy(500)
+      advanceUntilIdle()
+
+      assertTrue(
+        viewModel.uiState.value.suggestions
+          .isNotEmpty(),
+      )
+    }
+
+  @Test
+  fun `clearing the trip resets the destination search`() =
+    runTest(dispatcher) {
+      val geoApi =
+        TripTestGeoApi(
+          searchResults =
+            mapOf(
+              "plaza" to
+                listOf(
+                  GeoResult(
+                    id = "geo-1",
+                    name = "Plaza",
+                    address = "Centro",
+                    latitude = 41.65,
+                    longitude = -0.88,
+                  ),
+                ),
+            ),
+        )
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = TripTestTripRepository(),
+          geoApi = geoApi,
+        )
+
+      viewModel.onQueryChange("plaza")
+      advanceTimeBy(500)
+      advanceUntilIdle()
+      assertTrue(
+        viewModel.uiState.value.suggestions
+          .isNotEmpty(),
+      )
+
+      viewModel.onClearTrip()
+      advanceUntilIdle()
+
+      assertEquals("", viewModel.uiState.value.query)
+      assertTrue(
+        viewModel.uiState.value.suggestions
+          .isEmpty(),
+      )
+    }
+
+  @Test
+  fun `stopping a trip only stops its own surface session`() =
+    runTest(dispatcher) {
+      val station = testStation()
+      val tripRepository = TripTestTripRepository().apply { seedStation(station) }
+      val surfaceMonitoring = TripTestSurfaceMonitoringRepository()
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = tripRepository,
+          geoApi = TripTestGeoApi(),
+          surfaceMonitoringRepository = surfaceMonitoring,
+        )
+
+      viewModel.onStopMonitoring()
+      advanceUntilIdle()
+
+      assertEquals(listOf<String?>(station.id), surfaceMonitoring.stoppedStationIds)
+    }
+
+  @Test
+  fun `clearing a trip only clears its own surface session`() =
+    runTest(dispatcher) {
+      val station = testStation()
+      val tripRepository = TripTestTripRepository().apply { seedStation(station) }
+      val surfaceMonitoring = TripTestSurfaceMonitoringRepository()
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = tripRepository,
+          geoApi = TripTestGeoApi(),
+          surfaceMonitoringRepository = surfaceMonitoring,
+        )
+
+      viewModel.onClearTrip()
+      advanceUntilIdle()
+
+      assertEquals(listOf<String?>(station.id), surfaceMonitoring.stoppedStationIds)
+    }
+
+  @Test
   fun `start monitoring is blocked and asks to sign in when anonymous`() =
     runTest(dispatcher) {
       val tripRepository = TripTestTripRepository().apply { seedStation(testStation()) }
@@ -321,6 +490,28 @@ class TripViewModelTest {
     }
 
   @Test
+  fun `denied notification permission reports monitoring unavailable`() =
+    runTest(dispatcher) {
+      val tripRepository = TripTestTripRepository().apply { seedStation(testStation()) }
+      val notifier = TripTestLocalNotifier(grantPermission = false)
+      val viewModel =
+        buildTripViewModel(
+          settingsRepository = TripTestSettingsRepository(),
+          tripRepository = tripRepository,
+          geoApi = TripTestGeoApi(),
+          authProvider = TripTestAuthProvider(AuthState.Authenticated),
+          localNotifier = notifier,
+        )
+
+      viewModel.onStartMonitoringRequested()
+      advanceUntilIdle()
+
+      assertEquals(1, notifier.permissionRequests)
+      assertEquals(0, tripRepository.startMonitoringCalls)
+      assertEquals(TripMonitoringFailure.NotificationsUnavailable, viewModel.uiState.value.monitoringFailure)
+    }
+
+  @Test
   fun `successful login updates auth state and clears error`() =
     runTest(dispatcher) {
       val viewModel =
@@ -359,6 +550,7 @@ private fun buildTripViewModel(
   localNotifier: TripTestLocalNotifier = TripTestLocalNotifier(),
   favoritesRepository: FakeFavoritesRepository = FakeFavoritesRepository(),
   stationsRepository: TripTestStationsRepository = TripTestStationsRepository(),
+  surfaceMonitoringRepository: TripTestSurfaceMonitoringRepository = TripTestSurfaceMonitoringRepository(),
 ): TripViewModel {
   val tripManagementUseCase =
     TripManagementUseCase(
@@ -368,7 +560,7 @@ private fun buildTripViewModel(
     )
   val surfaceMonitoringUseCase =
     SurfaceMonitoringUseCase(
-      surfaceMonitoringRepository = TripTestSurfaceMonitoringRepository(),
+      surfaceMonitoringRepository = surfaceMonitoringRepository,
     )
   val geoLocationUseCase =
     GeoLocationUseCase(
@@ -502,6 +694,7 @@ private class TripTestSettingsRepository(
 
 private class TripTestSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   override val state = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
+  val stoppedStationIds = mutableListOf<String?>()
 
   override suspend fun bootstrap() = Unit
 
@@ -516,7 +709,9 @@ private class TripTestSurfaceMonitoringRepository : SurfaceMonitoringRepository 
     kind: SurfaceMonitoringKind,
   ): Boolean = true
 
-  override fun stopMonitoring(stationId: String?) = Unit
+  override fun stopMonitoring(stationId: String?) {
+    stoppedStationIds += stationId
+  }
 
   override suspend fun clearMonitoring() = Unit
 
@@ -577,12 +772,14 @@ private class TripTestStationsRepository(
   override fun stationById(stationId: String): Station? = null
 }
 
-private class TripTestLocalNotifier : LocalNotifier {
+private class TripTestLocalNotifier(
+  private val grantPermission: Boolean = true,
+) : LocalNotifier {
   var permissionRequests = 0
 
   override suspend fun requestPermission(): Boolean {
     permissionRequests++
-    return true
+    return grantPermission
   }
 
   override suspend fun notify(
