@@ -17,12 +17,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
 private const val WATCH_SYNC_TIMEOUT_MILLIS = 2_000L
+private const val FAVORITES_SYNC_META_FILE_NAME = "favorites-sync-meta.json"
+
+/**
+ * Estado de sincronización LWW persistido junto a `favorites.json`.
+ *
+ * No se guarda en SQLDelight para no requerir una migración de esquema.
+ */
+@Serializable
+private data class FavoritesSyncMeta(
+  val localUpdatedAt: Long = 0,
+  val lastPushedUpdatedAt: Long = 0,
+)
 
 /**
  * Contrato base de favoritos.
@@ -135,6 +148,16 @@ class FavoritesRepositoryImpl(
   private val mutableStationCategory = MutableStateFlow<Map<String, String>>(emptyMap())
 
   @kotlin.concurrent.Volatile private var bootstrapped = false
+
+  /**
+   * Timestamp (millis) of the last local mutation whose snapshot was persisted.
+   * Drives last-writer-wins merges with the paired device.
+   */
+  @kotlin.concurrent.Volatile private var localUpdatedAt: Long = 0
+
+  /** Timestamp of the last snapshot already sent to the peer (anti ping-pong). */
+  @kotlin.concurrent.Volatile private var lastPushedUpdatedAt: Long = 0
+
   private val legacyMigrator =
     FavoritesLegacyMigrator(
       fileSystem = fileSystem,
@@ -194,7 +217,15 @@ class FavoritesRepositoryImpl(
 
   override suspend fun bootstrap() {
     if (bootstrapped) return
-    syncMergedSnapshot(readPersistedSnapshot(), pushIfChanged = true)
+    loadSyncMeta()
+    val persistedSnapshot = readPersistedSnapshot()
+    // Tolerate a missing/corrupt meta file: recover the timestamp stored in the
+    // snapshot file itself so LWW does not silently degrade to legacy merging.
+    if (persistedSnapshot.updatedAt > localUpdatedAt) {
+      localUpdatedAt = persistedSnapshot.updatedAt
+      persistSyncMeta()
+    }
+    syncMergedSnapshot(persistedSnapshot, pushIfChanged = true)
     bootstrapped = true
   }
 
@@ -214,11 +245,12 @@ class FavoritesRepositoryImpl(
     } else {
       updatedAssignments[stationId] = FavoriteCategoryIds.FAVORITE
     }
-    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
+    val updatedSnapshot =
+      snapshotFromStationCategory(updatedAssignments)
+        .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
-    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.pushFavorites(updatedSnapshot)
-    }
+    pushSnapshot(updatedSnapshot)
   }
 
   override suspend fun setHomeStationId(stationId: String?) {
@@ -226,11 +258,12 @@ class FavoritesRepositoryImpl(
     val updatedAssignments = mutableStationCategory.value.toMutableMap()
     updatedAssignments.entries.removeAll { it.value == FavoriteCategoryIds.HOME }
     stationId?.takeIf(String::isNotBlank)?.let { updatedAssignments[it] = FavoriteCategoryIds.HOME }
-    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
+    val updatedSnapshot =
+      snapshotFromStationCategory(updatedAssignments)
+        .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
-    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.pushFavorites(updatedSnapshot)
-    }
+    pushSnapshot(updatedSnapshot)
   }
 
   override suspend fun setWorkStationId(stationId: String?) {
@@ -243,20 +276,19 @@ class FavoritesRepositoryImpl(
         updatedAssignments[candidateWorkId] = FavoriteCategoryIds.WORK
       }
     }
-    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
+    val updatedSnapshot =
+      snapshotFromStationCategory(updatedAssignments)
+        .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
-    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.pushFavorites(updatedSnapshot)
-    }
+    pushSnapshot(updatedSnapshot)
   }
 
   override suspend fun clearAll() {
     if (!bootstrapped) bootstrap()
-    val emptySnapshot = FavoritesSyncSnapshot()
+    val emptySnapshot = FavoritesSyncSnapshot(updatedAt = epochMillisForUi())
     persist(emptySnapshot)
-    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-      watchSyncBridge.pushFavorites(emptySnapshot)
-    }
+    pushSnapshot(emptySnapshot)
   }
 
   override suspend fun upsertCategory(
@@ -280,6 +312,7 @@ class FavoritesRepositoryImpl(
       currentSnapshot()
         .copy(categories = existing.values.sortedBy { it.label.lowercase() })
         .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
   }
 
@@ -293,6 +326,7 @@ class FavoritesRepositoryImpl(
       snapshotFromStationCategory(updatedAssignments)
         .copy(categories = updatedCategories)
         .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
   }
 
@@ -314,7 +348,10 @@ class FavoritesRepositoryImpl(
       }
       updatedAssignments[normalizedStationId] = categoryId
     }
-    val updatedSnapshot = snapshotFromStationCategory(updatedAssignments).normalized()
+    val updatedSnapshot =
+      snapshotFromStationCategory(updatedAssignments)
+        .normalized()
+        .copy(updatedAt = epochMillisForUi())
     persist(updatedSnapshot)
   }
 
@@ -336,6 +373,7 @@ class FavoritesRepositoryImpl(
       favoriteIds = mutableFavoriteIds.value,
       homeStationId = mutableHomeStationId.value,
       workStationId = mutableWorkStationId.value,
+      updatedAt = localUpdatedAt,
     )
 
   /**
@@ -356,37 +394,131 @@ class FavoritesRepositoryImpl(
       workStationId = stationCategory.entries.firstOrNull { it.value == FavoriteCategoryIds.WORK }?.key,
     )
 
+  /**
+   * Merge the local snapshot with the paired device one.
+   *
+   * When both sides carry a timestamp the most recent writer wins as a whole
+   * snapshot, so removals (and home/work changes) propagate instead of being
+   * resurrected by a union. Legacy peers (timestamp `0`) keep the historical
+   * union merge so iOS/watchOS, which do not seal timestamps, keep working.
+   */
   private suspend fun syncMergedSnapshot(
     localSnapshot: FavoritesSyncSnapshot,
     pushIfChanged: Boolean,
   ) {
-    val normalizedLocal = localSnapshot.normalized()
+    val local = localSnapshot.normalized().copy(updatedAt = localUpdatedAt)
     val remoteSnapshot =
       withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
         watchSyncBridge.latestFavorites()
-      } ?: FavoritesSyncSnapshot()
-    val normalizedRemote = remoteSnapshot.normalized()
+      }
+    if (remoteSnapshot == null) {
+      // No peer data: only bootstrap pushes, and only when there is something
+      // to share (same as the historical behaviour).
+      persistIfNeeded(local)
+      if (local.hasLegacyData() && pushIfChanged) {
+        pushSnapshot(local)
+      }
+      return
+    }
+
+    val remote = remoteSnapshot.normalized()
+    if (local.updatedAt > 0 && remote.updatedAt > 0) {
+      when {
+        remote.updatedAt > local.updatedAt -> {
+          // The peer is newer: apply it verbatim (removals and home/work too).
+          persist(remote)
+          lastPushedUpdatedAt = maxOf(lastPushedUpdatedAt, remote.updatedAt)
+          persistSyncMeta()
+        }
+
+        local.updatedAt > remote.updatedAt -> {
+          // Local is newer: ignore the obsolete remote, and only push when the
+          // peer has not already received this revision.
+          persistIfNeeded(local)
+          if (local.updatedAt > lastPushedUpdatedAt) {
+            pushSnapshot(local)
+          }
+        }
+
+        else -> {
+          // Same revision on both sides: nothing to merge or push.
+          persistIfNeeded(local)
+        }
+      }
+      return
+    }
+
+    // Legacy merge (either side without timestamp): keep the historical union
+    // so no data is lost when talking to old builds or Apple bridges.
     val mergedSnapshot =
       FavoritesSyncSnapshot(
-        categories = mergeCategories(normalizedLocal.categories, normalizedRemote.categories),
-        stationCategory = normalizedLocal.stationCategory + normalizedRemote.stationCategory,
-        favoriteIds = normalizedLocal.favoriteIds + normalizedRemote.favoriteIds,
-        homeStationId = normalizedLocal.homeStationId ?: normalizedRemote.homeStationId,
-        workStationId = normalizedLocal.workStationId ?: normalizedRemote.workStationId,
+        categories = mergeCategories(local.categories, remote.categories),
+        stationCategory = local.stationCategory + remote.stationCategory,
+        favoriteIds = local.favoriteIds + remote.favoriteIds,
+        homeStationId = local.homeStationId ?: remote.homeStationId,
+        workStationId = local.workStationId ?: remote.workStationId,
+        updatedAt = localUpdatedAt,
       ).normalized()
-    val existingSnapshot = currentSnapshot()
-    val hasChanged = mergedSnapshot != existingSnapshot
-    if (hasChanged) {
-      persist(mergedSnapshot)
-    } else if (!bootstrapped && mergedSnapshot.hasLegacyData()) {
+    val hasChanged = !mergedSnapshot.sameContentAs(currentSnapshot())
+    if (hasChanged || (!bootstrapped && mergedSnapshot.hasLegacyData())) {
       persist(mergedSnapshot)
     }
     if (mergedSnapshot.hasLegacyData() && (hasChanged || !bootstrapped || pushIfChanged)) {
-      withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
-        watchSyncBridge.pushFavorites(mergedSnapshot)
+      pushSnapshot(mergedSnapshot)
+    }
+  }
+
+  /** Persists [snapshot] only when in-memory state does not match its content. */
+  private suspend fun persistIfNeeded(snapshot: FavoritesSyncSnapshot) {
+    val hasChanged = !snapshot.sameContentAs(currentSnapshot())
+    if (hasChanged || (!bootstrapped && snapshot.hasLegacyData())) {
+      persist(snapshot)
+    }
+  }
+
+  private suspend fun pushSnapshot(snapshot: FavoritesSyncSnapshot) {
+    withTimeoutOrNull(WATCH_SYNC_TIMEOUT_MILLIS) {
+      watchSyncBridge.pushFavorites(snapshot)
+    }
+    if (snapshot.updatedAt > lastPushedUpdatedAt) {
+      lastPushedUpdatedAt = snapshot.updatedAt
+      persistSyncMeta()
+    }
+  }
+
+  private fun loadSyncMeta() {
+    val meta = readSyncMeta()
+    localUpdatedAt = meta.localUpdatedAt
+    lastPushedUpdatedAt = meta.lastPushedUpdatedAt
+  }
+
+  private fun readSyncMeta(): FavoritesSyncMeta {
+    val path = syncMetaPath()
+    if (!fileSystem.exists(path)) return FavoritesSyncMeta()
+    return runCatching {
+      json.decodeFromString<FavoritesSyncMeta>(fileSystem.read(path) { readUtf8() })
+    }.getOrDefault(FavoritesSyncMeta())
+  }
+
+  private fun persistSyncMeta() {
+    runCatching {
+      val path = syncMetaPath()
+      val dir = path.parent ?: return
+      fileSystem.createDirectories(dir)
+      fileSystem.write(path) {
+        writeUtf8(
+          json.encodeToString(
+            FavoritesSyncMeta(
+              localUpdatedAt = localUpdatedAt,
+              lastPushedUpdatedAt = lastPushedUpdatedAt,
+            ),
+          ),
+        )
       }
     }
   }
+
+  private fun syncMetaPath() = "${storageDirectoryProvider.rootPath}/$FAVORITES_SYNC_META_FILE_NAME".toPath()
 
   private fun applySnapshot(snapshot: FavoritesSyncSnapshot) {
     val normalized = snapshot.normalized()
@@ -411,6 +543,10 @@ class FavoritesRepositoryImpl(
   }
 
   private suspend fun persist(snapshot: FavoritesSyncSnapshot) {
+    if (snapshot.updatedAt > localUpdatedAt) {
+      localUpdatedAt = snapshot.updatedAt
+    }
+    persistSyncMeta()
     if (database != null) {
       persistToDatabase(snapshot)
       legacyMigrator.deleteLegacyFile()
@@ -538,6 +674,10 @@ internal fun FavoritesSyncSnapshot.hasLegacyData(): Boolean =
     favoriteIds.isNotEmpty() ||
     homeStationId != null ||
     workStationId != null
+
+/** Compares sync content while ignoring the LWW timestamp. */
+internal fun FavoritesSyncSnapshot.sameContentAs(other: FavoritesSyncSnapshot): Boolean =
+  copy(updatedAt = 0) == other.copy(updatedAt = 0)
 
 private fun systemCategories(): List<FavoriteCategory> =
   listOf(

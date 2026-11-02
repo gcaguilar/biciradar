@@ -74,6 +74,13 @@ data class FavoritesSyncSnapshot(
   val favoriteIds: Set<String> = emptySet(),
   val homeStationId: String? = null,
   val workStationId: String? = null,
+  /**
+   * Wall-clock millis of the last local mutation (see [epochMillisForUi]).
+   *
+   * `0` means "no timestamp": peers that predate last-writer-wins sync (old
+   * Android builds, iOS/watchOS bridges) keep using the legacy union merge.
+   */
+  val updatedAt: Long = 0,
 )
 
 @Serializable
