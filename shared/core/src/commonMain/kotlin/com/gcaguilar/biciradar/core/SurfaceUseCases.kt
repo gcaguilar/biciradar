@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowService
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowStart
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import dev.zacsweers.metro.Inject
 
@@ -85,27 +87,74 @@ class GetStationStatus(
 @Inject
 class StartStationMonitoring(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val monitoringWindowService: MonitoringWindowService,
 ) {
+  /**
+   * Abre la ventana del backend y, solo si se ha abierto, arranca la sesión de
+   * superficie. Sin ventana no llegarían avisos, así que devolver `false` es
+   * preferible a mostrar una cuenta atrás que no vigila nada.
+   *
+   * [openWindow] se pone a `false` cuando el dispositivo que pide la sesión no
+   * puede recibir los avisos (el reloj no tiene sesión ni token push propios):
+   * en ese caso la sesión es solo visual y los avisos los gestiona el teléfono.
+   */
   suspend fun execute(
     stationId: String,
     durationSeconds: Int = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
     kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Docks,
-  ): Boolean =
-    surfaceMonitoringRepository.startMonitoring(
-      stationId = stationId,
-      durationSeconds = durationSeconds,
-      kind = kind,
-    )
+    openWindow: Boolean = true,
+  ): Boolean {
+    if (!openWindow) {
+      return surfaceMonitoringRepository.startMonitoring(
+        stationId = stationId,
+        durationSeconds = durationSeconds,
+        kind = kind,
+      )
+    }
+    // Reemplazar una sesión viva dejaría su ventana huérfana hasta caducar.
+    surfaceMonitoringRepository.sessionFor(stationId)?.windowId?.let { previous ->
+      monitoringWindowService.cancel(previous)
+    }
+    val start = monitoringWindowService.start(stationId, durationSeconds, kind)
+    val windowId =
+      when (start) {
+        is MonitoringWindowStart.Started -> start.windowId
+        is MonitoringWindowStart.Failed -> return false
+      }
+    val started =
+      surfaceMonitoringRepository.startMonitoring(
+        stationId = stationId,
+        durationSeconds = durationSeconds,
+        kind = kind,
+        windowId = windowId,
+      )
+    if (!started) {
+      monitoringWindowService.cancel(windowId)
+    }
+    return started
+  }
 }
 
 @Inject
 class StopStationMonitoring(
   private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
+  private val monitoringWindowService: MonitoringWindowService,
 ) {
   suspend fun execute(
     clear: Boolean = false,
     stationId: String? = null,
   ) {
+    val sessions =
+      if (clear) {
+        surfaceMonitoringRepository.activeSessions()
+      } else if (stationId == null) {
+        surfaceMonitoringRepository.activeSessions()
+      } else {
+        listOfNotNull(surfaceMonitoringRepository.sessionFor(stationId))
+      }
+    sessions.forEach { session ->
+      session.windowId?.let { monitoringWindowService.cancel(it) }
+    }
     if (clear) {
       surfaceMonitoringRepository.clearMonitoring()
     } else {

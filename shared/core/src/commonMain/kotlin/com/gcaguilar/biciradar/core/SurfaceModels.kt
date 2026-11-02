@@ -65,6 +65,8 @@ data class SurfaceMonitoringSession(
   val expiresAtEpoch: Long,
   val lastUpdatedEpoch: Long,
   val isActive: Boolean,
+  /** Ventana del backend que emite los avisos; `null` en sesiones solo visuales. */
+  val windowId: String? = null,
   val alternativeStationId: String? = null,
   val alternativeStationName: String? = null,
   val alternativeDistanceMeters: Int? = null,

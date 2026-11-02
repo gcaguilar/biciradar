@@ -34,6 +34,7 @@ object LegacyBlobToRelationalMigration {
     CORE_RELATIONAL_DDL.forEach { sql -> driver.execute(null, sql, 0) }
     ensureAppSettingsTripModeColumn(driver)
     ensureRoutineStepColumns(driver)
+    ensureSurfaceMonitoringWindowColumn(driver)
     database.transaction {
       migrateSavedPlaceAlertsIfBlobgy(driver, json, database)
       migrateSettingsBlobIfPresent(driver, json, database)
@@ -73,6 +74,16 @@ object LegacyBlobToRelationalMigration {
     driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN threshold INTEGER", 0)
     driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN fallback_station_id TEXT", 0)
     driver.execute(null, "ALTER TABLE routine_steps ADD COLUMN alternative_radius_meters INTEGER", 0)
+  }
+
+  /**
+   * Adds `surface_monitoring_sessions.window_id`, which links a visible session
+   * with the backend monitoring window that delivers its push alerts.
+   */
+  private fun ensureSurfaceMonitoringWindowColumn(driver: SqlDriver) {
+    if (!tableExists(driver, "surface_monitoring_sessions")) return
+    if (tableHasColumn(driver, "surface_monitoring_sessions", "window_id")) return
+    driver.execute(null, "ALTER TABLE surface_monitoring_sessions ADD COLUMN window_id TEXT", 0)
   }
 
   private fun migrateSettingsBlobIfPresent(
@@ -355,6 +366,7 @@ private fun persistSurfaceBundle(
       expiresAtEpoch = session.expiresAtEpoch,
       lastUpdatedEpoch = session.lastUpdatedEpoch,
       isActive = if (session.isActive) 1L else 0L,
+      windowId = session.windowId,
       alternativeStationId = session.alternativeStationId,
       alternativeStationName = session.alternativeStationName,
       alternativeDistanceMeters = session.alternativeDistanceMeters?.toLong(),
@@ -445,6 +457,7 @@ internal fun surfaceBundleFromRows(
         expiresAtEpoch = mon.expires_at_epoch,
         lastUpdatedEpoch = mon.last_updated_epoch,
         isActive = mon.is_active != 0L,
+        windowId = mon.window_id,
         alternativeStationId = mon.alternative_station_id,
         alternativeStationName = mon.alternative_station_name,
         alternativeDistanceMeters = mon.alternative_distance_meters?.toInt(),
@@ -689,6 +702,7 @@ private val CORE_RELATIONAL_DDL: List<String> =
       expires_at_epoch INTEGER NOT NULL,
       last_updated_epoch INTEGER NOT NULL,
       is_active INTEGER NOT NULL,
+      window_id TEXT,
       alternative_station_id TEXT,
       alternative_station_name TEXT,
       alternative_distance_meters INTEGER

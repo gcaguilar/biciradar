@@ -702,6 +702,7 @@ private class TripTestSurfaceMonitoringRepository : SurfaceMonitoringRepository 
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean = true
 
   override suspend fun startMonitoringFavoriteStation(

@@ -1,21 +1,16 @@
 package com.gcaguilar.biciradar.core
 
-import com.gcaguilar.biciradar.core.auth.AuthProvider
-import com.gcaguilar.biciradar.core.auth.AuthState
-import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowService
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowStart
 import com.gcaguilar.biciradar.core.backend.PushMessage
 import com.gcaguilar.biciradar.core.backend.PushMessageBus
-import com.gcaguilar.biciradar.core.backend.RegisterDeviceRequest
-import com.gcaguilar.biciradar.core.backend.StartMonitoringWindowRequest
 import com.gcaguilar.biciradar.core.backend.TripWindowStore
 import com.gcaguilar.biciradar.core.geo.currentTimeMs
 import com.gcaguilar.biciradar.core.geo.distanceBetween
-import com.gcaguilar.biciradar.core.push.DeviceTokenProvider
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -115,12 +110,9 @@ class TripRepositoryImpl(
   private val stationsRepository: StationsRepository,
   private val engagementRepository: EngagementRepository,
   private val scope: CoroutineScope,
-  private val apiClient: BiciRadarApiClient,
-  private val authProvider: AuthProvider,
-  private val settingsRepository: SettingsRepository,
   private val pushMessageBus: PushMessageBus,
   private val tripWindowStore: TripWindowStore,
-  private val deviceTokenProvider: DeviceTokenProvider,
+  private val monitoringWindowService: MonitoringWindowService,
 ) : TripRepository {
   private val mutableState = MutableStateFlow(TripState())
   override val state: StateFlow<TripState> = mutableState.asStateFlow()
@@ -132,9 +124,7 @@ class TripRepositoryImpl(
     val orphanWindow = tripWindowStore.current()
     if (orphanWindow != null) {
       scope.launch {
-        if (apiClient.isConfigured) {
-          runCatching { apiClient.cancelMonitoringWindow(orphanWindow.windowId) }
-        }
+        monitoringWindowService.cancel(orphanWindow.windowId)
         if (tripWindowStore.current()?.windowId == orphanWindow.windowId) {
           tripWindowStore.clear()
         }
@@ -246,49 +236,24 @@ class TripRepositoryImpl(
     // "alert when the station fills up" behaviour (plan §H). Without a window
     // nothing would ever notify the user, so a failure is reported instead of
     // showing a countdown that watches nothing.
-    if (authProvider.credentialsState.value != AuthState.Authenticated) {
-      mutableState.update { it.copy(monitoringFailure = TripMonitoringFailure.SignInRequired) }
-      return
-    }
-    // The backend drops alerts for users without a registered device, so bind
-    // this device right before opening the window instead of trusting that an
-    // earlier subscription sync managed to do it.
-    val pushToken = deviceTokenProvider.currentToken()?.takeIf { it.isNotBlank() }
-    if (pushToken == null) {
-      mutableState.update { it.copy(monitoringFailure = TripMonitoringFailure.NotificationsUnavailable) }
-      return
-    }
+    val start =
+      monitoringWindowService.start(
+        stationId = station.id,
+        durationSeconds = durationSeconds,
+        kind = SurfaceMonitoringKind.Docks,
+        threshold = 1,
+      )
     val windowId =
-      if (apiClient.isConfigured) {
-        runCatching {
-          apiClient.registerDevice(
-            RegisterDeviceRequest(
-              token = pushToken,
-              platform = deviceTokenProvider.platform,
-              appId = deviceTokenProvider.appId,
-              locale = deviceTokenProvider.locale,
-              pushEnvironment = deviceTokenProvider.pushEnvironment,
-            ),
-          )
-          apiClient.startMonitoringWindow(
-            StartMonitoringWindowRequest(
-              cityId = settingsRepository.currentSelectedCity().id,
-              stationId = station.id,
-              kind = "ARRIVAL",
-              durationSeconds = durationSeconds,
-              threshold = 1,
-            ),
-          )
-        }.onFailure { if (it is CancellationException) throw it }
-          .getOrNull()
-      } else {
-        null
-      }
-    if (windowId == null) {
-      mutableState.update { it.copy(monitoringFailure = TripMonitoringFailure.BackendUnavailable) }
-      return
-    }
+      when (start) {
+        is MonitoringWindowStart.Started -> {
+          start.windowId
+        }
 
+        is MonitoringWindowStart.Failed -> {
+          mutableState.update { it.copy(monitoringFailure = start.failure) }
+          return
+        }
+      }
     mutableState.update {
       it.copy(
         alert = null,
@@ -372,7 +337,7 @@ class TripRepositoryImpl(
     val windowId = mutableState.value.activeWindowId
     tripWindowStore.clear()
     if (windowId == null) return
-    scope.launch { runCatching { apiClient.cancelMonitoringWindow(windowId) } }
+    scope.launch { monitoringWindowService.cancel(windowId) }
   }
 
   override fun stopMonitoring() {

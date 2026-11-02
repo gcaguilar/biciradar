@@ -1,10 +1,13 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowService
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SurfaceUseCasesTest {
@@ -178,11 +181,43 @@ class SurfaceUseCasesTest {
     }
 
   @Test
+  fun `surface-only monitoring skips the backend window`() =
+    runTest {
+      val monitoringRepository = FakeSurfaceMonitoringRepository()
+      val windowService = FakeMonitoringWindowService()
+      val startUseCase = StartStationMonitoring(monitoringRepository, windowService)
+
+      val started = startUseCase.execute(stationId = "station-42", openWindow = false)
+
+      assertTrue(started)
+      assertEquals("station-42", monitoringRepository.lastStartedStationId)
+      assertEquals(null, monitoringRepository.lastStartedWindowId)
+      assertEquals(null, windowService.lastStartedStationId)
+    }
+
+  @Test
+  fun `monitoring does not start a surface session without a backend window`() =
+    runTest {
+      val monitoringRepository = FakeSurfaceMonitoringRepository()
+      val windowService =
+        FakeMonitoringWindowService(
+          result = MonitoringWindowStart.Failed(TripMonitoringFailure.SignInRequired),
+        )
+      val startUseCase = StartStationMonitoring(monitoringRepository, windowService)
+
+      val started = startUseCase.execute(stationId = "station-42")
+
+      assertFalse(started)
+      assertEquals(null, monitoringRepository.lastStartedStationId)
+    }
+
+  @Test
   fun `start and stop station monitoring delegate to repository`() =
     runTest {
       val monitoringRepository = FakeSurfaceMonitoringRepository()
-      val startUseCase = StartStationMonitoring(monitoringRepository)
-      val stopUseCase = StopStationMonitoring(monitoringRepository)
+      val windowService = FakeMonitoringWindowService()
+      val startUseCase = StartStationMonitoring(monitoringRepository, windowService)
+      val stopUseCase = StopStationMonitoring(monitoringRepository, windowService)
 
       val started =
         startUseCase.execute(
@@ -196,6 +231,8 @@ class SurfaceUseCasesTest {
       assertTrue(started)
       assertEquals("station-42", monitoringRepository.lastStartedStationId)
       assertEquals(SurfaceMonitoringKind.Bikes, monitoringRepository.lastStartedKind)
+      assertEquals("window-1", monitoringRepository.lastStartedWindowId)
+      assertEquals("station-42", windowService.lastStartedStationId)
       assertTrue(monitoringRepository.stopCalled)
       assertTrue(monitoringRepository.clearCalled)
       assertEquals(emptyMap(), monitoringRepository.state.value)
@@ -333,6 +370,7 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   private val mutableState = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
   var lastStartedStationId: String? = null
   var lastStartedKind: SurfaceMonitoringKind? = null
+  var lastStartedWindowId: String? = null
   var stopCalled = false
   var clearCalled = false
 
@@ -344,9 +382,11 @@ private class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean {
     lastStartedStationId = stationId
     lastStartedKind = kind
+    lastStartedWindowId = windowId
     mutableState.value =
       mutableState.value +
       (
@@ -427,3 +467,24 @@ private fun defaultSurfaceState(): SurfaceState =
     cityId = City.ZARAGOZA.id,
     cityName = City.ZARAGOZA.displayName,
   )
+
+private class FakeMonitoringWindowService(
+  private val result: MonitoringWindowStart = MonitoringWindowStart.Started("window-1"),
+) : MonitoringWindowService {
+  var lastStartedStationId: String? = null
+  val cancelledWindowIds = mutableListOf<String>()
+
+  override suspend fun start(
+    stationId: String,
+    durationSeconds: Int,
+    kind: SurfaceMonitoringKind,
+    threshold: Int?,
+  ): MonitoringWindowStart {
+    lastStartedStationId = stationId
+    return result
+  }
+
+  override suspend fun cancel(windowId: String) {
+    cancelledWindowIds += windowId
+  }
+}

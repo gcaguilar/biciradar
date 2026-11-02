@@ -146,6 +146,40 @@ class LegacyBlobToRelationalMigrationJvmTest {
     database.biciradarQueries.getTripMonitoringWindow().executeAsOneOrNull()
   }
 
+  @Test
+  fun `monitoring sessions keep their backend window id`() {
+    val driver = legacyDriver()
+    val database = BiciRadarDatabase(driver)
+    LegacyBlobToRelationalMigration.ensure(driver, database, Json)
+
+    database.biciradarQueries.upsertSurfaceMonitoringSession(
+      stationId = "station-1",
+      stationName = "Plaza Espana",
+      cityId = "zaragoza",
+      kind = "Docks",
+      status = "Monitoring",
+      bikesAvailable = 4,
+      docksAvailable = 9,
+      statusLevel = "Good",
+      startedAtEpoch = 1_000,
+      expiresAtEpoch = 2_000,
+      lastUpdatedEpoch = 1_000,
+      isActive = 1,
+      windowId = "window-42",
+      alternativeStationId = null,
+      alternativeStationName = null,
+      alternativeDistanceMeters = null,
+    )
+
+    val session =
+      database.biciradarQueries
+        .getAllSurfaceMonitoringSessions()
+        .executeAsList()
+        .single()
+
+    assertEquals("window-42", session.window_id)
+  }
+
   private fun legacyDriver(): JdbcSqliteDriver {
     val dbPath = "${File(System.getProperty("java.io.tmpdir")).absolutePath}/biciradar-legacy-${Random.nextInt()}.db"
     File(dbPath).delete()

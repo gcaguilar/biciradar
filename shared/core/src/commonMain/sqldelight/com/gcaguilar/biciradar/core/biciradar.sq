@@ -527,6 +527,7 @@ CREATE TABLE surface_monitoring_sessions (
   expires_at_epoch INTEGER NOT NULL,
   last_updated_epoch INTEGER NOT NULL,
   is_active INTEGER NOT NULL,
+  window_id TEXT,
   alternative_station_id TEXT,
   alternative_station_name TEXT,
   alternative_distance_meters INTEGER
@@ -549,6 +550,7 @@ INSERT OR REPLACE INTO surface_monitoring_sessions (
   expires_at_epoch,
   last_updated_epoch,
   is_active,
+  window_id,
   alternative_station_id,
   alternative_station_name,
   alternative_distance_meters
@@ -566,6 +568,7 @@ VALUES (
   :expiresAtEpoch,
   :lastUpdatedEpoch,
   :isActive,
+  :windowId,
   :alternativeStationId,
   :alternativeStationName,
   :alternativeDistanceMeters

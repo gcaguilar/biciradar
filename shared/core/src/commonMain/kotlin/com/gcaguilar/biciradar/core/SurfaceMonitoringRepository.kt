@@ -34,6 +34,8 @@ interface SurfaceMonitoringRepository {
     stationId: String,
     durationSeconds: Int = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
     kind: SurfaceMonitoringKind = SurfaceMonitoringKind.Docks,
+    /** Ventana de backend ya abierta para esta estación, si la hay. */
+    windowId: String? = null,
   ): Boolean
 
   suspend fun startMonitoringFavoriteStation(
@@ -115,6 +117,7 @@ class SurfaceMonitoringRepositoryImpl(
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean {
     if (!bootstrapped) bootstrap()
     stationsRepository.loadIfNeeded()
@@ -134,6 +137,7 @@ class SurfaceMonitoringRepositoryImpl(
         expiresAtEpoch = nowEpoch + (durationSeconds.coerceAtLeast(60) * 1000L),
         lastUpdatedEpoch = nowEpoch,
         isActive = true,
+        windowId = windowId,
       )
     cancelWorkers(stationId)
     mutableState.value = mutableState.value + (station.id to session)

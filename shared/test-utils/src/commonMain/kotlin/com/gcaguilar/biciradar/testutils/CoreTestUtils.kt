@@ -311,6 +311,7 @@ open class FakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean = false
 
   override suspend fun startMonitoringFavoriteStation(

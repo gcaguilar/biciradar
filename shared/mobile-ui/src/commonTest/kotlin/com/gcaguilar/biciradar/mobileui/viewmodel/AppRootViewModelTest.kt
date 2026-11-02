@@ -724,6 +724,7 @@ private class AppRootFakeSurfaceMonitoringRepository : SurfaceMonitoringReposito
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean = false
 
   override suspend fun startMonitoringFavoriteStation(

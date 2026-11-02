@@ -1,0 +1,5 @@
+-- Migration 8 (squashed). Adds `surface_monitoring_sessions.window_id` so a
+-- monitoring session can cancel the backend window that delivers its alerts.
+-- As with earlier migrations the DDL is applied idempotently in
+-- LegacyBlobToRelationalMigration.ensure, so this migration is intentionally a
+-- no-op.

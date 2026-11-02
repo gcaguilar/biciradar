@@ -216,7 +216,9 @@ internal class WearViewModel(
         stopStationMonitoring.execute(clear = true)
         ongoingActivity.stop()
       } else {
-        startStationMonitoring.execute(stationId = stationId)
+        // El reloj no tiene sesión Auth0 ni token push propios: la sesión es
+        // solo visual y los avisos los gestiona el teléfono.
+        startStationMonitoring.execute(stationId = stationId, openWindow = false)
         val station = findStationById.execute(stationId)
         if (station != null) {
           ongoingActivity.start(
@@ -233,7 +235,7 @@ internal class WearViewModel(
 
   fun onStartMonitoringFavorite(stationId: String) {
     viewModelScope.launch {
-      startStationMonitoring.execute(stationId = stationId)
+      startStationMonitoring.execute(stationId = stationId, openWindow = false)
       val station = findStationById.execute(stationId)
       if (station != null) {
         ongoingActivity.start(

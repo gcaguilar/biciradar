@@ -25,6 +25,8 @@ import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceSnapshotRepository
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowService
+import com.gcaguilar.biciradar.core.backend.MonitoringWindowStart
 import com.gcaguilar.biciradar.mobileui.navigation.AssistantLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.MobileLaunchRequest
 import com.gcaguilar.biciradar.mobileui.navigation.Screen
@@ -55,7 +57,11 @@ class LaunchCoordinatorTest {
           routeLauncher = LaunchFakeRouteLauncher(),
           findStationById = FindStationById(stationsRepository),
           refreshStationDataIfNeeded = RefreshStationDataIfNeeded(stationsRepository, surfaceSnapshotRepository),
-          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
+          startStationMonitoring =
+            StartStationMonitoring(
+              LaunchFakeSurfaceMonitoringRepository(),
+              LaunchFakeMonitoringWindowService(),
+            ),
         )
 
       val resolution =
@@ -97,7 +103,11 @@ class LaunchCoordinatorTest {
               stationsRepository,
               LaunchFakeSurfaceSnapshotRepository(),
             ),
-          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
+          startStationMonitoring =
+            StartStationMonitoring(
+              LaunchFakeSurfaceMonitoringRepository(),
+              LaunchFakeMonitoringWindowService(),
+            ),
         )
       val stations =
         listOf(
@@ -138,7 +148,11 @@ class LaunchCoordinatorTest {
               stationsRepository,
               LaunchFakeSurfaceSnapshotRepository(),
             ),
-          startStationMonitoring = StartStationMonitoring(LaunchFakeSurfaceMonitoringRepository()),
+          startStationMonitoring =
+            StartStationMonitoring(
+              LaunchFakeSurfaceMonitoringRepository(),
+              LaunchFakeMonitoringWindowService(),
+            ),
         )
 
       val resolution =
@@ -151,6 +165,67 @@ class LaunchCoordinatorTest {
       assertEquals("delicias", resolution.searchQuery)
       assertNull(routeLauncher.launchedStationId)
     }
+
+  @Test
+  fun `monitor launch opens a backend window and links it to the session`() =
+    runTest {
+      val stationsRepository = LaunchFakeStationsRepository()
+      val surfaceMonitoringRepository = LaunchFakeSurfaceMonitoringRepository()
+      val windowService = LaunchFakeMonitoringWindowService()
+      val coordinator =
+        LaunchCoordinator(
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = LaunchFakeSettingsRepository(),
+              favoritesRepository = LaunchFakeFavoritesRepository(),
+              stationsRepository = stationsRepository,
+            ),
+          observeFavorites = ObserveFavorites(LaunchFakeFavoritesRepository()),
+          localNotifier = LaunchFakeLocalNotifier(),
+          routeLauncher = LaunchFakeRouteLauncher(),
+          findStationById = FindStationById(stationsRepository),
+          refreshStationDataIfNeeded =
+            RefreshStationDataIfNeeded(
+              stationsRepository,
+              LaunchFakeSurfaceSnapshotRepository(),
+            ),
+          startStationMonitoring =
+            StartStationMonitoring(surfaceMonitoringRepository, windowService),
+        )
+
+      val resolution =
+        coordinator.resolveMobileLaunch(
+          request = MobileLaunchRequest.MonitorStation("station-home"),
+          stations = stationsRepository.state.value.stations,
+          searchRadiusMeters = 500,
+        )
+
+      assertEquals(Screen.StationDetail("station-home"), resolution?.screen)
+      assertEquals("station-home", windowService.lastStartedStationId)
+      assertEquals("station-home", surfaceMonitoringRepository.startMonitoringStationId)
+      assertEquals("window-1", surfaceMonitoringRepository.startMonitoringWindowId)
+    }
+}
+
+private class LaunchFakeMonitoringWindowService(
+  private val windowId: String = "window-1",
+) : MonitoringWindowService {
+  var lastStartedStationId: String? = null
+  val cancelledWindowIds = mutableListOf<String>()
+
+  override suspend fun start(
+    stationId: String,
+    durationSeconds: Int,
+    kind: SurfaceMonitoringKind,
+    threshold: Int?,
+  ): MonitoringWindowStart {
+    lastStartedStationId = stationId
+    return MonitoringWindowStart.Started(windowId)
+  }
+
+  override suspend fun cancel(windowId: String) {
+    cancelledWindowIds += windowId
+  }
 }
 
 private class LaunchFakeSettingsRepository : SettingsRepository {
@@ -298,6 +373,7 @@ private class LaunchFakeSurfaceSnapshotRepository : SurfaceSnapshotRepository {
 private class LaunchFakeSurfaceMonitoringRepository : SurfaceMonitoringRepository {
   override val state = MutableStateFlow<Map<String, SurfaceMonitoringSession>>(emptyMap())
   var startMonitoringStationId: String? = null
+  var startMonitoringWindowId: String? = null
 
   override suspend fun bootstrap() = Unit
 
@@ -305,8 +381,10 @@ private class LaunchFakeSurfaceMonitoringRepository : SurfaceMonitoringRepositor
     stationId: String,
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
+    windowId: String?,
   ): Boolean {
     startMonitoringStationId = stationId
+    startMonitoringWindowId = windowId
     state.value =
       state.value +
       (

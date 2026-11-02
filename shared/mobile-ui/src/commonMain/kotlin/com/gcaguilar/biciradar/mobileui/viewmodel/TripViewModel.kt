@@ -401,6 +401,7 @@ class TripViewModel(
           stationId = stationId,
           durationSeconds = durationSeconds,
           kind = SurfaceMonitoringKind.Docks,
+          windowId = tripManagementUseCase.tripState.value.activeWindowId,
         )
       }
     }
