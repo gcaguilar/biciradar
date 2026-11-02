@@ -5,6 +5,22 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## 0.23.1
+
+`versionName` 0.23.1 · Android `29570217` · Wear OS `29570218` · Apple
+`29570217`.
+
+### App
+
+- **Cuenta**: Perfil permite eliminar la cuenta y sus datos (rutinas, avisos y
+  dispositivos) y cierra la sesión, tal como exigen App Store y Google Play.
+
+### Release
+
+- `VERSION` y `BUILD_NUMBER` suben a 0.23.1 y 2143.
+- Notas de Play para `29570217` (móvil) y `29570218` (Wear OS) y notas de la
+  App Store para iPhone y Apple Watch.
+
 ## 0.23.0
 
 `versionName` 0.23.0 · Android `29570215` · Wear OS `29570216` · Apple
@@ -28,8 +44,6 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
   widgets; detener o limpiar un viaje solo termina la sesión de esa estación, sin
   cortar las rutinas que vigilan otras. Si se deniegan las notificaciones, se
   muestra el motivo en lugar de no hacer nada.
-- **Cuenta**: Perfil permite eliminar la cuenta y sus datos (rutinas, avisos y
-  dispositivos) y cierra la sesión, tal como exigen App Store y Google Play.
 
 ### Release
 

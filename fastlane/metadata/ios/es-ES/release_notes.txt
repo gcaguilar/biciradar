@@ -1,1 +1,1 @@
-Modo viaje mejorado: elige una estación en el mapa para entrar en modo viaje, cambia de destino cuando quieras y crea una rutina directamente desde el viaje. Las rutinas de vigilancia también se gestionan desde Perfil, y detener o limpiar un viaje solo termina la vigilancia de esa estación, sin cortar las demás. Si se deniegan las notificaciones, ahora se muestra el motivo.
+Ahora puedes eliminar tu cuenta y todos sus datos desde Perfil, tal como exigen App Store y Google Play. Si falla la conexión, la app te avisa y puedes reintentarlo sin perder la sesión.

@@ -1,0 +1,1 @@
+Ahora puedes eliminar tu cuenta y todos sus datos desde Perfil, tal como exigen App Store y Google Play. Si falla la conexión, la app te avisa y puedes reintentarlo sin perder la sesión. Incluye mejoras internas de estabilidad.

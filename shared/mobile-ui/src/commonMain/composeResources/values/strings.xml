@@ -284,6 +284,8 @@
     <string name="changelogPlatformUpdateTitle">Android 17 y dependencias actualizadas</string>
     <string name="changelogRoutinesMonitoringTitle">Rutinas y vigilancia más claras</string>
     <string name="changelogRoutinesMonitoringDescription">Gestiona las rutinas desde Perfil y detén cada vigilancia sin cortar las demás. Si se deniegan las notificaciones, ahora verás el motivo.</string>
+    <string name="changelogAccountDeletionTitle">Eliminar tu cuenta</string>
+    <string name="changelogAccountDeletionDescription">Ahora puedes borrar tu cuenta y sus datos desde Perfil, tal como exigen App Store y Google Play. La app te avisa si falla la conexión para que puedas reintentarlo.</string>
     <string name="changelogTripFlowTitle">Modo viaje desde el mapa</string>
     <string name="changelogTripFlowDescription">Elige una estación en el mapa para entrar en modo viaje, cambia de destino cuando quieras y crea una rutina desde el viaje.</string>
     <string name="changelogPlatformUpdateDescription">Compatible con Android 17 (API 37) en móvil y reloj, con Compose Multiplatform, Kotlin y el resto de librerías actualizadas. Además, los enlaces de la app solo se abren para sus propios dominios.</string>

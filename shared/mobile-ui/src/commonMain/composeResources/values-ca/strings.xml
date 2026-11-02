@@ -250,6 +250,8 @@
     <string name="changelogPlatformUpdateTitle">Android 17 i dependències actualitzades</string>
     <string name="changelogRoutinesMonitoringTitle">Rutines i vigilància més clares</string>
     <string name="changelogRoutinesMonitoringDescription">Gestiona les rutines des de Perfil i atura cada vigilància sense tallar les altres. Si es denegen les notificacions, ara veuràs el motiu.</string>
+    <string name="changelogAccountDeletionTitle">Elimina el teu compte</string>
+    <string name="changelogAccountDeletionDescription">Ara pots esborrar el teu compte i les seves dades des de Perfil, tal com exigeixen l\'App Store i Google Play. L\'app t\'avisa si falla la connexió perquè ho puguis tornar a provar.</string>
     <string name="changelogTripFlowTitle">Mode de desplaçament des del mapa</string>
     <string name="changelogTripFlowDescription">Tria una estació al mapa per entrar en el mode de desplaçament, canvia de destinació quan vulguis i crea una rutina des del desplaçament.</string>
     <string name="changelogPlatformUpdateDescription">Compatible amb Android 17 (API 37) al mòbil i al rellotge, amb Compose Multiplatform, Kotlin i la resta de llibreries actualitzades. A més, els enllaços de l'aplicació només s'obren per als seus propis dominis.</string>

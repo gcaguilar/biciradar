@@ -1,1 +1,1 @@
-Improved trip mode: pick a station on the map to enter trip mode, change the destination whenever you like and create a routine straight from the trip. Monitoring routines can also be managed from Profile, and stopping or clearing a trip only ends monitoring for that station without cutting the others. If notifications are denied, the reason is now shown.
+You can now delete your account and all its data from Profile, as required by the App Store and Google Play. If the connection fails, the app tells you and lets you retry without losing your session.

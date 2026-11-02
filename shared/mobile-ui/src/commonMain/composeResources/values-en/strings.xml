@@ -283,6 +283,8 @@
     <string name="changelogPlatformUpdateTitle">Android 17 and updated dependencies</string>
     <string name="changelogRoutinesMonitoringTitle">Clearer routines and monitoring</string>
     <string name="changelogRoutinesMonitoringDescription">Manage routines from Profile and stop each monitoring session without cutting the others. If notifications are denied, you now see why.</string>
+    <string name="changelogAccountDeletionTitle">Delete your account</string>
+    <string name="changelogAccountDeletionDescription">You can now delete your account and its data from Profile, as required by the App Store and Google Play. The app warns you if the connection fails so you can retry.</string>
     <string name="changelogTripFlowTitle">Trip mode from the map</string>
     <string name="changelogTripFlowDescription">Pick a station on the map to enter trip mode, change the destination whenever you want and create a routine from the trip.</string>
     <string name="changelogPlatformUpdateDescription">Compatible with Android 17 (API 37) on phone and watch, with Compose Multiplatform, Kotlin and the rest of the libraries updated. App links now only open for the app's own domains.</string>
