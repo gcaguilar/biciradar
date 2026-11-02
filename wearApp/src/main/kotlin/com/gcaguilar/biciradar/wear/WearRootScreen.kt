@@ -94,7 +94,14 @@ internal fun WearRoot(
         CoreGraph.Companion.create(platformBindings)
       }
     }
-  val factory = remember(resolvedGraph, context) { WearViewModelFactory(appContext = context, graph = resolvedGraph) }
+  val factory =
+    remember(resolvedGraph, context) {
+      WearViewModelFactory(
+        appContext = context,
+        graph = resolvedGraph,
+        watchMonitoringBridge = WearAppGraph.platformBindings.watchMonitoringBridge,
+      )
+    }
   val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }
   val uiState by viewModel.uiState.collectAsState()
   val activeMonitoring = uiState.activeMonitoring

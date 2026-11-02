@@ -11,6 +11,12 @@ import com.gcaguilar.biciradar.core.FavoritesSyncCodec
 import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
+import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
+import com.gcaguilar.biciradar.core.TripMonitoringFailure
+import com.gcaguilar.biciradar.core.WatchMonitoringBridge
+import com.gcaguilar.biciradar.core.WatchMonitoringCommandPayload
+import com.gcaguilar.biciradar.core.WatchMonitoringCommandResult
+import com.gcaguilar.biciradar.core.WatchMonitoringProtocol
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.platform.AndroidOptionalServices
 import com.google.android.gms.tasks.Tasks
@@ -18,6 +24,7 @@ import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
+import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.PutDataRequest
 import com.google.android.gms.wearable.Wearable
@@ -25,6 +32,9 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -53,6 +63,8 @@ private class WearAndroidOptionalServices(
   ): AppUpdatePrompter? = null
 
   override fun createWatchSyncBridge(): WatchSyncBridge = WearPlaystoreWatchSyncBridge(context)
+
+  override fun createWatchMonitoringBridge(): WatchMonitoringBridge = WearPlaystoreWatchMonitoringBridge(context)
 }
 
 private class WearPlaystoreWatchSyncBridge(
@@ -166,5 +178,83 @@ private class WearPlaystoreWatchSyncBridge(
     const val WORK_STATION_KEY = "work_station_id"
     const val UPDATED_AT_KEY = "updated_at"
     const val PAYLOAD_JSON_KEY = "payload_json"
+  }
+}
+
+/**
+ * Pide al teléfono que vigile la estación (el reloj no tiene sesión ni token
+ * push) y escucha la respuesta para avisar si no pudo.
+ */
+private class WearPlaystoreWatchMonitoringBridge(
+  context: Context,
+) : WatchMonitoringBridge {
+  private val appContext = context.applicationContext
+  private val messageClient by lazy { runCatching { Wearable.getMessageClient(appContext) }.getOrNull() }
+  private val nodeClient by lazy { runCatching { Wearable.getNodeClient(appContext) }.getOrNull() }
+
+  private val results = MutableSharedFlow<WatchMonitoringCommandResult>(extraBufferCapacity = 4)
+  override val commandResults: Flow<WatchMonitoringCommandResult> = results.asSharedFlow()
+
+  private val messageListener =
+    MessageClient.OnMessageReceivedListener { event ->
+      if (event.path != WatchMonitoringProtocol.RESULT_PATH) return@OnMessageReceivedListener
+      val payload = WatchMonitoringProtocol.decodeResult(event.data) ?: return@OnMessageReceivedListener
+      results.tryEmit(
+        WatchMonitoringCommandResult(
+          stationId = payload.stationId,
+          success = payload.success,
+          failure =
+            payload.failure?.let { name ->
+              TripMonitoringFailure.entries.firstOrNull { it.name == name }
+            },
+        ),
+      )
+    }
+
+  init {
+    runCatching { messageClient?.addListener(messageListener) }
+  }
+
+  override suspend fun requestStart(
+    stationId: String,
+    durationSeconds: Int,
+    kind: SurfaceMonitoringKind,
+  ) {
+    sendCommand(
+      WatchMonitoringCommandPayload(
+        action = WatchMonitoringProtocol.ACTION_START,
+        stationId = stationId,
+        durationSeconds = durationSeconds,
+        kind = kind.name,
+      ),
+    )
+  }
+
+  override suspend fun requestStop(stationId: String?) {
+    sendCommand(
+      WatchMonitoringCommandPayload(
+        action = WatchMonitoringProtocol.ACTION_STOP,
+        stationId = stationId,
+      ),
+    )
+  }
+
+  private suspend fun sendCommand(payload: WatchMonitoringCommandPayload) {
+    val client = messageClient ?: return
+    val bytes = WatchMonitoringProtocol.encodeCommand(payload)
+    runCatching {
+      withContext(Dispatchers.IO) {
+        val nodes = nodeClient?.let { Tasks.await(it.connectedNodes) }.orEmpty()
+        nodes.filter { it.isNearby }.forEach { node ->
+          runCatching { Tasks.await(client.sendMessage(node.id, WatchMonitoringProtocol.COMMAND_PATH, bytes)) }
+        }
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to send monitoring command", error)
+    }
+  }
+
+  private companion object {
+    const val TAG = "WatchMonitoringBridge"
   }
 }

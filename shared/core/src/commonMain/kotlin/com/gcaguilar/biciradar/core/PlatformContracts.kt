@@ -7,6 +7,8 @@ import com.gcaguilar.biciradar.core.local.BiciRadarDatabase
 import com.gcaguilar.biciradar.core.push.DeviceTokenProvider
 import com.gcaguilar.biciradar.core.push.NoOpDeviceTokenProvider
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 
@@ -69,6 +71,40 @@ interface WatchSyncBridge {
 
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
+
+/** Resultado que el teléfono devuelve al reloj tras un comando de monitorización. */
+data class WatchMonitoringCommandResult(
+  val stationId: String?,
+  val success: Boolean,
+  val failure: TripMonitoringFailure? = null,
+)
+
+/**
+ * Puente de monitorización entre el reloj y el teléfono.
+ *
+ * El reloj no tiene sesión Auth0 ni token push propios, así que delega la
+ * vigilancia real en el teléfono. Este puente transporta la petición y el
+ * resultado; la sesión local del reloj es solo la representación visual.
+ */
+interface WatchMonitoringBridge {
+  /** Resultado del último comando, para avisar si el teléfono no pudo vigilar. */
+  val commandResults: Flow<WatchMonitoringCommandResult> get() = emptyFlow()
+
+  /** Reloj: pide al teléfono que empiece a vigilar [stationId]. */
+  suspend fun requestStart(
+    stationId: String,
+    durationSeconds: Int,
+    kind: SurfaceMonitoringKind,
+  ) = Unit
+
+  /** Reloj: pide al teléfono que deje de vigilar [stationId], o todas si es `null`. */
+  suspend fun requestStop(stationId: String?) = Unit
+
+  /** Teléfono: responde al reloj tras ejecutar un comando. */
+  suspend fun sendResult(result: WatchMonitoringCommandResult) = Unit
+}
+
+object NoOpWatchMonitoringBridge : WatchMonitoringBridge
 
 interface LocalNotifier {
   suspend fun hasPermission(): Boolean = true
@@ -145,6 +181,12 @@ interface ExperiencePlatform {
  */
 interface SyncPlatform {
   val watchSyncBridge: WatchSyncBridge
+
+  /**
+   * Delegación de la monitorización del reloj al teléfono. Los shells que no
+   * tienen reloj (iOS, desktop, tests) usan el no-op por defecto.
+   */
+  val watchMonitoringBridge: WatchMonitoringBridge get() = NoOpWatchMonitoringBridge
 }
 
 /**

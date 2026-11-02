@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.BootstrapSession
+import com.gcaguilar.biciradar.core.DEFAULT_SURFACE_MONITORING_DURATION_SECONDS
 import com.gcaguilar.biciradar.core.FindStationById
 import com.gcaguilar.biciradar.core.GeoPoint
 import com.gcaguilar.biciradar.core.ObserveFavorites
@@ -19,10 +20,14 @@ import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.StartStationMonitoring
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StopStationMonitoring
+import com.gcaguilar.biciradar.core.SurfaceMonitoringKind
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SyncFavoritesFromPeer
 import com.gcaguilar.biciradar.core.ToggleFavoriteStation
+import com.gcaguilar.biciradar.core.TripMonitoringFailure
+import com.gcaguilar.biciradar.core.WatchMonitoringBridge
+import com.gcaguilar.biciradar.core.WatchMonitoringCommandResult
 import com.gcaguilar.biciradar.wear.ongoing.MonitoringOngoingActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,6 +69,7 @@ internal class WearViewModel(
   private val startStationMonitoring: StartStationMonitoring,
   private val stopStationMonitoring: StopStationMonitoring,
   private val routeLauncher: RouteLauncher,
+  private val watchMonitoringBridge: WatchMonitoringBridge,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
@@ -131,6 +137,10 @@ internal class WearViewModel(
         latestActiveMonitoring = sessions.values.firstOrNull { it.isActive }
         publishUiState()
       }
+    }
+
+    viewModelScope.launch {
+      watchMonitoringBridge.commandResults.collect(::onMonitoringCommandResult)
     }
 
     viewModelScope.launch {
@@ -214,17 +224,23 @@ internal class WearViewModel(
     viewModelScope.launch {
       if (latestActiveMonitoring?.stationId == stationId) {
         stopStationMonitoring.execute(clear = true)
+        watchMonitoringBridge.requestStop(stationId)
         ongoingActivity.stop()
       } else {
         // El reloj no tiene sesión Auth0 ni token push propios: la sesión es
-        // solo visual y los avisos los gestiona el teléfono.
+        // solo visual y el teléfono es quien abre la ventana que avisa.
         startStationMonitoring.execute(stationId = stationId, openWindow = false)
+        watchMonitoringBridge.requestStart(
+          stationId = stationId,
+          durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+          kind = SurfaceMonitoringKind.Docks,
+        )
         val station = findStationById.execute(stationId)
         if (station != null) {
           ongoingActivity.start(
             stationId = stationId,
             stationName = station.name,
-            remainingSeconds = 300,
+            remainingSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
           )
         }
       }
@@ -236,12 +252,17 @@ internal class WearViewModel(
   fun onStartMonitoringFavorite(stationId: String) {
     viewModelScope.launch {
       startStationMonitoring.execute(stationId = stationId, openWindow = false)
+      watchMonitoringBridge.requestStart(
+        stationId = stationId,
+        durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+        kind = SurfaceMonitoringKind.Docks,
+      )
       val station = findStationById.execute(stationId)
       if (station != null) {
         ongoingActivity.start(
           stationId = stationId,
           stationName = station.name,
-          remainingSeconds = 300,
+          remainingSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
         )
       }
       FavoriteStationTileService.requestUpdate(appContext)
@@ -249,9 +270,26 @@ internal class WearViewModel(
     }
   }
 
+  /** El teléfono no pudo vigilar: retira la cuenta atrás local y explica por qué. */
+  private suspend fun onMonitoringCommandResult(result: WatchMonitoringCommandResult) {
+    if (result.success) return
+    val stationId = result.stationId ?: return
+    stopStationMonitoring.execute(clear = false, stationId = stationId)
+    ongoingActivity.stop()
+    emitFeedback(
+      when (result.failure) {
+        TripMonitoringFailure.SignInRequired -> "Inicia sesión en el teléfono para vigilar"
+        TripMonitoringFailure.NotificationsUnavailable -> "Activa las notificaciones en el teléfono"
+        TripMonitoringFailure.BackendUnavailable -> "El teléfono no pudo vigilar la estación"
+        null -> "No se pudo vigilar desde el teléfono"
+      },
+    )
+  }
+
   fun onStopMonitoring() {
     viewModelScope.launch {
       stopStationMonitoring.execute(clear = true)
+      watchMonitoringBridge.requestStop(stationId = null)
       ongoingActivity.stop()
       FavoriteStationTileService.requestUpdate(appContext)
       NearbyStationsTileService.requestUpdate(appContext)
@@ -370,6 +408,7 @@ internal class WearViewModel(
 internal class WearViewModelFactory(
   private val appContext: Context,
   private val graph: SharedGraph,
+  private val watchMonitoringBridge: WatchMonitoringBridge,
 ) {
   fun create(): WearViewModel =
     WearViewModel(
@@ -387,5 +426,6 @@ internal class WearViewModelFactory(
       startStationMonitoring = graph.startStationMonitoring,
       stopStationMonitoring = graph.stopStationMonitoring,
       routeLauncher = graph.routeLauncher,
+      watchMonitoringBridge = watchMonitoringBridge,
     )
 }

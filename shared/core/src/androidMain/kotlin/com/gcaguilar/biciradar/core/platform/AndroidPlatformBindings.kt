@@ -39,6 +39,7 @@ import com.gcaguilar.biciradar.core.MapSupport
 import com.gcaguilar.biciradar.core.MapSupportStatus
 import com.gcaguilar.biciradar.core.NoOpCrashlyticsReporter
 import com.gcaguilar.biciradar.core.NoOpRemoteConfigProvider
+import com.gcaguilar.biciradar.core.NoOpWatchMonitoringBridge
 import com.gcaguilar.biciradar.core.PermissionPrompter
 import com.gcaguilar.biciradar.core.PlatformBindings
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
@@ -47,6 +48,7 @@ import com.gcaguilar.biciradar.core.RouteLauncher
 import com.gcaguilar.biciradar.core.SharedGraph
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StorageDirectoryProvider
+import com.gcaguilar.biciradar.core.WatchMonitoringBridge
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.auth.AuthProvider
 import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
@@ -86,6 +88,9 @@ interface AndroidOptionalServices {
   ): AppUpdatePrompter?
 
   fun createWatchSyncBridge(): WatchSyncBridge?
+
+  /** Monitorización delegada al teléfono; solo la implementa el reloj y el teléfono. */
+  fun createWatchMonitoringBridge(): WatchMonitoringBridge? = null
 
   /** FCM-backed token source; only the Play Store flavor implements this. */
   fun createDeviceTokenProvider(): DeviceTokenProvider? = null
@@ -178,6 +183,8 @@ class AndroidPlatformBindings(
   override val storageDirectoryProvider: StorageDirectoryProvider = AndroidStorageDirectoryProvider(context)
   override val secureKeyStore: SecureKeyStore = SecureKeyStore(storageDirectoryProvider)
   override val watchSyncBridge: WatchSyncBridge = androidWatchSyncBridge
+  override val watchMonitoringBridge: WatchMonitoringBridge =
+    optionalServices?.createWatchMonitoringBridge() ?: NoOpWatchMonitoringBridge
   override val appVersion: String =
     runCatching {
       context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"

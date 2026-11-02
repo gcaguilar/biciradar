@@ -14,6 +14,10 @@ import com.gcaguilar.biciradar.core.FavoritesSyncSnapshot
 import com.gcaguilar.biciradar.core.RemoteConfigProvider
 import com.gcaguilar.biciradar.core.ReviewPrompter
 import com.gcaguilar.biciradar.core.UpdateAvailabilityState
+import com.gcaguilar.biciradar.core.WatchMonitoringBridge
+import com.gcaguilar.biciradar.core.WatchMonitoringCommandResult
+import com.gcaguilar.biciradar.core.WatchMonitoringProtocol
+import com.gcaguilar.biciradar.core.WatchMonitoringResultPayload
 import com.gcaguilar.biciradar.core.WatchSyncBridge
 import com.gcaguilar.biciradar.core.platform.AndroidOptionalServices
 import com.google.android.gms.tasks.Tasks
@@ -80,6 +84,8 @@ private class PhoneAndroidOptionalServices(
   ): AppUpdatePrompter = PlaystoreAppUpdatePrompter(context, activityProvider, launcher)
 
   override fun createWatchSyncBridge(): WatchSyncBridge = PlaystoreWatchSyncBridge(context)
+
+  override fun createWatchMonitoringBridge(): WatchMonitoringBridge = PlaystoreWatchMonitoringBridge(context)
 
   override fun createDeviceTokenProvider(): com.gcaguilar.biciradar.core.push.DeviceTokenProvider =
     FcmDeviceTokenProvider(context)
@@ -354,5 +360,44 @@ private class PlaystoreWatchSyncBridge(
     const val WORK_STATION_KEY = "work_station_id"
     const val UPDATED_AT_KEY = "updated_at"
     const val PAYLOAD_JSON_KEY = "payload_json"
+  }
+}
+
+/**
+ * Responde al reloj con el resultado de un comando de monitorización. El
+ * reloj pide la vigilancia por mensaje; el teléfono la ejecuta en
+ * [WearMonitoringCommandService].
+ */
+private class PlaystoreWatchMonitoringBridge(
+  context: Context,
+) : WatchMonitoringBridge {
+  private val appContext = context.applicationContext
+  private val messageClient by lazy { runCatching { Wearable.getMessageClient(appContext) }.getOrNull() }
+  private val nodeClient by lazy { runCatching { Wearable.getNodeClient(appContext) }.getOrNull() }
+
+  override suspend fun sendResult(result: WatchMonitoringCommandResult) {
+    val client = messageClient ?: return
+    val payload =
+      WatchMonitoringProtocol.encodeResult(
+        WatchMonitoringResultPayload(
+          stationId = result.stationId,
+          success = result.success,
+          failure = result.failure?.name,
+        ),
+      )
+    runCatching {
+      withContext(Dispatchers.IO) {
+        val nodes = nodeClient?.let { Tasks.await(it.connectedNodes) }.orEmpty()
+        nodes.forEach { node ->
+          runCatching { Tasks.await(client.sendMessage(node.id, WatchMonitoringProtocol.RESULT_PATH, payload)) }
+        }
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to send monitoring result", error)
+    }
+  }
+
+  private companion object {
+    const val TAG = "WatchMonitoringBridge"
   }
 }
