@@ -13,7 +13,7 @@ concurrency:
 jobs:
   publish-ios-store:
     name: Publish signed iOS IPA to App Store
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 60
     env:
       FASTLANE_SKIP_UPDATE_CHECK: "1"
@@ -36,10 +36,8 @@ jobs:
         with:
           fetch-tags: true
 
-      - name: Select Xcode 26.6
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.6.app
-          xcodebuild -version
+      - name: Show Xcode version
+        run: xcodebuild -version
 
       - name: Resolve release version
         run: |
@@ -72,9 +70,9 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: xcode-derived-ios-store-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml', 'apple/BiciRadar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: xcode-derived-ios-store-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml', 'apple/BiciRadar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
-            xcode-derived-ios-store-${{ runner.os }}-
+            xcode-derived-ios-store-xcode27-${{ runner.os }}-
 
       - name: Write iOS secrets
         env:

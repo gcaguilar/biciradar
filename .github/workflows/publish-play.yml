@@ -56,7 +56,8 @@ concurrency:
 jobs:
   prepare:
     name: Resolve Play track and release status
-    runs-on: ubuntu-24.04
+    # Shell + jq only; no toolchain needed.
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     outputs:
       apps: ${{ steps.resolve.outputs.apps }}

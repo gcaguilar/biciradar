@@ -80,6 +80,17 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
 - Notas de Play para `29570215` (móvil) y `29570216` (Wear OS) y notas de la
   App Store para iPhone y Apple Watch.
 
+### CI
+
+- Los jobs de Apple pasan a la imagen `xcode-27`: iOS, watchOS y la publicación
+  en App Store compilan y prueban contra el SDK de iOS 27 usando el Xcode que
+  trae la imagen por defecto (hoy 27.1), sin forzar una versión concreta. Las
+  cachés de DerivedData llevan la versión de Xcode en la clave para no reutilizar
+  artefactos de Xcode 26.
+- Los jobs ligeros (`Detect changed areas`, build y deploy de la landing y la
+  validación previa de Play) corren en `ubuntu-slim`; las compilaciones que
+  necesitan toolchain Android o más de 15 minutos siguen en `ubuntu-24.04`.
+
 ## 0.22.21
 
 `versionName` 0.22.21 · Android `29570213` · Wear OS `29570214` · Apple

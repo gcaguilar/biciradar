@@ -27,7 +27,8 @@ concurrency:
 jobs:
   changes:
     name: Detect changed areas
-    runs-on: ubuntu-24.04
+    # Lightweight job: git diff only. ubuntu-slim (1 CPU, 15 min cap) is enough.
+    runs-on: ubuntu-slim
     timeout-minutes: 5
     outputs:
       watch: ${{ steps.diff.outputs.watch }}
@@ -177,17 +178,15 @@ jobs:
 
   ios:
     name: iOS build
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-      - name: Select Xcode 26.6
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.6.app
-          xcodebuild -version
+      - name: Show Xcode version
+        run: xcodebuild -version
 
       - name: Set up build toolchain
         uses: ./.github/actions/setup-build
@@ -204,9 +203,9 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/derived-data-ios
-          key: xcode-derived-ios-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
+          key: xcode-derived-ios-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
           restore-keys: |
-            xcode-derived-ios-${{ runner.os }}-
+            xcode-derived-ios-xcode27-${{ runner.os }}-
 
       - name: Write iOS secrets
         env:
@@ -265,17 +264,15 @@ jobs:
     name: watchOS build and tests
     needs: changes
     if: needs.changes.outputs.watch == 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 45
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
 
-      - name: Select Xcode 26.6
-        run: |
-          sudo xcode-select -s /Applications/Xcode_26.6.app
-          xcodebuild -version
+      - name: Show Xcode version
+        run: xcodebuild -version
 
       - name: Set up build toolchain
         uses: ./.github/actions/setup-build
@@ -292,9 +289,9 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/derived-data-watchos
-          key: xcode-derived-watchos-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
+          key: xcode-derived-watchos-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
           restore-keys: |
-            xcode-derived-watchos-${{ runner.os }}-
+            xcode-derived-watchos-xcode27-${{ runner.os }}-
 
       - name: Resolve watchOS simulator destination
         run: |

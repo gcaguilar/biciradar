@@ -21,8 +21,9 @@ concurrency:
 jobs:
   build:
     name: Build landing
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Node-only build. ubuntu-slim caps jobs at 15 minutes, so keep a tighter timeout.
+    runs-on: ubuntu-slim
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: landing
@@ -55,7 +56,7 @@ jobs:
   deploy:
     name: Deploy to GitHub Pages
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     timeout-minutes: 10
     environment:
       name: github-pages
