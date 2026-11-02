@@ -122,8 +122,8 @@ internal fun BiziNavHost(
         isMapReady = isMapReady,
         onOpenStationFullScreen =
           remember(navController) {
-            { station ->
-              navController.navigate(Screen.StationDetail(station.id))
+            { stationId ->
+              navController.navigate(Screen.StationDetail(stationId))
             }
           },
       ) { onStationSelected ->
@@ -172,8 +172,8 @@ internal fun BiziNavHost(
         isMapReady = isMapReady,
         onOpenStationFullScreen =
           remember(navController) {
-            { station ->
-              navController.navigate(Screen.StationDetail(station.id))
+            { stationId ->
+              navController.navigate(Screen.StationDetail(stationId))
             }
           },
       ) { onStationSelected ->

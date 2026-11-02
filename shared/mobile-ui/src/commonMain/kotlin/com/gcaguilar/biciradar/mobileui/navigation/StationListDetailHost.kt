@@ -9,10 +9,17 @@ import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
 import androidx.compose.material3.adaptive.layout.PaneAdaptedValue
+import androidx.compose.material3.adaptive.layout.ThreePaneScaffoldDestinationItem
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirectiveWithTwoPanesOnMediumWidth
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.mobileui.BiziMobileAppContent
@@ -42,12 +49,32 @@ import kotlinx.coroutines.launch
 internal fun StationListDetailHost(
   mobilePlatform: MobileUiPlatform,
   isMapReady: Boolean,
-  onOpenStationFullScreen: (Station) -> Unit,
+  /** Opens the full-screen `Screen.StationDetail` route for that station id (Compact layout). */
+  onOpenStationFullScreen: (stationId: String) -> Unit,
   listContent: @Composable ((Station) -> Unit) -> Unit,
 ) {
   val windowInfo = LocalBiziWindowInfo.current
+  // The selected station lives here, above the Compact/wide branch, on purpose: folding an
+  // iPhone Duo (or resizing an iPad) recomposes this host with a different layout, and
+  // anything remembered *inside* the branches would be dropped. Keeping it one level up
+  // means the detail pane comes back with the same station when the window widens again.
+  var selectedStationId by remember { mutableStateOf<String?>(null) }
+
   if (!windowInfo.isWide) {
-    listContent(onOpenStationFullScreen)
+    // Folding while the detail pane is showing used to drop the user back to the list. Open
+    // the same station full screen instead, and consume the selection so system back from
+    // there returns to the list rather than reopening it.
+    LaunchedEffect(selectedStationId) {
+      val stationId = selectedStationId ?: return@LaunchedEffect
+      selectedStationId = null
+      onOpenStationFullScreen(stationId)
+    }
+    // Compact: the list fills the window and a tap pushes the full-screen detail route. The
+    // tap is routed through the same hoisted selection (instead of navigating inline) so
+    // there is exactly one place that decides when the full-screen detail opens.
+    listContent { station ->
+      selectedStationId = station.id
+    }
     return
   }
 
@@ -58,9 +85,24 @@ internal fun StationListDetailHost(
   val navigator =
     rememberListDetailPaneScaffoldNavigator<String>(
       scaffoldDirective = directive,
+      // Replaying the last selection reopens the detail pane after a fold/unfold; without it
+      // the navigator starts at the list pane again and the user loses what they were reading.
+      initialDestinationHistory =
+        selectedStationId?.let { stationId ->
+          listOf(
+            ThreePaneScaffoldDestinationItem<String>(
+              pane = ListDetailPaneScaffoldRole.Detail,
+              contentKey = stationId,
+            ),
+          )
+        } ?: emptyList(),
     )
   val scope = rememberCoroutineScope()
   val detailStationId = navigator.currentDestination?.contentKey
+  // Mirror the navigator into the hoisted state so a later fold/unfold can replay it.
+  SideEffect {
+    selectedStationId = detailStationId
+  }
   // If the window shrinks while a station is open, the detail can end up as the only
   // visible pane; keep a back affordance in that case so the list is still reachable
   // without a system back gesture (iOS has none for Compose panes).
