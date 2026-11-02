@@ -246,6 +246,9 @@ class TripViewModel(
 
   fun onQueryChange(newQuery: String) {
     transientUiState.update { it.copy(query = newQuery) }
+    // Se actualiza también con vacío: si no, al borrar y volver a escribir la misma
+    // búsqueda el `distinctUntilChanged` de `queryInput` se la traga y no busca.
+    queryInput.update { newQuery }
     if (newQuery.isBlank()) {
       transientUiState.update {
         it.copy(
@@ -255,18 +258,6 @@ class TripViewModel(
         )
       }
       return
-    }
-    queryInput.update { newQuery }
-  }
-
-  fun onClearQuery() {
-    transientUiState.update {
-      it.copy(
-        query = "",
-        suggestions = emptyList(),
-        suggestionsError = null,
-        isLoadingSuggestions = false,
-      )
     }
   }
 
