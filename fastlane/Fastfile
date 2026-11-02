@@ -143,6 +143,7 @@ end
       app_identifier: bundle_id,
       ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
       metadata_path: "fastlane/metadata/ios",
+      app_rating_config_path: "fastlane/app_rating_config.json",
       skip_metadata: false,
       skip_screenshots: true,
       submit_for_review: true,

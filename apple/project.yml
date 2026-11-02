@@ -22,7 +22,7 @@ options:
 
 settings:
   base:
-    CURRENT_PROJECT_VERSION: 29570217
+    CURRENT_PROJECT_VERSION: 29570219
     MARKETING_VERSION: 0.23.1
     SWIFT_VERSION: "5.10"
     # The "Build KMP Swift export" phases run Gradle, which writes outside the declared

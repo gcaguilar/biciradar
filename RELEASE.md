@@ -87,6 +87,7 @@ Users will see one app listing, but Google Play serves the appropriate version b
 - Add review-compliance secrets `APP_REVIEW_CONTACT_FIRST_NAME`, `APP_REVIEW_CONTACT_LAST_NAME`, `APP_REVIEW_CONTACT_EMAIL`, `APP_REVIEW_CONTACT_PHONE`, and optional `APP_REVIEW_NOTES`.
 - Add the repository variable `APP_USES_ENCRYPTION` and keep the App Store workflow secrets in a protected environment such as `app-store` for public repositories.
 - Update the localized App Store release notes in `fastlane/metadata/ios/*/release_notes.txt` before publishing a new version. The store workflow uploads them before submitting the build for review.
+- Keep `fastlane/app_rating_config.json` in sync with the App Store Connect age-rating questionnaire. It is sent via `app_rating_config_path` before submitting for review; Apple requires the newer boolean attributes (`socialMedia`, `socialMediaAgeRestricted`) to be set or review submission fails.
 - Set `APPLE_EXPORT_METHOD=app-store` and `APPLE_SIGNING_CERTIFICATE_TYPE=Apple Distribution` for the store workflow.
 - Run `tooling/generic-mobile-ci/print_ios_store_ci_values.sh` locally to print the exact secret and variable values to paste into GitHub.
 - Generate archives:
