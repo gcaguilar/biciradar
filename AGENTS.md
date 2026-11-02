@@ -34,6 +34,9 @@ platform apps --------------------> shared/core
 - `shared/test-utils`: reusable test fixtures and helpers.
 - `androidApp`: Android phone shell and Android-only integrations. Its only
   product flavor is `playstore`.
+- `androidApp/.../appfunctions`: Android 16+ AppFunctions surface. KSP generates
+  the service and schema; the functions only orchestrate existing shared use
+  cases through `BiziAppGraph`.
 - `wearApp`: Compose for Wear OS, including watch-specific surfaces. Its only
   product flavor is `playstore`.
 - `apple`: XcodeGen project definition plus SwiftUI/App Intents code for iOS,
