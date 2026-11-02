@@ -27,6 +27,7 @@ interface StationsQueryUseCases {
   val filterStationsByQuery: FilterStationsByQuery
   val findStationMatchingQuery: FindStationMatchingQuery
   val findNearestStation: FindNearestStation
+  val findNearestStationFrom: FindNearestStationFrom
   val findNearestStationWithBikes: FindNearestStationWithBikes
   val findNearestStationWithSlots: FindNearestStationWithSlots
   val findStationById: FindStationById
@@ -92,6 +93,9 @@ interface StationsFeatureDeps :
 interface FavoritesFeatureDeps {
   val getFavoriteStationList: GetFavoriteStationList
   val toggleFavoriteStation: ToggleFavoriteStation
+  val setHomeStation: SetHomeStation
+  val setWorkStation: SetWorkStation
+  val upsertSavedPlaceAlertRule: UpsertSavedPlaceAlertRule
   val syncFavoritesFromPeer: SyncFavoritesFromPeer
   val observeFavorites: ObserveFavorites
   val savedPlaceAlertsEvaluator: SavedPlaceAlertsEvaluator

@@ -1,5 +1,7 @@
 package com.gcaguilar.biciradar.core
 
+import com.gcaguilar.biciradar.core.geo.distanceBetween
+
 const val DEFAULT_SEARCH_RADIUS_METERS = 500
 
 val SEARCH_RADIUS_OPTIONS_METERS = listOf(300, 500, 750, 1000, 1500, 2000, 3000, 5000)
@@ -70,3 +72,26 @@ fun selectNearbyStationWithSlots(
   ) { station ->
     station.slotsFree > 0
   }
+
+/**
+ * Returns copies of [stations] ordered by their distance to [origin], closest first.
+ *
+ * Every copy gets `distanceMeters` recomputed with [distanceBetween], so the stored
+ * value (relative to the app's foreground location) never leaks into the result.
+ * Ties are broken by station name and then by id, which makes the ordering stable and
+ * independent of the input order. The input list and its items are never mutated.
+ */
+fun stationsSortedByDistanceFrom(
+  stations: List<Station>,
+  origin: GeoPoint,
+): List<Station> {
+  val rebased =
+    stations.map { station ->
+      station.copy(distanceMeters = distanceBetween(origin, station.location))
+    }
+  return rebased.sortedWith(
+    compareBy<Station> { it.distanceMeters }
+      .thenBy { it.name }
+      .thenBy { it.id },
+  )
+}
