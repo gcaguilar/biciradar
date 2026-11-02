@@ -14,6 +14,11 @@ final class GoogleMapsStationMapFactory: KotlinBase, StationMapViewFactory {
     private var lastHighlightedStationId: String? = nil
     private var lastRecenterRequestToken: Int32 = 0
     private var environmentalCircles: [GMSCircle] = []
+    // Last camera target + viewport, so a resize (fold/unfold, rotation, iPad resize) can
+    // re-frame the map instead of leaving the previous shape's framing on screen.
+    private var lastFocusPoint: GeoPoint?
+    private var lastPrefersTightZoom = false
+    private var lastMapSize: CGSize = .zero
 
     func createView() -> UIView {
         // Reset per-view state so a second call doesn't inherit stale markers/zoom
@@ -23,6 +28,9 @@ final class GoogleMapsStationMapFactory: KotlinBase, StationMapViewFactory {
         lastStations = []
         lastHighlightedStationId = nil
         lastRecenterRequestToken = 0
+        lastFocusPoint = nil
+        lastPrefersTightZoom = false
+        lastMapSize = .zero
 
         let mapView = GMSMapView(options: GMSMapViewOptions())
         mapView.settings.rotateGestures = false
@@ -63,21 +71,27 @@ final class GoogleMapsStationMapFactory: KotlinBase, StationMapViewFactory {
         // Enable native blue dot for user location
         mapView.isMyLocationEnabled = userLocation != nil
 
-        // Zoom to user location only on first load
-        if !hasZoomed {
-            let focusPoint = userLocation ?? stations.first?.location
-            if let focus = focusPoint {
-                mapView.animate(to: camera(for: focus, userLocation != nil))
-                hasZoomed = true
-            }
+        let focusPoint = userLocation ?? stations.first?.location
+        if let focus = focusPoint {
+            lastFocusPoint = focus
+            lastPrefersTightZoom = userLocation != nil
         }
-
-        if recenterRequestToken != lastRecenterRequestToken {
-            let focusPoint = userLocation ?? stations.first?.location
-            if let focus = focusPoint {
-                mapView.animate(to: camera(for: focus, userLocation != nil))
-            }
-            lastRecenterRequestToken = recenterRequestToken
+        let recenterRequested = recenterRequestToken != lastRecenterRequestToken
+        lastRecenterRequestToken = recenterRequestToken
+        // `bounds` is only meaningful once the view has been laid out. Re-applying the camera
+        // when it changes is what makes fold/unfold and rotation re-frame the map: without it
+        // the framing stayed frozen at whatever shape the map had when it first appeared.
+        let mapSize = mapView.bounds.size
+        let hasSize = mapSize.width > 0 && mapSize.height > 0
+        let sizeChanged = hasSize && mapSize != lastMapSize
+        if recenterRequested || sizeChanged || !hasZoomed, let focus = lastFocusPoint {
+            mapView.animate(
+                to: camera(for: focus, prefersTightZoom: lastPrefersTightZoom, in: mapSize)
+            )
+            hasZoomed = true
+        }
+        if hasSize {
+            lastMapSize = mapSize
         }
 
         let stationsChanged = stations.map(\.id) != lastStations.map(\.id)
@@ -155,13 +169,30 @@ final class GoogleMapsStationMapFactory: KotlinBase, StationMapViewFactory {
         return UIColor(red: 0.84, green: 0.10, blue: 0.12, alpha: 1)
     }
 
-    private func camera(for point: GeoPoint, _ prefersTightZoom: Bool) -> GMSCameraPosition {
+    private func camera(
+        for point: GeoPoint,
+        prefersTightZoom: Bool,
+        in size: CGSize
+    ) -> GMSCameraPosition {
         GMSCameraPosition.camera(
             withLatitude: point.latitude,
             longitude: point.longitude,
-            zoom: prefersTightZoom ? 15 : 13
+            zoom: adjustedZoom(base: prefersTightZoom ? 15 : 13, for: size)
         )
     }
+
+    /// Google Maps zoom is per-frame, not per-window: the same zoom shows a much larger area on
+    /// a wider viewport (iPad, iPhone Duo unfolded, landscape), so the phone-tuned framing used
+    /// to silently loosen as soon as the window changed shape. Scaling by the short side keeps
+    /// the same visible neighbourhood, which is what the framing is actually about.
+    private func adjustedZoom(base: Float, for size: CGSize) -> Float {
+        let shortSide = min(size.width, size.height)
+        guard shortSide > 0 else { return base }
+        return base + Float(log2(Double(shortSide / Self.referenceShortSide)))
+    }
+
+    /// Short side (in points) of a standard phone window; the zoom levels above are tuned for it.
+    private static let referenceShortSide: CGFloat = 393
 
     private func stationMarkerColor(station: Station, highlighted: Bool) -> UIColor {
         let hasBikes = station.bikesAvailable > 0

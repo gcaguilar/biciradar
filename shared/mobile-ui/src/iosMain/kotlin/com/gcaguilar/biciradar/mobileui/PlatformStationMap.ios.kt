@@ -165,6 +165,12 @@ private class IOSStationMapCoordinator(
   var highlightedStationId: String? = null
   private var hasZoomed = false
   private var lastRecenterRequestToken = 0
+
+  // Last camera target + viewport, so a resize (fold/unfold, rotation, iPad resize) can
+  // re-frame the map instead of leaving the previous shape's framing on screen.
+  private var lastFocusPoint: GeoPoint? = null
+  private var lastPrefersTightZoom = false
+  private var lastMapSize: Pair<Double, Double>? = null
   private var lastStations: List<Station> = emptyList()
   private var lastHighlightedStationId: String? = null
   private var pinAnnotation: MKPointAnnotation? = null
@@ -211,19 +217,40 @@ private class IOSStationMapCoordinator(
     currentEnvironmentalLayer = environmentalOverlay?.layer
     tapRecognizer.mapView = mapView
 
-    // Zoom to user location only on first load
-    if (!hasZoomed) {
-      val focusPoint = userLocation ?: stations.firstOrNull()?.location
-      if (focusPoint != null) {
-        centerMap(mapView, focusPoint, animated = false, userLocation != null)
+    // Zoom to the user (or the first station) on first load, and re-frame whenever the
+    // viewport changes shape so folding/unfolding or rotating doesn't keep the old framing.
+    val focusPoint = userLocation ?: stations.firstOrNull()?.location
+    if (focusPoint != null) {
+      lastFocusPoint = focusPoint
+      lastPrefersTightZoom = userLocation != null
+    }
+    val mapSize = mapView.bounds.useContents { size.width to size.height }
+    val hasSize = mapSize.first > 0.0 && mapSize.second > 0.0
+    val sizeChanged = hasSize && mapSize != lastMapSize
+    if (hasSize) {
+      lastMapSize = mapSize
+    }
+
+    if (!hasZoomed || sizeChanged) {
+      lastFocusPoint?.let { focus ->
+        centerMap(
+          mapView = mapView,
+          focusPoint = focus,
+          animated = hasZoomed,
+          prefersTightZoom = lastPrefersTightZoom,
+        )
         hasZoomed = true
       }
     }
 
     if (recenterRequestToken != lastRecenterRequestToken) {
-      val focusPoint = userLocation ?: stations.firstOrNull()?.location
-      if (focusPoint != null) {
-        centerMap(mapView, focusPoint, animated = true, userLocation != null)
+      lastFocusPoint?.let { focus ->
+        centerMap(
+          mapView = mapView,
+          focusPoint = focus,
+          animated = true,
+          prefersTightZoom = lastPrefersTightZoom,
+        )
       }
       lastRecenterRequestToken = recenterRequestToken
     }
@@ -318,11 +345,28 @@ private class IOSStationMapCoordinator(
     animated: Boolean,
     prefersTightZoom: Boolean,
   ) {
+    val requestedMeters = if (prefersTightZoom) 900.0 else 1_200.0
+    // `MKCoordinateRegionMakeWithDistance` takes a vertical (latitude) and a horizontal
+    // (longitude) span. Pinning both to the same value made the visible radius depend on the
+    // window's aspect ratio: the same call showed less area on a near-4:3 foldable display
+    // (iPhone Duo unfolded) than on a tall phone, and changing shape while folded left the
+    // old framing behind. Pin the requested distance to the short side and let the long one
+    // extend, so the framing stays stable across fold/unfold, rotation and resizes.
+    val (width, height) =
+      mapView.bounds.useContents {
+        size.width.coerceAtLeast(0.0) to size.height.coerceAtLeast(0.0)
+      }
+    val (latitudinalMeters, longitudinalMeters) =
+      when {
+        width <= 0.0 || height <= 0.0 -> requestedMeters to requestedMeters
+        height >= width -> requestedMeters * (height / width) to requestedMeters
+        else -> requestedMeters to requestedMeters * (width / height)
+      }
     mapView.setRegion(
       MKCoordinateRegionMakeWithDistance(
         CLLocationCoordinate2DMake(focusPoint.latitude, focusPoint.longitude),
-        if (prefersTightZoom) 900.0 else 1_200.0,
-        if (prefersTightZoom) 900.0 else 1_200.0,
+        latitudinalMeters,
+        longitudinalMeters,
       ),
       animated = animated,
     )
