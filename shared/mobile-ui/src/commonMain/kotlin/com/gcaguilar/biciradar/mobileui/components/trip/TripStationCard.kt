@@ -3,11 +3,15 @@ package com.gcaguilar.biciradar.mobileui.components.trip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +23,9 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.clear
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.freeSlots
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripChosenStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripStationMetersLabel
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.tripSuggestedStation
 import com.gcaguilar.biciradar.mobileui.BiziCard
@@ -31,6 +37,8 @@ import org.jetbrains.compose.resources.stringResource
 internal fun TripStationCard(
   station: Station,
   distanceMeters: Int?,
+  isSuggested: Boolean = true,
+  onClear: (() -> Unit)? = null,
 ) {
   // Nota: en este design system `colors.red` es el azul primario de marca (#1D74BD) y
   // `colors.blue` es un tono neutro/tinta oscura — mismos roles que usa StationRow.
@@ -41,6 +49,7 @@ internal fun TripStationCard(
       verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
       Row(
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
@@ -50,11 +59,25 @@ internal fun TripStationCard(
           tint = c.red,
         )
         Text(
-          stringResource(Res.string.tripSuggestedStation),
+          stringResource(if (isSuggested) Res.string.tripSuggestedStation else Res.string.tripChosenStation),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
           color = c.muted,
         )
+        if (onClear != null) {
+          Spacer(Modifier.weight(1f))
+          IconButton(
+            onClick = onClear,
+            modifier = Modifier.size(28.dp),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Close,
+              contentDescription = stringResource(Res.string.clear),
+              tint = c.muted,
+              modifier = Modifier.size(16.dp),
+            )
+          }
+        }
       }
       Text(
         station.name,

@@ -170,6 +170,7 @@
     <string name="walkRouteTo">Walking route to %1$s</string>
     <string name="tripBikeRouteAction">Ride there</string>
     <string name="tripSuggestedStation">Suggested station</string>
+    <string name="tripChosenStation">Selected station</string>
     <string name="freeSlots">Free slots</string>
     <string name="stopMonitoring">Stop monitoring</string>
     <string name="removeFavorite">Remove favorite</string>

@@ -75,12 +75,13 @@ data class TripUiState(
   val authLoginError: Boolean = false,
 ) {
   /**
-   * Sin destino y sin viaje en marcha, la pantalla ofrece planificar: elegir a
-   * dónde vas y gestionar rutinas. En cuanto hay destino o el viaje está activo
-   * esos bloques solo estorban.
+   * Sin destino, sin estación elegida y sin viaje en marcha, la pantalla ofrece
+   * planificar: elegir a dónde vas y gestionar rutinas. En cuanto hay destino,
+   * una estación seleccionada a mano o el viaje está activo, esos bloques solo
+   * estorban.
    */
   val showPlanning: Boolean
-    get() = destination == null && !monitoring.isActive
+    get() = destination == null && nearestStationWithSlots == null && !monitoring.isActive
 }
 
 @FlowPreview

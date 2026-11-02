@@ -1,6 +1,7 @@
 package com.gcaguilar.biciradar.mobileui.viewmodel
 
 import com.gcaguilar.biciradar.core.GeoPoint
+import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.TripDestination
 import com.gcaguilar.biciradar.core.TripMonitoringState
 import kotlin.test.Test
@@ -19,6 +20,11 @@ class TripUiStateTest {
   }
 
   @Test
+  fun `planning disappears once a station is chosen from the map`() {
+    assertFalse(TripUiState(nearestStationWithSlots = station()).showPlanning)
+  }
+
+  @Test
   fun `planning disappears while a trip is being watched`() {
     assertFalse(TripUiState(monitoring = TripMonitoringState(isActive = true)).showPlanning)
   }
@@ -27,5 +33,16 @@ class TripUiStateTest {
     TripDestination(
       name = "Oficina",
       location = GeoPoint(41.6488, -0.8891),
+    )
+
+  private fun station() =
+    Station(
+      id = "station-1",
+      name = "Plaza España",
+      address = "Centro",
+      location = GeoPoint(41.649, -0.887),
+      bikesAvailable = 4,
+      slotsFree = 7,
+      distanceMeters = 120,
     )
 }

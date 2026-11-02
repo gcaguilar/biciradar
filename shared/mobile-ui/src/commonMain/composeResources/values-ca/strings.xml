@@ -137,6 +137,7 @@
     <string name="walkRouteTo">Ruta a peu cap a %1$s</string>
     <string name="tripBikeRouteAction">Anar-hi en bici</string>
     <string name="tripSuggestedStation">Estació suggerida</string>
+    <string name="tripChosenStation">Estació triada</string>
     <string name="freeSlots">Places lliures</string>
     <string name="stopMonitoring">Atura la vigilància</string>
     <string name="removeFavorite">Treure favorita</string>

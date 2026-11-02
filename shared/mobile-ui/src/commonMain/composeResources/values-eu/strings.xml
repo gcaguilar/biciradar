@@ -137,6 +137,7 @@
     <string name="walkRouteTo">Oinezko ibilbidea %1$s-ra</string>
     <string name="tripBikeRouteAction">Joan bizikletaz</string>
     <string name="tripSuggestedStation">Iradokitako geltokia</string>
+    <string name="tripChosenStation">Hautatutako geltokia</string>
     <string name="freeSlots">Leku libreak</string>
     <string name="stopMonitoring">Gelditu zaintza</string>
     <string name="removeFavorite">Kendu gogokoa</string>

@@ -171,6 +171,7 @@
     <string name="walkRouteTo">Ruta a pie a %1$s</string>
     <string name="tripBikeRouteAction">Ir en bici</string>
     <string name="tripSuggestedStation">Estación sugerida</string>
+    <string name="tripChosenStation">Estación elegida</string>
     <string name="freeSlots">Plazas libres</string>
     <string name="stopMonitoring">Parar vigilancia</string>
     <string name="removeFavorite">Quitar favorita</string>

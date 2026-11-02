@@ -399,6 +399,10 @@ internal fun TripScreen(
             TripStationCard(
               station = suggestedStation,
               distanceMeters = state.distanceToStation,
+              isSuggested = state.destination != null,
+              // Sin destino solo se llega aquí tras elegir estación a mano: la X
+              // devuelve a planificación (y con destino ya existe la del resumen).
+              onClear = if (state.destination == null) onClearTrip else null,
             )
             Button(
               onClick = { onLaunchBikeRoute(suggestedStation) },
