@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Auth0 OIDC (Authorization Code + PKCE) using the official `com.auth0.android`
  * SDK. Credentials are stored by [CredentialsManager]; tokens are refreshed
- * transparently when requested. The SDK pulls Google Play Services through
- * `androidx.credentials`, so the F-Droid flavor excludes those transitives: the
- * browser (custom tabs) flow does not need them.
+ * transparently when requested. Since Auth0.Android 4.x the SDK no longer pulls
+ * `androidx.credentials` or Google Play Services, so the same artifact is safe
+ * for the GMS-free F-Droid flavor.
  */
 class AndroidAuth0Provider(
   context: Context,

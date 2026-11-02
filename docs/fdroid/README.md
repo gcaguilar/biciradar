@@ -68,9 +68,10 @@ The `fdroid` flavors intentionally remove proprietary integrations:
 - no Play Review or in-app updates
 - no Garmin Connect IQ
 - no Play Services wearable sync
-- Auth0 login is built from source-compatible libraries, with the AndroidX
-  Credentials / Google Play Services transitives excluded from the F-Droid
-  flavor (the browser custom-tabs flow does not need them)
+- Auth0 login is built from source-compatible libraries. Auth0.Android 4.x no
+  longer pulls AndroidX Credentials or Google Play Services, so the F-Droid
+  flavor needs no transitive exclusions (the browser custom-tabs flow does not
+  need them)
 - Android map support switches to OpenStreetMap via `osmdroid`
 - external routing falls back to generic `geo:` intents
 

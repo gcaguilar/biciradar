@@ -272,17 +272,7 @@ dependencies {
   implementation(libs.google.material)
   testImplementation(libs.junit)
   add("fdroidImplementation", libs.osmdroid.android)
-  // Auth0 pulls androidx.credentials + Google Play Services; F-Droid must stay
-  // GMS-free, so the transitive Play Services are excluded there. The browser
-  // (custom tabs) login path does not need them.
   add("fdroidImplementation", libs.auth0.android)
-  // Auth0 pulls androidx.credentials + Google Play Services; F-Droid must stay
-  // GMS-free, so the transitive Play Services are excluded there. The browser
-  // (custom tabs) login path does not need them.
-  configurations.matching { it.name.startsWith("fdroid") }.configureEach {
-    exclude(group = "com.google.android.gms")
-    exclude(group = "androidx.credentials", module = "credentials-play-services-auth")
-  }
 
   // Play Store flavor dependencies
   add("playstoreImplementation", libs.auth0.android)
