@@ -137,10 +137,11 @@ fun BiziMobileApp(
    */
   onTabNavigatorReady: ((MobileTabNavigator?) -> Unit)? = null,
   /**
-   * Reports whether this app's navigable chrome (the shell that hosts the tab bar) is on
-   * screen. `false` while bootstrap, city selection, guided onboarding, or the in-app
-   * splash are showing; `true` once the normal navigation shell is mounted. The iOS
-   * native `UITabBar` overlay uses this to hide itself during onboarding; Android leaves
+   * Reports whether the native tab bar should be visible. `false` while bootstrap, city
+   * selection, guided onboarding, or the in-app splash are showing, and also whenever the
+   * window is Medium/Expanded (iPad, iPhone Duo unfolded, landscape tablets) because from
+   * that width on Compose draws its own `MobileNavigationRail` and the native bar would
+   * duplicate it. The iOS `UITabBar` overlay uses this to show/hide itself; Android leaves
    * it null and draws its own bottom bar inside the shell.
    */
   onNativeChromeVisibilityChanged: ((Boolean) -> Unit)? = null,
@@ -258,12 +259,21 @@ fun BiziMobileApp(
         isCityConfigured &&
         !shouldShowGuidedOnboarding &&
         !showStartupSplash
-    LaunchedEffect(onNativeChromeVisibilityChanged, nativeChromeVisible) {
-      onNativeChromeVisibilityChanged?.invoke(nativeChromeVisible)
-    }
 
     ThemeProvider(mobilePlatform, themePreference) {
       val windowInfo = LocalBiziWindowInfo.current
+      // A native iOS `UITabBar` is a bottom bar and nothing else: on Medium/Expanded windows
+      // (iPad, iPhone Duo unfolded, landscape tablets) it would keep the app stuck in a
+      // phone-shaped layout while the Compose rail — which is what every screen was sized
+      // for — never appears. So the native bar is only part of the shell while the window is
+      // Compact; from Medium on, Compose draws its own `MobileNavigationRail` and we report
+      // the native bar as hidden (SwiftUI removes it from the hierarchy, freeing the space).
+      // This callback is the single source of truth for both sides: SwiftUI never measures
+      // the window itself, so both chrome layers can never disagree about the breakpoint.
+      val nativeTabBarVisible = onActivateNative != null && nativeChromeVisible && !windowInfo.isWide
+      LaunchedEffect(onNativeChromeVisibilityChanged, nativeTabBarVisible) {
+        onNativeChromeVisibilityChanged?.invoke(nativeTabBarVisible)
+      }
       Surface(
         modifier = modifier.fillMaxSize(),
         color = pageBackgroundColor(mobilePlatform),
@@ -368,11 +378,13 @@ fun BiziMobileApp(
                       mobilePlatform = mobilePlatform,
                       navController = navController,
                       windowInfo = windowInfo,
-                      // A native SwiftUI TabView is present whenever onActivateNative is
-                      // wired up (see NativeNavContentView.swift) — that's the signal to
-                      // hide Compose's own bottom bar/rail, independent of whether pushes
-                      // are also forwarded natively (they currently aren't; see BiziNavHost.kt).
-                      useNativeChrome = onActivateNative != null,
+                      // A native `UITabBar` is present whenever onActivateNative is wired up
+                      // (see NativeNavContentView.swift) — that's the signal to hide Compose's
+                      // own bottom bar/rail. It only stays true while the window is Compact:
+                      // on Medium/Expanded windows the native bar is removed by SwiftUI (via
+                      // onNativeChromeVisibilityChanged) and Compose draws the navigation rail
+                      // instead. Pushes still stay inside Compose either way (see BiziNavHost.kt).
+                      useNativeChrome = nativeTabBarVisible,
                     ) { innerPadding ->
                       NavigationHost(
                         config = navConfig.copy(paddingValues = innerPadding),

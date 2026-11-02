@@ -12,8 +12,10 @@ import UIKit
 //
 // Architecture: exactly ONE Compose instance (`BiziMainViewControllerWrapper`) fills the
 // screen and keeps owning ALL navigation, just like on Android. The native bar floats over
-// it and only reports tab taps back into Compose. Two dead ends we already went down, kept
-// here so nobody re-walks them:
+// it and only reports tab taps back into Compose. It is also Compact-only chrome: from
+// Medium width on (iPad, iPhone Duo unfolded, landscape tablets) Compose draws the
+// navigation rail and this file removes the bar from the hierarchy. Two dead ends we
+// already went down, kept here so nobody re-walks them:
 //
 //  1. One `MainViewControllerWrapper` per tab. That meant five independent `BiziMobileApp`
 //     instances, each replaying the startup splash, the onboarding gate and the feedback
@@ -79,10 +81,11 @@ enum BiziTab: Hashable, CaseIterable {
 final class NativeShellModel {
     var selectedTab: BiziTab = .nearby
 
-    /// Whether Compose's navigable shell is on screen. `false` while the bootstrap,
-    /// city-selection, guided-onboarding or in-app-splash gates are showing, so the
-    /// native tab bar stays hidden instead of floating over them. Updated from Compose,
-    /// which may call off the main thread.
+    /// Whether the native tab bar should be visible right now. `false` while the bootstrap,
+    /// city-selection, guided-onboarding or in-app-splash gates are showing (they are
+    /// full-screen and must not be covered), and also on Medium/Expanded windows, where
+    /// Compose draws its own `MobileNavigationRail` instead of a bottom bar. Updated from
+    /// Compose, which may call off the main thread.
     var isChromeVisible = false
 
     /// Not `let` only because the `onActivate` closure needs `self`; assigned once in `init`.
@@ -168,9 +171,13 @@ struct NativeNavContentView: View {
             // over Compose, and iOS 26 still renders it with the Liquid Glass material
             // because it is the stock system bar.
             //
-            // Only drawn while Compose reports its navigable shell on screen: bootstrap,
-            // city selection, guided onboarding and the in-app splash are full-screen
-            // gates that must not be covered by the tab bar.
+            // Only drawn while Compose reports the native bar as part of the shell: bootstrap,
+            // city selection, guided onboarding and the in-app splash are full-screen gates
+            // that must not be covered by the tab bar, and from Medium width on (iPad, iPhone
+            // Duo unfolded, landscape tablets) Compose draws its own navigation rail instead —
+            // a bottom `UITabBar` is not a wide-window chrome. Compose owns that decision
+            // (`nativeTabBarVisible` in BiziMobileApp.kt) so the two layers can never disagree
+            // about the breakpoint; SwiftUI never measures the window itself.
             if model.isChromeVisible {
                 NativeTabBar(
                     tabs: BiziTab.allCases,

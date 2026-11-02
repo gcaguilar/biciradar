@@ -41,10 +41,13 @@ internal fun BiziNavigationShell(
   navController: NavHostController,
   windowInfo: BiziWindowInfo,
   /**
-   * True when a native host (SwiftUI TabView with iOS 26 Liquid Glass) already renders
-   * the tab bar / navigation rail chrome, so Compose must not draw its own on top of it.
-   * Defaults to false: Android and any iOS build without the native shell keep today's
-   * Compose-drawn bottom bar / rail exactly as before.
+   * True when a native host (the iOS `UITabBar` overlay rendered by NativeNavContentView.swift,
+   * with iOS 26 Liquid Glass) already draws the tab bar chrome for the *current* window, so
+   * Compose must not draw its own on top of it. The caller only sets it on Compact windows:
+   * a bottom `UITabBar` is not a wide-window chrome, so from Medium width on this stays false
+   * and the [MobileNavigationRail] below is used instead (SwiftUI removes the native bar from
+   * the hierarchy in that case). Defaults to false: Android and any iOS build without the
+   * native shell keep today's Compose-drawn bottom bar / rail exactly as before.
    */
   useNativeChrome: Boolean = false,
   content: @Composable (PaddingValues) -> Unit,

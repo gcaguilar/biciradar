@@ -50,9 +50,10 @@ fun MainViewControllerWrapper(
   onNavigate: ((Screen) -> Unit)? = null,
   onActivate: ((Screen) -> Unit)? = null,
   /**
-   * Reports whether Compose's navigable shell is on screen, so the native iOS `UITabBar`
-   * overlay can hide itself while bootstrap/city selection/guided onboarding/splash are
-   * showing. See [BiziMobileApp.onNativeChromeVisibilityChanged].
+   * Reports whether the native iOS `UITabBar` overlay should be visible: `false` while
+   * bootstrap/city selection/guided onboarding/splash are showing AND on Medium/Expanded
+   * windows, where Compose draws its own navigation rail instead of the native bottom bar.
+   * See [BiziMobileApp.onNativeChromeVisibilityChanged].
    */
   onNativeChromeVisibilityChanged: ((Boolean) -> Unit)? = null,
   /**
