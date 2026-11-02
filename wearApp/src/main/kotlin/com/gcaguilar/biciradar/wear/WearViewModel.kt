@@ -145,12 +145,17 @@ internal class WearViewModel(
       syncFavoritesFromPeer.execute()
       refreshWearSurface(appContext)
     }
+  }
 
-    viewModelScope.launch {
-      while (true) {
-        delay(60_000)
-        refreshWearSurface(appContext)
-      }
+  /**
+   * Refresco periódico de la superficie del reloj. Lo arranca la UI sólo mientras la
+   * pantalla está en primer plano (`repeatOnLifecycle(RESUMED)`) para no gastar batería
+   * ni red con la pantalla apagada.
+   */
+  suspend fun runPeriodicRefresh() {
+    while (true) {
+      delay(60_000)
+      refreshWearSurface(appContext)
     }
   }
 

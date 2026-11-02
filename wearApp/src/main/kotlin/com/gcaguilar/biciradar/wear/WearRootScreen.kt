@@ -30,6 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
@@ -108,6 +111,16 @@ internal fun WearRoot(
     val message = uiState.feedbackMessage ?: return@LaunchedEffect
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     viewModel.onFeedbackConsumed()
+  }
+
+  // Refresco periódico sólo con la pantalla en primer plano: evita red y CPU con la
+  // pantalla apagada (batería en Wear). Al pasar a STOPPED `repeatOnLifecycle` cancela
+  // el bucle y lo relanza al volver a RESUMED.
+  val lifecycleOwner = LocalLifecycleOwner.current
+  LaunchedEffect(lifecycleOwner, viewModel) {
+    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+      viewModel.runPeriodicRefresh()
+    }
   }
 
   MaterialTheme {
