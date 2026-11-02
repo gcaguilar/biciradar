@@ -15,6 +15,7 @@ import com.gcaguilar.biciradar.core.ObserveSurfaceMonitoring
 import com.gcaguilar.biciradar.core.StopStationMonitoring
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.ToggleFavoriteStation
+import com.gcaguilar.biciradar.core.TripRepository
 import com.gcaguilar.biciradar.core.formatMonitoringCountdown
 import com.gcaguilar.biciradar.core.remainingSeconds
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,10 @@ class TripMonitorService : Service() {
   private val toggleFavoriteStation: ToggleFavoriteStation
     get() = BiziAppGraph.graph.toggleFavoriteStation
 
+  @Suppress("DEPRECATION")
+  private val tripRepository: TripRepository
+    get() = BiziAppGraph.graph.tripRepository
+
   private var countdownJob: Job? = null
   private var currentSessions: Map<String, SurfaceMonitoringSession> = emptyMap()
 
@@ -70,8 +75,20 @@ class TripMonitorService : Service() {
   ): Int {
     when (intent?.action) {
       ACTION_STOP_MONITORING -> {
-        serviceScope.launch { stopStationMonitoring.execute() }
-        stopSelf()
+        val stationId = intent.getStringExtra(EXTRA_STATION_ID)
+        serviceScope.launch {
+          // Si la sesión pertenece al viaje activo, hay que cerrarlo también:
+          // de lo contrario la UI seguiría mostrando una cuenta atrás sin avisos.
+          if (stationId == null || tripRepository.state.value.nearestStationWithSlots
+              ?.id == stationId
+          ) {
+            tripRepository.stopMonitoring()
+          }
+          stopStationMonitoring.execute(stationId = stationId)
+        }
+        // Sin stopSelf(): el observer de sesiones detiene el servicio cuando ya
+        // no queda ninguna activa. Parar aquí cancelaría serviceScope antes de
+        // que la corrutina anterior llegue a ejecutarse.
         return START_NOT_STICKY
       }
 
@@ -208,11 +225,12 @@ class TripMonitorService : Service() {
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .setShowWhen(false)
 
-    // Acción: Detener
+    // Acción: Detener. Con una sola sesión detiene solo esa estación; con
+    // varias el botón sigue significando "detener todas".
     builder.addAction(
       android.R.drawable.ic_menu_close_clear_cancel,
       getString(R.string.notification_action_stop),
-      stopPendingIntent(),
+      stopPendingIntent(singleSession?.stationId),
     )
 
     // Acción: Favorito (sólo con una sesión activa)
@@ -293,10 +311,11 @@ class TripMonitorService : Service() {
     startActivity(chooser)
   }
 
-  private fun stopPendingIntent(): PendingIntent {
+  private fun stopPendingIntent(stationId: String?): PendingIntent {
     val intent =
       Intent(this, TripMonitorService::class.java).apply {
         action = ACTION_STOP_MONITORING
+        stationId?.let { putExtra(EXTRA_STATION_ID, it) }
       }
     return PendingIntent.getService(
       this,
