@@ -37,13 +37,13 @@ subprojects {
   }
 }
 
-val ktlintCheckAll by tasks.registering {
+val ktlintCheckAll = tasks.register("ktlintCheckAll") {
   group = LifecycleBasePlugin.VERIFICATION_GROUP
   description = "Runs ktlint checks for all subprojects."
   dependsOn(subprojects.map { "${it.path}:ktlintCheck" })
 }
 
-val ktlintFormatAll by tasks.registering {
+val ktlintFormatAll = tasks.register("ktlintFormatAll") {
   group = "formatting"
   description = "Formats Kotlin sources with ktlint in all subprojects."
   dependsOn(subprojects.map { "${it.path}:ktlintFormat" })
