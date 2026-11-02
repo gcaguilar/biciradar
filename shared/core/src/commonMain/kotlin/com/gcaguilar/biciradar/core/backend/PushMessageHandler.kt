@@ -2,6 +2,7 @@ package com.gcaguilar.biciradar.core.backend
 
 import com.gcaguilar.biciradar.core.RefreshWidgetDataUseCase
 import com.gcaguilar.biciradar.core.StationsRepository
+import com.gcaguilar.biciradar.core.SurfaceMonitoringRepository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -18,6 +19,7 @@ class PushMessageHandler(
   private val pushMessageBus: PushMessageBus,
   private val stationsRepository: StationsRepository,
   private val refreshWidgetDataUseCase: RefreshWidgetDataUseCase,
+  private val surfaceMonitoringRepository: SurfaceMonitoringRepository,
   private val json: Json,
 ) {
   /** Handles the `data` map of a remote notification. */
@@ -25,6 +27,9 @@ class PushMessageHandler(
     val payload = data["payload"] ?: return null
     val message = runCatching { json.decodeFromString(PushMessage.serializer(), payload) }.getOrNull() ?: return null
     pushMessageBus.publish(message)
+    // Cada evento cierra la ventana que vigilaba esa estación: las superficies
+    // (reloj, widgets y notificación persistente) no deben seguir contando atrás.
+    surfaceMonitoringRepository.stopMonitoring(message.stationId)
     runCatching { stationsRepository.refreshAvailability(listOf(message.stationId)) }
     runCatching { refreshWidgetDataUseCase.execute() }
     return message
