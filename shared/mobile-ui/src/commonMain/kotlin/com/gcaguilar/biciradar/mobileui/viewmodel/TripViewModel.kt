@@ -47,7 +47,6 @@ data class TripUiState(
   val isLoadingSuggestions: Boolean = false,
   val suggestionsError: String? = null,
   val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
-  val mapPickerActive: Boolean = false,
   val isReverseGeocoding: Boolean = false,
   val pickedLocation: GeoPoint? = null,
   val searchRadiusMeters: Int = DEFAULT_SEARCH_RADIUS_METERS,
@@ -103,7 +102,6 @@ class TripViewModel(
     val isLoadingSuggestions: Boolean = false,
     val suggestionsError: String? = null,
     val selectedDurationSeconds: Int = MONITORING_DURATION_OPTIONS_SECONDS[0],
-    val mapPickerActive: Boolean = false,
     val isReverseGeocoding: Boolean = false,
     val pickedLocation: GeoPoint? = null,
     val mapPickerMode: TripMapPickerMode? = null,
@@ -141,7 +139,6 @@ class TripViewModel(
         isLoadingSuggestions = transient.isLoadingSuggestions,
         suggestionsError = transient.suggestionsError,
         selectedDurationSeconds = transient.selectedDurationSeconds,
-        mapPickerActive = transient.mapPickerActive,
         isReverseGeocoding = transient.isReverseGeocoding,
         pickedLocation = transient.pickedLocation,
         searchRadiusMeters = radius,
@@ -375,7 +372,6 @@ class TripViewModel(
   fun onEnterMapPicker(mode: TripMapPickerMode) {
     transientUiState.update {
       it.copy(
-        mapPickerActive = true,
         mapPickerMode = mode,
         pickedLocation = null,
         isReverseGeocoding = false,
@@ -383,14 +379,6 @@ class TripViewModel(
         selectedMapLocationLabel = null,
         canConfirmMapSelection = false,
       )
-    }
-  }
-
-  fun onMapPickerToggle() {
-    if (transientUiState.value.mapPickerActive) {
-      onCancelMapPicker()
-    } else {
-      onEnterMapPicker(TripMapPickerMode.Destination)
     }
   }
 
@@ -490,22 +478,6 @@ class TripViewModel(
     tripManagementUseCase.dismissAlert()
   }
 
-  fun onDestinationCleared() {
-    transientUiState.update {
-      it.copy(
-        isLoadingSuggestions = false,
-        suggestionsError = null,
-        mapPickerActive = false,
-        isReverseGeocoding = false,
-        pickedLocation = null,
-        mapPickerMode = null,
-        selectedMapStation = null,
-        selectedMapLocationLabel = null,
-        canConfirmMapSelection = false,
-      )
-    }
-  }
-
   fun onCancelMapPicker() {
     clearMapPickerState()
   }
@@ -524,7 +496,6 @@ class TripViewModel(
   private fun clearMapPickerState() {
     transientUiState.update {
       it.copy(
-        mapPickerActive = false,
         isReverseGeocoding = false,
         pickedLocation = null,
         mapPickerMode = null,
