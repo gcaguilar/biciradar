@@ -484,5 +484,16 @@
     <string name="routineAccountLocalOnly">Només en aquest dispositiu</string>
     <string name="routineAccountLogin">Inicia sessió</string>
     <string name="routineAccountLogout">Tanca la sessió</string>
+    <string name="accountTitle">Compte</string>
+    <string name="accountSignedInDescription">Sessió iniciada. Les teves rutines se sincronitzen amb el teu compte.</string>
+    <string name="accountDeleteAction">Elimina el compte</string>
+    <string name="accountDeleting">Eliminant…</string>
+    <string name="accountDeleteConfirmTitle">Vols eliminar el teu compte?</string>
+    <string name="accountDeleteConfirmBody">S\'eliminaran el teu compte, les teves rutines i els avisos associats, i es tancarà la sessió. Aquesta acció no es pot desfer.</string>
+    <string name="accountDeleteConfirmAction">Elimina el compte</string>
+    <string name="accountDeletedTitle">Compte eliminat</string>
+    <string name="accountDeletedBody">El teu compte i les seves dades s\'han eliminat. Pots continuar fent servir BiciRadar sense iniciar sessió.</string>
+    <string name="accountDeleteFailedTitle">No s\'ha pogut eliminar el compte</string>
+    <string name="accountDeleteFailedBody">Comprova la connexió i torna-ho a provar.</string>
     <string name="tripCreateRoutineFromTrip">Crea una rutina des d'aquest viatge</string>
 </resources>

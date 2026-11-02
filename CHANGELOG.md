@@ -28,6 +28,8 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
   widgets; detener o limpiar un viaje solo termina la sesión de esa estación, sin
   cortar las rutinas que vigilan otras. Si se deniegan las notificaciones, se
   muestra el motivo en lugar de no hacer nada.
+- **Cuenta**: Perfil permite eliminar la cuenta y sus datos (rutinas, avisos y
+  dispositivos) y cierra la sesión, tal como exigen App Store y Google Play.
 
 ### Release
 

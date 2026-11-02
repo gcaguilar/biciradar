@@ -403,6 +403,8 @@ internal object BiziMobileAppContent {
     onOpenShortcuts: () -> Unit = {},
     onOpenRoutines: () -> Unit = {},
     onRateApp: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
+    onDismissAccountDeletionResult: () -> Unit = {},
   ) = ProfileScreen(
     state =
       com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState(
@@ -428,6 +430,8 @@ internal object BiziMobileAppContent {
     onOpenRoutines = onOpenRoutines,
     onOpenFeedback = onOpenFeedback,
     onRateApp = onRateApp,
+    onDeleteAccount = onDeleteAccount,
+    onDismissAccountDeletionResult = onDismissAccountDeletionResult,
   )
 
   @Composable
@@ -463,6 +467,8 @@ internal object BiziMobileAppContent {
           platformBindings.reviewPrompter.requestInAppReviewOrStoreFallback()
         }
       },
+      onDeleteAccount = viewModel::onDeleteAccount,
+      onDismissAccountDeletionResult = viewModel::onDismissAccountDeletionResult,
     )
   }
 

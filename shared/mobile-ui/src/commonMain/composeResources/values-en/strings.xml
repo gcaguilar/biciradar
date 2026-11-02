@@ -484,5 +484,16 @@
     <string name="routineAccountLocalOnly">On this device only</string>
     <string name="routineAccountLogin">Sign in</string>
     <string name="routineAccountLogout">Sign out</string>
+    <string name="accountTitle">Account</string>
+    <string name="accountSignedInDescription">Signed in. Your routines sync with your account.</string>
+    <string name="accountDeleteAction">Delete account</string>
+    <string name="accountDeleting">Deleting…</string>
+    <string name="accountDeleteConfirmTitle">Delete your account?</string>
+    <string name="accountDeleteConfirmBody">Your account, routines and related alerts will be deleted and you will be signed out. This action cannot be undone.</string>
+    <string name="accountDeleteConfirmAction">Delete account</string>
+    <string name="accountDeletedTitle">Account deleted</string>
+    <string name="accountDeletedBody">Your account and its data have been deleted. You can keep using BiciRadar without signing in.</string>
+    <string name="accountDeleteFailedTitle">Could not delete the account</string>
+    <string name="accountDeleteFailedBody">Check your connection and try again.</string>
     <string name="tripCreateRoutineFromTrip">Create routine from this trip</string>
 </resources>

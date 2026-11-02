@@ -37,8 +37,14 @@ class BiciRadarApiClient(
   private val tokenProvider: AuthTokenProvider,
   private val logger: Logger,
 ) : RoutineBackendApi,
-  UsagePatternsBackendApi {
+  UsagePatternsBackendApi,
+  AccountBackendApi {
   override val isConfigured: Boolean get() = config.isConfigured
+
+  override suspend fun deleteAccount() {
+    requireConfigured()
+    execute(HttpMethod.Delete, "/v1/me", null)
+  }
 
   override suspend fun listRoutines(): List<RoutineDto> {
     requireConfigured()

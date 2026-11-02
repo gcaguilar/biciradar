@@ -97,6 +97,17 @@ if the app is closed. From the trip you can also **create a routine from this
 trip**: it opens the editor with the destination station pre-filled as an
 _arrival_ step (watch free docks) and a suggested time based on how far it is.
 
+## Account and data
+
+Signing in is optional: BiciRadar works anonymously and keeps routines and
+favorites on the device. When you are signed in, routines, alerts and the watch
+sync with your account.
+
+To delete your account, open **Profile → Cuenta → Eliminar cuenta**. The app
+deletes the account and the data tied to it on the server (routines, alerts and
+registered devices), removes the local copy of the routines and signs you out.
+The action cannot be undone. Favorites and saved places stay on the device.
+
 ## Next
 
 - [iPhone - Siri and Shortcuts](iPhone-Siri-and-Shortcuts)

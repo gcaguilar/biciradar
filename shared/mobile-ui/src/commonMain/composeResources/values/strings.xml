@@ -486,5 +486,16 @@
     <string name="routineAccountLocalOnly">Solo en este dispositivo</string>
     <string name="routineAccountLogin">Iniciar sesión</string>
     <string name="routineAccountLogout">Cerrar sesión</string>
+    <string name="accountTitle">Cuenta</string>
+    <string name="accountSignedInDescription">Sesión iniciada. Tus rutinas se sincronizan con tu cuenta.</string>
+    <string name="accountDeleteAction">Eliminar cuenta</string>
+    <string name="accountDeleting">Eliminando…</string>
+    <string name="accountDeleteConfirmTitle">¿Eliminar tu cuenta?</string>
+    <string name="accountDeleteConfirmBody">Se eliminarán tu cuenta, tus rutinas y los avisos asociados, y se cerrará la sesión. Esta acción no se puede deshacer.</string>
+    <string name="accountDeleteConfirmAction">Eliminar cuenta</string>
+    <string name="accountDeletedTitle">Cuenta eliminada</string>
+    <string name="accountDeletedBody">Tu cuenta y sus datos se han eliminado. Puedes seguir usando BiciRadar sin iniciar sesión.</string>
+    <string name="accountDeleteFailedTitle">No se pudo eliminar la cuenta</string>
+    <string name="accountDeleteFailedBody">Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="tripCreateRoutineFromTrip">Crear rutina desde este viaje</string>
 </resources>

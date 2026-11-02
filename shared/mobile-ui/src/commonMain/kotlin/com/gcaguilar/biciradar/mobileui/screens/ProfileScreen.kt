@@ -35,9 +35,22 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.City
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.auth.AuthState
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteConfirmAction
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteConfirmBody
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteConfirmTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteFailedBody
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleteFailedTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeletedBody
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeletedTitle
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountDeleting
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountSignedInDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.accountTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.appearanceDescription
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.cancel
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchNoResults
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSearchPlaceholder
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.citySelectionSubtitle
@@ -66,6 +79,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSetupCardBod
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSetupCardTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.profileSubtitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.rateApp
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.retry
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesManage
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesTitle
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.selectedCity
@@ -83,6 +97,7 @@ import com.gcaguilar.biciradar.mobileui.components.buttons.RadiusSelectionButton
 import com.gcaguilar.biciradar.mobileui.components.cards.BiziSectionCard
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
+import com.gcaguilar.biciradar.mobileui.viewmodel.AccountDeletionUiState
 import com.gcaguilar.biciradar.mobileui.viewmodel.ProfileUiState
 import org.jetbrains.compose.resources.stringResource
 
@@ -103,8 +118,13 @@ internal fun ProfileScreen(
   onOpenRoutines: () -> Unit,
   onOpenFeedback: () -> Unit,
   onRateApp: () -> Unit,
+  onDeleteAccount: () -> Unit,
+  onDismissAccountDeletionResult: () -> Unit,
 ) {
   var showDataSourcesDialog by remember { mutableStateOf(false) }
+  var confirmAccountDeletion by remember { mutableStateOf(false) }
+  val accountDeletion = state.accountDeletion
+  val deletingAccount = accountDeletion == AccountDeletionUiState.Deleting
   Box(
     modifier =
       Modifier
@@ -141,6 +161,29 @@ internal fun ProfileScreen(
             onAction = onOpenOnboarding,
             contentSpacing = BiziSpacing.medium,
           )
+        }
+      }
+      if (state.authState == AuthState.Authenticated) {
+        item {
+          BiziSectionCard(
+            title = stringResource(Res.string.accountTitle),
+            description = stringResource(Res.string.accountSignedInDescription),
+          ) {
+            TextButton(
+              onClick = { confirmAccountDeletion = true },
+              enabled = !deletingAccount,
+            ) {
+              Text(
+                text =
+                  if (deletingAccount) {
+                    stringResource(Res.string.accountDeleting)
+                  } else {
+                    stringResource(Res.string.accountDeleteAction)
+                  },
+                color = LocalBiziColors.current.red,
+              )
+            }
+          }
         }
       }
       item {
@@ -310,6 +353,65 @@ internal fun ProfileScreen(
       confirmButton = {
         TextButton(onClick = { showDataSourcesDialog = false }) {
           Text(stringResource(Res.string.close))
+        }
+      },
+    )
+  }
+
+  if (confirmAccountDeletion) {
+    AlertDialog(
+      onDismissRequest = { confirmAccountDeletion = false },
+      title = { Text(stringResource(Res.string.accountDeleteConfirmTitle)) },
+      text = { Text(stringResource(Res.string.accountDeleteConfirmBody)) },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            confirmAccountDeletion = false
+            onDeleteAccount()
+          },
+        ) {
+          Text(stringResource(Res.string.accountDeleteConfirmAction), color = LocalBiziColors.current.red)
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { confirmAccountDeletion = false }) {
+          Text(stringResource(Res.string.cancel))
+        }
+      },
+    )
+  }
+
+  if (accountDeletion == AccountDeletionUiState.Succeeded) {
+    AlertDialog(
+      onDismissRequest = onDismissAccountDeletionResult,
+      title = { Text(stringResource(Res.string.accountDeletedTitle)) },
+      text = { Text(stringResource(Res.string.accountDeletedBody)) },
+      confirmButton = {
+        TextButton(onClick = onDismissAccountDeletionResult) {
+          Text(stringResource(Res.string.close))
+        }
+      },
+    )
+  }
+
+  if (accountDeletion == AccountDeletionUiState.Failed) {
+    AlertDialog(
+      onDismissRequest = onDismissAccountDeletionResult,
+      title = { Text(stringResource(Res.string.accountDeleteFailedTitle)) },
+      text = { Text(stringResource(Res.string.accountDeleteFailedBody)) },
+      confirmButton = {
+        TextButton(onClick = onDismissAccountDeletionResult) {
+          Text(stringResource(Res.string.close))
+        }
+      },
+      dismissButton = {
+        TextButton(
+          onClick = {
+            onDismissAccountDeletionResult()
+            onDeleteAccount()
+          },
+        ) {
+          Text(stringResource(Res.string.retry))
         }
       },
     )

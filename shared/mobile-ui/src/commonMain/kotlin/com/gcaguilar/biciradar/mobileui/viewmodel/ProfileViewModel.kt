@@ -5,10 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.AssistantAction
 import com.gcaguilar.biciradar.core.ChangeCityUseCase
 import com.gcaguilar.biciradar.core.City
+import com.gcaguilar.biciradar.core.DeleteAccountResult
+import com.gcaguilar.biciradar.core.DeleteAccountUseCase
 import com.gcaguilar.biciradar.core.FavoritesRepository
 import com.gcaguilar.biciradar.core.PreferredMapApp
 import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.auth.AuthProvider
+import com.gcaguilar.biciradar.core.auth.AuthState
 import com.gcaguilar.biciradar.mobileui.normalizedForSearch
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import dev.zacsweers.metro.AppScope
@@ -40,7 +44,17 @@ data class ProfileUiState(
   val showProfileSetupCard: Boolean = false,
   val citySearchQuery: String = "",
   val filteredCities: List<City> = City.entries,
+  val authState: AuthState = AuthState.Anonymous,
+  val accountDeletion: AccountDeletionUiState = AccountDeletionUiState.Idle,
 )
+
+/** Progress of the "delete account" action offered in Profile. */
+enum class AccountDeletionUiState {
+  Idle,
+  Deleting,
+  Succeeded,
+  Failed,
+}
 
 data class ShortcutGuide(
   val title: String,
@@ -56,6 +70,8 @@ internal class ProfileViewModel(
   private val favoritesRepository: FavoritesRepository,
   private val changeCityUseCase: ChangeCityUseCase,
   private val settingsAggregationUseCase: SettingsAggregationUseCase,
+  private val deleteAccountUseCase: DeleteAccountUseCase,
+  private val authProvider: AuthProvider,
   @Assisted val canSelectGoogleMapsInIos: Boolean,
 ) : ViewModel() {
   @AssistedFactory
@@ -69,6 +85,7 @@ internal class ProfileViewModel(
   private val assistantSuggestions = MutableStateFlow<List<AssistantAction>>(emptyList())
   private val shortcutGuides = MutableStateFlow<List<ShortcutGuide>>(emptyList())
   private val citySearchQuery = MutableStateFlow("")
+  private val accountDeletion = MutableStateFlow(AccountDeletionUiState.Idle)
 
   private val repositoryState =
     combine(
@@ -119,6 +136,10 @@ internal class ProfileViewModel(
         citySearchQuery = cityQuery,
         filteredCities = filteredCities,
       )
+    }.combine(authProvider.credentialsState) { state, authState ->
+      state.copy(authState = authState)
+    }.combine(accountDeletion) { state, deletion ->
+      state.copy(accountDeletion = deletion)
     }.stateIn(
       scope = viewModelScope,
       started = SharingStarted.Eagerly,
@@ -179,5 +200,28 @@ internal class ProfileViewModel(
 
   fun setShortcutGuides(guides: List<ShortcutGuide>) {
     shortcutGuides.update { guides }
+  }
+
+  /**
+   * Deletes the signed-in account after the user confirmed it in Profile.
+   *
+   * Without an active session there is nothing to delete; the result dialog is
+   * only shown for actual failures so the UI does not nag in anonymous mode.
+   */
+  fun onDeleteAccount() {
+    if (accountDeletion.value == AccountDeletionUiState.Deleting) return
+    viewModelScope.launch {
+      accountDeletion.value = AccountDeletionUiState.Deleting
+      accountDeletion.value =
+        when (deleteAccountUseCase.execute()) {
+          DeleteAccountResult.Deleted -> AccountDeletionUiState.Succeeded
+          DeleteAccountResult.NotAuthenticated -> AccountDeletionUiState.Idle
+          DeleteAccountResult.Failed -> AccountDeletionUiState.Failed
+        }
+    }
+  }
+
+  fun onDismissAccountDeletionResult() {
+    accountDeletion.value = AccountDeletionUiState.Idle
   }
 }

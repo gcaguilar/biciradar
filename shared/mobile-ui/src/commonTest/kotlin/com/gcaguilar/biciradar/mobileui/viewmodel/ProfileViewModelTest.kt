@@ -11,6 +11,9 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.StationsRepository
 import com.gcaguilar.biciradar.core.StationsState
 import com.gcaguilar.biciradar.core.ThemePreference
+import com.gcaguilar.biciradar.core.auth.AuthState
+import com.gcaguilar.biciradar.core.auth.NoOpAuthProvider
+import com.gcaguilar.biciradar.core.backend.BackendException
 import com.gcaguilar.biciradar.mobileui.usecases.SettingsAggregationUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +59,8 @@ class ProfileViewModelTest {
               stationsRepository = stationsRepository,
             ),
           settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(),
+          authProvider = NoOpAuthProvider,
           canSelectGoogleMapsInIos = true,
         )
 
@@ -90,6 +95,8 @@ class ProfileViewModelTest {
               stationsRepository = stationsRepository,
             ),
           settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(),
+          authProvider = NoOpAuthProvider,
           canSelectGoogleMapsInIos = true,
         )
 
@@ -100,6 +107,73 @@ class ProfileViewModelTest {
       assertEquals(1, favoritesRepository.clearAllCalls)
       assertEquals(1, stationsRepository.forceRefreshCalls)
       assertEquals(true, settingsRepository.onboardingChecklist.value.cityConfirmed)
+    }
+
+  @Test
+  fun `deleting the account reports success and closes the session`() =
+    runTest(dispatcher) {
+      val settingsRepository = ProfileTestSettingsRepository()
+      val favoritesRepository = ProfileTestFavoritesRepository()
+      val stationsRepository = ProfileTestStationsRepository()
+      val authProvider = TestAuthProvider()
+      val backend = RecordingAccountBackendApi()
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(authProvider, backend),
+          authProvider = authProvider,
+          canSelectGoogleMapsInIos = true,
+        )
+
+      viewModel.onDeleteAccount()
+      advanceUntilIdle()
+
+      assertEquals(1, backend.deleteCalls)
+      assertEquals(1, authProvider.logoutCalls)
+      assertEquals(AuthState.Anonymous, authProvider.credentialsState.value)
+      assertEquals(AccountDeletionUiState.Succeeded, viewModel.uiState.value.accountDeletion)
+      assertEquals(AuthState.Anonymous, viewModel.uiState.value.authState)
+    }
+
+  @Test
+  fun `a backend failure keeps the session and reports the error`() =
+    runTest(dispatcher) {
+      val settingsRepository = ProfileTestSettingsRepository()
+      val favoritesRepository = ProfileTestFavoritesRepository()
+      val stationsRepository = ProfileTestStationsRepository()
+      val authProvider = TestAuthProvider()
+      val backend = RecordingAccountBackendApi(failure = BackendException("backend down"))
+      val viewModel =
+        ProfileViewModel(
+          settingsRepository = settingsRepository,
+          favoritesRepository = favoritesRepository,
+          changeCityUseCase =
+            ChangeCityUseCase(
+              settingsRepository = settingsRepository,
+              favoritesRepository = favoritesRepository,
+              stationsRepository = stationsRepository,
+            ),
+          settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(authProvider, backend),
+          authProvider = authProvider,
+          canSelectGoogleMapsInIos = true,
+        )
+
+      viewModel.onDeleteAccount()
+      advanceUntilIdle()
+
+      assertEquals(1, backend.deleteCalls)
+      assertEquals(0, authProvider.logoutCalls)
+      assertEquals(AuthState.Authenticated, authProvider.credentialsState.value)
+      assertEquals(AccountDeletionUiState.Failed, viewModel.uiState.value.accountDeletion)
     }
 }
 

@@ -484,5 +484,16 @@
     <string name="routineAccountLocalOnly">Gailu honetan bakarrik</string>
     <string name="routineAccountLogin">Hasi saioa</string>
     <string name="routineAccountLogout">Amaitu saioa</string>
+    <string name="accountTitle">Kontua</string>
+    <string name="accountSignedInDescription">Saioa hasita. Zure errutinak zure kontuarekin sinkronizatzen dira.</string>
+    <string name="accountDeleteAction">Ezabatu kontua</string>
+    <string name="accountDeleting">Ezabatzen…</string>
+    <string name="accountDeleteConfirmTitle">Zure kontua ezabatu nahi duzu?</string>
+    <string name="accountDeleteConfirmBody">Zure kontua, errutinak eta lotutako abisuak ezabatuko dira eta saioa itxiko da. Ekintza hau ezin da desegin.</string>
+    <string name="accountDeleteConfirmAction">Ezabatu kontua</string>
+    <string name="accountDeletedTitle">Kontua ezabatu da</string>
+    <string name="accountDeletedBody">Zure kontua eta haren datuak ezabatu dira. BiciRadar erabiltzen jarraitu dezakezu saioa hasi gabe.</string>
+    <string name="accountDeleteFailedTitle">Ezin izan da kontua ezabatu</string>
+    <string name="accountDeleteFailedBody">Egiaztatu konexioa eta saiatu berriro.</string>
     <string name="tripCreateRoutineFromTrip">Sortu rutina bidaia honetatik</string>
 </resources>

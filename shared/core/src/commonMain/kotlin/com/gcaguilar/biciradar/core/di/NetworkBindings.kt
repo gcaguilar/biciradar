@@ -16,6 +16,7 @@ import com.gcaguilar.biciradar.core.SettingsRepository
 import com.gcaguilar.biciradar.core.auth.AuthProvider
 import com.gcaguilar.biciradar.core.auth.AuthTokenProvider
 import com.gcaguilar.biciradar.core.auth.asTokenProvider
+import com.gcaguilar.biciradar.core.backend.AccountBackendApi
 import com.gcaguilar.biciradar.core.backend.BackendConfig
 import com.gcaguilar.biciradar.core.backend.BiciRadarApiClient
 import com.gcaguilar.biciradar.core.backend.RoutineBackendApi
@@ -112,4 +113,8 @@ object NetworkBindings {
   @SingleIn(AppScope::class)
   @Provides
   fun provideUsagePatternsBackendApi(client: BiciRadarApiClient): UsagePatternsBackendApi = client
+
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideAccountBackendApi(client: BiciRadarApiClient): AccountBackendApi = client
 }

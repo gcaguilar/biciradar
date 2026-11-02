@@ -177,6 +177,8 @@ class SearchRadiusViewModelTest {
               stationsRepository = stationsRepository,
             ),
           settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(),
+          authProvider = NoOpAuthProvider,
           canSelectGoogleMapsInIos = true,
         )
       settingsRepository.onboardingChecklist.value = OnboardingChecklistSnapshot(cityConfirmed = true)
@@ -205,6 +207,8 @@ class SearchRadiusViewModelTest {
               stationsRepository = stationsRepository,
             ),
           settingsAggregationUseCase = SettingsAggregationUseCase(settingsRepository),
+          deleteAccountUseCase = testDeleteAccountUseCase(),
+          authProvider = NoOpAuthProvider,
           canSelectGoogleMapsInIos = true,
         )
 

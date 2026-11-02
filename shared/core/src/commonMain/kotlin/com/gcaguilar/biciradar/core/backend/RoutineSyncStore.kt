@@ -64,4 +64,15 @@ class RoutineSyncStore(
     queries.deleteAllRoutineDirty()
     queries.deleteAllRoutinePendingDeletes()
   }
+
+  /**
+   * Forgets the reconciliation state after the account was deleted, so the next
+   * login starts from scratch instead of treating the old server data as synced.
+   */
+  fun reset() {
+    val queries = database?.biciradarQueries ?: return
+    queries.deleteAllRoutineDirty()
+    queries.deleteAllRoutinePendingDeletes()
+    queries.upsertRoutineSyncState(hasSynced = 0L)
+  }
 }

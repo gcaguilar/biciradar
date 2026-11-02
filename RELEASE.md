@@ -96,6 +96,17 @@ xcodebuild -project apple/BiciRadar.xcodeproj -scheme BiciRadar -configuration R
 xcodebuild -project apple/BiciRadar.xcodeproj -scheme BiciRadarWatch -configuration Release archive
 ```
 
+## Account deletion
+
+The App Store (Guideline 5.1.1(v)) and Google Play require apps with accounts to
+offer in-app deletion. Profile shows **Cuenta → Eliminar cuenta** while a session
+is active; it calls `DELETE /v1/me`, clears the local routine copy and signs out.
+
+- The backend must delete the Auth0 identity with the Management API inside
+  `DELETE /v1/me`. The client cannot do it, and a reviewer can sign in again to
+  check that the account is really gone.
+- Mention the path in `APP_REVIEW_NOTES`. See `docs/ACCOUNT_DELETION.md`.
+
 ## Firebase App Distribution
 
 GitHub Actions can distribute installable internal builds directly to Firebase App Distribution:
