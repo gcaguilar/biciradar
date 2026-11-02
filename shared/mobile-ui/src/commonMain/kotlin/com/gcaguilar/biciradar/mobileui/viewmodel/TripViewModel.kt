@@ -112,6 +112,8 @@ class TripViewModel(
     val canConfirmMapSelection: Boolean = false,
     val authLoginInProgress: Boolean = false,
     val authLoginError: Boolean = false,
+    /** Fallo local (p. ej. permisos denegados) que no pasa por el repositorio. */
+    val localMonitoringFailure: TripMonitoringFailure? = null,
   )
 
   private val transientUiState = MutableStateFlow(TripTransientUiState())
@@ -154,7 +156,7 @@ class TripViewModel(
         nearestStationWithSlots = tripState.nearestStationWithSlots,
         distanceToStation = tripState.distanceToStation,
         monitoring = tripState.monitoring,
-        monitoringFailure = tripState.monitoringFailure,
+        monitoringFailure = transient.localMonitoringFailure ?: tripState.monitoringFailure,
         stations = stationsState.stations,
         favoriteStations =
           stationsState.stations
@@ -401,6 +403,7 @@ class TripViewModel(
 
   fun onStartMonitoring() {
     viewModelScope.launch {
+      transientUiState.update { it.copy(localMonitoringFailure = null) }
       val durationSeconds = uiState.value.selectedDurationSeconds
       tripManagementUseCase.startMonitoring(durationSeconds)
       // Surfaces (widgets, watch) only mirror a watch the backend actually accepted.
@@ -421,8 +424,15 @@ class TripViewModel(
       return
     }
     viewModelScope.launch {
+      transientUiState.update { it.copy(localMonitoringFailure = null) }
       val hasPermission = localNotifier.requestPermission()
-      if (hasPermission) onStartMonitoring()
+      if (hasPermission) {
+        onStartMonitoring()
+      } else {
+        transientUiState.update {
+          it.copy(localMonitoringFailure = TripMonitoringFailure.NotificationsUnavailable)
+        }
+      }
     }
   }
 
