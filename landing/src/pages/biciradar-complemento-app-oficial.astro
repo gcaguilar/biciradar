@@ -1,6 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { absolutePageUrl, resolveSiteUrl } from '../utils/site';
+import StoreButtons from '../components/marketing/StoreButtons.astro';
+import { appStoreUrlForLocale, playStoreUrlForLocale } from '../lib/site-config';
 
 const title = 'BiciRadar, el complemento inteligente para tu app oficial';
 const description =
@@ -11,6 +13,14 @@ const canonical = absolutePageUrl(
   site,
   import.meta.env.BASE_URL,
 );
+
+const storeLabels = {
+  ES: { locale: 'es', ios: 'Descargar en App Store', android: 'Descargar en Google Play', note: 'Gratis · Sin cuenta para empezar' },
+  EN: { locale: 'en', ios: 'Download on the App Store', android: 'Get it on Google Play', note: 'Free · No account needed to start' },
+  CA: { locale: 'ca', ios: 'Descarrega a l’App Store', android: 'Descarrega a Google Play', note: 'Gratis · Sense compte per començar' },
+  EU: { locale: 'eu', ios: 'Deskargatu App Store-n', android: 'Deskargatu Google Play-n', note: 'Doan · Konturik gabe hasteko' },
+  GL: { locale: 'gl', ios: 'Descargar na App Store', android: 'Descargar en Google Play', note: 'Gratis · Sen conta para comezar' },
+} as const;
 
 const content = {
   ES: {
@@ -204,6 +214,15 @@ const structuredData = [
           <section class="p-6 rounded-2xl bg-primary text-on-primary">
             <SectionHeading class="text-2xl font-headline font-bold mb-2">{c.summaryTitle}</SectionHeading>
             <p>{c.summaryText}</p>
+            <StoreButtons
+              class="mt-5"
+              appStoreHref={appStoreUrlForLocale(storeLabels[lang as keyof typeof storeLabels].locale)}
+              playStoreHref={playStoreUrlForLocale(storeLabels[lang as keyof typeof storeLabels].locale)}
+              appStoreLabel={storeLabels[lang as keyof typeof storeLabels].ios}
+              playStoreLabel={storeLabels[lang as keyof typeof storeLabels].android}
+              placement={`official_app_page_${lang.toLowerCase()}`}
+            />
+            <p class="mt-3 text-sm opacity-90">{storeLabels[lang as keyof typeof storeLabels].note}</p>
           </section>
         </article>
       );
