@@ -6,7 +6,7 @@ import FaqList from './FaqList.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
 import BetaForm from './BetaForm.astro';
-import { appStoreUrlForLocale, playStoreUrlForLocale, cityToDeepLink } from '../../lib/site-config';
+import { appStoreUrlForLocale, playStoreUrlForLocale } from '../../lib/site-config';
 import { getCityPageMessaging } from '../../lib/city-page-messaging';
 
 interface LanguageLink {
@@ -29,7 +29,6 @@ const city = content.cityPages[cityKey];
 const cityMessaging = getCityPageMessaging(content.locale, cityKey, city);
 const appStoreHref = appStoreUrlForLocale(content.locale);
 const playStoreHref = playStoreUrlForLocale(content.locale);
-const cityDeepLink = cityToDeepLink(cityKey, content.locale);
 ---
 
 <PageHeader
@@ -55,7 +54,9 @@ const cityDeepLink = cityToDeepLink(cityKey, content.locale);
         <div class="marketing-city-actions">
           <a
             class="marketing-primary-button"
-            href={cityDeepLink}
+            href={appStoreHref}
+            target="_blank"
+            rel="noreferrer"
             data-track-event="store_download_click"
             data-track-store="app_store"
             data-track-placement="city_hero"
