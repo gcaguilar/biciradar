@@ -1,0 +1,53 @@
+---
+import Icon from '../Icon.astro';
+
+interface Props {
+  appStoreHref: string;
+  playStoreHref: string;
+  appStoreLabel: string;
+  playStoreLabel: string;
+  placement: string;
+  /** `stack` = full-width buttons on mobile, side by side from sm. `bar` = compact row (sticky bar). */
+  layout?: 'stack' | 'bar';
+  class?: string;
+}
+
+const {
+  appStoreHref,
+  playStoreHref,
+  appStoreLabel,
+  playStoreLabel,
+  placement,
+  layout = 'stack',
+  class: className = '',
+} = Astro.props;
+---
+
+<div class:list={['store-buttons', `store-buttons--${layout}`, className]}>
+  <a
+    class="store-button store-button--ios"
+    href={appStoreHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    data-store="app_store"
+    data-track-event="store_download_click"
+    data-track-store="app_store"
+    data-track-placement={`${placement}_ios`}
+  >
+    <Icon name="download" class="store-button__icon" />
+    <span>{appStoreLabel}</span>
+  </a>
+  <a
+    class="store-button store-button--android"
+    href={playStoreHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    data-store="play_store"
+    data-track-event="store_download_click"
+    data-track-store="play_store"
+    data-track-placement={`${placement}_android`}
+  >
+    <Icon name="download" class="store-button__icon" />
+    <span>{playStoreLabel}</span>
+  </a>
+</div>

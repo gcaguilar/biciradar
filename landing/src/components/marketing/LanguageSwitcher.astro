@@ -9,25 +9,49 @@ interface LinkItem {
 interface Props {
   label: string;
   links: LinkItem[];
+  /** Collapsed dropdown (used in the compact mobile header). */
+  compact?: boolean;
 }
 
-const { label, links } = Astro.props;
+const { label, links, compact = false } = Astro.props;
+const current = links.find((link) => link.current) ?? links[0];
 ---
 
-<div class="flex items-center gap-2" aria-label={label}>
-  {links.map((link) => (
-    <a
-      class:list={[
-        'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
-        link.current
-          ? 'border-slate-900 bg-slate-900 text-white'
-          : 'border-slate-300 bg-white text-slate-600 hover:border-slate-900 hover:text-slate-900',
-      ]}
-      href={link.href}
-      aria-current={link.current ? 'true' : undefined}
-    >
-      <span class="sr-only">{link.label}</span>
-      {link.localeLabel}
-    </a>
-  ))}
-</div>
+{compact ? (
+  <details class="lang-menu">
+    <summary aria-label={`${label}: ${current?.label ?? ''}`}>
+      <span>{current?.localeLabel}</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5">
+        <path d="m6 9 6 6 6-6"></path>
+      </svg>
+    </summary>
+    <ul>
+      {links.map((link) => (
+        <li>
+          <a href={link.href} hreflang={link.localeLabel.toLowerCase()} aria-current={link.current ? 'true' : undefined}>
+            <span class="font-semibold">{link.localeLabel}</span>
+            <span class="text-slate-500">{link.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </details>
+) : (
+  <div class="flex items-center gap-2" aria-label={label}>
+    {links.map((link) => (
+      <a
+        class:list={[
+          'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+          link.current
+            ? 'border-slate-900 bg-slate-900 text-white'
+            : 'border-slate-300 bg-white text-slate-600 hover:border-slate-900 hover:text-slate-900',
+        ]}
+        href={link.href}
+        aria-current={link.current ? 'true' : undefined}
+      >
+        <span class="sr-only">{link.label}</span>
+        {link.localeLabel}
+      </a>
+    ))}
+  </div>
+)}

@@ -1,0 +1,35 @@
+---
+import { Image } from 'astro:assets';
+import map from '../../assets/screens/map.png';
+import nearby from '../../assets/screens/nearby.png';
+import favorites from '../../assets/screens/favorites.png';
+import detail from '../../assets/screens/detail.png';
+import type { ScreenshotKey } from '../../content/marketing/types';
+
+interface Props {
+  shot: ScreenshotKey;
+  alt: string;
+  /** Hero image: load eagerly and with high priority (it is the LCP element). */
+  priority?: boolean;
+  sizes?: string;
+  class?: string;
+}
+
+const shots = { map, nearby, favorites, detail } as const;
+const { shot, alt, priority = false, sizes = '(min-width: 1024px) 300px, 260px', class: className = '' } = Astro.props;
+---
+
+<div class:list={['phone-frame', className]}>
+  <Image
+    src={shots[shot]}
+    alt={alt}
+    widths={[260, 400, 600]}
+    sizes={sizes}
+    format="webp"
+    quality={78}
+    loading={priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : 'auto'}
+    decoding={priority ? 'sync' : 'async'}
+    class="phone-frame__img"
+  />
+</div>

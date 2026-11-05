@@ -86,6 +86,27 @@ const fontStylesheetHref =
     <noscript><link rel="stylesheet" href={fontStylesheetHref} /></noscript>
     <script is:inline>
       (() => {
+        const ua = navigator.userAgent || '';
+        const isIpadOs = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+        const os = /android/i.test(ua) ? 'android' : /iPhone|iPad|iPod/.test(ua) || isIpadOs ? 'ios' : 'other';
+        document.documentElement.dataset.os = os;
+
+        // Point "smart" CTAs straight at the visitor's store once the DOM is ready.
+        document.addEventListener('DOMContentLoaded', () => {
+          if (os === 'other') return;
+          document.querySelectorAll('[data-smart-store-cta]').forEach((link) => {
+            const href = os === 'ios' ? link.dataset.iosHref : link.dataset.androidHref;
+            if (!href) return;
+            link.setAttribute('href', href);
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+            link.dataset.trackStore = os === 'ios' ? 'app_store' : 'play_store';
+          });
+        });
+      })();
+    </script>
+    <script is:inline>
+      (() => {
         const loadAnalytics = () => {
           if (document.querySelector('script[data-website-id="f6f1d487-ffc6-43d8-a627-fb6c43c601e4"]')) {
             return;

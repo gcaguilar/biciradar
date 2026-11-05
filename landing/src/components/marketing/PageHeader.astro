@@ -22,8 +22,12 @@ interface Props {
   languageLinks: LocaleLink[];
   navLinks?: NavLink[];
   primaryCtaLabel?: string;
+  /** Fallback target (desktop / unknown OS). */
   primaryCtaHref?: string;
   primaryEvent?: string;
+  /** When both are set, the CTA opens the store matching the visitor's phone OS. */
+  appStoreHref?: string;
+  playStoreHref?: string;
   githubAriaLabel: string;
 }
 
@@ -34,99 +38,66 @@ const {
   languageLinks,
   navLinks = [],
   primaryCtaLabel,
-  primaryCtaHref = '#beta-form',
+  primaryCtaHref = '#descargar',
   primaryEvent = 'hero_cta_click',
+  appStoreHref,
+  playStoreHref,
   githubAriaLabel,
 } = Astro.props;
 
 const githubHref = siteConfig.githubUrl;
+const smartCta = Boolean(appStoreHref && playStoreHref);
 const primaryCtaIsExternal = Boolean(primaryCtaHref?.startsWith('http'));
 ---
 
 <header class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:px-6">
-    <div class="flex items-center justify-between gap-4">
-      <a class="text-lg font-black tracking-tight text-slate-950 md:text-xl" href={homeHref}>
-        {siteName}
-      </a>
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
+    <a class="text-lg font-black tracking-tight text-slate-950 md:text-xl" href={homeHref}>
+      {siteName}
+    </a>
 
-      <div class="hidden items-center gap-6 lg:flex">
-        {navLinks.length > 0 && (
-          <nav aria-label="Primary" class="flex items-center gap-5 text-sm font-medium text-slate-600">
-            {navLinks.map((link) => (
-              <a class="transition hover:text-slate-950" href={link.href}>
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        )}
+    {navLinks.length > 0 && (
+      <nav aria-label="Primary" class="hidden items-center gap-6 text-sm font-medium text-slate-600 lg:flex">
+        {navLinks.map((link) => (
+          <a class="transition hover:text-slate-950" href={link.href}>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    )}
+
+    <div class="flex items-center gap-3">
+      <div class="hidden lg:block">
         <LanguageSwitcher label={languageLabel} links={languageLinks} />
+      </div>
+      <div class="lg:hidden">
+        <LanguageSwitcher label={languageLabel} links={languageLinks} compact />
+      </div>
+      <a
+        class="hidden text-slate-600 transition hover:text-slate-950 lg:block"
+        href={githubHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={githubAriaLabel}
+        data-track-event="github_click"
+        data-track-placement="header"
+      >
+        <Icon name="github" class="size-6" />
+      </a>
+      {primaryCtaLabel && (
         <a
-          class="text-slate-600 transition hover:text-slate-950"
-          href={githubHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={githubAriaLabel}
-          data-track-event="github_click"
-          data-track-placement="header"
+          class="inline-flex min-h-10 items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          href={primaryCtaHref}
+          target={primaryCtaIsExternal ? '_blank' : undefined}
+          rel={primaryCtaIsExternal ? 'noopener noreferrer' : undefined}
+          data-track-event={primaryEvent}
+          data-smart-store-cta={smartCta ? '' : undefined}
+          data-ios-href={smartCta ? appStoreHref : undefined}
+          data-android-href={smartCta ? playStoreHref : undefined}
         >
-          <Icon name="github" class="size-6" />
+          {primaryCtaLabel}
         </a>
-        {primaryCtaLabel && (
-          <a
-            class="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            href={primaryCtaHref}
-            target={primaryCtaIsExternal ? '_blank' : undefined}
-            rel={primaryCtaIsExternal ? 'noopener noreferrer' : undefined}
-            data-track-event={primaryEvent}
-          >
-            {primaryCtaLabel}
-          </a>
-        )}
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-3 lg:hidden">
-      {navLinks.length > 0 && (
-        <nav
-          aria-label="Primary mobile"
-          class="no-scrollbar flex gap-3 overflow-x-auto pb-1 text-sm font-medium text-slate-600"
-        >
-          {navLinks.map((link) => (
-            <a class="whitespace-nowrap rounded-full border border-slate-200 px-3 py-1.5 transition hover:border-slate-900 hover:text-slate-950" href={link.href}>
-              {link.label}
-            </a>
-          ))}
-        </nav>
       )}
-
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <LanguageSwitcher label={languageLabel} links={languageLinks} />
-          <a
-            class="text-slate-600 transition hover:text-slate-950"
-            href={githubHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={githubAriaLabel}
-            data-track-event="github_click"
-            data-track-placement="header_mobile"
-          >
-            <Icon name="github" class="size-6" />
-          </a>
-        </div>
-        {primaryCtaLabel && (
-          <a
-            class="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-            href={primaryCtaHref}
-            target={primaryCtaIsExternal ? '_blank' : undefined}
-            rel={primaryCtaIsExternal ? 'noopener noreferrer' : undefined}
-            data-track-event={primaryEvent}
-          >
-            {primaryCtaLabel}
-          </a>
-        )}
-      </div>
     </div>
   </div>
 </header>

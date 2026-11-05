@@ -81,6 +81,17 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Keep anchored sections clear of the sticky header. */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   min-height: 100vh;
   background:
@@ -175,6 +186,129 @@ summary:focus-visible {
 
   .marketing-hero-panel {
     @apply rounded-[28px] border border-sky-200 bg-linear-to-br from-white to-sky-50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] md:p-8;
+  }
+
+  /* ---- Store download buttons ---- */
+  .store-buttons {
+    @apply flex flex-col gap-3 sm:flex-row;
+  }
+
+  .store-button {
+    @apply inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl px-6 py-3.5 text-base font-bold text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_28px_rgba(15,23,42,0.22)] active:translate-y-0;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .store-button__icon {
+    @apply size-5 shrink-0;
+  }
+
+  .store-button--ios {
+    background: linear-gradient(180deg, #1d4ed8 0%, #2563eb 100%);
+  }
+
+  .store-button--android {
+    background: linear-gradient(180deg, #166534 0%, #15803d 100%);
+  }
+
+  /* Visitor's own platform comes first (data-os is set in Layout). */
+  html[data-os='android'] .store-buttons [data-store='play_store'] {
+    order: -1;
+  }
+
+  .store-buttons--bar {
+    @apply flex-row gap-2;
+  }
+
+  .store-buttons--bar .store-button {
+    @apply min-h-12 flex-1 rounded-xl px-3 py-3 text-sm shadow-none;
+  }
+
+  .store-buttons--bar .store-button__icon {
+    @apply hidden;
+  }
+
+  html[data-os='ios'] .store-buttons--bar [data-store='play_store'],
+  html[data-os='android'] .store-buttons--bar [data-store='app_store'] {
+    display: none;
+  }
+
+  .marketing-hero {
+    @apply pt-6 md:pt-14;
+  }
+
+  /* ---- Phone screenshot frame ---- */
+  .phone-frame {
+    @apply relative mx-auto w-full max-w-[260px] overflow-hidden rounded-[2.4rem] border-[7px] border-slate-950 bg-slate-950 shadow-[0_18px_40px_rgba(15,23,42,0.22)];
+    aspect-ratio: 1290 / 2796;
+  }
+
+  .phone-frame__img {
+    @apply block h-full w-full object-cover object-top;
+  }
+
+  .hero-phone {
+    @apply relative mx-auto w-full max-w-[300px] lg:max-w-[320px];
+  }
+
+  @media (min-width: 1024px) {
+    .hero-phone::before {
+      content: '';
+      @apply pointer-events-none absolute -inset-6 -z-10 rounded-[3rem] bg-linear-to-br from-sky-200/70 via-blue-100/50 to-emerald-100/60 blur-2xl;
+    }
+  }
+
+  /* On phones, crop the hero screenshot so the next section peeks in. */
+  @media (max-width: 1023px) {
+    .hero-phone {
+      max-height: 360px;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    }
+
+    .hero-phone .phone-frame {
+      border-bottom-width: 0;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  .showcase-track {
+    @apply -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-8 pt-2 md:-mx-6 md:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:p-0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .showcase-item {
+    @apply w-[68%] max-w-[260px] shrink-0 snap-center sm:w-[42%] lg:w-auto lg:max-w-none;
+  }
+
+  .marketing-card-icon {
+    @apply mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700;
+  }
+
+  /* ---- Compact language dropdown (mobile header) ---- */
+  .lang-menu {
+    @apply relative;
+  }
+
+  .lang-menu summary {
+    @apply flex min-h-10 cursor-pointer list-none items-center gap-1 rounded-full border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700;
+  }
+
+  .lang-menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .lang-menu ul {
+    @apply absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1 shadow-xl;
+  }
+
+  .lang-menu a {
+    @apply flex items-center justify-between gap-3 px-4 py-2.5 text-sm text-slate-900 hover:bg-slate-50;
+  }
+
+  .lang-menu a[aria-current='true'] {
+    @apply bg-slate-100;
   }
 
   .marketing-platform-card {
@@ -316,7 +450,20 @@ summary:focus-visible {
   }
 
   .marketing-sticky-bar {
-    @apply fixed inset-x-3 bottom-3 z-30 grid grid-cols-2 gap-2 rounded-2xl border border-slate-800 bg-slate-950 p-2 shadow-2xl;
+    @apply fixed inset-x-3 bottom-3 z-30 rounded-2xl border border-slate-800 bg-slate-950 p-2 shadow-2xl transition duration-300;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .marketing-sticky-bar[data-hidden='true'] {
+    transform: translateY(140%);
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marketing-sticky-bar {
+      transition: none;
+    }
   }
 
   .marketing-sticky-bar__ios {
