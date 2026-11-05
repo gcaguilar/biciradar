@@ -2,6 +2,7 @@
 import type { CityKey, LocaleContent } from '../../content/marketing/types';
 import HeroMockup from './HeroMockup.astro';
 import PageHeader from './PageHeader.astro';
+import Icon from '../Icon.astro';
 import FaqList from './FaqList.astro';
 import SiteFooter from './SiteFooter.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
@@ -112,13 +113,18 @@ const playStoreHref = playStoreUrlForLocale(content.locale);
 
   <section class="marketing-shell">
     <div class="space-y-3">
-      <p class="marketing-section-kicker">{content.home.header.sections[1]?.label}</p>
+      <p class="marketing-section-kicker">{content.home.header.sections[0]?.label}</p>
       <h2 class="marketing-section-title">{content.home.solution.title}</h2>
     </div>
 
-    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {content.home.solution.cards.map((card) => (
         <article class="marketing-card">
+          {card.icon && (
+            <span class="marketing-card-icon">
+              <Icon name={card.icon} class="size-5" />
+            </span>
+          )}
           <h3 class="marketing-card-title">{card.title}</h3>
           <p class="marketing-card-copy">{card.description}</p>
         </article>

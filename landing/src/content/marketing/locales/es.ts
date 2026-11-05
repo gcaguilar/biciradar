@@ -35,7 +35,7 @@ export const es = {
       'Consulta tu estación antes de salir desde el móvil o el reloj.',
     finalCtaTitle: 'Descárgala gratis y pruébala',
     finalCtaDescription:
-      'Guarda tus estaciones de siempre y desde el primer día decides antes de salir. Sin registro y con datos oficiales.',
+      'Guarda tus estaciones de siempre y desde el primer día decides antes de salir. Sin cuenta para empezar y con datos abiertos de cada red.',
     cityRevisitLabel: 'Volver a ver ciudades',
     shareDescription: 'Comparte BiciRadar con otra persona de tu ciudad.',
     betaInviteLabel: 'Descarga directa',
@@ -45,30 +45,30 @@ export const es = {
   },
   home: {
     seo: {
-      title: 'BiciRadar | Consulta bicis y huecos en tiempo real antes de llegar',
+      title: 'BiciRadar | Bicis y huecos de tu estación antes de salir',
       description:
-        'BiciRadar te ayuda a ver disponibilidad en sistemas como BiciMAD, Bicing, Sevici, Valenbisi y Bizi. Guarda favoritos, recibe alertas y accede rápido desde widgets.',
+        'Mira si hay bicis o huecos libres en tu estación de bici pública antes de salir. Favoritas, widgets, reloj y avisos. Gratis en iPhone y Android.',
     },
     header: {
       sections: [
-        { id: 'problema', label: 'Problema' },
-        { id: 'solucion', label: 'Solución' },
+        { id: 'ventajas', label: 'Ventajas' },
+        { id: 'capturas', label: 'La app' },
         { id: 'como-funciona', label: 'Cómo funciona' },
         { id: 'ciudades', label: 'Ciudades' },
         { id: 'faq', label: 'FAQ' },
       ],
-      primaryCta: 'Descarga la app',
+      primaryCta: 'Descargar',
       languageLabel: 'Idioma',
     },
     hero: {
-      title: 'Tu estación de bici, en un vistazo',
+      title: '¿Hay bici en tu estación? Míralo antes de salir.',
       description:
-        'Bicis y huecos en tiempo real desde la app, el widget o el reloj. Guardas tus estaciones de siempre y decides antes de salir si te compensa bajar, esperar o ir a otra.',
+        'BiciRadar te enseña las bicis y los huecos libres de tu bici pública. Tus estaciones de siempre, a un toque desde el móvil, un widget o el reloj.',
       primaryCta: 'Descargar en App Store',
       secondaryCta: 'Descargar en Google Play',
-      microcopy: 'Gratis · Sin registro · Datos oficiales',
-      primaryBadge: 'iPhone · Gratis',
-      secondaryBadge: 'Android · Gratis',
+      microcopy: 'Gratis · Sin cuenta para empezar · iPhone y Android',
+      trust: ['Más de 40 ciudades', 'Apple Watch y Wear OS', 'Widgets y voz'],
+      screenshotAlt: 'Mapa de BiciRadar con la estación más cercana, sus bicis y huecos libres',
       mockup: {
         stationLabel: 'Estación Sol',
         availability: '12 bicis · 5 huecos',
@@ -78,70 +78,104 @@ export const es = {
         shortcutLabel: 'Abrir trayecto de mañana',
       },
     },
-    problem: {
-      title: 'Lo malo no es coger la bici. Es enterarte tarde.',
+    solution: {
+      title: 'Hecha para saber qué hay antes de bajar a la calle',
       intro:
-        'Sales con el tiempo justo, llegas a la estación y justo ahí descubres que no hay bicis o no hay hueco. Ese rato perdido es exactamente lo que BiciRadar te ahorra.',
+        'Llegar a una estación vacía, o sin un hueco libre, es una pérdida de tiempo evitable. Esto es lo que BiciRadar te pone fácil.',
       cards: [
         {
-          title: 'Llegas y no hay bici',
-          description: 'Te plantas en la estación y toca improvisar cuando ya ibas con la hora pegada.',
+          icon: 'pin',
+          title: 'La estación útil, nada más abrirla',
+          description:
+            'Ves la más cercana con bicis y la más cercana con huecos, con distancia y ruta a un toque. Si vas a pie, te enseña las que tienen bicis; si vas en bici, las que tienen huecos.',
         },
         {
-          title: 'O no hay dónde dejarla',
-          description: 'La vuelta también se complica cuando descubres tarde que no queda ni un hueco libre.',
+          icon: 'sparkles',
+          title: 'Filtra y ordena como te convenga',
+          description:
+            'Por distancia, por bicis, por huecos o por la disponibilidad que suele haber a esa hora. Donde la red lo publica, también eléctricas o mecánicas.',
         },
         {
-          title: 'Y para comprobarlo das demasiadas vueltas',
-          description: 'Para una consulta tan simple, acabar navegando por varias pantallas da bastante rabia.',
+          icon: 'star',
+          title: 'Casa, Trabajo y favoritas',
+          description:
+            'Fija tus estaciones de siempre y ábrelas con un toque, sin buscarlas cada vez.',
+        },
+        {
+          icon: 'bell',
+          title: 'Avisos de tus estaciones',
+          description:
+            'Alertas para Casa, Trabajo y favoritas. Con una cuenta (opcional), las rutinas vigilan tu estación antes de salir y te proponen una alternativa cercana.',
+        },
+        {
+          icon: 'phone',
+          title: 'En widgets y en el reloj',
+          description:
+            'Widgets en el móvil y app para Apple Watch y Wear OS, para mirar tu estación sin sacar el teléfono.',
+        },
+        {
+          icon: 'globe',
+          title: 'Pregúntale a tu asistente',
+          description:
+            'Con Siri, Atajos o Google Assistant puedes preguntar si hay bicis o huecos en tu estación.',
         },
       ],
+      note: 'BiciRadar muestra disponibilidad para decidir mejor; no gestiona alquileres ni pagos.',
     },
-    solution: {
-      title: 'Lo que hace BiciRadar',
-      cards: [
+    showcase: {
+      title: 'Así se ve por dentro',
+      intro: 'Capturas reales de la app, sin florituras.',
+      items: [
         {
-          title: 'Miras tu estación en segundos',
-          description: 'Abres la app y enseguida ves si te compensa ir o si prefieres otra opción.',
+          key: 'map',
+          title: 'Mapa en vivo',
+          description: 'Bicis y huecos de un vistazo, con la hora de la última actualización. Filtra por solo bicis o solo huecos.',
+          alt: 'Mapa con estaciones y filtros Bicis + Huecos, Solo bicis y Solo huecos',
         },
         {
-          title: 'Tus favoritas están a mano',
-          description: 'Guardas las estaciones que más usas y no tienes que buscarlas cada vez.',
+          key: 'nearby',
+          title: 'Cerca de ti',
+          description: 'La estación más cercana con bicis y la más cercana con huecos, y ruta con un toque.',
+          alt: 'Pestaña Cerca con la estación más cercana con bicis y con huecos',
         },
         {
-          title: 'Te avisa cuando vuelve a haber bicis',
-          description: 'Activas una alerta y dejas de refrescar: recibes un aviso cuando tu estación vuelve a tener bicis o huecos.',
+          key: 'favorites',
+          title: 'Favoritas, Casa y Trabajo',
+          description: 'Tus estaciones guardadas y la gestión de alertas, en un único sitio.',
+          alt: 'Pestaña Favoritas con alertas de estaciones y los accesos Casa y Trabajo',
         },
         {
-          title: 'También lo llevas en el reloj',
-          description: 'Si te viene mejor, consultas desde el widget o el reloj y listo.',
+          key: 'detail',
+          title: 'Detalle de estación',
+          description: 'Distancia, mapa y guardado como favorita, Casa o Trabajo con un toque.',
+          alt: 'Detalle de una estación con distancia, mapa y botones para guardarla',
         },
       ],
     },
     howItWorks: {
-      title: 'Cómo funciona',
+      title: 'Empezar lleva un minuto',
       steps: [
         {
           number: '1',
-          title: 'Elige ciudad y sistema',
-          description: 'Empiezas con la red de bici pública que usas a diario.',
+          title: 'Descarga y elige tu ciudad',
+          description: 'Selecciona tu red de bici pública. No hace falta crear una cuenta.',
         },
         {
           number: '2',
-          title: 'Guarda favoritas',
-          description: 'Fijas estaciones habituales para consultar estado en segundos.',
+          title: 'Mira lo que tienes cerca',
+          description: 'Con tu ubicación, la app te enseña qué estación te conviene ahora mismo.',
         },
         {
           number: '3',
-          title: 'Consulta o recibe alertas',
-          description: 'Decides antes de llegar si te conviene ir, esperar o cambiar de estación.',
+          title: 'Guarda tus estaciones',
+          description: 'Fija Casa, Trabajo y favoritas y decide en segundos, desde el móvil o el reloj.',
         },
       ],
     },
     cities: {
       title: 'Ciudades y sistemas',
       description:
-        'Empezamos por varias ciudades donde la bici pública se usa a diario e iremos ampliando.',
+        'Empieza por una de estas ciudades; dentro de la app encontrarás más redes de bici pública.',
       items: [
         {
           key: 'madrid',
@@ -174,19 +208,21 @@ export const es = {
           description: 'Revisa Bizi en tiempo real y abre tus estaciones favoritas rápido.',
         },
       ],
-      moreLabel: 'Más ciudades compatibles próximamente',
+      moreLabel: 'Y más ciudades dentro de la app: elige la tuya al abrirla.',
+      otherCitiesLabel: 'Páginas de otras ciudades',
     },
     midCta: {
-      title: 'Pruébala hoy. Gratis y sin registro.',
+      title: 'Antes de salir, mira tu estación.',
       description:
-        'Disponible en iPhone y Android. La descargas, eliges tu ciudad y en un minuto tienes tus estaciones a mano.',
+        'Descarga BiciRadar gratis, elige tu ciudad y ten tus estaciones a un toque.',
+      reassurance: 'Gratis · Sin cuenta para empezar',
       primaryCta: {
         label: 'Descargar en App Store',
-        note: 'Gratis en iPhone',
+        note: 'Para iPhone',
       },
       secondaryCta: {
         label: 'Descargar en Google Play',
-        note: 'Gratis en Android',
+        note: 'Para Android',
       },
     },
     betaForm: {
@@ -220,32 +256,42 @@ export const es = {
       },
     },
     faq: {
-      title: 'FAQ',
+      title: 'Preguntas frecuentes',
       items: [
         {
-          question: '¿Cómo puedo saber si habrá bicis en mi estación antes de salir de casa?',
+          question: '¿Es gratis? ¿Necesito crear una cuenta?',
           answer:
-            'Abres la estación que usas siempre y ves al momento si hay bicis o huecos. Con eso ya sabes si salir, esperar un poco o ir a otra.',
+            'Se descarga y se usa gratis. Puedes consultar estaciones, guardar favoritas y usar widgets sin cuenta. La cuenta es opcional y solo hace falta para las rutinas y el seguimiento de trayectos, que se vigilan desde nuestro servidor.',
         },
         {
-          question: '¿Qué cambia frente a mirar la app oficial cuando ya voy con prisa?',
+          question: '¿Sustituye a la app oficial de mi ciudad?',
           answer:
-            'La app oficial también sirve, pero BiciRadar va más al grano: favoritas, alertas, widget y reloj para hacer la misma consulta en menos pasos.',
+            'No. BiciRadar sirve para consultar disponibilidad y decidir antes de salir; no gestiona alquileres ni pagos. Puedes usarla junto a la app de tu sistema.',
         },
         {
-          question: '¿Puedo ver mi disponibilidad de transporte en el reloj o en un widget?',
+          question: '¿Los datos son en tiempo real?',
           answer:
-            'Sí. Puedes llevar tus estaciones a mano en el móvil, en widgets y también en el reloj.',
+            'Usamos datos abiertos que publica cada sistema y se actualizan con frecuencia, pero el ritmo depende de cada proveedor. En cada estación ves hace cuánto se actualizó.',
         },
         {
-          question: '¿Necesito crear cuenta para empezar?',
+          question: '¿Necesita mi ubicación?',
           answer:
-            'No. La descargas y puedes empezar a mirar estaciones sin registros raros ni pasos de más.',
+            'La usa para decirte cuál es tu estación más cercana. Si no das permiso, puedes seguir usando la app, pero algunos resultados serán menos precisos.',
         },
         {
-          question: '¿Qué ciudades y datos cubre ahora mismo?',
+          question: '¿Funciona en el reloj y con la voz?',
           answer:
-            'Ahora mismo destacamos Madrid, Barcelona, Sevilla, Valencia y Zaragoza, además de otras ciudades que ya verás enlazadas en la landing. Usamos datos oficiales y la app los ordena para que la consulta sea rápida.',
+            'Sí. Hay app para Apple Watch y Wear OS, widgets en iPhone y Android, y puedes preguntar con Siri, Atajos o Google Assistant.',
+        },
+        {
+          question: '¿Qué ciudades cubre?',
+          answer:
+            'Madrid, Barcelona, Sevilla, Valencia, Zaragoza, Bilbao y muchas más. Al abrir la app eliges tu ciudad; si la tuya tiene página propia, la encontrarás en la sección de ciudades.',
+        },
+        {
+          question: '¿Qué pasa con mis favoritas y mis datos?',
+          answer:
+            'Tus favoritas y lugares guardados se quedan en tu dispositivo. Tienes más detalle en la política de privacidad, enlazada al final de la página.',
         },
       ],
     },
@@ -257,7 +303,7 @@ export const es = {
         { label: 'Soporte', href: 'mailto:soporte@biciradar.es?subject=Soporte%20BiciRadar' },
       ],
       primaryCta: 'Descargar ahora',
-      note: 'BiciRadar · iPhone y Android · Datos basados en fuentes oficiales',
+      note: 'BiciRadar · iPhone y Android · Datos abiertos de cada sistema',
       githubLine: 'Código abierto en GitHub',
     },
   },

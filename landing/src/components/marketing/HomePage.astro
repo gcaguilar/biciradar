@@ -1,12 +1,13 @@
 ---
 import type { LocaleContent } from '../../content/marketing/types';
 import type { CityKey } from '../../content/marketing/types';
-import BetaForm from './BetaForm.astro';
 import FaqList from './FaqList.astro';
-import HeroMockup from './HeroMockup.astro';
 import PageHeader from './PageHeader.astro';
+import PhoneShot from './PhoneShot.astro';
 import SiteFooter from './SiteFooter.astro';
+import StoreButtons from './StoreButtons.astro';
 import AnalyticsScripts from './AnalyticsScripts.astro';
+import Icon from '../Icon.astro';
 import { appStoreUrlForLocale, playStoreUrlForLocale } from '../../lib/site-config';
 
 interface LanguageLink {
@@ -19,6 +20,7 @@ interface LanguageLink {
 interface CityLink {
   key: CityKey;
   href: string;
+  label: string;
 }
 
 interface Props {
@@ -29,16 +31,17 @@ interface Props {
 }
 
 const { content, languageLinks, homeHref, cityLinks } = Astro.props;
+const { home } = content;
 const appStoreHref = appStoreUrlForLocale(content.locale);
 const playStoreHref = playStoreUrlForLocale(content.locale);
-const sectionIds = content.home.header.sections.map((item) => item.id);
-const [problemId, solutionId, howId, citiesId, faqId] = sectionIds;
+const [benefitsId, showcaseId, howId, citiesId, faqId] = home.header.sections.map((item) => item.id);
 const cityHrefByKey = new Map(cityLinks.map((item) => [item.key, item.href]));
-const heroValueProps = [content.home.solution.cards[0]?.title, ...content.home.hero.mockup.chips].filter(Boolean);
+const featuredKeys = new Set(home.cities.items.map((city) => city.key));
+const otherCities = cityLinks.filter((city) => !featuredKeys.has(city.key));
 const webMcpConfig = {
   locale: content.locale,
   homeHref,
-  downloadSectionSelector: '#beta-form',
+  downloadSectionSelector: '#descargar',
   appStoreHref,
   playStoreHref,
   cityLinks: cityLinks.map((city) => ({
@@ -51,132 +54,124 @@ const webMcpConfig = {
 <PageHeader
   siteName={content.metadata.siteName}
   homeHref={homeHref}
-  languageLabel={content.home.header.languageLabel}
+  languageLabel={home.header.languageLabel}
   languageLinks={languageLinks}
-  navLinks={content.home.header.sections.map((item) => ({ href: `#${item.id}`, label: item.label }))}
-  primaryCtaLabel={content.home.header.primaryCta}
-  primaryCtaHref={appStoreHref}
+  navLinks={home.header.sections.map((item) => ({ href: `#${item.id}`, label: item.label }))}
+  primaryCtaLabel={home.header.primaryCta}
+  primaryCtaHref="#descargar"
+  appStoreHref={appStoreHref}
+  playStoreHref={playStoreHref}
   primaryEvent="hero_cta_click"
   githubAriaLabel={content.common.githubAriaLabel}
 />
 
 <main id="main-content">
-  <section class="marketing-shell">
-    <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+  <section class="marketing-shell marketing-hero" aria-labelledby="hero-title">
+    <div class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-12">
       <div class="space-y-6">
         <div class="space-y-4">
-          <h1 class="max-w-3xl text-balance text-4xl font-black tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-            {content.home.hero.title}
+          <h1 id="hero-title" class="max-w-3xl text-balance text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+            {home.hero.title}
           </h1>
-          <p class="max-w-2xl text-lg leading-8 text-slate-600">
-            {content.home.hero.description}
+          <p class="max-w-xl text-lg leading-8 text-slate-600">
+            {home.hero.description}
           </p>
         </div>
 
-        <div class="grid gap-3 lg:grid-cols-[300px_minmax(0,1fr)]">
-          <a
-            class="marketing-platform-card marketing-platform-card-ios"
-            href={appStoreHref}
-            target="_blank"
-            rel="noreferrer"
-            data-track-event="store_download_click"
-            data-track-store="app_store"
-            data-track-placement="hero_ios"
-          >
-            <span class="marketing-chip marketing-chip-primary">{content.home.hero.primaryBadge}</span>
-            <span class="marketing-platform-card__button marketing-platform-card__button-ios">
-              {content.home.hero.primaryCta}
-            </span>
-          </a>
-
-          <a
-            class="marketing-platform-card marketing-platform-card-android"
-            href={playStoreHref}
-            target="_blank"
-            rel="noreferrer"
-            data-track-event="store_download_click"
-            data-track-store="play_store"
-            data-track-placement="hero_android"
-          >
-            <span class="marketing-chip marketing-chip-secondary">{content.home.hero.secondaryBadge}</span>
-            <span class="marketing-platform-card__button marketing-platform-card__button-android">
-              {content.home.hero.secondaryCta}
-            </span>
-          </a>
+        <div class="space-y-3" data-hero-cta>
+          <StoreButtons
+            appStoreHref={appStoreHref}
+            playStoreHref={playStoreHref}
+            appStoreLabel={home.hero.primaryCta}
+            playStoreLabel={home.hero.secondaryCta}
+            placement="hero"
+          />
+          <p class="text-sm font-medium text-slate-600">{home.hero.microcopy}</p>
         </div>
 
-        {content.home.hero.microcopy.trim() ? (
-          <p class="text-sm font-medium text-slate-500">{content.home.hero.microcopy}</p>
-        ) : null}
-
-        <div class="flex flex-wrap gap-2">
-          {heroValueProps.map((value) => (
-            <span class="marketing-value-pill">{value}</span>
+        <ul class="flex flex-wrap gap-2" aria-label={home.hero.microcopy}>
+          {home.hero.trust.map((item) => (
+            <li class="marketing-value-pill">
+              <Icon name="check" class="mr-1.5 size-3.5 text-emerald-700" />
+              {item}
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
 
-      <div class="marketing-hero-panel">
-        <HeroMockup {...content.home.hero.mockup} />
+      <div class="hero-phone">
+        <PhoneShot shot="map" alt={home.hero.screenshotAlt} priority sizes="(min-width: 1024px) 320px, 70vw" />
       </div>
     </div>
   </section>
 
-  <section class="marketing-shell" id={problemId}>
-    <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.home.problem.title}</h2>
-      <p class="max-w-3xl text-base leading-7 text-slate-600">{content.home.problem.intro}</p>
+  <section class="marketing-shell" id={benefitsId} aria-labelledby="benefits-title">
+    <div class="max-w-3xl space-y-3">
+      <h2 id="benefits-title" class="marketing-section-title">{home.solution.title}</h2>
+      <p class="text-base leading-7 text-slate-600">{home.solution.intro}</p>
     </div>
 
-    <div class="mt-8 grid gap-4 md:grid-cols-3">
-      {content.home.problem.cards.map((card) => (
+    <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {home.solution.cards.map((card) => (
         <article class="marketing-card">
+          {card.icon && (
+            <span class="marketing-card-icon">
+              <Icon name={card.icon} class="size-5" />
+            </span>
+          )}
           <h3 class="marketing-card-title">{card.title}</h3>
           <p class="marketing-card-copy">{card.description}</p>
         </article>
       ))}
     </div>
+
+    <p class="mt-6 flex items-start gap-2 text-sm leading-6 text-slate-600">
+      <Icon name="check" class="mt-1 size-4 shrink-0 text-emerald-700" />
+      <span>{home.solution.note}</span>
+    </p>
   </section>
 
-  <section class="marketing-shell" id={solutionId}>
-    <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.home.solution.title}</h2>
+  <section class="marketing-shell" id={showcaseId} aria-labelledby="showcase-title">
+    <div class="max-w-3xl space-y-3">
+      <h2 id="showcase-title" class="marketing-section-title">{home.showcase.title}</h2>
+      <p class="text-base leading-7 text-slate-600">{home.showcase.intro}</p>
     </div>
 
-    <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {content.home.solution.cards.map((card) => (
-        <article class="marketing-card">
-          <h3 class="marketing-card-title">{card.title}</h3>
-          <p class="marketing-card-copy">{card.description}</p>
-        </article>
+    <ul class="showcase-track no-scrollbar mt-8">
+      {home.showcase.items.map((item) => (
+        <li class="showcase-item">
+          <PhoneShot shot={item.key} alt={item.alt} sizes="(min-width: 1024px) 260px, 70vw" />
+          <h3 class="marketing-card-title mt-4">{item.title}</h3>
+          <p class="marketing-card-copy">{item.description}</p>
+        </li>
       ))}
-    </div>
+    </ul>
   </section>
 
-  <section class="marketing-shell" id={howId}>
+  <section class="marketing-shell" id={howId} aria-labelledby="how-title">
     <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.home.howItWorks.title}</h2>
+      <h2 id="how-title" class="marketing-section-title">{home.howItWorks.title}</h2>
     </div>
 
-    <div class="mt-8 grid gap-4 lg:grid-cols-3">
-      {content.home.howItWorks.steps.map((step) => (
-        <article class="marketing-step-card">
+    <ol class="mt-8 grid gap-4 lg:grid-cols-3">
+      {home.howItWorks.steps.map((step) => (
+        <li class="marketing-step-card">
           <span class="marketing-step-number">{step.number}</span>
           <h3 class="marketing-card-title">{step.title}</h3>
           <p class="marketing-card-copy">{step.description}</p>
-        </article>
+        </li>
       ))}
-    </div>
+    </ol>
   </section>
 
-  <section class="marketing-shell" id={citiesId}>
+  <section class="marketing-shell" id={citiesId} aria-labelledby="cities-title">
     <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.home.cities.title}</h2>
-      <p class="max-w-3xl text-base leading-7 text-slate-600">{content.home.cities.description}</p>
+      <h2 id="cities-title" class="marketing-section-title">{home.cities.title}</h2>
+      <p class="max-w-3xl text-base leading-7 text-slate-600">{home.cities.description}</p>
     </div>
 
     <div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {content.home.cities.items.map((city) => (
+      {home.cities.items.map((city) => (
         <a
           class="marketing-city-card"
           href={cityHrefByKey.get(city.key)}
@@ -193,98 +188,105 @@ const webMcpConfig = {
       ))}
     </div>
 
-    <p class="mt-4 text-sm text-slate-500">{content.home.cities.moreLabel}</p>
-  </section>
-
-  <section class="marketing-shell">
-    <div class="marketing-dark-band">
-      <div class="space-y-3">
-        <p class="marketing-section-kicker marketing-section-kicker-dark">{content.common.betaInviteLabel}</p>
-        <h2 class="text-3xl font-black tracking-tight text-white">{content.home.midCta.title}</h2>
-        <p class="max-w-2xl text-sm leading-6 text-slate-300">{content.home.midCta.description}</p>
+    {otherCities.length > 0 && (
+      <div class="mt-6">
+        <p class="text-sm font-semibold text-slate-700">{home.cities.otherCitiesLabel}</p>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {otherCities.map((city) => (
+            <li>
+              <a
+                class="inline-flex min-h-10 items-center rounded-full border border-slate-300 bg-white px-3.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+                href={city.href}
+                data-track-event="city_page_click"
+                data-track-city={city.label}
+              >
+                {city.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
+    )}
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <a
-          class="marketing-dark-action marketing-dark-action-primary"
-          href={appStoreHref}
-          target="_blank"
-          rel="noreferrer"
-          data-track-event="store_download_click"
-          data-track-store="app_store"
-          data-track-placement="mid_cta"
-        >
-          <strong>{content.home.midCta.primaryCta.label}</strong>
-          <span>{content.home.midCta.primaryCta.note}</span>
-        </a>
-
-        <a
-          class="marketing-dark-action marketing-dark-action-secondary"
-          href={playStoreHref}
-          target="_blank"
-          rel="noreferrer"
-          data-track-event="store_download_click"
-          data-track-store="play_store"
-          data-track-placement="mid_cta"
-        >
-          <strong>{content.home.midCta.secondaryCta.label}</strong>
-          <span>{content.home.midCta.secondaryCta.note}</span>
-        </a>
-      </div>
-    </div>
+    <p class="mt-4 text-sm text-slate-600">{home.cities.moreLabel}</p>
   </section>
 
-  <section class="marketing-shell">
-    <BetaForm locale={content.locale} content={content.home.betaForm} />
-  </section>
-
-  <section class="marketing-shell" id={faqId}>
+  <section class="marketing-shell" id={faqId} aria-labelledby="faq-title">
     <div class="space-y-3">
-      <h2 class="marketing-section-title">{content.home.faq.title}</h2>
+      <h2 id="faq-title" class="marketing-section-title">{home.faq.title}</h2>
     </div>
 
     <div class="mt-8">
-      <FaqList items={content.home.faq.items} />
+      <FaqList items={home.faq.items} />
+    </div>
+  </section>
+
+  <section class="marketing-shell" id="descargar" aria-labelledby="download-title" data-final-cta>
+    <div class="marketing-dark-band">
+      <div class="space-y-3">
+        <h2 id="download-title" class="text-3xl font-black tracking-tight text-white sm:text-4xl">{home.midCta.title}</h2>
+        <p class="max-w-2xl text-base leading-7 text-slate-300">{home.midCta.description}</p>
+      </div>
+
+      <div class="mt-6 space-y-3">
+        <StoreButtons
+          appStoreHref={appStoreHref}
+          playStoreHref={playStoreHref}
+          appStoreLabel={home.midCta.primaryCta.label}
+          playStoreLabel={home.midCta.secondaryCta.label}
+          placement="final_cta"
+        />
+        <p class="text-sm font-medium text-slate-300">{home.midCta.reassurance}</p>
+      </div>
     </div>
   </section>
 
   <SiteFooter
     siteName={content.metadata.siteName}
-    tagline={content.home.footer.tagline}
-    links={content.home.footer.links}
-    note={content.home.footer.note}
-    betaLabel={content.home.footer.primaryCta}
-    betaHref="#beta-form"
-    languageLabel={content.home.header.languageLabel}
+    tagline={home.footer.tagline}
+    links={home.footer.links}
+    note={home.footer.note}
+    betaLabel={home.footer.primaryCta}
+    betaHref="#descargar"
+    languageLabel={home.header.languageLabel}
     languageLinks={languageLinks}
-    githubLine={content.home.footer.githubLine}
+    githubLine={home.footer.githubLine}
   />
 </main>
 
-<div class="marketing-sticky-bar md:hidden">
-  <a
-    class="marketing-sticky-bar__ios"
-    href={appStoreHref}
-    target="_blank"
-    rel="noreferrer"
-    data-track-event="store_download_click"
-    data-track-store="app_store"
-    data-track-placement="sticky_mobile"
-  >
-    {content.home.hero.primaryCta}
-  </a>
-  <a
-    class="marketing-sticky-bar__beta"
-    href={playStoreHref}
-    target="_blank"
-    rel="noreferrer"
-    data-track-event="store_download_click"
-    data-track-store="play_store"
-    data-track-placement="sticky_mobile"
-  >
-    {content.home.hero.secondaryCta}
-  </a>
+<div class="marketing-sticky-bar md:hidden" data-sticky-bar data-hidden="true">
+  <StoreButtons
+    appStoreHref={appStoreHref}
+    playStoreHref={playStoreHref}
+    appStoreLabel={home.hero.primaryCta}
+    playStoreLabel={home.hero.secondaryCta}
+    placement="sticky_mobile"
+    layout="bar"
+  />
 </div>
+
+<script is:inline>
+  (() => {
+    const bar = document.querySelector('[data-sticky-bar]');
+    const watched = [document.querySelector('[data-hero-cta]'), document.querySelector('[data-final-cta]')].filter(Boolean);
+    if (!bar || watched.length === 0 || !('IntersectionObserver' in window)) {
+      bar?.setAttribute('data-hidden', 'false');
+      return;
+    }
+
+    const visible = new Set();
+    const sync = () => bar.setAttribute('data-hidden', visible.size > 0 ? 'true' : 'false');
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      }
+      sync();
+    });
+    watched.forEach((el) => observer.observe(el));
+    sync();
+  })();
+</script>
 
 <AnalyticsScripts locale={content.locale} pageKind="home" />
 

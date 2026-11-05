@@ -35,7 +35,7 @@ export const en = {
       'Check your station before you leave from your phone or your watch.',
     finalCtaTitle: 'Download it free and try it',
     finalCtaDescription:
-      'Save your usual stations and from day one you decide before you leave. No sign-up, and official data.',
+      'Save your usual stations and from day one you decide before you leave. No account needed to start, and open data from each network.',
     cityRevisitLabel: 'Browse city pages again',
     shareDescription: 'Share BiciRadar with someone else in your city.',
     betaInviteLabel: 'Direct download',
@@ -45,30 +45,30 @@ export const en = {
   },
   home: {
     seo: {
-      title: 'BiciRadar | Check bikes and docks in real time before you arrive',
+      title: 'BiciRadar | Bikes and free docks at your station, before you go',
       description:
-        'BiciRadar helps you see availability across BiciMAD, Bicing, Sevici, Valenbisi, Bizi, and more. Save favorites, get alerts, and open them fast from widgets.',
+        'Check whether your public bike station has bikes or free docks before you leave. Favorites, widgets, watch and alerts. Free on iPhone and Android.',
     },
     header: {
       sections: [
-        { id: 'problem', label: 'Problem' },
-        { id: 'solution', label: 'Solution' },
+        { id: 'benefits', label: 'Benefits' },
+        { id: 'app', label: 'The app' },
         { id: 'how-it-works', label: 'How it works' },
         { id: 'cities', label: 'Cities' },
         { id: 'faq', label: 'FAQ' },
       ],
-      primaryCta: 'Download the app',
+      primaryCta: 'Download',
       languageLabel: 'Language',
     },
     hero: {
-      title: 'Your bike station, at a glance',
+      title: 'Is there a bike at your station? Check before you go.',
       description:
-        'Real-time bikes and docks from the app, a widget, or your watch. Save your usual stations and know before you leave whether to head out, wait, or pick another one.',
+        'BiciRadar shows the bikes and free docks of your public bike system. Your usual stations, one tap away from your phone, a widget or your watch.',
       primaryCta: 'Download on the App Store',
       secondaryCta: 'Get it on Google Play',
-      microcopy: 'Free · No sign-up · Official data',
-      primaryBadge: 'iPhone · Free',
-      secondaryBadge: 'Android · Free',
+      microcopy: 'Free · No account needed to start · iPhone and Android',
+      trust: ['40+ cities', 'Apple Watch and Wear OS', 'Widgets and voice'],
+      screenshotAlt: 'BiciRadar map showing the nearest station with its bikes and free docks',
       mockup: {
         stationLabel: 'Sol Station',
         availability: '12 bikes · 5 docks',
@@ -78,70 +78,104 @@ export const en = {
         shortcutLabel: 'Open morning commute',
       },
     },
-    problem: {
-      title: 'The annoying part is finding out too late',
+    solution: {
+      title: 'Built to tell you what is there before you head out',
       intro:
-        'You are already in a hurry, you get to the station, and that is when you find out there are no bikes or no docks. That wasted time is exactly what BiciRadar saves you.',
+        'Getting to an empty station, or one with no free dock, is wasted time you can avoid. This is what BiciRadar makes easy.',
       cards: [
         {
-          title: 'You get there and there is no bike',
-          description: 'You arrive at the station and have to improvise when you were already short on time.',
+          icon: 'pin',
+          title: 'The useful station, as soon as you open it',
+          description:
+            'See the nearest station with bikes and the nearest with free docks, with distance and directions one tap away. On foot it lists stations with bikes; on a bike, stations with free docks.',
         },
         {
-          title: 'Or there is nowhere to leave it',
-          description: 'The return trip gets awkward too when you realise too late that there is not a single dock free.',
+          icon: 'sparkles',
+          title: 'Filter and sort your way',
+          description:
+            'By distance, bikes, free docks, or the availability usually seen at that hour. Where the network publishes it, also e-bikes or mechanical bikes.',
         },
         {
-          title: 'And checking it takes too many steps',
-          description: 'For such a simple question, jumping through several screens is more annoying than it should be.',
+          icon: 'star',
+          title: 'Home, Work and favorites',
+          description:
+            'Pin your usual stations and open them in one tap, without searching every time.',
+        },
+        {
+          icon: 'bell',
+          title: 'Alerts for your stations',
+          description:
+            'Alerts for Home, Work and favorites. With an optional account, routines watch your station before you leave and suggest a nearby alternative.',
+        },
+        {
+          icon: 'phone',
+          title: 'On widgets and on your wrist',
+          description:
+            'Phone widgets plus apps for Apple Watch and Wear OS, so you can check your station without taking out your phone.',
+        },
+        {
+          icon: 'globe',
+          title: 'Just ask your assistant',
+          description:
+            'With Siri, Shortcuts or Google Assistant you can ask whether your station has bikes or free docks.',
         },
       ],
+      note: 'BiciRadar shows availability to help you decide; it does not handle rentals or payments.',
     },
-    solution: {
-      title: 'What BiciRadar actually does',
-      cards: [
+    showcase: {
+      title: 'This is what it looks like',
+      intro: 'Real screenshots of the app, nothing staged.',
+      items: [
         {
-          title: 'You check your station in seconds',
-          description: 'Open the app and you immediately see whether it is worth going or whether another option makes more sense.',
+          key: 'map',
+          title: 'Live map',
+          description: 'Bikes and docks at a glance, with the time of the last update. Filter by bikes only or docks only.',
+          alt: 'Map with stations and the filters Bikes + Docks, Bikes only and Docks only',
         },
         {
-          title: 'Your favorites stay close',
-          description: 'Save the stations you use most so you do not have to search for them every time.',
+          key: 'nearby',
+          title: 'Near you',
+          description: 'The nearest station with bikes and the nearest with free docks, plus directions in one tap.',
+          alt: 'Nearby tab showing the nearest station with bikes and with free docks',
         },
         {
-          title: 'It tells you when bikes are back',
-          description: 'Set an alert and stop refreshing: you get a heads-up when your station has bikes or docks again.',
+          key: 'favorites',
+          title: 'Favorites, Home and Work',
+          description: 'Your saved stations and alert management, all in one place.',
+          alt: 'Favorites tab with station alerts and Home and Work shortcuts',
         },
         {
-          title: 'You can also check from your watch',
-          description: 'If that is easier for you, the widget or watch gets the job done too.',
+          key: 'detail',
+          title: 'Station details',
+          description: 'Distance, map, and saving as a favorite, Home or Work in one tap.',
+          alt: 'Station detail with distance, map and buttons to save it',
         },
       ],
     },
     howItWorks: {
-      title: 'How it works',
+      title: 'Getting started takes a minute',
       steps: [
         {
           number: '1',
-          title: 'Choose city and system',
-          description: 'Start with the public bike network you already use.',
+          title: 'Download and pick your city',
+          description: 'Choose your public bike network. No account required.',
         },
         {
           number: '2',
-          title: 'Save favorites',
-          description: 'Pin daily stations so you can check status in seconds.',
+          title: 'See what is near you',
+          description: 'Using your location, the app shows which station suits you right now.',
         },
         {
           number: '3',
-          title: 'Check or get alerts',
-          description: 'Decide before arriving whether to go, wait, or switch stations.',
+          title: 'Save your stations',
+          description: 'Pin Home, Work and favorites and decide in seconds, from your phone or watch.',
         },
       ],
     },
     cities: {
       title: 'Cities and systems',
       description:
-        'We started with several cities where bike sharing is part of daily life and we will keep adding more.',
+        'Start with one of these cities; inside the app you will find more public bike networks.',
       items: [
         {
           key: 'madrid',
@@ -174,19 +208,21 @@ export const en = {
           description: 'See Bizi availability fast and keep favorite stations close.',
         },
       ],
-      moreLabel: 'More compatible cities coming soon',
+      moreLabel: 'And more cities inside the app: pick yours when you open it.',
+      otherCitiesLabel: 'Pages for other cities',
     },
     midCta: {
-      title: 'Try it today. Free, no sign-up.',
+      title: 'Check your station before you go.',
       description:
-        'Available on iPhone and Android. Download it, pick your city, and your stations are one tap away in a minute.',
+        'Download BiciRadar for free, pick your city and keep your stations one tap away.',
+      reassurance: 'Free · No account needed to start',
       primaryCta: {
         label: 'Download on the App Store',
-        note: 'Free on iPhone',
+        note: 'For iPhone',
       },
       secondaryCta: {
         label: 'Get it on Google Play',
-        note: 'Free on Android',
+        note: 'For Android',
       },
     },
     betaForm: {
@@ -220,32 +256,42 @@ export const en = {
       },
     },
     faq: {
-      title: 'FAQ',
+      title: 'Frequently asked questions',
       items: [
         {
-          question: 'How can I know whether there will be bikes at my station before I leave home?',
+          question: 'Is it free? Do I need an account?',
           answer:
-            'Open the station you usually use and you will immediately see whether there are bikes or docks. That is usually enough to know whether to leave, wait a bit, or head somewhere else.',
+            'It is free to download and use. You can check stations, save favorites and use widgets without an account. The account is optional and only needed for routines and trip monitoring, which are watched from our server.',
         },
         {
-          question: 'What changes compared with checking the official app when I am already in a hurry?',
+          question: 'Does it replace my city’s official app?',
           answer:
-            'The official app works too, but BiciRadar is more direct: favorites, alerts, widgets, and watch access so you can do the same check in fewer steps.',
+            'No. BiciRadar is for checking availability and deciding before you leave; it does not handle rentals or payments. You can use it alongside your system’s own app.',
         },
         {
-          question: 'Can I see transport availability on my watch or in a widget?',
+          question: 'Is the data real-time?',
           answer:
-            'Yes. You can keep your usual stations close on your phone, in widgets, and on your watch too.',
+            'We use open data published by each system, which is updated frequently, but the pace depends on each provider. Each station shows how long ago it was updated.',
         },
         {
-          question: 'Do I need to create an account to get started?',
+          question: 'Does it need my location?',
           answer:
-            'No. Just download it and start checking stations. No awkward sign-up flow first.',
+            'It uses it to tell you which station is nearest. If you do not grant permission you can still use the app, but some results will be less precise.',
         },
         {
-          question: 'Which cities and data does it cover right now?',
+          question: 'Does it work on a watch and with voice?',
           answer:
-            'Right now we highlight Madrid, Barcelona, Seville, Valencia, and Zaragoza, plus other cities already linked across the site. We use official data and the app arranges it so the check is quick.',
+            'Yes. There are apps for Apple Watch and Wear OS, widgets on iPhone and Android, and you can ask with Siri, Shortcuts or Google Assistant.',
+        },
+        {
+          question: 'Which cities does it cover?',
+          answer:
+            'Madrid, Barcelona, Seville, Valencia, Zaragoza, Bilbao and many more. You pick your city when you open the app; if yours has its own page, you will find it in the cities section.',
+        },
+        {
+          question: 'What happens to my favorites and my data?',
+          answer:
+            'Your favorites and saved places stay on your device. You will find more detail in the privacy policy, linked at the bottom of the page.',
         },
       ],
     },
@@ -257,7 +303,7 @@ export const en = {
         { label: 'Support', href: 'mailto:soporte@biciradar.es?subject=BiciRadar%20support' },
       ],
       primaryCta: 'Download now',
-      note: 'BiciRadar · iPhone and Android · Data based on official sources',
+      note: 'BiciRadar · iPhone and Android · Open data from each system',
       githubLine: 'Open source on GitHub',
     },
   },

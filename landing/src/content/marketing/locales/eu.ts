@@ -35,7 +35,7 @@ export const eu = {
       'Begiratu zure geltokia irten aurretik mugikorretik edo erlojutik.',
     finalCtaTitle: 'Deskargatu doan eta probatu',
     finalCtaDescription:
-      'Gorde zure ohiko geltokiak eta lehen egunetik irten aurretik erabakiko duzu. Erregistrorik gabe eta datu ofizialekin.',
+      'Gorde zure ohiko geltokiak eta lehen egunetik irten aurretik erabakiko duzu. Konturik gabe hasteko eta sare bakoitzeko datu irekiekin.',
     cityRevisitLabel: 'Berriz ikusi hiriak',
     shareDescription: 'Partekatu BiciRadar zure hiriko beste norbaitekin.',
     betaInviteLabel: 'Deskarga zuzena',
@@ -45,64 +45,131 @@ export const eu = {
   },
   home: {
     seo: {
-      title: 'BiciRadar | Kontsultatu bizikletak eta leku libreak denbora errealean iritsi aurretik',
+      title: 'BiciRadar | Zure geltokiko bizikletak eta leku libreak irten aurretik',
       description:
-        'BiciRadarrek BiciMAD, Bicing, Sevici, Valenbisi, Bizi eta gehiagoko erabilgarritasuna ikusten laguntzen dizu. Gorde gustukoak, jaso abisuak eta ireki azkar widgetetatik.',
+        'Begiratu zure bizikleta publikoaren geltokian bizikletarik edo leku librerik dagoen irten aurretik. Gogokoak, widgetak, erlojua eta abisuak. Doan iPhone eta Android-erako.',
     },
     header: {
       sections: [
-        { id: 'arazoa', label: 'Arazoa' },
-        { id: 'irtenbidea', label: 'Irtenbidea' },
+        { id: 'abantailak', label: 'Abantailak' },
+        { id: 'app', label: 'Aplikazioa' },
         { id: 'nola-dabil', label: 'Nola dabil' },
         { id: 'hiriak', label: 'Hiriak' },
         { id: 'faq', label: 'FAQ' },
       ],
-      primaryCta: 'Deskargatu aplikazioa',
+      primaryCta: 'Deskargatu',
       languageLabel: 'Hizkuntza',
     },
     hero: {
-      title: 'Zure bizikleta-geltokia, begiratu batean',
+      title: 'Bizikletarik badago zure geltokian? Begiratu irten aurretik.',
       description:
-        'Bizikletak eta leku libreak denbora errealean, app-etik, widgetetik edo erlojutik. Gorde zure ohiko geltokiak eta irten aurretik erabaki jaistea, itxarotea edo beste batera joatea komeni zaizun.',
+        'BiciRadarrek zure bizikleta publikoko bizikletak eta leku libreak erakusten dizkizu. Zure ohiko geltokiak, ukitu batera mugikorretik, widget batetik edo erlojutik.',
       primaryCta: 'Deskargatu App Store-n',
       secondaryCta: 'Deskargatu Google Play-n',
-      microcopy: 'Doan · Erregistrorik gabe · Datu ofizialak',
-      primaryBadge: 'iPhone · Doan',
-      secondaryBadge: 'Android · Doan',
+      microcopy: 'Doan · Konturik gabe hasteko · iPhone eta Android',
+      trust: ['40 hiri baino gehiago', 'Apple Watch eta Wear OS', 'Widgetak eta ahotsa'],
+      screenshotAlt: 'BiciRadar-en mapa, geltokirik hurbilena eta bere bizikletak eta leku libreak erakusten',
       mockup: {
         stationLabel: 'Sol geltokia',
         availability: '12 bizikleta · 5 leku',
         bikesLabel: 'Prest dauden bizikletak',
         docksLabel: 'Leku libre',
-        chips: ['Gustukoak', 'Abisuak', 'Widgetak'],
+        chips: ['Gogokoak', 'Abisuak', 'Widgetak'],
         shortcutLabel: 'Ireki goizeko joan-etorria',
       },
     },
-    problem: {
-      title: 'Txarrena beranduegi ohartzea da',
-      intro:
-        'Denboraz justu zoaz, geltokira iristen zara eta orduan konturatzen zara ez dagoela bizikletarik edo ez dagoela non utzi. Galtzen duzun denbora hori da, hain zuzen, BiciRadarrek aurrezten dizuna.',
-      cards: [
-        { title: 'Iristen zara eta ez dago bizikletarik', description: 'Geltokira iritsi eta inprobisatu egin behar duzu, ordurako presaka zabiltzala.' },
-        { title: 'Edo ez dago non utzi', description: 'Itzulera ere zailtzen da beranduegi konturatzen bazara ez dagoela leku librerik.' },
-        { title: 'Eta hori begiratzeak buelta gehiegi ematen ditu', description: 'Hain kontsulta sinple baterako, hainbat pantailatan ibiltzea nekagarria da.' },
-      ],
-    },
     solution: {
-      title: 'BiciRadarrek zer egiten duen',
+      title: 'Kalera jaitsi aurretik zer dagoen jakiteko egina',
+      intro:
+        'Geltoki huts batera iristea, edo leku libre barik dagoen batera, saihets daitekeen denbora galera da. BiciRadarrek hori errazten dizu.',
       cards: [
-        { title: 'Zure geltokia segundo gutxitan begiratzen duzu', description: 'App-a ireki eta berehala ikusten duzu hara joatea komeni zaizun ala ez.' },
-        { title: 'Gustukoak eskura geratzen dira', description: 'Gehien erabiltzen dituzun geltokiak gordetzen dituzu eta ez dituzu beti berriz bilatu behar.' },
-        { title: 'Abisatzen dizu bizikletak itzultzen direnean', description: 'Abisu bat aktibatu eta utzi freskatzeari: jakinarazpena jasoko duzu zure geltokiak berriro bizikletak edo leku libreak dituenean.' },
-        { title: 'Erlojuan ere begira dezakezu', description: 'Errazago bazaizu, widgetarekin edo erlojuarekin ere egin dezakezu kontsulta.' },
+        {
+          icon: 'pin',
+          title: 'Geltoki erabilgarria, irekitzen duzun orduko',
+          description:
+            'Bizikletak dituen geltokirik hurbilena eta leku libreak dituena ikusten dituzu, distantziarekin eta bidea ukitu batera. Oinez bazoaz, bizikletak dituztenak erakusten dizkizu; bizikletan bazoaz, leku libreak dituztenak.',
+        },
+        {
+          icon: 'sparkles',
+          title: 'Iragazi eta ordenatu nahi duzun moduan',
+          description:
+            'Distantziaren, bizikleten, leku libreen edo ordu horretan ohiko erabilgarritasunaren arabera. Sareak argitaratzen duen tokian, bizikleta elektrikoak edo mekanikoak ere bai.',
+        },
+        {
+          icon: 'star',
+          title: 'Etxea, Lana eta gogokoak',
+          description:
+            'Finkatu zure ohiko geltokiak eta ireki itzazu ukitu batean, aldiro bilatu gabe.',
+        },
+        {
+          icon: 'bell',
+          title: 'Zure geltokien abisuak',
+          description:
+            'Etxea, Lana eta gogokoetarako alertak. Kontu batekin (aukerakoa), errutinek zure geltokia zaintzen dute irten aurretik eta ondoko alternatiba bat proposatzen dizute.',
+        },
+        {
+          icon: 'phone',
+          title: 'Widgetetan eta erlojuan',
+          description:
+            'Widgetak mugikorrean eta aplikazioa Apple Watch eta Wear OS-erako, telefonoa atera gabe zure geltokia begiratzeko.',
+        },
+        {
+          icon: 'globe',
+          title: 'Galdetu zure laguntzaileari',
+          description:
+            'Siri, Lasterbideak edo Google Assistant-ekin galdetu dezakezu zure geltokian bizikletarik edo leku librerik dagoen.',
+        },
+      ],
+      note: 'BiciRadarrek erabilgarritasuna erakusten du erabakitzen laguntzeko; ez ditu alokairuak edo ordainketak kudeatzen.',
+    },
+    showcase: {
+      title: 'Horrelakoa da barrutik',
+      intro: 'Aplikazioaren pantaila-argazki errealak, apaindurarik gabe.',
+      items: [
+        {
+          key: 'map',
+          title: 'Mapa zuzenean',
+          description: 'Bizikletak eta lekuak begiratu batean, azken eguneratzearen orduarekin. Iragazi bizikletak bakarrik edo lekuak bakarrik.',
+          alt: 'Geltokiak eta Bizikletak + Lekuak, Bizikletak bakarrik eta Lekuak bakarrik iragazkiak dituen mapa',
+        },
+        {
+          key: 'nearby',
+          title: 'Zure ondoan',
+          description: 'Bizikletak dituen geltokirik hurbilena eta leku libreak dituena, eta bidea ukitu batera.',
+          alt: 'Ondoan fitxa, bizikletak eta leku libreak dituen geltokirik hurbilenarekin',
+        },
+        {
+          key: 'favorites',
+          title: 'Gogokoak, Etxea eta Lana',
+          description: 'Gordetako geltokiak eta alerten kudeaketa, leku bakarrean.',
+          alt: 'Gogokoak fitxa, geltoki-alertekin eta Etxea eta Lana sarbideekin',
+        },
+        {
+          key: 'detail',
+          title: 'Geltokiaren xehetasuna',
+          description: 'Distantzia, mapa eta gogoko, Etxea edo Lana gisa gordetzea ukitu batean.',
+          alt: 'Geltoki baten xehetasuna, distantziarekin, mapa eta gordetzeko botoiekin',
+        },
       ],
     },
     howItWorks: {
-      title: 'Nola dabil',
+      title: 'Hasteak minutu bat hartzen du',
       steps: [
-        { number: '1', title: 'Aukeratu hiria eta sistema', description: 'Egunero erabiltzen duzun bizikleta sare publikoarekin hasten zara.' },
-        { number: '2', title: 'Gorde gustukoak', description: 'Ohiko estazioak finkatzen dituzu egoera segundo gutxitan ikusteko.' },
-        { number: '3', title: 'Kontsultatu edo jaso abisuak', description: 'Iritsi aurretik erabakitzen duzu hara joan, itxaron edo estazioa aldatu.' },
+        {
+          number: '1',
+          title: 'Deskargatu eta aukeratu zure hiria',
+          description: 'Hautatu zure bizikleta publikoko sarea. Ez da konturik sortu beharrik.',
+        },
+        {
+          number: '2',
+          title: 'Begiratu zer duzun ondoan',
+          description: 'Zure kokapenarekin, aplikazioak une honetan zein geltoki komeni zaizun erakusten dizu.',
+        },
+        {
+          number: '3',
+          title: 'Gorde zure geltokiak',
+          description: 'Finkatu Etxea, Lana eta gogokoak eta erabaki segundo gutxitan, mugikorretik edo erlojutik.',
+        },
       ],
     },
     cities: {
@@ -115,13 +182,22 @@ export const eu = {
         { key: 'valencia', name: 'Valentzia', system: 'Valenbisi', description: 'Saihestu itzulinguruak leku libreak bilatzean.' },
         { key: 'zaragoza', name: 'Zaragoza', system: 'Bizi', description: 'Ikusi Bizi denbora errealean eta ireki gustukoak azkar.' },
       ],
-      moreLabel: 'Hiri bateragarri gehiago laster',
+      moreLabel: 'Eta hiri gehiago aplikazioaren barruan: aukeratu zurea irekitzean.',
+      otherCitiesLabel: 'Beste hirien orriak',
     },
     midCta: {
-      title: 'Probatu gaur. Doan eta erregistrorik gabe.',
-      description: 'iPhone eta Android-en dago. Deskargatu, aukeratu zure hiria eta minutu batean zure geltokiak eskura izango dituzu.',
-      primaryCta: { label: 'Deskargatu App Storen', note: 'Doan iPhonen' },
-      secondaryCta: { label: 'Deskargatu Google Play-n', note: 'Doan Android-en' },
+      title: 'Irten aurretik, begiratu zure geltokia.',
+      description:
+        'Deskargatu BiciRadar doan, aukeratu zure hiria eta izan itzazu zure geltokiak ukitu batera.',
+      reassurance: 'Doan · Konturik gabe hasteko',
+      primaryCta: {
+        label: 'Deskargatu App Store-n',
+        note: 'iPhone-rako',
+      },
+      secondaryCta: {
+        label: 'Deskargatu Google Play-n',
+        note: 'Android-erako',
+      },
     },
     betaForm: {
       title: 'Aukeratu zure plataforma eta deskargatu',
@@ -150,13 +226,43 @@ export const eu = {
       },
     },
     faq: {
-      title: 'FAQ',
+      title: 'Ohiko galderak',
       items: [
-        { question: 'Nola jakin dezaket nire geltokian bizikletarik egongo den etxetik irten aurretik?', answer: 'Ohiko geltokia ireki eta berehala ikusiko duzu bizikletarik edo leku librerik badagoen. Horri esker, normalean badakizu irten, pixka bat itxaron edo beste batera joan behar duzun.' },
-        { question: 'Zer aldatzen da app ofiziala presaka nagoenean begiratzearekin alderatuta?', answer: 'App ofiziala ere baliagarria da, baina BiciRadar zuzenago doa: gustukoak, abisuak, widgeta eta erlojua kontsulta bera urrats gutxiagotan egiteko.' },
-        { question: 'Ikus al dezaket erabilgarritasuna erlojuan edo widget batean?', answer: 'Bai. Ohiko geltokiak eskura izan ditzakezu mugikorrean, widgetetan eta baita erlojuan ere.' },
-        { question: 'Konturik sortu behar al dut hasteko?', answer: 'Ez. Deskargatu eta geltokiak begiratzen hasi zaitezke, erregistro astunik edo pauso gehigarririk gabe.' },
-        { question: 'Zein hiri eta datu estaltzen ditu oraintxe bertan?', answer: 'Oraintxe bertan Madril, Bartzelona, Sevilla, Valentzia eta Zaragoza nabarmentzen ditugu, baita landingean lotuta ikusiko dituzun beste hiri batzuk ere. Datu ofizialak erabiltzen ditugu eta app-ak ordenatu egiten ditu kontsulta azkarra izan dadin.' },
+        {
+          question: 'Doakoa da? Kontua sortu behar dut?',
+          answer:
+            'Doan deskargatzen eta erabiltzen da. Geltokiak kontsultatu, gogokoak gorde eta widgetak erabil ditzakezu konturik gabe. Kontua aukerakoa da eta errutinetarako eta bidaien jarraipenerako bakarrik behar da, gure zerbitzaritik zaintzen direlako.',
+        },
+        {
+          question: 'Nire hiriko aplikazio ofiziala ordezkatzen du?',
+          answer:
+            'Ez. BiciRadar erabilgarritasuna kontsultatzeko eta irten aurretik erabakitzeko da; ez ditu alokairuak edo ordainketak kudeatzen. Zure sistemaren aplikazioarekin batera erabil dezakezu.',
+        },
+        {
+          question: 'Datuak denbora errealekoak dira?',
+          answer:
+            'Sistema bakoitzak argitaratzen dituen datu irekiak erabiltzen ditugu eta maiz eguneratzen dira, baina erritmoa hornitzaile bakoitzaren araberakoa da. Geltoki bakoitzean ikusten duzu noiz eguneratu zen.',
+        },
+        {
+          question: 'Nire kokapena behar du?',
+          answer:
+            'Zure geltokirik hurbilena zein den esateko erabiltzen du. Baimenik ematen ez baduzu, aplikazioa erabiltzen jarraitu dezakezu, baina emaitza batzuk zehaztasun gutxiagokoak izango dira.',
+        },
+        {
+          question: 'Erlojuan eta ahotsarekin funtzionatzen du?',
+          answer:
+            'Bai. Apple Watch eta Wear OS-erako aplikazioa dago, widgetak iPhone eta Android-en, eta Siri, Lasterbideak edo Google Assistant-ekin galdetu dezakezu.',
+        },
+        {
+          question: 'Zein hiri hartzen ditu?',
+          answer:
+            'Madril, Bartzelona, Sevilla, Valentzia, Zaragoza, Bilbo eta beste asko. Aplikazioa irekitzean zure hiria aukeratzen duzu; zurea orri propioa badu, hirien atalean aurkituko duzu.',
+        },
+        {
+          question: 'Zer gertatzen da nire gogokoekin eta datuekin?',
+          answer:
+            'Zure gogokoak eta gordetako lekuak zure gailuan geratzen dira. Xehetasun gehiago pribatutasun-politikan dituzu, orriaren amaieran estekatuta.',
+        },
       ],
     },
     footer: {
@@ -167,7 +273,7 @@ export const eu = {
         { label: 'Laguntza', href: 'mailto:soporte@biciradar.es?subject=BiciRadar%20laguntza' },
       ],
       primaryCta: 'Deskargatu orain',
-      note: 'BiciRadar · iPhone eta Android · Iturri ofizialetan oinarritutako datuak',
+      note: 'BiciRadar · iPhone eta Android · Sistema bakoitzeko datu irekiak',
       githubLine: 'Iturburu irekia GitHub-en',
     },
   },

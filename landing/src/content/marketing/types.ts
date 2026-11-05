@@ -48,9 +48,21 @@ export interface ProblemCardContent {
   description: string;
 }
 
+export type BenefitIcon = 'pin' | 'bike' | 'star' | 'bell' | 'phone' | 'sparkles' | 'globe' | 'clock';
+
 export interface SolutionCardContent {
   title: string;
   description: string;
+  icon?: BenefitIcon;
+}
+
+export type ScreenshotKey = 'map' | 'nearby' | 'favorites' | 'detail';
+
+export interface ShowcaseItemContent {
+  key: ScreenshotKey;
+  title: string;
+  description: string;
+  alt: string;
 }
 
 export interface StepContent {
@@ -93,18 +105,20 @@ export interface HomeContent {
     primaryCta: string;
     secondaryCta: string;
     microcopy: string;
-    primaryBadge: string;
-    secondaryBadge: string;
+    trust: string[];
+    screenshotAlt: string;
     mockup: HeroMockupContent;
-  };
-  problem: {
-    title: string;
-    intro: string;
-    cards: ProblemCardContent[];
   };
   solution: {
     title: string;
+    intro: string;
     cards: SolutionCardContent[];
+    note: string;
+  };
+  showcase: {
+    title: string;
+    intro: string;
+    items: ShowcaseItemContent[];
   };
   howItWorks: {
     title: string;
@@ -115,10 +129,12 @@ export interface HomeContent {
     description: string;
     items: CityCardContent[];
     moreLabel: string;
+    otherCitiesLabel: string;
   };
   midCta: {
     title: string;
     description: string;
+    reassurance: string;
     primaryCta: CallToActionContent;
     secondaryCta: CallToActionContent;
   };
