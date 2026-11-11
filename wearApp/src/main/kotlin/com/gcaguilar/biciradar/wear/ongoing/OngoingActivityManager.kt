@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
+import com.gcaguilar.biciradar.wear.R
 import com.gcaguilar.biciradar.wear.WearActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -130,7 +131,7 @@ class OngoingActivityManager(
     val notification =
       NotificationCompat
         .Builder(context, CHANNEL_ID)
-        .setContentTitle("Monitoreando huecos")
+        .setContentTitle(context.getString(R.string.wear_ongoing_title))
         .setContentText("$stationName • $timeText")
         .setSmallIcon(android.R.drawable.ic_menu_mylocation)
         .setOngoing(true)
@@ -147,10 +148,10 @@ class OngoingActivityManager(
     val channel =
       NotificationChannel(
         CHANNEL_ID,
-        "Monitorización de Estaciones",
+        context.getString(R.string.wear_ongoing_channel_name),
         NotificationManager.IMPORTANCE_LOW,
       ).apply {
-        description = "Notificaciones persistentes durante la monitorización"
+        description = context.getString(R.string.wear_ongoing_channel_description)
         setShowBadge(false)
       }
     notificationManager.createNotificationChannel(channel)

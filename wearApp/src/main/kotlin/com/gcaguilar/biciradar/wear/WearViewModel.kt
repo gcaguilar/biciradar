@@ -3,6 +3,7 @@ package com.gcaguilar.biciradar.wear
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gcaguilar.biciradar.core.BootstrapSession
@@ -36,7 +37,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal enum class WearTab { Cercanas, Favoritas }
+internal enum class WearTab(
+  @StringRes val labelRes: Int,
+) {
+  Cercanas(R.string.wear_tab_nearby),
+  Favoritas(R.string.wear_tab_favorites),
+}
 
 internal data class WearRootUiState(
   val stations: List<Station> = emptyList(),
@@ -76,6 +82,7 @@ internal class WearViewModel(
   private val _uiState = MutableStateFlow(WearRootUiState())
   val uiState: StateFlow<WearRootUiState> = _uiState.asStateFlow()
 
+  private val text: WearText = ContextWearText(appContext)
   private val ongoingActivity = MonitoringOngoingActivity(appContext)
   private val phoneRouteRequester = WearPhoneRouteRequester(appContext)
 
@@ -286,10 +293,10 @@ internal class WearViewModel(
     ongoingActivity.stop()
     emitFeedback(
       when (result.failure) {
-        TripMonitoringFailure.SignInRequired -> "Inicia sesión en el teléfono para vigilar"
-        TripMonitoringFailure.NotificationsUnavailable -> "Activa las notificaciones en el teléfono"
-        TripMonitoringFailure.BackendUnavailable -> "El teléfono no pudo vigilar la estación"
-        null -> "No se pudo vigilar desde el teléfono"
+        TripMonitoringFailure.SignInRequired -> text.get(R.string.wear_feedback_sign_in)
+        TripMonitoringFailure.NotificationsUnavailable -> text.get(R.string.wear_feedback_notifications)
+        TripMonitoringFailure.BackendUnavailable -> text.get(R.string.wear_feedback_backend)
+        null -> text.get(R.string.wear_feedback_monitor_failed)
       },
     )
   }
@@ -307,7 +314,7 @@ internal class WearViewModel(
   fun onRoute(stationId: String) {
     val station = findStationById.execute(stationId) ?: return
     if (!canRouteOnWatch) {
-      emitFeedback("No hay una app de mapas disponible en este reloj")
+      emitFeedback(text.get(R.string.wear_feedback_no_maps))
       return
     }
     routeLauncher.launch(station)
@@ -316,13 +323,13 @@ internal class WearViewModel(
   fun onRouteInPhone(stationId: String) {
     viewModelScope.launch {
       if (!canRouteInPhone) {
-        emitFeedback("Abre BiciRadar en el móvil para activar esta ruta")
+        emitFeedback(text.get(R.string.wear_feedback_open_phone))
         return@launch
       }
       val requested = phoneRouteRequester.requestRoute(stationId)
       if (!requested) {
         canRouteInPhone = phoneRouteRequester.isRouteAvailable()
-        emitFeedback("No se pudo abrir la ruta en el teléfono")
+        emitFeedback(text.get(R.string.wear_feedback_route_failed))
         publishUiState()
       }
     }

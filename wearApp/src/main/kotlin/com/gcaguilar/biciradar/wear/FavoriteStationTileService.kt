@@ -31,7 +31,7 @@ class FavoriteStationTileService : Material3TileService() {
     val snapshot = graph.getCachedStationSnapshot.execute()
     val fallbackStation =
       if (snapshot?.favoriteStation == null) graph.getNearestStations.execute(limit = 1).firstOrNull() else null
-    val tileState = wearFavoriteTileState(snapshot, fallbackStation = fallbackStation)
+    val tileState = wearFavoriteTileState(ContextWearText(this@FavoriteStationTileService), snapshot, fallbackStation = fallbackStation)
 
     val labelSlot: (MaterialScope.() -> LayoutElementBuilders.LayoutElement)? =
       tileState.label?.takeIf { it.isNotBlank() }?.let { label ->

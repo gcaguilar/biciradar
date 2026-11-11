@@ -13,7 +13,11 @@ import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.wear.WearActivity
+import com.gcaguilar.biciradar.wear.ContextWearText
+import com.gcaguilar.biciradar.wear.R
 import com.gcaguilar.biciradar.wear.WearAppGraph
+import com.gcaguilar.biciradar.wear.WearText
+import com.gcaguilar.biciradar.wear.statusLabel
 
 class StationComplicationProvider : SuspendingComplicationDataSourceService() {
   override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
@@ -27,24 +31,28 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
     // Sin favorita (p. ej. reloj sin móvil emparejado) se muestra la estación más cercana.
     val station =
       snapshot?.favoriteStation ?: graph.getNearestStations.execute(limit = 1).firstOrNull()
+    val wearText = ContextWearText(this)
 
     return when (request.complicationType) {
-      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(station)
-      ComplicationType.LONG_TEXT -> createLongTextComplicationData(station)
+      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(wearText, station)
+      ComplicationType.LONG_TEXT -> createLongTextComplicationData(wearText, station)
       else -> null
     }
   }
 
   override fun getPreviewData(type: ComplicationType): ComplicationData? =
     when (type) {
-      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(PREVIEW_STATION)
-      ComplicationType.LONG_TEXT -> createLongTextComplicationData(PREVIEW_STATION)
+      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(ContextWearText(this), PREVIEW_STATION)
+      ComplicationType.LONG_TEXT -> createLongTextComplicationData(ContextWearText(this), PREVIEW_STATION)
       else -> null
     }
 
-  private fun createShortTextComplicationData(favorite: SurfaceStationSnapshot?): ComplicationData {
+  private fun createShortTextComplicationData(
+    wearText: WearText,
+    favorite: SurfaceStationSnapshot?,
+  ): ComplicationData {
     val tapIntent = createTapIntent(favorite)
-    val text = favorite?.let { "🚲 ${it.bikesAvailable}" } ?: "Bici"
+    val text = favorite?.let { "🚲 ${it.bikesAvailable}" } ?: wearText.get(R.string.wear_complication_short_default)
     val title =
       favorite?.let { station ->
         buildString {
@@ -52,19 +60,22 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
             append(formatDistance(it))
             append(" · ")
           }
-          append(station.statusTextShort)
+          append(wearText.statusLabel(station.statusLevel))
         }
-      } ?: "Abre la app"
+      } ?: wearText.get(R.string.wear_complication_open_app)
     return ShortTextComplicationData
       .Builder(
         text = PlainComplicationText.Builder(text).build(),
-        contentDescription = PlainComplicationText.Builder("Estación de bici").build(),
+        contentDescription = PlainComplicationText.Builder(wearText.get(R.string.wear_complication_cd_short)).build(),
       ).setTitle(PlainComplicationText.Builder(title).build())
       .setTapAction(tapIntent)
       .build()
   }
 
-  private fun createLongTextComplicationData(favorite: SurfaceStationSnapshot?): ComplicationData {
+  private fun createLongTextComplicationData(
+    wearText: WearText,
+    favorite: SurfaceStationSnapshot?,
+  ): ComplicationData {
     val tapIntent = createTapIntent(favorite)
     val body =
       favorite?.let { station ->
@@ -75,17 +86,17 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
             append(formatDistance(it))
             append(" · ")
           }
-          append(station.statusTextShort)
+          append(wearText.statusLabel(station.statusLevel))
           append(" · 🚲 ")
           append(station.bikesAvailable)
           append(" · 🅿 ")
           append(station.docksAvailable)
         }
-      } ?: "Sin datos"
+      } ?: wearText.get(R.string.wear_complication_no_data)
     return LongTextComplicationData
       .Builder(
         text = PlainComplicationText.Builder(body).build(),
-        contentDescription = PlainComplicationText.Builder("Detalles de la estación").build(),
+        contentDescription = PlainComplicationText.Builder(wearText.get(R.string.wear_complication_cd_long)).build(),
       ).setTapAction(tapIntent)
       .build()
   }

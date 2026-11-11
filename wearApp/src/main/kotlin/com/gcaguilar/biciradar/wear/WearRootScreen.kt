@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,7 +61,6 @@ import com.gcaguilar.biciradar.core.di.CoreGraph
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.remainingSeconds
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
-import com.gcaguilar.biciradar.core.surfaceStatusTextShort
 
 private val WearPrimary = Color(0xFF1D74BD)
 private val WearSecondary = Color(0xFF64C23A)
@@ -102,6 +102,7 @@ internal fun WearRoot(
         watchMonitoringBridge = WearAppGraph.platformBindings.watchMonitoringBridge,
       )
     }
+  val wearText = rememberWearText()
   val viewModel: WearViewModel = viewModel(key = "wear-root") { factory.create() }
   val uiState by viewModel.uiState.collectAsState()
   val activeMonitoring = uiState.activeMonitoring
@@ -150,7 +151,8 @@ internal fun WearRoot(
           WearStationDetail(
             station = selectedStation,
             isFavorite = selectedStation.id in uiState.favoriteIds,
-            savedPlaceLabel = wearSavedPlaceLabel(selectedStation.id, uiState.homeStationId, uiState.workStationId),
+            savedPlaceLabel =
+              wearSavedPlaceLabel(wearText, selectedStation.id, uiState.homeStationId, uiState.workStationId),
             currentMonitoring = activeMonitoring,
             onBack = viewModel::onBackFromStationDetail,
             onToggleFavorite = { viewModel.onToggleFavorite(selectedStation.id) },
@@ -214,7 +216,7 @@ private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
       WearStationDetail(
         station = sampleWearStation,
         isFavorite = true,
-        savedPlaceLabel = "Casa",
+        savedPlaceLabel = stringResource(R.string.wear_place_home),
         currentMonitoring = null,
         onBack = {},
         onToggleFavorite = {},
@@ -232,6 +234,7 @@ private fun WearScreenshotRoot(screenshotSurface: WearScreenshotSurface) {
 
 @Composable
 private fun WearScreenshotDashboard() {
+  val wearText = rememberWearText()
   Column(
     modifier =
       Modifier
@@ -247,11 +250,11 @@ private fun WearScreenshotDashboard() {
       modifier = Modifier.align(Alignment.CenterHorizontally),
     )
     WearFavoriteSurfaceCard(
-      state = wearFavoriteSurfaceState(sampleWearSurfaceBundle),
+      state = wearFavoriteSurfaceState(wearText, sampleWearSurfaceBundle),
       onClick = {},
     )
     WearSavedPlaceSurfaceCard(
-      state = sampleWearSavedPlaceSurface,
+      state = sampleWearSavedPlaceSurface(wearText),
       hasLargeFont = false,
       onClick = {},
     )
@@ -260,6 +263,7 @@ private fun WearScreenshotDashboard() {
 
 @Composable
 private fun WearScreenshotMonitoring() {
+  val wearText = rememberWearText()
   Column(
     modifier =
       Modifier
@@ -268,14 +272,19 @@ private fun WearScreenshotMonitoring() {
     verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
   ) {
     Text(
-      text = "Monitorización",
+      text = stringResource(R.string.wear_label_monitoring),
       style = MaterialTheme.typography.titleSmall,
       color = WearPrimary,
       fontWeight = FontWeight.Bold,
       modifier = Modifier.align(Alignment.CenterHorizontally),
     )
     WearMonitoringSurfaceCard(
-      state = wearMonitoringSurfaceState(sampleWearMonitoringSession, sampleWearMonitoringSession.remainingSeconds()),
+      state =
+          wearMonitoringSurfaceState(
+            wearText,
+            sampleWearMonitoringSession,
+            sampleWearMonitoringSession.remainingSeconds(),
+          ),
       onClick = {},
     )
     Button(
@@ -283,7 +292,7 @@ private fun WearScreenshotMonitoring() {
       onClick = {},
       colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
     ) {
-      WearButtonLabel(text = "Abrir alternativa", color = WearNeutral)
+      WearButtonLabel(text = stringResource(R.string.wear_action_open_alternative), color = WearNeutral)
     }
   }
 }
@@ -306,6 +315,7 @@ private fun WearDashboard(
   onStopMonitoring: () -> Unit,
 ) {
   val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
+  val wearText = rememberWearText()
   val nearbyStations = stations.take(8)
   val favoriteStations =
     sortWearFavoriteStations(
@@ -314,10 +324,11 @@ private fun WearDashboard(
       workStationId = workStationId,
     )
   val listState = rememberScalingLazyListState()
-  val favoriteSurface = wearFavoriteSurfaceState(surfaceSnapshot)
-  val monitoringSurface = activeMonitoring?.let { wearMonitoringSurfaceState(it, it.remainingSeconds()) }
+  val favoriteSurface = wearFavoriteSurfaceState(wearText, surfaceSnapshot)
+  val monitoringSurface = activeMonitoring?.let { wearMonitoringSurfaceState(wearText, it, it.remainingSeconds()) }
   val savedPlaceSurfaces =
     wearSavedPlaceSurfaceStates(
+      text = wearText,
       stations = stations,
       homeStationId = homeStationId,
       workStationId = workStationId,
@@ -345,7 +356,7 @@ private fun WearDashboard(
                 onClick = { onOpenSurfaceStation(alternativeStationId) },
                 colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
               ) {
-                WearButtonLabel(text = "Abrir alternativa", color = WearNeutral)
+                WearButtonLabel(text = stringResource(R.string.wear_action_open_alternative), color = WearNeutral)
               }
             }
           }
@@ -356,7 +367,7 @@ private fun WearDashboard(
             onClick = onStopMonitoring,
             colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
           ) {
-            WearButtonLabel(text = "Detener monitorización", color = WearNeutral)
+            WearButtonLabel(text = stringResource(R.string.wear_action_stop_monitoring), color = WearNeutral)
           }
         }
       }
@@ -378,7 +389,7 @@ private fun WearDashboard(
             onClick = { onStartMonitoringFavorite(favoriteSurface.stationId) },
             colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
           ) {
-            WearButtonLabel(text = "Monitorizar favorita", color = Color.White)
+            WearButtonLabel(text = stringResource(R.string.wear_action_monitor_favorite), color = Color.White)
           }
         }
       }
@@ -386,7 +397,7 @@ private fun WearDashboard(
       if (savedPlaceSurfaces.isNotEmpty()) {
         item {
           Text(
-            text = "Trayectos",
+            text = stringResource(R.string.wear_section_trips),
             style = MaterialTheme.typography.labelSmall,
             color = WearPrimary,
             fontWeight = FontWeight.SemiBold,
@@ -419,7 +430,7 @@ private fun WearDashboard(
                 ),
             ) {
               WearButtonLabel(
-                text = tab.name,
+                text = stringResource(tab.labelRes),
                 color = WearOnSurface,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
               )
@@ -439,8 +450,8 @@ private fun WearDashboard(
           Text(
             text =
               when (currentTab) {
-                WearTab.Cercanas -> "No hay estaciones cercanas."
-                WearTab.Favoritas -> "No tienes favoritas aún."
+                WearTab.Cercanas -> stringResource(R.string.wear_empty_nearby)
+                WearTab.Favoritas -> stringResource(R.string.wear_empty_favorites)
               },
             color = WearNeutral,
             textAlign = TextAlign.Center,
@@ -454,7 +465,7 @@ private fun WearDashboard(
             station = station,
             hasLargeFont = hasLargeFont,
             isFavorite = station.id in favoriteIds,
-            savedPlaceLabel = wearSavedPlaceLabel(station.id, homeStationId, workStationId),
+            savedPlaceLabel = wearSavedPlaceLabel(wearText, station.id, homeStationId, workStationId),
             onClick = { onStationSelected(station) },
           )
         }
@@ -466,7 +477,7 @@ private fun WearDashboard(
           onClick = onRefresh,
           colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
         ) {
-          WearButtonLabel(text = "↻  Actualizar", color = WearNeutral)
+          WearButtonLabel(text = stringResource(R.string.wear_action_refresh), color = WearNeutral)
         }
       }
     }
@@ -498,6 +509,7 @@ private fun WearStationRow(
   savedPlaceLabel: String?,
   onClick: () -> Unit,
 ) {
+  val wearText = rememberWearText()
   Card(
     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
     onClick = onClick,
@@ -518,7 +530,7 @@ private fun WearStationRow(
       ) {
         WearAvailabilityDot(available = station.bikesAvailable)
         Text(
-          text = station.surfaceStatusTextShort(),
+          text = wearText.statusLabel(station),
           style = MaterialTheme.typography.labelSmall,
           color = wearStatusColor(station.surfaceStatusLevel()),
           fontWeight = FontWeight.SemiBold,
@@ -602,7 +614,7 @@ private fun WearFavoriteSurfaceCard(
   ) {
     Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
       Text(
-        text = "Favorita",
+        text = stringResource(R.string.wear_label_favorite),
         style = MaterialTheme.typography.labelSmall,
         color = WearPrimary,
         fontWeight = FontWeight.SemiBold,
@@ -668,7 +680,7 @@ private fun WearMonitoringSurfaceCard(
   ) {
     Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
       Text(
-        text = "Monitorización",
+        text = stringResource(R.string.wear_label_monitoring),
         style = MaterialTheme.typography.labelSmall,
         color = WearPrimary,
         fontWeight = FontWeight.SemiBold,
@@ -731,7 +743,7 @@ private fun WearSavedPlaceSurfaceCard(
       ) {
         WearChip(label = state.label, color = WearNeutral)
         Text(
-          text = "Ruta rápida",
+          text = stringResource(R.string.wear_quick_route),
           style = MaterialTheme.typography.labelSmall,
           color = WearPrimary,
           fontWeight = FontWeight.SemiBold,
@@ -778,13 +790,14 @@ private fun WearStationDetail(
   onRouteInPhone: (() -> Unit)?,
 ) {
   val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
+  val wearText = rememberWearText()
   val listState = rememberScalingLazyListState()
   val isMonitoringThisStation = currentMonitoring?.stationId == station.id && currentMonitoring.isActive
   val monitoringActionLabel =
     when {
-      isMonitoringThisStation -> "Detener monitorización"
-      currentMonitoring?.isActive == true -> "Monitorizar aquí"
-      else -> "Monitorizar huecos"
+      isMonitoringThisStation -> stringResource(R.string.wear_action_stop_monitoring)
+      currentMonitoring?.isActive == true -> stringResource(R.string.wear_action_monitor_here)
+      else -> stringResource(R.string.wear_action_monitor_docks)
     }
   ScreenScaffold(scrollState = listState) {
     ScalingLazyColumn(
@@ -827,7 +840,7 @@ private fun WearStationDetail(
       }
       item {
         Text(
-          text = station.surfaceStatusTextShort(),
+          text = wearText.statusLabel(station),
           style = MaterialTheme.typography.bodySmall,
           color = wearStatusColor(station.surfaceStatusLevel()),
         )
@@ -846,12 +859,12 @@ private fun WearStationDetail(
           modifier = Modifier.padding(vertical = 4.dp),
         ) {
           WearStatBadge(
-            label = "Bicis",
+            label = stringResource(R.string.wear_stat_bikes),
             value = station.bikesAvailable,
             positiveColor = WearPrimary,
           )
           WearStatBadge(
-            label = "Huecos",
+            label = stringResource(R.string.wear_stat_docks),
             value = station.slotsFree,
             positiveColor = WearSecondary,
           )
@@ -864,7 +877,7 @@ private fun WearStationDetail(
             onClick = routeAction,
             colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
           ) {
-            WearButtonLabel(text = "Abrir ruta", color = Color.White)
+            WearButtonLabel(text = stringResource(R.string.wear_action_open_route), color = Color.White)
           }
         }
       }
@@ -875,7 +888,7 @@ private fun WearStationDetail(
             onClick = routeInPhoneAction,
             colors = ButtonDefaults.buttonColors(containerColor = WearSecondary),
           ) {
-            WearButtonLabel(text = "Ruta en teléfono", color = Color.White)
+            WearButtonLabel(text = stringResource(R.string.wear_action_route_on_phone), color = Color.White)
           }
         }
       }
@@ -904,7 +917,10 @@ private fun WearStationDetail(
             ),
         ) {
           WearButtonLabel(
-            text = if (isFavorite) "★ Quitar favorita" else "☆ Añadir favorita",
+            text =
+              stringResource(
+                if (isFavorite) R.string.wear_action_remove_favorite else R.string.wear_action_add_favorite,
+              ),
             color = if (isFavorite) WearNeutral else WearSecondary,
           )
         }
@@ -915,7 +931,7 @@ private fun WearStationDetail(
           onClick = onBack,
           colors = ButtonDefaults.buttonColors(containerColor = WearSurface),
         ) {
-          WearButtonLabel(text = "← Volver", color = WearNeutral)
+          WearButtonLabel(text = stringResource(R.string.wear_action_back), color = WearNeutral)
         }
       }
     }
@@ -973,7 +989,7 @@ private fun WearErrorScreen(
       onClick = onRetry,
       colors = ButtonDefaults.buttonColors(containerColor = WearPrimary),
     ) {
-      WearButtonLabel(text = "Reintentar", color = Color.White)
+      WearButtonLabel(text = stringResource(R.string.wear_action_retry), color = Color.White)
     }
   }
 }
@@ -1018,12 +1034,12 @@ private val sampleWearStations =
     sampleWearWorkStation,
   )
 
-private val sampleWearSavedPlaceSurface =
+private fun sampleWearSavedPlaceSurface(text: WearText) =
   WearSavedPlaceSurfaceState(
     stationId = sampleWearWorkStation.id,
-    label = "Trabajo",
+    label = text.get(R.string.wear_place_work),
     title = sampleWearWorkStation.name,
-    statusText = "Disponible",
+    statusText = text.statusLabel(SurfaceStatusLevel.Good),
     statusLevel = SurfaceStatusLevel.Good,
     bikesLabel = "🚲 ${sampleWearWorkStation.bikesAvailable}",
     docksLabel = "🅿 ${sampleWearWorkStation.slotsFree}",
@@ -1115,3 +1131,9 @@ private val sampleWearMonitoringSession =
     alternativeStationName = sampleWearWorkStation.name,
     alternativeDistanceMeters = sampleWearWorkStation.distanceMeters,
   )
+
+@Composable
+internal fun rememberWearText(): WearText {
+  val context = LocalContext.current
+  return remember(context) { ContextWearText(context) }
+}

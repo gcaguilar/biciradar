@@ -33,15 +33,16 @@ class WearStationPresentationTest {
 
   @Test
   fun `wear saved place label maps home and work ids`() {
-    assertEquals("Casa", wearSavedPlaceLabel("home", homeStationId = "home", workStationId = "work"))
-    assertEquals("Trabajo", wearSavedPlaceLabel("work", homeStationId = "home", workStationId = "work"))
-    assertNull(wearSavedPlaceLabel("other", homeStationId = "home", workStationId = "work"))
+    assertEquals("Casa", wearSavedPlaceLabel(testWearText, "home", homeStationId = "home", workStationId = "work"))
+    assertEquals("Trabajo", wearSavedPlaceLabel(testWearText, "work", homeStationId = "home", workStationId = "work"))
+    assertNull(wearSavedPlaceLabel(testWearText, "other", homeStationId = "home", workStationId = "work"))
   }
 
   @Test
   fun `wear favorite surface state exposes favorite snapshot summary`() {
     val state =
       wearFavoriteSurfaceState(
+        text = testWearText,
         snapshot =
           SurfaceSnapshotBundle(
             generatedAtEpoch = 61_000L,
@@ -77,6 +78,7 @@ class WearStationPresentationTest {
   fun `wear favorite surface state prefers configure message when no favorite exists`() {
     val state =
       wearFavoriteSurfaceState(
+        text = testWearText,
         snapshot =
           SurfaceSnapshotBundle(
             generatedAtEpoch = 2_000L,
@@ -93,6 +95,7 @@ class WearStationPresentationTest {
   fun `wear favorite tile state exposes compact tile content and alternative`() {
     val state =
       wearFavoriteTileState(
+        text = testWearText,
         snapshot =
           SurfaceSnapshotBundle(
             generatedAtEpoch = 61_000L,
@@ -130,6 +133,7 @@ class WearStationPresentationTest {
   fun `wear favorite tile state reuses city fallback when no favorite exists`() {
     val state =
       wearFavoriteTileState(
+        text = testWearText,
         snapshot =
           SurfaceSnapshotBundle(
             generatedAtEpoch = 2_000L,
@@ -163,6 +167,7 @@ class WearStationPresentationTest {
 
     val state =
       wearFavoriteTileState(
+        text = testWearText,
         snapshot = null,
         nowEpoch = 2_000L,
         fallbackStation = nearest,
@@ -177,6 +182,7 @@ class WearStationPresentationTest {
   fun `wear monitoring surface state includes countdown and alternative`() {
     val state =
       wearMonitoringSurfaceState(
+        text = testWearText,
         session =
           SurfaceMonitoringSession(
             stationId = "home",
@@ -209,6 +215,7 @@ class WearStationPresentationTest {
   fun `wear saved place surface states keep home work order and omit missing stations`() {
     val states =
       wearSavedPlaceSurfaceStates(
+        text = testWearText,
         stations =
           listOf(
             station(id = "other", distanceMeters = 80),

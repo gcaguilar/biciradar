@@ -33,10 +33,11 @@ class NearbyStationsTileService : Material3TileService() {
     graph.syncFavoritesFromPeer.execute()
     val snapshot = graph.getCachedStationSnapshot.execute()
     val nearbyStation = graph.getNearestStations.execute(limit = 1).firstOrNull()
+    val wearText = ContextWearText(this@NearbyStationsTileService)
 
     val mainContent: LayoutElementBuilders.LayoutElement =
       if (nearbyStation == null) {
-        text("Sin datos cercanas.\nAbre la app".layoutString)
+        text(wearText.get(R.string.wear_tile_no_nearby).layoutString)
       } else {
         appCard(
           onClick =
@@ -45,9 +46,9 @@ class NearbyStationsTileService : Material3TileService() {
               id = "nearby_${nearbyStation.id}",
               fallbackAction = openAppAction(nearbyStation.id),
             ),
-          modifier = LayoutModifier.contentDescription(tileContentDescription(nearbyStation)),
+          modifier = LayoutModifier.contentDescription(tileContentDescription(wearText, nearbyStation)),
           height = expand(),
-          label = { text(nearbyStation.statusTextShort.layoutString) },
+          label = { text(wearText.statusLabel(nearbyStation.statusLevel).layoutString) },
           time = {
             text(
               nearbyStation.distanceMeters
@@ -58,12 +59,9 @@ class NearbyStationsTileService : Material3TileService() {
           title = { text(nearbyStation.nameShort.layoutString) },
           content = {
             text(
-              buildString {
-                append("Bicis: ")
-                append(nearbyStation.bikesAvailable)
-                append(" · Huecos: ")
-                append(nearbyStation.docksAvailable)
-              }.layoutString,
+              wearText
+                .get(R.string.wear_tile_metrics, nearbyStation.bikesAvailable, nearbyStation.docksAvailable)
+                .layoutString,
             )
           },
         )
@@ -127,13 +125,16 @@ class NearbyStationsTileService : Material3TileService() {
     )
   }
 
-  private fun tileContentDescription(station: com.gcaguilar.biciradar.core.SurfaceStationSnapshot): String =
+  private fun tileContentDescription(
+    text: WearText,
+    station: com.gcaguilar.biciradar.core.SurfaceStationSnapshot,
+  ): String =
     buildString {
       append(station.nameShort)
       append(", ")
-      append("${station.bikesAvailable} bicis")
+      append(text.get(R.string.wear_cd_bikes, station.bikesAvailable))
       append(", ")
-      append("${station.docksAvailable} anclajes")
+      append(text.get(R.string.wear_cd_docks, station.docksAvailable))
       station.distanceMeters?.let {
         append(", ")
         append(formatDistance(it))

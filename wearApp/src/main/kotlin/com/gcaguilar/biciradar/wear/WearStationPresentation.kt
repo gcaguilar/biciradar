@@ -2,16 +2,12 @@ package com.gcaguilar.biciradar.wear
 
 import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
-import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
 import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.formatMonitoringCountdown
-import com.gcaguilar.biciradar.core.formatMonitoringStatusText
-import com.gcaguilar.biciradar.core.formatRelativeMinutes
 import com.gcaguilar.biciradar.core.surfaceStatusLevel
-import com.gcaguilar.biciradar.core.surfaceStatusTextShort
 
 internal fun sortWearFavoriteStations(
   stations: List<Station>,
@@ -26,13 +22,14 @@ internal fun sortWearFavoriteStations(
   )
 
 internal fun wearSavedPlaceLabel(
+  text: WearText,
   stationId: String,
   homeStationId: String?,
   workStationId: String?,
 ): String? =
   when (stationId) {
-    homeStationId -> "Casa"
-    workStationId -> "Trabajo"
+    homeStationId -> text.get(R.string.wear_place_home)
+    workStationId -> text.get(R.string.wear_place_work)
     else -> null
   }
 
@@ -92,6 +89,7 @@ internal data class WearSavedPlaceSurfaceState(
  * más cercana en lugar de un estado vacío.
  */
 internal fun wearFavoriteSurfaceState(
+  text: WearText,
   snapshot: SurfaceSnapshotBundle?,
   nowEpoch: Long = System.currentTimeMillis(),
   fallbackStation: SurfaceStationSnapshot? = null,
@@ -103,9 +101,9 @@ internal fun wearFavoriteSurfaceState(
       title = favorite.nameShort,
       supportingText = favorite.nameFull,
       stationId = favorite.id,
-      statusText = favorite.statusTextShort,
+      statusText = text.statusLabel(favorite.statusLevel),
       statusLevel = favorite.statusLevel,
-      updatedText = formatRelativeMinutes(favorite.lastUpdatedEpoch, nowEpoch),
+      updatedText = text.relativeMinutes(favorite.lastUpdatedEpoch, nowEpoch),
       bikesLabel = "🚲 ${favorite.bikesAvailable}",
       docksLabel = "🅿 ${favorite.docksAvailable}",
       bikesAvailable = favorite.bikesAvailable,
@@ -116,23 +114,23 @@ internal fun wearFavoriteSurfaceState(
     snapshot?.state?.hasFavoriteStation == false -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.ConfigureFavorite,
-        title = "Sin favorita",
-        supportingText = "Marca una estación como favorita",
+        title = text.get(R.string.wear_no_favorite_title),
+        supportingText = text.get(R.string.wear_no_favorite_hint),
       )
     }
 
     snapshot?.state?.isDataFresh == false -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.OpenAppToRefresh,
-        title = "Actualiza datos",
-        supportingText = "Pulsa actualizar en el reloj",
+        title = text.get(R.string.wear_refresh_title),
+        supportingText = text.get(R.string.wear_refresh_hint),
       )
     }
 
     else -> {
       WearFavoriteSurfaceState(
         kind = WearFavoriteSurfaceKind.DataUnavailable,
-        title = "Datos no disponibles",
+        title = text.get(R.string.wear_data_unavailable),
         supportingText = snapshot?.state?.cityName ?: "BiciRadar",
       )
     }
@@ -140,19 +138,19 @@ internal fun wearFavoriteSurfaceState(
 }
 
 internal fun wearFavoriteTileState(
+  text: WearText,
   snapshot: SurfaceSnapshotBundle?,
   nowEpoch: Long = System.currentTimeMillis(),
   fallbackStation: SurfaceStationSnapshot? = null,
 ): WearFavoriteTileState {
-  val surface = wearFavoriteSurfaceState(snapshot, nowEpoch, fallbackStation)
+  val surface = wearFavoriteSurfaceState(text, snapshot, nowEpoch, fallbackStation)
   return when (surface.kind) {
     WearFavoriteSurfaceKind.Favorite -> {
       val favorite = snapshot?.favoriteStation ?: fallbackStation
       val metrics = listOfNotNull(surface.bikesLabel, surface.docksLabel).joinToString("  ")
       val alternative =
         favorite?.alternativeStationName?.let { name ->
-          val distance = favorite.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
-          "Alt: $name$distance"
+          text.alternativeLabel(name, favorite.alternativeDistanceMeters?.let(::formatDistance))
         }
       WearFavoriteTileState(
         title = surface.title,
@@ -178,25 +176,26 @@ internal fun wearFavoriteTileState(
 }
 
 internal fun wearMonitoringSurfaceState(
+  text: WearText,
   session: SurfaceMonitoringSession,
   remainingSeconds: Int,
 ): WearMonitoringSurfaceState =
   WearMonitoringSurfaceState(
     stationId = session.stationId,
     title = session.stationName,
-    statusText = wearMonitoringStatusText(session.status, session.kind),
+    statusText = text.monitoringStatusLabel(session.status, session.kind),
     statusLevel = session.statusLevel,
     countdownText = wearMonitoringCountdownText(remainingSeconds),
     bikesLabel = "🚲 ${session.bikesAvailable}",
     docksLabel = "🅿 ${session.docksAvailable}",
     alternativeText =
       session.alternativeStationName?.let { name ->
-        val distance = session.alternativeDistanceMeters?.let { " (${formatDistance(it)})" }.orEmpty()
-        "Alt: $name$distance"
+        text.alternativeLabel(name, session.alternativeDistanceMeters?.let(::formatDistance))
       },
   )
 
 internal fun wearSavedPlaceSurfaceStates(
+  text: WearText,
   stations: List<Station>,
   homeStationId: String?,
   workStationId: String?,
@@ -205,29 +204,27 @@ internal fun wearSavedPlaceSurfaceStates(
     homeStationId
       ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
       ?.let { station ->
-        add(station.toWearSavedPlaceSurfaceState(label = "Casa"))
+        add(station.toWearSavedPlaceSurfaceState(text, label = text.get(R.string.wear_place_home)))
       }
     workStationId
       ?.takeIf { it != homeStationId }
       ?.let { stationId -> stations.firstOrNull { it.id == stationId } }
       ?.let { station ->
-        add(station.toWearSavedPlaceSurfaceState(label = "Trabajo"))
+        add(station.toWearSavedPlaceSurfaceState(text, label = text.get(R.string.wear_place_work)))
       }
   }
 
-internal fun wearMonitoringStatusText(
-  status: SurfaceMonitoringStatus,
-  kind: com.gcaguilar.biciradar.core.SurfaceMonitoringKind,
-): String = formatMonitoringStatusText(status, kind)
-
 private fun wearMonitoringCountdownText(remainingSeconds: Int): String = formatMonitoringCountdown(remainingSeconds)
 
-private fun Station.toWearSavedPlaceSurfaceState(label: String): WearSavedPlaceSurfaceState =
+private fun Station.toWearSavedPlaceSurfaceState(
+  text: WearText,
+  label: String,
+): WearSavedPlaceSurfaceState =
   WearSavedPlaceSurfaceState(
     stationId = id,
     label = label,
     title = name,
-    statusText = surfaceStatusTextShort(),
+    statusText = text.statusLabel(this),
     statusLevel = surfaceStatusLevel(),
     bikesLabel = "🚲 $bikesAvailable",
     docksLabel = "🅿 $slotsFree",
