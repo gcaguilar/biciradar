@@ -1,0 +1,1 @@
+Wear OS: the tile and complication show the nearest station when you have no favorite yet, and all watch texts are now translated (es, en, ca, eu, gl).

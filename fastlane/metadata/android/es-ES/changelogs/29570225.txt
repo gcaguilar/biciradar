@@ -1,0 +1,1 @@
+Wear OS: el tile y la complication muestran la estación más cercana si aún no tienes favorita, y todos los textos del reloj están traducidos (es, en, ca, eu, gl).

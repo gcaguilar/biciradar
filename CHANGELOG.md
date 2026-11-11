@@ -5,7 +5,20 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
-## 0.23.3
+## 0.23.3 (Wear OS 29570225)
+
+Reedición solo del reloj tras el rechazo de Google Play («Wear app
+functionality not working as described»). `versionName` 0.23.3 · Wear OS
+`29570225`; Android y Apple siguen en `29570223`.
+
+- **Reloj**: el tile de favorita y la complication muestran la estación más
+  cercana cuando todavía no hay favorita (por ejemplo, un reloj sin móvil
+  emparejado), y todos los textos de la app del reloj salen de recursos en
+  es, en, ca, eu y gl.
+- **Release**: `bump_version.sh --wear-only` sube solo el `versionCode` de Wear OS
+  (el `29570224` ya se subió a Play y no se puede reutilizar).
+
+## 0.23.3 (móvil)
 
 `versionName` 0.23.3 · Android `29570223` · Wear OS `29570224` · Apple
 `29570223`.

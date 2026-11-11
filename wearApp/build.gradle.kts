@@ -71,7 +71,7 @@ android {
     applicationId = wearApplicationId
     minSdk = 30
     targetSdk = 37
-    versionCode = 29570224
+    versionCode = 29570225
     versionName = "0.23.3"
   }
 
