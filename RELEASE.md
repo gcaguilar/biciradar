@@ -52,6 +52,12 @@ track from the manual `release_track` input:
 - `production`: publishes the mobile app to `production` and Wear OS to
   `wear:production`.
 
+If Play answers "Changes cannot be sent for review automatically" (typical after a
+rejection, or when the app has pending issues in Play Console), re-run the workflow
+with `changes_not_sent_for_review` ticked. The bundle is uploaded and the edit
+committed, but you must then submit it for review from Play Console (Publishing
+overview > Send changes for review).
+
 `release_status` controls the release state:
 
 - `completed` (default): the release goes live on the selected track

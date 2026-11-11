@@ -39,6 +39,11 @@ on:
         required: false
         default: '0.1'
         type: string
+      changes_not_sent_for_review:
+        description: 'Commit the edit without sending it for review (submit it from Play Console). Needed when Play says changes cannot be sent for review automatically, e.g. after a rejection'
+        required: false
+        default: false
+        type: boolean
       update_criticality:
         description: 'Android update criticality (0-5)'
         required: true
@@ -308,3 +313,4 @@ jobs:
           releaseName: ${{ env.RELEASE_TAG }}
           inAppUpdatePriority: ${{ matrix.update_criticality && github.event.inputs.update_criticality || '' }}
           whatsNewDirectory: ${{ env.WHATS_NEW_DIR }}
+          changesNotSentForReview: ${{ github.event.inputs.changes_not_sent_for_review == 'true' }}
