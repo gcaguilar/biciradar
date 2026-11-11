@@ -4,6 +4,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.SurfaceMonitoringSession
 import com.gcaguilar.biciradar.core.SurfaceMonitoringStatus
 import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.core.formatMonitoringCountdown
@@ -85,11 +86,17 @@ internal data class WearSavedPlaceSurfaceState(
   val docksLabel: String,
 )
 
+/**
+ * [fallbackStation] se usa cuando el usuario aún no tiene favorita (p. ej. un reloj sin
+ * móvil emparejado): así tiles y complications muestran datos reales de la estación
+ * más cercana en lugar de un estado vacío.
+ */
 internal fun wearFavoriteSurfaceState(
   snapshot: SurfaceSnapshotBundle?,
   nowEpoch: Long = System.currentTimeMillis(),
+  fallbackStation: SurfaceStationSnapshot? = null,
 ): WearFavoriteSurfaceState {
-  val favorite = snapshot?.favoriteStation
+  val favorite = snapshot?.favoriteStation ?: fallbackStation
   if (favorite != null) {
     return WearFavoriteSurfaceState(
       kind = WearFavoriteSurfaceKind.Favorite,
@@ -135,11 +142,12 @@ internal fun wearFavoriteSurfaceState(
 internal fun wearFavoriteTileState(
   snapshot: SurfaceSnapshotBundle?,
   nowEpoch: Long = System.currentTimeMillis(),
+  fallbackStation: SurfaceStationSnapshot? = null,
 ): WearFavoriteTileState {
-  val surface = wearFavoriteSurfaceState(snapshot, nowEpoch)
+  val surface = wearFavoriteSurfaceState(snapshot, nowEpoch, fallbackStation)
   return when (surface.kind) {
     WearFavoriteSurfaceKind.Favorite -> {
-      val favorite = snapshot?.favoriteStation
+      val favorite = snapshot?.favoriteStation ?: fallbackStation
       val metrics = listOfNotNull(surface.bikesLabel, surface.docksLabel).joinToString("  ")
       val alternative =
         favorite?.alternativeStationName?.let { name ->

@@ -144,6 +144,36 @@ class WearStationPresentationTest {
   }
 
   @Test
+  fun `wear favorite tile state falls back to nearest station when no favorite exists`() {
+    val nearest =
+      SurfaceStationSnapshot(
+        id = "nearest",
+        nameShort = "18-Plaza España",
+        nameFull = "18-Plaza España",
+        cityId = "zaragoza",
+        latitude = 41.65,
+        longitude = -0.88,
+        bikesAvailable = 4,
+        docksAvailable = 15,
+        statusTextShort = "Disponible",
+        statusLevel = SurfaceStatusLevel.Good,
+        lastUpdatedEpoch = 2_000L,
+        distanceMeters = 132,
+      )
+
+    val state =
+      wearFavoriteTileState(
+        snapshot = null,
+        nowEpoch = 2_000L,
+        fallbackStation = nearest,
+      )
+
+    assertEquals("18-Plaza España", state.title)
+    assertEquals("nearest", state.stationId)
+    assertEquals("Disponible", state.label)
+  }
+
+  @Test
   fun `wear monitoring surface state includes countdown and alternative`() {
     val state =
       wearMonitoringSurfaceState(

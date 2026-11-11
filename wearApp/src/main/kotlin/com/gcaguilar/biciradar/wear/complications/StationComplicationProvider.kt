@@ -9,7 +9,8 @@ import androidx.wear.watchface.complications.data.PlainComplicationText
 import androidx.wear.watchface.complications.data.ShortTextComplicationData
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
-import com.gcaguilar.biciradar.core.SurfaceSnapshotBundle
+import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
+import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.wear.WearActivity
 import com.gcaguilar.biciradar.wear.WearAppGraph
@@ -23,24 +24,26 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
     val snapshot = graph.getCachedStationSnapshot.execute()
+    // Sin favorita (p. ej. reloj sin móvil emparejado) se muestra la estación más cercana.
+    val station =
+      snapshot?.favoriteStation ?: graph.getNearestStations.execute(limit = 1).firstOrNull()
 
     return when (request.complicationType) {
-      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(snapshot)
-      ComplicationType.LONG_TEXT -> createLongTextComplicationData(snapshot)
+      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(station)
+      ComplicationType.LONG_TEXT -> createLongTextComplicationData(station)
       else -> null
     }
   }
 
   override fun getPreviewData(type: ComplicationType): ComplicationData? =
     when (type) {
-      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(null)
-      ComplicationType.LONG_TEXT -> createLongTextComplicationData(null)
+      ComplicationType.SHORT_TEXT -> createShortTextComplicationData(PREVIEW_STATION)
+      ComplicationType.LONG_TEXT -> createLongTextComplicationData(PREVIEW_STATION)
       else -> null
     }
 
-  private fun createShortTextComplicationData(snapshot: SurfaceSnapshotBundle?): ComplicationData {
-    val tapIntent = createTapIntent(snapshot)
-    val favorite = snapshot?.favoriteStation
+  private fun createShortTextComplicationData(favorite: SurfaceStationSnapshot?): ComplicationData {
+    val tapIntent = createTapIntent(favorite)
     val text = favorite?.let { "🚲 ${it.bikesAvailable}" } ?: "Bici"
     val title =
       favorite?.let { station ->
@@ -61,9 +64,8 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
       .build()
   }
 
-  private fun createLongTextComplicationData(snapshot: SurfaceSnapshotBundle?): ComplicationData {
-    val tapIntent = createTapIntent(snapshot)
-    val favorite = snapshot?.favoriteStation
+  private fun createLongTextComplicationData(favorite: SurfaceStationSnapshot?): ComplicationData {
+    val tapIntent = createTapIntent(favorite)
     val body =
       favorite?.let { station ->
         buildString {
@@ -88,8 +90,8 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
       .build()
   }
 
-  private fun createTapIntent(snapshot: SurfaceSnapshotBundle?): PendingIntent {
-    val favoriteStationId = snapshot?.favoriteStation?.id
+  private fun createTapIntent(station: SurfaceStationSnapshot?): PendingIntent {
+    val favoriteStationId = station?.id
     val intent =
       Intent(this, WearActivity::class.java).apply {
         action = if (favoriteStationId != null) WearActivity.ACTION_OPEN_STATION else Intent.ACTION_MAIN
@@ -102,5 +104,24 @@ class StationComplicationProvider : SuspendingComplicationDataSourceService() {
       intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
+  }
+
+  private companion object {
+    // Datos de ejemplo para el selector de complications del reloj.
+    val PREVIEW_STATION =
+      SurfaceStationSnapshot(
+        id = "preview",
+        nameShort = "BiciRadar",
+        nameFull = "BiciRadar",
+        cityId = "preview",
+        latitude = 0.0,
+        longitude = 0.0,
+        bikesAvailable = 8,
+        docksAvailable = 12,
+        statusTextShort = "Disponible",
+        statusLevel = SurfaceStatusLevel.Good,
+        lastUpdatedEpoch = 0L,
+        distanceMeters = 120,
+      )
   }
 }

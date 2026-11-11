@@ -29,7 +29,9 @@ class FavoriteStationTileService : Material3TileService() {
     val graph = WearAppGraph.graph
     graph.syncFavoritesFromPeer.execute()
     val snapshot = graph.getCachedStationSnapshot.execute()
-    val tileState = wearFavoriteTileState(snapshot)
+    val fallbackStation =
+      if (snapshot?.favoriteStation == null) graph.getNearestStations.execute(limit = 1).firstOrNull() else null
+    val tileState = wearFavoriteTileState(snapshot, fallbackStation = fallbackStation)
 
     val labelSlot: (MaterialScope.() -> LayoutElementBuilders.LayoutElement)? =
       tileState.label?.takeIf { it.isNotBlank() }?.let { label ->
