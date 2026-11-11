@@ -4,6 +4,7 @@
 
 - Update `VERSION`, `BUILD_NUMBER`, Android, Wear OS, `apple/project.yml`, and the checked-in Xcode project together.
 - Set the Android `versionCode` to one more than the highest code previously used by either Android or Wear OS. Set the Wear OS code to Android +1, and keep the Apple build number aligned with Android.
+- To re-release only the watch app (for example after a Play review rejection), run `tooling/project/bump_version.sh --wear-only`. It sets the Wear OS code to the highest code used so far + 1 and leaves `VERSION`, `BUILD_NUMBER`, Android and Apple untouched. Add the Play notes for the new code, then run `publish-play.yml` with `target=wear`. Play does not allow reusing a `versionCode` once a bundle was uploaded, even if its release was rejected.
 - Add the new `versionName` to `ChangelogCatalog` and update its localized Compose resources in Spanish, English, Catalan, and Basque.
 - Update the catalog ordering test so the new version is the first entry.
 

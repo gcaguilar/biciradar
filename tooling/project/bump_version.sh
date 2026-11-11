@@ -7,6 +7,14 @@
 #   ./bump_version.sh --patch            # Bump patch version (0.1.0 → 0.1.1)
 #   ./bump_version.sh --minor            # Bump minor version (0.1.0 → 0.2.0)
 #   ./bump_version.sh --major            # Bump major version (0.1.0 → 1.0.0)
+#   ./bump_version.sh --wear-only        # Wear OS only: new Wear versionCode, nothing else
+#
+# --wear-only is for re-releasing just the watch app (e.g. after a Play review
+# rejection or a Wear-only fix). Play never lets a versionCode be reused once a
+# bundle was uploaded, even if the release was rejected, so the Wear code becomes
+# the highest code already used + 1. VERSION, BUILD_NUMBER, androidApp and the
+# Apple project are left untouched; Wear is then no longer Android + 1 until the
+# next full bump.
 #
 # Version code: the highest code already used by Android, Wear OS or Apple,
 #               plus one. Wear OS gets Android + 1, Apple stays aligned with
@@ -89,6 +97,25 @@ bump_version() {
   
   echo "${major}.${minor}.${patch}"
 }
+
+# Wear OS only: bump just wearApp's versionCode and stop.
+if [[ "${1:-}" == "--wear-only" ]]; then
+  last_version_code=$(highest_existing_code)
+  wear_version_code=$((last_version_code + 1))
+  if [[ ! -f "$WEAR_GRADLE_FILE" ]]; then
+    echo "Error: $WEAR_GRADLE_FILE not found"
+    exit 1
+  fi
+  sed_in_place \
+    "s/versionCode = .*/versionCode = ${wear_version_code}/" \
+    "$WEAR_GRADLE_FILE"
+  echo "Bumped Wear OS only → code=${wear_version_code} (last used ${last_version_code})"
+  echo "  ✓ wearApp/build.gradle.kts"
+  echo ""
+  echo "Next: add fastlane/metadata/android/{en-US,es-ES}/changelogs/${wear_version_code}.txt"
+  echo "      (publish-play.yml fails without them), then run the Play workflow with target=wear."
+  exit 0
+fi
 
 # Determine version name
 if [[ $# -gt 0 ]]; then
