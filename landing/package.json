@@ -16,14 +16,14 @@
     "preview:gh": "npm run build && npx serve dist"
   },
   "dependencies": {
-    "astro": "^7.2.4",
+    "astro": "^7.4.5",
     "typescript": "7.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.2.0",
+    "@tailwindcss/vite": "^4.3.4",
+    "@types/node": "^26.6.6",
     "gh-pages": "^6.3.0",
     "tailwindcss": "^4.3.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.0"
   }
 }
