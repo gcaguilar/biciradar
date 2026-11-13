@@ -1490,7 +1490,7 @@
 			repositoryURL = "https://github.com/auth0/Auth0.swift";
 			requirement = {
 				kind = exactVersion;
-				version = 3.2.0;
+				version = 3.3.0;
 			};
 		};
 		353C14EE62BAC650C7FE021A /* XCRemoteSwiftPackageReference "ios-maps-sdk" */ = {
