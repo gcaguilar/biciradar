@@ -33,7 +33,7 @@ ktlint-gradle = "14.2.0"
 androidx-glance-appwidget = "1.2.0"
 androidx-glance-material3 = "1.2.0"
 cryptography = "0.6.0"
-bouncycastle = "1.86"
+bouncycastle = "1.87"
 auth0 = "4.3.0"
 
 [libraries]
