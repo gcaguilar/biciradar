@@ -1,7 +1,12 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +31,15 @@ import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -349,6 +358,7 @@ internal fun StationDetailScreen(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AvailabilityCard(
   modifier: Modifier,
@@ -358,8 +368,10 @@ private fun AvailabilityCard(
   tint: Color,
   mobilePlatform: MobileUiPlatform,
 ) {
+  val motion = MaterialTheme.motionScheme
   Card(
     modifier = modifier,
+    shape = MaterialTheme.shapes.extraLarge,
     border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, tint.copy(alpha = 0.14f)) else null,
     colors =
       CardDefaults.cardColors(
@@ -375,12 +387,33 @@ private fun AvailabilityCard(
       modifier =
         Modifier
           .padding(BiziSpacing.screenPadding)
-          .animateContentSize(animationSpec = spring(dampingRatio = 0.86f, stiffness = 500f)),
-      verticalArrangement = Arrangement.spacedBy(BiziSpacing.xSmall),
+          .animateContentSize(animationSpec = motion.defaultSpatialSpec()),
+      verticalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
     ) {
-      Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
-      Text(label, color = tint)
-      Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+      Surface(
+        shape = MaterialShapes.Cookie6Sided.toShape(),
+        color = tint.copy(alpha = 0.16f),
+      ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.padding(8.dp).size(20.dp))
+      }
+      Text(label, style = MaterialTheme.typography.labelLarge, color = tint)
+      // Live figure: rolls up/down when the feed refreshes so the change is noticed.
+      AnimatedContent(
+        targetState = value,
+        transitionSpec = {
+          val up = (targetState.toIntOrNull() ?: 0) >= (initialState.toIntOrNull() ?: 0)
+          val enter =
+            slideInVertically(motion.defaultSpatialSpec()) { height -> if (up) height else -height } +
+              fadeIn(motion.defaultEffectsSpec())
+          val exit =
+            slideOutVertically(motion.defaultSpatialSpec()) { height -> if (up) -height else height } +
+              fadeOut(motion.defaultEffectsSpec())
+          enter togetherWith exit
+        },
+        label = "availability-value",
+      ) { figure ->
+        Text(figure, style = MaterialTheme.typography.displaySmallEmphasized)
+      }
     }
   }
 }

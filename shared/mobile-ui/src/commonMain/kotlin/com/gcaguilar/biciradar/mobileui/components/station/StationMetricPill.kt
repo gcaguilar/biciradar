@@ -4,16 +4,17 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun StationMetricPill(
   modifier: Modifier = Modifier,
@@ -31,17 +32,16 @@ internal fun StationMetricPill(
         Modifier
           .padding(horizontal = 12.dp, vertical = 10.dp)
           .animateContentSize(
-            animationSpec =
-              androidx.compose.animation.core
-                .spring(dampingRatio = 0.9f, stiffness = 550f),
+            animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
           ),
       verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-      Text(label, style = MaterialTheme.typography.labelSmall, color = tint)
+      Text(label, style = MaterialTheme.typography.labelMedium, color = tint)
+      // The figure is what users scan for: emphasized title type makes it stand out
+      // from the label at a glance.
       Text(
         value,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.titleMediumEmphasized,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
       )
