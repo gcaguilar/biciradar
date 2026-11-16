@@ -7,9 +7,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.ThemePreference
 import com.gcaguilar.biciradar.mobileui.layout.BiziWindowLayout
@@ -119,6 +122,11 @@ internal val LocalIsDarkTheme = staticCompositionLocalOf { false }
 // Shape token for cards / station rows (platform-aware: iOS uses slightly smaller radius)
 internal val LocalBiziCardShape = staticCompositionLocalOf<Shape> { RoundedCornerShape(24.dp) }
 
+/**
+ * Shape scale. The five baseline tokens keep their values; the Expressive tokens
+ * (`largeIncreased`, `extraLargeIncreased`, `extraExtraLarge`) are used by hero
+ * surfaces such as the station detail header and the onboarding cards.
+ */
 internal val BiziShapes =
   Shapes(
     extraSmall = RoundedCornerShape(4.dp),
@@ -126,6 +134,9 @@ internal val BiziShapes =
     medium = RoundedCornerShape(12.dp),
     large = RoundedCornerShape(16.dp),
     extraLarge = RoundedCornerShape(28.dp),
+    largeIncreased = RoundedCornerShape(20.dp),
+    extraLargeIncreased = RoundedCornerShape(32.dp),
+    extraExtraLarge = RoundedCornerShape(48.dp),
   )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -157,7 +168,7 @@ internal fun BiziTheme(
     LocalIsDarkTheme provides isDark,
     LocalBiziCardShape provides cardShape,
   ) {
-    MaterialTheme(
+    MaterialExpressiveTheme(
       colorScheme =
         dynamicColorScheme ?: biziColorScheme(
           isDark = isDark,
@@ -165,52 +176,118 @@ internal fun BiziTheme(
           mobilePlatform = mobilePlatform,
         ),
       shapes = BiziShapes,
+      typography = Typography(),
       motionScheme = MotionScheme.expressive(),
       content = content,
     )
   }
 }
 
+/**
+ * Container tone of [accent] laid over [base]: the brand hue stays recognisable while
+ * the result is light enough (or dark enough in dark mode) to carry text.
+ */
+private fun containerOf(
+  accent: Color,
+  base: Color,
+  isDark: Boolean,
+): Color = accent.copy(alpha = if (isDark) 0.30f else 0.16f).compositeOver(base)
+
+/** Readable content color for a [containerOf] background of the same [accent]. */
+private fun onContainerOf(
+  accent: Color,
+  ink: Color,
+  isDark: Boolean,
+): Color = if (isDark) lerp(accent, Color.White, 0.62f) else lerp(accent, ink, 0.55f)
+
+/**
+ * Builds the full Material 3 role set from the Bizi palette. Only the brand tokens
+ * are inputs: container, surface-container and outline roles are derived from them
+ * so no component falls back to the baseline (purple) Material scheme.
+ */
 internal fun biziColorScheme(
   isDark: Boolean,
   colors: BiziColors,
   mobilePlatform: MobileUiPlatform,
-) = if (isDark) {
-  darkColorScheme(
-    primary = colors.red,
-    onPrimary = colors.onAccent,
-    secondary = colors.green,
-    onSecondary = colors.onAccent,
-    tertiary = colors.blue,
-    onTertiary = colors.onAccent,
-    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
-    onBackground = colors.ink,
-    surface = colors.surface,
-    onSurface = colors.ink,
-    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
-    onSurfaceVariant = colors.muted,
-    outline = colors.panel,
-    inverseSurface = colors.ink,
-    inverseOnSurface = colors.surface,
-  )
-} else {
-  lightColorScheme(
-    primary = colors.red,
-    onPrimary = colors.onAccent,
-    secondary = colors.green,
-    onSecondary = colors.onAccent,
-    tertiary = colors.blue,
-    onTertiary = colors.onAccent,
-    background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background,
-    onBackground = colors.ink,
-    surface = colors.surface,
-    onSurface = colors.ink,
-    surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
-    onSurfaceVariant = colors.muted,
-    outline = colors.panel,
-    inverseSurface = colors.ink,
-    inverseOnSurface = colors.surface,
-  )
+): ColorScheme {
+  val background = if (mobilePlatform == MobileUiPlatform.IOS) colors.groupedBackground else colors.background
+  val surface = colors.surface
+  val primary = colors.red
+  val secondary = colors.green
+  val tertiary = colors.blue
+  val primaryContainer = containerOf(primary, surface, isDark)
+  val secondaryContainer = containerOf(secondary, surface, isDark)
+  val tertiaryContainer = containerOf(tertiary, surface, isDark)
+  val outline = lerp(colors.muted, surface, if (isDark) 0.35f else 0.25f)
+  return if (isDark) {
+    darkColorScheme(
+      primary = primary,
+      onPrimary = colors.onAccent,
+      primaryContainer = primaryContainer,
+      onPrimaryContainer = onContainerOf(primary, colors.ink, isDark = true),
+      inversePrimary = lerp(primary, Color.Black, 0.25f),
+      secondary = secondary,
+      onSecondary = colors.onAccent,
+      secondaryContainer = secondaryContainer,
+      onSecondaryContainer = onContainerOf(secondary, colors.ink, isDark = true),
+      tertiary = tertiary,
+      onTertiary = colors.onAccent,
+      tertiaryContainer = tertiaryContainer,
+      onTertiaryContainer = onContainerOf(tertiary, colors.ink, isDark = true),
+      background = background,
+      onBackground = colors.ink,
+      surface = surface,
+      onSurface = colors.ink,
+      surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+      onSurfaceVariant = colors.muted,
+      surfaceTint = primary,
+      surfaceBright = lerp(surface, colors.panel, 0.9f),
+      surfaceDim = lerp(surface, Color.Black, 0.2f),
+      surfaceContainerLowest = lerp(surface, Color.Black, 0.25f),
+      surfaceContainerLow = lerp(surface, background, 0.4f),
+      surfaceContainer = surface,
+      surfaceContainerHigh = lerp(surface, colors.panel, 0.55f),
+      surfaceContainerHighest = colors.panel,
+      outline = outline,
+      outlineVariant = colors.panel,
+      inverseSurface = colors.ink,
+      inverseOnSurface = surface,
+    )
+  } else {
+    lightColorScheme(
+      primary = primary,
+      onPrimary = colors.onAccent,
+      primaryContainer = primaryContainer,
+      onPrimaryContainer = onContainerOf(primary, colors.ink, isDark = false),
+      inversePrimary = lerp(primary, Color.White, 0.45f),
+      secondary = secondary,
+      onSecondary = colors.onAccent,
+      secondaryContainer = secondaryContainer,
+      onSecondaryContainer = onContainerOf(secondary, colors.ink, isDark = false),
+      tertiary = tertiary,
+      onTertiary = colors.onAccent,
+      tertiaryContainer = tertiaryContainer,
+      onTertiaryContainer = onContainerOf(tertiary, colors.ink, isDark = false),
+      background = background,
+      onBackground = colors.ink,
+      surface = surface,
+      onSurface = colors.ink,
+      surfaceVariant = if (mobilePlatform == MobileUiPlatform.IOS) colors.panel else colors.background,
+      onSurfaceVariant = colors.muted,
+      surfaceTint = primary,
+      surfaceBright = surface,
+      surfaceDim = lerp(colors.panel, colors.muted, 0.12f),
+      surfaceContainerLowest = Color.White,
+      surfaceContainerLow = lerp(surface, colors.panel, 0.3f),
+      surfaceContainer = lerp(surface, colors.panel, 0.55f),
+      surfaceContainerHigh = lerp(surface, colors.panel, 0.8f),
+      surfaceContainerHighest = colors.panel,
+      outline = outline,
+      outlineVariant = colors.panel,
+      inverseSurface = colors.ink,
+      inverseOnSurface = surface,
+    )
+  }
 }
 
 internal fun dynamicBiziColors(
