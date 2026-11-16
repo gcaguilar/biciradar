@@ -14,9 +14,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import com.gcaguilar.biciradar.mobileui.BiziSpacing
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun TripMonitoringActiveCard(
   monitoring: TripMonitoringState,
@@ -65,12 +67,10 @@ internal fun TripMonitoringActiveCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(BiziSpacing.medium),
       ) {
-        CircularProgressIndicator(
-          progress = { 1f - progress },
-          modifier = Modifier.size(28.dp),
-          strokeWidth = 3.dp,
+        // Activity cue ("checking now"); the remaining time is shown once, by the bar below.
+        LoadingIndicator(
+          modifier = Modifier.size(32.dp),
           color = c.red,
-          trackColor = c.red.copy(alpha = BiziAlpha.accentTrack),
         )
         Column {
           Text(
@@ -99,12 +99,12 @@ internal fun TripMonitoringActiveCard(
         )
         Text(
           text = "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}",
-          style = MaterialTheme.typography.displaySmall,
-          fontWeight = FontWeight.Bold,
+          // Tabular figures keep the countdown from shifting width every second.
+          style = MaterialTheme.typography.displaySmallEmphasized.copy(fontFeatureSettings = "tnum"),
           color = c.red,
           textAlign = TextAlign.Center,
         )
-        LinearProgressIndicator(
+        LinearWavyProgressIndicator(
           progress = { progress },
           modifier =
             Modifier
