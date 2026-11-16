@@ -108,10 +108,14 @@ internal class LaunchCoordinator(
       }
 
       is MobileLaunchRequest.RouteToStation -> {
+        // An explicit but unknown station id must not silently route to an unrelated station;
+        // only a request without id means "route to the closest one".
         val station =
-          request.stationId?.let(findStationById::execute)
-            ?: stations.firstOrNull()
-            ?: return null
+          if (request.stationId != null) {
+            findStationById.execute(request.stationId) ?: return null
+          } else {
+            stations.firstOrNull() ?: return null
+          }
         routeLauncher.launch(station)
         LaunchResolution()
       }
