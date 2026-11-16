@@ -12,9 +12,9 @@ import androidx.wear.watchface.complications.datasource.SuspendingComplicationDa
 import com.gcaguilar.biciradar.core.SurfaceStationSnapshot
 import com.gcaguilar.biciradar.core.SurfaceStatusLevel
 import com.gcaguilar.biciradar.core.formatDistance
-import com.gcaguilar.biciradar.wear.WearActivity
 import com.gcaguilar.biciradar.wear.ContextWearText
 import com.gcaguilar.biciradar.wear.R
+import com.gcaguilar.biciradar.wear.WearActivity
 import com.gcaguilar.biciradar.wear.WearAppGraph
 import com.gcaguilar.biciradar.wear.WearText
 import com.gcaguilar.biciradar.wear.statusLabel

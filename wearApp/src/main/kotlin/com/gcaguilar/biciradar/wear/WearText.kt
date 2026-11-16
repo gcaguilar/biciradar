@@ -56,11 +56,25 @@ internal fun WearText.monitoringStatusLabel(
         }
       }
 
-      SurfaceMonitoringStatus.ChangedToEmpty -> R.string.wear_status_empty
-      SurfaceMonitoringStatus.ChangedToFull -> R.string.wear_status_full
-      SurfaceMonitoringStatus.AlternativeAvailable -> R.string.wear_monitoring_alternative
-      SurfaceMonitoringStatus.Ended -> R.string.wear_monitoring_ended
-      SurfaceMonitoringStatus.Expired -> R.string.wear_monitoring_expired
+      SurfaceMonitoringStatus.ChangedToEmpty -> {
+        R.string.wear_status_empty
+      }
+
+      SurfaceMonitoringStatus.ChangedToFull -> {
+        R.string.wear_status_full
+      }
+
+      SurfaceMonitoringStatus.AlternativeAvailable -> {
+        R.string.wear_monitoring_alternative
+      }
+
+      SurfaceMonitoringStatus.Ended -> {
+        R.string.wear_monitoring_ended
+      }
+
+      SurfaceMonitoringStatus.Expired -> {
+        R.string.wear_monitoring_expired
+      }
     },
   )
 
