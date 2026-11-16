@@ -2,7 +2,6 @@ package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -171,10 +170,8 @@ private fun StationListItem(
   colors: BiziColors,
 ) {
   Surface(
-    modifier =
-      Modifier
-        .fillMaxWidth()
-        .clickable { onStationSelected(station) },
+    onClick = { onStationSelected(station) },
+    modifier = Modifier.fillMaxWidth(),
     shape = MaterialTheme.shapes.large,
     color = if (highlighted) colors.red.copy(alpha = 0.06f) else colors.surface,
     border =

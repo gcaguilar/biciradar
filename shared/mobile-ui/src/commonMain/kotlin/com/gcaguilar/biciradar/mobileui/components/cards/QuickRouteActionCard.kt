@@ -2,7 +2,6 @@ package com.gcaguilar.biciradar.mobileui.components.cards
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -48,12 +47,10 @@ internal fun QuickRouteActionCard(
 ) {
   val station = selection.highlightedStation
   BiziCard(
-    modifier =
-      modifier
-        .clickable(enabled = station != null) {
-          station?.let(onRoute)
-        },
+    modifier = modifier,
     shape = LocalBiziCardShape.current,
+    onClick = { station?.let(onRoute) },
+    enabled = station != null,
   ) {
     Column(
       modifier =

@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -104,10 +103,8 @@ fun DataFreshnessBanner(
     }
 
   Surface(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .clickable(onClick = onRefresh),
+    onClick = onRefresh,
+    modifier = modifier.fillMaxWidth(),
     color = containerColor,
     shape = MaterialTheme.shapes.small,
   ) {

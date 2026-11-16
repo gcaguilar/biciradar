@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,9 +38,13 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinePickMap
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinePickSearch
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.routineSearchStation
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.slots
+import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformStationMap
+import com.gcaguilar.biciradar.mobileui.biziCardBorder
+import com.gcaguilar.biciradar.mobileui.biziCardColors
+import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -195,10 +198,12 @@ private fun StationPickerRow(
   onClick: () -> Unit,
 ) {
   Card(
-    modifier =
-      Modifier
-        .fillMaxWidth()
-        .clickable(onClick = onClick),
+    onClick = onClick,
+    modifier = Modifier.fillMaxWidth(),
+    shape = LocalBiziCardShape.current,
+    colors = biziCardColors(),
+    border = biziCardBorder(),
+    elevation = biziCardElevation(),
   ) {
     androidx.compose.foundation.layout.Row(
       modifier = Modifier.fillMaxWidth().padding(16.dp),

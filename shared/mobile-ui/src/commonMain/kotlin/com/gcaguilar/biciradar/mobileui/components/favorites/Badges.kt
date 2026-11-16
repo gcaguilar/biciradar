@@ -2,7 +2,6 @@ package com.gcaguilar.biciradar.mobileui.components.favorites
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -119,7 +118,8 @@ internal fun StatusPill(
 ) {
   val colors = LocalBiziColors.current
   Surface(
-    modifier = modifier.clickable(onClick = onClick),
+    onClick = onClick,
+    modifier = modifier,
     shape = MaterialTheme.shapes.extraLarge,
     color = if (active) colors.blue.copy(alpha = 0.10f) else colors.panel.copy(alpha = 0.7f),
   ) {

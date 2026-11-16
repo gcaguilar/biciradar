@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.components.cards
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -29,19 +28,9 @@ internal fun BiziSectionCard(
   contentSpacing: Dp = BiziSpacing.large,
   content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
-  val contentModifier =
-    if (onClick != null) {
-      Modifier
-        .fillMaxWidth()
-        .clickable(onClick = onClick)
-        .padding(BiziSpacing.cardPadding)
-    } else {
-      Modifier.padding(BiziSpacing.cardPadding)
-    }
-
-  BiziCard(modifier = modifier.fillMaxWidth()) {
+  BiziCard(modifier = modifier.fillMaxWidth(), onClick = onClick) {
     Column(
-      modifier = contentModifier,
+      modifier = Modifier.fillMaxWidth().padding(BiziSpacing.cardPadding),
       verticalArrangement = Arrangement.spacedBy(contentSpacing),
     ) {
       Text(title, fontWeight = FontWeight.SemiBold)

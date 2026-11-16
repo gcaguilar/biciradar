@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -118,10 +117,8 @@ internal fun CitySelectionScreen(onCitySelected: (City) -> Unit) {
       items(filteredCities.size) { index ->
         val city = filteredCities[index]
         Card(
-          modifier =
-            Modifier
-              .fillMaxWidth()
-              .clickable { onCitySelected(city) },
+          onClick = { onCitySelected(city) },
+          modifier = Modifier.fillMaxWidth(),
           shape = LocalBiziCardShape.current,
           colors = biziCardColors(),
           border = biziCardBorder(),

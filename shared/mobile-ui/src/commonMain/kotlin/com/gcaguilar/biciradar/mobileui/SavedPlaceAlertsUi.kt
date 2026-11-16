@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -229,7 +228,7 @@ internal fun SavedPlaceAlertsListScreen(
         ) {
           items(rules, key = { it.id }) { rule ->
             Card(
-              modifier = Modifier.clickable { editor = rule.target to rule },
+              onClick = { editor = rule.target to rule },
               colors = biziCardColors(),
               border = biziCardBorder(),
               elevation = biziCardElevation(),

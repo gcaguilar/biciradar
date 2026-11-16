@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.components.map
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -59,7 +58,8 @@ private fun MapRecenterButton(
 ) {
   val c = LocalBiziColors.current
   Surface(
-    modifier = Modifier.clickable(enabled = enabled, onClick = onClick),
+    onClick = onClick,
+    enabled = enabled,
     shape = CircleShape,
     color = c.surface.copy(alpha = if (enabled) 0.96f else 0.88f),
     tonalElevation = 4.dp,
@@ -78,7 +78,7 @@ private fun MapRecenterButton(
 private fun MapEnvironmentalSheetButton(onClick: () -> Unit) {
   val c = LocalBiziColors.current
   Surface(
-    modifier = Modifier.clickable(onClick = onClick),
+    onClick = onClick,
     shape = CircleShape,
     color = c.surface.copy(alpha = 0.96f),
     tonalElevation = 4.dp,

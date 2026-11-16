@@ -12,7 +12,14 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun biziCardColors(): CardColors = CardDefaults.cardColors(containerColor = LocalBiziColors.current.surface)
+internal fun biziCardColors(): CardColors =
+  CardDefaults.cardColors(
+    containerColor = LocalBiziColors.current.surface,
+    // Disabled cards (e.g. a quick-route card with no station yet) keep their surface;
+    // their content already explains why there is nothing to open.
+    disabledContainerColor = LocalBiziColors.current.surface,
+    disabledContentColor = LocalBiziColors.current.ink,
+  )
 
 @Composable
 internal fun biziCardElevation(): CardElevation =
@@ -35,18 +42,39 @@ internal fun biziCardBorder(): BorderStroke =
       },
   )
 
+/**
+ * Outlined surface card used across the app.
+ *
+ * Pass [onClick] instead of a `clickable` modifier so the ripple and the pressed state
+ * are clipped to the card [shape] and the card is announced as a button.
+ */
 @Composable
 internal fun BiziCard(
   modifier: Modifier = Modifier,
   shape: Shape = LocalBiziCardShape.current,
+  onClick: (() -> Unit)? = null,
+  enabled: Boolean = true,
   content: @Composable ColumnScope.() -> Unit,
 ) {
-  Card(
-    modifier = modifier,
-    shape = shape,
-    colors = biziCardColors(),
-    border = biziCardBorder(),
-    elevation = biziCardElevation(),
-    content = content,
-  )
+  if (onClick != null) {
+    Card(
+      onClick = onClick,
+      modifier = modifier,
+      enabled = enabled,
+      shape = shape,
+      colors = biziCardColors(),
+      border = biziCardBorder(),
+      elevation = biziCardElevation(),
+      content = content,
+    )
+  } else {
+    Card(
+      modifier = modifier,
+      shape = shape,
+      colors = biziCardColors(),
+      border = biziCardBorder(),
+      elevation = biziCardElevation(),
+      content = content,
+    )
+  }
 }

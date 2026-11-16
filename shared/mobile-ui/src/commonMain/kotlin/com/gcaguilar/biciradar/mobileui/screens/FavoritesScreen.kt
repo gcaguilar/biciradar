@@ -275,10 +275,10 @@ internal fun FavoritesScreen(
             },
           ) {
             Surface(
+              onClick = onOpenSavedPlaceAlerts,
               shape = MaterialTheme.shapes.large,
               color = colors.surface,
               border = if (mobilePlatform == MobileUiPlatform.IOS) BorderStroke(1.dp, colors.panel) else null,
-              modifier = Modifier.clickable(onClick = onOpenSavedPlaceAlerts),
             ) {
               Icon(
                 imageVector = Icons.Filled.Notifications,

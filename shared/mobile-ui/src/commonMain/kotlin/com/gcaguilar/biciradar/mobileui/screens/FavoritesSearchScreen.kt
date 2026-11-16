@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -244,10 +243,8 @@ private fun SearchResultCard(
       )
     } ?: selectCategoryLabel
   Card(
-    modifier =
-      Modifier
-        .fillMaxWidth()
-        .clickable(onClick = onOpenStationDetails),
+    onClick = onOpenStationDetails,
+    modifier = Modifier.fillMaxWidth(),
     shape = LocalBiziCardShape.current,
     border = biziCardBorder(),
     colors = biziCardColors(),
