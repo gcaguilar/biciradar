@@ -290,6 +290,12 @@
     <string name="changelogWatchRouteDescription">Abre a ruta a unha estación no móbil desde a ficha do reloxo: Maps arrinca no teléfono co destino listo.</string>
     <string name="changelogFavoritesSyncTitle">Favoritas sempre en sintonía</string>
     <string name="changelogFavoritesSyncDescription">Os cambios de favoritas entre móbil e reloxo aplícanse ao momento, tamén ao quitar unha estación ou cambiar Casa e Traballo.</string>
+    <string name="changelogWatchWidgetsTitle">Máis widgets no Apple Watch</string>
+    <string name="changelogWatchWidgetsDescription">O Apple Watch estrea o widget de estacións próximas, ademais da complicación de favorita, para esferas e Smart Stack.</string>
+    <string name="changelogWatchRoutesTitle">Rutas do reloxo máis fiables</string>
+    <string name="changelogWatchRoutesDescription">A ruta a pé desde o Apple Watch ábrese ben en Mapas, a ruta ao iPhone avisa se non está accesible e en Wear OS xa non se lanza unha ruta sen querer ao facer scroll.</string>
+    <string name="changelogMapFilterContrastTitle">Filtros do mapa máis lexibles</string>
+    <string name="changelogMapFilterContrastDescription">Os filtros activos do mapa teñen agora un fondo opaco e un texto con máis contraste.</string>
     <string name="changelogWatchMonitoringTitle">Vixiar desde o reloxo</string>
     <string name="changelogWatchMonitoringDescription">Vixiar unha estación desde o reloxo agora faina o teléfono de verdade: os avisos chegan e a conta atrás do reloxo detense cando remata.</string>
     <string name="changelogMonitoringReliabilityTitle">Avisos de estación fiables</string>

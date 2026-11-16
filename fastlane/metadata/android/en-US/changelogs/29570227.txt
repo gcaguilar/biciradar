@@ -1,0 +1,1 @@
+Wear OS: routes are no longer started by accident while scrolling; the route button is now in the list and the Home and Work cards open the station.

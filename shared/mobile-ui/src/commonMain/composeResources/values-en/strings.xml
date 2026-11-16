@@ -289,6 +289,12 @@
     <string name="changelogWatchRouteDescription">Start the route to a station on your phone from the watch station card: Maps opens on the phone with the destination ready.</string>
     <string name="changelogFavoritesSyncTitle">Favorites always in sync</string>
     <string name="changelogFavoritesSyncDescription">Favorite changes between phone and watch apply immediately, including removing a station or changing Home and Work.</string>
+    <string name="changelogWatchWidgetsTitle">More widgets on Apple Watch</string>
+    <string name="changelogWatchWidgetsDescription">Apple Watch gets a nearby stations widget alongside the favorite complication, for watch faces and the Smart Stack.</string>
+    <string name="changelogWatchRoutesTitle">More reliable watch routes</string>
+    <string name="changelogWatchRoutesDescription">The walking route from Apple Watch now opens properly in Maps, sending a route to the iPhone tells you when it is unreachable, and Wear OS no longer starts a route by accident while scrolling.</string>
+    <string name="changelogMapFilterContrastTitle">Easier to read map filters</string>
+    <string name="changelogMapFilterContrastDescription">Active map filters now have an opaque background and higher contrast text.</string>
     <string name="changelogWatchMonitoringTitle">Monitor from your watch</string>
     <string name="changelogWatchMonitoringDescription">Monitoring a station from the watch is now handled by the phone: alerts arrive and the watch countdown stops when the window ends.</string>
     <string name="changelogMonitoringReliabilityTitle">Reliable station alerts</string>

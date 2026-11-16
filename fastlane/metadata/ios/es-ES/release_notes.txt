@@ -1,1 +1,1 @@
-Ahora puedes eliminar tu cuenta y todos sus datos desde Perfil, tal como exigen App Store y Google Play. Si falla la conexión, la app te avisa y puedes reintentarlo sin perder la sesión.
+Nuevo widget de estaciones cercanas en el Apple Watch. La ruta a pie del reloj se abre bien en Mapas, la ruta al iPhone avisa si no está accesible y los filtros activos del mapa se leen mejor.

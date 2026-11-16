@@ -1,0 +1,1 @@
+Apple Watch: new nearby stations widget. More reliable watch routes (Maps, iPhone and no accidental routes on Wear OS) and easier to read map filters.

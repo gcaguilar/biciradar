@@ -1,0 +1,1 @@
+Wear OS: las rutas ya no se lanzan sin querer al hacer scroll; el botón de ruta está dentro de la lista y las tarjetas de Casa y Trabajo abren la estación.

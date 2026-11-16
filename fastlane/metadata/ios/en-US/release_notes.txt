@@ -1,1 +1,1 @@
-You can now delete your account and all its data from Profile, as required by the App Store and Google Play. If the connection fails, the app tells you and lets you retry without losing your session.
+New nearby stations widget on Apple Watch. The walking route from the watch now opens properly in Maps, sending a route to the iPhone tells you when it is unreachable, and active map filters are easier to read.

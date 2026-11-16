@@ -5,6 +5,35 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## 0.23.4
+
+`versionName` 0.23.4 · Android `29570226` · Wear OS `29570227` · Apple
+`29570226`.
+
+### App
+
+- **Apple Watch**: nuevo widget de estaciones cercanas (inline, circular y
+  rectangular) junto a la complication de favorita.
+- **Rutas del reloj**: la ruta a pie del Apple Watch se abre con MapKit en el
+  hilo principal y usa la ubicación actual como origen; el nombre de la estación
+  ya se codifica en la URL. «Ruta en iPhone» viaja como mensaje en vez de en el
+  contexto persistente: si el iPhone no está accesible el reloj lo dice, y con el
+  iPhone abierto la ruta se aplica al instante o llega una notificación local.
+- **Wear OS**: el botón inferior del detalle y las tarjetas de Casa y Trabajo ya
+  no lanzan una ruta con un solo toque; las rutas son botones de la lista.
+- **Móvil**: una petición de ruta con un id de estación desconocido ya no cae en
+  la primera estación; los filtros activos del mapa tienen fondo opaco y texto
+  con más contraste.
+
+### Release
+
+- `VERSION` y `BUILD_NUMBER` suben a 0.23.4 y 2152. `tooling/project/bump_version.sh`
+  deja Android e iOS en `29570226` y Wear OS en `29570227`.
+- Notas de Play para `29570226` (móvil) y `29570227` (Wear OS) y notas de la App
+  Store en es y en.
+- Se elimina `WearRouteMessageService` (sin emisor desde que la ruta del reloj usa
+  RemoteIntents).
+
 ## 0.23.3 (Wear OS 29570225)
 
 Reedición solo del reloj tras el rechazo de Google Play («Wear app

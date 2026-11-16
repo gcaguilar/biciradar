@@ -1,0 +1,1 @@
+Apple Watch: nuevo widget de estaciones cercanas. Rutas del reloj más fiables (Mapas, iPhone y sin rutas accidentales en Wear OS) y filtros del mapa más legibles.

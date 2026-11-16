@@ -256,6 +256,12 @@
     <string name="changelogWatchRouteDescription">Obre la ruta a una estació al mòbil des de la fitxa del rellotge: el Maps arrenca al telèfon amb la destinació a punt.</string>
     <string name="changelogFavoritesSyncTitle">Favorites sempre en sintonia</string>
     <string name="changelogFavoritesSyncDescription">Els canvis de favorites entre mòbil i rellotge s\'apliquen a l\'instant, també en treure una estació o canviar Casa i Feina.</string>
+    <string name="changelogWatchWidgetsTitle">Més ginys a l\'Apple Watch</string>
+    <string name="changelogWatchWidgetsDescription">L\'Apple Watch estrena el giny d\'estacions properes, a més de la complicació de preferida, per a esferes i Smart Stack.</string>
+    <string name="changelogWatchRoutesTitle">Rutes del rellotge més fiables</string>
+    <string name="changelogWatchRoutesDescription">La ruta a peu des de l\'Apple Watch s\'obre bé a Mapes, la ruta a l\'iPhone avisa si no és accessible i a Wear OS ja no es llança una ruta sense voler en fer scroll.</string>
+    <string name="changelogMapFilterContrastTitle">Filtres del mapa més llegibles</string>
+    <string name="changelogMapFilterContrastDescription">Els filtres actius del mapa tenen ara un fons opac i un text amb més contrast.</string>
     <string name="changelogWatchMonitoringTitle">Vigilar des del rellotge</string>
     <string name="changelogWatchMonitoringDescription">Vigilar una estació des del rellotge ara la vigila el telèfon de debò: els avisos arriben i el compte enrere del rellotge s'atura quan acaba.</string>
     <string name="changelogMonitoringReliabilityTitle">Avisos d'estació fiables</string>

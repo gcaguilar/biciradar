@@ -20,12 +20,14 @@ class ChangelogCatalogTest {
     assertEquals("0.23.0", ChangelogCatalog.latestVersionAtOrBefore("0.23.0"))
     assertEquals("0.23.1", ChangelogCatalog.latestVersionAtOrBefore("0.23.1"))
     assertEquals("0.23.3", ChangelogCatalog.latestVersionAtOrBefore("0.23.3"))
+    assertEquals("0.23.4", ChangelogCatalog.latestVersionAtOrBefore("0.23.4"))
   }
 
   @Test
   fun `history is sorted from newest to oldest`() {
     assertEquals(
       listOf(
+        "0.23.4",
         "0.23.3",
         "0.23.1",
         "0.23.0",

@@ -256,6 +256,12 @@
     <string name="changelogWatchRouteDescription">Ireki estazio baterako ibilbidea telefonon erlojuko fitxatik: Maps telefonon abiatuko da helmuga prest.</string>
     <string name="changelogFavoritesSyncTitle">Gogokoak beti sinkronizatuta</string>
     <string name="changelogFavoritesSyncDescription">Telefonoaren eta erlojuaren arteko gogokoen aldaketak berehala aplikatzen dira, estazio bat kentzean edo Etxea eta Lana aldatzean ere.</string>
+    <string name="changelogWatchWidgetsTitle">Widget gehiago Apple Watch-ean</string>
+    <string name="changelogWatchWidgetsDescription">Apple Watch-ak gertuko geltokien widgeta estreinatzen du, gogokoaren complication-aren osagarri, esferetarako eta Smart Stack-erako.</string>
+    <string name="changelogWatchRoutesTitle">Erlojuko ibilbide fidagarriagoak</string>
+    <string name="changelogWatchRoutesDescription">Apple Watch-eko ibilbidea oinez Mapak-en ondo irekitzen da, iPhonerako ibilbideak abisatzen du eskuragarri ez badago eta Wear OS-en ez da ibilbiderik abiatzen nahi gabe scroll egitean.</string>
+    <string name="changelogMapFilterContrastTitle">Mapako iragazki irakurgarriagoak</string>
+    <string name="changelogMapFilterContrastDescription">Mapako iragazki aktiboek atzeko plano opakoa eta kontraste handiagoko testua dute orain.</string>
     <string name="changelogWatchMonitoringTitle">Erlojutik zaindu</string>
     <string name="changelogWatchMonitoringDescription">Erlojutik geltoki bat zaintzea orain telefonuak egiten du benetan: abisuak iristen dira eta erlojuaren atzera-kontua amaitzean gelditzen da.</string>
     <string name="changelogMonitoringReliabilityTitle">Geltoki-abisu fidagarriak</string>
