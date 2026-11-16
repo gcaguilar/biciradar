@@ -93,6 +93,7 @@
 		DEAA8E438D02EC415D492F26 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FDBEC6252D80DCAD5A52992E /* FirebaseCore */; };
 		DF7BB768E6D83FFAD266C996 /* BiziShortcutDialogHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91127B2EAA905C174011994 /* BiziShortcutDialogHelpers.swift */; };
 		E0255C1C695CC9DE775F8DD3 /* SurfaceMonitoringActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41C6FEFCBBBEBE6A644898CE /* SurfaceMonitoringActivityController.swift */; };
+		E199D387157065532DE953F8 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AED42CF78DC3A8CD035549B4 /* Localizable.strings */; };
 		E549E2DA4C6AB6C75B22A6DF /* AppleLaunchRequestStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28D316D279D47D028277D85 /* AppleLaunchRequestStoreTests.swift */; };
 		E97474B878F1A6E0D3F35B12 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8AFA899EBAC3579700B49207 /* Localizable.strings */; };
 		EE0246B1EB5247E03B82A5BE /* WatchSurfaceSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D53F80C233C3FE17BFD312B /* WatchSurfaceSnapshot.swift */; };
@@ -179,6 +180,7 @@
 		00C9F82510DD82F275630FE3 /* ComposeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposeRootView.swift; sourceTree = "<group>"; };
 		02F1F0034A89949DC590379A /* AppleDeepLinkParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleDeepLinkParserTests.swift; sourceTree = "<group>"; };
 		05F6FE2989AAE261F81A4893 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		0F67BE7D452813FD63A72F5B /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		10C312C0B096247B686E40CE /* WatchSurfaceFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSurfaceFormattingTests.swift; sourceTree = "<group>"; };
 		13E826AABAA8B415FF264874 /* BiziAppleGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziAppleGraph.swift; sourceTree = "<group>"; };
 		1598AA72441D647040F04BB8 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
@@ -197,6 +199,9 @@
 		41C6FEFCBBBEBE6A644898CE /* SurfaceMonitoringActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SurfaceMonitoringActivityController.swift; sourceTree = "<group>"; };
 		437905A6EE52B74A190E5914 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		46E80F27EFB193BA824EBA18 /* StationAvailabilityCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationAvailabilityCache.swift; sourceTree = "<group>"; };
+		470952B1097E4B52CEE6DE77 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
+		482F62FB6591D9850F59222A /* eu */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = eu; path = eu.lproj/Localizable.strings; sourceTree = "<group>"; };
+		489FE2C16B4292D06E2C429A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		4E55A5E362AEDF07EDB6977A /* BiziShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiziShortcuts.swift; sourceTree = "<group>"; };
 		4E55A8CFDB2BED84333A7249 /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
 		5286697303BA52659264BA1A /* WatchFavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchFavoritesSyncBridge.swift; sourceTree = "<group>"; };
@@ -252,6 +257,7 @@
 		D5A0AC7DCA1B271C9F95A96F /* BiciRadarWatchWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BiciRadarWatchWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA3E676BAE30B7E1F70BA1B1 /* FavoritesSyncBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesSyncBridge.swift; sourceTree = "<group>"; };
 		DCACF65F36FCE0DFFB6CD0A0 /* BiciRadarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiciRadarApp.swift; sourceTree = "<group>"; };
+		DDDF3599E1C12735CEB5B8FA /* gl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = gl; path = gl.lproj/Localizable.strings; sourceTree = "<group>"; };
 		E979F6F4F45F733C3BA387F6 /* AppleShortcutRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutRunner.swift; sourceTree = "<group>"; };
 		EB59C343B1277217A7131D94 /* ca */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ca; path = ca.lproj/Localizable.strings; sourceTree = "<group>"; };
 		ECC2BF1510F9A4C87BC91E34 /* BiciRadarWatchWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BiciRadarWatchWidgets.entitlements; sourceTree = "<group>"; };
@@ -381,6 +387,7 @@
 				ECC2BF1510F9A4C87BC91E34 /* BiciRadarWatchWidgets.entitlements */,
 				BD8CA65F3C3A1404B9783F42 /* BiciRadarWatchWidgets.swift */,
 				18889D6CD1084B1BE55442F3 /* Info.plist */,
+				AED42CF78DC3A8CD035549B4 /* Localizable.strings */,
 			);
 			path = watchWidgets;
 			sourceTree = "<group>";
@@ -577,6 +584,7 @@
 			buildConfigurationList = 376E58A68B12B98A9503CB24 /* Build configuration list for PBXNativeTarget "BiciRadarWatchWidgets" */;
 			buildPhases = (
 				C62888ACF963E6BE82C52967 /* Sources */,
+				48882B646170ADFCD0F36DA1 /* Resources */,
 				2BD202895C90E5E60AE30AAC /* Frameworks */,
 			);
 			buildRules = (
@@ -695,6 +703,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		48882B646170ADFCD0F36DA1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E199D387157065532DE953F8 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8348F136215619D79E7993F5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -976,6 +992,18 @@
 				EFE4D5CD6A6F7916934E45C4 /* es */,
 				C1A801204A2974389551F17C /* eu */,
 				F04DAFB5534E3F9676F05A36 /* gl */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		AED42CF78DC3A8CD035549B4 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0F67BE7D452813FD63A72F5B /* ca */,
+				489FE2C16B4292D06E2C429A /* en */,
+				470952B1097E4B52CEE6DE77 /* es */,
+				482F62FB6591D9850F59222A /* eu */,
+				DDDF3599E1C12735CEB5B8FA /* gl */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

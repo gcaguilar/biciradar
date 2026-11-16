@@ -157,7 +157,7 @@ private struct FavoriteStationComplicationView: View {
 
     private func rectangularFooter(for station: WatchStationSnapshot) -> String {
         if entry.isStale {
-            return "Snapshot desactualizado"
+            return String(localized: "Snapshot desactualizado")
         }
         return "\(station.statusText) · \(relativeUpdateText(from: entry.generatedAt))"
     }
@@ -175,15 +175,15 @@ private func statusColor(for level: WatchStationStatusLevel) -> Color {
 }
 
 private func relativeUpdateText(from date: Date?) -> String {
-    guard let date else { return "Sin snapshot" }
+    guard let date else { return String(localized: "Sin snapshot") }
     let seconds = max(0, Int(Date().timeIntervalSince(date)))
     if seconds < 60 {
-        return "Ahora"
+        return String(localized: "Ahora")
     }
     if seconds < 3600 {
-        return "Hace \(seconds / 60)m"
+        return String(localized: "Hace \(seconds / 60)m")
     }
-    return "Hace \(seconds / 3600)h"
+    return String(localized: "Hace \(seconds / 3600)h")
 }
 
 private let sampleSnapshot = WatchSurfaceSnapshotBundle(
