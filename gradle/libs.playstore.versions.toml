@@ -1,8 +1,8 @@
 [versions]
 crash-reporting-plugin = "3.0.8"
-google-services-plugin = "4.5.0"
+google-services-plugin = "4.6.0"
 maps-compose = "9.0.1"
-mobile-services-bom = "35.1.0"
+mobile-services-bom = "35.2.0"
 play-app-update = "2.1.0"
 play-review = "2.0.2"
 play-services-location = "21.4.0"
