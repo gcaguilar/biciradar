@@ -27,15 +27,15 @@ internal fun RoutePill(
 ) {
   val c = LocalBiziColors.current
   val pillColor = if (onDarkBackground) c.onAccent else c.blue
+  // An action, not a toggle: it stays in the unselected (full pill) shape.
   BiziSelectableChip(
-    selected = true,
+    selected = false,
     onClick = onClick,
     tint = pillColor,
-    selectedContainerColor = if (onDarkBackground) c.onAccent.copy(alpha = 0.14f) else c.blue.copy(alpha = 0.08f),
-    selectedBorderColor = if (onDarkBackground) c.onAccent.copy(alpha = 0.32f) else c.blue.copy(alpha = 0.16f),
-    selectedContentColor = pillColor,
-    unselectedContainerColor = Color.Transparent,
-    unselectedBorderColor = Color.Transparent,
+    unselectedContainerColor = if (onDarkBackground) c.onAccent.copy(alpha = 0.14f) else c.blue.copy(alpha = 0.08f),
+    unselectedBorderColor = if (onDarkBackground) c.onAccent.copy(alpha = 0.32f) else c.blue.copy(alpha = 0.16f),
+    unselectedContentColor = pillColor,
+    unselectedScale = 1f,
   ) { contentColor ->
     Icon(
       imageVector = icon,
