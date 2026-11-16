@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,17 +11,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +62,6 @@ internal fun BoxScope.EngagementTopOverlays(
   onFeedbackSend: () -> Unit,
   onFeedbackDismiss: () -> Unit,
 ) {
-  val colors = LocalBiziColors.current
   Column(
     modifier =
       Modifier
@@ -77,22 +79,26 @@ internal fun BoxScope.EngagementTopOverlays(
 
       is TopUpdateBanner.Available -> {
         Surface(
-          color = colors.blue.copy(alpha = 0.12f),
-          shape = MaterialTheme.shapes.medium,
+          color = MaterialTheme.colorScheme.primaryContainer,
+          contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+          shape = MaterialTheme.shapes.largeIncreased,
+          shadowElevation = 2.dp,
           modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
           ) {
             Text(
               text = stringResource(Res.string.updateAvailableTitle),
               style = MaterialTheme.typography.titleSmall,
               fontWeight = FontWeight.SemiBold,
-              color = colors.ink,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              TextButton(onClick = onStartUpdate) {
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Button(onClick = onStartUpdate) {
                 Text(stringResource(Res.string.updateNow))
               }
               TextButton(onClick = { onDismissAvailableUpdate(banner.version) }) {
@@ -105,21 +111,25 @@ internal fun BoxScope.EngagementTopOverlays(
 
       is TopUpdateBanner.Downloaded -> {
         Surface(
-          color = colors.green.copy(alpha = 0.12f),
-          shape = MaterialTheme.shapes.medium,
+          color = MaterialTheme.colorScheme.secondaryContainer,
+          contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+          shape = MaterialTheme.shapes.largeIncreased,
+          shadowElevation = 2.dp,
           modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
           ) {
             Text(
               text = stringResource(Res.string.restartToUpdate),
               style = MaterialTheme.typography.bodyMedium,
-              color = colors.ink,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-              TextButton(onClick = onRestartToUpdate) {
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Button(onClick = onRestartToUpdate) {
                 Text(stringResource(Res.string.restartToUpdate))
               }
               TextButton(onClick = onDismissDownloadedUpdate) {
@@ -147,13 +157,13 @@ internal fun FeedbackNudgeCard(
 ) {
   val colors = LocalBiziColors.current
   Surface(
-    color = colors.surface,
-    shape = MaterialTheme.shapes.medium,
-    border = BorderStroke(1.dp, colors.panel),
+    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    shape = MaterialTheme.shapes.largeIncreased,
+    shadowElevation = 2.dp,
     modifier = Modifier.fillMaxWidth(),
   ) {
     Column(
-      modifier = Modifier.padding(12.dp),
+      modifier = Modifier.padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
       Text(
@@ -166,8 +176,11 @@ internal fun FeedbackNudgeCard(
         style = MaterialTheme.typography.bodySmall,
         color = colors.muted,
       )
-      Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        TextButton(onClick = onFeedbackSend) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        FilledTonalButton(onClick = onFeedbackSend) {
           Text(stringResource(Res.string.feedbackNudgeAction))
         }
         TextButton(onClick = onFeedbackDismiss) {
@@ -205,8 +218,11 @@ internal fun FeedbackBottomSheet(
         text = stringResource(Res.string.feedbackDescription),
         color = colors.muted,
       )
-      Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onOpenFeedbackForm) {
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Button(onClick = onOpenFeedbackForm) {
           Text(stringResource(Res.string.openFeedbackForm))
         }
         TextButton(onClick = onDismiss) {
@@ -217,6 +233,7 @@ internal fun FeedbackBottomSheet(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun StartupSplashScreen(mobilePlatform: MobileUiPlatform) {
   val colors = LocalBiziColors.current
@@ -239,14 +256,14 @@ internal fun StartupSplashScreen(mobilePlatform: MobileUiPlatform) {
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       Surface(
-        shape = CircleShape,
+        shape = MaterialShapes.Cookie9Sided.toShape(),
         color = colors.red,
       ) {
         Icon(
           imageVector = Icons.AutoMirrored.Filled.DirectionsBike,
           contentDescription = null,
           tint = colors.onAccent,
-          modifier = Modifier.padding(18.dp).size(30.dp),
+          modifier = Modifier.padding(22.dp).size(36.dp),
         )
       }
       Column(
@@ -255,8 +272,7 @@ internal fun StartupSplashScreen(mobilePlatform: MobileUiPlatform) {
       ) {
         Text(
           text = stringResource(Res.string.appName),
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.Bold,
+          style = MaterialTheme.typography.headlineMediumEmphasized,
           color = colors.red,
         )
         Text(
@@ -275,6 +291,7 @@ internal fun StartupSplashScreen(mobilePlatform: MobileUiPlatform) {
         style = MaterialTheme.typography.labelMedium,
         color = colors.muted,
       )
+      LoadingIndicator(color = colors.red)
     }
   }
 }
