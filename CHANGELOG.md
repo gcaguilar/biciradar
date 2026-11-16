@@ -31,6 +31,11 @@ internos de empaquetado, versionado y automatización que acompañan a la versi�
   deja Android e iOS en `29570226` y Wear OS en `29570227`.
 - Notas de Play para `29570226` (móvil) y `29570227` (Wear OS) y notas de la App
   Store en es y en.
+- Dependencias: Kotlin 2.5.0-RC, AGP 9.5.1, KSP 2.3.14, Metro 1.5.2, Compose
+  Multiplatform y Material 3 1.13.0-beta02, kotlinx.serialization 1.13.0,
+  AppFunctions 1.0.0-rc01, Auth0 4.3.1, Bouncy Castle 1.87, Firebase BoM 35.2.0 y
+  plugin de Google Services 4.6.0; en Apple, Firebase 13.2.0, Google Maps 11.3.0
+  y Auth0.swift 3.3.1. Navigation Compose se queda en 2.9.2.
 - Se elimina `WearRouteMessageService` (sin emisor desde que la ruta del reloj usa
   RemoteIntents).
 
