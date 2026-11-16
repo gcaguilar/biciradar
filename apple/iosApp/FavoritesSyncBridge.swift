@@ -1,6 +1,7 @@
 import Core
 import MobileUi
 import Foundation
+import UIKit
 import WatchConnectivity
 
 @MainActor
@@ -105,6 +106,19 @@ final class FavoritesSyncBridge: NSObject, ObservableObject, @preconcurrency WCS
                 await MainActor.run {
                     self.onSurfaceStateChanged("favorites synced from peer context")
                 }
+            }
+        }
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        Task { @MainActor in
+            apply(context: message)
+            guard let stationId = message["route_station_id"] as? String, !stationId.isEmpty else { return }
+            if UIApplication.shared.applicationState == .active {
+                // The scene is already active, so no phase change will pick the request up.
+                NotificationCenter.default.post(name: .biziHomeScreenQuickActionRequested, object: nil)
+            } else {
+                BiziNotificationService.shared.postWatchRouteRequest()
             }
         }
     }

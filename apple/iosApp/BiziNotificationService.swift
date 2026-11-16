@@ -43,6 +43,25 @@ final class BiziNotificationService {
         }
     }
 
+    /// Tells the user a route requested from the Apple Watch is waiting. iOS can't launch Maps
+    /// from the background, so tapping this brings the app forward, which applies the request.
+    func postWatchRouteRequest() {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Ruta desde el reloj")
+        content.body = String(localized: "Toca para abrir la ruta.")
+        content.sound = .default
+        let request = UNNotificationRequest(
+            identifier: "bizi.watch.route",
+            content: content,
+            trigger: nil
+        )
+        center.add(request) { error in
+            if let error {
+                print("[BiziNotifications] Watch route notification failed: \(error)")
+            }
+        }
+    }
+
     /// Fires a local notification for each favorite station that newly has bikes available.
     /// - Parameter newlyAvailable: stations that transitioned from 0 → >0 bikes since last check.
     func notifyFavoriteStationsAvailable(_ newlyAvailable: [BiziStationSnapshot]) {

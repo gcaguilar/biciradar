@@ -36,32 +36,21 @@ final class WatchFavoritesSyncBridge: NSObject, ObservableObject, @preconcurrenc
         apply(context: session.receivedApplicationContext)
     }
 
+    /// Sends a one-shot route request. It uses `sendMessage` instead of the persistent
+    /// application context so a request made while the iPhone is unreachable can't be replayed
+    /// (and open Maps) later; in that case the caller reports the failure.
     func requestRoute(to stationId: String) -> Bool {
-        guard WCSession.default.activationState == .activated else { return false }
-        var context = WCSession.default.receivedApplicationContext
-        context["favorite_ids"] = Array(favoriteIds)
-        context["home_station_id"] = homeStationId
-        context["work_station_id"] = workStationId
-        let snapshot = BiziSyncSnapshotV2(
-            categories: [],
-            stationCategory: [:],
-            favoriteIds: favoriteIds,
-            homeStationId: homeStationId,
-            workStationId: workStationId
+        let session = WCSession.default
+        guard session.activationState == .activated, session.isReachable else { return false }
+        session.sendMessage(
+            [
+                "route_station_id": stationId,
+                "route_requested_at": Date().timeIntervalSince1970,
+            ],
+            replyHandler: nil,
+            errorHandler: nil
         )
-        if let encoded = try? JSONEncoder().encode(snapshot),
-           let string = String(data: encoded, encoding: .utf8) {
-            context[Self.snapshotV2ContextKey] = string
-            defaults.set(string, forKey: Self.snapshotV2CacheKey)
-        }
-        context["route_station_id"] = stationId
-        context["route_requested_at"] = Date().timeIntervalSince1970
-        do {
-            try WCSession.default.updateApplicationContext(context)
-            return true
-        } catch {
-            return false
-        }
+        return true
     }
 
     func session(
