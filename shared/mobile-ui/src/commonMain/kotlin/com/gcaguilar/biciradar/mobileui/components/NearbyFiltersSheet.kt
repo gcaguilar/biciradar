@@ -1,6 +1,5 @@
 package com.gcaguilar.biciradar.mobileui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Tune
@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
@@ -221,12 +222,14 @@ private fun SortOptionRow(
       Modifier
         .fillMaxWidth()
         .clip(MaterialTheme.shapes.medium)
-        .clickable(onClick = onClick)
+        // One focusable radio row: the RadioButton itself has no click handler, so
+        // TalkBack doesn't announce the option twice.
+        .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
         .padding(vertical = 4.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    RadioButton(selected = selected, onClick = onClick)
+    RadioButton(selected = selected, onClick = null)
     Text(text = label, style = MaterialTheme.typography.bodyLarge)
   }
 }
