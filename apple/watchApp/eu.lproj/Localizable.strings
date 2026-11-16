@@ -43,3 +43,16 @@
 "Bicis en casa o trabajo" = "Bizikletak etxean edo lanean";
 "Huecos en casa o trabajo" = "Lekuak etxean edo lanean";
 "Ruta a casa o trabajo" = "Etxerako edo lanerako ibilbidea";
+"Reintentar" = "Saiatu berriro";
+"Monitorización" = "Monitorizazioa";
+"Cargando…" = "Kargatzen…";
+"Tiempo restante" = "Geratzen den denbora";
+"Ruta aquí" = "Ibilbidea hemen";
+"Ruta en iPhone" = "Ibilbidea iPhonean";
+"Ruta alternativa" = "Ibilbide alternatiboa";
+"No he encontrado esa estación." = "Ez dut estazio hori aurkitu.";
+"No se pudo abrir la ruta." = "Ezin izan da ibilbidea ireki.";
+"He enviado la alternativa al iPhone." = "Alternatiba iPhonera bidali dut.";
+"Alternativa no disponible" = "Alternatiba ez dago eskuragarri";
+"Alternativa: %@" = "Alternatiba: %@";
+"Alternativa: %@ (%@)" = "Alternatiba: %@ (%@)";

@@ -43,3 +43,16 @@
 "Bicis en casa o trabajo" = "Bikes at home or work";
 "Huecos en casa o trabajo" = "Slots at home or work";
 "Ruta a casa o trabajo" = "Route to home or work";
+"Reintentar" = "Retry";
+"Monitorización" = "Monitoring";
+"Cargando…" = "Loading…";
+"Tiempo restante" = "Time left";
+"Ruta aquí" = "Route here";
+"Ruta en iPhone" = "Route on iPhone";
+"Ruta alternativa" = "Alternative route";
+"No he encontrado esa estación." = "I couldn't find that station.";
+"No se pudo abrir la ruta." = "Couldn't open the route.";
+"He enviado la alternativa al iPhone." = "I've sent the alternative to the iPhone.";
+"Alternativa no disponible" = "Alternative not available";
+"Alternativa: %@" = "Alternative: %@";
+"Alternativa: %@ (%@)" = "Alternative: %@ (%@)";
