@@ -22,9 +22,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.Station
@@ -45,6 +47,7 @@ import com.gcaguilar.biciradar.mobileui.PlatformStationMap
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
+import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
@@ -65,13 +68,17 @@ internal fun RoutineStationPickerScreen(
   onStationPicked: (Station) -> Unit,
 ) {
   val mode = state.pickerMode ?: RoutineStationPickerMode.Favorites
+  val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     modifier =
       Modifier
+        .nestedScroll(topBarScroll.nestedScrollConnection)
         .fillMaxSize()
         .padding(paddingValues),
     topBar = {
       TopAppBar(
+        colors = biziTopAppBarColors(mobilePlatform),
+        scrollBehavior = topBarScroll,
         title = {
           Text(
             text = stringResource(Res.string.routineAddStation),

@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.MONITORING_DURATION_OPTIONS_SECONDS
@@ -72,6 +74,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.routineTimeLabel
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
 import com.gcaguilar.biciradar.mobileui.responsivePageWidth
 import com.gcaguilar.biciradar.mobileui.viewmodel.RoutineEditorUiState
@@ -115,13 +118,17 @@ internal fun RoutineEditorScreen(
   }
 
   PlatformBackHandler(enabled = true, onBack = onBack)
+  val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     modifier =
       Modifier
+        .nestedScroll(topBarScroll.nestedScrollConnection)
         .fillMaxSize()
         .padding(paddingValues),
     topBar = {
       TopAppBar(
+        colors = biziTopAppBarColors(mobilePlatform),
+        scrollBehavior = topBarScroll,
         title = {
           Text(
             text =

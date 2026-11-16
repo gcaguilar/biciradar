@@ -20,12 +20,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.*
+import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogCatalogEntry
 import com.gcaguilar.biciradar.mobileui.experience.ChangelogVersionSection
 import org.jetbrains.compose.resources.stringResource
@@ -47,10 +50,14 @@ internal fun ChangelogHistoryScreen(
         .zIndex(8f),
     color = pageBackgroundColor(mobilePlatform),
   ) {
+    val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
     Scaffold(
+      modifier = Modifier.nestedScroll(topBarScroll.nestedScrollConnection),
       containerColor = androidx.compose.ui.graphics.Color.Transparent,
       topBar = {
         TopAppBar(
+          colors = biziTopAppBarColors(mobilePlatform),
+          scrollBehavior = topBarScroll,
           title = {
             Text(
               stringResource(Res.string.changelogWhatsNew),

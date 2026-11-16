@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.GeoPoint
@@ -58,6 +60,7 @@ import com.gcaguilar.biciradar.mobileui.PlatformStationMap
 import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
+import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.components.inputs.SuggestionRow
 import com.gcaguilar.biciradar.mobileui.components.map.StationDetailCard
@@ -128,13 +131,17 @@ internal fun TripMapPickerScreen(
       stringResource(Res.string.tripMapStationTitle)
     }
 
+  val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     modifier =
       Modifier
+        .nestedScroll(topBarScroll.nestedScrollConnection)
         .fillMaxSize()
         .padding(paddingValues),
     topBar = {
       TopAppBar(
+        colors = biziTopAppBarColors(mobilePlatform),
+        scrollBehavior = topBarScroll,
         title = {
           Text(
             text = titleText,

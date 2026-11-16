@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.FavoriteCategory
@@ -66,6 +68,7 @@ import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
+import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.components.inputs.StationSearchField
 import com.gcaguilar.biciradar.mobileui.components.station.StationMetricPill
 import com.gcaguilar.biciradar.mobileui.favoriteCategoryLabel
@@ -118,10 +121,13 @@ internal fun FavoritesSearchScreen(
         .sortedWith(compareBy<FavoriteCategory>({ categorySortOrder(it.id) }, { it.id.lowercase() }))
     }
 
+  val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
-    modifier = Modifier.fillMaxSize(),
+    modifier = Modifier.nestedScroll(topBarScroll.nestedScrollConnection).fillMaxSize(),
     topBar = {
       TopAppBar(
+        colors = biziTopAppBarColors(mobilePlatform),
+        scrollBehavior = topBarScroll,
         title = {
           Text(
             text = stringResource(Res.string.favoritesSearchTitle),
