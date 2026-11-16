@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
@@ -172,6 +173,7 @@ internal fun ProfileScreen(
             TextButton(
               onClick = { confirmAccountDeletion = true },
               enabled = !deletingAccount,
+              colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
             ) {
               Text(
                 text =
@@ -180,7 +182,6 @@ internal fun ProfileScreen(
                   } else {
                     stringResource(Res.string.accountDeleteAction)
                   },
-                color = LocalBiziColors.current.red,
               )
             }
           }
@@ -369,8 +370,9 @@ internal fun ProfileScreen(
             confirmAccountDeletion = false
             onDeleteAccount()
           },
+          colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
         ) {
-          Text(stringResource(Res.string.accountDeleteConfirmAction), color = LocalBiziColors.current.red)
+          Text(stringResource(Res.string.accountDeleteConfirmAction))
         }
       },
       dismissButton = {

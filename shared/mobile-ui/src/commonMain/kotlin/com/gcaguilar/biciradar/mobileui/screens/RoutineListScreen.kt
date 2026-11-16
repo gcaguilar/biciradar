@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -288,7 +289,7 @@ private fun RoutineListCard(
           Icon(
             imageVector = Icons.Filled.Delete,
             contentDescription = stringResource(Res.string.delete),
-            tint = colors.red,
+            tint = MaterialTheme.colorScheme.error,
           )
         }
       }
@@ -306,6 +307,7 @@ private fun RoutineListCard(
             askDelete = false
             onDelete()
           },
+          colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
         ) {
           Text(stringResource(Res.string.delete))
         }

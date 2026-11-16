@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.deleteFavorite
 import com.gcaguilar.biciradar.mobileui.LocalBiziCardShape
-import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -34,7 +33,9 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun FavoriteDismissBackground(progressProvider: () -> Float) {
-  val colors = LocalBiziColors.current
+  // Destructive action: Material error roles, not the brand primary.
+  val container = MaterialTheme.colorScheme.errorContainer
+  val content = MaterialTheme.colorScheme.onErrorContainer
   Box(
     modifier =
       Modifier
@@ -42,7 +43,7 @@ internal fun FavoriteDismissBackground(progressProvider: () -> Float) {
         .clip(LocalBiziCardShape.current)
         .drawBehind {
           val clampedProgress = progressProvider().coerceIn(0f, 1f)
-          drawRect(colors.red.copy(alpha = 0.10f + (0.10f * clampedProgress)))
+          drawRect(container.copy(alpha = 0.45f + (0.55f * clampedProgress)))
         }.padding(horizontal = 20.dp, vertical = 12.dp),
     contentAlignment = Alignment.CenterEnd,
   ) {
@@ -53,14 +54,14 @@ internal fun FavoriteDismissBackground(progressProvider: () -> Float) {
       Icon(
         imageVector = Icons.Default.Delete,
         contentDescription = null,
-        tint = colors.red,
+        tint = content,
         modifier = Modifier.size(24.dp),
       )
       Spacer(modifier = Modifier.width(4.dp))
       Text(
         text = stringResource(Res.string.deleteFavorite),
         style = MaterialTheme.typography.labelLarge,
-        color = colors.red,
+        color = content,
       )
     }
   }
