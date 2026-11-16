@@ -57,6 +57,8 @@ struct FavoriteStationComplication: Widget {
             provider: WatchFavoriteStationTimelineProvider()
         ) { entry in
             FavoriteStationComplicationView(entry: entry)
+                // Required since watchOS 10; accessory families draw their own backdrop.
+                .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Favorita")
         .description("Consulta bicis, huecos y estado de tu estación favorita desde la esfera.")
@@ -97,9 +99,11 @@ private struct FavoriteStationComplicationView: View {
                     Circle()
                         .fill(statusColor(for: station.statusLevel))
                         .frame(width: 7, height: 7)
+                        .widgetAccentable()
                     Text("\(station.bikesAvailable)")
                         .font(.system(.title3, design: .rounded).bold())
                         .foregroundStyle(statusColor(for: station.statusLevel))
+                        .widgetAccentable()
                     Text("\(station.slotsFree)")
                         .font(.system(.caption2, design: .rounded).weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -123,10 +127,12 @@ private struct FavoriteStationComplicationView: View {
                         Text(station.name)
                             .font(.caption.weight(.semibold))
                             .lineLimit(1)
+                            .widgetAccentable()
                         Spacer(minLength: 0)
                         Circle()
                             .fill(statusColor(for: station.statusLevel))
                             .frame(width: 8, height: 8)
+                            .widgetAccentable()
                     }
                     Text("\(station.bikesAvailable) bicis · \(station.slotsFree) huecos")
                         .font(.system(.caption, design: .rounded).weight(.semibold))
