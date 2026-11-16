@@ -1,11 +1,11 @@
 package com.gcaguilar.biciradar.mobileui.components.inputs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -27,10 +27,13 @@ internal fun StationSearchField(
   value: String,
   onValueChange: (String) -> Unit,
   label: String,
+  modifier: Modifier = Modifier,
 ) {
   val c = LocalBiziColors.current
+  val isIos = mobilePlatform == MobileUiPlatform.IOS
+  val fieldSurface = if (isIos) c.fieldSurfaceIos else c.fieldSurfaceAndroid
   OutlinedTextField(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = modifier.fillMaxWidth(),
     value = value,
     onValueChange = onValueChange,
     singleLine = true,
@@ -41,12 +44,13 @@ internal fun StationSearchField(
     trailingIcon =
       if (value.isNotEmpty()) {
         {
-          Icon(
-            imageVector = Icons.Filled.Close,
-            contentDescription = stringResource(Res.string.clearSearch),
-            tint = c.muted,
-            modifier = Modifier.clickable { onValueChange("") },
-          )
+          IconButton(onClick = { onValueChange("") }) {
+            Icon(
+              imageVector = Icons.Filled.Close,
+              contentDescription = stringResource(Res.string.clearSearch),
+              tint = c.muted,
+            )
+          }
         }
       } else {
         null
@@ -57,30 +61,24 @@ internal fun StationSearchField(
       } else {
         null
       },
-    placeholder = { Text(label, color = c.muted) },
+    // Android floats the label; repeating it as placeholder showed the text twice
+    // when focused. iOS has no label, so the placeholder carries it.
+    placeholder =
+      if (mobilePlatform == MobileUiPlatform.Android) {
+        null
+      } else {
+        { Text(label, color = c.muted) }
+      },
     colors =
       OutlinedTextFieldDefaults.colors(
-        focusedContainerColor =
-          if (mobilePlatform ==
-            MobileUiPlatform.IOS
-          ) {
-            c.fieldSurfaceIos
-          } else {
-            c.fieldSurfaceAndroid
-          },
-        unfocusedContainerColor =
-          if (mobilePlatform ==
-            MobileUiPlatform.IOS
-          ) {
-            c.fieldSurfaceIos
-          } else {
-            c.fieldSurfaceAndroid
-          },
-        focusedBorderColor = c.red.copy(alpha = if (mobilePlatform == MobileUiPlatform.IOS) 0.18f else 0.30f),
-        unfocusedBorderColor = if (mobilePlatform == MobileUiPlatform.IOS) c.panel else c.muted.copy(alpha = 0.18f),
+        focusedContainerColor = fieldSurface,
+        unfocusedContainerColor = fieldSurface,
+        // Material focus indicator: full primary on Android, subtle on iOS.
+        focusedBorderColor = if (isIos) c.red.copy(alpha = 0.18f) else c.red,
+        unfocusedBorderColor = if (isIos) c.panel else c.muted.copy(alpha = 0.18f),
         focusedTextColor = c.ink,
         unfocusedTextColor = c.ink,
-        focusedLabelColor = c.ink,
+        focusedLabelColor = if (isIos) c.ink else c.red,
         unfocusedLabelColor = c.muted,
         focusedPlaceholderColor = c.muted,
         unfocusedPlaceholderColor = c.muted,

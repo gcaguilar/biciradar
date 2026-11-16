@@ -27,5 +27,6 @@ internal fun MapSearchBar(
     value = searchQuery,
     onValueChange = onSearchQueryChange,
     label = stringResource(Res.string.mapSearchStationOrAddress),
+    modifier = modifier,
   )
 }
