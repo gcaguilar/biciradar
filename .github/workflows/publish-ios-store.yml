@@ -12,9 +12,9 @@ concurrency:
 
 jobs:
   publish-ios-store:
-    name: Publish signed iOS IPA to App Store
+    name: Build and upload signed iOS IPA
     runs-on: xcode-27
-    timeout-minutes: 60
+    timeout-minutes: 50
     env:
       FASTLANE_SKIP_UPDATE_CHECK: "1"
       APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
@@ -22,12 +22,6 @@ jobs:
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
-      APP_REVIEW_CONTACT_FIRST_NAME: ${{ secrets.APP_REVIEW_CONTACT_FIRST_NAME }}
-      APP_REVIEW_CONTACT_LAST_NAME: ${{ secrets.APP_REVIEW_CONTACT_LAST_NAME }}
-      APP_REVIEW_CONTACT_EMAIL: ${{ secrets.APP_REVIEW_CONTACT_EMAIL }}
-      APP_REVIEW_CONTACT_PHONE: ${{ secrets.APP_REVIEW_CONTACT_PHONE }}
-      APP_REVIEW_NOTES: ${{ secrets.APP_REVIEW_NOTES }}
-      APP_USES_ENCRYPTION: ${{ vars.APP_USES_ENCRYPTION }}
       APPLE_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
 
     steps:
@@ -37,7 +31,11 @@ jobs:
           fetch-tags: true
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        id: xcode
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | sed -n '1s/^Xcode //p' | tr -d ' ')"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Resolve release version
         run: |
@@ -58,6 +56,16 @@ jobs:
           restore-keys: |
             konan-${{ runner.os }}-
 
+      - name: Cache Kotlin/Native build outputs
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            shared/*/build/bin
+            shared/*/build/classes
+          key: kmp-native-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'settings.gradle.kts', 'build.gradle.kts', 'shared/**/*.kt', 'shared/**/*.kts') }}
+          restore-keys: |
+            kmp-native-${{ runner.os }}-
+
       - name: Cache Swift packages
         uses: actions/cache@v6.1.0
         with:
@@ -70,9 +78,13 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: xcode-derived-ios-store-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml', 'apple/BiciRadar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          # The Xcode version is part of the key so a bump invalidates DerivedData, but the
+          # restore-keys chain keeps the previous image's cache as a warm fallback instead of
+          # forcing a full cold rebuild after every runner image upgrade.
+          key: xcode-derived-ios-store-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml', 'apple/BiciRadar.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
-            xcode-derived-ios-store-xcode27-${{ runner.os }}-
+            xcode-derived-ios-store-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-
+            xcode-derived-ios-store-${{ runner.os }}-
 
       - name: Write iOS secrets
         env:
@@ -225,8 +237,12 @@ jobs:
       - name: Resolve Xcode package dependencies
         run: xcodebuild -resolvePackageDependencies -project apple/BiciRadar.xcodeproj -scheme BiciRadar -clonedSourcePackagesDirPath apple/SourcePackages
 
-      - name: Build, sign and upload to App Store
-        run: bundle exec fastlane ios release_to_app_store
+      # Only builds and uploads the binary. Waiting for App Store Connect to finish
+      # processing the build and submitting it for review happens in the
+      # `submit-for-review` job on a cheap Linux runner, so this macOS runner is not
+      # blocked on Apple for ~8 minutes.
+      - name: Build and sign IPA, upload binary to App Store Connect
+        run: bundle exec fastlane ios upload_binary_to_app_store
 
       - name: Upload signed iOS IPA artifact
         uses: actions/upload-artifact@v7.0.1
@@ -235,3 +251,48 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           path: fastlane/output/BiciRadar.ipa
+
+  submit-for-review:
+    name: Submit build for review
+    needs: publish-ios-store
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
+      APPLE_BUNDLE_ID: ${{ vars.APPLE_BUNDLE_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+      APP_REVIEW_CONTACT_FIRST_NAME: ${{ secrets.APP_REVIEW_CONTACT_FIRST_NAME }}
+      APP_REVIEW_CONTACT_LAST_NAME: ${{ secrets.APP_REVIEW_CONTACT_LAST_NAME }}
+      APP_REVIEW_CONTACT_EMAIL: ${{ secrets.APP_REVIEW_CONTACT_EMAIL }}
+      APP_REVIEW_CONTACT_PHONE: ${{ secrets.APP_REVIEW_CONTACT_PHONE }}
+      APP_REVIEW_NOTES: ${{ secrets.APP_REVIEW_NOTES }}
+      APP_USES_ENCRYPTION: ${{ vars.APP_USES_ENCRYPTION }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-tags: true
+
+      - name: Resolve App Store version
+        run: |
+          version="$(awk -F': *' '/^[[:space:]]*MARKETING_VERSION:/ {gsub(/"/, "", $2); print $2; exit}' apple/project.yml)"
+          if [[ -z "$version" ]]; then
+            echo "::error::Could not read MARKETING_VERSION from apple/project.yml"
+            exit 1
+          fi
+          echo "IOS_APP_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Submitting version $version for review"
+
+      - name: Set up Ruby and Bundler
+        uses: ruby/setup-ruby@v1.327.0
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+        env:
+          BUNDLE_FROZEN: "false"
+
+      - name: Wait for build processing and submit for review
+        run: bundle exec fastlane ios submit_to_app_store

@@ -95,6 +95,7 @@ Users will see one app listing, but Google Play serves the appropriate version b
 - Add the repository variable `APP_USES_ENCRYPTION` and keep the App Store workflow secrets in a protected environment such as `app-store` for public repositories.
 - Update the localized App Store release notes in `fastlane/metadata/ios/*/release_notes.txt` before publishing a new version. The store workflow uploads them before submitting the build for review.
 - Keep `fastlane/app_rating_config.json` in sync with the App Store Connect age-rating questionnaire. It is sent via `app_rating_config_path` before submitting for review; Apple requires the newer boolean attributes (`socialMedia`, `socialMediaAgeRestricted`) to be set or review submission fails.
+- Publication runs as two jobs: `publish-ios-store` builds and uploads the binary on a macOS runner (`fastlane ios upload_binary_to_app_store`), then `submit-for-review` waits for App Store Connect to finish processing and submits the build (`fastlane ios submit_to_app_store`) on a Linux runner. Locally, `fastlane ios release_to_app_store` still runs both steps in sequence.
 - Set `APPLE_EXPORT_METHOD=app-store` and `APPLE_SIGNING_CERTIFICATE_TYPE=Apple Distribution` for the store workflow.
 - Run `tooling/generic-mobile-ci/print_ios_store_ci_values.sh` locally to print the exact secret and variable values to paste into GitHub.
 - Generate archives:

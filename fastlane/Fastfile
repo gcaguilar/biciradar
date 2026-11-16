@@ -22,42 +22,50 @@ def running_on_ci?
   ENV['CI'] == 'true' || ENV['GITHUB_ACTIONS'] == 'true'
 end
 
-  platform :ios do
+def bundle_identifier
+  ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios").to_s.strip
+end
+
+# Installs the distribution certificate and every provisioning profile the app,
+# its widgets and the watchOS companions need. Returns the values required by
+# build_app so both the local and the CI lanes share a single implementation.
+def install_signing_assets!
+  setup_ci if running_on_ci?
+
+  keychain = running_on_ci? ? "fastlane_tmp_keychain" : "login.keychain-db"
+
+  import_certificate(
+    certificate_path: required_env("APPLE_CERTIFICATE_PATH"),
+    certificate_password: required_env("APPLE_SIGNING_CERTIFICATE_PASSWORD"),
+    keychain_name: keychain
+  )
+
+  profile_paths = [
+    required_env("APPLE_PROFILE_PATH"),
+    optional_env("APPLE_WIDGET_PROFILE_PATH"),
+    optional_env("APPLE_WATCH_PROFILE_PATH"),
+    optional_env("APPLE_WATCH_WIDGET_PROFILE_PATH")
+  ].reject(&:empty?)
+
+  profile_paths.each { |path| install_provisioning_profile(path: path) }
+
+  provisioning_profiles = {
+    bundle_identifier => optional_env("APPLE_PROFILE_NAME"),
+    "com.gcaguilar.biciradar.ios.widgets" => optional_env("APPLE_WIDGET_PROFILE_NAME"),
+    "com.gcaguilar.biciradar.ios.watch" => optional_env("APPLE_WATCH_PROFILE_NAME"),
+    "com.gcaguilar.biciradar.ios.watch.widgets" => optional_env("APPLE_WATCH_WIDGET_PROFILE_NAME")
+  }.reject { |_bundle, profile_name| profile_name.empty? }
+
+  {
+    team_id: required_env("APPLE_TEAM_ID"),
+    provisioning_profiles: provisioning_profiles
+  }
+end
+
+platform :ios do
   desc "Build signed IPA for testing (no upload)"
   lane :build_signed_ipa do
-    setup_ci if running_on_ci?
-
-    keychain = running_on_ci? ? "fastlane_tmp_keychain" : "login.keychain-db"
-
-    import_certificate(
-      certificate_path: required_env("APPLE_CERTIFICATE_PATH"),
-      certificate_password: required_env("APPLE_SIGNING_CERTIFICATE_PASSWORD"),
-      keychain_name: keychain
-    )
-
-    profile_path = required_env("APPLE_PROFILE_PATH")
-    profile_name = ENV.fetch("APPLE_PROFILE_NAME", nil)&.strip
-    bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")&.strip
-    team_id = required_env("APPLE_TEAM_ID")&.strip
-    widget_profile_path = ENV.fetch("APPLE_WIDGET_PROFILE_PATH", nil)&.strip
-    widget_profile_name = ENV.fetch("APPLE_WIDGET_PROFILE_NAME", nil)&.strip
-    watch_profile_path = ENV.fetch("APPLE_WATCH_PROFILE_PATH", nil)&.strip
-    watch_profile_name = ENV.fetch("APPLE_WATCH_PROFILE_NAME", nil)&.strip
-    watch_widget_profile_path = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_PATH", nil)&.strip
-    watch_widget_profile_name = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_NAME", nil)&.strip
-
-    install_provisioning_profile(path: profile_path)
-    install_provisioning_profile(path: widget_profile_path) if widget_profile_path
-    install_provisioning_profile(path: watch_profile_path) if watch_profile_path
-    install_provisioning_profile(path: watch_widget_profile_path) if watch_widget_profile_path
-
-    xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
-
-    provisioning_profiles = {}
-    provisioning_profiles[bundle_id.strip] = profile_name.strip if profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.widgets"] = widget_profile_name if widget_profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.watch"] = watch_profile_name if watch_profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.watch.widgets"] = watch_widget_profile_name if watch_widget_profile_name
+    signing = install_signing_assets!
 
     build_app(
       project: "apple/BiciRadar.xcodeproj",
@@ -65,21 +73,44 @@ end
       configuration: "Release",
       export_method: "app-store",
       destination: "generic/platform=iOS",
-      xcargs: xcargs,
+      xcargs: "DEVELOPMENT_TEAM='#{signing[:team_id]}' CODE_SIGN_STYLE=Manual",
       cloned_source_packages_path: "apple/SourcePackages",
       output_directory: "fastlane/output",
       output_name: "BiciRadar.ipa",
+      # The workflow resolves packages before running fastlane, and profiles are passed
+      # explicitly below, so gym can skip its own resolution/profile-detection passes.
+      skip_package_dependencies_resolution: true,
+      skip_profile_detection: true,
       export_options: {
         signingStyle: "manual",
-        teamID: team_id,
-        provisioningProfiles: provisioning_profiles.empty? ? nil : provisioning_profiles
+        teamID: signing[:team_id],
+        provisioningProfiles: signing[:provisioning_profiles].empty? ? nil : signing[:provisioning_profiles]
       }.compact
     )
   end
 
-  desc "Build signed IPA and upload to App Store Connect for review"
-  lane :release_to_app_store do
-    setup_ci if running_on_ci?
+  desc "Build signed IPA and upload the binary to App Store Connect (no review submission)"
+  lane :upload_binary_to_app_store do
+    signing = install_signing_assets!
+
+    build_app(
+      project: "apple/BiciRadar.xcodeproj",
+      scheme: "BiciRadar",
+      configuration: "Release",
+      export_method: "app-store",
+      destination: "generic/platform=iOS",
+      xcargs: "DEVELOPMENT_TEAM='#{signing[:team_id]}' CODE_SIGN_STYLE=Manual",
+      cloned_source_packages_path: "apple/SourcePackages",
+      output_directory: "fastlane/output",
+      output_name: "BiciRadar.ipa",
+      skip_package_dependencies_resolution: true,
+      skip_profile_detection: true,
+      export_options: {
+        signingStyle: "manual",
+        teamID: signing[:team_id],
+        provisioningProfiles: signing[:provisioning_profiles].empty? ? nil : signing[:provisioning_profiles]
+      }.compact
+    )
 
     api_key = app_store_connect_api_key(
       key_id: required_env("APP_STORE_CONNECT_KEY_ID"),
@@ -88,62 +119,44 @@ end
       is_key_content_base64: true
     )
 
-    keychain = running_on_ci? ? "fastlane_tmp_keychain" : "login.keychain-db"
+    # Only the binary and metadata are uploaded here: waiting for App Store Connect to
+    # process the build and submitting it for review is deferred to `submit_to_app_store`,
+    # which runs on a cheap Linux runner instead of holding a macOS runner idle for minutes.
+    upload_to_app_store(
+      api_key: api_key,
+      platform: "ios",
+      app_identifier: bundle_identifier,
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      metadata_path: "fastlane/metadata/ios",
+      app_rating_config_path: "fastlane/app_rating_config.json",
+      skip_metadata: false,
+      skip_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      force: true
+    )
+  end
 
-    import_certificate(
-      certificate_path: required_env("APPLE_CERTIFICATE_PATH"),
-      certificate_password: required_env("APPLE_SIGNING_CERTIFICATE_PASSWORD"),
-      keychain_name: keychain
+  desc "Upload metadata and submit the already-uploaded build for App Store review"
+  lane :submit_to_app_store do
+    api_key = app_store_connect_api_key(
+      key_id: required_env("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: required_env("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: required_env("APP_STORE_CONNECT_API_KEY_P8"),
+      is_key_content_base64: true
     )
 
-    profile_path = required_env("APPLE_PROFILE_PATH")
-    profile_name = ENV.fetch("APPLE_PROFILE_NAME", nil)&.strip
-    bundle_id = ENV.fetch("APPLE_BUNDLE_ID", "com.gcaguilar.biciradar.ios")&.strip
-    team_id = required_env("APPLE_TEAM_ID")&.strip
-    widget_profile_path = ENV.fetch("APPLE_WIDGET_PROFILE_PATH", nil)&.strip
-    widget_profile_name = ENV.fetch("APPLE_WIDGET_PROFILE_NAME", nil)&.strip
-    watch_profile_path = ENV.fetch("APPLE_WATCH_PROFILE_PATH", nil)&.strip
-    watch_profile_name = ENV.fetch("APPLE_WATCH_PROFILE_NAME", nil)&.strip
-    watch_widget_profile_path = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_PATH", nil)&.strip
-    watch_widget_profile_name = ENV.fetch("APPLE_WATCH_WIDGET_PROFILE_NAME", nil)&.strip
-
-    install_provisioning_profile(path: profile_path)
-    install_provisioning_profile(path: widget_profile_path) if widget_profile_path
-    install_provisioning_profile(path: watch_profile_path) if watch_profile_path
-    install_provisioning_profile(path: watch_widget_profile_path) if watch_widget_profile_path
-
-    xcargs = "DEVELOPMENT_TEAM='#{team_id}' CODE_SIGN_STYLE=Manual"
-
-    provisioning_profiles = {}
-    provisioning_profiles[bundle_id] = profile_name if profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.widgets"] = widget_profile_name if widget_profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.watch"] = watch_profile_name if watch_profile_name
-    provisioning_profiles["com.gcaguilar.biciradar.ios.watch.widgets"] = watch_widget_profile_name if watch_widget_profile_name
-
-    build_app(
-      project: "apple/BiciRadar.xcodeproj",
-      scheme: "BiciRadar",
-      configuration: "Release",
-      export_method: "app-store",
-      destination: "generic/platform=iOS",
-      xcargs: xcargs,
-      cloned_source_packages_path: "apple/SourcePackages",
-      output_directory: "fastlane/output",
-      output_name: "BiciRadar.ipa",
-      export_options: {
-        signingStyle: "manual",
-        teamID: team_id,
-        provisioningProfiles: provisioning_profiles.empty? ? nil : provisioning_profiles
-      }.compact
-    )
+    app_version = optional_env("IOS_APP_VERSION")
 
     upload_to_app_store(
       api_key: api_key,
       platform: "ios",
-      app_identifier: bundle_id,
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      app_identifier: bundle_identifier,
+      app_version: app_version.empty? ? nil : app_version,
       metadata_path: "fastlane/metadata/ios",
       app_rating_config_path: "fastlane/app_rating_config.json",
+      skip_binary_upload: true,
       skip_metadata: false,
       skip_screenshots: true,
       submit_for_review: true,
@@ -155,5 +168,11 @@ end
         export_compliance_uses_encryption: required_boolean_env("APP_USES_ENCRYPTION")
       }
     )
+  end
+
+  desc "Build, upload and submit to App Store (local convenience: build+upload, then submit)"
+  lane :release_to_app_store do
+    upload_binary_to_app_store
+    submit_to_app_store
   end
 end

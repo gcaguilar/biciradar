@@ -186,7 +186,11 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        id: xcode
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | sed -n '1s/^Xcode //p' | tr -d ' ')"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Set up build toolchain
         uses: ./.github/actions/setup-build
@@ -199,13 +203,26 @@ jobs:
           restore-keys: |
             konan-${{ runner.os }}-
 
+      - name: Cache Kotlin/Native build outputs
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            shared/*/build/bin
+            shared/*/build/classes
+          key: kmp-native-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'settings.gradle.kts', 'build.gradle.kts', 'shared/**/*.kt', 'shared/**/*.kts') }}
+          restore-keys: |
+            kmp-native-${{ runner.os }}-
+
       - name: Cache Xcode DerivedData (iOS)
         uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/derived-data-ios
-          key: xcode-derived-ios-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
+          # Xcode version is part of the key, but the restore-keys chain keeps the previous
+          # image's cache usable instead of forcing a cold rebuild after a runner upgrade.
+          key: xcode-derived-ios-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
           restore-keys: |
-            xcode-derived-ios-xcode27-${{ runner.os }}-
+            xcode-derived-ios-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-
+            xcode-derived-ios-${{ runner.os }}-
 
       - name: Write iOS secrets
         env:
@@ -272,7 +289,11 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Show Xcode version
-        run: xcodebuild -version
+        id: xcode
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | sed -n '1s/^Xcode //p' | tr -d ' ')"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: Set up build toolchain
         uses: ./.github/actions/setup-build
@@ -285,13 +306,26 @@ jobs:
           restore-keys: |
             konan-${{ runner.os }}-
 
+      - name: Cache Kotlin/Native build outputs
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            shared/*/build/bin
+            shared/*/build/classes
+          key: kmp-native-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties', 'settings.gradle.kts', 'build.gradle.kts', 'shared/**/*.kt', 'shared/**/*.kts') }}
+          restore-keys: |
+            kmp-native-${{ runner.os }}-
+
       - name: Cache Xcode DerivedData (watchOS)
         uses: actions/cache@v6.1.0
         with:
           path: ${{ runner.temp }}/derived-data-watchos
-          key: xcode-derived-watchos-xcode27-${{ runner.os }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
+          # Xcode version is part of the key, but the restore-keys chain keeps the previous
+          # image's cache usable instead of forcing a cold rebuild after a runner upgrade.
+          key: xcode-derived-watchos-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-${{ hashFiles('apple/**/*.pbxproj', 'apple/project.yml') }}
           restore-keys: |
-            xcode-derived-watchos-xcode27-${{ runner.os }}-
+            xcode-derived-watchos-${{ runner.os }}-xcode${{ steps.xcode.outputs.version }}-
+            xcode-derived-watchos-${{ runner.os }}-
 
       - name: Resolve watchOS simulator destination
         run: |

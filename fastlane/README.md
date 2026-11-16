@@ -23,13 +23,29 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 Build signed IPA for testing (no upload)
 
+### ios upload_binary_to_app_store
+
+```sh
+[bundle exec] fastlane ios upload_binary_to_app_store
+```
+
+Build signed IPA and upload the binary to App Store Connect (no review submission)
+
+### ios submit_to_app_store
+
+```sh
+[bundle exec] fastlane ios submit_to_app_store
+```
+
+Upload metadata and submit the already-uploaded build for App Store review
+
 ### ios release_to_app_store
 
 ```sh
 [bundle exec] fastlane ios release_to_app_store
 ```
 
-Build signed IPA and upload to App Store Connect for review
+Build, upload and submit to App Store (local convenience: build+upload, then submit)
 
 ----
 
