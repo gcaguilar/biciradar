@@ -9,3 +9,7 @@
 "Hace %lldh" = "%lldh ago";
 "Favorita" = "Favorite";
 "Consulta bicis, huecos y estado de tu estación favorita desde la esfera." = "Check bikes, slots and status of your favorite station from the watch face.";
+"Cercanas" = "Nearby";
+"Consulta las estaciones más cercanas con sus bicis y huecos desde la esfera o el Smart Stack." = "Check the nearest stations with their bikes and slots from the watch face or Smart Stack.";
+"Sin cercanas" = "None nearby";
+"Abre la app para actualizar" = "Open the app to refresh";

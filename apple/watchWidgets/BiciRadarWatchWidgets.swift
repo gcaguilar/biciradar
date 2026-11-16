@@ -9,6 +9,10 @@ private struct WatchFavoriteStationEntry: TimelineEntry {
         snapshot?.favoriteStations.first
     }
 
+    var nearbyStations: [WatchStationSnapshot] {
+        Array((snapshot?.nearbyStations ?? []).prefix(3))
+    }
+
     var generatedAt: Date? {
         guard let generatedAtEpoch = snapshot?.generatedAtEpoch else { return nil }
         return Date(timeIntervalSince1970: Double(generatedAtEpoch) / 1000)
@@ -47,6 +51,101 @@ private struct WatchFavoriteStationTimelineProvider: TimelineProvider {
 struct BiciRadarWatchWidgets: WidgetBundle {
     var body: some Widget {
         FavoriteStationComplication()
+        NearbyStationsWatchWidget()
+    }
+}
+
+struct NearbyStationsWatchWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(
+            kind: "BiciRadarWatchNearbyWidget",
+            provider: WatchFavoriteStationTimelineProvider()
+        ) { entry in
+            NearbyStationsWidgetView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("Cercanas")
+        .description("Consulta las estaciones más cercanas con sus bicis y huecos desde la esfera o el Smart Stack.")
+        .supportedFamilies([.accessoryInline, .accessoryCircular, .accessoryRectangular])
+    }
+}
+
+private struct NearbyStationsWidgetView: View {
+    let entry: WatchFavoriteStationEntry
+    @Environment(\.widgetFamily) private var family
+
+    var body: some View {
+        switch family {
+        case .accessoryInline:
+            if let station = entry.nearbyStations.first {
+                Text("\(station.name) \(station.bikesAvailable)/\(station.slotsFree)")
+            } else {
+                Text("Sin cercanas")
+            }
+        case .accessoryCircular:
+            circularView
+        default:
+            rectangularView
+        }
+    }
+
+    private var circularView: some View {
+        ZStack {
+            AccessoryWidgetBackground()
+            if let station = entry.nearbyStations.first {
+                VStack(spacing: 1) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 8))
+                        .widgetAccentable()
+                    Text("\(station.bikesAvailable)")
+                        .font(.system(.title3, design: .rounded).bold())
+                        .foregroundStyle(statusColor(for: station.statusLevel))
+                        .widgetAccentable()
+                    Text("\(station.slotsFree)")
+                        .font(.system(.caption2, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                VStack(spacing: 2) {
+                    Image(systemName: "location.slash")
+                        .font(.caption2.weight(.semibold))
+                    Text("--")
+                        .font(.system(.title3, design: .rounded).bold())
+                }
+            }
+        }
+    }
+
+    private var rectangularView: some View {
+        Group {
+            if entry.nearbyStations.isEmpty {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Sin cercanas")
+                        .font(.caption.weight(.semibold))
+                    Text("Abre la app para actualizar")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(entry.nearbyStations) { station in
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(statusColor(for: station.statusLevel))
+                                .frame(width: 6, height: 6)
+                                .widgetAccentable()
+                            Text(station.name)
+                                .font(.caption2.weight(.semibold))
+                                .lineLimit(1)
+                            Spacer(minLength: 0)
+                            Text("\(station.bikesAvailable)/\(station.slotsFree)")
+                                .font(.system(.caption2, design: .rounded).weight(.semibold))
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

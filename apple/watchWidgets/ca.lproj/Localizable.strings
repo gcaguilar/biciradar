@@ -9,3 +9,7 @@
 "Hace %lldh" = "Fa %lldh";
 "Favorita" = "Preferida";
 "Consulta bicis, huecos y estado de tu estación favorita desde la esfera." = "Consulta bicis, ancoratges i estat de la teva estació preferida des de l'esfera.";
+"Cercanas" = "Properes";
+"Consulta las estaciones más cercanas con sus bicis y huecos desde la esfera o el Smart Stack." = "Consulta les estacions més properes amb les seves bicis i ancoratges des de l'esfera o el Smart Stack.";
+"Sin cercanas" = "Cap propera";
+"Abre la app para actualizar" = "Obre l'app per actualitzar";

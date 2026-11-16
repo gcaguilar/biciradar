@@ -9,3 +9,7 @@
 "Hace %lldh" = "%lldh lehenago";
 "Favorita" = "Gogokoa";
 "Consulta bicis, huecos y estado de tu estación favorita desde la esfera." = "Kontsultatu zure gogoko estazioaren bizikletak, lekuak eta egoera erlojuaren esferatik.";
+"Cercanas" = "Hurbilekoak";
+"Consulta las estaciones más cercanas con sus bicis y huecos desde la esfera o el Smart Stack." = "Kontsultatu hurbilen dauden estazioak, haien bizikleta eta lekuekin, erlojuaren esferatik edo Smart Stack-etik.";
+"Sin cercanas" = "Hurbilekorik ez";
+"Abre la app para actualizar" = "Ireki aplikazioa eguneratzeko";
