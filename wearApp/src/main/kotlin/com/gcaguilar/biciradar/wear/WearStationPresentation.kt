@@ -48,8 +48,6 @@ internal data class WearFavoriteSurfaceState(
   val statusText: String? = null,
   val statusLevel: SurfaceStatusLevel? = null,
   val updatedText: String? = null,
-  val bikesLabel: String? = null,
-  val docksLabel: String? = null,
   val bikesAvailable: Int = 0,
   val docksAvailable: Int = 0,
 )
@@ -68,8 +66,8 @@ internal data class WearMonitoringSurfaceState(
   val statusText: String,
   val statusLevel: SurfaceStatusLevel,
   val countdownText: String,
-  val bikesLabel: String,
-  val docksLabel: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
   val alternativeText: String? = null,
 )
 
@@ -79,8 +77,8 @@ internal data class WearSavedPlaceSurfaceState(
   val title: String,
   val statusText: String,
   val statusLevel: SurfaceStatusLevel,
-  val bikesLabel: String,
-  val docksLabel: String,
+  val bikesAvailable: Int,
+  val docksAvailable: Int,
 )
 
 /**
@@ -104,8 +102,6 @@ internal fun wearFavoriteSurfaceState(
       statusText = text.statusLabel(favorite.statusLevel),
       statusLevel = favorite.statusLevel,
       updatedText = text.relativeMinutes(favorite.lastUpdatedEpoch, nowEpoch),
-      bikesLabel = "🚲 ${favorite.bikesAvailable}",
-      docksLabel = "🅿 ${favorite.docksAvailable}",
       bikesAvailable = favorite.bikesAvailable,
       docksAvailable = favorite.docksAvailable,
     )
@@ -147,7 +143,8 @@ internal fun wearFavoriteTileState(
   return when (surface.kind) {
     WearFavoriteSurfaceKind.Favorite -> {
       val favorite = snapshot?.favoriteStation ?: fallbackStation
-      val metrics = listOfNotNull(surface.bikesLabel, surface.docksLabel).joinToString("  ")
+      // Tiles are text-only (no vector icons in the card body), so emoji stay here.
+      val metrics = "🚲 ${surface.bikesAvailable}  🅿 ${surface.docksAvailable}"
       val alternative =
         favorite?.alternativeStationName?.let { name ->
           text.alternativeLabel(name, favorite.alternativeDistanceMeters?.let(::formatDistance))
@@ -186,8 +183,8 @@ internal fun wearMonitoringSurfaceState(
     statusText = text.monitoringStatusLabel(session.status, session.kind),
     statusLevel = session.statusLevel,
     countdownText = wearMonitoringCountdownText(remainingSeconds),
-    bikesLabel = "🚲 ${session.bikesAvailable}",
-    docksLabel = "🅿 ${session.docksAvailable}",
+    bikesAvailable = session.bikesAvailable,
+    docksAvailable = session.docksAvailable,
     alternativeText =
       session.alternativeStationName?.let { name ->
         text.alternativeLabel(name, session.alternativeDistanceMeters?.let(::formatDistance))
@@ -226,6 +223,6 @@ private fun Station.toWearSavedPlaceSurfaceState(
     title = name,
     statusText = text.statusLabel(this),
     statusLevel = surfaceStatusLevel(),
-    bikesLabel = "🚲 $bikesAvailable",
-    docksLabel = "🅿 $slotsFree",
+    bikesAvailable = bikesAvailable,
+    docksAvailable = slotsFree,
   )

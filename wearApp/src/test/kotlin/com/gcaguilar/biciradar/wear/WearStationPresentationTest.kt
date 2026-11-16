@@ -70,8 +70,8 @@ class WearStationPresentationTest {
     assertEquals("Plaza Espana", state.title)
     assertEquals("Disponible", state.statusText)
     assertEquals("Hace 1 min", state.updatedText)
-    assertEquals("🚲 4", state.bikesLabel)
-    assertEquals("🅿 7", state.docksLabel)
+    assertEquals(4, state.bikesAvailable)
+    assertEquals(7, state.docksAvailable)
   }
 
   @Test
@@ -206,8 +206,8 @@ class WearStationPresentationTest {
 
     assertEquals("Alternativa sugerida", state.statusText)
     assertEquals("1m 5s", state.countdownText)
-    assertEquals("🚲 3", state.bikesLabel)
-    assertEquals("🅿 0", state.docksLabel)
+    assertEquals(3, state.bikesAvailable)
+    assertEquals(0, state.docksAvailable)
     assertEquals("Alt: Paraninfo (120 m)", state.alternativeText)
   }
 
