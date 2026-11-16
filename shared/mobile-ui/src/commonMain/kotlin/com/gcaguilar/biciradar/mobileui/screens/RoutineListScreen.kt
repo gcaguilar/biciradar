@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -70,6 +69,7 @@ import com.gcaguilar.biciradar.mobile_ui.generated.resources.routinesTitle
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
 import com.gcaguilar.biciradar.mobileui.MobileUiPlatform
 import com.gcaguilar.biciradar.mobileui.PlatformBackHandler
+import com.gcaguilar.biciradar.mobileui.components.BiziSwitch
 import com.gcaguilar.biciradar.mobileui.components.EmptyStatePlaceholder
 import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import com.gcaguilar.biciradar.mobileui.pageBackgroundColor
@@ -266,9 +266,10 @@ private fun RoutineListCard(
             color = colors.muted,
           )
         }
-        Switch(
+        BiziSwitch(
           checked = routine.isEnabled,
           onCheckedChange = onToggleEnabled,
+          label = routine.displayName,
         )
       }
       Text(

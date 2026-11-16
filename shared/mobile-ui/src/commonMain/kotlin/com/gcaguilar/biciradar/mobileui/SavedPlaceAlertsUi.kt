@@ -19,7 +19,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -55,6 +54,7 @@ import com.gcaguilar.biciradar.mobileui.biziCardBorder
 import com.gcaguilar.biciradar.mobileui.biziCardColors
 import com.gcaguilar.biciradar.mobileui.biziCardElevation
 import com.gcaguilar.biciradar.mobileui.components.BiziBottomSheet
+import com.gcaguilar.biciradar.mobileui.components.BiziSwitch
 import com.gcaguilar.biciradar.mobileui.components.biziTopAppBarColors
 import org.jetbrains.compose.resources.stringResource
 
@@ -258,9 +258,10 @@ internal fun SavedPlaceAlertsListScreen(
                     color = LocalBiziColors.current.muted,
                   )
                 }
-                Switch(
+                BiziSwitch(
                   checked = rule.isEnabled,
                   onCheckedChange = { onSetEnabled(rule.id, it) },
+                  label = savedPlaceAlertTargetLabel(rule.target),
                 )
               }
             }
