@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.core.TripMode
@@ -74,12 +75,18 @@ private fun MapFilterChip(
       MapFilter.AIR_QUALITY -> c.green
       MapFilter.POLLEN -> c.orange
     }
+  // The chips float over the map, so the selected state must be opaque: a translucent tint
+  // lets the map bleed through, and accent-colored text (green/orange) on that tint has poor
+  // contrast. Composite the tint over the chip surface and keep the label in the ink color;
+  // the accent stays on the dot and the border.
   BiziSelectableChip(
     selected = selected,
     onClick = onClick,
     tint = accent,
-    selectedContainerColor = accent.copy(alpha = BiziAlpha.mapFilterSelectedTint),
+    selectedContainerColor =
+      accent.copy(alpha = BiziAlpha.mapFilterSelectedTint).compositeOver(c.surface),
     selectedBorderColor = accent.copy(alpha = BiziAlpha.mapFilterSelectedBorder),
+    selectedContentColor = c.ink,
   ) { contentColor ->
     MapColorDot(color = accent)
     Text(
