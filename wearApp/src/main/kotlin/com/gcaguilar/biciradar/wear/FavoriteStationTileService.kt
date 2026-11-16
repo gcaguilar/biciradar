@@ -20,7 +20,11 @@ import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
 
-class FavoriteStationTileService : Material3TileService() {
+class FavoriteStationTileService :
+  Material3TileService(
+    allowDynamicTheme = true,
+    defaultColorScheme = WearTileColorScheme,
+  ) {
   override suspend fun MaterialScope.tileResponse(requestParams: RequestBuilders.TileRequest): TileBuilders.Tile {
     if (!WearAppGraph.isInitialized()) {
       WearAppGraph.initialize(applicationContext as android.app.Application)
@@ -31,7 +35,12 @@ class FavoriteStationTileService : Material3TileService() {
     val snapshot = graph.getCachedStationSnapshot.execute()
     val fallbackStation =
       if (snapshot?.favoriteStation == null) graph.getNearestStations.execute(limit = 1).firstOrNull() else null
-    val tileState = wearFavoriteTileState(ContextWearText(this@FavoriteStationTileService), snapshot, fallbackStation = fallbackStation)
+    val tileState =
+      wearFavoriteTileState(
+        ContextWearText(this@FavoriteStationTileService),
+        snapshot,
+        fallbackStation = fallbackStation,
+      )
 
     val labelSlot: (MaterialScope.() -> LayoutElementBuilders.LayoutElement)? =
       tileState.label?.takeIf { it.isNotBlank() }?.let { label ->

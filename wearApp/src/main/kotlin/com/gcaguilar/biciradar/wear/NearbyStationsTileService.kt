@@ -21,7 +21,11 @@ import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
 import com.gcaguilar.biciradar.core.formatDistance
 
-class NearbyStationsTileService : Material3TileService() {
+class NearbyStationsTileService :
+  Material3TileService(
+    allowDynamicTheme = true,
+    defaultColorScheme = WearTileColorScheme,
+  ) {
   private var pendingIntentCounter = 3000
 
   override suspend fun MaterialScope.tileResponse(requestParams: RequestBuilders.TileRequest): TileBuilders.Tile {
