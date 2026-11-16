@@ -1,7 +1,6 @@
 package com.gcaguilar.biciradar.mobileui.components.map
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -177,12 +177,15 @@ internal fun StationDetailCard(
           style = MaterialTheme.typography.bodySmall,
         )
         if (onDismiss != null) {
-          Icon(
-            imageVector = Icons.Filled.Close,
-            contentDescription = stringResource(Res.string.close),
-            tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
-            modifier = Modifier.size(20.dp).clickable(onClick = onDismiss),
-          )
+          // IconButton keeps the 48dp touch target the bare 20dp icon lacked.
+          IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
+            Icon(
+              imageVector = Icons.Filled.Close,
+              contentDescription = stringResource(Res.string.close),
+              tint = if (mobilePlatform == MobileUiPlatform.IOS) c.muted else overlayBody,
+              modifier = Modifier.size(20.dp),
+            )
+          }
         }
       }
 
