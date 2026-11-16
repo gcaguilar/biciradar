@@ -45,6 +45,7 @@ import com.gcaguilar.biciradar.core.Station
 import com.gcaguilar.biciradar.core.filterStationsByQuery
 import com.gcaguilar.biciradar.core.formatDistance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
+import com.gcaguilar.biciradar.mobile_ui.generated.resources.back
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.bikes
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.distance
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.favorite
@@ -139,7 +140,7 @@ internal fun FavoritesSearchScreen(
           IconButton(onClick = onBack) {
             Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = null,
+              contentDescription = stringResource(Res.string.back),
             )
           }
         },
