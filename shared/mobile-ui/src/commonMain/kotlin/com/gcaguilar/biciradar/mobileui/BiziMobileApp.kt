@@ -8,7 +8,8 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -109,6 +110,7 @@ private fun rememberNavigationConfig(
  * @param platformBindings Bindings de plataforma
  * @param graph Grafo de dependencias (si es null, se crea uno nuevo - no recomendado para producción)
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BiziMobileApp(
   platformBindings: PlatformBindings,
@@ -285,7 +287,7 @@ fun BiziMobileApp(
               modifier = Modifier.fillMaxSize(),
               contentAlignment = Alignment.Center,
             ) {
-              CircularProgressIndicator()
+              LoadingIndicator()
             }
           }
 

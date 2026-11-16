@@ -1,15 +1,19 @@
 package com.gcaguilar.biciradar.mobileui.components.buttons
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.Res
 import com.gcaguilar.biciradar.mobile_ui.generated.resources.refreshStations
 import com.gcaguilar.biciradar.mobileui.LocalBiziColors
@@ -19,6 +23,7 @@ import org.jetbrains.compose.resources.stringResource
  * Botón de refresco con cuenta regresiva.
  * Muestra el tiempo restante para la próxima actualización.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun RefreshButtonWithCountdown(
   countdown: Int,
@@ -31,7 +36,12 @@ internal fun RefreshButtonWithCountdown(
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     IconButton(onClick = onRefresh, enabled = !loading) {
-      Icon(Icons.Filled.Sync, contentDescription = stringResource(Res.string.refreshStations))
+      if (loading) {
+        // Same 24dp slot as the icon, so the countdown below doesn't jump.
+        LoadingIndicator(modifier = Modifier.size(24.dp))
+      } else {
+        Icon(Icons.Filled.Sync, contentDescription = stringResource(Res.string.refreshStations))
+      }
     }
     if (countdown > 0 && !loading) {
       val minutes = countdown / 60
