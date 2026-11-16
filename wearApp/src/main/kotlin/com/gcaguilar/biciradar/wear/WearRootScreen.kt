@@ -209,7 +209,6 @@ internal fun WearRoot(
             onOpenSurfaceStation = viewModel::onStationSelected,
             onRefresh = viewModel::onRefresh,
             onStartMonitoringFavorite = viewModel::onStartMonitoringFavorite,
-            onRouteToSavedPlace = viewModel::onRoute,
             onStopMonitoring = viewModel::onStopMonitoring,
           )
         }
@@ -323,7 +322,6 @@ private fun WearDashboard(
   onOpenSurfaceStation: (String) -> Unit,
   onRefresh: () -> Unit,
   onStartMonitoringFavorite: (String) -> Unit,
-  onRouteToSavedPlace: (String) -> Unit,
   onStopMonitoring: () -> Unit,
 ) {
   val hasLargeFont = LocalDensity.current.fontScale >= WEAR_LARGE_FONT_SCALE
@@ -431,7 +429,7 @@ private fun WearDashboard(
           WearSavedPlaceSurfaceCard(
             state = savedPlace,
             hasLargeFont = hasLargeFont,
-            onClick = { onRouteToSavedPlace(savedPlace.stationId) },
+            onClick = { onOpenSurfaceStation(savedPlace.stationId) },
           )
         }
       }
@@ -847,23 +845,17 @@ private fun WearStationDetail(
       currentMonitoring?.isActive == true -> stringResource(R.string.wear_action_monitor_here)
       else -> stringResource(R.string.wear_action_monitor_docks)
     }
-  // One primary action per screen goes in the edge button: route on the watch if it can,
-  // otherwise route on the phone.
-  val primaryAction: (() -> Unit)? = onRoute ?: onRouteInPhone
-  val primaryLabelRes =
-    if (onRoute != null) R.string.wear_action_open_route else R.string.wear_action_route_on_phone
-  val phoneAction: (() -> Unit)? = if (onRoute != null) onRouteInPhone else null
-  val detailContent: @Composable BoxScope.(PaddingValues) -> Unit = { scaffoldPadding ->
+  val detailContent: @Composable BoxScope.(PaddingValues) -> Unit = { _ ->
     ScalingLazyColumn(
       modifier = Modifier.fillMaxSize(),
       state = listState,
-      autoCentering = if (primaryAction != null) null else AutoCenteringParams(),
+      autoCentering = AutoCenteringParams(),
       contentPadding =
         PaddingValues(
           start = 16.dp,
           end = 16.dp,
           top = 32.dp,
-          bottom = if (primaryAction != null) scaffoldPadding.calculateBottomPadding() else 32.dp,
+          bottom = 32.dp,
         ),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -931,7 +923,19 @@ private fun WearStationDetail(
           )
         }
       }
-      phoneAction?.let { routeInPhoneAction ->
+      // Routes are regular list buttons (not an always-visible edge button) so a stray touch
+      // while scrolling can't launch navigation.
+      onRoute?.let { routeAction ->
+        item {
+          FilledTonalButton(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            onClick = routeAction,
+          ) {
+            WearButtonLabel(text = stringResource(R.string.wear_action_open_route))
+          }
+        }
+      }
+      onRouteInPhone?.let { routeInPhoneAction ->
         item {
           FilledTonalButton(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -972,19 +976,7 @@ private fun WearStationDetail(
       }
     }
   }
-  if (primaryAction != null) {
-    ScreenScaffold(
-      scrollState = listState,
-      edgeButton = {
-        EdgeButton(onClick = primaryAction) {
-          WearButtonLabel(text = stringResource(primaryLabelRes))
-        }
-      },
-      content = detailContent,
-    )
-  } else {
-    ScreenScaffold(scrollState = listState, content = detailContent)
-  }
+  ScreenScaffold(scrollState = listState, content = detailContent)
 }
 
 @Composable
