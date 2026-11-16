@@ -1,5 +1,6 @@
 import Core
 import Foundation
+import MapKit
 
 actor BiziWatchGraph {
     static let shared = BiziWatchGraph()
@@ -74,8 +75,28 @@ actor BiziWatchGraph {
     func openRoute(to stationId: String) async throws -> WatchStationSnapshot? {
         try await refreshData()
         guard let station = graph.findStationById.execute(stationId: stationId) else { return nil }
-        graph.routeLauncher.launch(station: station)
+        // Maps must be launched from the main thread; this actor runs on its own executor.
+        let opened = await Self.openWalkingRoute(
+            name: station.name,
+            latitude: station.location.latitude,
+            longitude: station.location.longitude
+        )
+        guard opened else { throw WatchRouteError.couldNotOpenMaps }
         return snapshot(from: station)
+    }
+
+    @MainActor
+    private static func openWalkingRoute(name: String, latitude: Double, longitude: Double) -> Bool {
+        let destination = MKMapItem(
+            placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
+        )
+        destination.name = name
+        // Passing the current location as an explicit source makes Maps compute the walking
+        // route right away instead of waiting on a start point.
+        return MKMapItem.openMaps(
+            with: [MKMapItem.forCurrentLocation(), destination],
+            launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking]
+        )
     }
 
     func refreshData(forceRefresh: Bool = false) async throws {
@@ -101,4 +122,8 @@ actor BiziWatchGraph {
             distanceMeters: Int(station.distanceMeters)
         )
     }
+}
+
+enum WatchRouteError: Error {
+    case couldNotOpenMaps
 }
