@@ -5,6 +5,39 @@ usuario (también se refleja en `ChangelogCatalog`, en las notas de Play y en la
 notas de la App Store). Las secciones **Release** y **CI** documentan los cambios
 internos de empaquetado, versionado y automatización que acompañan a la versión.
 
+## 0.23.4 · reedición solo Wear OS
+
+`versionName` 0.23.4 · Wear OS `29570228`. Android `29570226` y Apple
+`29570226` no cambian.
+
+Reedición de la app del reloj tras el rechazo de Play («Wear app functionality
+not working as described»): la ficha anuncia la ruta en el reloj, los avisos
+desde la muñeca y las estaciones de tu ciudad, y no se podían ver en un reloj
+real.
+
+### App
+
+- **Wear OS, ruta en el reloj**: el manifest no declaraba `<queries>` para Google
+  Maps ni para `geo:`, así que con el filtrado de visibilidad de paquetes
+  (Android 11+) el botón nunca aparecía. Ahora se declaran y el botón, renombrado
+  a «Ruta en el reloj», abre Google Maps o cualquier app que atienda `geo:`.
+- **Wear OS, ruta en el móvil**: «Ruta en teléfono» solo se ofrece si el móvil
+  está cerca; antes aparecía con un móvil solo accesible por la nube y fallaba
+  siempre.
+- **Wear OS, ciudad**: el reloj adopta la ciudad elegida en el móvil (publicada en
+  `/bizi/city`). Antes mostraba siempre Zaragoza y las favoritas del móvil no
+  coincidían con sus estaciones. Sin móvil emparejado sigue en Zaragoza.
+- **Wear OS, vigilar una estación**: sin un móvil cercano que reciba la petición,
+  el reloj ya no deja una cuenta atrás falsa: deshace la sesión y avisa de que los
+  avisos necesitan el móvil emparejado.
+
+### Release
+
+- `tooling/project/bump_version.sh --wear-only` sube Wear OS a `29570228`
+  (Play no deja reutilizar `29570227`); `VERSION`, `BUILD_NUMBER`, Android y
+  Apple no cambian.
+- Notas de Play para `29570228` en es y en.
+
 ## 0.23.4
 
 `versionName` 0.23.4 · Android `29570226` · Wear OS `29570227` · Apple

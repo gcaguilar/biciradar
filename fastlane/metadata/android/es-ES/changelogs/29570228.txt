@@ -1,0 +1,1 @@
+Wear OS: el detalle de la estación muestra ahora un botón "Ruta en el reloj" que funciona cuando el reloj tiene una app de mapas, y "Ruta en teléfono" solo si el móvil está cerca. El reloj sigue la ciudad elegida en el móvil y, al vigilar una estación, avisa si no hay un móvil emparejado.

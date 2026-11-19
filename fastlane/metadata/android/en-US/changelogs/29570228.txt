@@ -1,0 +1,1 @@
+Wear OS: the station detail now shows a working "Route on watch" button when the watch has a maps app, and "Route on phone" only when your phone is nearby. The watch follows the city chosen on the phone, and monitoring a station tells you when no paired phone is available.
