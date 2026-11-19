@@ -10,8 +10,11 @@ The `Dockerfile` is a two-stage build:
 
 - **build**: Node 26 builds `dist/` as the unprivileged `node` user. npm install
   scripts are disabled because the current dependency tree does not need them.
-- **runtime**: `nginx-unprivileged` serves the static output as UID/GID `101`
-  and listens on port `8080`. No package is installed at runtime.
+- **runtime**: the official `nginx:1.30.7-alpine3.24-slim` image serves the
+  static output as UID/GID `101` and listens on port `8080`. `nginx.conf`
+  replaces the root-based defaults so PID, logs and temp files live under
+  `/tmp`. No packages are added; both stages upgrade the base image's zlib to
+  the patched Alpine package.
 
 Build and run locally:
 
@@ -46,9 +49,10 @@ files under `/tmp`; no other path needs to be writable.
 
 - Base images are pinned by digest. The Docker Dependabot ecosystem in
   `.github/dependabot.yml` updates them.
-- Runtime: UID/GID `101`, no runtime package installation, nginx version
-  disclosure disabled, CSP and hardening headers enabled, only `GET`/`HEAD`
-  allowed, dotfiles denied, request bodies limited, autoindex disabled.
+- Runtime: UID/GID `101`, no new runtime packages (only `apk upgrade zlib`),
+  nginx version disclosure disabled, CSP and hardening headers enabled, only
+  `GET`/`HEAD` allowed, dotfiles denied, request bodies limited, autoindex
+  disabled.
 - Build: unprivileged `node` user and `npm ci --ignore-scripts`.
 - The CSP allows inline scripts because Astro emits an inline analytics loader,
   WebMCP bootstrap, and JSON-LD blocks. Tightening it further requires a
