@@ -14,7 +14,8 @@ import java.util.concurrent.Executor
  * Sends a "route to station" request to the phone.
  *
  * Availability is cached and kept up to date by a [CapabilityClient] listener, so
- * [isRouteAvailable] is a plain in-memory read and is safe to call from the main thread.
+ * [isRouteAvailable] never blocks and is safe to call from the main thread. Only a phone
+ * that is directly connected (nearby) counts as available.
  *
  * The route itself is launched with [RemoteActivityHelper]: Play Services starts the
  * phone activity on our behalf, so it is exempt from the Android 10+ background
@@ -49,7 +50,16 @@ class PlaystoreWearPhoneRouteRequesterDelegate(
     refreshAvailability()
   }
 
-  fun isRouteAvailable(): Boolean = routeAvailable
+  /**
+   * In-memory read of the last known value. It also kicks off an async re-query:
+   * a phone that drops from Bluetooth to cloud-only stays in the capability set, so
+   * no listener event would tell us it is no longer nearby. The result lands through
+   * [onAvailabilityChanged], and callers poll this periodically, so it converges.
+   */
+  fun isRouteAvailable(): Boolean {
+    refreshAvailability()
+    return routeAvailable
+  }
 
   fun setOnAvailabilityChanged(listener: ((Boolean) -> Unit)?) {
     onAvailabilityChanged = listener
@@ -123,7 +133,10 @@ class PlaystoreWearPhoneRouteRequesterDelegate(
 
   private fun applyCapabilityInfo(capabilityInfo: CapabilityInfo) {
     if (capabilityInfo.name != PHONE_ROUTE_CAPABILITY) return
-    phoneNodeId = capabilityInfo.nodes.firstOrNull()?.id
+    // FILTER_REACHABLE also returns a phone that is only reachable through the cloud.
+    // RemoteActivityHelper cannot start an activity on it, so offering the route
+    // would always end in "couldn't open the route on the phone".
+    phoneNodeId = capabilityInfo.nodes.firstOrNull { it.isNearby }?.id
     applyAvailability(available = phoneNodeId != null)
   }
 
