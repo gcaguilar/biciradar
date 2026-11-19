@@ -35,7 +35,7 @@ packages:
     exactVersion: 13.2.0
   GoogleMaps:
     url: https://github.com/googlemaps/ios-maps-sdk
-    exactVersion: 11.3.0
+    exactVersion: 11.4.0
   Auth0:
     url: https://github.com/auth0/Auth0.swift
     exactVersion: 3.3.1
