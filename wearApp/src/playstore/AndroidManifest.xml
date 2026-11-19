@@ -20,6 +20,10 @@
                     android:scheme="wear"
                     android:host="*"
                     android:pathPrefix="/bizi/favorites" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/bizi/city" />
             </intent-filter>
         </service>
     </application>

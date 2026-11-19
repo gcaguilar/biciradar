@@ -305,6 +305,27 @@ private class PlaystoreWatchSyncBridge(
     }
   }
 
+  /**
+   * Sólo lleva el id: si la ciudad no cambia, el DataItem es idéntico y Data Layer
+   * no notifica al reloj, así que republicarlo en cada arranque no cuesta nada.
+   */
+  override suspend fun pushSelectedCity(cityId: String) {
+    val client = dataClient ?: return
+    runCatching {
+      withContext(Dispatchers.IO) {
+        val request =
+          PutDataMapRequest
+            .create(CITY_PATH)
+            .apply { dataMap.putString(CITY_ID_KEY, cityId) }
+            .asPutDataRequest()
+            .setUrgent()
+        Tasks.await(client.putDataItem(request))
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to push selected city", error)
+    }
+  }
+
   override suspend fun latestFavorites(): FavoritesSyncSnapshot? {
     val client = dataClient ?: return null
     return runCatching {
@@ -357,6 +378,8 @@ private class PlaystoreWatchSyncBridge(
   private companion object {
     const val TAG = "WatchSyncBridge"
     const val FAVORITES_PATH = "/bizi/favorites"
+    const val CITY_PATH = "/bizi/city"
+    const val CITY_ID_KEY = "city_id"
     const val FAVORITES_KEY = "favorite_ids"
     const val HOME_STATION_KEY = "home_station_id"
     const val WORK_STATION_KEY = "work_station_id"

@@ -22,7 +22,7 @@ class WearFavoritesSyncService : WearableListenerService() {
 
     val hasFavoritesChange =
       dataEvents.any { event ->
-        event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == FAVORITES_PATH
+        event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path in SYNC_PATHS
       }
     if (!hasFavoritesChange) return
 
@@ -35,11 +35,17 @@ class WearFavoritesSyncService : WearableListenerService() {
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
       runCatching { WearAppGraph.graph.syncFavoritesFromPeer.execute() }
         .onFailure { error -> Log.w(TAG, "No se pudieron sincronizar los favoritos del teléfono", error) }
+      // Tiles y complication leen la caché: refrescarlos para que reflejen la
+      // nueva ciudad o favorita sin esperar a su siguiente actualización.
+      FavoriteStationTileService.requestUpdate(applicationContext)
+      NearbyStationsTileService.requestUpdate(applicationContext)
     }
   }
 
   private companion object {
     private const val TAG = "WearFavoritesSync"
-    private const val FAVORITES_PATH = "/bizi/favorites"
+
+    /** `/bizi/city` también: la ciudad del teléfono se adopta dentro de la misma sincronización. */
+    private val SYNC_PATHS = setOf("/bizi/favorites", "/bizi/city")
   }
 }

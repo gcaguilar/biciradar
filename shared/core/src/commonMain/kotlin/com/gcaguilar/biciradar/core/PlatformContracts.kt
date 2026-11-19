@@ -70,6 +70,15 @@ interface WatchSyncBridge {
   suspend fun pushFavorites(snapshot: FavoritesSyncSnapshot)
 
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
+
+  /**
+   * Teléfono: publica la ciudad seleccionada. La ciudad sólo se configura en el
+   * teléfono; el reloj la adopta para que sus estaciones y favoritas coincidan.
+   */
+  suspend fun pushSelectedCity(cityId: String) = Unit
+
+  /** Reloj: última ciudad publicada por el teléfono, o `null` si no hay ninguna. */
+  suspend fun latestSelectedCityId(): String? = null
 }
 
 /**
@@ -82,6 +91,7 @@ data class WatchMonitoringCommandResult(
   val stationId: String?,
   val success: Boolean,
   val failure: TripMonitoringFailure? = null,
+  val phoneUnreachable: Boolean = false,
 )
 
 /**
@@ -91,7 +101,6 @@ data class WatchMonitoringCommandResult(
  * vigilancia real en el teléfono. Este puente transporta la petición y el
  * resultado; la sesión local del reloj es solo la representación visual.
  */
-  val phoneUnreachable: Boolean = false,
 interface WatchMonitoringBridge {
   /** Resultado del último comando, para avisar si el teléfono no pudo vigilar. */
   val commandResults: Flow<WatchMonitoringCommandResult> get() = emptyFlow()

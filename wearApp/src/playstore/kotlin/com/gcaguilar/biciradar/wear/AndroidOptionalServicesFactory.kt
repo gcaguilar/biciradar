@@ -79,9 +79,11 @@ private class WearPlaystoreWatchSyncBridge(
   private val dataChangedListener =
     DataClient.OnDataChangedListener { dataEvents ->
       val callback = onRemoteFavoritesChanged ?: return@OnDataChangedListener
+      // Un cambio de ciudad también resincroniza: SyncFavoritesFromPeer adopta la
+      // ciudad del teléfono antes de aplicar las favoritas.
       val hasFavoritesUpdate =
         dataEvents.any { event ->
-          event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path == FAVORITES_PATH
+          event.type == DataEvent.TYPE_CHANGED && event.dataItem.uri.path in SYNC_PATHS
         }
       if (hasFavoritesUpdate) {
         scope.launch { callback() }
@@ -151,6 +153,36 @@ private class WearPlaystoreWatchSyncBridge(
     }.getOrNull()
   }
 
+  override suspend fun latestSelectedCityId(): String? {
+    val client = dataClient ?: return null
+    return runCatching {
+      withContext(Dispatchers.IO) {
+        val uri =
+          Uri
+            .Builder()
+            .scheme(PutDataRequest.WEAR_URI_SCHEME)
+            .path(CITY_PATH)
+            .build()
+        val dataItems = Tasks.await(client.getDataItems(uri))
+        try {
+          // Sólo el teléfono publica esta ruta.
+          (0 until dataItems.count)
+            .firstNotNullOfOrNull { index ->
+              DataMapItem
+                .fromDataItem(dataItems.get(index))
+                .dataMap
+                .getString(CITY_ID_KEY)
+                ?.takeIf { it.isNotBlank() }
+            }
+        } finally {
+          dataItems.release()
+        }
+      }
+    }.onFailure { error ->
+      Log.w(TAG, "Failed to read selected city", error)
+    }.getOrNull()
+  }
+
   private fun decodeSnapshot(dataMap: DataMap): FavoritesSyncSnapshot {
     val updatedAt = dataMap.getLong(UPDATED_AT_KEY, 0L)
     val decoded = dataMap.getString(PAYLOAD_JSON_KEY)?.let(FavoritesSyncCodec::decode)
@@ -175,6 +207,9 @@ private class WearPlaystoreWatchSyncBridge(
   private companion object {
     const val TAG = "WatchSyncBridge"
     const val FAVORITES_PATH = "/bizi/favorites"
+    const val CITY_PATH = "/bizi/city"
+    const val CITY_ID_KEY = "city_id"
+    val SYNC_PATHS = setOf(FAVORITES_PATH, CITY_PATH)
     const val FAVORITES_KEY = "favorite_ids"
     const val HOME_STATION_KEY = "home_station_id"
     const val WORK_STATION_KEY = "work_station_id"

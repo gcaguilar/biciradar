@@ -224,6 +224,13 @@ class AndroidPlatformBindings(
         watchMonitoringBridge.publishSessions(sessions.values.filter { it.isActive })
       }
     }
+    // La ciudad sólo se configura en el teléfono: la publica para que el reloj
+    // muestre las mismas estaciones (no-op en el puente del reloj).
+    platformScope.launch {
+      graph.settingsRepository.selectedCity.collect { city ->
+        watchSyncBridge.pushSelectedCity(city.id)
+      }
+    }
   }
 }
 
