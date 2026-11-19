@@ -242,22 +242,7 @@ internal class WearViewModel(
         watchMonitoringBridge.requestStop(stationId)
         ongoingActivity.stop()
       } else {
-        // El reloj no tiene sesión Auth0 ni token push propios: la sesión es
-        // solo visual y el teléfono es quien abre la ventana que avisa.
-        startStationMonitoring.execute(stationId = stationId, openWindow = false)
-        watchMonitoringBridge.requestStart(
-          stationId = stationId,
-          durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-          kind = SurfaceMonitoringKind.Docks,
-        )
-        val station = findStationById.execute(stationId)
-        if (station != null) {
-          ongoingActivity.start(
-            stationId = stationId,
-            stationName = station.name,
-            remainingSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-          )
-        }
+        startMonitoring(stationId)
       }
       FavoriteStationTileService.requestUpdate(appContext)
       NearbyStationsTileService.requestUpdate(appContext)
@@ -266,23 +251,32 @@ internal class WearViewModel(
 
   fun onStartMonitoringFavorite(stationId: String) {
     viewModelScope.launch {
-      startStationMonitoring.execute(stationId = stationId, openWindow = false)
-      watchMonitoringBridge.requestStart(
-        stationId = stationId,
-        durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-        kind = SurfaceMonitoringKind.Docks,
-      )
-      val station = findStationById.execute(stationId)
-      if (station != null) {
-        ongoingActivity.start(
-          stationId = stationId,
-          stationName = station.name,
-          remainingSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
-        )
-      }
+      startMonitoring(stationId)
       FavoriteStationTileService.requestUpdate(appContext)
       NearbyStationsTileService.requestUpdate(appContext)
     }
+  }
+
+  /**
+   * El reloj no tiene sesión Auth0 ni token push propios: la sesión es solo
+   * visual y el teléfono es quien abre la ventana que avisa. La ongoing activity
+   * se arranca antes de pedirlo para que un fallo inmediato (sin teléfono) la
+   * retire siempre después y no quede colgada.
+   */
+  private suspend fun startMonitoring(stationId: String) {
+    startStationMonitoring.execute(stationId = stationId, openWindow = false)
+    findStationById.execute(stationId)?.let { station ->
+      ongoingActivity.start(
+        stationId = stationId,
+        stationName = station.name,
+        remainingSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+      )
+    }
+    watchMonitoringBridge.requestStart(
+      stationId = stationId,
+      durationSeconds = DEFAULT_SURFACE_MONITORING_DURATION_SECONDS,
+      kind = SurfaceMonitoringKind.Docks,
+    )
   }
 
   /** El teléfono no pudo vigilar: retira la cuenta atrás local y explica por qué. */
@@ -291,14 +285,17 @@ internal class WearViewModel(
     val stationId = result.stationId ?: return
     stopStationMonitoring.execute(clear = false, stationId = stationId)
     ongoingActivity.stop()
-    emitFeedback(
-      when (result.failure) {
-        TripMonitoringFailure.SignInRequired -> text.get(R.string.wear_feedback_sign_in)
-        TripMonitoringFailure.NotificationsUnavailable -> text.get(R.string.wear_feedback_notifications)
-        TripMonitoringFailure.BackendUnavailable -> text.get(R.string.wear_feedback_backend)
-        null -> text.get(R.string.wear_feedback_monitor_failed)
-      },
-    )
+    FavoriteStationTileService.requestUpdate(appContext)
+    NearbyStationsTileService.requestUpdate(appContext)
+    val messageRes =
+      when {
+        result.phoneUnreachable -> R.string.wear_feedback_phone_unreachable
+        result.failure == TripMonitoringFailure.SignInRequired -> R.string.wear_feedback_sign_in
+        result.failure == TripMonitoringFailure.NotificationsUnavailable -> R.string.wear_feedback_notifications
+        result.failure == TripMonitoringFailure.BackendUnavailable -> R.string.wear_feedback_backend
+        else -> R.string.wear_feedback_monitor_failed
+      }
+    emitFeedback(text.get(messageRes))
   }
 
   fun onStopMonitoring() {

@@ -59,6 +59,7 @@
     <string name="wear_feedback_notifications">Gaitu jakinarazpenak telefonoan</string>
     <string name="wear_feedback_backend">Telefonoak ezin izan du geltokia zaindu</string>
     <string name="wear_feedback_monitor_failed">Ezin izan da telefonotik zaindu</string>
+    <string name="wear_feedback_phone_unreachable">Abisuek parekatutako mugikorra behar dute</string>
     <string name="wear_feedback_no_maps">Ez dago mapa-aplikaziorik erloju honetan</string>
     <string name="wear_feedback_open_phone">Ireki BiciRadar mugikorrean ibilbide hau aktibatzeko</string>
     <string name="wear_feedback_route_failed">Ezin izan da ibilbidea telefonoan ireki</string>

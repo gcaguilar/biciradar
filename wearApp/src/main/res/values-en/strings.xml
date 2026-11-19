@@ -59,6 +59,7 @@
     <string name="wear_feedback_notifications">Enable notifications on your phone</string>
     <string name="wear_feedback_backend">The phone couldn\'t monitor the station</string>
     <string name="wear_feedback_monitor_failed">Couldn\'t monitor from the phone</string>
+    <string name="wear_feedback_phone_unreachable">Alerts need your paired phone</string>
     <string name="wear_feedback_no_maps">No maps app available on this watch</string>
     <string name="wear_feedback_open_phone">Open BiciRadar on your phone to start this route</string>
     <string name="wear_feedback_route_failed">Couldn\'t open the route on the phone</string>

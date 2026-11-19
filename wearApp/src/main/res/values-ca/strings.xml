@@ -59,6 +59,7 @@
     <string name="wear_feedback_notifications">Activa les notificacions al telèfon</string>
     <string name="wear_feedback_backend">El telèfon no ha pogut vigilar l\'estació</string>
     <string name="wear_feedback_monitor_failed">No s\'ha pogut vigilar des del telèfon</string>
+    <string name="wear_feedback_phone_unreachable">Els avisos necessiten el mòbil vinculat</string>
     <string name="wear_feedback_no_maps">No hi ha cap aplicació de mapes en aquest rellotge</string>
     <string name="wear_feedback_open_phone">Obre BiciRadar al mòbil per activar aquesta ruta</string>
     <string name="wear_feedback_route_failed">No s\'ha pogut obrir la ruta al telèfon</string>

@@ -72,7 +72,12 @@ interface WatchSyncBridge {
   suspend fun latestFavorites(): FavoritesSyncSnapshot?
 }
 
-/** Resultado que el teléfono devuelve al reloj tras un comando de monitorización. */
+/**
+ * Resultado que el teléfono devuelve al reloj tras un comando de monitorización.
+ *
+ * [phoneUnreachable] lo emite el propio reloj cuando no hay ningún teléfono
+ * emparejado al que entregar el comando (p. ej. reloj sin móvil).
+ */
 data class WatchMonitoringCommandResult(
   val stationId: String?,
   val success: Boolean,
@@ -86,6 +91,7 @@ data class WatchMonitoringCommandResult(
  * vigilancia real en el teléfono. Este puente transporta la petición y el
  * resultado; la sesión local del reloj es solo la representación visual.
  */
+  val phoneUnreachable: Boolean = false,
 interface WatchMonitoringBridge {
   /** Resultado del último comando, para avisar si el teléfono no pudo vigilar. */
   val commandResults: Flow<WatchMonitoringCommandResult> get() = emptyFlow()

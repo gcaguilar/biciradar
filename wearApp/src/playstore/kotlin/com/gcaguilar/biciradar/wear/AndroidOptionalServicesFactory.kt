@@ -223,14 +223,22 @@ private class WearPlaystoreWatchMonitoringBridge(
     durationSeconds: Int,
     kind: SurfaceMonitoringKind,
   ) {
-    sendCommand(
-      WatchMonitoringCommandPayload(
-        action = WatchMonitoringProtocol.ACTION_START,
-        stationId = stationId,
-        durationSeconds = durationSeconds,
-        kind = kind.name,
-      ),
-    )
+    val delivered =
+      sendCommand(
+        WatchMonitoringCommandPayload(
+          action = WatchMonitoringProtocol.ACTION_START,
+          stationId = stationId,
+          durationSeconds = durationSeconds,
+          kind = kind.name,
+        ),
+      )
+    // Sin teléfono que reciba el comando nadie va a vigilar ni avisar: lo
+    // notificamos para que el reloj no muestre una cuenta atrás que no sirve.
+    if (!delivered) {
+      results.tryEmit(
+        WatchMonitoringCommandResult(stationId = stationId, success = false, phoneUnreachable = true),
+      )
+    }
   }
 
   override suspend fun requestStop(stationId: String?) {
@@ -274,19 +282,24 @@ private class WearPlaystoreWatchMonitoringBridge(
       .path(WatchMonitoringProtocol.SESSIONS_PATH)
       .build()
 
-  private suspend fun sendCommand(payload: WatchMonitoringCommandPayload) {
-    val client = messageClient ?: return
+  /** Devuelve `true` si al menos un teléfono cercano aceptó el comando. */
+  private suspend fun sendCommand(payload: WatchMonitoringCommandPayload): Boolean {
+    val client = messageClient ?: return false
     val bytes = WatchMonitoringProtocol.encodeCommand(payload)
-    runCatching {
+    return runCatching {
       withContext(Dispatchers.IO) {
         val nodes = nodeClient?.let { Tasks.await(it.connectedNodes) }.orEmpty()
-        nodes.filter { it.isNearby }.forEach { node ->
-          runCatching { Tasks.await(client.sendMessage(node.id, WatchMonitoringProtocol.COMMAND_PATH, bytes)) }
-        }
+        nodes
+          .filter { it.isNearby }
+          .map { node ->
+            runCatching {
+              Tasks.await(client.sendMessage(node.id, WatchMonitoringProtocol.COMMAND_PATH, bytes))
+            }.isSuccess
+          }.any { it }
       }
     }.onFailure { error ->
       Log.w(TAG, "Failed to send monitoring command", error)
-    }
+    }.getOrDefault(false)
   }
 
   private companion object {
