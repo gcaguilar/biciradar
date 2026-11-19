@@ -29,7 +29,7 @@
     <string name="wear_action_monitor_favorite">Monitor favorite</string>
     <string name="wear_action_monitor_here">Monitor here</string>
     <string name="wear_action_monitor_docks">Monitor free docks</string>
-    <string name="wear_action_open_route">Open route</string>
+    <string name="wear_action_open_route">Route on watch</string>
     <string name="wear_action_route_on_phone">Route on phone</string>
     <string name="wear_action_remove_favorite">★ Remove favorite</string>
     <string name="wear_action_add_favorite">☆ Add favorite</string>

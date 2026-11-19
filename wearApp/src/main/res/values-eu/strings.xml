@@ -29,7 +29,7 @@
     <string name="wear_action_monitor_favorite">Monitorizatu gogokoa</string>
     <string name="wear_action_monitor_here">Monitorizatu hemen</string>
     <string name="wear_action_monitor_docks">Monitorizatu zulo libreak</string>
-    <string name="wear_action_open_route">Ireki ibilbidea</string>
+    <string name="wear_action_open_route">Ibilbidea erlojuan</string>
     <string name="wear_action_route_on_phone">Ibilbidea telefonoan</string>
     <string name="wear_action_remove_favorite">★ Kendu gogokoa</string>
     <string name="wear_action_add_favorite">☆ Gehitu gogokoa</string>

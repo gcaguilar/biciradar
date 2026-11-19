@@ -29,7 +29,7 @@
     <string name="wear_action_monitor_favorite">Monitoritza la preferida</string>
     <string name="wear_action_monitor_here">Monitoritza aquí</string>
     <string name="wear_action_monitor_docks">Monitoritza els ancoratges</string>
-    <string name="wear_action_open_route">Obre la ruta</string>
+    <string name="wear_action_open_route">Ruta al rellotge</string>
     <string name="wear_action_route_on_phone">Ruta al telèfon</string>
     <string name="wear_action_remove_favorite">★ Treu de preferides</string>
     <string name="wear_action_add_favorite">☆ Afegeix a preferides</string>

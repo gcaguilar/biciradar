@@ -29,7 +29,7 @@
     <string name="wear_action_monitor_favorite">Monitorizar favorita</string>
     <string name="wear_action_monitor_here">Monitorizar aquí</string>
     <string name="wear_action_monitor_docks">Monitorizar ocos</string>
-    <string name="wear_action_open_route">Abrir ruta</string>
+    <string name="wear_action_open_route">Ruta no reloxo</string>
     <string name="wear_action_route_on_phone">Ruta no teléfono</string>
     <string name="wear_action_remove_favorite">★ Quitar favorita</string>
     <string name="wear_action_add_favorite">☆ Engadir favorita</string>
