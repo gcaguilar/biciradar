@@ -171,8 +171,8 @@ Versiones en `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
-androidx-appfunctions = "1.0.0-beta01"
-ksp = "2.3.13"
+androidx-appfunctions = "1.0.0"
+ksp = "2.3.14"
 
 [libraries]
 androidx-appfunctions = { module = "androidx.appfunctions:appfunctions", version.ref = "androidx-appfunctions" }
