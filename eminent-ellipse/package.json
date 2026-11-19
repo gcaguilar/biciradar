@@ -16,6 +16,6 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "astro": "^7.2.4"
+    "astro": "^7.4.13"
   }
 }
