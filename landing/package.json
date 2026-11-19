@@ -24,6 +24,6 @@
     "@types/node": "^26.6.6",
     "gh-pages": "^6.3.0",
     "tailwindcss": "^4.3.5",
-    "vitest": "^4.1.11"
+    "vitest": "^5.1.1"
   }
 }
