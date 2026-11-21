@@ -20,7 +20,7 @@ COPY --chown=1000:1000 src ./src
 RUN npm run build
 
 # Runtime: nginx 1.30.7 listens on 8080 as UID/GID 101 with a rootless config.
-FROM nginx:1.30.7-alpine3.24-slim@sha256:e2fc266695cef82e3a686c7ed628d1f09c2a7bb5ffb2a718ae7f7c821f5583c1
+FROM nginx:1.31.8-alpine3.24-slim@sha256:4c734d33ee731135dc9f2349914a34551c920f4451fca8bb05bf5880eb9079e8
 
 LABEL org.opencontainers.image.title="BiciRadar landing" \
       org.opencontainers.image.description="Static BiciRadar landing site served by rootless nginx" \
